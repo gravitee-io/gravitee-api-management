@@ -34,8 +34,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { tap } from 'rxjs';
 
 import { SslTruststoreFormValue, TRUSTSTORE_TYPE_LABELS } from './ssl-trust-store.model';
-import { pathOrContentRequired } from './ssl-trust-store.validators';
 import { JKSTrustStore, PEMTrustStore, PKCS12TrustStore, SslTrustStore, SslTrustStoreType } from '../../../../../../entities/ssl';
+import { pathOrContentRequired } from '../validators/ssl-trust-store.validators';
 
 @Component({
   selector: 'app-ssl-truststore',

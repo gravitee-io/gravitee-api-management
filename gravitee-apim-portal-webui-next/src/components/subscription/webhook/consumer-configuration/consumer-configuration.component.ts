@@ -147,6 +147,7 @@ export class ConsumerConfigurationComponent implements OnInit {
           callbackUrl: updatedValues.consumerConfiguration.callbackUrl,
           headers: updatedValues.consumerConfiguration.headers ?? [],
           retry: updatedValues.consumerConfiguration.retry,
+          ssl: updatedValues.consumerConfiguration.ssl,
         },
       },
     };
