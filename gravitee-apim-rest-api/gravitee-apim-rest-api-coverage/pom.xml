@@ -178,6 +178,12 @@
 
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-audit</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-sync</artifactId>
             <version>${project.version}</version>
         </dependency>
