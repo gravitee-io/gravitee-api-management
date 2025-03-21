@@ -35,6 +35,7 @@
     <name>Gravitee.io APIM - Management API - Services</name>
 
     <modules>
+        <module>gravitee-apim-rest-api-services-audit</module>
         <module>gravitee-apim-rest-api-services-sync</module>
         <module>gravitee-apim-rest-api-services-dynamic-properties</module>
         <module>gravitee-apim-rest-api-services-subscriptions</module>

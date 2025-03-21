@@ -32,7 +32,7 @@ import org.apache.xmlbeans.impl.schema.BuiltinSchemaTypeSystem;
  */
 public abstract class AbstractSoapBuilder {
 
-    private SchemaTypeSystem shemaTypeSystem;
+    private SchemaTypeSystem schemaTypeSystem;
     private Map<String, String> namespaceMappings;
 
     protected SoapVersion version;
@@ -55,7 +55,7 @@ public abstract class AbstractSoapBuilder {
     }
 
     public AbstractSoapBuilder withShemaTypeSystem(SchemaTypeSystem shemaTypeSystem) {
-        this.shemaTypeSystem = shemaTypeSystem;
+        this.schemaTypeSystem = shemaTypeSystem;
         return this;
     }
 
@@ -71,7 +71,7 @@ public abstract class AbstractSoapBuilder {
         if (part.getElementName() != null) {
             QName rootName = new QName(part.getElementName().getNamespaceURI(), part.getElementName().getLocalPart());
 
-            SchemaType[] globalElems = shemaTypeSystem.documentTypes();
+            SchemaType[] globalElems = schemaTypeSystem.documentTypes();
             SchemaType elem = null;
             for (int j = 0; j < globalElems.length; ++j) {
                 if (rootName.equals(globalElems[j].getDocumentElementName())) {
@@ -86,7 +86,7 @@ public abstract class AbstractSoapBuilder {
 
             new SampleXmlUtil(encoded).createSampleForType(elem, cursor);
         } else {
-            SchemaType type = shemaTypeSystem.findType(part.getTypeName());
+            SchemaType type = schemaTypeSystem.findType(part.getTypeName());
             if (type == null) {
                 type = BuiltinSchemaTypeSystem.get().findType(part.getTypeName());
             }

@@ -47,7 +47,7 @@ public class SoapMessageBuilder {
     private final XmlOptions options;
 
     private List<XmlObject> schemas = new ArrayList<>();
-    private SchemaTypeSystem shemaTypeSystem;
+    private SchemaTypeSystem schemaTypeSystem;
     private boolean compiled = false;
 
     public SoapMessageBuilder(Map<String, String> namespaceMappings) {
@@ -77,7 +77,8 @@ public class SoapMessageBuilder {
 
     public void compileSchemas() {
         try {
-            shemaTypeSystem = XmlBeans.compileXsd(schemas.toArray(new XmlObject[schemas.size()]), XmlBeans.getBuiltinTypeSystem(), options);
+            schemaTypeSystem =
+                XmlBeans.compileXsd(schemas.toArray(new XmlObject[schemas.size()]), XmlBeans.getBuiltinTypeSystem(), options);
             this.compiled = true;
         } catch (XmlException e) {
             LOGGER.debug("Compilation of XSD failed, OpenAPI specification will be generated without SOAP envelop", e);
@@ -119,7 +120,7 @@ public class SoapMessageBuilder {
                 .withBindingOperation(bindingOperation)
                 .withCursor(envelopeCursor)
                 .withNamespaceMappings(namespaceMappings)
-                .withShemaTypeSystem(shemaTypeSystem)
+                .withShemaTypeSystem(schemaTypeSystem)
                 .withVersion(version)
                 .build();
 
@@ -130,7 +131,7 @@ public class SoapMessageBuilder {
                 .withBindingOperation(bindingOperation)
                 .withCursor(envelopeCursor)
                 .withNamespaceMappings(namespaceMappings)
-                .withShemaTypeSystem(shemaTypeSystem)
+                .withShemaTypeSystem(schemaTypeSystem)
                 .withVersion(version)
                 .build();
 
