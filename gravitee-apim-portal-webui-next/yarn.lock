@@ -3314,6 +3314,76 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/dm-mono@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/dm-mono@npm:5.2.5"
+  checksum: 10c0/44b47e5717b44c62eddf5caecf0062a13b35fb5b6b1dd4b4c89283cf44d0c40a60300919dc23df1d7c732be41df76d5e560f536b7a299508c96b32accf3131b6
+  languageName: node
+  linkType: hard
+
+"@fontsource/dm-sans@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/dm-sans@npm:5.2.5"
+  checksum: 10c0/977683a51a75453cff3e19d31d48967dcb0433f3e400df5772037b530cf979a50d9681ed8960e5cb3dbba253a0a4ea3fe573e1af35d642280241fe1425a2c435
+  languageName: node
+  linkType: hard
+
+"@fontsource/inter@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/inter@npm:5.2.5"
+  checksum: 10c0/071e12a6a9c8cf6e95da43ba532e80eb8e35c1ffd2384c9c6555d7f222e306e22968f7c4fff5065b9f81503db622cf3de8a688fbc1cb0c04aa3803c797f6f6a0
+  languageName: node
+  linkType: hard
+
+"@fontsource/material-icons-outlined@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/material-icons-outlined@npm:5.2.5"
+  checksum: 10c0/b34c3c7160d6f96d77e2ca1fd7773b0ab8e32dc8a2bc2e6e8f547ec1f0101553bbee0e7228c9b38d9e011a0cd9a9b52bc9922ae4c233daaaf861b2ba6f2fa542
+  languageName: node
+  linkType: hard
+
+"@fontsource/material-icons-round@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/material-icons-round@npm:5.2.5"
+  checksum: 10c0/67e05309611f35af4856d969b1c20aac39a90782d58ba0e24ba16741e8db9709cb32104901de05e5eaedfc0696af10c1e89e4add2d3b5feb3bc9d92f28d9d4de
+  languageName: node
+  linkType: hard
+
+"@fontsource/material-icons-sharp@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/material-icons-sharp@npm:5.2.5"
+  checksum: 10c0/ea04b4c51d38e13fcbefdb6fdb84e4208d983a20b5cdf5c918dd1c19f47953f1dd98aec3b28f3c6d23df2330e6fa9547b7b501e33d95cb849d03a36359c37e95
+  languageName: node
+  linkType: hard
+
+"@fontsource/material-icons-two-tone@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/material-icons-two-tone@npm:5.2.5"
+  checksum: 10c0/ab24726ea8603f8830338c5f39af06b2a11c877c03685edda6c19d881c68cdbcd0d46a06c91065c6cb859ce99ff6c81bd2d59610d3180562396f4a00c39c2b7b
+  languageName: node
+  linkType: hard
+
+"@fontsource/material-icons@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/material-icons@npm:5.2.5"
+  checksum: 10c0/2d9099eba5d106d7200c4f8d2c5934434c819517890ac825491bdf33af2ab947f1e803fc0f87f9ea3ed3a3fcaa7a6c08c032d564deec5123963b53c2d6e90590
+  languageName: node
+  linkType: hard
+
+"@fontsource/montserrat@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/montserrat@npm:5.2.5"
+  checksum: 10c0/b9f909a18837dadb2e4adfa8620cef90144a08576bb832e3ef7107b21a7065fedfbdb5460b36e39fdd1956653434218bf7bb04b16ef8935d237708dcfff5ae8a
+  languageName: node
+  linkType: hard
+
+"@fontsource/roboto@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/roboto@npm:5.2.5"
+  checksum: 10c0/b254985468a3ba78323d66b0725af1b2dc60dbacc82a907c0f67ccc659cc30c52b66bbadd3f2afdea53971ddae60c96e582efbcaee2db52886201c3f56b830a8
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.11.14":
   version: 0.11.14
   resolution: "@humanwhocodes/config-array@npm:0.11.14"
@@ -11494,6 +11564,16 @@ __metadata:
     "@asyncapi/web-component": "npm:2.5.1"
     "@chromatic-com/storybook": "npm:1.2.26"
     "@emoji-mart/data": "npm:1.2.1"
+    "@fontsource/dm-mono": "npm:5.2.5"
+    "@fontsource/dm-sans": "npm:5.2.5"
+    "@fontsource/inter": "npm:5.2.5"
+    "@fontsource/material-icons": "npm:5.2.5"
+    "@fontsource/material-icons-outlined": "npm:5.2.5"
+    "@fontsource/material-icons-round": "npm:5.2.5"
+    "@fontsource/material-icons-sharp": "npm:5.2.5"
+    "@fontsource/material-icons-two-tone": "npm:5.2.5"
+    "@fontsource/montserrat": "npm:5.2.5"
+    "@fontsource/roboto": "npm:5.2.5"
     "@storybook/addon-essentials": "npm:8.5.0"
     "@storybook/addon-interactions": "npm:8.5.0"
     "@storybook/addon-links": "npm:8.5.0"
