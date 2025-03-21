@@ -29,6 +29,7 @@ import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.Origin;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -633,7 +634,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Audit
             auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
             // remove from search engine
-            searchEngineService.delete(executionContext, apiMapper.toEntity(executionContext, api, null, false));
+            searchEngineService.delete(
+                executionContext,
+                api.getType() == ApiType.NATIVE
+                    ? apiMapper.toNativeEntity(executionContext, api, null, false)
+                    : apiMapper.toEntity(executionContext, api, null, false)
+            );
 
             mediaService.deleteAllByApi(apiId);
 
