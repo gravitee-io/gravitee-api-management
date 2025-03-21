@@ -336,9 +336,9 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
     }
 
     @Override
-    public void deleteByEnvironmentIdAndAge(String environmentId, Duration age) {
-        log.debug("JdbcAuditRepository.deleteByEnvironmentIdAndAge({}/{})", environmentId, age);
-        Date limit = Date.from(ZonedDateTime.now().minus(age).toInstant());
+    public void deleteByEnvironmentIdAndAge(String environmentId, Duration maxAge) {
+        log.debug("JdbcAuditRepository.deleteByEnvironmentIdAndAge({}/{})", environmentId, maxAge);
+        Date limit = Date.from(ZonedDateTime.now().minus(maxAge).toInstant());
         var auditIds = jdbcTemplate.queryForList(
             "select id from " + tableName + " where environment_id = ? and created_at < ?",
             String.class,
@@ -347,7 +347,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         );
         delete(auditIds);
 
-        log.debug("JdbcAuditRepository.deleteByEnvironmentIdAndAge({}/{}) - Done", environmentId, age);
+        log.debug("JdbcAuditRepository.deleteByEnvironmentIdAndAge({}/{}) - Done", environmentId, maxAge);
     }
 
     private void delete(Collection<String> auditIds) {
