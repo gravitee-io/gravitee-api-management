@@ -67,7 +67,7 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
         final SubscriptionConfigurationEntity configuration
     ) {
         if (genericPlanEntity.getPlanMode() != null && genericPlanEntity.getPlanMode() == PlanMode.PUSH) {
-            if (configuration.getEntrypointId() == null || configuration.getEntrypointId().isEmpty()) {
+            if (configuration == null || configuration.getEntrypointId() == null || configuration.getEntrypointId().isEmpty()) {
                 throw new SubscriptionEntrypointIdMissingException();
             }
 
