@@ -82,6 +82,8 @@ export class PortalThemeComponent implements OnInit {
   fontFamilies: string[] = [
     'Arial, Helvetica, "Liberation Sans", FreeSans, sans-serif',
     'Courier, "Courier New", FreeMono, "Liberation Mono", monospace',
+    '"DM Mono", monospace',
+    '"DM Sans", sans-serif',
     'Georgia, "DejaVu Serif", Norasi, serif',
     'Impact, Arial Black, sans-serif',
     '"Inter", sans-serif',
