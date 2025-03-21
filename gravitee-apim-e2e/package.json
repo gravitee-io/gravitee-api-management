@@ -59,5 +59,5 @@
         "@gravitee/portal-webclient-sdk": "link:lib/portal-webclient-sdk",
         "@gravitee/utils": "link:lib/utils"
     },
-    "packageManager": "yarn@4.1.1"
+    "packageManager": "yarn@4.7.0"
 }
