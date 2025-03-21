@@ -59,16 +59,18 @@ class PortalThemeController {
 
     $scope.fonts = [
       "Arial, Helvetica, 'Liberation Sans', FreeSans, sans-serif",
-      "'Trebuchet MS', Arial, Helvetica, sans-serif",
-      "'Lucida Sans', 'Lucida Grande', 'Lucida Sans Unicode', 'Luxi Sans', sans-serif",
-      'Tahoma, Geneva, Kalimati, sans-serif',
-      'Verdana, DejaVu Sans, Bitstream Vera Sans, Geneva, sans-serif',
-      'Impact, Arial Black, sans-serif',
       "Courier, 'Courier New', FreeMono, 'Liberation Mono', monospace",
-      "Monaco, 'DejaVu Sans Mono', 'Lucida Console', 'Andale Mono', monospace",
-      "Times, 'Times New Roman', 'Liberation Serif', FreeSerif, serif",
+      '"DM Mono", monospace',
+      '"DM Sans", sans-serif',
       "Georgia, 'DejaVu Serif', Norasi, serif",
+      'Impact, Arial Black, sans-serif',
+      "'Lucida Sans', 'Lucida Grande', 'Lucida Sans Unicode', 'Luxi Sans', sans-serif",
+      "Monaco, 'DejaVu Sans Mono', 'Lucida Console', 'Andale Mono', monospace",
       '"Montserrat", sans-serif',
+      'Tahoma, Geneva, Kalimati, sans-serif',
+      "Times, 'Times New Roman', 'Liberation Serif', FreeSerif, serif",
+      "'Trebuchet MS', Arial, Helvetica, sans-serif",
+      'Verdana, DejaVu Sans, Bitstream Vera Sans, Geneva, sans-serif',
     ];
 
     $scope.hasPreview = () => {
