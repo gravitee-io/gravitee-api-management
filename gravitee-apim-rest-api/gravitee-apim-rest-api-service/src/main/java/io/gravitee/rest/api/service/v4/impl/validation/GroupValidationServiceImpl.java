@@ -15,9 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
-import static java.util.stream.Collectors.toSet;
-
-import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -70,14 +67,19 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
             }
         }
 
+        /*
+         * check with the other development team if this is necessary, as this LOC
+         * iss responsible for resetting the group even after it has been removed for V4 APIs
+         */
         // Add default group
+        /*
         Set<String> defaultGroups = groupService
             .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
             .stream()
             .map(GroupEntity::getId)
             .collect(toSet());
         sanitizedGroups.addAll(defaultGroups);
-
+        */
         // if primary owner is a group, add it as a member of the API
         if (primaryOwnerEntity != null && ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerEntity.getType())) {
             sanitizedGroups.add(primaryOwnerEntity.getId());
