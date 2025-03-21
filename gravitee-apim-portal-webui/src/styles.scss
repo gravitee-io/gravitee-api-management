@@ -1,7 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
-@import '~@fontsource/ibm-plex-sans/latin.css';
-@import '~@fontsource/montserrat/latin.css';
-@import '~@gravitee/ui-components/assets/css/gravitee-theme.generated.css';
+@import '@fontsource/ibm-plex-sans/latin.css';
+@import '@fontsource/montserrat/latin.css';
+@import '@gravitee/ui-components/assets/css/gravitee-theme.generated.css';
 
 :root {
   font-family: var(--gv-theme-font-family);
