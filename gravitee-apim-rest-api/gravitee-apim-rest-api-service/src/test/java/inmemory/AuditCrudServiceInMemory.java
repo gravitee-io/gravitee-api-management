@@ -17,6 +17,8 @@ package inmemory;
 
 import io.gravitee.apim.core.audit.crud_service.AuditCrudService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
+import io.gravitee.common.utils.TimeProvider;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +30,12 @@ public class AuditCrudServiceInMemory implements AuditCrudService, InMemoryAlter
     @Override
     public void create(AuditEntity auditEntity) {
         storage.add(auditEntity);
+    }
+
+    @Override
+    public void deleteByEnvironmentIdAndAge(String environmentId, Duration maxAge) {
+        var limit = TimeProvider.now().minus(maxAge);
+        storage.removeIf(auditEntity -> environmentId.equals(auditEntity.getEnvironmentId()) && limit.isAfter(auditEntity.getCreatedAt()));
     }
 
     @Override

@@ -21,6 +21,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.time.Duration;
 import java.util.Date;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -55,5 +56,10 @@ public class AuditCrudServiceImpl implements AuditCrudService {
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
+    }
+
+    @Override
+    public void deleteByEnvironmentIdAndAge(String environmentId, Duration maxAge) {
+        auditRepository.deleteByEnvironmentIdAndAge(environmentId, maxAge);
     }
 }
