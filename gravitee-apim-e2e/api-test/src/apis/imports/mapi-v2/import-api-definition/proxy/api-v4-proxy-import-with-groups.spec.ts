@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { test, describe, afterAll, expect } from '@jest/globals';
-import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { APIsApi, ApiV4 } from '../../../../../../../lib/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAdminUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { created, noContent, succeed } from '@lib/jest-utils';
-import { ApiEntity, GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
+import { ApiEntity, GroupEntity } from '../../../../../../../lib/management-webclient-sdk/src/lib/models';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { GroupsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupsApi';
+import { GroupsApi } from '../../../../../../../lib/management-webclient-sdk/src/lib/apis/GroupsApi';
 import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 
 const orgId = 'DEFAULT';
@@ -28,7 +28,7 @@ const envId = 'DEFAULT';
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v1GroupsResourceAsAdmin = new GroupsApi(forManagementAsAdminUser());
 
-describe('API - V4 - Import - Gravitee Definition - With groups', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - With groups', () => {
   describe('Create v4 API from import with groups', () => {
     let importedApi: ApiV4;
     let group: GroupEntity;
@@ -48,7 +48,7 @@ describe('API - V4 - Import - Gravitee Definition - With groups', () => {
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
-            api: MAPIV2ApisFaker.apiV4({
+            api: MAPIV2ApisFaker.apiV4Proxy({
               groups: [group.id],
             }),
           }),

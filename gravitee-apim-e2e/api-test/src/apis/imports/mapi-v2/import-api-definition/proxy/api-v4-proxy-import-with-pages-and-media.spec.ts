@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { test, describe, expect, afterAll } from '@jest/globals';
-import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { APIsApi, ApiV4 } from '../../../../../../../lib/management-v2-webclient-sdk/src/lib';
 import { forManagementAsApiUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2PagesFaker } from '@gravitee/fixtures/management/MAPIV2PagesFaker';
-import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
-import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
+import { APIPagesApi } from '../../../../../../../lib/management-webclient-sdk/src/lib/apis/APIPagesApi';
+import { PageEntity } from '../../../../../../../lib/management-webclient-sdk/src/lib/models';
 import faker from '@faker-js/faker';
 import { MAPIV2MediaFaker } from '@gravitee/fixtures/management/MAPIV2MediaFaker';
 import { ImagesUtils } from '@gravitee/utils/images';
@@ -31,7 +31,7 @@ const envId = 'DEFAULT';
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v1ApiPagesResourceAsApiPublisher = new APIPagesApi(forManagementAsApiUser());
 
-describe('API - V4 - Import - Gravitee Definition - With pages', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - With pages', () => {
   describe('Create v4 API from import with pages', () => {
     describe('Create v4 API with one page without ID', () => {
       let importedApi: ApiV4;
@@ -108,7 +108,7 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
           v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
             envId,
             exportApiV4: MAPIV2ApisFaker.apiImportV4({
-              api: MAPIV2ApisFaker.apiV4({ id: fixedApiId }),
+              api: MAPIV2ApisFaker.apiV4Proxy({ id: fixedApiId }),
               pages: [page],
             }),
           }),
@@ -197,7 +197,7 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
           v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
             envId,
             exportApiV4: MAPIV2ApisFaker.apiImportV4({
-              api: MAPIV2ApisFaker.apiV4({ id: fixedApiId }),
+              api: MAPIV2ApisFaker.apiV4Proxy({ id: fixedApiId }),
               pages: [page],
               apiMedia: [inPageMedia, attachedMedia],
             }),

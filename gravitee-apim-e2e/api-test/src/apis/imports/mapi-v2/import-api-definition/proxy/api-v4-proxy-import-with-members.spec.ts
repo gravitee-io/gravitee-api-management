@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import { afterAll, describe, expect, test } from '@jest/globals';
-import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { APIsApi, ApiV4 } from '../../../../../../../lib/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAdminUser, forManagementV2AsAdminUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { created, noContent, succeed } from '@lib/jest-utils';
-import { RoleEntity, RoleScope, UserEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
-import { APIsApi as v1APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
+import { RoleEntity, RoleScope, UserEntity } from '../../../../../../../lib/management-webclient-sdk/src/lib/models';
+import { APIsApi as v1APIsApi } from '../../../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { UsersApi } from '../../../../../../../lib/management-webclient-sdk/src/lib/apis/UsersApi';
 import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
-import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { ConfigurationApi } from '../../../../../../../lib/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import { RoleFaker } from '@gravitee/fixtures/management/RoleFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2MembersFaker } from '@gravitee/fixtures/management/MAPIV2MembersFaker';
@@ -35,7 +35,7 @@ const v2ApisResourceAsAdmin = new APIsApi(forManagementV2AsAdminUser());
 const v1UsersResourceAsAdmin = new UsersApi(forManagementAsAdminUser());
 const v1ConfigurationResourceAsAdmin = new ConfigurationApi(forManagementAsAdminUser());
 
-describe('API - V4 - Import - Gravitee Definition - With members', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - With members', () => {
   describe('Create v4 API from import with members', () => {
     const roleName = 'IMPORT_TEST_ROLE';
     let importedApi: ApiV4;
@@ -83,7 +83,7 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
-            api: MAPIV2ApisFaker.apiV4(),
+            api: MAPIV2ApisFaker.apiV4Proxy(),
             members: [
               MAPIV2MembersFaker.member({
                 id: member.id,
