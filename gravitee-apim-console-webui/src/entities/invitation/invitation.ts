@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-import { ApplicationSettings } from './Application';
-
-export interface CreateApplication {
-  name: string;
-  description?: string;
-  domain?: string;
-  type?: string;
-  settings?: ApplicationSettings;
-  groups?: string[];
+export interface Invitation {
+  id?: string;
+  reference_type?: string;
+  reference_id: string;
+  email: string;
+  api_role?: string;
+  application_role?: string;
+  created_at?: string;
 }

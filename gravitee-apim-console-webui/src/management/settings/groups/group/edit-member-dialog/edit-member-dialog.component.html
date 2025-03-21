@@ -1,0 +1,81 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title>{{ member.displayName }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="editMemberForm" class="edit-member__form">
+    <mat-form-field aria-hidden="false" aria-label="Select default API role">
+      <mat-label>Default API Role</mat-label>
+      <mat-select formControlName="defaultAPIRole" (selectionChange)="onRoleChange()">
+        @for (role of defaultAPIRoles; track role.id) {
+          <mat-option [value]="role.name" [disabled]="disabledAPIRoles().has(role.id)">{{ role.name }} </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field aria-hidden="false" aria-label="Select default application role">
+      <mat-label>Default Application Role</mat-label>
+      <mat-select formControlName="defaultApplicationRole" (selectionChange)="onRoleChange()">
+        @for (role of defaultApplicationRoles; track role.id) {
+          <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field aria-hidden="false" aria-label="Select default integration role">
+      <mat-label>Default Integration Role</mat-label>
+      <mat-select formControlName="defaultIntegrationRole" (selectionChange)="onRoleChange()">
+        @for (role of defaultIntegrationRoles; track role.id) {
+          <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (downgradedMember?.id === member.id) {
+      <mat-form-field appearance="outline">
+        <mat-label>Search Members</mat-label>
+        <input aria-label="Search members" matInput formControlName="searchTerm" [matAutocomplete]="auto" />
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectPrimaryOwner($event)">
+          @for (member of filteredMembers$ | async; track member.id) {
+            <mat-option [value]="member">
+              {{ member.displayName }}
+            </mat-option>
+          }
+        </mat-autocomplete>
+        <mat-hint>Select a member to transfer primary ownership</mat-hint>
+      </mat-form-field>
+
+      @if (selectedPrimaryOwner) {
+        <mat-chip-set>
+          <mat-chip [removable]="true" (removed)="deselectPrimaryOwner()" [disabled]="disableRemovePrimaryOwner()">
+            {{ selectedPrimaryOwner.displayName }}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        </mat-chip-set>
+      }
+    }
+
+    @if (ownershipTransferMessage) {
+      <mat-hint>{{ ownershipTransferMessage }}</mat-hint>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" [disabled]="disableSubmit()" (click)="submit()">Save</button>
+  <button mat-raised-button mat-dialog-close>Cancel</button>
+</mat-dialog-actions>

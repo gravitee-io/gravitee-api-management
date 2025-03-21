@@ -483,10 +483,6 @@ class DebugReactorEventListenerTest {
         // Mock successful HttpClientRequest
         final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
         when(mockHttpClient.rxRequest(any())).thenReturn(Single.just(httpClientRequest));
-        when(httpClientRequest.setChunked(true)).thenReturn(httpClientRequest);
-        // Mock successful HttpClientResponse
-        final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
-        when(httpClientRequest.rxSend(any(String.class))).thenReturn(Single.just(httpClientResponse));
 
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 

@@ -68,6 +68,7 @@ describe('ApplicationCreationComponent', () => {
         name: 'name',
         description: 'description',
         domain: 'domain',
+        groups: [],
         settings: {
           app: {
             client_id: 'appClientId',
@@ -97,6 +98,7 @@ describe('ApplicationCreationComponent', () => {
         name: 'name',
         description: 'description',
         domain: 'domain',
+        groups: [],
         settings: {
           oauth: {
             additional_client_metadata: {},
@@ -128,6 +130,7 @@ describe('ApplicationCreationComponent', () => {
         name: 'name',
         description: 'description',
         domain: 'domain',
+        groups: [],
         settings: {
           oauth: {
             additional_client_metadata: {},
@@ -166,6 +169,7 @@ describe('ApplicationCreationComponent', () => {
         name: 'name',
         description: 'description',
         domain: 'domain',
+        groups: [],
         settings: {
           app: {
             client_id: 'appClientId',
