@@ -3696,17 +3696,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fontsource/ibm-plex-sans@npm:4.5.13":
-  version: 4.5.13
-  resolution: "@fontsource/ibm-plex-sans@npm:4.5.13"
-  checksum: 10c0/c486a40179940b9d4445a1c129efa9a1f64256684e74a6c71bbde4e5b37769dfdbbce4051737f120a7848fe53c4f1232e95b47cb2c46a5a6e68b30dd0e1159d2
+"@fontsource/dm-mono@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/dm-mono@npm:5.2.5"
+  checksum: 10c0/44b47e5717b44c62eddf5caecf0062a13b35fb5b6b1dd4b4c89283cf44d0c40a60300919dc23df1d7c732be41df76d5e560f536b7a299508c96b32accf3131b6
   languageName: node
   linkType: hard
 
-"@fontsource/montserrat@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@fontsource/montserrat@npm:5.1.1"
-  checksum: 10c0/755d3af7026094cbc1cfffb45cd9f06dbf4ef3d0399aa1e18f2a3055c370cdf80f5c6b6a42a98a492244b9207f45da61364c437dba71423fae2a130ab2a6c37c
+"@fontsource/dm-sans@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/dm-sans@npm:5.2.5"
+  checksum: 10c0/977683a51a75453cff3e19d31d48967dcb0433f3e400df5772037b530cf979a50d9681ed8960e5cb3dbba253a0a4ea3fe573e1af35d642280241fe1425a2c435
+  languageName: node
+  linkType: hard
+
+"@fontsource/ibm-plex-sans@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/ibm-plex-sans@npm:5.2.5"
+  checksum: 10c0/27fc8ea1fb0bb58fdcf2b0d95023b442ba632406b8db10826ce0fb9a36d9f84cb31b824a15196f2c1e533438b28a84803265a47df3fdefd2e97322a684518566
+  languageName: node
+  linkType: hard
+
+"@fontsource/montserrat@npm:5.2.5":
+  version: 5.2.5
+  resolution: "@fontsource/montserrat@npm:5.2.5"
+  checksum: 10c0/b9f909a18837dadb2e4adfa8620cef90144a08576bb832e3ef7107b21a7065fedfbdb5460b36e39fdd1956653434218bf7bb04b16ef8935d237708dcfff5ae8a
   languageName: node
   linkType: hard
 
@@ -3806,8 +3820,10 @@ __metadata:
     "@asyncapi/web-component": "npm:2.5.1"
     "@babel/preset-env": "npm:7.16.11"
     "@emoji-mart/data": "npm:1.2.1"
-    "@fontsource/ibm-plex-sans": "npm:4.5.13"
-    "@fontsource/montserrat": "npm:5.1.1"
+    "@fontsource/dm-mono": "npm:5.2.5"
+    "@fontsource/dm-sans": "npm:5.2.5"
+    "@fontsource/ibm-plex-sans": "npm:5.2.5"
+    "@fontsource/montserrat": "npm:5.2.5"
     "@gravitee/ui-components": "npm:4.3.0"
     "@highcharts/map-collection": "npm:2.0.0"
     "@messageformat/core": "npm:3.3.0"
