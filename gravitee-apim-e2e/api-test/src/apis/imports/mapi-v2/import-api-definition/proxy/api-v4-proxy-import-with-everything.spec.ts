@@ -42,7 +42,7 @@ const v1UsersResourceAsAdmin = new UsersApi(forManagementAsAdminUser());
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v2APlansResourceAsApiPublisher = new APIPlansApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Import - Gravitee Definition - With everything', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - With everything', () => {
   describe('Create v4 API from import with everything', () => {
     describe('Create v4 API with two plans', () => {
       let importedApi: ApiV4;

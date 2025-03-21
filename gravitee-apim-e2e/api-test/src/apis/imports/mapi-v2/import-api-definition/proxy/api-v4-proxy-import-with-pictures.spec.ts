@@ -24,7 +24,7 @@ const envId = 'DEFAULT';
 
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Import - Gravitee Definition - With pictures', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - With pictures', () => {
   describe('Create v4 API from import with pictures', () => {
     let importedApi: ApiV4;
 
