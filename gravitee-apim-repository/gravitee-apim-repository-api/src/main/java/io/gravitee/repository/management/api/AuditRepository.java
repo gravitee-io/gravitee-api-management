@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Audit;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -46,4 +47,6 @@ public interface AuditRepository extends CrudRepository<Audit, String> {
      * @throws TechnicalException
      */
     List<String> deleteByReferenceIdAndReferenceType(String referenceId, Audit.AuditReferenceType referenceType) throws TechnicalException;
+
+    void deleteByEnvironmentIdAndAge(String environmentId, Duration referenceType);
 }

@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
+import java.time.Instant;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -28,4 +29,6 @@ import org.springframework.stereotype.Repository;
  */
 public interface AuditMongoRepositoryCustom {
     Page<AuditMongo> search(AuditCriteria filter, Pageable pageable);
+
+    void deleteByEnvironmentIdAndAge(String environmentId, Instant limit);
 }

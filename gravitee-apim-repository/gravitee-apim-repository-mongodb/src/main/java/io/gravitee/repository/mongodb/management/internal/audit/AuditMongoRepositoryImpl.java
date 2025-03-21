@@ -21,12 +21,14 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.CriteriaDefinition;
 import org.springframework.data.mongodb.core.query.Query;
 
 /**
@@ -83,5 +85,10 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
         List<AuditMongo> audits = mongoTemplate.find(query, AuditMongo.class);
 
         return new Page<>(audits, pageable.pageNumber(), audits.size(), total);
+    }
+
+    public void deleteByEnvironmentIdAndAge(String environmentId, Instant limit) {
+        var criteria = where("environmentId").is(environmentId).andOperator(where("createdAt").lt(Date.from(limit)));
+        mongoTemplate.remove(new Query(criteria), AuditMongo.class);
     }
 }
