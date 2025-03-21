@@ -13,12 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.crud_service;
+package io.gravitee.apim.core.audit.use_case;
 
-import io.gravitee.apim.core.audit.model.AuditEntity;
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.audit.crud_service.AuditCrudService;
 import java.time.Duration;
+import lombok.RequiredArgsConstructor;
 
-public interface AuditCrudService {
-    void create(AuditEntity auditEntity);
-    void deleteByEnvironmentIdAndAge(String environmentId, Duration maxAge);
+@UseCase
+@RequiredArgsConstructor
+public class RemoveOldAuditDataUseCase {
+
+    private final AuditCrudService auditCrudService;
+
+    public void execute(Input input) {
+        auditCrudService.deleteByEnvironmentIdAndAge(input.environmentId(), input.maxAge());
+    }
+
+    public record Input(String environmentId, Duration maxAge) {}
 }

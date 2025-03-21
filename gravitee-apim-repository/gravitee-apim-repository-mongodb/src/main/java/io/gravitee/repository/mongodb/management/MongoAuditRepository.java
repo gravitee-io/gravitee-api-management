@@ -66,13 +66,13 @@ public class MongoAuditRepository implements AuditRepository {
     }
 
     @Override
-    public void deleteByEnvironmentIdAndAge(String environmentId, Duration age) {
-        log.debug("Delete audit of {} older than {}", environmentId, age);
+    public void deleteByEnvironmentIdAndAge(String environmentId, Duration maxAge) {
+        log.debug("Delete audit of {} older than {}", environmentId, maxAge);
 
-        var limit = TimeProvider.instantNow().minus(age);
+        var limit = TimeProvider.instantNow().minus(maxAge);
         internalAuditRepo.deleteByEnvironmentIdAndAge(environmentId, limit);
 
-        log.debug("Delete audit of {} older than {} - Done", environmentId, age);
+        log.debug("Delete audit of {} older than {} - Done", environmentId, maxAge);
     }
 
     @Override

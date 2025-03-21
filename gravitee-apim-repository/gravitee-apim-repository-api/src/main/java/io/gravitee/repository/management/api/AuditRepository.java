@@ -48,5 +48,5 @@ public interface AuditRepository extends CrudRepository<Audit, String> {
      */
     List<String> deleteByReferenceIdAndReferenceType(String referenceId, Audit.AuditReferenceType referenceType) throws TechnicalException;
 
-    void deleteByEnvironmentIdAndAge(String environmentId, Duration referenceType);
+    void deleteByEnvironmentIdAndAge(String environmentId, Duration maxAge);
 }
