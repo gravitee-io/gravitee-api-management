@@ -49,4 +49,11 @@
       gap: 8px;
     }
   }
+
+  app-consumer-configuration-retry,
+  app-consumer-configuration-authentication,
+  app-consumer-configuration-ssl {
+    display: block;
+    margin: 16px 0;
+  }
 }

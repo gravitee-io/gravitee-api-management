@@ -37,6 +37,7 @@ import {
   SubscriptionCommentDialogComponent,
   SubscriptionCommentDialogData,
 } from '../../subscription-comment-dialog/subscription-comment-dialog.component';
+import { ConsumerConfigurationAuthenticationComponent } from '../consumer-configuration-authentification';
 import { ConsumerConfigurationHeadersComponent } from '../consumer-configuration-headers';
 import { ConsumerConfigurationRetryComponent } from '../consumer-configuration-retry';
 import { ConsumerConfigurationSslComponent } from '../consumer-configuration-ssl';
@@ -57,6 +58,7 @@ import { ConsumerConfigurationSslComponent } from '../consumer-configuration-ssl
     MatButton,
     ConsumerConfigurationRetryComponent,
     ConsumerConfigurationSslComponent,
+    ConsumerConfigurationAuthenticationComponent,
   ],
   selector: 'app-consumer-configuration',
   standalone: true,
@@ -148,6 +150,7 @@ export class ConsumerConfigurationComponent implements OnInit {
           headers: new FormControl(entrypointConfiguration?.headers),
           retry: new FormControl(entrypointConfiguration?.retry, { nonNullable: true }),
           ssl: new FormControl(entrypointConfiguration?.ssl, { nonNullable: true }),
+          auth: new FormControl(entrypointConfiguration?.auth, { nonNullable: true }),
         }),
       });
       this.initialValues = this.consumerConfigurationForm.getRawValue();
@@ -177,6 +180,7 @@ export class ConsumerConfigurationComponent implements OnInit {
           headers: updatedValues.consumerConfiguration.headers ?? [],
           retry: updatedValues.consumerConfiguration.retry,
           ssl: updatedValues.consumerConfiguration.ssl,
+          auth: updatedValues.consumerConfiguration.auth,
         },
       },
     };

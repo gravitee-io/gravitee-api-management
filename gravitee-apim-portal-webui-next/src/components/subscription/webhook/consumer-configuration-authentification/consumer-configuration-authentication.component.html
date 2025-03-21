@@ -1,0 +1,113 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<app-accordion>
+  <app-accordion-title>
+    <span class="m3-title-medium" i18n="@@subscriptionConfigurationAuthentication">Security configuration</span>
+  </app-accordion-title>
+  <form class="form" [formGroup]="authForm">
+    <mat-form-field class="form__field type">
+      <mat-label i18n="@@subscriptionConfigurationAuthenticationType">Type</mat-label>
+      <mat-select formControlName="type" id="authType">
+        @for (type of types; track type.value) {
+          <mat-option [value]="type.value">{{ type.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (authForm.controls.type.value !== 'none') {
+      <div>
+        @switch (authForm.controls.type.value) {
+          @case ('basic') {
+            <mat-form-field class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationUsername">Username</mat-label>
+              <input matInput formControlName="username" name="username" required />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationUsernameHint">The user name</mat-hint>
+              @if (authForm.controls.username.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationUsernameRequired">Username is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationPassword">Password</mat-label>
+              <input matInput formControlName="password" type="password" name="password" autocomplete="off" required />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationPasswordHint">The user's password</mat-hint>
+              @if (authForm.controls.password.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationPasswordRequired">Password is required</mat-error>
+              }
+            </mat-form-field>
+          }
+
+          @case ('token') {
+            <mat-form-field class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationToken">Token</mat-label>
+              <input matInput formControlName="token" name="token" required />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationTokenHint">Bearer token</mat-hint>
+              @if (authForm.controls.token.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationTokenRequired">Token is required</mat-error>
+              }
+            </mat-form-field>
+          }
+
+          @case ('oauth2') {
+            <mat-form-field class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationEndpoint">Endpoint</mat-label>
+              <input matInput formControlName="endpoint" name="endpoint" required />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationEndpointHint"
+                >The Oauth2 endpoint used to retrieve the token</mat-hint
+              >
+              @if (authForm.controls.endpoint.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationEndpointRequired">Endpoint is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationClientId">Client ID</mat-label>
+              <input matInput formControlName="clientId" name="clientId" required />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationClientIdHint">The client identifier</mat-hint>
+              @if (authForm.controls.clientId.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationClientIdRequired">Client ID is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationClientSecret">Client secret</mat-label>
+              <input matInput formControlName="clientSecret" name="clientSecret" required />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationEndpointHint">The client secret</mat-hint>
+              @if (authForm.controls.clientSecret.hasError('required')) {
+                <mat-error i18n="@@subscriptionConfigurationAuthenticationClientSecretRequired">Client secret is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field class="form__field">
+              <mat-label i18n="@@subscriptionConfigurationAuthenticationScopes">Scopes</mat-label>
+              <mat-chip-grid #scopesChipGrid aria-label="Add scope" [formControl]="authForm.controls.scopes">
+                @for (scope of scopes(); track scope) {
+                  <mat-chip-row (removed)="removeScope(scope)">
+                    {{ scope }}<button matChipRemove aria-label="'remove scope"><mat-icon>cancel</mat-icon></button>
+                  </mat-chip-row>
+                }
+              </mat-chip-grid>
+              <input placeholder="Add scope" [matChipInputFor]="scopesChipGrid" (matChipInputTokenEnd)="addScope($event)" />
+              <mat-hint i18n="@@subscriptionConfigurationAuthenticationScopesHint">The list of required scopes.</mat-hint>
+            </mat-form-field>
+          }
+        }
+      </div>
+    }
+  </form>
+</app-accordion>
