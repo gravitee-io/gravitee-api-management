@@ -16,16 +16,19 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Plan;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import org.junit.Assert;
 import org.junit.Test;
@@ -89,8 +92,8 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldSearchWithPagination() throws TechnicalException {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().references(Audit.AuditReferenceType.API, singletonList("2")).build();
+    public void shouldSearchWithPagination() {
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().references(Audit.AuditReferenceType.API, List.of("2")).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(1).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -99,12 +102,12 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("total elements", 2, auditPage.getTotalElements());
         assertEquals("page elements", 1, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().get(0).getId());
+        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().getFirst().getId());
     }
 
     @Test
-    public void shouldSearchWithEvent() throws TechnicalException {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().events(singletonList(Plan.AuditEvent.PLAN_UPDATED.name())).build();
+    public void shouldSearchWithEvent() {
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().events(List.of(Plan.AuditEvent.PLAN_UPDATED.name())).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -113,11 +116,11 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("total elements", 1, auditPage.getTotalElements());
         assertEquals("page elements", 1, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().get(0).getId());
+        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().getFirst().getId());
     }
 
     @Test
-    public void shouldSearchAll() throws TechnicalException {
+    public void shouldSearchAll() {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
@@ -133,7 +136,7 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldSearchFromTo() throws TechnicalException {
+    public void shouldSearchFromTo() {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().from(1900000000000L).to(2000000000005L).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
@@ -143,11 +146,11 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("total elements", 1, auditPage.getTotalElements());
         assertEquals("page elements", 1, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().get(0).getId());
+        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().getFirst().getId());
     }
 
     @Test
-    public void shouldSearchFrom() throws TechnicalException {
+    public void shouldSearchFrom() {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().from(1000000000000L).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(0).pageSize(3).build());
@@ -166,7 +169,7 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldSearchTo() throws TechnicalException {
+    public void shouldSearchTo() {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().to(1000000000000L).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
@@ -179,8 +182,8 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldSearchWithEnvironmentIds() throws TechnicalException {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().environmentIds(singletonList("DEFAULT")).build();
+    public void shouldSearchWithEnvironmentIds() {
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("DEFAULT")).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -189,11 +192,11 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("total elements", 1, auditPage.getTotalElements());
         assertEquals("page elements", 1, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'new'", "new", auditPage.getContent().get(0).getId());
+        assertEquals("find audit with id 'new'", "new", auditPage.getContent().getFirst().getId());
     }
 
     @Test
-    public void shouldSearchWithOrganizationId() throws TechnicalException {
+    public void shouldSearchWithOrganizationId() {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().organizationId("DEFAULT").build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
@@ -203,11 +206,11 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("total elements", 1, auditPage.getTotalElements());
         assertEquals("page elements", 1, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'new'", "new", auditPage.getContent().get(0).getId());
+        assertEquals("find audit with id 'new'", "new", auditPage.getContent().getFirst().getId());
     }
 
     @Test
-    public void shouldSearchWithReferenceTypeOnly() throws TechnicalException {
+    public void shouldSearchWithReferenceTypeOnly() {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().references(Audit.AuditReferenceType.API, null).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
@@ -230,5 +233,34 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertEquals(2, deleted.size());
         assertEquals(0, auditRepository.search(auditCriteria, page).getTotalElements());
+    }
+
+    @Test
+    public void shouldRemoveTooOldData() throws Exception {
+        // Given
+        var auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("DEFAULT")).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        assertThat(auditRepository.search(auditCriteria, page).getContent()).hasSize(1);
+
+        // When
+        auditRepository.deleteByEnvironmentIdAndAge("DEFAULT", Duration.ofDays(1));
+
+        // Then
+        assertThat(auditRepository.search(auditCriteria, page).getContent()).isEmpty();
+    }
+
+    @Test
+    public void shouldNotRemoveYoungData() throws Exception {
+        // Given
+        var auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("DEFAULT")).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        assertThat(auditRepository.search(auditCriteria, page).getContent()).hasSize(1);
+        var maxAge = Duration.between(Instant.parse("2017-01-01T00:00:00Z"), TimeProvider.instantNow().plus(Duration.ofDays(1)));
+
+        // When
+        auditRepository.deleteByEnvironmentIdAndAge("DEFAULT", maxAge);
+
+        // Then
+        assertThat(auditRepository.search(auditCriteria, page).getContent()).hasSize(1);
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
@@ -24,28 +25,25 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.mongodb.management.internal.audit.AuditMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class MongoAuditRepository implements AuditRepository {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoAuditRepository.class);
-
-    @Autowired
-    private AuditMongoRepository internalAuditRepo;
-
-    @Autowired
-    private GraviteeMapper mapper;
+    private final AuditMongoRepository internalAuditRepo;
+    private final GraviteeMapper mapper;
 
     @Override
     public Page<Audit> search(AuditCriteria filter, Pageable pageable) {
@@ -55,7 +53,7 @@ public class MongoAuditRepository implements AuditRepository {
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, Audit.AuditReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("Delete audit by reference [{}/{}]", referenceId, referenceType);
+        log.debug("Delete audit by reference [{}/{}]", referenceId, referenceType);
 
         final var audits = internalAuditRepo
             .deleteByReferenceIdAndReferenceType(referenceId, referenceType.name())
@@ -63,30 +61,40 @@ public class MongoAuditRepository implements AuditRepository {
             .map(AuditMongo::getId)
             .toList();
 
-        LOGGER.debug("Delete audit by reference [{}/{}] - Done", referenceId, referenceType);
+        log.debug("Delete audit by reference [{}/{}] - Done", referenceId, referenceType);
         return audits;
     }
 
     @Override
+    public void deleteByEnvironmentIdAndAge(String environmentId, Duration age) {
+        log.debug("Delete audit of {} older than {}", environmentId, age);
+
+        var limit = TimeProvider.instantNow().minus(age);
+        internalAuditRepo.deleteByEnvironmentIdAndAge(environmentId, limit);
+
+        log.debug("Delete audit of {} older than {} - Done", environmentId, age);
+    }
+
+    @Override
     public Optional<Audit> findById(String id) throws TechnicalException {
-        LOGGER.debug("Find audit by ID [{}]", id);
+        log.debug("Find audit by ID [{}]", id);
 
         final AuditMongo audit = internalAuditRepo.findById(id).orElse(null);
 
-        LOGGER.debug("Find audit by ID [{}] - Done", id);
+        log.debug("Find audit by ID [{}] - Done", id);
         return Optional.ofNullable(mapper.map(audit));
     }
 
     @Override
     public Audit create(Audit audit) throws TechnicalException {
-        LOGGER.debug("Create audit {}", audit.toString());
+        log.debug("Create audit {}", audit.toString());
 
         AuditMongo auditMongo = mapper.map(audit);
         AuditMongo createdAuditMongo = internalAuditRepo.insert(auditMongo);
 
         Audit res = mapper.map(createdAuditMongo);
 
-        LOGGER.debug("Create audit [{}] - Done", audit);
+        log.debug("Create audit [{}] - Done", audit);
 
         return res;
     }

@@ -31,10 +31,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.Map.Entry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -43,10 +44,10 @@ import org.springframework.stereotype.Repository;
  *
  * @author njt
  */
+@Slf4j
 @Repository
 public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> implements AuditRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAuditRepository.class);
     private final String AUDIT_PROPERTIES;
 
     JdbcAuditRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
@@ -83,7 +84,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
     @Override
     public Optional<Audit> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcAuditRepository.findById({})", id);
+        log.debug("JdbcAuditRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(
                 getOrm().getRowMapper(),
@@ -96,30 +97,28 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
                 id
             );
             Optional<Audit> result = rowMapper.getRows().stream().findFirst();
-            LOGGER.debug("JdbcAuditRepository.findById({}) = {}", id, result);
+            log.debug("JdbcAuditRepository.findById({}) = {}", id, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find audit by id:", ex);
             throw new TechnicalException("Failed to find audit by id", ex);
         }
     }
 
     @Override
     public Audit create(Audit item) throws TechnicalException {
-        LOGGER.debug("JdbcAuditRepository.create({})", item);
+        log.debug("JdbcAuditRepository.create({})", item);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storeProperties(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create audit", ex);
             throw new TechnicalException("Failed to create audit", ex);
         }
     }
 
     @Override
     public Audit update(final Audit audit) throws TechnicalException {
-        LOGGER.debug("JdbcAuditRepository.update({})", audit);
+        log.debug("JdbcAuditRepository.update({})", audit);
         if (audit == null) {
             throw new IllegalStateException("Failed to update null");
         }
@@ -131,7 +130,6 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update audit", ex);
             throw new TechnicalException("Failed to update audit", ex);
         }
     }
@@ -196,8 +194,8 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
     @Override
     public Page<Audit> search(AuditCriteria filter, Pageable page) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("JdbcEventRepository.search({}, {})", criteriaToString(filter), page);
+        if (log.isDebugEnabled()) {
+            log.debug("JdbcEventRepository.search({}, {})", criteriaToString(filter), page);
         }
         final List<Object> argsList = new ArrayList<>();
         final StringBuilder builder = new StringBuilder(
@@ -239,12 +237,12 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
         String sql = builder.toString();
 
-        LOGGER.debug("argsList = {}", argsList);
+        log.debug("argsList = {}", argsList);
         Object[] args = argsList.toArray();
-        LOGGER.debug("SQL: {}", sql);
-        LOGGER.debug("Args ({}): {}", args.length, args);
+        log.debug("SQL: {}", sql);
+        log.debug("Args ({}): {}", args.length, args);
         for (int i = 0; i < args.length; ++i) {
-            LOGGER.debug("args[{}] = {} {}", i, args[i], args[i].getClass());
+            log.debug("args[{}] = {} {}", i, args[i], args[i].getClass());
         }
 
         List<Audit> audits;
@@ -257,25 +255,24 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
             jdbcTemplate.query(sql, rowMapper, args);
             audits = rowMapper.getRows();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find audit records:", ex);
             throw new IllegalStateException("Failed to find audit records", ex);
         }
 
-        LOGGER.debug("audit records found ({}): {}", audits.size(), audits);
+        log.debug("audit records found ({}): {}", audits.size(), audits);
 
         return getResultAsPage(page, audits);
     }
 
     private boolean addReferencesWhereClause(AuditCriteria filter, List<Object> argsList, StringBuilder builder, boolean started) {
         if ((filter.getReferences() != null) && !filter.getReferences().isEmpty()) {
-            LOGGER.debug("filter.getReferences() = {}", filter.getReferences());
-            LOGGER.debug("argsList before loop = {}", argsList);
+            log.debug("filter.getReferences() = {}", filter.getReferences());
+            log.debug("argsList before loop = {}", argsList);
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append("(");
             for (Entry<Audit.AuditReferenceType, List<String>> ref : filter.getReferences().entrySet()) {
                 builder.append("( reference_type = ?");
                 argsList.add(ref.getKey().toString());
-                LOGGER.debug("argsList after ref type = {}", argsList);
+                log.debug("argsList after ref type = {}", argsList);
 
                 if (ref.getValue() != null && !ref.getValue().isEmpty()) {
                     StringJoiner inReferenceIdsQueryString = new StringJoiner(",", " and reference_id in (", ")");
@@ -283,7 +280,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
                     for (String id : ref.getValue()) {
                         inReferenceIdsQueryString.add("?");
                         argsList.add(id);
-                        LOGGER.debug("argsList after ref id = {}", argsList);
+                        log.debug("argsList after ref id = {}", argsList);
                     }
                     builder.append(inReferenceIdsQueryString);
                 }
@@ -293,7 +290,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
                 started = true;
             }
             builder.append(") ");
-            LOGGER.debug("argsList after loop = {}", argsList);
+            log.debug("argsList after loop = {}", argsList);
         }
         return started;
     }
@@ -321,7 +318,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
     @Override
     public List<String> deleteByReferenceIdAndReferenceType(String referenceId, Audit.AuditReferenceType referenceType)
         throws TechnicalException {
-        LOGGER.debug("JdbcAuditRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
+        log.debug("JdbcAuditRepository.deleteByReferenceIdAndReferenceType({}/{})", referenceId, referenceType);
         try {
             final var auditIds = jdbcTemplate.queryForList(
                 "select id from " + this.tableName + " where reference_id = ? and reference_type = ?",
@@ -329,24 +326,37 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
                 referenceId,
                 referenceType.name()
             );
+            delete(auditIds);
 
-            if (!auditIds.isEmpty()) {
-                jdbcTemplate.update(
-                    "delete from " + AUDIT_PROPERTIES + " where audit_id IN (" + getOrm().buildInClause(auditIds) + ")",
-                    auditIds.toArray()
-                );
-                jdbcTemplate.update(
-                    "delete from " + tableName + " where reference_id = ? and reference_type = ?",
-                    referenceId,
-                    referenceType.name()
-                );
-            }
-
-            LOGGER.debug("JdbcAuditRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceId, referenceType);
+            log.debug("JdbcAuditRepository.deleteByReferenceIdAndReferenceType({}/{}) - Done", referenceId, referenceType);
             return auditIds;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete audit for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete audit by reference", ex);
+        }
+    }
+
+    @Override
+    public void deleteByEnvironmentIdAndAge(String environmentId, Duration age) {
+        log.debug("JdbcAuditRepository.deleteByEnvironmentIdAndAge({}/{})", environmentId, age);
+        Date limit = Date.from(ZonedDateTime.now().minus(age).toInstant());
+        var auditIds = jdbcTemplate.queryForList(
+            "select id from " + tableName + " where environment_id = ? and created_at < ?",
+            String.class,
+            environmentId,
+            limit
+        );
+        delete(auditIds);
+
+        log.debug("JdbcAuditRepository.deleteByEnvironmentIdAndAge({}/{}) - Done", environmentId, age);
+    }
+
+    private void delete(Collection<String> auditIds) {
+        if (!auditIds.isEmpty()) {
+            jdbcTemplate.update(
+                "delete from " + AUDIT_PROPERTIES + " where audit_id IN (" + getOrm().buildInClause(auditIds) + ")",
+                auditIds.toArray()
+            );
+            jdbcTemplate.update("delete from " + tableName + " where id IN (" + getOrm().buildInClause(auditIds) + ")", auditIds.toArray());
         }
     }
 }
