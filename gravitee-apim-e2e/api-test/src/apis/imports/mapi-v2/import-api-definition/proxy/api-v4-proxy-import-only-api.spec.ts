@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { test, describe, expect, afterAll } from '@jest/globals';
-import { APIsApi, ApiV4, HttpListener, PlanMode, PlanSecurityType } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { APIsApi, ApiV4, HttpListener, PlanMode, PlanSecurityType } from '../../../../../../../lib/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { created, fail, noContent, succeed } from '@lib/jest-utils';
@@ -24,7 +24,7 @@ const envId = 'DEFAULT';
 
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Import - Gravitee Definition - Only API -', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - Only API -', () => {
   test('should fail because of plan mode is invalid', async () => {
     await fail(
       v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
@@ -79,7 +79,7 @@ describe('API - V4 - Import - Gravitee Definition - Only API -', () => {
     describe('Create v4 API with flows and resources', () => {
       let importedApi;
       const apiToImport = MAPIV2ApisFaker.apiImportV4({
-        api: MAPIV2ApisFaker.apiV4({
+        api: MAPIV2ApisFaker.apiV4Proxy({
           flows: [
             {
               enabled: true,
@@ -200,7 +200,7 @@ describe('API - V4 - Import - Gravitee Definition - Only API -', () => {
           v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
             envId,
             exportApiV4: MAPIV2ApisFaker.apiImportV4({
-              api: MAPIV2ApisFaker.apiV4({
+              api: MAPIV2ApisFaker.apiV4Proxy({
                 listeners: importedApi.listeners,
               }),
             }),
