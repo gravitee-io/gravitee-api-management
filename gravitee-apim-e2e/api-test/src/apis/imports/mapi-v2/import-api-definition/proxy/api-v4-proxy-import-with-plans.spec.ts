@@ -26,7 +26,7 @@ const envId = 'DEFAULT';
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v2APlansResourceAsApiPublisher = new APIPlansApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Import - Gravitee Definition - With plans', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - With plans', () => {
   describe('Create v4 API from import with plans', () => {
     describe('Create v4 API with two plans', () => {
       const keylessPlan = MAPIV2PlansFaker.planV4();

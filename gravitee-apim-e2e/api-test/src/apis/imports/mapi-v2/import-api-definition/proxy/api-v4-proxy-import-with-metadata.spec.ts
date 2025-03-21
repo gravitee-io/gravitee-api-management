@@ -30,7 +30,7 @@ const v1ApisResourceAsApiPublisher = new v1APIsApi(forManagementAsApiUser());
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v1MetadataResourceAsApiPublisher = new MetadataApi(forManagementAsAdminUser());
 
-describe('API - V4 - Import - Gravitee Definition - With metadata', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - With metadata', () => {
   describe('Create v4 API from import with metadata', () => {
     let importedApiWithApimTeam,
       importedSecondApiWithApimTeam,

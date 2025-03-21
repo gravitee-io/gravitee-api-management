@@ -50,7 +50,7 @@ describe('API - V4 - Rollback', () => {
                 security: { type: PlanSecurityType.API_KEY },
               }),
             ],
-            api: MAPIV2ApisFaker.apiV4(),
+            api: MAPIV2ApisFaker.apiV4Proxy(),
           }),
         }),
       );

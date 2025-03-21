@@ -28,7 +28,7 @@ const envId = 'DEFAULT';
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v1GroupsResourceAsAdmin = new GroupsApi(forManagementAsAdminUser());
 
-describe('API - V4 - Import - Gravitee Definition - With groups', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - With groups', () => {
   describe('Create v4 API from import with groups', () => {
     let importedApi: ApiV4;
     let group: GroupEntity;
@@ -48,7 +48,7 @@ describe('API - V4 - Import - Gravitee Definition - With groups', () => {
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
-            api: MAPIV2ApisFaker.apiV4({
+            api: MAPIV2ApisFaker.apiV4Proxy({
               groups: [group.id],
             }),
           }),
