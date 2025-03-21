@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { afterAll, describe, expect, test } from '@jest/globals';
-import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { APIsApi, ApiV4, Listener, ListenerType } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAdminUser, forManagementAsApiUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { created, noContent, succeed } from '@lib/jest-utils';
 import { APIsApi as v1APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
@@ -30,7 +30,7 @@ const v1ApisResourceAsApiPublisher = new v1APIsApi(forManagementAsApiUser());
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v1MetadataResourceAsApiPublisher = new MetadataApi(forManagementAsAdminUser());
 
-describe('API - V4 - Proxy - Import - Gravitee Definition - With metadata', () => {
+describe('API - V4 - Native Kafka - Import - Gravitee Definition - With metadata', () => {
   describe('Create v4 API from import with metadata', () => {
     let importedApiWithApimTeam,
       importedSecondApiWithApimTeam,
@@ -61,10 +61,22 @@ describe('API - V4 - Proxy - Import - Gravitee Definition - With metadata', () =
     });
 
     test('should import v4 APIs with metadata', async () => {
+      const kafkaListener = (host: string): Listener => ({
+        type: ListenerType.KAFKA,
+        host,
+        port: 9092,
+        entrypoints: [
+          {
+            type: 'native-kafka',
+            configuration: {},
+          },
+        ],
+      });
       importedApiWithApimTeam = await created(
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
+            api: MAPIV2ApisFaker.apiV4NativeKafka({ listeners: [kafkaListener('apim')] }),
             metadata: [apimTeamMetadata],
           }),
         }),
@@ -75,6 +87,7 @@ describe('API - V4 - Proxy - Import - Gravitee Definition - With metadata', () =
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
+            api: MAPIV2ApisFaker.apiV4NativeKafka({ listeners: [kafkaListener('am')] }),
             metadata: [amTeamMetadata],
           }),
         }),
@@ -85,6 +98,7 @@ describe('API - V4 - Proxy - Import - Gravitee Definition - With metadata', () =
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
+            api: MAPIV2ApisFaker.apiV4NativeKafka({ listeners: [kafkaListener('apim-2')] }),
             metadata: [apimTeamMetadata],
           }),
         }),
@@ -95,6 +109,7 @@ describe('API - V4 - Proxy - Import - Gravitee Definition - With metadata', () =
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
+            api: MAPIV2ApisFaker.apiV4NativeKafka({ listeners: [kafkaListener('cockpit')] }),
             metadata: [
               // Api with metadata having an undefined key at creation will be created with its name as a key
               { ...cockpitTeamMetadata, key: undefined },
@@ -108,6 +123,7 @@ describe('API - V4 - Proxy - Import - Gravitee Definition - With metadata', () =
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
+            api: MAPIV2ApisFaker.apiV4NativeKafka({ listeners: [kafkaListener('email')] }),
             metadata: [globalEmailMetadata],
           }),
         }),
@@ -119,10 +135,10 @@ describe('API - V4 - Proxy - Import - Gravitee Definition - With metadata', () =
     // with test.each, jest is using the initial value of variables
     // in this case, they are not yet initialized (it's done in the previous step)
     // using functions allow to delay the access to variables
-    const importedApiWithApimTeamFn = () => importedApiWithApimTeam.id;
-    const importedSecondApiWithApimTeamFn = () => importedSecondApiWithApimTeam.id;
-    const importedApiWithAmTeamFn = () => importedApiWithAmTeam.id;
-    const importedApiWithCockpitTeamFn = () => importedApiWithCockpitTeam.id;
+    const importedApiWithApimTeamFn = (): string => importedApiWithApimTeam.id;
+    const importedSecondApiWithApimTeamFn = (): string => importedSecondApiWithApimTeam.id;
+    const importedApiWithAmTeamFn = (): string => importedApiWithAmTeam.id;
+    const importedApiWithCockpitTeamFn = (): string => importedApiWithCockpitTeam.id;
 
     test.each`
       apiIdFn                            | expectedMetadata       | name
