@@ -28,16 +28,18 @@ import io.gravitee.rest.api.model.JsonPatch;
 import io.gravitee.rest.api.service.exceptions.JsonPatchTestFailedException;
 import io.gravitee.rest.api.service.exceptions.JsonPatchUnsafeException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.util.Collection;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.env.MockEnvironment;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -103,11 +105,16 @@ class JsonPatchServiceTest {
                     }
                     """;
 
-    @InjectMocks
     JsonPatchServiceImpl jsonPatchService;
 
     @Spy
     GraviteeMapper objectMapper = new GraviteeMapper();
+
+    @BeforeEach
+    public void init() {
+        var htmlSanitizer = new HtmlSanitizer(new MockEnvironment());
+        jsonPatchService = new JsonPatchServiceImpl(objectMapper, htmlSanitizer);
+    }
 
     @Test
     void should_replace_endpoint_backup() throws JsonProcessingException {
