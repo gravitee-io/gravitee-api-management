@@ -50,6 +50,9 @@
           <app-consumer-configuration-retry
             [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.retry"></app-consumer-configuration-retry>
 
+          <app-consumer-configuration-authentication [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.auth">
+          </app-consumer-configuration-authentication>
+
           <app-consumer-configuration-ssl
             [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.ssl"></app-consumer-configuration-ssl>
         </form>

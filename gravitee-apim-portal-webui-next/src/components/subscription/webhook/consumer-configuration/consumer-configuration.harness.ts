@@ -23,7 +23,7 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
 export class ConsumerConfigurationComponentHarness extends ComponentHarness {
-  public static hostSelector = 'app-consumer-configuration';
+  public static readonly hostSelector = 'app-consumer-configuration';
 
   async getInputTextFromControlName(formControlName: string): Promise<string> {
     const input: MatInputHarness = await this.locatorFor(MatInputHarness.with({ selector: `[formcontrolname='${formControlName}']` }))();
@@ -38,6 +38,11 @@ export class ConsumerConfigurationComponentHarness extends ComponentHarness {
 
   async selectOption(formControlName: string, newValue: string): Promise<void> {
     const select = await this.locatorFor(MatSelectHarness.with({ selector: `[formcontrolname='${formControlName}']` }))();
+    return select.clickOptions({ text: newValue });
+  }
+
+  async selectOptionById(id: string, newValue: string): Promise<void> {
+    const select = await this.locatorFor(MatSelectHarness.with({ selector: `#${id}` }))();
     return select.clickOptions({ text: newValue });
   }
 

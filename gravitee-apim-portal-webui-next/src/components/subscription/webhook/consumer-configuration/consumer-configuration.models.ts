@@ -15,7 +15,7 @@
  */
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { Header, RetryConfiguration, SslOptions } from '../../../../entities/subscription';
+import { Header, RetryConfiguration, SslOptions, WebhookSubscriptionConfigurationAuth } from '../../../../entities/subscription';
 
 export type ConsumerConfigurationForm = FormGroup<{
   channel: FormControl<string | null>;
@@ -24,6 +24,7 @@ export type ConsumerConfigurationForm = FormGroup<{
     headers: FormControl<Header[] | null>;
     retry: FormControl<RetryConfiguration>;
     ssl: FormControl<SslOptions>;
+    auth: FormControl<WebhookSubscriptionConfigurationAuth>;
   }>;
 }>;
 
@@ -34,5 +35,6 @@ export type ConsumerConfigurationValues = {
     headers: Header[] | null;
     retry: RetryConfiguration;
     ssl: SslOptions;
+    auth: WebhookSubscriptionConfigurationAuth;
   };
 };
