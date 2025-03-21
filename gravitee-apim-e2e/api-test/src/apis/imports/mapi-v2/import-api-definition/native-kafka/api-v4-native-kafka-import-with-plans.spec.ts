@@ -19,14 +19,14 @@ import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { faker } from '@faker-js/faker';
+import faker from '@faker-js/faker';
 
 const envId = 'DEFAULT';
 
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v2APlansResourceAsApiPublisher = new APIPlansApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Import - Gravitee Definition - With plans', () => {
+describe('API - V4 - Native Kafka - Import - Gravitee Definition - With plans', () => {
   describe('Create v4 API from import with plans', () => {
     describe('Create v4 API with two plans', () => {
       const keylessPlan = MAPIV2PlansFaker.planV4();
@@ -42,6 +42,7 @@ describe('API - V4 - Import - Gravitee Definition - With plans', () => {
           v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
             envId,
             exportApiV4: MAPIV2ApisFaker.apiImportV4({
+              api: MAPIV2ApisFaker.apiV4NativeKafka(),
               plans: [keylessPlan, apiKeyPlan],
             }),
           }),
@@ -122,96 +123,6 @@ describe('API - V4 - Import - Gravitee Definition - With plans', () => {
           );
         }
 
-        if (importedApi) {
-          await noContent(
-            v2ApisResourceAsApiPublisher.deleteApiRaw({
-              envId,
-              apiId: importedApi.id,
-            }),
-          );
-        }
-      });
-    });
-  });
-
-  describe('Create v4 API from import with plans containing flows', () => {
-    describe('Create v4 API with two plans', () => {
-      const flow = MAPIV2PlansFaker.newFlowV4({
-        selectors: [
-          {
-            type: 'HTTP',
-            path: '/',
-            pathOperator: 'STARTS_WITH',
-            methods: ['GET'],
-          },
-        ],
-        response: [
-          {
-            name: 'Transform Headers',
-            enabled: true,
-            policy: 'transform-headers',
-            configuration: {
-              whitelistHeaders: [],
-              addHeaders: [
-                {
-                  name: 'x-dummy-header',
-                  value: faker.lorem.word(),
-                },
-              ],
-              scope: 'REQUEST',
-            },
-          },
-        ],
-      });
-      const apiKeyPlan = MAPIV2PlansFaker.planV4({ security: { type: PlanSecurityType.API_KEY }, flows: [flow] });
-      let importedApi: ApiV4;
-      let savedApiKeyPlanId: string;
-
-      test('should import v4 API with plans containing flows', async () => {
-        importedApi = await created(
-          v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
-            envId,
-            exportApiV4: MAPIV2ApisFaker.apiImportV4({
-              plans: [apiKeyPlan],
-            }),
-          }),
-        );
-        expect(importedApi).toBeTruthy();
-      });
-
-      test('should get list of plans with correct data', async () => {
-        const plansResponse = await succeed(
-          v2APlansResourceAsApiPublisher.listApiPlansRaw({
-            envId,
-            apiId: importedApi.id,
-          }),
-        );
-        const plans = plansResponse.data;
-        expect(plans).toBeTruthy();
-        expect(plans).toHaveLength(1);
-
-        // Verifying keyless plan
-        const plan: PlanV4 = plans[0];
-        savedApiKeyPlanId = plan.id;
-
-        expect(plan.flows).toHaveLength(1);
-        const createdFlow = plan.flows[0];
-        expect(createdFlow.name).toStrictEqual(flow.name);
-        expect(createdFlow.enabled).toStrictEqual(flow.enabled);
-        expect(createdFlow.selectors).toStrictEqual(flow.selectors);
-        expect(createdFlow.response).toEqual(flow.response);
-      });
-
-      afterAll(async () => {
-        if (savedApiKeyPlanId) {
-          await noContent(
-            v2APlansResourceAsApiPublisher.deleteApiPlanRaw({
-              envId,
-              apiId: importedApi.id,
-              planId: savedApiKeyPlanId,
-            }),
-          );
-        }
         if (importedApi) {
           await noContent(
             v2ApisResourceAsApiPublisher.deleteApiRaw({

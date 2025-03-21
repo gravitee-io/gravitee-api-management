@@ -36,7 +36,7 @@ describe('With a TCP API', () => {
         envId,
         exportApiV4: MAPIV2ApisFaker.apiImportV4({
           plans: [MAPIV2PlansFaker.planV4()],
-          api: MAPIV2ApisFaker.apiV4({
+          api: MAPIV2ApisFaker.apiV4Proxy({
             listeners: [
               {
                 type: ListenerType.TCP,

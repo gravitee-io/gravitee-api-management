@@ -24,7 +24,7 @@ const envId = 'DEFAULT';
 
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Import - Gravitee Definition - With pictures', () => {
+describe('API - V4 - Native Kafka - Import - Gravitee Definition - With pictures', () => {
   describe('Create v4 API from import with pictures', () => {
     let importedApi: ApiV4;
 
@@ -33,6 +33,7 @@ describe('API - V4 - Import - Gravitee Definition - With pictures', () => {
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
+            api: MAPIV2ApisFaker.apiV4NativeKafka(),
             apiPicture: `data:image/png;base64,${ImagesUtils.fakeImage15x15}`,
             apiBackground: `data:image/png;base64,${ImagesUtils.fakeImage150x35}`,
           }),

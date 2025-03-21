@@ -29,7 +29,7 @@ const envId = 'DEFAULT';
 const apisResourceApiUser = new APIsApi(forManagementAsApiUser());
 const v2ApisResourceAsAdmin = new APIsApiV2(forManagementV2AsAdminUser());
 
-describe('API - Imports', () => {
+describe('API - Proxy - Imports', () => {
   describe('API definition import', () => {
     let apiToImport: ApiImportEntity = ApisFaker.apiImport();
     let importedApi: ApiEntity;

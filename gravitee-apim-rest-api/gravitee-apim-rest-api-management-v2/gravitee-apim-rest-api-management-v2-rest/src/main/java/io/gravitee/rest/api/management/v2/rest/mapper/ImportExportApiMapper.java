@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.listener.Listener;
@@ -41,6 +42,7 @@ import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import jakarta.annotation.Nullable;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.mapstruct.AfterMapping;
@@ -164,6 +166,7 @@ public interface ImportExportApiMapper {
     io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate map(ResponseTemplate value);
 
     @Mapping(target = "apiExport", expression = "java(buildApiExport(exportApiV4))")
+    @Mapping(target = "plans", expression = "java(buildPlans(exportApiV4))")
     ImportDefinition toImportDefinition(ExportApiV4 exportApiV4);
 
     @Mapping(target = "type", constant = "USER")
@@ -176,6 +179,14 @@ public interface ImportExportApiMapper {
         apiExport.setPicture(exportApiV4.getApiPicture());
         apiExport.setBackground(exportApiV4.getApiBackground());
         return apiExport;
+    }
+
+    default Set<PlanWithFlows> buildPlans(ExportApiV4 exportApiV4) {
+        if (exportApiV4.getPlans() == null || exportApiV4.getApi() == null) {
+            return null;
+        }
+
+        return PlanMapper.INSTANCE.map(exportApiV4.getPlans(), exportApiV4.getApi().getType());
     }
 
     @Mapping(target = "apiId", expression = "java(apiId)")
