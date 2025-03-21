@@ -207,6 +207,80 @@ export class MAPIV2ApisFaker {
     };
   }
 
+  static apiV4NativeKafka(attributes?: Partial<ApiV4>): ApiV4 {
+    const name = faker.lorem.words(10);
+    const apiVersion = this.version();
+    const description = faker.lorem.words(10);
+
+    return {
+      apiVersion,
+      definitionVersion: DefinitionVersion.V4,
+      description,
+      name,
+      endpointGroups: [
+        {
+          name: 'Default Kafka Group',
+          type: 'native-kafka',
+          loadBalancer: { type: 'ROUND_ROBIN' },
+          sharedConfiguration: {
+            security: {
+              protocol: 'SASL_SSL',
+              sasl: {
+                mechanism: {
+                  type: 'PLAIN',
+                  password: 'password',
+                  username: 'username',
+                },
+              },
+              ssl: {
+                keyStore: {
+                  type: '',
+                },
+                hostnameVerifier: true,
+                trustStore: {
+                  type: '',
+                },
+                trustAll: false,
+              },
+            },
+          },
+          endpoints: [
+            {
+              name: 'Kafka',
+              type: 'native-kafka',
+              inheritConfiguration: true,
+              configuration: {
+                bootstrapServers: 'bootstrap-server:9092',
+              },
+            },
+          ],
+        },
+      ],
+      flowExecution: {
+        flowMode: FlowMode.DEFAULT,
+        matchRequired: false,
+      } as FlowExecution,
+      flows: [],
+      groups: [],
+      listeners: [
+        {
+          type: ListenerType.KAFKA,
+          host: '127.0.0.1',
+          port: 9092,
+          entrypoints: [
+            {
+              type: 'native-kafka',
+              configuration: {},
+            },
+          ],
+        },
+      ],
+      tags: [],
+      type: ApiType.NATIVE,
+      ...attributes,
+    };
+  }
+
   static apiImportV4(attributes?: Partial<ExportApiV4>): ExportApiV4 {
     return {
       api: this.apiV4Proxy(),
