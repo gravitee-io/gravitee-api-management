@@ -238,6 +238,74 @@ describe('SubscriptionsDetailsComponent', () => {
       await okButton.click();
       expectSubscriptionUpdate();
     });
+
+    describe('Authentication test', () => {
+      it('should use token authentication', async () => {
+        const consumerConfiguration = fakeSubscriptionConsumerConfiguration();
+        const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID, consumerConfiguration });
+        initComponent(subscription);
+
+        await componentHarness.selectOptionById('authType', 'Token security');
+        await componentHarness.setInputTextValueFromControlName('token', 'awesome-token');
+        expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
+        expect(await componentHarness.isResetButtonDisabled()).toBeFalsy();
+
+        await componentHarness.setInputTextValueFromControlName('token', '');
+        expect(await componentHarness.getError()).toStrictEqual('Token is required');
+
+        await componentHarness.setInputTextValueFromControlName('token', 'awesome-token');
+        await save();
+        expectSubscriptionUpdate();
+      });
+
+      it('should use basic authentication', async () => {
+        const consumerConfiguration = fakeSubscriptionConsumerConfiguration();
+        const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID, consumerConfiguration });
+        initComponent(subscription);
+
+        await componentHarness.selectOptionById('authType', 'Basic security');
+        await componentHarness.setInputTextValueFromControlName('username', 'user');
+        await componentHarness.setInputTextValueFromControlName('password', 'pass');
+        expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
+        expect(await componentHarness.isResetButtonDisabled()).toBeFalsy();
+
+        await componentHarness.setInputTextValueFromControlName('username', '');
+        expect(await componentHarness.getError()).toStrictEqual('Username is required');
+        await componentHarness.setInputTextValueFromControlName('username', 'user');
+        await componentHarness.setInputTextValueFromControlName('password', '');
+        expect(await componentHarness.getError()).toStrictEqual('Password is required');
+        await componentHarness.setInputTextValueFromControlName('password', 'pass');
+
+        await save();
+        expectSubscriptionUpdate();
+      });
+
+      it('should use oauth2 authentication', async () => {
+        const consumerConfiguration = fakeSubscriptionConsumerConfiguration();
+        const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID, consumerConfiguration });
+        initComponent(subscription);
+
+        await componentHarness.selectOptionById('authType', 'Oauth2 security');
+        await componentHarness.setInputTextValueFromControlName('clientId', 'client-id');
+        await componentHarness.setInputTextValueFromControlName('clientSecret', 'client-secret');
+        await componentHarness.setInputTextValueFromControlName('endpoint', 'endpoint');
+        expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
+        expect(await componentHarness.isResetButtonDisabled()).toBeFalsy();
+
+        await componentHarness.setInputTextValueFromControlName('clientId', '');
+        expect(await componentHarness.getError()).toStrictEqual('Client ID is required');
+        await componentHarness.setInputTextValueFromControlName('clientId', 'client-id');
+        await componentHarness.setInputTextValueFromControlName('clientSecret', '');
+        expect(await componentHarness.getError()).toStrictEqual('Client secret is required');
+        await componentHarness.setInputTextValueFromControlName('clientSecret', 'client-secret');
+        await componentHarness.setInputTextValueFromControlName('endpoint', '');
+        expect(await componentHarness.getError()).toStrictEqual('Endpoint is required');
+        await componentHarness.setInputTextValueFromControlName('endpoint', 'endpoint');
+
+        await save();
+        expectSubscriptionUpdate();
+      });
+    });
   });
 
   function expectSubscription(subscriptionResponse: Subscription = fakeSubscription()) {
