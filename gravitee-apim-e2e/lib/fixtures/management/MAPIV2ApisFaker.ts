@@ -80,7 +80,7 @@ export class MAPIV2ApisFaker {
     };
   }
 
-  static apiV4(attributes?: Partial<ApiV4>): ApiV4 {
+  static apiV4Proxy(attributes?: Partial<ApiV4>): ApiV4 {
     const name = faker.lorem.words(10);
     const apiVersion = this.version();
     const description = faker.lorem.words(10);
@@ -209,7 +209,7 @@ export class MAPIV2ApisFaker {
 
   static apiImportV4(attributes?: Partial<ExportApiV4>): ExportApiV4 {
     return {
-      api: this.apiV4(),
+      api: this.apiV4Proxy(),
       members: [],
       metadata: [],
       pages: [],

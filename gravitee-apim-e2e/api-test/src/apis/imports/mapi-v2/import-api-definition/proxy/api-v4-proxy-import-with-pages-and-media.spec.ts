@@ -31,7 +31,7 @@ const envId = 'DEFAULT';
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v1ApiPagesResourceAsApiPublisher = new APIPagesApi(forManagementAsApiUser());
 
-describe('API - V4 - Import - Gravitee Definition - With pages', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - With pages', () => {
   describe('Create v4 API from import with pages', () => {
     describe('Create v4 API with one page without ID', () => {
       let importedApi: ApiV4;
@@ -108,7 +108,7 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
           v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
             envId,
             exportApiV4: MAPIV2ApisFaker.apiImportV4({
-              api: MAPIV2ApisFaker.apiV4({ id: fixedApiId }),
+              api: MAPIV2ApisFaker.apiV4Proxy({ id: fixedApiId }),
               pages: [page],
             }),
           }),
@@ -197,7 +197,7 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
           v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
             envId,
             exportApiV4: MAPIV2ApisFaker.apiImportV4({
-              api: MAPIV2ApisFaker.apiV4({ id: fixedApiId }),
+              api: MAPIV2ApisFaker.apiV4Proxy({ id: fixedApiId }),
               pages: [page],
               apiMedia: [inPageMedia, attachedMedia],
             }),

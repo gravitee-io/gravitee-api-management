@@ -35,7 +35,7 @@ const v2ApisResourceAsAdmin = new APIsApi(forManagementV2AsAdminUser());
 const v1UsersResourceAsAdmin = new UsersApi(forManagementAsAdminUser());
 const v1ConfigurationResourceAsAdmin = new ConfigurationApi(forManagementAsAdminUser());
 
-describe('API - V4 - Import - Gravitee Definition - With members', () => {
+describe('API - V4 - Proxy - Import - Gravitee Definition - With members', () => {
   describe('Create v4 API from import with members', () => {
     const roleName = 'IMPORT_TEST_ROLE';
     let importedApi: ApiV4;
@@ -83,7 +83,7 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
-            api: MAPIV2ApisFaker.apiV4(),
+            api: MAPIV2ApisFaker.apiV4Proxy(),
             members: [
               MAPIV2MembersFaker.member({
                 id: member.id,
