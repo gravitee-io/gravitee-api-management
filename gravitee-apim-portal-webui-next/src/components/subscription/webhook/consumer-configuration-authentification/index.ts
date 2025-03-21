@@ -13,8 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './webhook/consumer-configuration';
-export * from './webhook/consumer-configuration-headers';
-export * from './webhook/consumer-configuration-retry';
-export * from './webhook/consumer-configuration-ssl';
-export * from './webhook/consumer-configuration-authentification';
+export * from './consumer-configuration-authentication.component';
