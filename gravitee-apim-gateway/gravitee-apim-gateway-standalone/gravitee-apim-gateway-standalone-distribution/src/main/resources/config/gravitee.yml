@@ -166,16 +166,36 @@ secrets:
 # Gateway Kafka server
 #kafka:
 #  enabled: false
-
+#
 #  routingMode: host # default is host. Only host is supported for now.
 #  # Routing Host Mode
 #  routingHostMode:
-#    brokerPrefix: broker- # default is broker-
-#    domainSeparator: - # Used to separate broker's name from api & defaultDomain. Default is '-'
+#    brokerPrefix: broker-          # default is broker-
+#    domainSeparator: -             # Used to separate broker's name from api & defaultDomain. Default is '-'
 #
 #    # The default domain where the Kafka APIs are exposed. ex: `myapi` will be exposed as `myapi.mycompany.org`
-#    defaultDomain: mycompany.org # Should set according to the public wildcard DNS/Certificate. Default is empty
-#    defaultPort: 9092 # Default public port for Kafka APIs. Default is 9092
+#    defaultDomain: mycompany.org   # Should set according to the public wildcard DNS/Certificate. Default is empty
+#    defaultPort:   9092            # Default public port for Kafka APIs. Default is 9092
+#
+#    # With the upper default configuration, the Gravitee Kafka gateway yields bootstrap and broker domains to be as follows:
+#    bootstrapDomainPattern: {apiHost}.mycompany.org
+#    brokerDomainPattern: broker-{brokerId}-{apiHost}.mycompany.org
+#    # Where:
+#    # {apiHost}  is a placeholder that will be replaced when the API is deployed, by the API Host Prefix.
+#    # {brokerId} is a placeholder that stands for the broker id
+#
+#    # It can be overridden to fit your DNS configuration.
+#    # Doing so requires BOTH patterns to be set, as well as 'defaultPort'. Please note that 'defaultDomain', 'brokerPrefix' and 'domainSeparator' are not used in that case, hence optional.
+#    # Example:
+#    #   defaultPort: 9092
+#    #   bootstrapDomainPattern: bootstrap-{apiHost}.mycompany.org
+#    #   brokerDomainPattern: {apiHost}-broker{brokerId}.mycompany.org
+#    #
+#    #   This configuration yields domains that must target the Gravitee Kafka gateway:
+#    #      bootstrap-myapi.mycompany.org
+#    #      myapi-broker0.mycompany.org
+#    #      myapi-broker1.mycompany.org
+#    #      ...
 
 #  # API-Key plan security configuration
 #  api-key:
