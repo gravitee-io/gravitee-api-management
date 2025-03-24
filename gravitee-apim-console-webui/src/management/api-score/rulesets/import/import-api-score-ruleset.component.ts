@@ -35,31 +35,31 @@ export class ImportApiScoreRulesetComponent implements OnInit {
   graviteeAPIFormats = [
     {
       title: 'Gravitee Proxy API',
-      subtitle: 'For gateway or proxy services handling API calls.',
+      subtitle: 'v4 HTTP or TCP APIs that proxy REST, SOAP, gRPC, and GraphQL services.',
       value: RulesetFormat.GRAVITEE_PROXY,
       isDisabled: false,
     },
     {
       title: 'Gravitee Message API',
-      subtitle: 'For message-based services like queues or pub/sub.',
+      subtitle: 'v4 message APIs that proxy Kafka, Solace, RabbitMQ, and MQTT services.',
       value: RulesetFormat.GRAVITEE_MESSAGE,
       isDisabled: false,
     },
     {
       title: 'Native Kafka',
-      subtitle: 'For Apache Kafka-based messaging and event processing.',
+      subtitle: 'Native Kafka-to-Kafka proxy, that sits between a Kafka cluster and a Kafka client.',
       value: RulesetFormat.GRAVITEE_NATIVE,
       isDisabled: false,
     },
     {
       title: 'Gravitee Federated API',
-      subtitle: 'For APIs aggregating data from multiple sources.',
+      subtitle: 'APIs & event streams ingested from 3rd-party providers like AWS, Azure, Confluent and Solace.',
       value: RulesetFormat.GRAVITEE_FEDERATION,
       isDisabled: false,
     },
     {
       title: 'Gravitee V2 API',
-      subtitle: 'For V2 APIs.',
+      subtitle: 'Classic Gravitee v2 REST API proxy.',
       value: RulesetFormat.GRAVITEE_V2,
       isDisabled: false,
     },
