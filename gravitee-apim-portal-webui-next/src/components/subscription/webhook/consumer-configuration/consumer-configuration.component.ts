@@ -24,7 +24,6 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
-import { isEqual } from 'lodash';
 import { catchError, combineLatest, map, Observable, startWith, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -33,6 +32,7 @@ import { Plan } from '../../../../entities/plan/plan';
 import { Subscription, SubscriptionConsumerConfiguration, UpdateSubscription } from '../../../../entities/subscription';
 import { PlanService } from '../../../../services/plan.service';
 import { SubscriptionService } from '../../../../services/subscription.service';
+import { deepEqualIgnoreOrder } from '../../../../utils/deep-equal-ignore-order';
 import {
   SubscriptionCommentDialogComponent,
   SubscriptionCommentDialogData,
@@ -156,7 +156,7 @@ export class ConsumerConfigurationComponent implements OnInit {
       this.initialValues = this.consumerConfigurationForm.getRawValue();
       this.formUnchanged$ = this.consumerConfigurationForm.valueChanges.pipe(
         startWith(this.initialValues),
-        map(value => isEqual(this.initialValues, value)),
+        map(value => deepEqualIgnoreOrder(this.initialValues, value)),
       );
     }
   }
