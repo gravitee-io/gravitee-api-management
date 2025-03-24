@@ -40,10 +40,10 @@ export class CreateIntegrationComponent {
       { icon: 'azure', value: 'azure-api-management' },
       { icon: 'ibm-api-connect', value: 'ibm-api-connect' },
       { icon: 'confluent', value: 'confluent-platform' },
+      { icon: 'mulesoft', value: 'mulesoft' },
     ],
     comingSoon: [
       { icon: 'kong', value: 'kong' },
-      { icon: 'mulesoft', value: 'mulesoft' },
       { icon: 'dell-boomi', value: 'dell-boomi' },
     ],
   };
