@@ -18,9 +18,9 @@ package io.gravitee.apim.rest.api.common.apiservices;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import jakarta.annotation.Nonnull;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.Nonnull;
 import org.springframework.context.ApplicationContext;
 
 /**

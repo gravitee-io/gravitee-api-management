@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.model.context;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Context explaining where an API comes from.
