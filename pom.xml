@@ -142,7 +142,7 @@
         <resilience4j-rxjava3.version>2.3.0</resilience4j-rxjava3.version>
         <!-- !! Transitive dependency !! need to remove when swagger parser will include a version higher than 1.7.12 -->
         <rhino.version>1.7.15</rhino.version>
-        <swagger-core.version>2.2.28</swagger-core.version>
+        <swagger-core.version>2.2.29</swagger-core.version>
         <swagger-jaxrs2.version>2.2.29</swagger-jaxrs2.version>
         <swagger-parser.version>2.1.25</swagger-parser.version>
         <wiremock.version>3.12.1</wiremock.version>
