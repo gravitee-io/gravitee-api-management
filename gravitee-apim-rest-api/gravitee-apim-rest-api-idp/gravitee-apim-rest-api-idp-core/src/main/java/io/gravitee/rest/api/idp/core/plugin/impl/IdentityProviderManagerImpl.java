@@ -26,6 +26,7 @@ import io.gravitee.rest.api.idp.core.authentication.impl.CompositeIdentityManage
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderDefinition;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
 import io.gravitee.secrets.api.core.Secret;
+import jakarta.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,7 +34,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;

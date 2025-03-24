@@ -16,8 +16,8 @@
 package io.gravitee.repository.management.model;
 
 import io.gravitee.common.utils.TimeProvider;
+import jakarta.annotation.Nullable;
 import java.util.Date;
-import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

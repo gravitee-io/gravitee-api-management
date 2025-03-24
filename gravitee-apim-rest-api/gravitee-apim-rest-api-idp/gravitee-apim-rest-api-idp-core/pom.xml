@@ -68,5 +68,9 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
         </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
     </dependencies>
 </project>
