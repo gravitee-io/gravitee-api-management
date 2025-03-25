@@ -60,5 +60,7 @@ public class AccessPoint {
         PORTAL,
         PORTAL_API,
         GATEWAY,
+        TCP_GATEWAY,
+        KAFKA_GATEWAY,
     }
 }

@@ -52,7 +52,9 @@ public class AccessPointTemplate {
         CONSOLE_API("console-api"),
         PORTAL("portal"),
         PORTAL_API("portal-api"),
-        GATEWAY("gateway");
+        GATEWAY("gateway"),
+        TCP_GATEWAY("tcp-gateway"),
+        KAFKA_GATEWAY("kafka-gateway");
 
         private final String label;
     }
