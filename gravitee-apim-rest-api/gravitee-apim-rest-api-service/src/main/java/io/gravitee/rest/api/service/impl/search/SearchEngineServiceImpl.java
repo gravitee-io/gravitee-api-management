@@ -50,7 +50,9 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -288,6 +290,6 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                 }
             });
 
-        return results.orElse(null);
+        return results.orElse(new SearchResult(List.of()));
     }
 }
