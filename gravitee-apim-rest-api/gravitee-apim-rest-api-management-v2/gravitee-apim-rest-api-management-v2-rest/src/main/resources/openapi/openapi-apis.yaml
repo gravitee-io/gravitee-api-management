@@ -3051,6 +3051,8 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
+                      mcp:
+                        $ref: "#/components/schemas/MCP"
 
         ApiFederated:
             type: object
@@ -3489,6 +3491,8 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
+                      mcp:
+                        $ref: "#/components/schemas/MCP"
                   required: [listeners, endpointGroups, type]
 
         UpdateApiFederated:
@@ -5523,6 +5527,70 @@ components:
                         example: 8080
                   required:
                       - "host"
+        MCP:
+          title: "MCP"
+          properties:
+            enabled:
+              type: boolean
+            tools:
+              type: array
+              items:
+                $ref: "#/components/schemas/MCPTool"
+
+        MCPTool:
+          title: "MCPTool"
+          properties:
+            name:
+              type: string
+              description: Name of the tool. The name must be unique across the Gravitee installation.
+            description:
+              type: string
+              description: Description of the tool
+            properties:
+              type: array
+              items:
+                $ref: "#/components/schemas/MCPToolProperty"
+            required:
+              type: array
+              description: Properties by name that are required in the schema
+              items:
+                type: string
+
+        MCPToolProperty:
+          oneOf:
+            - $ref: "#/components/schemas/MCPToolPropertyString"
+            - $ref: "#/components/schemas/MCPToolPropertyArray"
+
+        MCPToolPropertyString:
+          allOf:
+            - $ref: "#/components/schemas/BaseMCPToolProperty"
+
+        MCPToolPropertyArray:
+          allOf:
+            - $ref: "#/components/schemas/BaseMCPToolProperty"
+          properties:
+            items:
+              type: object
+              additionalProperties:
+                type: object
+
+        BaseMCPToolProperty:
+          properties:
+            type:
+              $ref: "#/components/schemas/MCPToolPropertyType"
+          required: [type]
+          discriminator:
+            propertyName: type
+            mapping:
+              string: "#/components/schemas/MCPToolPropertyString"
+              array: "#/components/schemas/MCPToolPropertyArray"
+
+        MCPToolPropertyType:
+          type: string
+          enum:
+            - string
+            - array
+
         VerifyApiPaths:
             title: "VerifyApiPaths"
             properties:

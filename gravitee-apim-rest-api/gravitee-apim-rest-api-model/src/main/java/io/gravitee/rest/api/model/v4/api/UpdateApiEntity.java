@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.mcp.MCP;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
@@ -196,6 +197,8 @@ public class UpdateApiEntity {
         example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background"
     )
     private String backgroundUrl;
+
+    private MCP mcp;
 
     public void setName(String name) {
         this.name = HtmlSanitizer.sanitize(name);

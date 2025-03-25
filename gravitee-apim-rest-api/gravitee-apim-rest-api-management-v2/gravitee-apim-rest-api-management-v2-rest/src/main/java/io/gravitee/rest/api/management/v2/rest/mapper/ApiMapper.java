@@ -92,6 +92,7 @@ import org.slf4j.LoggerFactory;
         ServiceMapper.class,
         CorsMapper.class,
         ConfigurationSerializationMapper.class,
+        MCPMapper.class,
     }
 )
 public interface ApiMapper {

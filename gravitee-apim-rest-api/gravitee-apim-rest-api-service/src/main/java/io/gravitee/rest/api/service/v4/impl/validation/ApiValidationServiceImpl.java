@@ -21,9 +21,13 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.apim.core.api.domain_service.VerifyMCPToolDomainService;
+import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.mcp.MCP;
+import io.gravitee.definition.model.v4.mcp.Tool;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.Service;
@@ -45,6 +49,8 @@ import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
+import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
+import io.gravitee.rest.api.service.v4.exception.InvalidToolNameException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
@@ -80,6 +86,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final PlanValidationService planValidationService;
     private final PathParametersValidationService pathParametersValidationService;
     private final ApiServicePluginService apiServicePluginService;
+    private final VerifyMCPToolDomainService verifyMCPToolDomainService;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -92,7 +99,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final PlanSearchService planSearchService,
         final PlanValidationService planValidationService,
         final PathParametersValidationService pathParametersValidationService,
-        ApiServicePluginService apiServicePluginService
+        ApiServicePluginService apiServicePluginService,
+        final VerifyMCPToolDomainService verifyMCPToolDomainService
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -105,6 +113,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.planValidationService = planValidationService;
         this.pathParametersValidationService = pathParametersValidationService;
         this.apiServicePluginService = apiServicePluginService;
+        this.verifyMCPToolDomainService = verifyMCPToolDomainService;
     }
 
     @Override
@@ -213,6 +222,10 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         updateApiEntity.setResources(validateAndSanitize(updateApiEntity.getResources()));
 
         this.validateDynamicProperties(updateApiEntity.getServices() != null ? updateApiEntity.getServices().getDynamicProperty() : null);
+
+        updateApiEntity.setMcp(
+            this.validateAndSanitizeMCP(executionContext.getEnvironmentId(), updateApiEntity.getId(), updateApiEntity.getMcp())
+        );
     }
 
     @Override
@@ -325,6 +338,19 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             // not allowed changing API Type
             throw new ApiTypeException();
         }
+    }
+
+    private MCP validateAndSanitizeMCP(String environmentId, String apiId, MCP mcp) {
+        var result = verifyMCPToolDomainService.validateAndSanitize(
+            new VerifyMCPToolDomainService.Input(environmentId, apiId, mcp.getTools())
+        );
+        result
+            .severe()
+            .ifPresent(errors -> {
+                throw new InvalidToolNameException(errors.iterator().next().getMessage());
+            });
+        mcp.setTools(result.value().map(VerifyMCPToolDomainService.Input::tools).orElse(null));
+        return mcp;
     }
 
     private ApiLifecycleState validateAndSanitizeLifecycleState(final ApiEntity existingApiEntity, final UpdateApiEntity updateApiEntity) {

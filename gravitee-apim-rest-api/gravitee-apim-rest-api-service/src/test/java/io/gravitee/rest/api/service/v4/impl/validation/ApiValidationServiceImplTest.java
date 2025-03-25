@@ -33,6 +33,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api.domain_service.VerifyMCPToolDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -109,6 +110,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private ApiServicePluginService apiServicePluginService;
 
+    @Mock
+    private VerifyMCPToolDomainService verifyMCPToolDomainService;
+
     private ApiValidationService apiValidationService;
 
     @Before
@@ -125,7 +129,8 @@ public class ApiValidationServiceImplTest {
                 planSearchService,
                 planValidationService,
                 pathParametersValidationService,
-                apiServicePluginService
+                apiServicePluginService,
+                verifyMCPToolDomainService
             );
     }
 
