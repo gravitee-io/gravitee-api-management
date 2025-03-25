@@ -24,6 +24,7 @@ import { FlowExecution } from './flowExecution';
 import { Failover } from './failover';
 
 import { GenericApi } from '../baseApi';
+import {MCP} from "./mcp";
 
 export interface ApiV4 extends GenericApi {
   definitionVersion: 'V4';
@@ -38,4 +39,5 @@ export interface ApiV4 extends GenericApi {
   flows?: FlowV4[];
   services?: ApiServices;
   failover?: Failover;
+  mcp?: MCP;
 }

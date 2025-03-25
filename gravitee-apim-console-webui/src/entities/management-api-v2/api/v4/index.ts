@@ -41,6 +41,7 @@ export * from './loggingContentV4';
 export * from './loggingModeV4';
 export * from './loggingPhase';
 export * from './loggingV4';
+export * from './mcp';
 export * from './pathV4';
 export * from './qos';
 export * from './sampling';

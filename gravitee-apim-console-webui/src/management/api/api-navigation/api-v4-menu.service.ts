@@ -42,6 +42,7 @@ export class ApiV4MenuService implements ApiMenuService {
 
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
+      ...(api.mcp?.enabled ? [this.addMCPMenuEntry()] : []),
       ...(this.environmentSettingsService.getSnapshot().apiScore.enabled ? [this.addApiScoreMenuEntry()] : []),
       this.addEntrypointsMenuEntry(hasTcpListeners, api),
       this.addEndpointsMenuEntry(api, hasTcpListeners),
@@ -428,6 +429,7 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
+<<<<<<< HEAD
   private addDebugMenuEntry(): MenuItem {
     return {
       displayName: 'Debug',
@@ -439,6 +441,17 @@ export class ApiV4MenuService implements ApiMenuService {
       },
       routerLink: 'v4/debug',
       tabs: undefined,
+=======
+  private addMCPMenuEntry(): MenuItem {
+    return {
+      displayName: 'MCP',
+      icon: 'share-2',
+      routerLink: 'mcp',
+      // header: {
+      //   title: 'MCP',
+      //   subtitle: 'Manage the API for the MCP Gateway and Developer Portal',
+      // },
+>>>>>>> ac0e926e0f (feat(console): add enable mcp to api v4 proxy danger zone)
     };
   }
 }

@@ -15,7 +15,7 @@
  */
 import { UpdateBaseApi } from './updateBaseApi';
 
-import { Analytics, ApiServices, ApiType, EndpointGroupV4, FlowExecution, FlowV4, Listener } from '../api/v4';
+import {Analytics, ApiServices, ApiType, EndpointGroupV4, FlowExecution, FlowV4, Listener, MCP} from '../api/v4';
 import { Failover } from '../api/v4/failover';
 
 export interface UpdateApiV4 extends UpdateBaseApi {
@@ -29,4 +29,5 @@ export interface UpdateApiV4 extends UpdateBaseApi {
   flows?: FlowV4[];
   services?: ApiServices;
   failover?: Failover;
+  mcp?: MCP;
 }
