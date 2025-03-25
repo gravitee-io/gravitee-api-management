@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Copyright (C) 2021 The Gravitee team (http://gravitee.io)
  *
@@ -25,4 +26,22 @@
   &__headerRightBtn {
     margin-left: auto;
   }
+=======
+.no-tools-content {
+  display: flex;
+  flex-flow: column;
+  gap: 24px;
+  align-items: center;
+  height: 70px;
+  justify-content: center;
+}
+.title-and-subtitle {
+  flex: 1;
+}
+mat-card-header {
+  align-items: center;
+}
+mat-card-content {
+  padding-top: 16px;
+>>>>>>> 4fd3c69d69 (feat(console): manage mcp tools)
 }

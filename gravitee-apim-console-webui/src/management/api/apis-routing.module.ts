@@ -104,6 +104,7 @@ import { HasLicenseGuard } from '../../shared/components/gio-license/has-license
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 import { RuntimeAlertCreateComponent } from '../../components/runtime-alerts';
 import { ApiScoringGuard } from '../../shared/guards/api-scoring.guard';
+import {McpComponent} from "./mcp/mcp.component";
 
 const apisRoutes: Routes = [
   {
@@ -304,6 +305,15 @@ const apisRoutes: Routes = [
         path: 'api-score',
         component: ApiScoringComponent,
         canActivate: [ApiScoringGuard],
+      },
+      {
+        path: 'mcp',
+        component: McpComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-r']
+          }
+        }
       },
       {
         path: 'metadata',

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -22,3 +23,31 @@
     <no-mcp-entrypoint [canEnableMcp]="canEnableMcp$ | async" (enableMcpEntrypoint)="addMcpEntrypoint()" />
   }
 }
+=======
+@if (mcp$ | async; as mcp) {
+  <mat-card>
+    <mat-card-header>
+      <div class="title-and-subtitle">
+        <mat-card-title>Tools</mat-card-title>
+        <mat-card-subtitle>MCP Tools are individual operations that AI Agents can invoke.</mat-card-subtitle>
+      </div>
+      <button mat-raised-button color="primary"><mat-icon>add</mat-icon> Add a Tool</button>
+
+    </mat-card-header>
+    <mat-card-content>
+      @for (tool of mcp.tools; track $index) {
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>{{ tool.name }}</mat-expansion-panel-header>
+        </mat-expansion-panel>
+        <mcp-tool-read [tool]="tool" />
+      } @empty {
+        <div class="no-tools-content">
+          <div>No tools have been added to the API.</div>
+        </div>
+      }
+
+    </mat-card-content>
+  </mat-card>
+}
+
+>>>>>>> 4fd3c69d69 (feat(console): manage mcp tools)
