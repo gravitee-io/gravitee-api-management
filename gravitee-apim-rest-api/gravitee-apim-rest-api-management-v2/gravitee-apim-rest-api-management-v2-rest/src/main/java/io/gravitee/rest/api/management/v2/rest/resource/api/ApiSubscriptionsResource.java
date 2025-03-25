@@ -274,7 +274,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         if (created.getStatus() == io.gravitee.rest.api.model.SubscriptionStatus.PENDING) {
             var result = acceptSubscriptionUsecase.execute(
-                AcceptSubscriptionUseCase.Input.builder().subscriptionId(created.getId()).apiId(apiId).auditInfo(getAuditInfo()).build()
+                AcceptSubscriptionUseCase.Input
+                    .builder()
+                    .subscriptionId(created.getId())
+                    .apiId(apiId)
+                    .auditInfo(getAuditInfo())
+                    .customKey(getCustomApiKey(createSubscription))
+                    .build()
             );
             subscription = subscriptionMapper.map(result.subscription());
         }
@@ -737,5 +743,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 )
             );
         }
+    }
+
+    private String getCustomApiKey(CreateSubscription createSubscription) {
+        return (createSubscription.getCustomApiKey() != null && !createSubscription.getCustomApiKey().isEmpty())
+            ? createSubscription.getCustomApiKey()
+            : null;
     }
 }
