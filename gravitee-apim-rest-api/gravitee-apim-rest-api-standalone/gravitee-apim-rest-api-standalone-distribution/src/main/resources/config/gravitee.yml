@@ -688,6 +688,12 @@ notifiers:
 #        gateway:
 #          host: '{environment}.{organization}.{account}.example.com'
 #          secured: true
+#        tcp-gateway:
+#          host: '{environment}.{organization}.{account}.example.com'
+#          secured: true
+#        kafka-gateway:
+#          host: '{environment}.{organization}.{account}.example.com'
+#          secured: true
 
 # External Authentication
 #auth:

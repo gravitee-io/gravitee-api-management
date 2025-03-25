@@ -72,6 +72,14 @@ class CockpitAccessServiceImplTest {
             "installation.multi-tenant.accessPoints.environment.gateway.host",
             "{environment}.{organization}.{account}.apim-gateway.gravitee.io"
         );
+        environment.withProperty(
+            "installation.multi-tenant.accessPoints.environment.tcp-gateway.host",
+            "{environment}.{organization}.{account}.apim-tcp-gateway.gravitee.io"
+        );
+        environment.withProperty(
+            "installation.multi-tenant.accessPoints.environment.kafka-gateway.host",
+            "{environment}.{organization}.{account}.apim-kafka-gateway.gravitee.io"
+        );
 
         cut.afterPropertiesSet();
         Map<AccessPointTemplate.Type, List<AccessPointTemplate>> accessPointsTemplate = cut.getAccessPointsTemplate();
@@ -79,7 +87,7 @@ class CockpitAccessServiceImplTest {
         List<AccessPointTemplate> orgTemplates = accessPointsTemplate.get(AccessPointTemplate.Type.ORGANIZATION);
         assertThat(orgTemplates).hasSize(2);
         List<AccessPointTemplate> envTemplates = accessPointsTemplate.get(AccessPointTemplate.Type.ENVIRONMENT);
-        assertThat(envTemplates).hasSize(3);
+        assertThat(envTemplates).hasSize(5);
     }
 
     @Test

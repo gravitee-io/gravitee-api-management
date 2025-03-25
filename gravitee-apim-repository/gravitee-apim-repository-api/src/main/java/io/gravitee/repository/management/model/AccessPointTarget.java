@@ -25,4 +25,6 @@ public enum AccessPointTarget {
     PORTAL,
     PORTAL_API,
     GATEWAY,
+    TCP_GATEWAY,
+    KAFKA_GATEWAY,
 }
