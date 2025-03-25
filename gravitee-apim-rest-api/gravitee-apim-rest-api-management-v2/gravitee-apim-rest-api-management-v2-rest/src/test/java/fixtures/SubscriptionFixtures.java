@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import java.time.OffsetDateTime;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
@@ -78,6 +79,14 @@ public class SubscriptionFixtures {
     public static AcceptSubscription anAcceptSubscription() {
         return new AcceptSubscription()
             .customApiKey("custom")
+            .reason("reason")
+            .startingAt(OffsetDateTime.now())
+            .endingAt(OffsetDateTime.now());
+    }
+
+    public static AcceptSubscription anAcceptSubscriptionWithRandomKey() {
+        return new AcceptSubscription()
+            .customApiKey(UUID.randomUUID().toString()) // Generates a random UUID as the custom API key
             .reason("reason")
             .startingAt(OffsetDateTime.now())
             .endingAt(OffsetDateTime.now());
