@@ -18,10 +18,16 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -30,27 +36,29 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexableField;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ApiDocumentTransformerTest {
+@ExtendWith(MockitoExtension.class)
+class ApiDocumentTransformerTest {
 
     @InjectMocks
     ApiDocumentTransformer cut = new ApiDocumentTransformer(new ApiServiceImpl());
 
     @Test
-    public void shouldTransform() {
+    void shouldTransform() {
         ApiEntity toTransform = getApiEntity();
 
         Document transformed = cut.transform(toTransform);
@@ -59,7 +67,7 @@ public class ApiDocumentTransformerTest {
     }
 
     @Test
-    public void shouldTransformWithoutError_OnMissingReferenceId() {
+    void shouldTransformWithoutError_OnMissingReferenceId() {
         ApiEntity api = new ApiEntity();
         api.setId("api-uuid");
         Document doc = cut.transform(api);
@@ -67,7 +75,7 @@ public class ApiDocumentTransformerTest {
     }
 
     @Test
-    public void shouldTransformWithoutError_V4ApiOnDeleteMode() {
+    void shouldTransformWithoutError_V4ApiOnDeleteMode() {
         var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api.setId("api-uuid");
         api.setDefinitionVersion(null);
@@ -75,6 +83,36 @@ public class ApiDocumentTransformerTest {
 
         Document doc = cut.transform(api);
         assertThat(doc.get("id")).isEqualTo(api.getId());
+    }
+
+    @Nested
+    class HasHealthCheck {
+
+        @Test
+        void v4_as_endpoint_group() {
+            var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+            api.setId("api-uuid");
+            api.setDefinitionVersion(DefinitionVersion.V4);
+            api.setName("name");
+            api.setEndpointGroups(List.of(new EndpointGroup(new EndpointGroupServices(null, new Service(true, true, "type", "conf")))));
+
+            Document doc = cut.transform(api);
+            assertThat(doc.get("has_health_check")).isEqualTo("true");
+        }
+
+        @Test
+        void v4_as_endpoint_() {
+            var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+            api.setId("api-uuid");
+            api.setDefinitionVersion(DefinitionVersion.V4);
+            api.setName("name");
+            var endpointGroup = new EndpointGroup(new EndpointGroupServices(null, null));
+            endpointGroup.setEndpoints(List.of(new Endpoint(new EndpointServices(new Service(true, true, "type", "conf")))));
+            api.setEndpointGroups(List.of(endpointGroup));
+
+            Document doc = cut.transform(api);
+            assertThat(doc.get("has_health_check")).isEqualTo("true");
+        }
     }
 
     @NotNull
