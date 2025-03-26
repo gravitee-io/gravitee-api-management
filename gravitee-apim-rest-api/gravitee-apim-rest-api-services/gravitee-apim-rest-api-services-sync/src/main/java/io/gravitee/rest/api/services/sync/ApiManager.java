@@ -39,14 +39,14 @@ public class ApiManager {
     private EventManager eventManager;
 
     public void deploy(Api api) {
-        logger.info("Deployment of {}", api);
+        logger.info("Deployment of API id[{}] name[{}] version[{}]", api.getId(), api.getName(), api.getVersion());
 
         apis.put(api.getId(), api);
 
         if (api.getLifecycleState() == LifecycleState.STARTED) {
             eventManager.publishEvent(ApiEvent.DEPLOY, api);
         } else {
-            logger.debug("{} is not enabled. Skip deployment.", api);
+            logger.debug("API id[{}] name[{}] version[{}] is not enabled. Skip deployment.", api.getId(), api.getName(), api.getVersion());
         }
     }
 
@@ -58,10 +58,10 @@ public class ApiManager {
     public void undeploy(String apiId) {
         Api currentApi = apis.remove(apiId);
         if (currentApi != null) {
-            logger.info("Undeployment of {}", currentApi);
+            logger.info("Un-deploying API id[{}] name[{}] version[{}]", currentApi.getId(), currentApi.getName(), currentApi.getVersion());
 
             eventManager.publishEvent(ApiEvent.UNDEPLOY, currentApi);
-            logger.info("{} has been undeployed", apiId);
+            logger.info("API id[{}] has been un-deployed", apiId);
         }
     }
 
