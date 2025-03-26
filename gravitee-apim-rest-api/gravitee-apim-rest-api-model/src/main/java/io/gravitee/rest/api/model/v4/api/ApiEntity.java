@@ -209,6 +209,7 @@ public class ApiEntity implements GenericApiEntity {
     )
     private String backgroundUrl;
 
+    @DeploymentRequired
     private MCP mcp;
 
     @JsonIgnore
