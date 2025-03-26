@@ -320,7 +320,12 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   private healthcheckEnabled(api: ApiV4): boolean {
-    return api.endpointGroups?.some((e) => e.services?.healthCheck?.enabled) ?? false;
+    const enabledInEndpoints: boolean = api.endpointGroups?.some((endpointGroup) =>
+      endpointGroup?.endpoints?.some((endpoint) => endpoint?.services?.healthCheck?.enabled),
+    );
+    const enabledInServices: boolean = api.endpointGroups?.some((endpointGroup) => endpointGroup?.services?.healthCheck?.enabled);
+
+    return enabledInServices || enabledInEndpoints;
   }
 
   private healthcheckEnabledApiV2(api: ApiV2): boolean {
