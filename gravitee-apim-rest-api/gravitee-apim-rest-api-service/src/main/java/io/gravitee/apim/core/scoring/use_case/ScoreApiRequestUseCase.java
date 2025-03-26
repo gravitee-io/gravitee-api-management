@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
@@ -81,9 +82,7 @@ public class ScoreApiRequestUseCase {
             .toList();
 
         var export$ = Flowable
-            .fromCallable(() ->
-                apiExportDomainService.export(input.apiId, input.auditInfo, EnumSet.noneOf(ApiExportDomainService.Excludable.class))
-            )
+            .fromCallable(() -> apiExportDomainService.export(input.apiId, input.auditInfo, EnumSet.noneOf(Excludable.class)))
             .map(this::assetToScore)
             // export service throw error in some case (like if API isn't V4)
             .onErrorResumeNext(th -> Flowable.empty());
