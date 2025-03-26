@@ -15,8 +15,8 @@ import {JsonPipe} from "@angular/common";
     FormsModule,
     JsonPipe
   ],
-  templateUrl: './mcp-tool-read.component.html',
-  styleUrl: './mcp-tool-read.component.scss'
+  templateUrl: './mcp-tool-display.component.html',
+  styleUrl: './mcp-tool-display.component.scss'
 })
 export class McpToolDisplayComponent {
   tool = input.required<MCPTool>();
