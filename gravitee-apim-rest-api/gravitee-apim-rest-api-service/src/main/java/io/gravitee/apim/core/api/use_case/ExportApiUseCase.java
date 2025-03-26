@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
-import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static java.util.Objects.requireNonNull;
 
 import io.gravitee.apim.core.UseCase;
@@ -23,12 +22,16 @@ import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @UseCase
 @RequiredArgsConstructor
 public class ExportApiUseCase {
@@ -45,12 +48,12 @@ public class ExportApiUseCase {
         };
     }
 
-    public record Input(String apiId, AuditInfo auditInfo, @Nullable Collection<ApiExportDomainService.Excludable> excluded) {
-        public static Input of(String apiId, AuditInfo auditInfo, @Nullable Collection<String> excluded) {
+    public record Input(String apiId, AuditInfo auditInfo, @Nullable Collection<Excludable> excluded) {
+        public static Input of(String apiId, AuditInfo auditInfo, @Nullable Collection<Excludable> excluded) {
             return new Input(
                 requireNonNull(apiId, "apiId should not be null"),
                 requireNonNull(auditInfo, "auditInfo should not be null"),
-                stream(excluded).map(ApiExportDomainService.Excludable::valueOf).toList()
+                excluded == null ? List.of() : excluded
             );
         }
     }

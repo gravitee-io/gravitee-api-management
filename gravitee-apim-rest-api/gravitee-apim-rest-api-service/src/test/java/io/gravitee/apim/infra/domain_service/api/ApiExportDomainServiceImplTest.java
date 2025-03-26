@@ -26,6 +26,7 @@ import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.media.query_service.MediaQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
@@ -113,7 +114,7 @@ class ApiExportDomainServiceImplTest {
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
 
         // When
-        GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.noneOf(ApiExportDomainService.Excludable.class));
+        GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.noneOf(Excludable.class));
 
         // Then
         assertThat(export.api().type()).isEqualTo(ApiType.PROXY);
@@ -143,7 +144,7 @@ class ApiExportDomainServiceImplTest {
             .thenReturn(false);
 
         // When
-        GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.noneOf(ApiExportDomainService.Excludable.class));
+        GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.noneOf(Excludable.class));
 
         // Then
         assertThat(export.api().type()).isEqualTo(ApiType.PROXY);
@@ -164,7 +165,7 @@ class ApiExportDomainServiceImplTest {
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
 
         // When
-        GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.noneOf(ApiExportDomainService.Excludable.class));
+        GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.noneOf(Excludable.class));
 
         // Then
         assertThat(export.api().type()).isEqualTo(ApiType.NATIVE);
