@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -27,6 +28,7 @@ import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
@@ -111,6 +113,7 @@ import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -137,10 +140,12 @@ import jakarta.ws.rs.core.UriInfo;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -155,6 +160,18 @@ public class ApiResource extends AbstractResource {
     private static final String REVIEWS_ACTION_ASK = "ask";
     private static final String REVIEWS_ACTION_ACCEPT = "accept";
     private static final String REVIEWS_ACTION_REJECT = "reject";
+    private static final Map<String, Excludable> MAPPING_EXCLUDE_EXPORT_PARAMS = Map.of(
+        "groups",
+        Excludable.GROUPS,
+        "plans",
+        Excludable.PLANS,
+        "member",
+        Excludable.MEMBERS,
+        "pages",
+        Excludable.PAGES_MEDIA,
+        "metadata",
+        Excludable.METADATA
+    );
 
     @Context
     private ResourceContext resourceContext;
@@ -477,7 +494,11 @@ public class ApiResource extends AbstractResource {
         @PathParam("apiId") String apiId,
         @QueryParam("excludeAdditionalData") Set<String> excludeAdditionalData
     ) {
-        var input = ExportApiUseCase.Input.of(apiId, getAuditInfo(), excludeAdditionalData);
+        var input = ExportApiUseCase.Input.of(
+            apiId,
+            getAuditInfo(),
+            stream(excludeAdditionalData).flatMap(ApiResource::mapExcludedExportParams).toList()
+        );
         var export = exportApiUseCase.execute(input);
 
         return Response
@@ -1040,5 +1061,16 @@ public class ApiResource extends AbstractResource {
                     break;
             }
         }
+    }
+
+    private static Stream<Excludable> mapExcludedExportParams(@Nullable String ex) {
+        if (ex == null) {
+            return Stream.empty();
+        }
+        var excludable = MAPPING_EXCLUDE_EXPORT_PARAMS.get(ex);
+        if (excludable == null) {
+            log.debug("Unknown excluded '{}'", ex);
+        }
+        return Stream.ofNullable(excludable);
     }
 }

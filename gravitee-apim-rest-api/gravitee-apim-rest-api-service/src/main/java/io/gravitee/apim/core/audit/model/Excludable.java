@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.apim.core.audit.model;
 
-import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
-import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.audit.model.Excludable;
-import java.util.Collection;
-
-public interface ApiExportDomainService {
-    GraviteeDefinition export(String apiId, AuditInfo auditInfo, Collection<Excludable> excludeAdditionalData);
+public enum Excludable {
+    GROUPS,
+    PLANS,
+    MEMBERS,
+    PAGES_MEDIA,
+    METADATA,
 }
