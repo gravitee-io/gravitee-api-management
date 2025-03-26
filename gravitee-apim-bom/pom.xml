@@ -32,6 +32,18 @@
 
     <dependencyManagement>
         <dependencies>
+            <!--
+            This commit introduced a bug in Vertx when processing large request payload or SSE events so we are switching back to a previous one
+            which is not facing the issue
+            https://github.com/vert-x3/vertx-rx/commit/6955e5bbbd4513d3ffc19ea84cb4bf9bed60dadb#diff-e4c8367fd97da5a3b5dd6e6925554cbcb51a3f44be29bb36060d66c3bc83825c
+            https://github.com/vert-x3/vertx-web/issues/2725
+            -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-rx-java3</artifactId>
+                <version>4.5.1</version>
+            </dependency>
+
             <!-- Gravitee dependencies -->
             <!-- Import bom to properly inherit all dependencies -->
             <dependency>
