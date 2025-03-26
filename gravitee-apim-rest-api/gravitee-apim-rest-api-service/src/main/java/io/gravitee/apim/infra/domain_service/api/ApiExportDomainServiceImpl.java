@@ -15,10 +15,10 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
-import static io.gravitee.apim.core.api.domain_service.ApiExportDomainService.Excludable.GROUPS;
-import static io.gravitee.apim.core.api.domain_service.ApiExportDomainService.Excludable.MEMBERS;
-import static io.gravitee.apim.core.api.domain_service.ApiExportDomainService.Excludable.METADATA;
-import static io.gravitee.apim.core.api.domain_service.ApiExportDomainService.Excludable.PAGES_MEDIA;
+import static io.gravitee.apim.core.audit.model.Excludable.GROUPS;
+import static io.gravitee.apim.core.audit.model.Excludable.MEMBERS;
+import static io.gravitee.apim.core.audit.model.Excludable.METADATA;
+import static io.gravitee.apim.core.audit.model.Excludable.PAGES_MEDIA;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_DOCUMENTATION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_MEMBER;
@@ -35,6 +35,7 @@ import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.Integration;
