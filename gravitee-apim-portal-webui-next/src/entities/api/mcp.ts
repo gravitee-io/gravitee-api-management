@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
@@ -38,5 +39,32 @@ export interface Mcp {
  */
 export interface McpTool extends Record<string, unknown> {
   name?: string;
+=======
+export interface MCP {
+  enabled: boolean;
+  tools?: MCPTool[]
+}
+
+export interface MCPTool {
+  name: string;
+  type: string;
+  description?: boolean;
+  inputSchema: MCPInputSchema;
+}
+
+
+export interface MCPInputSchema {
+  type: string;
+  properties: MCPInputSchemaProperties;
+  required?: string[];
+}
+
+export interface MCPInputSchemaProperties {
+  [property: string]: MCPInputSchemaProperty;
+}
+
+export interface MCPInputSchemaProperty {
+  type: 'string' | 'number';
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
   description?: string;
 }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!--
 
     Copyright (C) 2025 The Gravitee team (http://gravitee.io)
@@ -39,4 +40,31 @@
       </div>
     </div>
   </div>
+=======
+<mat-expansion-panel expanded="true">
+  <mat-expansion-panel-header>
+    {{ tool().name }}
+  </mat-expansion-panel-header>
+  <div>
+    @if (tool().description) {
+      <div>{{ tool().description}}</div>
+    }
+    <form [formGroup]="form">
+      @for (property of toolToPropertyVMs(); track $index) {
+        <mat-form-field>
+          <mat-label i18n="@@applicationNameApplicationSettings">{{property.name}}</mat-label>
+          <input matInput [formControlName]="property.name" />
+          @if (property.description) {
+            <mat-hint>{{ property.description }}</mat-hint>
+          }
+        </mat-form-field>
+      }
+    </form>
+
+  </div>
+  <div>
+    <pre>{{ tool() | json }}</pre>
+  </div>
+
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
 </mat-expansion-panel>

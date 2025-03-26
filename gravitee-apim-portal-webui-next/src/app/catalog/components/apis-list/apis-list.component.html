@@ -36,6 +36,7 @@
   @if (apis.data.length > 0) {
     <div class="api-list__container" infiniteScroll (scrolled)="loadMoreApis(apis)">
       @for (api of apis.data; track api.id) {
+<<<<<<< HEAD
         <app-api-card
           [id]="api.id"
           [title]="api.title"
@@ -43,6 +44,9 @@
           [content]="api.content"
           [picture]="api.picture"
           [isEnabledMcpServer]="api.isEnabledMcpServer" />
+=======
+        <app-api-card [id]="api.id" [title]="api.title" [version]="api.version" [content]="api.content" [picture]="api.picture" [mcpEnabled]="api.mcpEnabled" />
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
       }
     </div>
   } @else if (!loadingPage) {

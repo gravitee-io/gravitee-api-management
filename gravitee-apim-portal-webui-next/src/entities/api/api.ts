@@ -17,6 +17,7 @@ import { ApiLinks } from './api-links';
 import { ListenerType } from './listener-type';
 import { Mcp } from './mcp';
 import { User } from '../user/user';
+import {MCP} from "./mcp";
 
 /**
  * Describes an API.
@@ -74,6 +75,7 @@ export interface Api {
   categories?: Array<string>;
   mcp?: Mcp;
   _links?: ApiLinks;
+  mcp?: MCP;
 }
 
 export type ApiType = 'NATIVE' | 'MESSAGE' | 'PROXY';

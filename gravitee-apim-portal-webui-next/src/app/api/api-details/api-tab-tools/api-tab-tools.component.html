@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!--
 
     Copyright (C) 2025 The Gravitee team (http://gravitee.io)
@@ -25,3 +26,11 @@
     </div>
   </div>
 }
+=======
+
+  @for (tool of mcpTools(); track $index) {
+    <app-mcp-tool [tool]="tool" />
+  } @empty {
+    No tools available.
+  }
+>>>>>>> 5559b8d249 (--wip-- [skip ci])

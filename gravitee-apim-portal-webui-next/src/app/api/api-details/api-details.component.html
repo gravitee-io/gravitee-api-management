@@ -24,7 +24,11 @@
         <div class="m3-body-medium">{{ api.version }}</div>
       </div>
       @if (!!api.mcp?.enabled) {
+<<<<<<< HEAD
         <mat-chip>MCP Server</mat-chip>
+=======
+        <mat-chip>MCP Ready</mat-chip>
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
       }
       @if (plans$ | async; as plans) {
         <div class="api-details__header-button">
@@ -74,10 +78,17 @@
           mat-tab-link
           [routerLink]="['.', 'tools']"
           routerLinkActive
+<<<<<<< HEAD
           #toolsActive="routerLinkActive"
           [active]="toolsActive.isActive"
           i18n="@@apiMCPTools"
           >Tools</a
+=======
+          #docActive="routerLinkActive"
+          [active]="docActive.isActive"
+          i18n="@@apiMCPTools"
+        >Tools</a
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
         >
       }
       @if (isAuthenticated()) {

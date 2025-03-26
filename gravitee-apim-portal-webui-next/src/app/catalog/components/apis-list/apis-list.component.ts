@@ -35,6 +35,7 @@ interface ApiVM {
   content: string;
   isEnabledMcpServer: boolean;
   picture?: string;
+  mcpEnabled: boolean;
 }
 
 interface ApiPaginatorVM {
@@ -113,7 +114,11 @@ export class ApisListComponent {
               version: api.version,
               title: api.name,
               picture: api._links?.picture,
+<<<<<<< HEAD
               isEnabledMcpServer: !!api.mcp?.enabled,
+=======
+              mcpEnabled: !!api.mcp?.enabled,
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
             }))
           : [];
 

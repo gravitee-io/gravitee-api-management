@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
@@ -91,5 +92,28 @@ describe('ApiTabToolsComponent', () => {
     expect(tools.length).toBe(2);
     expect(await tools[0].getTitleContent()).toBe('Cats rule tool');
     expect(await tools[1].getTitleContent()).toBe('MCP Tool');
+=======
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { ApiTabToolsComponent } from './api-tab-tools.component';
+
+describe('ApiTabToolsComponent', () => {
+  let component: ApiTabToolsComponent;
+  let fixture: ComponentFixture<ApiTabToolsComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApiTabToolsComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(ApiTabToolsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
   });
 });
