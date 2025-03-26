@@ -69,11 +69,7 @@ public class VerifyMCPToolDomainService implements Validator<VerifyMCPToolDomain
 
         apiSearchService
             .search(
-                ApiSearchCriteria
-                    .builder()
-                    .environmentId(input.environmentId)
-                    .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
-                    .build(),
+                ApiSearchCriteria.builder().environmentId(input.environmentId).definitionVersion(List.of(DefinitionVersion.V4)).build(),
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).build()
             )

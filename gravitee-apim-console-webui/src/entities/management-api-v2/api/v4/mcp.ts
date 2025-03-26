@@ -6,6 +6,10 @@ export class MCP {
 export class MCPTool {
   name?: string;
   description?: string;
+  inputSchema?: MCPToolInputSchema;
+}
+
+export class MCPToolInputSchema {
   type: string;
   properties?: MCPToolProperty[];
   required?: string[];

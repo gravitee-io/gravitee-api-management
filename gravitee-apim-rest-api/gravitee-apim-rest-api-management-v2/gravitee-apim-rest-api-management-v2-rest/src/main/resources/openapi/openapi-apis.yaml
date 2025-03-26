@@ -5546,44 +5546,24 @@ components:
             description:
               type: string
               description: Description of the tool
+            inputSchema:
+              $ref: "#/components/schemas/MCPInputSchema"
+
+        MCPInputSchema:
+          title: "MCPInputSchema"
+          properties:
+            type:
+              type: string
+              default: object
             properties:
-              type: array
-              items:
-                $ref: "#/components/schemas/MCPToolProperty"
+              type: object
+              additionalProperties:
+                type: object
             required:
               type: array
               description: Properties by name that are required in the schema
               items:
                 type: string
-
-        MCPToolProperty:
-          oneOf:
-            - $ref: "#/components/schemas/MCPToolPropertyString"
-            - $ref: "#/components/schemas/MCPToolPropertyArray"
-
-        MCPToolPropertyString:
-          allOf:
-            - $ref: "#/components/schemas/BaseMCPToolProperty"
-
-        MCPToolPropertyArray:
-          allOf:
-            - $ref: "#/components/schemas/BaseMCPToolProperty"
-          properties:
-            items:
-              type: object
-              additionalProperties:
-                type: object
-
-        BaseMCPToolProperty:
-          properties:
-            type:
-              $ref: "#/components/schemas/MCPToolPropertyType"
-          required: [type]
-          discriminator:
-            propertyName: type
-            mapping:
-              string: "#/components/schemas/MCPToolPropertyString"
-              array: "#/components/schemas/MCPToolPropertyArray"
 
         MCPToolPropertyType:
           type: string

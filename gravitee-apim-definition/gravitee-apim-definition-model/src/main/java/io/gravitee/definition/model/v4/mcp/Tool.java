@@ -26,19 +26,20 @@ public class Tool {
     public static class InputSchema {
         @Builder.Default
         private String type = "object";
-        private List<Property> properties;
+
+        private Map<String, Object> properties;
 
         // Required property names
         private List<String> required;
     }
 
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder(toBuilder = true)
-    @Data
-    @Schema(name = "MCPToolPropertyV4")
-    public static class Property {
-        private String type;
-        private Map<String, Object> items;
-    }
+//    @NoArgsConstructor
+//    @AllArgsConstructor
+//    @Builder(toBuilder = true)
+//    @Data
+//    @Schema(name = "MCPToolPropertyV4")
+//    public static class Property {
+//        private String type;
+//        private Map<String, Object> items;
+//    }
 }
