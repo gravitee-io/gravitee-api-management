@@ -31,21 +31,21 @@
         <mat-card-title>Tools</mat-card-title>
         <mat-card-subtitle>MCP Tools are individual operations that AI Agents can invoke.</mat-card-subtitle>
       </div>
-      <button mat-raised-button color="primary"><mat-icon>add</mat-icon> Add a Tool</button>
+      @if (!mcp.tools?.length) {
+        <button mat-raised-button color="primary" (click)="importViaOpenAPI()"><mat-icon>add</mat-icon> Import via OpenAPI</button>
+      } @else {
+        <button mat-raised-button color="warn" (click)="deleteTools()"><mat-icon svgIcon="gio:trash"></mat-icon> Delete all tools</button>
+      }
 
     </mat-card-header>
     <mat-card-content>
       @for (tool of mcp.tools; track $index) {
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>{{ tool.name }}</mat-expansion-panel-header>
-        </mat-expansion-panel>
         <mcp-tool-read [tool]="tool" />
       } @empty {
         <div class="no-tools-content">
           <div>No tools have been added to the API.</div>
         </div>
       }
-
     </mat-card-content>
   </mat-card>
 }

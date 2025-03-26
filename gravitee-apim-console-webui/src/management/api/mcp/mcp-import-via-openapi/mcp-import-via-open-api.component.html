@@ -1,0 +1,38 @@
+<div>
+  <div class="title">
+    <gio-go-back-button routerLink=".."></gio-go-back-button>
+    <h5>Tools</h5>
+  </div>
+</div>
+<form [formGroup]="form" (submit)="createMCPTools()">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Import Tools via OpenAPI</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="mcp-import__content">
+        <gio-monaco-editor
+          formControlName="editor"
+          [languageConfig]="{ language: 'yaml'}"
+          [disableMiniMap]="true"
+        />
+        <div class="mcp-import__content__preview">
+          @for (tool of editorAsTools(); track $index) {
+            <mcp-tool-read [tool]="tool" />
+          } @empty {
+            No tools are available.
+          }
+        </div>
+      </div>
+
+      @if (error()) {
+        <div class="error-message">
+          {{ error() }}
+        </div>
+      }
+      <div class="mcp-import__footer">
+        <button mat-raised-button color="primary" type="submit" [disabled]="formIsInvalid()">Create Tools</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</form>

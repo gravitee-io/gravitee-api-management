@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { McpToolReadComponent } from './mcp-tool-read.component';
+import { McpToolDisplayComponent } from './mcp-tool-display.component';
 
-describe('McpToolReadComponent', () => {
-  let component: McpToolReadComponent;
-  let fixture: ComponentFixture<McpToolReadComponent>;
+describe('McpToolDisplayComponent', () => {
+  let component: McpToolDisplayComponent;
+  let fixture: ComponentFixture<McpToolDisplayComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [McpToolReadComponent]
+      imports: [McpToolDisplayComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(McpToolReadComponent);
+    fixture = TestBed.createComponent(McpToolDisplayComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

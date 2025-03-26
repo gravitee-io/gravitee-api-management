@@ -105,6 +105,7 @@ import { PermissionGuard } from '../../shared/components/gio-permission/gio-perm
 import { RuntimeAlertCreateComponent } from '../../components/runtime-alerts';
 import { ApiScoringGuard } from '../../shared/guards/api-scoring.guard';
 import {McpComponent} from "./mcp/mcp.component";
+import {McpImportViaOpenApiComponent} from "./mcp/mcp-import-via-openapi/mcp-import-via-open-api.component";
 
 const apisRoutes: Routes = [
   {
@@ -312,6 +313,15 @@ const apisRoutes: Routes = [
         data: {
           permissions: {
             anyOf: ['api-definition-r']
+          }
+        }
+      },
+      {
+        path: 'mcp/import',
+        component: McpImportViaOpenApiComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-u']
           }
         }
       },

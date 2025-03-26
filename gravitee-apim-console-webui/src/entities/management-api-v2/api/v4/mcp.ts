@@ -11,11 +11,10 @@ export class MCPTool {
 
 export class MCPToolInputSchema {
   type: string;
-  properties?: MCPToolProperty[];
+  properties?: MCPToolProperties;
   required?: string[];
 }
 
-export class MCPToolProperty {
-  type: string;
-  items?: Record<string, unknown>;
+export class MCPToolProperties {
+  [property: string]: unknown;
 }
