@@ -66,6 +66,7 @@ public class VerifyMCPToolDomainService implements Validator<VerifyMCPToolDomain
 
     private List<Error> unavailablePathErrors(Input input, List<Tool.ToolBuilder> sanitizedBuilder) {
         var errors = new ArrayList<Error>();
+        var toolNames = sanitizedBuilder.stream().map(Tool.ToolBuilder::build).map(Tool::getName).toList();
 
         apiSearchService
             .search(
@@ -76,10 +77,9 @@ public class VerifyMCPToolDomainService implements Validator<VerifyMCPToolDomain
             .filter(api -> !api.getId().equals(input.apiId))
             .map(VerifyMCPToolDomainService::extractTools)
             .filter(CollectionUtils::isNotEmpty)
-            .forEach(existingPaths -> {
-                var toolNames = sanitizedBuilder.stream().map(Tool.ToolBuilder::build).map(Tool::getName).toList();
-
-                toolNames.forEach(toolName -> {
+            .forEach(existingTools -> {
+                existingTools.forEach(tool -> {
+                    var toolName = tool.getName();
                     if (toolNames.contains(toolName)) {
                         errors.add(Error.severe("Tool name [%s] already exists", toolName));
                     }
