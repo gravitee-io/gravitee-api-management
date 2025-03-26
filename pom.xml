@@ -295,6 +295,17 @@
     <dependencyManagement>
         <dependencies>
 
+            <!--
+            Below dependency and version is to specifically handle a bug in Vertx when processing large request payload or SSE events
+            https://github.com/vert-x3/vertx-web/issues/2725
+            -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-rx-java3</artifactId>
+                <version>4.5.1</version>
+            </dependency>
+
+
             <!-- Gravitee dependencies -->
             <!-- Import bom to properly inherit all dependencies -->
             <dependency>
