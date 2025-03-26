@@ -341,6 +341,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     }
 
     private MCP validateAndSanitizeMCP(String environmentId, String apiId, MCP mcp) {
+        if (mcp == null) {
+            return null;
+        }
         var result = verifyMCPToolDomainService.validateAndSanitize(
             new VerifyMCPToolDomainService.Input(environmentId, apiId, mcp.getTools())
         );
