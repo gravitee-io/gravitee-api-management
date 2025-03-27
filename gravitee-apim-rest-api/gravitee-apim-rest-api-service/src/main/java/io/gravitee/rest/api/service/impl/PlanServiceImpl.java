@@ -28,15 +28,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.BasePlanEntity;
@@ -49,8 +48,8 @@ import io.gravitee.rest.api.model.PlansConfigurationEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
@@ -61,7 +60,6 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
@@ -77,8 +75,6 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeExcep
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import jakarta.ws.rs.BadRequestException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -89,6 +85,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,13 +100,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlanServiceImpl extends AbstractService implements PlanService {
 
-    private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = Collections.unmodifiableList(
-        Arrays.asList(
-            new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
-            new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
-            new PlanSecurityEntity("api_key", "API Key", "api-key"),
-            new PlanSecurityEntity("key_less", "Keyless (public)", "")
-        )
+    private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = List.of(
+        new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
+        new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
+        new PlanSecurityEntity("api_key", "API Key", "api-key"),
+        new PlanSecurityEntity("key_less", "Keyless (public)", "")
     );
     private final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
 
@@ -154,17 +149,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     @Autowired
     private TagsValidationService tagsValidationService;
 
-    @Autowired
-    private GroupService groupService;
-
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
-        return (PlanEntity) planSearchService.findById(executionContext, plan);
+        return PlanAdapter.INSTANCE.map(planSearchService.findById(executionContext, plan));
     }
 
     @Override
     public Set<PlanEntity> findByApi(final ExecutionContext executionContext, final String api) {
-        return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
+        return planSearchService.findByApi(executionContext, api).stream().flatMap(this::map).collect(Collectors.toSet());
     }
 
     @Override
@@ -281,7 +273,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
             newPlan.setDefinition(planPolicies);
 
-            validateExcludedGroups(updatePlan.getExcludedGroups(), api.getEnvironmentId());
             newPlan.setExcludedGroups(updatePlan.getExcludedGroups());
 
             if (newPlan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
@@ -350,17 +341,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         }
     }
 
-    private void validateExcludedGroups(List<String> excludedGroups, String environmentId) throws TechnicalException {
-        var envGroupsIds = groupService.findAllByEnvironment(environmentId).stream().map(Group::getId).collect(Collectors.toSet());
-        if (excludedGroups != null && !excludedGroups.isEmpty()) {
-            excludedGroups.forEach(excludedGroupId -> {
-                if (!envGroupsIds.contains(excludedGroupId)) {
-                    throw new GroupNotFoundException(String.format("Excluded group %s doesn't exist", excludedGroupId));
-                }
-            });
-        }
-    }
-
     @Override
     public PlanEntity close(final ExecutionContext executionContext, String planId) {
         try {
@@ -391,7 +371,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
                 subscriptionService
                     .findByPlan(executionContext, planId)
-                    .stream()
                     .forEach(subscription -> {
                         try {
                             closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
@@ -497,14 +476,12 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             // Update plan status
             plan.setStatus(Plan.Status.PUBLISHED);
             // Update plan order
-            List<Plan> orderedPublishedPlans = plans
+            var orderedPublishedPlans = plans
                 .stream()
                 .filter(plan1 -> Plan.Status.PUBLISHED.equals(plan1.getStatus()))
                 .sorted(Comparator.comparingInt(Plan::getOrder))
-                .collect(Collectors.toList());
-            plan.setOrder(
-                orderedPublishedPlans.isEmpty() ? 1 : (orderedPublishedPlans.get(orderedPublishedPlans.size() - 1).getOrder() + 1)
-            );
+                .toList();
+            plan.setOrder(orderedPublishedPlans.isEmpty() ? 1 : (orderedPublishedPlans.getLast().getOrder() + 1));
 
             plan.setPublishedAt(new Date());
             plan.setUpdatedAt(plan.getPublishedAt());
@@ -684,5 +661,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private void validateTags(Set<String> tags, Api api) {
         this.tagsValidationService.validatePlanTagsAgainstApiTags(tags, api);
+    }
+
+    private Stream<PlanEntity> map(GenericPlanEntity entity) {
+        return Stream.ofNullable(PlanAdapter.INSTANCE.map(entity));
     }
 }

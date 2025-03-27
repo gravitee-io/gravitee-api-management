@@ -21,9 +21,12 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.federation.FederatedPlan;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -50,7 +53,8 @@ public interface PlanAdapter {
 
     @Mapping(source = "api", target = "apiId")
     @Mapping(target = "definitionVersion", defaultValue = "V2")
-    @Mapping(target = "planDefinitionV4", expression = "java(deserializeDefinitionV4(plan))")
+    @Mapping(target = "planDefinitionHttpV4", expression = "java(deserializeDefinitionHttpV4(plan))")
+    @Mapping(target = "planDefinitionNativeV4", expression = "java(deserializeDefinitionNativeV4(plan))")
     @Mapping(target = "planDefinitionV2", expression = "java(deserializeDefinitionV2(plan))")
     @Mapping(target = "federatedPlanDefinition", expression = "java(deserializeDefinitionFederated(plan))")
     Plan fromRepository(io.gravitee.repository.management.model.Plan plan);
@@ -69,6 +73,11 @@ public interface PlanAdapter {
     @Mapping(target = "security", source = "planSecurity")
     @Mapping(target = "mode", source = "planMode")
     PlanEntity toEntityV4(Plan plan);
+
+    @Mapping(target = "status", source = "planStatus")
+    @Mapping(target = "security", source = "planSecurity")
+    @Mapping(target = "mode", source = "planMode")
+    NativePlanEntity toNativePlanEntityV4(Plan plan);
 
     @Mapping(target = "api", source = "apiId")
     @Mapping(target = "status", source = "planStatus")
@@ -89,18 +98,31 @@ public interface PlanAdapter {
     io.gravitee.definition.model.v4.plan.Plan toApiDefinition(PlanCRD source);
 
     @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV4(source))")
-    io.gravitee.definition.model.v4.plan.Plan toPlanDefinitionV4(io.gravitee.repository.management.model.Plan source);
+    io.gravitee.definition.model.v4.plan.Plan toPlanDefinitionHttpV4(io.gravitee.repository.management.model.Plan source);
+
+    @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV4(source))")
+    io.gravitee.definition.model.v4.nativeapi.NativePlan toPlanDefinitionNativeV4(io.gravitee.repository.management.model.Plan source);
 
     @Mapping(target = "paths", expression = "java(computeBasePlanEntityPaths(source))")
     @Mapping(target = "security", qualifiedByName = "serializeV2PlanSecurityType")
     io.gravitee.definition.model.Plan toPlanDefinitionV2(io.gravitee.repository.management.model.Plan source);
 
-    default io.gravitee.definition.model.v4.plan.Plan deserializeDefinitionV4(io.gravitee.repository.management.model.Plan source) {
-        if (source.getDefinitionVersion() != DefinitionVersion.V4) {
+    default io.gravitee.definition.model.v4.plan.Plan deserializeDefinitionHttpV4(io.gravitee.repository.management.model.Plan source) {
+        if (source.getDefinitionVersion() != DefinitionVersion.V4 || source.getApiType() == ApiType.NATIVE) {
             return null;
         }
 
-        return toPlanDefinitionV4(source);
+        return toPlanDefinitionHttpV4(source);
+    }
+
+    default io.gravitee.definition.model.v4.nativeapi.NativePlan deserializeDefinitionNativeV4(
+        io.gravitee.repository.management.model.Plan source
+    ) {
+        if (source.getDefinitionVersion() != DefinitionVersion.V4 || source.getApiType() != ApiType.NATIVE) {
+            return null;
+        }
+
+        return toPlanDefinitionNativeV4(source);
     }
 
     default io.gravitee.definition.model.Plan deserializeDefinitionV2(io.gravitee.repository.management.model.Plan source) {
@@ -258,4 +280,16 @@ public interface PlanAdapter {
         }
         return null;
     }
+
+    default io.gravitee.rest.api.model.PlanEntity map(GenericPlanEntity entity) {
+        return switch (entity) {
+            case io.gravitee.rest.api.model.PlanEntity p -> p;
+            case io.gravitee.rest.api.model.v4.plan.PlanEntity v4 -> map(v4);
+            case NativePlanEntity nativePlan -> map(nativePlan);
+            case null, default -> null;
+        };
+    }
+
+    io.gravitee.rest.api.model.PlanEntity map(io.gravitee.rest.api.model.v4.plan.PlanEntity v4);
+    io.gravitee.rest.api.model.PlanEntity map(NativePlanEntity v4);
 }

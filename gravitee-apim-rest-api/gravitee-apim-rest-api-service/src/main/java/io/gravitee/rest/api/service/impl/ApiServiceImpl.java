@@ -28,6 +28,7 @@ import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -146,9 +147,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public static final String API_DEFINITION_CONTEXT_FIELD_ORIGIN = "origin";
     public static final String API_DEFINITION_CONTEXT_FIELD_MODE = "mode";
     public static final String API_DEFINITION_CONTEXT_FIELD_SYNC_FROM = "syncFrom";
+    private static final TypeReference<Map<String, Object>> MAPPER_TYPE_REFERENCE = new TypeReference<>() {};
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
     private static final String ENDPOINTS_DELIMITER = "\n";
+    private ObjectMapper objectMapper;
+    private ApiConverter apiConverter;
 
     @Lazy
     @Autowired
@@ -157,9 +161,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Lazy
     @Autowired
     private ApiQualityRuleRepository apiQualityRuleRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private EventService eventService;
@@ -269,9 +270,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private EnvironmentService environmentService;
 
     @Autowired
-    private ApiConverter apiConverter;
-
-    @Autowired
     private ResourceService resourceService;
 
     @Autowired
@@ -316,6 +314,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private CategoryMapper categoryMapper;
+
+    @Autowired
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    @Autowired
+    public void setApiConverter(ApiConverter apiConverter) {
+        this.apiConverter = apiConverter;
+    }
 
     @Override
     public ApiEntity createFromSwagger(
@@ -754,9 +762,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         ExecutionContext executionContext = new ExecutionContext(environmentService.findById(api.getEnvironmentId()));
 
-        ApiEntity apiEntity = convert(executionContext, api, getPrimaryOwner(executionContext, api));
+        var apiEntity =
+            switch (api.getDefinitionVersion()) {
+                case V1, V2 -> convert(executionContext, api, getPrimaryOwner(executionContext, api));
+                case V4 -> apiSearchService.findById(executionContext, id);
+                default -> throw new BadNotificationConfigException();
+            };
 
-        Map<String, Object> dataAsMap = objectMapper.convertValue(apiEntity, Map.class);
+        var dataAsMap = objectMapper.convertValue(apiEntity, MAPPER_TYPE_REFERENCE);
         dataAsMap.put("id", id);
         dataAsMap.put("primaryOwner", objectMapper.convertValue(apiEntity.getPrimaryOwner(), Map.class));
         dataAsMap.remove("picture");

@@ -15,15 +15,15 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static junit.framework.TestCase.assertFalse;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
@@ -32,7 +32,12 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -43,22 +48,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiService_FindByIdAsMapTest {
 
     public static final String ENV_ID = "env-id";
     public static final String ORG_ID = "org-id";
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private ApiServiceImpl apiService;
@@ -68,9 +74,6 @@ public class ApiService_FindByIdAsMapTest {
 
     @Mock
     private EnvironmentService environmentService;
-
-    @Mock
-    private ObjectMapper objectMapper;
 
     @Mock
     private ParameterService parameterService;
@@ -87,20 +90,26 @@ public class ApiService_FindByIdAsMapTest {
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
-    @Spy
-    private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
-
-    @InjectMocks
-    private ApiConverter apiConverter = Mockito.spy(
-        new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
-    );
+    @BeforeEach
+    void setup() {
+        objectMapper.setFilterProvider(
+            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", new ApiPermissionFilter()))
+        );
+        CategoryMapper categoryMapper = spy(new CategoryMapper(mock(CategoryService.class)));
+        ApiConverter apiConverter = Mockito.spy(
+            new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
+        );
+        apiService.setApiConverter(apiConverter);
+        apiService.setObjectMapper(objectMapper);
+    }
 
     @Test
-    public void shouldFindByIdAsMap() throws TechnicalException {
+    void shouldFindByIdAsMap() throws TechnicalException {
         Api api = new Api();
         api.setId("api-id");
         api.setName("test api");
         api.setEnvironmentId(ENV_ID);
+        api.setDefinitionVersion(DefinitionVersion.V2);
 
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENV_ID);
@@ -111,33 +120,21 @@ public class ApiService_FindByIdAsMapTest {
 
         when(apiRepository.findById("api-id")).thenReturn(Optional.of(api));
         when(environmentService.findById(ENV_ID)).thenReturn(environment);
-        when(objectMapper.convertValue(any(), any(Map.class.getClass())))
-            .thenAnswer(i -> getObjectMapper().convertValue(i.getArgument(0), Map.class));
         UserEntity userEntity = new UserEntity();
         userEntity.setId("user");
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(primaryOwner);
         when(apiMetadataService.findAllByApi(new ExecutionContext(environment), "api-id")).thenReturn(buildMetadatas());
 
-        Map resultMap = apiService.findByIdAsMap("api-id");
+        var resultMap = apiService.findByIdAsMap("api-id");
 
-        assertEquals("api-id", resultMap.get("id"));
-        assertEquals("test api", resultMap.get("name"));
-        assertNotNull(resultMap.get("primaryOwner"));
-        assertEquals(
-            Map.of("metadata3", "metadataValue3", "metadata2", "metadataValue2", "metadata1", "metadataValue1"),
-            resultMap.get("metadata")
-        );
-
-        // ensure those API data have been explicitly removed from map
-        assertFalse(resultMap.containsKey("picture"));
-        assertFalse(resultMap.containsKey("proxy"));
-        assertFalse(resultMap.containsKey("paths"));
-        assertFalse(resultMap.containsKey("properties"));
-        assertFalse(resultMap.containsKey("services"));
-        assertFalse(resultMap.containsKey("resources"));
-        assertFalse(resultMap.containsKey("response_templates"));
-        assertFalse(resultMap.containsKey("path_mappings"));
+        assertThat(resultMap)
+            .containsEntry("id", "api-id")
+            .containsEntry("name", "test api")
+            .containsKey("primaryOwner")
+            .containsEntry("metadata", Map.of("metadata3", "metadataValue3", "metadata2", "metadataValue2", "metadata1", "metadataValue1"))
+            // ensure those API data have been explicitly removed from map
+            .doesNotContainKeys("picture", "proxy", "paths", "properties", "services", "resources", "response_templates", "path_mappings");
     }
 
     private List<ApiMetadataEntity> buildMetadatas() {
@@ -153,13 +150,5 @@ public class ApiService_FindByIdAsMapTest {
         apiMetadataEntity.setKey(key);
         apiMetadataEntity.setValue(value);
         return apiMetadataEntity;
-    }
-
-    private ObjectMapper getObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setFilterProvider(
-            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", new ApiPermissionFilter()))
-        );
-        return objectMapper;
     }
 }
