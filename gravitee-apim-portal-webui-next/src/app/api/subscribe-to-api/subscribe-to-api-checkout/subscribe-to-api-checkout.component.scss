@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+:host {
+  display: flex;
+  flex-flow: column;
+  gap: 32px;
+}
+
 .subscribe-to-api-checkout {
   &__container {
     display: flex;

@@ -1,0 +1,28 @@
+.claude {
+  &__config {
+    display: flex;
+    flex-flow: column;
+    gap: 12px;
+
+    &__code-block {
+      padding: 10px;
+      border-width: var(--mdc-outlined-card-outline-width);
+      border-style: solid;
+      border-color: var(--mdc-outlined-card-outline-color);
+      display: flex;
+
+      pre {
+        flex: 1;
+        padding-left: 16px;
+      }
+    }
+  }
+
+}
+
+mat-card-content {
+  display: flex;
+  flex-flow: column;
+  gap: 16px;
+  padding-top: 16px;
+}

@@ -1,0 +1,19 @@
+<mat-card appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>
+      <div class="m3-body-large">Usage with Claude Desktop</div>
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="m3-body-medium">Add the following to your <code>claude_desktop_config.json</code>:</div>
+
+    <div class="claude__config">
+      <div>npx</div>
+      <div class="claude__config__code-block">
+        <pre>{{npxConfig() | json}}</pre>
+        <app-copy-code-icon [contentToCopy]="npxConfig() | json" />
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

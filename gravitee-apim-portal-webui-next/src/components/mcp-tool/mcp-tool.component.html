@@ -51,7 +51,6 @@
       <div class="m3-body-medium">{{ tool().description}}</div>
     }
     <div class="mcp-tool__container">
-<!--        @if (toolToPropertyVMs().length) {-->
           <form [formGroup]="form">
           <div class="m3-body-large">Arguments</div>
           @for (property of toolToPropertyVMs(); track $index) {
@@ -66,7 +65,6 @@
             No arguments available for this tool.
           }
           </form>
-<!--        }-->
 
       <div class="mcp-tool__display">
         <div class="m3-body-large">Tool Request</div>
@@ -77,7 +75,6 @@
       </div>
     </div>
   </div>
-<!--  </div>-->
 
 >>>>>>> 5559b8d249 (--wip-- [skip ci])
 </mat-expansion-panel>
