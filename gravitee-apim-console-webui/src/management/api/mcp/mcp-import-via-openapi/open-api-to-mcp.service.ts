@@ -21,7 +21,7 @@ export class OpenAPIToMCPService {
       if (!pathItem) continue;
 
       for (const [method, operation] of Object.entries(pathItem)) {
-        if (method === "parameters" || !operation) continue;
+        if (method === "parameters" || method === "servers" || !operation) continue;
 
         const op = operation as OpenAPIV3.OperationObject;
         // Create a clean tool ID by removing the leading slash and replacing special chars
