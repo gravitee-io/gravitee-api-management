@@ -141,7 +141,9 @@ public class AcceptSubscriptionDomainService {
         var acceptedSubscription = subscription.acceptBy(auditInfo.actor().userId(), startingAt, endingAt, reason);
 
         if (plan.isApiKey()) {
-            generateApiKeyDomainService.generate(acceptedSubscription, auditInfo, customKey);
+            synchronized (this) {
+                generateApiKeyDomainService.generate(acceptedSubscription, auditInfo, customKey);
+            }
         }
         subscriptionCrudService.update(acceptedSubscription);
 
