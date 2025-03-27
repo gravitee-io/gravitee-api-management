@@ -42,6 +42,7 @@ public class PlanUpdates {
     private Set<String> tags;
     private String selectionRule;
     private String securityConfiguration;
+    private Plan.PlanValidationType validation;
 
     public Plan applyTo(Plan oldPlan) {
         Plan result = oldPlan
@@ -56,6 +57,7 @@ public class PlanUpdates {
             .excludedGroups(excludedGroups)
             .characteristics(characteristics)
             .order(order)
+            .validation(validation)
             .build();
 
         result.setPlanTags(tags);
