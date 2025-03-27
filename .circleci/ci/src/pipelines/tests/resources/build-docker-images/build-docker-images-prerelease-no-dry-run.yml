@@ -297,17 +297,8 @@ jobs:
           docker_image_to_scan: graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - cmd-docker-logout
-  job-publish-rpm-packages:
-    machine:
-      image: ubuntu-2204:current
-      docker_layer_caching: false
-    resource_class: medium
-    steps:
-      - run:
-          name: Publishing RPMs is not supported for prerelease version
-          command: echo "Publishing RPMs is not supported for prerelease version"
 workflows:
-  build-rpm-&-docker-images:
+  build-docker-images:
     jobs:
       - job-setup:
           context:
@@ -367,10 +358,6 @@ workflows:
           apim-project: gravitee-apim-gateway
           docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
           docker-image-name: apim-gateway
-      - job-publish-rpm-packages:
-          context:
-            - cicd-orchestrator
-          name: Build and push RPM packages for APIM 4.2.0-alpha.1
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
