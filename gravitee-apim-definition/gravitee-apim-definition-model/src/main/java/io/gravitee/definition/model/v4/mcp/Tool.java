@@ -1,12 +1,12 @@
 package io.gravitee.definition.model.v4.mcp;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
-import java.util.Map;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,6 +14,7 @@ import java.util.Map;
 @Data
 @Schema(name = "MCPToolV4")
 public class Tool {
+
     private String name;
     private String description;
     private InputSchema inputSchema;
@@ -24,6 +25,7 @@ public class Tool {
     @Data
     @Schema(name = "MCPToolInputSchemaV4")
     public static class InputSchema {
+
         @Builder.Default
         private String type = "object";
 
@@ -32,14 +34,13 @@ public class Tool {
         // Required property names
         private List<String> required;
     }
-
-//    @NoArgsConstructor
-//    @AllArgsConstructor
-//    @Builder(toBuilder = true)
-//    @Data
-//    @Schema(name = "MCPToolPropertyV4")
-//    public static class Property {
-//        private String type;
-//        private Map<String, Object> items;
-//    }
+    //    @NoArgsConstructor
+    //    @AllArgsConstructor
+    //    @Builder(toBuilder = true)
+    //    @Data
+    //    @Schema(name = "MCPToolPropertyV4")
+    //    public static class Property {
+    //        private String type;
+    //        private Map<String, Object> items;
+    //    }
 }
