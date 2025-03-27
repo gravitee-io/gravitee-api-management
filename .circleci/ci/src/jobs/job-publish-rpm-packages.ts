@@ -30,6 +30,22 @@ export class PublishRpmPackagesJob {
         'secret-url': config.secrets.graviteePackageCloudToken,
         'var-name': 'GIO_PACKAGECLOUD_TOKEN',
       }),
+      new reusable.ReusedCommand(keeper.commands['env-export'], {
+        'secret-url': config.secrets.gpgPublicKey,
+        'var-name': 'GPG_KEY_PUBLIC',
+      }),
+      new reusable.ReusedCommand(keeper.commands['env-export'], {
+        'secret-url': config.secrets.gpgPrivateKey,
+        'var-name': 'GPG_KEY_PRIVATE',
+      }),
+      new reusable.ReusedCommand(keeper.commands['env-export'], {
+        'secret-url': config.secrets.gpgKeyName,
+        'var-name': 'GPG_KEY_NAME',
+      }),
+      new reusable.ReusedCommand(keeper.commands['env-export'], {
+        'secret-url': config.secrets.gpgKeyPassphrase,
+        'var-name': 'GPG_KEY_PASSPHRASE',
+      }),
       new commands.Run({
         name: 'Building and publishing RPMs',
         command: this.getBuildingAndPublishingRPMsCmd(environment),
@@ -40,24 +56,36 @@ export class PublishRpmPackagesJob {
   }
 
   private static getBuildingAndPublishingRPMsCmd(environment: CircleCIEnvironment) {
-    let cmd = `export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
-git clone git@github.com:gravitee-io/packages.git \${GIT_GRAVITEE_PACKAGES_REPO}
+    const publishLocation = environment.isDryRun ? 'nightly' : 'rpms';
+    return `export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
+git clone --depth 1 --branch master --single-branch --no-tag git@github.com:gravitee-io/packages.git \${GIT_GRAVITEE_PACKAGES_REPO}
 
 cd \${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x
 ./build.sh -v ${environment.graviteeioVersion}
+
+echo "change RPM file owner from root to graviteeio"
+docker run --rm \\
+    -v "\${PWD}:/rpms" \\
+    --workdir /rpms \\
+    --entrypoint /bin/sh \\
+    graviteeio/fpm:rpm \\
+    -c 'chown 1001:1001 *.rpm'
+
+docker run --rm \\
+    -v "\${PWD}:/rpms" \\
+    -e "GPG_KEY_NAME" \\
+    -e "GPG_KEY_PUBLIC" \\
+    -e "GPG_KEY_PRIVATE" \\
+    -e "GPG_KEY_PASSPHRASE" \\
+    graviteeio/rpmsign
+
+echo "RPMs will be published in https://packagecloud.io/graviteeio/${publishLocation}"
+
+docker run --rm \\
+    -v "\${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" \\
+    -e PACKAGECLOUD_TOKEN=\${GIO_PACKAGECLOUD_TOKEN} \\
+    digitalocean/packagecloud \\
+    push --yes --skip-errors --verbose graviteeio/${publishLocation}/el/7 /packages/*.rpm
 `;
-
-    let publishLocation = '';
-    if (environment.isDryRun) {
-      cmd += `echo "This is just a DRY RUN, RPMs will be published in https://packagecloud.io/graviteeio/nightly"
-`;
-      publishLocation = 'nightly';
-    } else {
-      publishLocation = 'rpms';
-    }
-
-    cmd += `docker run --rm -v "\${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=\${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/${publishLocation}/el/7 /packages/*.rpm`;
-
-    return cmd;
   }
 }
