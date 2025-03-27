@@ -37,11 +37,14 @@
               [metrics]="metrics"
               [referenceType]="referenceType"
               [referenceId]="referenceId"
+              [alertToUpdate]="alertToUpdate"
             ></metrics-simple-condition>
           </ng-container>
+
           <ng-container *ngSwitchCase="'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION'">
             <!-- add sub component here here -->
           </ng-container>
+
           <ng-container *ngSwitchCase="'REQUEST@METRICS_AGGREGATION'">
             <request-metrics-aggregation-condition
               [form]="conditionsForm"
@@ -49,9 +52,11 @@
               [referenceType]="referenceType"
             ></request-metrics-aggregation-condition>
           </ng-container>
+
           <ng-container *ngSwitchCase="'NODE_HEARTBEAT@METRICS_AGGREGATION'">
             <!-- add sub component here here -->
           </ng-container>
+
           <ng-container *ngSwitchCase="'REQUEST@METRICS_RATE'">
             <request-metrics-rate-condition
               [form]="conditionsForm"
@@ -60,13 +65,16 @@
               [referenceId]="referenceId"
             ></request-metrics-rate-condition>
           </ng-container>
+
           <ng-container *ngSwitchCase="'NODE_HEARTBEAT@METRICS_RATE'">
             <!-- add sub component here here -->
           </ng-container>
+
           <ng-container *ngSwitchCase="'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED'">
             <endpoint-health-check-condition [form]="conditionsForm"
                                              [referenceType]="referenceType"></endpoint-health-check-condition>
           </ng-container>
+
           <ng-container *ngSwitchCase="'NODE_LIFECYCLE@NODE_LIFECYCLE_CHANGED'">
             <!-- add sub component here here -->
           </ng-container>

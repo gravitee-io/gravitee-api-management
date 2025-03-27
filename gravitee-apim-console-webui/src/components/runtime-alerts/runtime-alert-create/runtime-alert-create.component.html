@@ -57,14 +57,15 @@
         formControlName="timeframeForm">
       </runtime-alert-create-timeframe>
 
-      <runtime-alert-create-conditions
-        *ngIf="referenceType != null"
-        [rule]="selectedRule"
-        [referenceType]="referenceType"
-        [referenceId]="referenceId"
-        formGroupName="conditionsForm"
-        [alertToUpdate]="alertToUpdate"
-      ></runtime-alert-create-conditions>
+        <runtime-alert-create-conditions
+          *ngIf="referenceType != null"
+          [rule]="selectedRule"
+          [referenceType]="referenceType"
+          [referenceId]="referenceId"
+          formGroupName="conditionsForm"
+          [alertToUpdate]="alertToUpdate"
+        ></runtime-alert-create-conditions>
+
 
 
       <runtime-alert-create-filters
