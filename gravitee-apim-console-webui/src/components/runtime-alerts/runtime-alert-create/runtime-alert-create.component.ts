@@ -48,7 +48,7 @@ export class RuntimeAlertCreateComponent implements OnInit, OnDestroy {
 
   public alertId = this.activatedRoute.snapshot.params.alertId;
   public isUpdate: boolean = !!this.alertId;
-  public alertToUpdate: AlertTriggerEntity = null;
+  public alertToUpdate: AlertTriggerEntity;
 
   constructor(
     @Inject(Constants) public readonly constants: Constants,
@@ -99,6 +99,7 @@ export class RuntimeAlertCreateComponent implements OnInit, OnDestroy {
       this.alertService.getAlert(this.activatedRoute.snapshot.params.apiId, this.alertId)
         .subscribe({
           next: (alert) => {
+            console.log('-1. alert: ', alert);
             this.alertToUpdate = alert;
             this.changeDetectorRef.detectChanges();
             this.isLoading = false;
