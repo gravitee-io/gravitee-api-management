@@ -58,12 +58,14 @@ import io.gravitee.rest.api.management.v2.rest.model.PlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
+import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
 import io.gravitee.rest.api.management.v2.rest.model.PlansResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PlanType;
+import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -845,7 +847,15 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         @Test
         public void should_update_v4_plan() {
             planCrudServiceInMemory.initWith(
-                List.of(fixtures.core.model.PlanFixtures.aPlanHttpV4().toBuilder().apiId(API).id(PLAN).build())
+                List.of(
+                    fixtures.core.model.PlanFixtures
+                        .aPlanHttpV4()
+                        .toBuilder()
+                        .apiId(API)
+                        .id(PLAN)
+                        .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
+                        .build()
+                )
             );
             apiCrudServiceInMemory.initWith(List.of(fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().id(API).build()));
 
