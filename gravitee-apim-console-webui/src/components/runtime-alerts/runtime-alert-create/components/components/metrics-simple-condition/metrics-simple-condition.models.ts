@@ -20,13 +20,13 @@ import { Metrics } from '../../../../../../entities/alert';
 export type SimpleMetricsForm = FormGroup<{
   metric: FormControl<Metrics>;
   type: FormControl<string>;
-  operator?: FormControl<string>;
+  operator?: FormControl;
   threshold?: FormControl<number>;
   lowThreshold?: FormControl<number>;
   highThreshold?: FormControl<number>;
   multiplier?: FormControl<number>;
   property?: FormControl<string>;
-  pattern?: FormControl<string>;
+  pattern?: FormControl;
 }>;
 
 export const THRESHOLD_CONTROLS_NAMES = ['operator', 'threshold', 'lowThreshold', 'highThreshold', 'multiplier', 'property'] as const;
