@@ -3119,9 +3119,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< HEAD
 "@gravitee/ui-particles-angular@npm:15.0.0":
   version: 15.0.0
   resolution: "@gravitee/ui-particles-angular@npm:15.0.0"
+=======
+"@gravitee/ui-particles-angular@npm:13.8.0-squad-1-mcp-server-6d9842d":
+  version: 13.8.0-squad-1-mcp-server-6d9842d
+  resolution: "@gravitee/ui-particles-angular@npm:13.8.0-squad-1-mcp-server-6d9842d"
+>>>>>>> cd05d6f51f (feat(console): add mcp icon)
   dependencies:
     "@fontsource/fira-mono": "npm:5.0.14"
     "@fontsource/kanit": "npm:^5.2.6"
@@ -3130,12 +3136,12 @@ __metadata:
     cronstrue: "npm:^2.48.0"
     tslib: "npm:^2.6.2"
   peerDependencies:
-    "@angular/animations": ^19.0.0
-    "@angular/cdk": ^19.0.0
-    "@angular/common": ^19.0.0
-    "@angular/core": ^19.0.0
-    "@angular/forms": ^19.0.0
-    "@angular/material": ^19.0.0
+    "@angular/animations": ^18.0.0
+    "@angular/cdk": ^18.0.0
+    "@angular/common": ^18.0.0
+    "@angular/core": ^18.0.0
+    "@angular/forms": ^18.0.0
+    "@angular/material": ^18.0.0
     "@asciidoctor/core": ^3.0.0
     "@ngx-formly/core": ^6.2.2
     "@ngx-formly/material": ^6.2.2
@@ -3150,6 +3156,7 @@ __metadata:
       optional: true
     prismjs:
       optional: true
+<<<<<<< HEAD
   checksum: 10c0/56bcee269e16ac0c035c611e39c750f25cecae3157cd46243994216b3bfdb871f81cec834e60cc55a0a3fb34aec85713214e90e170e780d5e21af73f9281fe84
   languageName: node
   linkType: hard
@@ -3157,18 +3164,31 @@ __metadata:
 "@gravitee/ui-policy-studio-angular@npm:15.0.0":
   version: 15.0.0
   resolution: "@gravitee/ui-policy-studio-angular@npm:15.0.0"
+=======
+  checksum: 10c0/1882ea55149e8570351cf0a78efa5333ae392d9dc8ced1d2589c960d679137f0c60daa8e9b262d5aae4856db916dd5551a4dc28d6d8bf7d4e18caab4fdee829a
+  languageName: node
+  linkType: hard
+
+"@gravitee/ui-policy-studio-angular@npm:13.8.0-squad-1-mcp-server-6d9842d":
+  version: 13.8.0-squad-1-mcp-server-6d9842d
+  resolution: "@gravitee/ui-policy-studio-angular@npm:13.8.0-squad-1-mcp-server-6d9842d"
+>>>>>>> cd05d6f51f (feat(console): add mcp icon)
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
-    "@angular/animations": ^19.0.0
-    "@angular/cdk": ^19.0.0
-    "@angular/common": ^19.0.0
-    "@angular/core": ^19.0.0
-    "@angular/forms": ^19.0.0
-    "@angular/material": ^19.0.0
+    "@angular/animations": ^18.0.0
+    "@angular/cdk": ^18.0.0
+    "@angular/common": ^18.0.0
+    "@angular/core": ^18.0.0
+    "@angular/forms": ^18.0.0
+    "@angular/material": ^18.0.0
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
+<<<<<<< HEAD
   checksum: 10c0/247f7dbe3d2cc082aadd0cf7c703f9384230df75b247e0f4bdff4838a73a3b064fa6d3dd24ac9debf3afbe5fff66e44822c6fa6b1c73cbd362d16991a726ebe1
+=======
+  checksum: 10c0/46b94b320387089822f576f9028945dc2037c7e8a6c09f2241591d3a80cf375e03431c8d1742ece34d851a6af1fa85c8978fd3d93b3c9a4dd0f77a61889ae9e2
+>>>>>>> cd05d6f51f (feat(console): add mcp icon)
   languageName: node
   linkType: hard
 
@@ -12067,9 +12087,15 @@ __metadata:
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/ui-analytics": "npm:15.0.0"
     "@gravitee/ui-components": "npm:4.3.3"
+<<<<<<< HEAD
     "@gravitee/ui-particles-angular": "npm:15.0.0"
     "@gravitee/ui-policy-studio-angular": "npm:15.0.0"
     "@gravitee/ui-schematics": "npm:15.0.0"
+=======
+    "@gravitee/ui-particles-angular": "npm:13.8.0-squad-1-mcp-server-6d9842d"
+    "@gravitee/ui-policy-studio-angular": "npm:13.8.0-squad-1-mcp-server-6d9842d"
+    "@gravitee/ui-schematics": "npm:14.1.2"
+>>>>>>> cd05d6f51f (feat(console): add mcp icon)
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.12"
     "@ngx-formly/material": "npm:6.3.12"

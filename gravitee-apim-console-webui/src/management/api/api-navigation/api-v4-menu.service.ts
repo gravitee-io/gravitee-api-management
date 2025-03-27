@@ -445,7 +445,7 @@ export class ApiV4MenuService implements ApiMenuService {
   private addMCPMenuEntry(): MenuItem {
     return {
       displayName: 'MCP',
-      icon: 'share-2',
+      icon: 'mcp',
       routerLink: 'mcp',
       // header: {
       //   title: 'MCP',

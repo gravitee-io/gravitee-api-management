@@ -23,8 +23,13 @@
     "@fontsource/libre-franklin": "4.5.11",
     "@gravitee/ui-analytics": "15.0.0",
     "@gravitee/ui-components": "4.3.3",
+<<<<<<< HEAD
     "@gravitee/ui-particles-angular": "15.0.0",
     "@gravitee/ui-policy-studio-angular": "15.0.0",
+=======
+    "@gravitee/ui-particles-angular": "13.8.0-squad-1-mcp-server-6d9842d",
+    "@gravitee/ui-policy-studio-angular": "13.8.0-squad-1-mcp-server-6d9842d",
+>>>>>>> cd05d6f51f (feat(console): add mcp icon)
     "@highcharts/map-collection": "1.1.4",
     "@ngx-formly/core": "6.3.12",
     "@ngx-formly/material": "6.3.12",
