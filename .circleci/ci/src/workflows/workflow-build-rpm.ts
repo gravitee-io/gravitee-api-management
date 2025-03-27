@@ -15,35 +15,27 @@
  */
 import { Config, Workflow, workflow } from '@circleci/circleci-config-sdk';
 import { CircleCIEnvironment } from '../pipelines';
-import { PublishProdDockerImagesJob, PublishRpmPackagesJob } from '../jobs';
+import { PublishRpmPackagesJob } from '../jobs';
 import { config } from '../config';
 
-export class BuildRpmAndDockerImagesWorkflow {
+export class BuildRpmWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
-    const publishProdDockerImagesJob = PublishProdDockerImagesJob.create(dynamicConfig, environment);
     const publishRpmPackagesJob = PublishRpmPackagesJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(publishProdDockerImagesJob);
     dynamicConfig.addJob(publishRpmPackagesJob);
 
-    let publishProdDockerImagesJobName = `Build and push docker images for APIM ${environment.graviteeioVersion}`;
     let publishRpmPackagesJobName = `Build and push RPM packages for APIM ${environment.graviteeioVersion}`;
 
     if (environment.isDryRun) {
-      publishProdDockerImagesJobName += ' - Dry Run';
       publishRpmPackagesJobName += ' - Dry Run';
     }
 
     const jobs = [
-      new workflow.WorkflowJob(publishProdDockerImagesJob, {
-        context: config.jobContext,
-        name: publishProdDockerImagesJobName,
-      }),
       new workflow.WorkflowJob(publishRpmPackagesJob, {
         context: config.jobContext,
         name: publishRpmPackagesJobName,
       }),
     ];
 
-    return new Workflow('build-rpm-&-docker-images', jobs);
+    return new Workflow('build-rpm', jobs);
   }
 }
