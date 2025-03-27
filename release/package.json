@@ -15,10 +15,11 @@
     "full_release": "zx steps/full_release.mjs",
     "release": "zx steps/1-release.mjs",
     "package_zip": "zx steps/2-package_zip.mjs",
-    "docker_rpms": "zx steps/3-docker_and_rpms.mjs",
-    "helm_chart": "zx steps/4-helm-chart.mjs",
-    "release_notes": "zx steps/5-generate_release_notes.mjs",
-    "nexus_sync": "zx steps/6-nexus_sync.mjs",
+    "docker": "zx steps/3-docker.mjs",
+    "rpms": "zx steps/4-rpms.mjs",
+    "helm_chart": "zx steps/5-helm-chart.mjs",
+    "release_notes": "zx steps/6-generate_release_notes.mjs",
+    "nexus_sync": "zx steps/7-nexus_sync.mjs",
     "zx": "zx --quiet"
   },
   "devDependencies": {

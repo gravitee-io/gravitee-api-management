@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 import * as fs from 'fs';
-import { generateBuildRpmAndDockerImagesConfig } from '../pipeline-build-rpm-and-docker-images';
+import { generateBuildDockerImagesConfig } from '../pipeline-build-docker-images';
 
-describe('Build RPM & Docker images workflow tests', () => {
+describe('Build Docker images workflow tests', () => {
   it.each`
     graviteeioVersion  | isDryRun | dockerTagAsLatest | expectedFileName
-    ${'4.1.0-alpha.1'} | ${true}  | ${false}          | ${'build-rpm-and-docker-images-prerelease-dry-run.yml'}
-    ${'4.1.0-alpha.1'} | ${false} | ${false}          | ${'build-rpm-and-docker-images-prerelease-no-dry-run.yml'}
-    ${'4.1.0'}         | ${true}  | ${false}          | ${'build-rpm-and-docker-images-release-dry-run.yml'}
-    ${'4.1.0'}         | ${false} | ${false}          | ${'build-rpm-and-docker-images-release-no-dry-run.yml'}
-    ${'4.1.0'}         | ${false} | ${true}           | ${'build-rpm-and-docker-images-release-no-dry-run-as-latest.yml'}
+    ${'4.1.0-alpha.1'} | ${true}  | ${false}          | ${'build-docker-images-prerelease-dry-run.yml'}
+    ${'4.1.0-alpha.1'} | ${false} | ${false}          | ${'build-docker-images-prerelease-no-dry-run.yml'}
+    ${'4.1.0'}         | ${true}  | ${false}          | ${'build-docker-images-release-dry-run.yml'}
+    ${'4.1.0'}         | ${false} | ${false}          | ${'build-docker-images-release-no-dry-run.yml'}
+    ${'4.1.0'}         | ${false} | ${true}           | ${'build-docker-images-release-no-dry-run-as-latest.yml'}
   `(
-    'should build RPM & Docker images with $graviteeioVersion and dry run as $isDryRun',
+    'should build Docker images with $graviteeioVersion and dry run as $isDryRun',
     ({ graviteeioVersion, isDryRun, dockerTagAsLatest, expectedFileName }) => {
-      const result = generateBuildRpmAndDockerImagesConfig({
-        action: 'build_rpm_&_docker_images',
+      const result = generateBuildDockerImagesConfig({
+        action: 'build_docker_images',
         baseBranch: 'master',
         branch: 'master',
         sha1: '784ff35ca',
@@ -41,17 +41,17 @@ describe('Build RPM & Docker images workflow tests', () => {
         apimVersionPath: '',
       });
 
-      const expected = fs.readFileSync(`./src/pipelines/tests/resources/build-rpm-and-docker-images/${expectedFileName}`, 'utf-8');
+      const expected = fs.readFileSync(`./src/pipelines/tests/resources/build-docker-images/${expectedFileName}`, 'utf-8');
       expect(result.stringify()).toStrictEqual(expected);
     },
   );
 
-  it('should throw an error when trying to generate build RPM & Docker images config without graviteeio version', () => {
+  it('should throw an error when trying to generate build Docker images config without graviteeio version', () => {
     expect.assertions(1);
 
     try {
-      generateBuildRpmAndDockerImagesConfig({
-        action: 'build_rpm_&_docker_images',
+      generateBuildDockerImagesConfig({
+        action: 'build_docker_images',
         baseBranch: 'master',
         branch: 'master',
         sha1: '784ff35ca',
@@ -68,12 +68,12 @@ describe('Build RPM & Docker images workflow tests', () => {
     }
   });
 
-  it('should throw an error when trying to generate build RPM & Docker images config without branch', () => {
+  it('should throw an error when trying to generate build Docker images config without branch', () => {
     expect.assertions(1);
 
     try {
-      generateBuildRpmAndDockerImagesConfig({
-        action: 'build_rpm_&_docker_images',
+      generateBuildDockerImagesConfig({
+        action: 'build_docker_images',
         baseBranch: '',
         branch: '',
         sha1: '784ff35ca',
