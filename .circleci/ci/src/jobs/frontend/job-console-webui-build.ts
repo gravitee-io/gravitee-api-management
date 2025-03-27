@@ -34,7 +34,7 @@ export class ConsoleWebuiBuildJob {
     const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
-    const apimVersion = ['build_rpm_&_docker_images', 'release'].includes(environment.action)
+    const apimVersion = ['build_rpm', 'build_docker_images', 'release'].includes(environment.action)
       ? environment.graviteeioVersion
       : computeApimVersion(environment);
 
