@@ -339,7 +339,7 @@ class LogsFiltersController {
       }
 
       if (key === 'body') {
-        val += '*';
+        val = '*' + val + '*';
       }
       const params = val.constructor === Array && val.length > 1 ? LogsFiltersController.convert(val) : val;
       query += this.map(key, this.fields, true) + ':' + params;
