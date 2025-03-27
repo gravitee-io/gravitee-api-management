@@ -27,15 +27,16 @@ import {Component, computed, input, OnInit, Signal} from '@angular/core';
 import {MCPTool} from "../../entities/api/mcp";
 import {MatExpansionModule} from "@angular/material/expansion";
 import {JsonPipe} from "@angular/common";
-import {MatFormField, MatFormFieldModule} from "@angular/material/form-field";
-import {FormControl, FormGroup, ReactiveFormsModule, UntypedFormGroup} from "@angular/forms";
+import {MatFormFieldModule} from "@angular/material/form-field";
+import {FormControl, ReactiveFormsModule, UntypedFormGroup} from "@angular/forms";
 import {MatInput} from "@angular/material/input";
 import {toSignal} from "@angular/core/rxjs-interop";
-import {map} from "rxjs";
+import { map} from "rxjs";
+import {CopyCodeIconComponent} from "../copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component";
 
 interface RequestVM {
   jsonrpc: string;
-  id: string;
+  id: number;
   method: string;
   params: {
     name: string;
@@ -54,6 +55,7 @@ interface PropertyVM {
   required?: boolean;
 }
 
+<<<<<<< HEAD
 interface DisplayVMs {
   [property: string]: string;
 }
@@ -71,6 +73,12 @@ export class McpToolComponent {
   tool = input.required<McpTool>();
 =======
   imports: [MatExpansionModule, JsonPipe, ReactiveFormsModule, MatFormFieldModule, MatInput],
+=======
+@Component({
+  selector: 'app-mcp-tool',
+  standalone: true,
+  imports: [MatExpansionModule, JsonPipe, ReactiveFormsModule, MatFormFieldModule, MatInput, CopyCodeIconComponent],
+>>>>>>> ab1918adc5 (feat(portal-next): show tools when mcp enabled)
   templateUrl: './mcp-tool.component.html',
   styleUrl: './mcp-tool.component.scss'
 })
@@ -82,18 +90,37 @@ export class McpToolComponent implements OnInit {
     const requiredProperties = this.tool().inputSchema?.required ?? [];
     if (Object.entries(properties).length) {
       return Object.entries(properties)
-        .map(([key, property]) => ({name: key, description: property.description, value: '', required: this.tool().inputSchema.required && requiredProperties.includes(key)}))
+        .map(([key, property]) =>
+          ({name: key, description: property.description, value: '', required: this.tool().inputSchema.required && requiredProperties.includes(key)}))
     }
     return [];
   })
 
   form: UntypedFormGroup = new UntypedFormGroup({});
 
-  // display: Signal<DisplayVMs> = toSignal(this.form.valueChanges.pipe(
-  //   map((values) => {
-  //     // figure out how to for each value, create an entry with the key + value in the display
-  //   })
-  // ))
+  args: Signal<Arguments | undefined> = toSignal(this.form.valueChanges.pipe(
+    map((values) => {
+      const args: Arguments = {};
+      Object.entries(values).forEach(([key, value]) => {
+        if (typeof value === "string") {
+          args[key] = value
+        }
+      })
+      return args;
+    })));
+
+  display: Signal<RequestVM> = computed(() => {
+    const args: Arguments = this.args() ?? {};
+        return {
+          jsonrpc: "2.0",
+          id: 2,
+          method: "tools/call",
+          params: {
+            name: this.tool().name,
+            arguments: args,
+          }
+      };
+  })
 
   ngOnInit() {
     const propertyVms = this.toolToPropertyVMs();

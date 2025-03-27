@@ -43,28 +43,41 @@
 =======
 <mat-expansion-panel expanded="true">
   <mat-expansion-panel-header>
-    {{ tool().name }}
+    <div class="m3-title-large">{{ tool().name }}</div>
   </mat-expansion-panel-header>
-  <div>
-    @if (tool().description) {
-      <div>{{ tool().description}}</div>
-    }
-    <form [formGroup]="form">
-      @for (property of toolToPropertyVMs(); track $index) {
-        <mat-form-field>
-          <mat-label i18n="@@applicationNameApplicationSettings">{{property.name}}</mat-label>
-          <input matInput [formControlName]="property.name" />
-          @if (property.description) {
-            <mat-hint>{{ property.description }}</mat-hint>
-          }
-        </mat-form-field>
-      }
-    </form>
+  <div class="mcp-tool">
 
+    @if (tool().description) {
+      <div class="m3-body-medium">{{ tool().description}}</div>
+    }
+    <div class="mcp-tool__container">
+<!--        @if (toolToPropertyVMs().length) {-->
+          <form [formGroup]="form">
+          <div class="m3-body-large">Arguments</div>
+          @for (property of toolToPropertyVMs(); track $index) {
+            <mat-form-field>
+              <mat-label i18n="@@applicationNameApplicationSettings">{{property.name}}</mat-label>
+              <input matInput [formControlName]="property.name" />
+              @if (property.description) {
+                <mat-hint>{{ property.description }}</mat-hint>
+              }
+            </mat-form-field>
+          } @empty {
+            No arguments available for this tool.
+          }
+          </form>
+<!--        }-->
+
+      <div class="mcp-tool__display">
+        <div class="m3-body-large">Tool Request</div>
+        <div class="mcp-tool__display__code-block">
+          <pre>{{ display() | json }}</pre>
+          <app-copy-code-icon [contentToCopy]="display() | json" />
+        </div>
+      </div>
+    </div>
   </div>
-  <div>
-    <pre>{{ tool() | json }}</pre>
-  </div>
+<!--  </div>-->
 
 >>>>>>> 5559b8d249 (--wip-- [skip ci])
 </mat-expansion-panel>

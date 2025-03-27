@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 :host {
+  --mdc-chip-outline-color: transparent;
+
   display: flex;
   min-height: 256px;
   flex-flow: column;

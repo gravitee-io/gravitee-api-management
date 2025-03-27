@@ -22,27 +22,62 @@ mat-expansion-panel {
   border-color: var(--mdc-outlined-card-outline-color);
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ab1918adc5 (feat(portal-next): show tools when mcp enabled)
 
 .mcp-tool {
   display: flex;
   flex-flow: column;
   gap: 16px;
+<<<<<<< HEAD
 
   &__display {
     &__code-block {
       display: flex;
+=======
+  &__container {
+    display: flex;
+    gap: 16px;
+
+    form {
+      display: flex;
+      flex-flow: column;
+      gap: 16px;
+      width: 50%;
+    }
+  }
+
+  &__display {
+    width: 50%;
+    display: flex;
+    flex-flow: column;
+    gap: 16px;
+
+    &__code-block {
+>>>>>>> ab1918adc5 (feat(portal-next): show tools when mcp enabled)
       padding: 10px;
       border-width: var(--mdc-outlined-card-outline-width);
       border-style: solid;
       border-color: var(--mdc-outlined-card-outline-color);
+<<<<<<< HEAD
+=======
+      display: flex;
+>>>>>>> ab1918adc5 (feat(portal-next): show tools when mcp enabled)
     }
 
     pre {
       flex: 1;
       padding-left: 16px;
+<<<<<<< HEAD
       white-space: pre-wrap;
     }
   }
 }
 =======
 >>>>>>> 5559b8d249 (--wip-- [skip ci])
+=======
+    }
+  }
+}
+>>>>>>> ab1918adc5 (feat(portal-next): show tools when mcp enabled)
