@@ -26,6 +26,7 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -279,4 +280,16 @@ public interface PlanAdapter {
         }
         return null;
     }
+
+    default io.gravitee.rest.api.model.PlanEntity map(GenericPlanEntity entity) {
+        return switch (entity) {
+            case io.gravitee.rest.api.model.PlanEntity p -> p;
+            case io.gravitee.rest.api.model.v4.plan.PlanEntity v4 -> map(v4);
+            case NativePlanEntity nativePlan -> map(nativePlan);
+            case null, default -> null;
+        };
+    }
+
+    io.gravitee.rest.api.model.PlanEntity map(io.gravitee.rest.api.model.v4.plan.PlanEntity v4);
+    io.gravitee.rest.api.model.PlanEntity map(NativePlanEntity v4);
 }
