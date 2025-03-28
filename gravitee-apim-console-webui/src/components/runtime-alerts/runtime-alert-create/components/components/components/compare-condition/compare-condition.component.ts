@@ -17,6 +17,8 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 import { AggregationCondition, Conditions, ConditionType, Metrics } from '../../../../../../../entities/alert';
+import { AlertTriggerEntity } from "../../../../../../../entities/alerts/alertTriggerEntity";
+import { CompareCondition } from "../../../../../../../entities/alerts/conditions";
 
 @Component({
   selector: 'compare-condition',
@@ -49,8 +51,12 @@ import { AggregationCondition, Conditions, ConditionType, Metrics } from '../../
 export class CompareConditionComponent implements OnInit {
   @Input({ required: true }) form: FormGroup;
   @Input({ required: true }) metrics: Metrics[];
+
+  @Input() public alertToUpdate: AlertTriggerEntity;
+
   protected operators = AggregationCondition.OPERATORS;
   protected properties: Metrics[];
+
 
   ngOnInit() {
     const condition = Conditions.findByType(this.form.controls.type.value);
@@ -61,5 +67,12 @@ export class CompareConditionComponent implements OnInit {
     this.properties = this.metrics.filter(
       (metric) => metric.conditions.includes(ConditionType.COMPARE) && metric.key !== this.form.controls.metric.value.key,
     );
+
+    if(this.alertToUpdate) {
+      const conditions = this.alertToUpdate.conditions[0] as CompareCondition;
+      const property = this.properties.find(p => p.key === conditions.property2)
+      this.form.controls.property.setValue(property);
+    }
+
   }
 }
