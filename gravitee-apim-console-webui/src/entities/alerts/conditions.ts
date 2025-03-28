@@ -75,6 +75,9 @@ export interface AggregationCondition extends Condition {
   duration: number;
   projections: Projection[];
 }
+
+export type AlertsAggregationCondition = AggregationCondition;
+
 export type AggregationConditionFunction = 'COUNT' | 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99';
 export type TimeUnitCondition = 'NANOSECONDS' | 'MICROSECONDS' | 'MILLISECONDS' | 'SECONDS' | 'MINUTES' | 'HOURS' | 'DAYS';
 

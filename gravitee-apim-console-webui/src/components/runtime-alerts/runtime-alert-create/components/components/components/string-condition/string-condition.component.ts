@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewEncapsulation } from "@angular/core";
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from "@angular/core";
 import { FormGroup } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 
 import { Conditions, Operator, Scope, Tuple } from '../../../../../../../entities/alert';

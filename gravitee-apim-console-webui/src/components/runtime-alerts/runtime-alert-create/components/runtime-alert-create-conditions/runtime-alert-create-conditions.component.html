@@ -28,7 +28,10 @@
     <ng-container *ngIf="ruleType != null; else defaultBlock">
       <form *ngIf="conditionsForm" [formGroup]="conditionsForm">
         <ng-container *ngIf="ruleType.endsWith('@MISSING_DATA'); else switchBlock">
-          <missing-data-condition [form]="conditionsForm"></missing-data-condition>
+          <missing-data-condition
+            [form]="conditionsForm"
+            [alertToUpdate]="alertToUpdate"
+          ></missing-data-condition>
         </ng-container>
         <ng-template #switchBlock [ngSwitch]="ruleType">
           <ng-container *ngSwitchCase="'REQUEST@METRICS_SIMPLE_CONDITION'">
@@ -50,6 +53,7 @@
               [form]="conditionsForm"
               [metrics]="metrics"
               [referenceType]="referenceType"
+              [alertToUpdate]="alertToUpdate"
             ></request-metrics-aggregation-condition>
           </ng-container>
 

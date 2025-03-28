@@ -71,4 +71,5 @@ export class RequestMetricsRateConditionComponent {
 
   protected properties: Metrics[];
   private _referenceType: Scope;
+  protected readonly alert = alert;
 }

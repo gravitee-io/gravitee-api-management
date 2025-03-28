@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input } from "@angular/core";
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { Metrics } from '../../../../../../../entities/alert';
 
 export type AggregationFormGroup = FormGroup<{
-  projections: FormGroup<{
-    property: FormControl<string>;
-  }>;
+    property: FormControl;
 }>;
 
 @Component({
