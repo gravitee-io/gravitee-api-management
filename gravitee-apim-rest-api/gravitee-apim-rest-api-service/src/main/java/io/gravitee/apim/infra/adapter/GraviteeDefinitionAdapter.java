@@ -27,6 +27,8 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -59,7 +61,7 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getPlanDefinitionNativeV4().getSecurity()))")
     @Mapping(target = "mode", source = "planDefinitionNativeV4.mode")
     @Mapping(target = "status", source = "planDefinitionNativeV4.status")
-    PlanDescriptor.V4 mapPlanNative(Plan source);
+    PlanDescriptor.Native mapPlanNative(Plan source);
 
     @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getFederatedPlanDefinition().getSecurity()))")
     @Mapping(target = "mode", source = "federatedPlanDefinition.mode")
@@ -101,7 +103,8 @@ public interface GraviteeDefinitionAdapter {
         PrimaryOwnerEntity primaryOwner,
         WorkflowState workflowState,
         Set<String> groups,
-        Collection<NewApiMetadata> metadata
+        Collection<NewApiMetadata> metadata,
+        List<Flow> flows
     );
 
     @Mapping(target = "id", source = "apiEntity.id")
@@ -118,7 +121,8 @@ public interface GraviteeDefinitionAdapter {
         PrimaryOwnerEntity primaryOwner,
         WorkflowState workflowState,
         Set<String> groups,
-        Collection<NewApiMetadata> metadata
+        Collection<NewApiMetadata> metadata,
+        List<NativeFlow> flows
     );
 
     @Mapping(target = "id", source = "apiEntity.id")
@@ -163,7 +167,8 @@ public interface GraviteeDefinitionAdapter {
         PrimaryOwnerEntity primaryOwner,
         WorkflowState workflowState,
         Set<String> groups,
-        Collection<NewApiMetadata> metadata
+        Collection<NewApiMetadata> metadata,
+        Collection<io.gravitee.definition.model.flow.Flow> flows
     );
 
     Set<NewApiMetadata> mapMetadata(Collection<Metadata> source);
