@@ -141,6 +141,10 @@ public class ApiManagerImpl implements ApiManager {
     @Override
     public ActionOnApi requiredActionFor(final ReactableApi<?> reactableApi) {
         ReactableApi<?> deployedApi = get(reactableApi.getId());
+        if (!reactableApi.enabled()) {
+            return ActionOnApi.UNDEPLOY;
+        }
+
         if (gatewayConfiguration.hasMatchingTags(reactableApi.getTags())) {
             boolean apiToDeploy = deployedApi == null;
             boolean apiToUpdate = !apiToDeploy && deployedApi.getDeployedAt().before(reactableApi.getDeployedAt());
@@ -169,7 +173,7 @@ public class ApiManagerImpl implements ApiManager {
 
     @Override
     public void refresh() {
-        if (apis != null && !apis.isEmpty()) {
+        if (!apis.isEmpty()) {
             final long begin = System.currentTimeMillis();
 
             log.info("Starting apis refresh. {} apis to be refreshed.", apis.size());
@@ -250,7 +254,7 @@ public class ApiManagerImpl implements ApiManager {
         Deployer deployer = deployers.get(api.getClass());
         List<String> plans = deployer.getPlans(api);
 
-        if (!plans.isEmpty()) {
+        if (api.isEnabled() && !plans.isEmpty()) {
             log.debug("Deploying {} plan(s) for {}:", plans.size(), api);
             for (String plan : plans) {
                 log.debug("\t- {}", plan);
@@ -262,8 +266,11 @@ public class ApiManagerImpl implements ApiManager {
             apis.put(api.getId(), api);
             eventManager.publishEvent(ReactorEvent.UPDATE, api);
             log.info("{} has been updated", api);
-        } else {
+        } else if (plans.isEmpty()) {
             log.warn("There is no published plan associated to this API, undeploy it...");
+            undeploy(api.getId());
+        } else {
+            log.info("API {} is disabled, undeploy it...", api.getId());
             undeploy(api.getId());
         }
 
