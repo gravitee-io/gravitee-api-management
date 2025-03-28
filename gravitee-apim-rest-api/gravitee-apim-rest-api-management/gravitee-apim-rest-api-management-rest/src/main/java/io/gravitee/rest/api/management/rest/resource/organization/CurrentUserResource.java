@@ -204,7 +204,7 @@ public class CurrentUserResource extends AbstractResource {
             if (!memberships.isEmpty()) {
                 final Map<String, Set<String>> userGroups = new HashMap<>();
                 environmentService
-                    .findByOrganization(GraviteeContext.getCurrentOrganization())
+                    .findByUser(GraviteeContext.getCurrentOrganization(), userId)
                     .forEach(environment -> {
                         try {
                             final Set<Group> groups = groupRepository.findAllByEnvironment(environment.getId());
