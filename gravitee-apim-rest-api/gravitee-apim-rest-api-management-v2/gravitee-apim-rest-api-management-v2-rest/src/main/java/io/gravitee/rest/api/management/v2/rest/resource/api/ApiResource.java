@@ -165,7 +165,7 @@ public class ApiResource extends AbstractResource {
         Excludable.GROUPS,
         "plans",
         Excludable.PLANS,
-        "member",
+        "members",
         Excludable.MEMBERS,
         "pages",
         Excludable.PAGES_MEDIA,
