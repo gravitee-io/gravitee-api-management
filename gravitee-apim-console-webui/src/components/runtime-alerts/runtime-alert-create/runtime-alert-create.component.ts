@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from "@angular/core";
+import { ChangeDetectorRef, Component, DestroyRef, Inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { catchError, takeUntil, tap } from "rxjs/operators";
-import { EMPTY, Subject } from 'rxjs';
-import { GioJsonSchema } from "@gravitee/ui-particles-angular";
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { catchError, tap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
+import { GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { GeneralFormValue } from './components/runtime-alert-create-general';
 import { toNewAlertTriggerEntity } from './runtime-alert-create.adapter';
@@ -28,7 +29,7 @@ import { Scope } from '../../../entities/alert';
 import { Rule } from '../../../entities/alerts/rule.metrics';
 import { AlertService } from '../../../services-ngx/alert.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { AlertSeverity, AlertTriggerEntity } from "../../../entities/alerts/alertTriggerEntity";
+import { AlertSeverity, AlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity';
 
 @Component({
   selector: 'runtime-alert-create',
@@ -36,16 +37,13 @@ import { AlertSeverity, AlertTriggerEntity } from "../../../entities/alerts/aler
   styleUrls: ['./runtime-alert-create.component.scss'],
   standalone: false,
 })
-export class RuntimeAlertCreateComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+export class RuntimeAlertCreateComponent implements OnInit {
   protected referenceType: Scope = Scope[this.activatedRoute.snapshot.data.referenceType as keyof typeof Scope];
   protected referenceId: string;
   public selectedRule: Rule;
   public alertForm: FormGroup;
   public schema: GioJsonSchema;
-
   public isLoading = true;
-
   public alertId = this.activatedRoute.snapshot.params.alertId;
   public isUpdate: boolean = !!this.alertId;
   public alertToUpdate: AlertTriggerEntity;
@@ -58,6 +56,7 @@ export class RuntimeAlertCreateComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly router: Router,
     private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly destroyRef: DestroyRef,
   ) {
     switch (this.referenceType) {
       case Scope.API:
@@ -73,15 +72,17 @@ export class RuntimeAlertCreateComponent implements OnInit, OnDestroy {
 
     this.alertForm = this.formBuilder.group({
       generalForm: this.formBuilder.group({
-          name: this.formBuilder.control<string>(null, [Validators.required]),
-          enabled: this.formBuilder.control<boolean>(false),
-          rule: this.formBuilder.control<Rule>(null, [Validators.required]),
-          severity: this.formBuilder.control<AlertSeverity>('INFO', [Validators.required, Validators.max(256)]),
-          description: this.formBuilder.control<string>(null),
+        name: this.formBuilder.control<string>(null, [Validators.required, Validators.minLength(3), Validators.maxLength(50)]),
+        enabled: this.formBuilder.control<boolean>(false),
+        rule: this.formBuilder.control<Rule>(null, [Validators.required]),
+        severity: this.formBuilder.control<AlertSeverity>('INFO', [Validators.required, Validators.max(256)]),
+        description: this.formBuilder.control<string>(null),
       }),
-      timeframeForm: [],
+      timeframeForm: this.formBuilder.group({
+        timeframes: this.formBuilder.array([]),
+      }),
       conditionsForm: this.formBuilder.group({}),
-      filtersForm: [],
+      filtersForm: this.formBuilder.array([]),
       notificationsForm: this.formBuilder.array([]),
       dampeningForm: this.formBuilder.group({}),
     });
@@ -89,33 +90,47 @@ export class RuntimeAlertCreateComponent implements OnInit, OnDestroy {
     this.alertForm.controls?.generalForm?.valueChanges
       .pipe(
         tap((value: GeneralFormValue) => (this.selectedRule = value.rule)),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
 
   ngOnInit() {
-    if(this.isUpdate) {
-      this.alertService.getAlert(this.activatedRoute.snapshot.params.apiId, this.alertId)
-        .subscribe({
-          next: (alert) => {
-            console.log('-1. alert: ', alert);
+    if (this.isUpdate) {
+      this.alertService
+        .getAlert(this.activatedRoute.snapshot.params.apiId, this.alertId)
+        .pipe(
+          tap((alert) => {
             this.alertToUpdate = alert;
             this.changeDetectorRef.detectChanges();
             this.isLoading = false;
-          }
-        })
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
+    } else {
+      this.isLoading = false;
     }
   }
 
-  ngOnDestroy() {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
-  }
-
   save() {
-    if(this.isUpdate) {
-
+    if (this.isUpdate) {
+      return this.alertService
+        .updateAlert(
+          this.referenceId,
+          toNewAlertTriggerEntity(this.referenceId, Scope[this.referenceType], this.alertForm.getRawValue()),
+          this.alertId,
+        )
+        .pipe()
+        .subscribe({
+          next: (_) => {
+            this.snackBarService.success('Alert successfully updated!');
+            this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+          },
+          error: (_) => {
+            this.snackBarService.success('Error during update!');
+          },
+        });
     } else {
       return this.alertService
         .createAlert(this.referenceId, toNewAlertTriggerEntity(this.referenceId, Scope[this.referenceType], this.alertForm.getRawValue()))
@@ -127,16 +142,15 @@ export class RuntimeAlertCreateComponent implements OnInit, OnDestroy {
             this.snackBarService.error('Alert creation failed!');
             return EMPTY;
           }),
-          takeUntil(this.unsubscribe$),
+          takeUntilDestroyed(this.destroyRef),
         )
-        .subscribe(() => this.router.navigate(['..'], { relativeTo: this.activatedRoute }));
+        .subscribe({
+          next: (_) => this.router.navigate(['..'], { relativeTo: this.activatedRoute }),
+        });
     }
-
-
   }
 
-  show() {
-    console.log('SHOW: ', this.alertForm.value);
+  public cancel() {
+    this.router.navigate(['..'], { relativeTo: this.activatedRoute });
   }
-
 }

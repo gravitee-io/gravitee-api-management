@@ -17,9 +17,8 @@
 export interface AlertNotification {
   type: string;
   configuration: {
-    form: string,
-    to: string,
-    subject: string
+    form: string;
+    to: string;
+    subject: string;
   };
 }
-

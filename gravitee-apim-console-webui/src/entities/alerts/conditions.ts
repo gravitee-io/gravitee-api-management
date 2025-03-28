@@ -18,7 +18,15 @@ import { Projection } from './projection';
 export interface Condition {
   type?: ConditionType;
   projections?: Projection[];
+  property?: string;
+  property2?: string;
+  operator?: StringConditionOperator | Operator; // find out which one
+  threshold?: number;
+  thresholdLow?: number;
+  thresholdHigh?: number;
+  multiplier?: number;
 }
+
 export type Operator = 'LT' | 'LTE' | 'GTE' | 'GT';
 export type ConditionType =
   | 'STRING'
@@ -75,6 +83,9 @@ export interface AggregationCondition extends Condition {
   duration: number;
   projections: Projection[];
 }
+
+export type AlertsAggregationCondition = AggregationCondition;
+
 export type AggregationConditionFunction = 'COUNT' | 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99';
 export type TimeUnitCondition = 'NANOSECONDS' | 'MICROSECONDS' | 'MILLISECONDS' | 'SECONDS' | 'MINUTES' | 'HOURS' | 'DAYS';
 
@@ -86,6 +97,7 @@ export interface RateCondition extends Condition {
   duration: number;
   timeUnit?: TimeUnitCondition;
   sampleSize?: number;
+  // projections ?? missing here, but it is in response object for update
 }
 
 export interface CompareCondition extends Condition {

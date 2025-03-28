@@ -50,4 +50,18 @@ export class Days {
   static dayToNumber(dayName: string): number | undefined {
     return Days.daysMap.get(dayName);
   }
+
+  static readonly numbersToDayNames: Map<number, string> = new Map([
+    [Days.Monday, 'Monday'],
+    [Days.Tuesday, 'Tuesday'],
+    [Days.Wednesday, 'Wednesday'],
+    [Days.Thursday, 'Thursday'],
+    [Days.Friday, 'Friday'],
+    [Days.Saturday, 'Saturday'],
+    [Days.Sunday, 'Sunday'],
+  ]);
+
+  static numberToDay(number: number): string {
+    return Days.numbersToDayNames.get(number);
+  }
 }

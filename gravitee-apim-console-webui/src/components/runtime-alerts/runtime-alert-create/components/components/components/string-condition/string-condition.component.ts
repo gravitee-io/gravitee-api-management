@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewEncapsulation } from "@angular/core";
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 
 import { Conditions, Operator, Scope, Tuple } from '../../../../../../../entities/alert';
 import { RuntimeAlertCreateService } from '../../../services/runtime-alert-create.service';
-import { AlertTriggerEntity } from "../../../../../../../entities/alerts/alertTriggerEntity";
-import { StringCondition } from "../../../../../../../entities/alerts/conditions";
+import { AlertCondition } from '../../../../../../../entities/alerts/conditions';
 
 @Component({
   selector: 'string-condition',
@@ -66,7 +65,7 @@ export class StringConditionComponent implements OnInit, OnDestroy {
   @Input({ required: true }) referenceType: Scope;
   @Input({ required: true }) referenceId: string;
   @Input({ required: true }) metric: string;
-  @Input() public alertToUpdate: AlertTriggerEntity;
+  @Input() updateData: AlertCondition;
 
   protected references: Tuple[];
   protected operators: Operator[];
@@ -86,11 +85,6 @@ export class StringConditionComponent implements OnInit, OnDestroy {
 
     this.createConditionsService.loadDataFromMetric(this.metric, this.referenceType, this.referenceId).subscribe((references) => {
       this.references = references;
-      if(this.alertToUpdate) {
-        const conditions = this.alertToUpdate.conditions[0] as StringCondition;
-        const pattern = this.references.find(reference => reference.key === conditions.pattern) || conditions.pattern
-        this.form.controls.pattern.setValue(pattern);
-      }
     });
 
     this.form.controls.operator.valueChanges
@@ -100,5 +94,4 @@ export class StringConditionComponent implements OnInit, OnDestroy {
       )
       .subscribe();
   }
-
 }

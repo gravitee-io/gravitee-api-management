@@ -25,13 +25,12 @@ $typography: map.get(gio.$mat-theme, typography);
   margin: 20px 6px;
 }
 
-
-.card-header, .notification-header {
+.card-header,
+.notification-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 
 .separator-hr {
   background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker30');
@@ -52,7 +51,6 @@ $typography: map.get(gio.$mat-theme, typography);
   .form-field {
     width: 100%;
   }
-
 }
 
 .hint {

@@ -19,6 +19,7 @@ import { FormGroup } from '@angular/forms';
 import { Metrics, Scope } from '../../../../../../entities/alert';
 import { AggregationFormGroup } from '../components';
 import { HealthcheckMetrics } from '../../../../../../entities/alerts/healthcheck.metrics';
+import { AlertTriggerEntity } from '../../../../../../entities/alerts/alertTriggerEntity';
 
 type EndpointHealthCheckFormGroup = FormGroup<{
   projections: AggregationFormGroup;
@@ -33,7 +34,11 @@ type EndpointHealthCheckFormGroup = FormGroup<{
         instead of an unique alert in case multiple endpoints are concerned
       </p>
     </div>
-    <aggregation-condition [form]="form.controls.projections" [properties]="properties"></aggregation-condition>
+    <aggregation-condition
+      [form]="form.controls.projections"
+      [properties]="properties"
+      [alertToUpdate]="alertToUpdate"
+    ></aggregation-condition>
   `,
   standalone: false,
 })
@@ -42,5 +47,6 @@ export class EndpointHealthCheckConditionComponent {
   @Input({ required: true }) set referenceType(scope: Scope) {
     this.properties = Metrics.filterByScope(HealthcheckMetrics.METRICS, scope)?.filter((property) => property.supportPropertyProjection);
   }
+  @Input() public alertToUpdate: AlertTriggerEntity;
   protected properties: Metrics[];
 }

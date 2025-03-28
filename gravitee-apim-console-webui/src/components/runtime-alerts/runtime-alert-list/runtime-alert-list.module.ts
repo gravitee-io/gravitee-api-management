@@ -21,26 +21,26 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { RouterLink } from '@angular/router';
 
 import { RuntimeAlertListComponent } from './runtime-alert-list.component';
 
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { RouterLink } from "@angular/router";
 
 @NgModule({
   declarations: [RuntimeAlertListComponent],
   exports: [RuntimeAlertListComponent],
-    imports: [
-        CommonModule,
-        MatCardModule,
-        MatTableModule,
-        GioTableWrapperModule,
-        MatTooltipModule,
-        GioPermissionModule,
-        MatButtonModule,
-        MatIconModule,
-        RouterLink
-    ]
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatTableModule,
+    GioTableWrapperModule,
+    MatTooltipModule,
+    GioPermissionModule,
+    MatButtonModule,
+    MatIconModule,
+    RouterLink,
+  ],
 })
 export class RuntimeAlertListModule {}

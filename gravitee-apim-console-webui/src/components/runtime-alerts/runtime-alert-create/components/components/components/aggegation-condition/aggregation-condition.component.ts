@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { Metrics } from '../../../../../../../entities/alert';
+import { AlertTriggerEntity } from '../../../../../../../entities/alerts/alertTriggerEntity';
 
 export type AggregationFormGroup = FormGroup<{
-  projections: FormGroup<{
-    property: FormControl<string>;
-  }>;
+  property: FormControl;
 }>;
 
 @Component({
@@ -30,7 +29,15 @@ export type AggregationFormGroup = FormGroup<{
   styleUrls: ['./aggregation-condition.component.scss'],
   standalone: false,
 })
-export class AggregationConditionComponent {
+export class AggregationConditionComponent implements OnInit {
   @Input({ required: true }) form: AggregationFormGroup;
   @Input({ required: true }) properties: Metrics[];
+  @Input() public alertToUpdate: AlertTriggerEntity;
+
+  ngOnInit() {
+    if (this.alertToUpdate) {
+      const property = this.properties.find((p) => p.key === this.alertToUpdate.conditions[0].projections[0].property);
+      this.form.controls.property.setValue(property);
+    }
+  }
 }

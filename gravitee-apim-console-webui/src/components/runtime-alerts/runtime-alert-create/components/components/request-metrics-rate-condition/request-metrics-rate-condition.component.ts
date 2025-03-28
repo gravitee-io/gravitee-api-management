@@ -20,6 +20,7 @@ import { SimpleMetricsForm } from '../metrics-simple-condition/metrics-simple-co
 import { Metrics, Scope } from '../../../../../../entities/alert';
 import { ApiMetrics } from '../../../../../../entities/alerts/api.metrics';
 import { AggregationFormGroup } from '../components';
+import { AlertTriggerEntity } from '../../../../../../entities/alerts/alertTriggerEntity';
 
 type MetricsRateFormGroup = FormGroup<{
   comparison: SimpleMetricsForm;
@@ -41,19 +42,24 @@ type MetricsRateFormGroup = FormGroup<{
           [metrics]="metrics"
           [referenceId]="referenceId"
           [referenceType]="referenceType"
+          [alertToUpdateConditions]="alertToUpdate?.conditions[0]"
         ></metrics-simple-condition>
       </div>
       <div class="condition-row">
         <div class="condition-row__label">
           <span class="mat-body-2">If rate is</span>
         </div>
-        <threshold-condition [form]="form" thresholdType="percentage"></threshold-condition>
+        <threshold-condition [form]="form" thresholdType="percentage" [updateData]="alertToUpdate?.conditions[0]"></threshold-condition>
       </div>
       <div class="condition-row">
-        <missing-data-condition [form]="form" [label]="'For'"></missing-data-condition>
+        <missing-data-condition [form]="form" [label]="'For'" [alertToUpdate]="alertToUpdate"></missing-data-condition>
       </div>
 
-      <aggregation-condition [form]="form.controls.projections" [properties]="properties"></aggregation-condition>
+      <aggregation-condition
+        [form]="form.controls.projections"
+        [properties]="properties"
+        [alertToUpdate]="alertToUpdate"
+      ></aggregation-condition>
     </form>
   `,
   standalone: false,
@@ -69,7 +75,9 @@ export class RequestMetricsRateConditionComponent {
   get referenceType() {
     return this._referenceType;
   }
+  @Input() public alertToUpdate: AlertTriggerEntity;
 
   protected properties: Metrics[];
   private _referenceType: Scope;
+  protected readonly alert = alert;
 }

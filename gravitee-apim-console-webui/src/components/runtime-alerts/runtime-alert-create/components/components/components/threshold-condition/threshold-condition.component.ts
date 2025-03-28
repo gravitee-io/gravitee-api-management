@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 import { AggregationCondition } from '../../../../../../../entities/alert';
+import { AlertCondition } from '../../../../../../../entities/alerts/conditions';
 
 @Component({
   selector: 'threshold-condition',
@@ -51,8 +52,17 @@ import { AggregationCondition } from '../../../../../../../entities/alert';
     </form>
   `,
 })
-export class ThresholdConditionComponent {
+export class ThresholdConditionComponent implements OnInit {
   @Input({ required: true }) form: FormGroup;
   @Input() thresholdType: 'number' | 'percentage' = 'number';
+  @Input() updateData: AlertCondition;
+
   protected operators = AggregationCondition.OPERATORS;
+
+  ngOnInit() {
+    if (this.updateData) {
+      this.form.controls.operator.setValue(this.operators.find((o) => o.key === this.updateData.operator));
+      this.form.controls.threshold.setValue(this.updateData.threshold);
+    }
+  }
 }

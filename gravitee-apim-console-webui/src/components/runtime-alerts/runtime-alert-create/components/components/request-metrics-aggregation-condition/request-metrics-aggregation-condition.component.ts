@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { AggregationCondition, Metrics, Scope } from '../../../../../../entities/alert';
 import { AggregationFormGroup } from '../components';
 import { ApiMetrics } from '../../../../../../entities/alerts/api.metrics';
+import { AlertTriggerEntity } from '../../../../../../entities/alerts/alertTriggerEntity';
+import { AlertsAggregationCondition } from '../../../../../../entities/alerts/conditions';
 
 type RequestMetricsAggregationFormGroup = FormGroup<{
   metric: FormControl<Metrics>;
-  function: FormControl<string>;
-  operator: FormControl<string>;
+  function: FormControl;
+  operator: FormControl;
   threshold: FormControl<number>;
   duration: FormControl<number>;
   timeUnit: FormControl<string>;
@@ -69,19 +71,53 @@ type RequestMetricsAggregationFormGroup = FormGroup<{
         <missing-data-condition [form]="form" [label]="'For'"></missing-data-condition>
       </div>
 
-      <aggregation-condition [form]="form.controls.projections" [properties]="properties"></aggregation-condition>
+      <aggregation-condition [form]="form.controls.projections" [properties]="properties" [alertToUpdate]="alertToUpdate">
+      </aggregation-condition>
     </form>
   `,
 })
-export class RequestMetricsAggregationConditionComponent {
+export class RequestMetricsAggregationConditionComponent implements OnInit {
   @Input({ required: true }) form: RequestMetricsAggregationFormGroup;
   @Input({ required: true }) metrics: Metrics[];
   @Input({ required: true }) set referenceType(scope: Scope) {
     this.properties = Metrics.filterByScope(ApiMetrics.METRICS, scope)?.filter((property) => property.supportPropertyProjection);
   }
+  @Input() public alertToUpdate: AlertTriggerEntity;
 
   protected functions = AggregationCondition.FUNCTIONS;
   protected operators = AggregationCondition.OPERATORS;
   protected timeUnits = ['Seconds', 'Minutes', 'Hours'];
   protected properties: Metrics[];
+
+  ngOnInit() {
+    if (this.alertToUpdate) {
+      this.seedForm();
+    }
+  }
+
+  seedForm() {
+    const conditions = this.alertToUpdate.conditions[0] as AlertsAggregationCondition;
+    const metric = this.metrics.find((m) => m.key === conditions.property) || null;
+    const conditionsFunction = this.functions.find((f) => f.key === conditions.function) || null;
+    const operator = this.operators.find((o) => o.key === conditions.operator) || null;
+    const timeUnit = this.timeUnits.find((t) => t.toLowerCase() === conditions.timeUnit.toLowerCase()) || null;
+
+    let projectionProperty = null;
+    if (conditions.projections?.length) {
+      const projection = conditions.projections[0];
+      projectionProperty = this.properties?.find((p) => p.key === projection?.property) || null;
+    }
+
+    this.form.patchValue({
+      function: conditionsFunction,
+      metric,
+      operator,
+      threshold: conditions.threshold,
+      duration: conditions.duration,
+      timeUnit,
+      projections: {
+        property: projectionProperty,
+      },
+    });
+  }
 }

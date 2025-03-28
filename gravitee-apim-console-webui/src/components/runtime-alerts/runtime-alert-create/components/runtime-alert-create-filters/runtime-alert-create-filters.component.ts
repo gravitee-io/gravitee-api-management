@@ -13,54 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
-import {
-  AbstractControl,
-  ControlValueAccessor,
-  FormArray,
-  FormControl,
-  FormGroup,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
-  ValidationErrors,
-  Validator,
-  Validators,
-} from '@angular/forms';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
 
 import { Metrics, Scope } from '../../../../../entities/alert';
 import { Rule } from '../../../../../entities/alerts/rule.metrics';
 import { ApiMetrics } from '../../../../../entities/alerts/api.metrics';
 import { HealthcheckMetrics } from '../../../../../entities/alerts/healthcheck.metrics';
+import { AlertCondition } from '../../../../../entities/alerts/conditions';
 
 @Component({
   selector: 'runtime-alert-create-filters',
   templateUrl: './runtime-alert-create-filters.component.html',
   styleUrls: ['./runtime-alert-create-filters.component.scss'],
   standalone: false,
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => RuntimeAlertCreateFiltersComponent),
-      multi: true,
-    },
-    {
-      provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => RuntimeAlertCreateFiltersComponent),
-      multi: true,
-    },
-  ],
 })
-export class RuntimeAlertCreateFiltersComponent implements OnDestroy, ControlValueAccessor, Validator {
+export class RuntimeAlertCreateFiltersComponent implements OnDestroy, OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private _onChange: (value: unknown) => void = () => ({});
-  private _onTouched: () => void = () => ({});
+  @Input() public form;
 
+  @Input() public alertToUpdateFilters: AlertCondition[];
   @Input({ required: true }) referenceType: Scope;
   @Input({ required: true }) referenceId: string;
   @Input({ required: true }) set rule(value: Rule) {
     this.selectedRule = value;
+
     this.removeAllControls();
     if (value) {
       // Metrics are depending on the source of the trigger
@@ -75,18 +53,13 @@ export class RuntimeAlertCreateFiltersComponent implements OnDestroy, ControlVal
   protected selectedRule: Rule;
   protected metrics: Metrics[];
   protected types: string[];
-  protected form: FormArray = new FormArray([]);
 
-  constructor() {
-    this.form.valueChanges
-      .pipe(
-        tap((value) => {
-          this._onChange(value);
-          this._onTouched();
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
+  ngOnInit() {
+    if (this.alertToUpdateFilters) {
+      this.alertToUpdateFilters.forEach((_) => {
+        this.addControl();
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -105,32 +78,15 @@ export class RuntimeAlertCreateFiltersComponent implements OnDestroy, ControlVal
 
   removeControl(index: number) {
     this.form.removeAt(index);
-  }
-
-  writeValue(value: any): void {
-    if (value) {
-      this.form.setValue(value, { emitEvent: false });
-    }
-  }
-
-  registerOnChange(fn: (value: unknown) => void): void {
-    this._onChange = fn;
-  }
-
-  registerOnTouched(fn: () => void): void {
-    this._onTouched = fn;
-  }
-
-  setDisabledState(isDisabled: boolean): void {
-    isDisabled ? this.form.disable() : this.form.enable();
-  }
-
-  validate(_: AbstractControl): ValidationErrors | null {
-    return this.form.valid ? null : { invalidForm: { valid: false, message: 'Filters form is invalid' } };
+    this.form.markAsDirty();
   }
 
   private removeAllControls() {
-    while (this.form.length !== 0) {
+    if (!this.form) {
+      return;
+    }
+
+    while (this.form?.length !== 0) {
       this.form.removeAt(0);
     }
   }

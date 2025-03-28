@@ -20,6 +20,7 @@
     <div class="condition-row__label">
       <span class="mat-body-2">When</span>
     </div>
+
     <mat-form-field class="condition-row__form-field">
       <mat-label>Metric</mat-label>
       <mat-select formControlName="metric" required>
@@ -37,7 +38,7 @@
     </mat-form-field>
 
     <ng-container [ngSwitch]="form.controls.type.value">
-      <threshold-condition *ngSwitchCase="conditionType.THRESHOLD" [form]="form"></threshold-condition>
+      <threshold-condition *ngSwitchCase="conditionType.THRESHOLD" [form]="form" [updateData]="updateData"></threshold-condition>
 
       <threshold-range-condition *ngSwitchCase="conditionType.THRESHOLD_RANGE" [form]="form"></threshold-range-condition>
       <string-condition
@@ -46,7 +47,7 @@
         [metric]="metric.key"
         [referenceType]="referenceType"
         [referenceId]="referenceId"
-        [alertToUpdate]="alertToUpdate"
+        [updateData]="updateData"
       ></string-condition>
     </ng-container>
   </div>
@@ -55,6 +56,6 @@
     <div class="condition-row__label">
       <span class="mat-body-2">Is</span>
     </div>
-    <compare-condition [form]="form" [metrics]="metrics"></compare-condition>
+    <compare-condition [form]="form" [metrics]="metrics" [updateData]="updateData"></compare-condition>
   </div>
 </form>

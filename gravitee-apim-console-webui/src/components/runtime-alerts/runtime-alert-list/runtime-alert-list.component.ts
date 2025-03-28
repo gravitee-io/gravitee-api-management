@@ -28,5 +28,7 @@ export class RuntimeAlertListComponent {
   @Input() canCreateAlert: boolean;
   @Output() public createAlert: EventEmitter<void> = new EventEmitter();
   @Output() public deleteAlert: EventEmitter<AlertTriggerEntity> = new EventEmitter();
+  @Output() public enableAlert: EventEmitter<AlertTriggerEntity> = new EventEmitter();
+  @Output() public disableAlert: EventEmitter<AlertTriggerEntity> = new EventEmitter();
   public displayedColumns = ['name', 'severity', 'description', 'counters', 'lastAlert', 'lastMessage', 'actions'];
 }

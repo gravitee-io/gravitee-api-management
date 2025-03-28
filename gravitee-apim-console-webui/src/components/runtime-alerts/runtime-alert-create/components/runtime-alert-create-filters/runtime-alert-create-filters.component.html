@@ -16,58 +16,41 @@
 
 -->
 <mat-card class="form-card">
-
-  <mat-card-header>
+  <mat-card-header class="card-header">
     <mat-card-title>Filters</mat-card-title>
     <mat-card-subtitle>Filters to apply condition only on a subset of events</mat-card-subtitle>
-    <button *ngIf="selectedRule != null" aria-label="Add filter" mat-stroked-button (click)="addControl()">
-      <mat-icon svgIcon="gio:plus"></mat-icon>
-      Add filter
-    </button>
+    <button *ngIf="selectedRule != null" aria-label="Add filter" mat-stroked-button (click)="addControl()">Add filter</button>
   </mat-card-header>
 
-  <mat-card-content>
-    <div class="alert-filters">
-      <ng-container *ngIf="selectedRule != null; else bannerBlock">
-        <div *ngIf="form.controls?.length > 0">
-          <!--
-             The $any usage is a workaround to be able to use the FormArray directly without an unnecessary FormGroup
-             see: https://github.com/angular/angular/issues/30264
-          -->
-          <form [formGroup]="$any(form)">
-            <table class="gio-table-light alert-filters__table" aria-describedby="alertFiltersSubtitle">
-              <thead [hidden]="true">
-              <tr>
-                <th>Filter</th>
-                <th>Actions</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr *ngFor="let control of form.controls; index as controlIndex" class="gio-form-listeners__table__row">
-                <td class="gio-form-listeners__table__row__td">
-                  <metrics-simple-condition
-                    [form]="$any(form.controls[controlIndex])"
-                    [metrics]="metrics"
-                    [referenceType]="referenceType"
-                    [referenceId]="referenceId"
-                  ></metrics-simple-condition>
-                </td>
-                <td class="gio-form-listeners__table__row__td">
-                  <button type="button" mat-icon-button aria-label="Delete filter"
-                          (click)="removeControl(controlIndex)">
-                    <mat-icon svgIcon="gio:cancel"></mat-icon>
-                  </button>
-                </td>
-              </tr>
-              </tbody>
-            </table>
-          </form>
-        </div>
-      </ng-container>
-      <ng-template #bannerBlock>
-        <gio-banner-info>Select a rule before setting the filters.</gio-banner-info>
-      </ng-template>
-    </div>
+  @if (form.controls.length) {
+    <div class="separator-hr"></div>
+  }
 
+  <mat-card-content>
+    <ng-container *ngIf="selectedRule != null; else bannerBlock">
+      @if (form.controls?.length) {
+        <form [formGroup]="form" class="filters">
+          <div *ngFor="let control of form.controls; index as controlIndex">
+            <mat-card class="filter">
+              <div class="filter-header">
+                <h3>Configure filter</h3>
+                <button mat-raised-button color="primary" (click)="removeControl(controlIndex)">Remove</button>
+              </div>
+
+              <metrics-simple-condition
+                [form]="form.controls[controlIndex]"
+                [metrics]="metrics"
+                [referenceType]="referenceType"
+                [referenceId]="referenceId"
+                [alertToUpdateConditions]="alertToUpdateFilters?.length ? alertToUpdateFilters[controlIndex] : null"
+              ></metrics-simple-condition>
+            </mat-card>
+          </div>
+        </form>
+      }
+    </ng-container>
+    <ng-template #bannerBlock>
+      <gio-banner-info>Select a rule before setting the filters.</gio-banner-info>
+    </ng-template>
   </mat-card-content>
 </mat-card>
