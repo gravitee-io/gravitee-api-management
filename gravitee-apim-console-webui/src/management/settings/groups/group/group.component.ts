@@ -188,15 +188,16 @@ export class GroupComponent implements OnInit {
     },
   };
   noOfMembers: number = 0;
-  noOfGroupMembers: number = 0;
-  filteredGroupMembers: Member[] = [];
-  noOfGroupInvitations: number = 0;
-  filteredGroupInvitations: Invitation[] = [];
-  noOfGroupAPIs: number = 0;
-  filteredGroupAPIs: any[] = [];
-  noOfGroupApplications: number = 0;
-  filteredGroupApplications: any[] = [];
-  canAddMembers: boolean = false;
+  noOfFilteredMembers: number = 0;
+  filteredMembers: Member[] = [];
+  noOfInvitations: number = 0;
+  filteredInvitations: Invitation[] = [];
+  noOfAPIs: number = 0;
+  filteredAPIs: any[] = [];
+  noOfApplications: number = 0;
+  filteredApplications: any[] = [];
+  canAddMembers = false;
+  maxInvitationsLimitReached = false;
   disableDelete = signal(false);
 
   private group = new BehaviorSubject<Group>(null);
@@ -228,17 +229,11 @@ export class GroupComponent implements OnInit {
         this.group.next(group);
         this.initializeForm(group);
         this.initialFormValues = this.groupForm.getRawValue();
-        this.canAddMembers =
-          (this.canUpdateGroup() || (this.group.value.manageable && this.canInviteMember())) && !this.isMaxInvitationsLimitReached();
         this.hideActionsForReadOnlyUser();
         this.initializeDependents();
       }),
       takeUntilDestroyed(this.destroyRef),
     );
-  }
-
-  private isMaxInvitationsLimitReached() {
-    return this.group.value.max_invitation <= this.noOfMembers;
   }
 
   onTabChange(index: number) {
@@ -290,7 +285,8 @@ export class GroupComponent implements OnInit {
       tap((members: Member[]) => {
         this.groupMembers.next(members.sort((a, b) => a.displayName.localeCompare(b.displayName)));
         this.disableDeleteMember();
-        this.noOfMembers = this.groupMembers.value.length;
+        this.maxInvitationsLimitReached = this.group.value.max_invitation <= this.groupMembers.value.length;
+        this.shouldAllowAddMembers();
         this.filterGroupMembers(this.membersDefaultFilters);
       }),
       takeUntilDestroyed(this.destroyRef),
@@ -328,7 +324,7 @@ export class GroupComponent implements OnInit {
   }
 
   private canInviteMember(): boolean {
-    return this.group.value.system_invitation || this.group.value.email_invitation;
+    return this.group.value.manageable && (this.group.value.system_invitation || this.group.value.email_invitation);
   }
 
   private canUpdateGroup(): boolean {
@@ -688,29 +684,29 @@ export class GroupComponent implements OnInit {
   filterGroupMembers(filters: GioTableWrapperFilters): void {
     this.membersDefaultFilters = { ...this.membersDefaultFilters, ...filters };
     const filtered = gioTableFilterCollection(this.groupMembers.value, filters);
-    this.filteredGroupMembers = filtered.filteredCollection;
-    this.noOfGroupMembers = filtered.unpaginatedLength;
+    this.filteredMembers = filtered.filteredCollection;
+    this.noOfFilteredMembers = filtered.unpaginatedLength;
   }
 
   filterGroupInvitations(filters: GioTableWrapperFilters): void {
     this.invitationsDefaultFilters = { ...this.invitationsDefaultFilters, ...filters };
     const filtered = gioTableFilterCollection(this.groupInvitations.value, filters);
-    this.filteredGroupInvitations = filtered.filteredCollection;
-    this.noOfGroupInvitations = filtered.unpaginatedLength;
+    this.filteredInvitations = filtered.filteredCollection;
+    this.noOfInvitations = filtered.unpaginatedLength;
   }
 
   filterGroupAPIs(filters: GioTableWrapperFilters): void {
     this.apisDefaultFilters = { ...this.apisDefaultFilters, ...filters };
     const filtered = gioTableFilterCollection(this.groupAPIs.value, filters);
-    this.filteredGroupAPIs = filtered.filteredCollection;
-    this.noOfGroupAPIs = filtered.unpaginatedLength;
+    this.filteredAPIs = filtered.filteredCollection;
+    this.noOfAPIs = filtered.unpaginatedLength;
   }
 
   filterGroupApplications(filters: GioTableWrapperFilters): void {
     this.applicationsDefaultFilters = { ...this.applicationsDefaultFilters, ...filters };
     const filtered = gioTableFilterCollection(this.groupApplications.value, filters);
-    this.filteredGroupApplications = filtered.filteredCollection;
-    this.noOfGroupApplications = filtered.unpaginatedLength;
+    this.filteredApplications = filtered.filteredCollection;
+    this.noOfApplications = filtered.unpaginatedLength;
   }
 
   private disableDeleteMember(): void {
@@ -722,5 +718,9 @@ export class GroupComponent implements OnInit {
     if (!this.canUpdateGroup()) {
       this.groupForm.disable();
     }
+  }
+
+  private shouldAllowAddMembers() {
+    this.canAddMembers = (this.canUpdateGroup() || this.canInviteMember()) && !this.maxInvitationsLimitReached;
   }
 }

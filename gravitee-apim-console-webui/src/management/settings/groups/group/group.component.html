@@ -116,7 +116,7 @@
               (click)="addToExistingAPIs(group)"
               matTooltip="Click to add this group to all existing APIs"
             >
-              <mat-icon>add</mat-icon>
+              <mat-icon svgIcon="gio:plus"></mat-icon>
               Add Group To Existing APIs
             </button>
           }
@@ -139,7 +139,7 @@
               (click)="addToExistingApplications(group)"
               matTooltip="Click to add this group to all existing applications"
             >
-              <mat-icon>add</mat-icon>
+              <mat-icon svgIcon="gio:plus"></mat-icon>
               Add Group To Existing Applications
             </button>
           }
@@ -162,69 +162,65 @@
     <mat-card class="group__form__card">
       <mat-card-header>
         <mat-card-subtitle>Dependents</mat-card-subtitle>
-
-        @if (canAddMembers) {
+        <button
+          class="group__form__card__actions"
+          mat-raised-button
+          color="primary"
+          [disabled]="!canAddMembers"
+          [matMenuTriggerFor]="addMembersMenu"
+          matTooltip="Search and invite users to the group"
+        >
+          <mat-icon svgIcon="gio:plus"></mat-icon>
+          Add Users
+        </button>
+        <mat-menu #addMembersMenu="matMenu" xPosition="before" yPosition="below">
           <button
-            class="group__form__card__actions"
-            mat-raised-button
-            color="primary"
-            [matMenuTriggerFor]="addMembersMenu"
-            matTooltip="Search and invite users to the group"
+            mat-menu-item
+            (click)="openAddMembersDialog()"
+            [disabled]="!group.system_invitation"
+            aria-hidden="false"
+            aria-label="Click to invite user via search"
           >
-            <mat-icon>add</mat-icon>
-            Add Users
+            <mat-icon svgIcon="gio:search"></mat-icon>
+            User Search
           </button>
-          <mat-menu #addMembersMenu="matMenu" xPosition="before" yPosition="below">
-            <button
-              mat-menu-item
-              (click)="openAddMembersDialog()"
-              [disabled]="!group.system_invitation"
-              aria-hidden="false"
-              aria-label="Click to invite user via search"
-            >
-              <mat-icon svgIcon="gio:search"></mat-icon>
-              User Search
-            </button>
-            <button
-              mat-menu-item
-              (click)="openInviteMemberDialog()"
-              [disabled]="!group.email_invitation"
-              aria-hidden="false"
-              aria-label="Click to invite user via email"
-            >
-              <mat-icon svgIcon="gio:mail"></mat-icon>
-              Email Invitation
-            </button>
-          </mat-menu>
-        }
+          <button
+            mat-menu-item
+            (click)="openInviteMemberDialog()"
+            [disabled]="!group.email_invitation"
+            aria-hidden="false"
+            aria-label="Click to invite user via email"
+          >
+            <mat-icon svgIcon="gio:mail"></mat-icon>
+            Email Invitation
+          </button>
+        </mat-menu>
       </mat-card-header>
       <mat-card-content>
-        <span *ngIf="group.max_invitation <= noOfMembers"
-          ><mat-icon>info</mat-icon> The number of members in this group has reached maximum allowed. Adding users via search and email
-          invitation have been disabled.</span
-        >
+        @if (maxInvitationsLimitReached) {
+          <mat-icon svgIcon="gio:info"></mat-icon
+          ><span
+            >The number of members in this group has reached maximum allowed. Adding users via search and email invitation have been
+            disabled.</span
+          >
+        }
         <mat-tab-group (selectedIndexChange)="onTabChange($event)">
           <mat-tab label="Members">
             @if (groupMembers$ | async; as members) {
-              <gio-table-wrapper [length]="noOfGroupMembers" [filters]="membersDefaultFilters" (filtersChange)="filterGroupMembers($event)">
-                <table
-                  mat-table
-                  [dataSource]="filteredGroupMembers"
-                  id="membersDataTable"
-                  aria-hidden="false"
-                  aria-label="Members Data Table"
-                >
+              <gio-table-wrapper
+                [length]="noOfFilteredMembers"
+                [filters]="membersDefaultFilters"
+                (filtersChange)="filterGroupMembers($event)"
+              >
+                <table mat-table [dataSource]="filteredMembers" id="membersDataTable" aria-hidden="false" aria-label="Members Data Table">
                   <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef id="name">Name</th>
                     <td mat-cell *matCellDef="let row">
                       <div>
-                        {{ row.displayName
-                        }}<span
-                          class="gio-badge-primary"
-                          tooltip="User is an administrator of the group"
-                          *ngIf="row.roles['GROUP'] === 'ADMIN'"
-                          >Admin</span
-                        >
+                        {{ row.displayName }}
+                        @if (row.roles['GROUP'] === 'ADMIN') {
+                          <span class="gio-badge-primary" tooltip="User is an administrator of the group">Admin</span>
+                        }
                       </div>
                     </td>
                   </ng-container>
@@ -289,13 +285,13 @@
             <ng-template matTabContent>
               @if (invitations$ | async; as data) {
                 <gio-table-wrapper
-                  [length]="noOfGroupInvitations"
+                  [length]="noOfInvitations"
                   [filters]="invitationsDefaultFilters"
                   (filtersChange)="filterGroupInvitations($event)"
                 >
                   <table
                     mat-table
-                    [dataSource]="filteredGroupInvitations"
+                    [dataSource]="filteredInvitations"
                     id="invitationsDataTable"
                     aria-hidden="false"
                     aria-label="Invitations Data Table"
@@ -364,14 +360,8 @@
       </mat-card-header>
       <mat-card-content>
         @if (groupAPIs$ | async; as data) {
-          <gio-table-wrapper [length]="noOfGroupAPIs" [filters]="apisDefaultFilters" (filtersChange)="filterGroupAPIs($event)">
-            <table
-              mat-table
-              [dataSource]="filteredGroupAPIs"
-              id="groupApisDataTable"
-              aria-hidden="false"
-              aria-label="Group APIs Data Table"
-            >
+          <gio-table-wrapper [length]="noOfAPIs" [filters]="apisDefaultFilters" (filtersChange)="filterGroupAPIs($event)">
+            <table mat-table [dataSource]="filteredAPIs" id="groupApisDataTable" aria-hidden="false" aria-label="Group APIs Data Table">
               <ng-container matColumnDef="apiName">
                 <th mat-header-cell *matHeaderCellDef id="apiName">Name</th>
                 <td mat-cell *matCellDef="let row">
@@ -413,13 +403,13 @@
       <mat-card-content>
         @if (groupApplications$ | async; as data) {
           <gio-table-wrapper
-            [length]="noOfGroupApplications"
+            [length]="noOfApplications"
             [filters]="applicationsDefaultFilters"
             (filtersChange)="filterGroupApplications($event)"
           >
             <table
               mat-table
-              [dataSource]="filteredGroupApplications"
+              [dataSource]="filteredApplications"
               id="groupApplicationsDataTable"
               aria-hidden="false"
               aria-label="Group Applications Data Table"
