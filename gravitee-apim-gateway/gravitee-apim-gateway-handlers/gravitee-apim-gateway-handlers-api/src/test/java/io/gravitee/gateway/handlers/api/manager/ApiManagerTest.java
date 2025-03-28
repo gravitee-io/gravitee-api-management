@@ -396,6 +396,28 @@ public class ApiManagerTest {
     }
 
     @Test
+    public void shouldUndeployApi_disabled() {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = buildMockPlan();
+
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+
+        apiManager.register(api);
+
+        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+        final Api api2 = buildTestApi();
+        api2.getDefinition().setPlans(singletonList(mockedPlan));
+        api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
+        api2.setEnabled(false);
+
+        apiManager.register(api2);
+
+        verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
+        verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
+    }
+
+    @Test
     public void shouldDecryptApiPropertiesOnDeployment() throws Exception {
         final Api api = buildTestApi();
 
