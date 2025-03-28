@@ -60,7 +60,7 @@ public sealed interface GraviteeDefinition {
         Set<ApiMember> members,
         Set<NewApiMetadata> metadata,
         List<PageExport> pages,
-        Collection<PlanDescriptor.V4> plans,
+        Collection<PlanDescriptor.Native> plans,
         List<Media> apiMedia,
         String apiPicture,
         String apiBackground
@@ -134,7 +134,7 @@ public sealed interface GraviteeDefinition {
         Set<ApiMember> members,
         Set<NewApiMetadata> metadata,
         List<PageExport> pages,
-        Collection<PlanDescriptor.V4> plans,
+        Collection<PlanDescriptor.Native> plans,
         List<Media> media,
         String picture,
         String bckgrnd

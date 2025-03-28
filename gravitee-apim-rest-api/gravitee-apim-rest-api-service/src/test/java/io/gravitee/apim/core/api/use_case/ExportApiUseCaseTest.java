@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
@@ -99,6 +100,7 @@ class ExportApiUseCaseTest {
     PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
+    FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
 
     ApiExportDomainService apiExportDomainService;
 
@@ -130,7 +132,8 @@ class ExportApiUseCaseTest {
                 apiCrudService,
                 apiPrimaryOwnerDomainService,
                 planCrudService,
-                integrationCrudService
+                integrationCrudService,
+                flowCrudService
             );
         sut = new ExportApiUseCase(apiExportDomainService);
         roleQueryService.initWith(
@@ -175,7 +178,8 @@ class ExportApiUseCaseTest {
                 pageQueryService,
                 apiCrudService,
                 planCrudService,
-                integrationCrudService
+                integrationCrudService,
+                flowCrudService
             )
             .forEach(InMemoryAlternative::reset);
     }

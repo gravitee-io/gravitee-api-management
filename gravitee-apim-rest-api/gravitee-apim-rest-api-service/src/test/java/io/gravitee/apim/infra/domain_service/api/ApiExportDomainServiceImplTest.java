@@ -21,8 +21,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import inmemory.FlowCrudServiceInMemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,6 +83,9 @@ class ApiExportDomainServiceImplTest {
     @Mock
     MediaQueryService mediaService;
 
+    @Mock
+    FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
+
     @InjectMocks
     ApiExportDomainServiceImpl sut;
 
@@ -97,6 +101,11 @@ class ApiExportDomainServiceImplTest {
                 )
             )
             .thenReturn(true);
+    }
+
+    @AfterEach
+    void tearDown() {
+        flowCrudService.reset();
     }
 
     @Test

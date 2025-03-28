@@ -97,7 +97,7 @@ import org.junit.jupiter.api.Test;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
+class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     @Override
     protected String contextPath() {
@@ -105,7 +105,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_not_export_when_no_definition_permission() {
+    void should_not_export_when_no_definition_permission() {
         when(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -120,14 +120,14 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_not_export_v2_apis() {
+    void should_not_export_v2_apis() {
         when(exportApiUseCase.execute(any())).thenThrow(new ApiDefinitionVersionNotSupportedException("2.0.0"));
         Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
     }
 
     @Test
-    public void should_export_ApiEntityV4() {
+    void should_export_ApiEntityV4() {
         when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeApiEntityV4())));
 
         Response response = rootTarget().request().get();
@@ -146,14 +146,14 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
         testReturnedMetadata(export.getMetadata());
 
-        testReturnedPlans(export.getPlans());
+        testReturnedPlans(export.getPlans(), false);
 
         testReturnedPages(export.getPages());
         assertThat(export.getApiMedia()).hasSize(1).have(testReturnedMedia());
     }
 
     @Test
-    public void should_export_NativeApiEntityV4() {
+    void should_export_NativeApiEntityV4() {
         when(exportApiUseCase.execute(any())).thenReturn(new ExportApiUseCase.Output(fakeExportApiEntity(fakeNativeApiEntityV4())));
 
         Response response = rootTarget().request().get();
@@ -172,7 +172,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
         testReturnedMetadata(export.getMetadata());
 
-        testReturnedPlans(export.getPlans());
+        testReturnedPlans(export.getPlans(), true);
 
         testReturnedPages(export.getPages());
         assertThat(export.getApiMedia()).hasSize(1).have(testReturnedMedia());
@@ -185,7 +185,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
                 fakeApiMembers(),
                 fakeApiMetadata(),
                 fakeApiPages(),
-                fakeApiPlans(),
+                fakeApiPlansV4(),
                 fakeApiMedia(),
                 null,
                 null
@@ -195,7 +195,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
                 fakeApiMembers(),
                 fakeApiMetadata(),
                 fakeApiPages(),
-                fakeApiPlans(),
+                fakeApiPlansNative(),
                 fakeApiMedia(),
                 null,
                 null
@@ -346,7 +346,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         return Set.of(firstMetadata, secondMetadata);
     }
 
-    private Set<PlanDescriptor.V4> fakeApiPlans() {
+    private Set<PlanDescriptor.V4> fakeApiPlansV4() {
         Step step = new Step();
         step.setName("stepName");
         step.setDescription("stepDescription");
@@ -373,6 +373,58 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
         return Set.of(
             PlanDescriptor.V4
+                .builder()
+                .apiId(API)
+                .characteristics(List.of("characteristic1", "characteristic2"))
+                .commentMessage("commentMessage")
+                .commentRequired(true)
+                .crossId("crossId")
+                .createdAt(Instant.ofEpochMilli(5025000))
+                .closedAt(null)
+                .description("description")
+                .excludedGroups(List.of("excludedGroup"))
+                .generalConditions("generalConditions")
+                .id("planId")
+                .name("planName")
+                //.needRedeployAt(null)
+                .order(1)
+                .publishedAt(Instant.ofEpochMilli(5026000))
+                .status(PlanStatus.PUBLISHED)
+                .selectionRule(null)
+                .tags(Set.of("tag1", "tag2"))
+                .type(Plan.PlanType.API)
+                .updatedAt(Instant.ofEpochMilli(5027000))
+                .validation(Plan.PlanValidationType.AUTO)
+                .security(PlanSecurity.builder().type("key-less").configuration("{}").build())
+                .flows(List.of(planFlow))
+                .build()
+        );
+    }
+
+    private Set<PlanDescriptor.Native> fakeApiPlansNative() {
+        Step step = new Step();
+        step.setName("stepName");
+        step.setDescription("stepDescription");
+        step.setConfiguration("{\n \"nice\" : \"configuration\"\n}");
+        step.setCondition("stepCondition");
+        step.setPolicy("stepPolicy");
+        step.setEnabled(true);
+        step.setMessageCondition("stepMessageCondition");
+
+        NativeFlow planFlow = new NativeFlow();
+        planFlow.setEnabled(true);
+        planFlow.setName("planFlowName");
+        planFlow.setPublish(null);
+        planFlow.setSubscribe(null);
+
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setMethods(Set.of(HttpMethod.GET, HttpMethod.POST));
+        httpSelector.setPath("/test");
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+        planFlow.setTags(null);
+
+        return Set.of(
+            PlanDescriptor.Native
                 .builder()
                 .apiId(API)
                 .characteristics(List.of("characteristic1", "characteristic2"))
@@ -608,7 +660,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         assertThat(metadata).containsOnly(firstMetadata, secondMetadata);
     }
 
-    private void testReturnedPlans(Set<PlanV4> plans) {
+    private void testReturnedPlans(Set<PlanV4> plans, boolean nativeApi) {
         assertThat(plans).hasSize(1);
 
         var plan = plans.iterator().next();
@@ -641,32 +693,36 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         assertThat(flowV4.getName()).isEqualTo("planFlowName");
         assertThat(flowV4.getPublish()).isNotNull().isEmpty();
 
-        assertThat(flowV4.getRequest()).hasSize(1);
+        if (!nativeApi) {
+            assertThat(flowV4.getRequest()).hasSize(1);
 
-        var step = flowV4.getRequest().getFirst();
-        assertThat(step.getEnabled()).isTrue();
-        assertThat(step.getConfiguration()).isEqualTo(Map.of("nice", "configuration"));
-        assertThat(step.getDescription()).isEqualTo("stepDescription");
-        assertThat(step.getName()).isEqualTo("stepName");
-        assertThat(step.getCondition()).isEqualTo("stepCondition");
-        assertThat(step.getPolicy()).isEqualTo("stepPolicy");
-        assertThat(step.getMessageCondition()).isEqualTo("stepMessageCondition");
+            var step = flowV4.getRequest().getFirst();
+            assertThat(step.getEnabled()).isTrue();
+            assertThat(step.getConfiguration()).isEqualTo(Map.of("nice", "configuration"));
+            assertThat(step.getDescription()).isEqualTo("stepDescription");
+            assertThat(step.getName()).isEqualTo("stepName");
+            assertThat(step.getCondition()).isEqualTo("stepCondition");
+            assertThat(step.getPolicy()).isEqualTo("stepPolicy");
+            assertThat(step.getMessageCondition()).isEqualTo("stepMessageCondition");
+        }
 
         assertThat(flowV4.getResponse()).isNotNull().isEmpty();
         assertThat(flowV4.getSubscribe()).isNotNull().isEmpty();
         assertThat(flowV4.getTags()).isNotNull().isEmpty();
 
-        assertThat(flowV4.getSelectors()).hasSize(1);
+        if (!nativeApi) {
+            assertThat(flowV4.getSelectors()).hasSize(1);
 
-        var httpSelector = flowV4.getSelectors().getFirst().getHttpSelector();
-        assertThat(httpSelector).isNotNull();
-        assertThat(httpSelector.getPath()).isEqualTo("/test");
-        assertThat(httpSelector.getPathOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
-        assertThat(httpSelector.getMethods())
-            .containsOnly(
-                io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
-                io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
-            );
+            var httpSelector = flowV4.getSelectors().getFirst().getHttpSelector();
+            assertThat(httpSelector).isNotNull();
+            assertThat(httpSelector.getPath()).isEqualTo("/test");
+            assertThat(httpSelector.getPathOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
+            assertThat(httpSelector.getMethods())
+                .containsOnly(
+                    io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
+                    io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
+                );
+        }
 
         assertThat(plan.getSecurity()).isNotNull();
         var planSecurity = plan.getSecurity();

@@ -103,12 +103,17 @@ public interface PlanMapper {
             case PlanDescriptor.V4 v4 -> map(v4);
             case PlanDescriptor.V2 v2 -> map(v2);
             case PlanDescriptor.Federated fed -> map(fed);
+            case PlanDescriptor.Native nat -> map(nat);
         };
     }
 
     @Mapping(target = "security.type", source = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
     PlanV4 map(PlanDescriptor.V4 source);
+
+    @Mapping(target = "security.type", source = "security.type", qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(target = "security.configuration", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    PlanV4 map(PlanDescriptor.Native source);
 
     @Mapping(target = "status", source = "federatedPlanDefinition.status")
     @Mapping(target = "mode", source = "federatedPlanDefinition.mode")
