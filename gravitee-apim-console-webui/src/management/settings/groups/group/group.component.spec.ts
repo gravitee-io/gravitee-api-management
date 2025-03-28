@@ -65,7 +65,7 @@ describe('GroupComponent', () => {
     event_rules: [],
     lock_api_role: false,
     lock_application_role: false,
-    max_invitation: 10,
+    max_invitation: 2,
     name: 'Group 1',
     roles: {},
     system_invitation: false,
@@ -459,6 +459,45 @@ describe('GroupComponent', () => {
   });
 
   describe('Search and invite users', () => {
+    it('should disable add users button when maximum allowed members have been added', async () => {
+      await init(GROUP.id);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers([
+        {
+          id: '1',
+          displayName: 'Test Member 1',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            {
+              name: 'OWNER',
+              scope: 'INTEGRATION',
+            },
+          ],
+        },
+        {
+          id: '2',
+          displayName: 'Test Member 2',
+          roles: [
+            { name: 'OWNER', scope: 'API' },
+            { name: 'OWNER', scope: 'APPLICATION' },
+            {
+              name: 'OWNER',
+              scope: 'INTEGRATION',
+            },
+          ],
+        },
+      ]);
+      expectGetGroupAPIs();
+      expectGetGroupApplications();
+      const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
+      const disabled = await buttonHarness.isDisabled();
+      expect(disabled).toEqual(true);
+    });
+
     it('should display menu to search and invite users', async () => {
       await init(GROUP.id);
       expectGetGroup();
@@ -653,8 +692,8 @@ describe('GroupComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${type}/roles`).flush(roles);
   }
 
-  function expectGetGroupMembers() {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`).flush(GROUP_MEMBERS);
+  function expectGetGroupMembers(members: Member[] = GROUP_MEMBERS) {
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`).flush(members);
   }
 
   function expectGetGroupAPIs() {
