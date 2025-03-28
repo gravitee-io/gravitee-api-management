@@ -97,6 +97,28 @@
         <th mat-header-cell *matHeaderCellDef id="actions"></th>
         <td mat-cell *matCellDef="let alert">
           <div class="runtime-alerts__actions">
+            @if (alert.enabled) {
+              <button
+                mat-icon-button
+                aria-label="Button to disable alert"
+                matTooltip="Disable this alert"
+                *gioPermission="{ anyOf: ['api-alert-u'] }"
+                (click)="disableAlert.emit(alert)"
+              >
+                <mat-icon svgIcon="gio:check"></mat-icon>
+              </button>
+            } @else {
+              <button
+                mat-icon-button
+                aria-label="Button to enable alert"
+                matTooltip="Enable this alert"
+                *gioPermission="{ anyOf: ['api-alert-u'] }"
+                (click)="enableAlert.emit(alert)"
+              >
+                <mat-icon svgIcon="gio:prohibition"></mat-icon>
+              </button>
+            }
+
             <button
               mat-icon-button
               aria-label="Button to edit an alert"

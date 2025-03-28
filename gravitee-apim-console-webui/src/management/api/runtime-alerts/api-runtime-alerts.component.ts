@@ -51,6 +51,18 @@ export class ApiRuntimeAlertsComponent implements OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
+  disableAlert(alert: AlertTriggerEntity) {
+    this.alertService
+      .updateAlert(this.activatedRoute.snapshot.params.apiId, { ...alert, enabled: false }, alert.id)
+      .subscribe(() => this.loadData());
+  }
+
+  enableAlert(alert: AlertTriggerEntity) {
+    this.alertService
+      .updateAlert(this.activatedRoute.snapshot.params.apiId, { ...alert, enabled: true }, alert.id)
+      .subscribe(() => this.loadData());
+  }
+
   createAlert() {
     return this.router.navigate(['./new'], { relativeTo: this.activatedRoute });
   }

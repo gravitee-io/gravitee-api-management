@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from "@angular/core";
-import {
-  ControlContainer,
-  FormGroup,
-  FormGroupDirective,
-} from "@angular/forms";
+import { Component, Input, OnInit } from '@angular/core';
+import { ControlContainer, FormGroup, FormGroupDirective } from '@angular/forms';
 
 import { Rule } from '../../../../../entities/alerts/rule.metrics';
 import { Scope } from '../../../../../entities/alert';
-import { ALERT_SEVERITIES, AlertSeverity, AlertTriggerEntity } from "../../../../../entities/alerts/alertTriggerEntity";
+import { ALERT_SEVERITIES, AlertSeverity, AlertTriggerEntity } from '../../../../../entities/alerts/alertTriggerEntity';
 
 export type GeneralFormValue = {
   name: string;
@@ -37,7 +33,7 @@ export type GeneralFormValue = {
   selector: 'runtime-alert-create-general',
   templateUrl: './runtime-alert-create-general.component.html',
   styleUrls: ['./runtime-alert-create-general.component.scss'],
-  viewProviders: [{ provide: ControlContainer, useExisting: FormGroupDirective }]
+  viewProviders: [{ provide: ControlContainer, useExisting: FormGroupDirective }],
 })
 export class RuntimeAlertCreateGeneralComponent implements OnInit {
   @Input() public alertToUpdate: AlertTriggerEntity;
@@ -45,20 +41,16 @@ export class RuntimeAlertCreateGeneralComponent implements OnInit {
     this.rules = Rule.findByScope(value);
   }
 
-  public parentForm: FormGroup;
   public generalForm: FormGroup;
   public rules: Rule[];
   public alertSeverities = ALERT_SEVERITIES;
 
-  constructor(
-    private readonly formGroupDirective: FormGroupDirective,
-  ) {}
+  constructor(private readonly formGroupDirective: FormGroupDirective) {}
 
   ngOnInit() {
-    this.parentForm = this.formGroupDirective.form;
-    this.generalForm = this.parentForm.get('generalForm') as FormGroup;
+    this.generalForm = this.formGroupDirective.form.get('generalForm') as FormGroup;
 
-    if(this.alertToUpdate) {
+    if (this.alertToUpdate) {
       this.seedForm();
     }
   }
@@ -76,5 +68,4 @@ export class RuntimeAlertCreateGeneralComponent implements OnInit {
   setDisabledState(isDisabled: boolean): void {
     isDisabled ? this.generalForm.disable() : this.generalForm.enable();
   }
-
 }

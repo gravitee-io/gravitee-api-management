@@ -30,7 +30,7 @@ import {
 } from '../../../entities/alerts/conditions';
 import { Projection } from '../../../entities/alerts/projection';
 import { Days, NotificationPeriod } from '../../../entities/alerts/notificationPeriod';
-import { AlertNotification } from "../../../entities/alerts/notification";
+import { AlertNotification } from '../../../entities/alerts/notification';
 
 export const toNewAlertTriggerEntity = (referenceId: string, referenceType: string, formValues: any): NewAlertTriggerEntity => {
   return {
@@ -43,7 +43,7 @@ export const toNewAlertTriggerEntity = (referenceId: string, referenceType: stri
     source: formValues.generalForm.rule.source,
     type: formValues.generalForm.rule.type,
     template: false,
-    notificationPeriods: mapNotificationPeriods(formValues.timeframeForm),
+    notificationPeriods: mapNotificationPeriods(formValues.timeframeForm?.timeframes),
     conditions: [toCondition(formValues.conditionsForm)],
     filters: toConditions(formValues.filtersForm),
     notifications: mapNotificationFormValues(formValues.notificationsForm),
@@ -51,16 +51,18 @@ export const toNewAlertTriggerEntity = (referenceId: string, referenceType: stri
   };
 };
 
-
 const mapNotificationFormValues = (notificationsForm: AlertNotification[]): AlertNotification[] => {
-  if(!notificationsForm || !notificationsForm.length) return null;
+  if (!notificationsForm || !notificationsForm.length) return null;
   return notificationsForm.map(({ type, configuration }) => ({ type, configuration }));
-}
+};
 
 const mapNotificationPeriods = (timeframeForm: NotificationPeriod[]): NotificationPeriod[] => {
-  if(!timeframeForm || !timeframeForm.length ) return null;
+  if (!timeframeForm || !timeframeForm.length) {
+    return [];
+  }
+
   return timeframeForm.map((period: NotificationPeriod) => toNotificationPeriod(period));
-}
+};
 
 const toConditions = (conditionValues): AlertCondition[] => {
   return conditionValues?.reduce((acc: AlertCondition[], condition) => {
@@ -70,11 +72,13 @@ const toConditions = (conditionValues): AlertCondition[] => {
 };
 
 const toCondition = (condition): AlertCondition => {
-  switch (condition.type) {
+  const conditionMapped = condition.type ? condition : condition.comparison;
+
+  switch (conditionMapped.type) {
     case 'STRING':
       return toStringCondition(condition);
     case 'THRESHOLD':
-      return toThresholdCondition(condition);
+      return toThresholdCondition(conditionMapped);
     case 'THRESHOLD_RANGE':
       return toThresholdRangeCondition(condition);
     case 'AGGREGATION':
@@ -193,4 +197,9 @@ const toNotificationPeriod = (timeframeFormValues): NotificationPeriod => {
     beginHour,
     endHour,
   };
+};
+
+export const fromBeginAndEndHourToRange = (beginHour: number, endHour: number) => {
+  const midnight = moment().startOf('day');
+  return [midnight.clone().add(beginHour, 'seconds'), midnight.clone().add(endHour, 'seconds')];
 };

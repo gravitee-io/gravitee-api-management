@@ -17,6 +17,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 import { AggregationCondition, Conditions, ConditionType, Metrics } from '../../../../../../../entities/alert';
+import { AlertCondition } from '../../../../../../../entities/alerts/conditions';
 
 @Component({
   selector: 'compare-condition',
@@ -50,8 +51,11 @@ import { AggregationCondition, Conditions, ConditionType, Metrics } from '../../
 export class CompareConditionComponent implements OnInit {
   @Input({ required: true }) form: FormGroup;
   @Input({ required: true }) metrics: Metrics[];
+
   protected operators = AggregationCondition.OPERATORS;
   protected properties: Metrics[];
+
+  @Input() updateData: AlertCondition;
 
   ngOnInit() {
     const condition = Conditions.findByType(this.form.controls.type.value);
@@ -62,5 +66,21 @@ export class CompareConditionComponent implements OnInit {
     this.properties = this.metrics.filter(
       (metric) => metric.conditions.includes(ConditionType.COMPARE) && metric.key !== this.form.controls.metric.value.key,
     );
+
+    if (this.updateData) {
+      if (this.updateData.type === ConditionType.RATE) {
+        const property = this.properties.find((p) => p.key === this.updateData.property2);
+        const operator = this.operators.find((p) => p.key === this.updateData.operator);
+
+        this.form.controls.property.setValue(property);
+        this.form.controls.operator.setValue(operator);
+        this.form.controls.multiplier.setValue(this.updateData.multiplier);
+      } else {
+        if ('property2' in this.updateData) {
+          const property = this.properties.find((p) => p.key === this.updateData.property2);
+          this.form.controls.property.setValue(property);
+        }
+      }
+    }
   }
 }

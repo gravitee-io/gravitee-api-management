@@ -16,13 +16,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { Installation } from '../entities/installation/installation';
 import { Scope } from '../entities/alert';
 import { AlertStatus } from '../entities/alerts/alertStatus';
-import { AlertTriggerEntity, NewAlertTriggerEntity } from '../entities/alerts/alertTriggerEntity';
-import { map } from "rxjs/operators";
+import { AlertTriggerEntity, NewAlertTriggerEntity, UpdateAlertTriggerEntity } from '../entities/alerts/alertTriggerEntity';
 
 @Injectable({
   providedIn: 'root',
@@ -61,10 +61,7 @@ export class AlertService {
   getAlert(apiId: string, alertId: string, withEventCounts = true): Observable<AlertTriggerEntity> {
     return this.http
       .get<AlertTriggerEntity[]>(`${this.constants.env.baseURL}/apis/${apiId}/alerts?event_counts=${withEventCounts}`)
-      .pipe(
-        map((alerts: AlertTriggerEntity[]) => alerts.find(alert => alert.id === alertId)),
-      );
-
+      .pipe(map((alerts: AlertTriggerEntity[]) => alerts.find((alert) => alert.id === alertId)));
   }
 
   createAlert(apiId: string, newAlert: NewAlertTriggerEntity) {
@@ -75,5 +72,7 @@ export class AlertService {
     return this.http.delete<void>(`${this.constants.env.baseURL}/apis/${apiId}/alerts/${alertId}`);
   }
 
-
+  updateAlert(apiId: string, alert: UpdateAlertTriggerEntity, alertId: string) {
+    return this.http.put<NewAlertTriggerEntity>(`${this.constants.env.baseURL}/apis/${apiId}/alerts/${alertId}`, { ...alert });
+  }
 }

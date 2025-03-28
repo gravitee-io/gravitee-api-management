@@ -1,28 +1,46 @@
-import { ChangeDetectorRef, Component, DestroyRef, OnInit } from "@angular/core";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatOption, MatSelect } from "@angular/material/select";
-import { GioFormJsonSchemaModule } from "@gravitee/ui-particles-angular";
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { ChangeDetectorRef, Component, DestroyRef, OnInit } from '@angular/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatOption, MatSelect } from '@angular/material/select';
+import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
 import {
   AbstractControl,
-  ControlContainer, FormArray, FormBuilder, FormControl,
+  ControlContainer,
+  FormArray,
+  FormBuilder,
+  FormControl,
   FormGroup,
   FormGroupDirective,
   ReactiveFormsModule,
-  UntypedFormControl, Validators
-} from "@angular/forms";
-import { MatCardModule } from "@angular/material/card";
-import { NgForOf, NgIf, NgOptimizedImage } from "@angular/common";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { MatButton } from "@angular/material/button";
-import { take } from "rxjs/operators";
-import { RouterLink } from "@angular/router";
-import { MatInput } from "@angular/material/input";
-import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
+  UntypedFormControl,
+  Validators,
+} from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { NgForOf, NgIf, NgOptimizedImage } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButton } from '@angular/material/button';
+import { take } from 'rxjs/operators';
+import { RouterLink } from '@angular/router';
+import { MatInput } from '@angular/material/input';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 
-import { NotifierService } from "../../../../services-ngx/notifier.service";
-import { GeneralFormValue } from "../components/runtime-alert-create-general";
-import { DampeningMode, DampeningModesNames, DurationTimeUnit } from "../../../../entities/alert";
-
+import { NotifierService } from '../../../../services-ngx/notifier.service';
+import { GeneralFormValue } from '../components/runtime-alert-create-general';
+import { DampeningMode, DampeningModesNames, DurationTimeUnit } from '../../../../entities/alert';
 
 @Component({
   selector: 'runtime-alert-create-notifications',
@@ -42,11 +60,11 @@ import { DampeningMode, DampeningModesNames, DurationTimeUnit } from "../../../.
     NgOptimizedImage,
     MatMenuTrigger,
     MatInput,
-    NgIf
+    NgIf,
   ],
   templateUrl: './runtime-alert-create-notifications.component.html',
   styleUrl: './runtime-alert-create-notifications.component.scss',
-  viewProviders: [{ provide: ControlContainer, useExisting: FormGroupDirective }]
+  viewProviders: [{ provide: ControlContainer, useExisting: FormGroupDirective }],
 })
 export class RuntimeAlertCreateNotificationsComponent implements OnInit {
   public parentForm: FormGroup;
@@ -56,10 +74,10 @@ export class RuntimeAlertCreateNotificationsComponent implements OnInit {
   public dampeningModes = DampeningMode.MODES;
   public timeUnits = DurationTimeUnit.TIME_UNITS;
   public channels = [
-    { label: "E-mail", value: "email-notifier" },
-    { label: "Slack", value: "slack-notifier" },
-    { label: "System e-mail", value: "default-email" },
-    { label: "Webhook", value: "webhook-notifier" },
+    { label: 'E-mail', value: 'email-notifier' },
+    { label: 'Slack', value: 'slack-notifier' },
+    { label: 'System e-mail', value: 'default-email' },
+    { label: 'Webhook', value: 'webhook-notifier' },
   ];
 
   constructor(
@@ -67,7 +85,7 @@ export class RuntimeAlertCreateNotificationsComponent implements OnInit {
     private readonly notifierService: NotifierService,
     private readonly formGroupDirective: FormGroupDirective,
     private readonly formBuilder: FormBuilder,
-    private readonly changeDetectorRef: ChangeDetectorRef
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -83,35 +101,26 @@ export class RuntimeAlertCreateNotificationsComponent implements OnInit {
     this.dampeningForm.controls.mode.setValue(DampeningModesNames.STRICT_COUNT);
   }
 
-  public dampeningModeChangesSub () {
-    this.dampeningForm.controls.mode.valueChanges
-      .pipe(
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe({
-        next: (mode: DampeningModesNames) => {
-          this.seedDampeningControls(mode);
-        }
-      })
+  public dampeningModeChangesSub() {
+    this.dampeningForm.controls.mode.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (mode: DampeningModesNames) => {
+        this.seedDampeningControls(mode);
+      },
+    });
   }
-
 
   get trueEvaluationsControl() {
     return this.dampeningForm.get('trueEvaluations');
-
   }
   get totalEvaluationsControl() {
     return this.dampeningForm.get('totalEvaluations');
-
   }
   get durationControl() {
     return this.dampeningForm.get('duration');
-
   }
   get timeUnitControl() {
     return this.dampeningForm.get('timeUnit');
   }
-
 
   seedDampeningControls(mode: DampeningModesNames) {
     this.dampeningForm.removeControl('trueEvaluations');
@@ -145,7 +154,8 @@ export class RuntimeAlertCreateNotificationsComponent implements OnInit {
   }
 
   public addNotification(type: string) {
-    this.notifierService.getSchema(type)
+    this.notifierService
+      .getSchema(type)
       .pipe(take(1))
       .subscribe({
         next: (schema: GeneralFormValue) => {
@@ -155,8 +165,8 @@ export class RuntimeAlertCreateNotificationsComponent implements OnInit {
             schema,
           });
           this.notificationsForm.push(notificationsGroup);
-        }
-      })
+        },
+      });
   }
 
   public deleteNotification(index: number) {

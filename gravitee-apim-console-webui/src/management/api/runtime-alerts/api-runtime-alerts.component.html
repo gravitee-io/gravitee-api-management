@@ -22,6 +22,8 @@
       [canCreateAlert]="canCreateAlert"
       (createAlert)="createAlert()"
       (deleteAlert)="deleteAlert($event)"
+      (disableAlert)="disableAlert($event)"
+      (enableAlert)="enableAlert($event)"
     ></runtime-alert-list>
   </ng-container>
   <ng-template #emptyBlock>

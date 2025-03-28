@@ -4,18 +4,29 @@
 
 $typography: map.get(gio.$mat-theme, typography);
 
-.alert-filters {
-  &__table {
-    width: 100%;
-
-    &__th {
-      color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
-      text-transform: none;
-      @include mat.m2-typography-level($typography, 'subtitle-2');
-    }
-  }
-}
-
 .form-card {
   margin: 20px 6px;
+}
+
+.card-header,
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.separator-hr {
+  background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  margin: 16px 0;
+  height: 1px;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter {
+  padding: 12px;
 }

@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+
+import { AlertTriggerEntity } from '../../../../../../entities/alerts/alertTriggerEntity';
+import { MissingDataCondition } from '../../../../../../entities/alerts/conditions';
 
 @Component({
   selector: 'missing-data-condition',
@@ -41,8 +44,24 @@ import { FormGroup } from '@angular/forms';
     </form>
   `,
 })
-export class MissingDataConditionComponent {
+export class MissingDataConditionComponent implements OnInit {
   @Input({ required: true }) form: FormGroup;
   @Input() label = 'No event for';
+  @Input() public alertToUpdate: AlertTriggerEntity;
   protected timeUnits = ['Seconds', 'Minutes', 'Hours'];
+
+  ngOnInit() {
+    if (this.alertToUpdate) {
+      this.seedForm();
+    }
+  }
+
+  seedForm() {
+    const { duration, timeUnit } = this.alertToUpdate.conditions[0] as MissingDataCondition;
+
+    this.form.patchValue({
+      timeUnit: this.timeUnits.find((i) => i.toLowerCase() === timeUnit?.toString()?.toLowerCase()),
+      duration,
+    });
+  }
 }

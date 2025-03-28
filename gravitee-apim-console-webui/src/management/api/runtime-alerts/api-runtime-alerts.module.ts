@@ -25,5 +25,4 @@ import { RuntimeAlertCreateModule, RuntimeAlertListEmptyStateModule, RuntimeAler
   declarations: [ApiRuntimeAlertsComponent],
   imports: [CommonModule, RuntimeAlertListModule, RuntimeAlertListEmptyStateModule, RuntimeAlertCreateModule],
 })
-export class ApiRuntimeAlertsModule {
-}
+export class ApiRuntimeAlertsModule {}

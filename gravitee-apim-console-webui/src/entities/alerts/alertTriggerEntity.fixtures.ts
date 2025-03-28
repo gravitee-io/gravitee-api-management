@@ -35,6 +35,7 @@ export function fakeAlertTriggerEntity(attributes?: Partial<AlertTriggerEntity>)
     parent_id: 'parent-id',
     environment_id: 'env-id',
     severity: 'INFO',
+    enabled: true,
   };
 
   return {

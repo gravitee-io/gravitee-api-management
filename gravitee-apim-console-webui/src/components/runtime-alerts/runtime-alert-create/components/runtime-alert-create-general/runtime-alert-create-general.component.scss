@@ -1,3 +1,7 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 .form {
   &__row {
     display: flex;
@@ -23,4 +27,18 @@
 
 .form-card {
   margin: 20px 6px;
+}
+
+.separator-hr {
+  background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  margin: 16px 0;
+  height: 1px;
+}
+
+.hidden {
+  display: none;
+}
+
+.disabled-option {
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker40');
 }
