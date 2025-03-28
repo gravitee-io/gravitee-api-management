@@ -16,17 +16,32 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -42,7 +57,11 @@ import org.springframework.security.core.context.SecurityContextImpl;
 public class CurrentUserResourceTest extends AbstractResourceTest {
 
     private static final String ID = "040f6a20-9fc2-429f-8f6a-209fc2629f8d";
+    private static final String ROLE_ID = "role_id";
     private static final String ORG = "MY-ORG";
+    private static final String ENV = "environment";
+    private static final String GROUP_ID = "group-id";
+    private static final String GROUP_NAME = "group-name";
 
     @AfterClass
     public static void afterClass() {
@@ -79,6 +98,54 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         assertThat(returnUserDetails.get("updated_at").asLong()).isEqualTo(now.getTime());
         assertThat(returnUserDetails.get("last_connection_at").asLong()).isEqualTo(now.getTime());
         assertThat(returnUserDetails.get("organizationId").asText()).isEqualTo(ORG);
+    }
+
+    @Test
+    public void shouldGetCurrentUserGroupsByEnvironment() throws TechnicalException {
+        Mockito.reset(userService);
+
+        final UserDetails userDetails = new UserDetails(USER_NAME, "PASSWORD", Collections.emptyList());
+        userDetails.setId(ID);
+
+        Date now = new Date();
+        setCurrentUserDetails(now, userDetails);
+
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.GROUP))
+            .thenReturn(
+                Set.of(
+                    MembershipEntity
+                        .builder()
+                        .id("id")
+                        .memberId(ID)
+                        .memberType(MembershipMemberType.USER)
+                        .referenceId(GROUP_ID)
+                        .referenceType(MembershipReferenceType.GROUP)
+                        .roleId(ROLE_ID)
+                        .build()
+                )
+            );
+
+        when(environmentService.findByUser(anyString(), anyString()))
+            .thenReturn(List.of(EnvironmentEntity.builder().id(ENV).organizationId(ORG).build()));
+        when(groupRepository.findAllByEnvironment(ENV)).thenReturn(Set.of(Group.builder().id(GROUP_ID).name(GROUP_NAME).build()));
+
+        final Response response = orgTarget().request().get();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+
+        JsonNode returnUserDetails = response.readEntity(JsonNode.class);
+        assertThat(returnUserDetails).isNotNull();
+
+        JsonNode groupsByEnvironment = returnUserDetails.get("groupsByEnvironment");
+        JsonNode environmentGroupsNode = groupsByEnvironment.get(ENV);
+        List<String> environmentGroupsList = new ArrayList<>();
+        if (environmentGroupsNode.isArray()) {
+            for (JsonNode node : environmentGroupsNode) {
+                environmentGroupsList.add(node.asText());
+            }
+        }
+        assertThat(environmentGroupsList).isNotNull().containsExactly("group-name");
     }
 
     @Test
