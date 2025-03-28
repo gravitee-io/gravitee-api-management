@@ -89,8 +89,8 @@
     "@angular/cli": "18.2.14",
     "@angular/compiler-cli": "18.2.13",
     "@gravitee/ui-schematics": "13.12.0",
-    "@storybook/addon-essentials": "8.6.8",
-    "@storybook/angular": "8.6.8",
+    "@storybook/addon-essentials": "8.6.11",
+    "@storybook/angular": "8.6.11",
     "@types/angular": "1.8.9",
     "@types/angular-material": "1.1.78",
     "@types/angular-mocks": "1.7.4",
@@ -121,7 +121,7 @@
     "jest-preset-angular": "14.5.3",
     "license-check-and-add": "4.0.5",
     "prettier": "3.5.3",
-    "storybook": "8.6.8",
+    "storybook": "8.6.11",
     "typescript": "5.5.4"
   },
   "engines": {
