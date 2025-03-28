@@ -29,11 +29,13 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -41,6 +43,7 @@ import org.springframework.context.ApplicationContext;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
     public static String METADATA_EXPORT_VERSION = "exportVersion";
@@ -278,9 +281,17 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                                 .map(groupId ->
                                     groupIdNameMap.computeIfAbsent(
                                         groupId,
-                                        key -> groupService.findById(GraviteeContext.getExecutionContext(), key).getName()
+                                        key -> {
+                                            try {
+                                                return groupService.findById(GraviteeContext.getExecutionContext(), key).getName();
+                                            } catch (GroupNotFoundException e) {
+                                                log.warn("Unable to find group {}", key);
+                                                return null;
+                                            }
+                                        }
                                     )
                                 )
+                                .filter(Objects::nonNull)
                                 .collect(Collectors.toList())
                         );
                     }
