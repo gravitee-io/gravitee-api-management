@@ -152,7 +152,7 @@ public enum Key {
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
 
-    DOCUMENTATION_PAGE_NOT_FOUND_MESSAGE("documentation.pageNotFoundMessage", "", new HashSet<>(Arrays.asList(ENVIRONMENT))),
+    DOCUMENTATION_PAGE_NOT_FOUND_MESSAGE("documentation.pageNotFoundMessage", "", new HashSet<>(List.of(ENVIRONMENT))),
 
     PLAN_SECURITY_MTLS_ENABLED("plan.security.mtls.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
@@ -421,13 +421,14 @@ public enum Key {
     CLOUD_HOSTED_ENABLED("cloud-hosted.enabled", "false", Set.of(SYSTEM)),
 
     EXTERNAL_AUTH_ENABLED("auth.external.enabled", "false", Set.of(SYSTEM)),
-    EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED("auth.external.allowAccountDeletion", "true", Set.of(SYSTEM));
+    EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED("auth.external.allowAccountDeletion", "true", Set.of(SYSTEM)),
+    USER_GROUP_REQUIRED_ENABLED("userGroup.required.enabled", "false", Set.of(ORGANIZATION, ENVIRONMENT));
 
-    String key;
+    final String key;
     String defaultValue;
     Class<?> type;
     boolean isOverridable = true;
-    Set<KeyScope> scopes;
+    final Set<KeyScope> scopes;
     boolean isHiddenForTrial = false;
 
     Key(String key, Set<KeyScope> scopes) {

@@ -13,32 +13,277 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
-import { UpgradeComponent } from '@angular/upgrade/static';
-import { ActivatedRoute } from '@angular/router';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { catchError, filter, finalize, map, switchMap } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import {
+  GIO_DIALOG_WIDTH,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  GioFormSlideToggleModule,
+  GioSaveBarModule,
+} from '@gravitee/ui-particles-angular';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatMenuModule } from '@angular/material/menu';
+import { BehaviorSubject, EMPTY, Observable, of, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { RoleName } from './group/membershipState';
+
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { ConsoleSettings } from '../../../entities/consoleSettings';
+import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { Group, GroupEventRule } from '../../../entities/group/group';
+import { GroupService } from '../../../services-ngx/group.service';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+
+export interface GroupsResponse {
+  id: string;
+  name?: string;
+  manageable?: boolean;
+  roles?: Record<string, string>;
+  event_rules?: GroupEventRule[];
+  created_at?: number;
+  updated_at?: number;
+  max_invitation?: number;
+  lock_api_role?: boolean;
+  lock_application_role?: boolean;
+  system_invitation?: boolean;
+  email_invitation?: boolean;
+  disable_membership_notifications?: boolean;
+  apiPrimaryOwner?: boolean;
+  shouldAddToNewAPIs?: boolean;
+  shouldAddToNewApplications?: boolean;
+}
 
 @Component({
-  template: '',
-  selector: 'settings-groups',
-  host: {
-    class: 'bootstrap gv-sub-content',
-  },
+  templateUrl: './groups.component.html',
+  selector: 'app-groups',
+  styleUrls: ['./groups.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatTableModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+    RouterModule,
+    FormsModule,
+    GioFormSlideToggleModule,
+    MatSlideToggleModule,
+    ReactiveFormsModule,
+    GioGoBackButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatCheckboxModule,
+    GioSaveBarModule,
+    GioPermissionModule,
+    MatTabsModule,
+    MatMenuModule,
+    GioTableWrapperModule,
+  ],
 })
-export class GroupsComponent extends UpgradeComponent {
+export class GroupsComponent implements OnInit {
+  groups$: Observable<Group[]> = of([]);
+  columnDefs: string[] = ['name', 'actions'];
+  settingsForm: FormGroup<{ enabled: FormControl<boolean> }>;
+  initialSettings: unknown;
+  defaultFilters: GioTableWrapperFilters = {
+    searchTerm: '',
+    pagination: {
+      index: 1,
+      size: 10,
+    },
+  };
+  filteredData: GroupsResponse[] = [];
+  noOfRecords: number = 0;
+  isLoading: boolean = false;
+  disableDelete = signal(false);
+  disableAddGroup = signal(false);
+
+  private groups = new BehaviorSubject<Group[]>([]);
+  private settings: ConsoleSettings = {};
+  private destroyRef: DestroyRef = inject(DestroyRef);
+
   constructor(
-    elementRef: ElementRef,
-    injector: Injector,
-    private readonly activatedRoute: ActivatedRoute,
-  ) {
-    super('settingsGroupsAjs', elementRef, injector);
+    private groupService: GroupService,
+    private matDialog: MatDialog,
+    private snackBarService: SnackBarService,
+    private permissionService: GioPermissionService,
+    private consoleSettingsService: ConsoleSettingsService,
+  ) {}
+
+  ngOnInit() {
+    this.resetFilters();
+    this.initializeSettingsForm();
+    this.initializeGroups();
+    this.hideActionsForReadOnlyUser();
+    this.disableCreateGroup();
   }
 
-  override ngOnInit() {
-    // Hack to Force the binding between Angular and AngularJS
-    this.ngOnChanges({
-      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
-    });
+  private initializeGroups() {
+    if (this.isLoading) return;
 
-    super.ngOnInit();
+    this.isLoading = true;
+
+    this.groupService
+      .list()
+      .pipe(
+        filter(Boolean),
+        map((groups) =>
+          groups
+            .filter((group) => group.manageable)
+            .map((group) => ({
+              ...group,
+              shouldAddToNewAPIs: this.checkEventRule(group, 'API_CREATE'),
+              shouldAddToNewApplications: this.checkEventRule(group, 'APPLICATION_CREATE'),
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name)),
+        ),
+        tap((groups) => {
+          this.groups.next(groups);
+          this.disableDeleteGroup();
+          this.filterData(this.defaultFilters);
+        }),
+        finalize(() => {
+          this.isLoading = false;
+        }),
+        catchError(() => {
+          this.snackBarService.error('Error occurred while loading groups.');
+          this.isLoading = false;
+          return of([]);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private checkEventRule(group: Group, event: string) {
+    return group.event_rules ? group.event_rules.some((rule) => rule.event === event) : false;
+  }
+
+  private initializeSettingsForm() {
+    this.consoleSettingsService
+      .get()
+      .pipe(
+        tap((response) => {
+          this.settings = response;
+          this.initializeFormValues();
+        }),
+        catchError(() => {
+          this.snackBarService.error(`Error occurred while fetching console settings.`);
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private initializeFormValues() {
+    this.settingsForm = new FormGroup<{ enabled: FormControl<boolean> }>({
+      enabled: new FormControl(this.settings.userGroup.required.enabled),
+    });
+    this.initialSettings = this.settingsForm.getRawValue();
+  }
+
+  private hideActionsForReadOnlyUser() {
+    if (!this.permissionService.hasAnyMatching(['environment-group-u', 'environment-group-d'])) {
+      this.columnDefs.pop();
+    }
+  }
+
+  deleteGroup(group: Group) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Delete Group',
+          content: `Are you sure, you want to delete the group?`,
+          confirmButton: 'Yes',
+          cancelButton: 'No',
+        },
+        role: 'alertdialog',
+        id: 'confirmDialog',
+        hasBackdrop: true,
+        autoFocus: true,
+        width: GIO_DIALOG_WIDTH.SMALL,
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => confirmed),
+        switchMap((_) => this.groupService.delete(group.id)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (_) => {
+          this.snackBarService.success(`Successfully deleted the group.`);
+          this.initializeGroups();
+        },
+        error: () => this.snackBarService.error(`Error while deleting the group.`),
+      });
+  }
+
+  saveSettings() {
+    this.settings.userGroup.required.enabled = this.settingsForm.controls['enabled'].value;
+
+    this.consoleSettingsService
+      .save(this.settings)
+      .pipe(
+        tap((response) => {
+          this.settings = response;
+          this.initializeFormValues();
+          this.snackBarService.success('Successfully updated groups settings.');
+        }),
+        catchError(() => {
+          this.snackBarService.error('Error occurred while saving groups settings.');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  filterData(filters: GioTableWrapperFilters) {
+    this.defaultFilters = { ...this.defaultFilters, ...filters };
+    const filtered = gioTableFilterCollection(this.groups.value, filters);
+    this.filteredData = filtered.filteredCollection;
+    this.noOfRecords = filtered.unpaginatedLength;
+  }
+
+  resetFilters() {
+    this.groups.next([]);
+    this.filteredData = [];
+  }
+
+  private disableDeleteGroup() {
+    const groups = this.groups.value;
+    this.disableDelete.set(groups.length === 1 && groups[0].roles['API'] === RoleName.PRIMARY_OWNER);
+  }
+
+  private disableCreateGroup() {
+    if (!this.permissionService.hasAnyMatching(['environment-group-c'])) {
+      this.disableAddGroup.set(true);
+    }
   }
 }
