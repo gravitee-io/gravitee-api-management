@@ -133,6 +133,8 @@ const secrets = {
   gitUserName: 'keeper://IZd-yvsMopfQEa_0j1SDvg/field/login',
   gpgPublicKey: 'keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_pub_key',
   gpgPrivateKey: 'keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key',
+  gpgKeyName: 'keeper://riW92t8X4tk4ZmQc8-FZ4Q/field/login',
+  gpgKeyPassphrase: 'keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/passphrase',
   graviteeLicense: 'keeper://w8WBpALVCgYdxtV5pVrQsw/custom_field/base64',
   graviteePackageCloudToken: 'keeper://8CG6HxY5gYsl-85eJKuIoA/field/password',
   jiraToken: 'keeper://hfnQD5TEfxzwRXUKhJhM-A/field/password',
