@@ -50,10 +50,11 @@ class UserController {
       if (groupsByEnvironmentKeys.length === 1) {
         this.groups = Object.values(this.user.groupsByEnvironment)[0].join(' - ');
       } else {
-        this.groups = groupsByEnvironmentKeys
-          .map((envId) => {
-            const env = this.Constants.org.environments.find((env) => env.id === envId);
-            return `[${env.name}] ${this.user.groupsByEnvironment[envId].join('/')}`;
+        this.groups = this.Constants.org.environments
+          .filter((env) => this.user.groupsByEnvironment[env.id]?.length > 0)
+          .map((env) => {
+            const groups = this.user.groupsByEnvironment[env.id];
+            return `[${env.name}] ${groups.join('/')}`;
           })
           .join(' - ');
       }
