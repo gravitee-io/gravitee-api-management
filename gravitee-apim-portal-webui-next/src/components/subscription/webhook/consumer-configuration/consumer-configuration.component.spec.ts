@@ -35,7 +35,7 @@ const SUBSCRIPTION_ID = 'subscriptionId';
 
 @Component({
   selector: 'app-test-component',
-  template: ` <app-consumer-configuration #consumerConfiguration [subscriptionId]="subscriptionId"></app-consumer-configuration>`,
+  template: ` <app-consumer-configuration #consumerConfiguration [subscriptionId]="subscriptionId" />`,
   standalone: true,
   imports: [ConsumerConfigurationComponent],
 })

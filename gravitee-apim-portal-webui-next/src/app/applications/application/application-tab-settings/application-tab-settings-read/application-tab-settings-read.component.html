@@ -41,11 +41,7 @@
           <div i18n="@@crdentialsApplicationSettings" class="settings__readonly__content__card__header m3-title-medium">Credentials</div>
         </mat-card-header>
         <mat-card-content class="settings__readonly__content__card__content">
-          <app-copy-code
-            id="app-readonly-client-id"
-            title="Client ID"
-            [text]="readOnlyValues.clientId ?? ''"
-            data-testId="clientId"></app-copy-code>
+          <app-copy-code id="app-readonly-client-id" title="Client ID" [text]="readOnlyValues.clientId ?? ''" data-testId="clientId" />
         </mat-card-content>
       </mat-card>
     } @else {
@@ -91,22 +87,18 @@
           <div i18n="@@credentialsApplicationSettings" class="settings__readonly__content__card__header m3-title-medium">Credentials</div>
         </mat-card-header>
         <mat-card-content class="settings__readonly__content__card__content">
-          <app-copy-code
-            id="oauth-readonly-client-id"
-            title="Client ID"
-            [text]="readOnlyValues.clientId ?? ''"
-            data-testId="clientId"></app-copy-code>
+          <app-copy-code id="oauth-readonly-client-id" title="Client ID" [text]="readOnlyValues.clientId ?? ''" data-testId="clientId" />
           <app-copy-code
             id="oauth-readonly-client-secret"
             title="Client Secret"
             [text]="readOnlyValues.clientSecret ?? ''"
             [mode]="'PASSWORD'"
-            data-testId="clientSecret"></app-copy-code>
+            data-testId="clientSecret" />
         </mat-card-content>
       </mat-card>
     }
   </div>
   <div class="settings__readonly__actions">
-    <ng-content select="[additionalActions]"></ng-content>
+    <ng-content select="[additionalActions]" />
   </div>
 </div>

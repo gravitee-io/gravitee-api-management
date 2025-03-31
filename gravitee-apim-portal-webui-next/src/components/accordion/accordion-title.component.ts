@@ -17,7 +17,7 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-accordion-title',
-  template: ` <ng-content></ng-content> `,
   standalone: false, // eslint-disable-line @angular-eslint/prefer-standalone
+  template: ` <ng-content /> `,
 })
 export class AccordionTitleComponent {}

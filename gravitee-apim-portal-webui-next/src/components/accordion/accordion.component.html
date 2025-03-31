@@ -23,11 +23,11 @@
     -->
     <!-- eslint-disable-next-line -->
     <div class="accordion__header" (click)="accordion.toggle()">
-      <ng-content select="app-accordion-title"></ng-content>
+      <ng-content select="app-accordion-title" />
       <mat-icon>{{ accordion.expanded ? 'keyboard_arrow_upw' : 'keyboard_arrow_down' }}</mat-icon>
     </div>
     @if (accordion.expanded) {
-      <ng-content></ng-content>
+      <ng-content />
     }
   </cdk-accordion-item>
 </cdk-accordion>

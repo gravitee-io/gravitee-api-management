@@ -18,11 +18,11 @@
 <span [routerLink]="path" routerLinkActive #rla="routerLinkActive">
   @if (rla.isActive) {
     <button [routerLink]="path" mat-flat-button color="primary">
-      <ng-container *ngTemplateOutlet="buttonLabel"></ng-container>
+      <ng-container *ngTemplateOutlet="buttonLabel" />
     </button>
   } @else {
     <button [routerLink]="path" mat-stroked-button color="primary">
-      <ng-container *ngTemplateOutlet="buttonLabel"></ng-container>
+      <ng-container *ngTemplateOutlet="buttonLabel" />
     </button>
   }
 </span>

@@ -26,7 +26,7 @@
     </app-drawer>
   </div>
   @if (apiId && pageId(); as pageId) {
-    <app-api-documentation [apiId]="apiId" [pages]="pages" [pageId]="pageId"></app-api-documentation>
+    <app-api-documentation [apiId]="apiId" [pages]="pages" [pageId]="pageId" />
   }
 } @else {
   <div i18n="@@apiDocumentationEmpty" class="api-tab-documentation__empty">Documentation for this API is missing.</div>

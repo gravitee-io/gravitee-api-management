@@ -23,7 +23,7 @@
           <div i18n="@@generalTitleApplicationSettings" class="m3-title-medium">General</div>
         </div>
         <div class="settings__form__content__general__picture">
-          <app-picture [hashValue]="application.name" [picture]="this.applicationSettingsForm.controls.picture.value"></app-picture>
+          <app-picture [hashValue]="application.name" [picture]="this.applicationSettingsForm.controls.picture.value" />
           <input #applicationPictureFile type="file" hidden (change)="onPictureChange($event)" id="applicationPictureFile" />
           <button mat-stroked-button type="button" (click)="applicationPictureFile.click()" i18n="@@uploadPictureApplicationSettings">
             Upload new picture
@@ -78,17 +78,13 @@
             <span class="m3-body-medium" data-testId="typeDescription">{{ applicationTypeConfiguration.description }}</span>
           </div>
           <div class="settings__form__content__integration__copy-code">
-            <app-copy-code
-              id="client-id"
-              title="Client ID"
-              [text]="application.settings.oauth.client_id"
-              data-testId="clientId"></app-copy-code>
+            <app-copy-code id="client-id" title="Client ID" [text]="application.settings.oauth.client_id" data-testId="clientId" />
             <app-copy-code
               id="client-secret"
               title="Client Secret"
               [text]="application.settings.oauth.client_secret"
               [mode]="'PASSWORD'"
-              data-testId="clientSecret"></app-copy-code>
+              data-testId="clientSecret" />
           </div>
           @if (applicationTypeConfiguration.requires_redirect_uris) {
             <mat-form-field>
@@ -148,7 +144,7 @@
         data-testId="discard">
         Discard changes
       </button>
-      <ng-content select="[additionalActions]"></ng-content>
+      <ng-content select="[additionalActions]" />
     </div>
   </form>
 }
