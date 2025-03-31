@@ -20,21 +20,20 @@
 @forward 'scss/m3-adapter';
 @forward 'scss/helper';
 @use '@angular/material' as mat;
-@use '@angular/material-experimental' as matx;
 @use './scss/theme';
 @use 'scss/table-light';
 
-@import '@fontsource/dm-mono';
-@import '@fontsource/dm-sans';
-@import '@fontsource/inter';
-@import '@fontsource/montserrat';
-@import '@fontsource/roboto';
+@use '@fontsource/dm-mono';
+@use '@fontsource/dm-sans';
+@use '@fontsource/inter';
+@use '@fontsource/montserrat';
+@use '@fontsource/roboto';
 
-@import '@fontsource/material-icons';
-@import '@fontsource/material-icons-outlined';
-@import '@fontsource/material-icons-round';
-@import '@fontsource/material-icons-sharp';
-@import '@fontsource/material-icons-two-tone';
+@use '@fontsource/material-icons';
+@use '@fontsource/material-icons-outlined';
+@use '@fontsource/material-icons-round';
+@use '@fontsource/material-icons-sharp';
+@use '@fontsource/material-icons-two-tone';
 
 @include mat.elevation-classes();
 @include mat.app-background();
@@ -42,11 +41,11 @@
 
 html {
   @include mat.all-component-themes(theme.$light-theme);
-
-  --mat-app-background-color: #{theme.$background-color};
 }
 
 body {
+  --mat-app-background-color: #{theme.$background-color};
+
   margin: 0;
   background-color: theme.$background-color;
   font-family: theme.$font-family;

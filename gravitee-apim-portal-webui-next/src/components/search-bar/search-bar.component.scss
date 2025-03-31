@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @use 'sass:map';
-@import '../../scss/theme/theme';
+@use '../../scss/theme/theme' as *;
 
 :host {
   --mat-form-field-subscript-text-line-height: 0;

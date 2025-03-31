@@ -16,8 +16,7 @@
  * limitations under the License.
  */
 @use 'sass:map';
-@use '@angular/material-experimental' as matx;
-@import './variables';
+@use './variables' as *;
 
 /**
 NOTE: This file is to be deleted once material 3 has an easier way to create palettes from simple inputs
