@@ -33,5 +33,5 @@
 }
 
 @if (filterAndQuery$ | async; as filterAndQuery) {
-  <app-apis-list [currentCategory]="filterAsCategory() ?? {}" [query]="filterAndQuery.query" (search)="onSearchResults($event)" />
+  <app-apis-list [currentCategory]="filterAsCategory() ?? {}" [query]="filterAndQuery.query" (searchTerm)="onSearchResults($event)" />
 }

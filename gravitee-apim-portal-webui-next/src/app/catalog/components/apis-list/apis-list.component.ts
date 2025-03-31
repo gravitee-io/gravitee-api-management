@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, computed, effect, EventEmitter, input, InputSignal, Output } from '@angular/core';
+import { Component, computed, effect, input, InputSignal, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { isEqual } from 'lodash';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
@@ -50,11 +50,9 @@ interface ApiPaginatorVM {
   styleUrl: './apis-list.component.scss',
 })
 export class ApisListComponent {
-  @Output()
-  search = new EventEmitter<string>();
-
   query: InputSignal<string> = input('');
   currentCategory: InputSignal<Category> = input({});
+  searchTerm = output<string>();
 
   categoryId = computed(() => this.currentCategory().id ?? 'all');
 
@@ -65,7 +63,9 @@ export class ApisListComponent {
 
   constructor(private readonly apiService: ApiService) {
     effect(() => {
-      this.page$.next(1);
+      if (this.categoryId() || !!this.query()) {
+        this.page$.next(1);
+      }
     });
     this.apiPaginator$ = this.loadApis$();
   }
@@ -80,7 +80,7 @@ export class ApisListComponent {
 
   onSearchResults(searchInput: string) {
     if (searchInput !== this.query()) {
-      this.search.emit(searchInput);
+      this.searchTerm.emit(searchInput);
     }
   }
 
