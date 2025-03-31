@@ -17,6 +17,7 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-accordion',
+  standalone: false, // eslint-disable-line @angular-eslint/prefer-standalone
   templateUrl: './accordion.component.html',
   styleUrls: ['accordion.component.scss'],
 })
