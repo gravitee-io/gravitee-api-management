@@ -49,13 +49,13 @@
     @if (!sslForm.controls.trustAll.value) {
       <div class="ssl-configuration__form-field">
         <span class="m3-title-small ssl-configuration__form-field__title" i18n="@@consumerConfigurationSslTrustStore">Trust store</span>
-        <app-ssl-truststore [formControl]="sslForm.controls.trustStore"></app-ssl-truststore>
+        <app-ssl-truststore [formControl]="sslForm.controls.trustStore" />
       </div>
     }
 
     <div class="ssl-configuration__form-field">
       <span class="m3-title-small ssl-configuration__form-field__title" i18n="@@consumerConfigurationSslKeyStore">Key store</span>
-      <app-ssl-keystore [formControl]="sslForm.controls.keyStore"></app-ssl-keystore>
+      <app-ssl-keystore [formControl]="sslForm.controls.keyStore" />
     </div>
   </form>
 </app-accordion>

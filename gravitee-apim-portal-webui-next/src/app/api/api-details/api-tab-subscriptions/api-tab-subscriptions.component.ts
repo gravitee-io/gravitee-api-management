@@ -19,6 +19,6 @@ import { RouterOutlet } from '@angular/router';
 @Component({
   selector: 'app-api-tab-subscriptions',
   imports: [RouterOutlet],
-  template: `<router-outlet></router-outlet>`,
+  template: `<router-outlet />`,
 })
 export class ApiTabSubscriptionsComponent {}

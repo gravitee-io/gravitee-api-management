@@ -44,17 +44,14 @@
             }
           </mat-form-field>
 
-          <app-consumer-configuration-headers
-            [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.headers"></app-consumer-configuration-headers>
+          <app-consumer-configuration-headers [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.headers" />
 
-          <app-consumer-configuration-retry
-            [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.retry"></app-consumer-configuration-retry>
+          <app-consumer-configuration-retry [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.retry" />
 
-          <app-consumer-configuration-authentication [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.auth">
-          </app-consumer-configuration-authentication>
+          <app-consumer-configuration-authentication
+            [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.auth" />
 
-          <app-consumer-configuration-ssl
-            [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.ssl"></app-consumer-configuration-ssl>
+          <app-consumer-configuration-ssl [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.ssl" />
         </form>
 
         @if (error) {

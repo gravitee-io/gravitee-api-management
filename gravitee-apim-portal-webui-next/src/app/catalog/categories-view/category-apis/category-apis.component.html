@@ -19,7 +19,7 @@
   <app-catalog-banner />
 }
 
-<app-breadcrumb-navigation></app-breadcrumb-navigation>
+<app-breadcrumb-navigation />
 
 @if (query$ | async; as query) {
   <app-apis-list [query]="query.query" [currentCategory]="currentCategory() ?? {}" (searchTerm)="onSearch($event)" />

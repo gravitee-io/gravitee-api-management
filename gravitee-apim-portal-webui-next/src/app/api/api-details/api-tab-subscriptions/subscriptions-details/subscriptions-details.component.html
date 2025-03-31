@@ -50,7 +50,7 @@
   @if (detailsVM.result && !!detailsVM.result.consumerConfiguration) {
     <app-subscription-consumer-configuration
       [consumerConfiguration]="detailsVM.result.consumerConfiguration"
-      [canConfigure]="!['CLOSED', 'REJECTED'].includes(detailsVM.result.subscriptionStatus)"></app-subscription-consumer-configuration>
+      [canConfigure]="!['CLOSED', 'REJECTED'].includes(detailsVM.result.subscriptionStatus)" />
   }
 } @else {
   <app-loader />
