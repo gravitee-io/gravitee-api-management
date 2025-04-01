@@ -37,7 +37,6 @@ import { ApiPrimaryOwnerMode } from '../../../../../services/apiPrimaryOwnerMode
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
 import { Role } from '../../../../../entities/role/role';
 import { GroupMembership } from '../../../../../entities/group/groupMember';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { SearchableUser } from '../../../../../entities/user/searchableUser';
 import { UsersService } from '../../../../../services-ngx/users.service';
 import { Member } from '../../../../../entities/management-api-v2';
@@ -101,7 +100,6 @@ export class EditMemberDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: EditMemberDialogData,
     private usersService: UsersService,
     private matDialogRef: MatDialogRef<EditMemberDialogComponent>,
-    private snackBarService: SnackBarService,
     private permissionService: GioPermissionService,
     private settingsService: EnvironmentSettingsService,
   ) {}
