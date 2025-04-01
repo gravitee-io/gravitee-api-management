@@ -18,21 +18,25 @@ import { Component, Directive } from '@angular/core';
 
 @Directive({
   selector: 'gio-selection-list-option-layout-icon',
+  standalone: false,
 })
 export class GioSelectionListOptionLayoutIconDirective {}
 
 @Directive({
   selector: 'gio-selection-list-option-layout-title',
+  standalone: false,
 })
 export class GioSelectionListOptionLayoutTitleDirective {}
 
 @Directive({
   selector: 'gio-selection-list-option-layout-body',
+  standalone: false,
 })
 export class GioSelectionListOptionLayoutBodyDirective {}
 
 @Directive({
   selector: 'gio-selection-list-option-layout-action',
+  standalone: false,
 })
 export class GioSelectionListOptionLayoutActionDirective {}
 
@@ -40,5 +44,6 @@ export class GioSelectionListOptionLayoutActionDirective {}
   selector: 'gio-selection-list-option-layout',
   templateUrl: './gio-selection-list-option-layout.component.html',
   styleUrls: ['./gio-selection-list-option-layout.component.scss'],
+  standalone: false,
 })
 export class GioSelectionListOptionLayoutComponent {}

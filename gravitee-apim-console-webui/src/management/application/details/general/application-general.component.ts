@@ -36,6 +36,7 @@ import { toDictionary, toGioFormHeader, uniqueKeysValidator } from '../../../../
   selector: 'application-general',
   templateUrl: './application-general.component.html',
   styleUrls: ['./application-general.component.scss'],
+  standalone: false,
 })
 export class ApplicationGeneralComponent implements OnInit {
   public initialApplication: Application;

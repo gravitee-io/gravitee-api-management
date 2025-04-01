@@ -48,6 +48,7 @@ interface DuplicateForm {
   selector: 'api-general-info-duplicate-dialog',
   templateUrl: './api-general-info-duplicate-dialog.component.html',
   styleUrls: ['./api-general-info-duplicate-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

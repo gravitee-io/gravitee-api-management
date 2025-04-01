@@ -28,6 +28,7 @@ import { Api, Page, PageType } from '../../../../entities/management-api-v2';
   selector: 'api-documentation-v4-main-pages-tab',
   templateUrl: './api-documentation-v4-main-pages-tab.component.html',
   styleUrls: ['./api-documentation-v4-main-pages-tab.component.scss'],
+  standalone: false,
 })
 export class ApiDocumentationV4MainPagesTabComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

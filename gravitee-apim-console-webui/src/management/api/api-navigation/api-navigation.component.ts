@@ -58,6 +58,7 @@ type TopBanner = {
   templateUrl: './api-navigation.component.html',
   styleUrls: ['./api-navigation.component.scss'],
   providers: [ApiV1V2MenuService, ApiV4MenuService, ApiFederatedMenuService],
+  standalone: false,
 })
 export class ApiNavigationComponent implements OnInit, OnDestroy {
   public currentApi: Api;

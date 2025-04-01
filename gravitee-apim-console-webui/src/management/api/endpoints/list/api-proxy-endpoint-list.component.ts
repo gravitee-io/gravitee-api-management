@@ -31,6 +31,7 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
   selector: 'api-proxy-endpoint-list',
   templateUrl: './api-proxy-endpoint-list.component.html',
   styleUrls: ['./api-proxy-endpoint-list.component.scss'],
+  standalone: false,
 })
 export class ApiProxyEndpointListComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

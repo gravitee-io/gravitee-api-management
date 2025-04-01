@@ -25,6 +25,7 @@ import { Ticket } from '../../../entities/ticket/ticket';
   selector: 'ticket',
   templateUrl: './ticket.component.html',
   styleUrls: ['./ticket.component.scss'],
+  standalone: false,
 })
 export class TicketComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();

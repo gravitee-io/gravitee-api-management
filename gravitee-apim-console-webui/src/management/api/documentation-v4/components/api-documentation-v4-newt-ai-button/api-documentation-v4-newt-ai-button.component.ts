@@ -21,6 +21,7 @@ import { ApiSpecGenState } from '../../../../../services-ngx/api-spec-gen.servic
 @Component({
   selector: 'api-documentation-v4-newt-ai-button',
   templateUrl: './api-documentation-v4-newt-ai-button.component.html',
+  standalone: false,
 })
 export class ApiDocumentationV4NewtAiButtonComponent {
   @Input()

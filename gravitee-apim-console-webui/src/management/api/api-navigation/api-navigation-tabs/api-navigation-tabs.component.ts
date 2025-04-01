@@ -21,6 +21,7 @@ import { MenuItem } from '../MenuGroupItem';
   selector: 'api-navigation-tabs',
   templateUrl: './api-navigation-tabs.component.html',
   styleUrls: ['./api-navigation-tabs.component.scss'],
+  standalone: false,
 })
 export class ApiNavigationTabsComponent {
   @Input()

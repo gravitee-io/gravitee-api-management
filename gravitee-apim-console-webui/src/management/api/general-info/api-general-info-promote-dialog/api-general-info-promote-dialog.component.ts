@@ -34,6 +34,7 @@ export type ApiPortalDetailsPromoteDialogData = {
   selector: 'api-general-info-promote-dialog',
   templateUrl: './api-general-info-promote-dialog.component.html',
   styleUrls: ['./api-general-info-promote-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiGeneralInfoPromoteDialogComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

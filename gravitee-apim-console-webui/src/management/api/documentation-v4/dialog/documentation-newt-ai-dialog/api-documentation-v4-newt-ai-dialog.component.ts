@@ -28,6 +28,7 @@ export type ApiDocumentationV4NewtAiDialogResult = boolean;
   selector: 'api-documentation-v4-newt-ai-dialog',
   templateUrl: './api-documentation-v4-newt-ai-dialog.component.html',
   styleUrls: ['./api-documentation-v4-newt-ai-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiDocumentationV4NewtAiDialogComponent {
   form: FormGroup;

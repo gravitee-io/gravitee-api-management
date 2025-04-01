@@ -20,6 +20,7 @@ import { UpgradeComponent } from '@angular/upgrade/static';
 @Component({
   template: '',
   selector: 'gio-contextual-doc',
+  standalone: false,
   host: {
     class: 'bootstrap',
   },

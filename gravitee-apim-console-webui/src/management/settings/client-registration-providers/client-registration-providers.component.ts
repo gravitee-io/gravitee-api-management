@@ -40,6 +40,7 @@ export type ProvidersTableDS = {
   selector: 'client-registration-providers',
   templateUrl: './client-registration-providers.component.html',
   styleUrls: ['./client-registration-providers.component.scss'],
+  standalone: false,
 })
 export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   applicationForm: UntypedFormGroup;

@@ -34,6 +34,7 @@ type TableData = {
   selector: 'tickets',
   templateUrl: './tickets.component.html',
   styleUrls: ['./tickets.component.scss'],
+  standalone: false,
 })
 export class TicketsComponent implements OnInit {
   displayedColumns = ['createdAt', 'api', 'application', 'subject'];

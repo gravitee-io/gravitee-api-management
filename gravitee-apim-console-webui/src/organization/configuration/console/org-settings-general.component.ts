@@ -31,6 +31,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   selector: 'org-settings-general',
   templateUrl: './org-settings-general.component.html',
   styleUrls: ['./org-settings-general.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
   isLoading = true;

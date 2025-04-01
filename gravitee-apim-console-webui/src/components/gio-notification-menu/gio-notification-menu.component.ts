@@ -25,6 +25,7 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
   selector: 'gio-notification-menu',
   templateUrl: './gio-notification-menu.component.html',
   styleUrls: ['./gio-notification-menu.component.scss'],
+  standalone: false,
 })
 export class GioNotificationMenuComponent implements OnInit, OnDestroy {
   private startNotificationFetch$ = new Subject<void>();

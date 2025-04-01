@@ -26,6 +26,7 @@ import { ApplicationService } from '../../../../services-ngx/application.service
   selector: 'application-metadata',
   templateUrl: './application-metadata.component.html',
   styleUrls: ['./application-metadata.component.scss'],
+  standalone: false,
 })
 export class ApplicationMetadataComponent implements OnInit, OnDestroy {
   metadataSaveServices: MetadataSaveServices;

@@ -29,6 +29,7 @@ import { RulesetV2Service } from '../../../../services-ngx/ruleset-v2.service';
   selector: 'import-scoring-function',
   templateUrl: './import-scoring-function.component.html',
   styleUrl: './import-scoring-function.component.scss',
+  standalone: false,
 })
 export class ImportScoringFunctionComponent implements OnInit {
   protected importType: string;

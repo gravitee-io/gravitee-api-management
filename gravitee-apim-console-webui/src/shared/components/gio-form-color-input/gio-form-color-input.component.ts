@@ -45,6 +45,7 @@ export const colorValidator: ValidatorFn = (control: AbstractControl): Validatio
   selector: 'gio-form-color-input',
   templateUrl: './gio-form-color-input.component.html',
   styleUrls: ['./gio-form-color-input.component.scss'],
+  standalone: false,
   host: {
     '[id]': 'id',
     '[attr.aria-describedby]': 'describedBy',

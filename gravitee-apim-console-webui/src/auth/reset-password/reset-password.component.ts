@@ -28,6 +28,7 @@ import { AuthService } from '../../auth/auth.service';
   selector: 'reset-password',
   templateUrl: './reset-password.component.html',
   styleUrls: ['../auth-common.component.scss'],
+  standalone: false,
 })
 export class ResetPasswordComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

@@ -66,6 +66,7 @@ type EntrypointVM = {
   selector: 'api-entrypoints-v4-general',
   templateUrl: './api-entrypoints-v4-general.component.html',
   styleUrls: ['./api-entrypoints-v4-general.component.scss'],
+  standalone: false,
 })
 export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

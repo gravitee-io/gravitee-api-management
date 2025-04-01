@@ -23,6 +23,7 @@ import { GioTableWrapperFilters } from '../../../../../shared/components/gio-tab
   selector: 'api-audits-table',
   templateUrl: './api-audits-table.component.html',
   styleUrls: ['./api-audits-table.component.scss'],
+  standalone: false,
 })
 export class ApiAuditsTableComponent {
   protected displayedColumns = ['date', 'user', 'event', 'targets', 'patch'];

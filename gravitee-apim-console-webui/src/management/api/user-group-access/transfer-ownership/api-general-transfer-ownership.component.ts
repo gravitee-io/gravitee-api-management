@@ -45,6 +45,7 @@ type TransferOwnershipMode = 'USER' | 'GROUP' | 'HYBRID';
   selector: 'api-general-transfer-ownership',
   templateUrl: './api-general-transfer-ownership.component.html',
   styleUrls: ['./api-general-transfer-ownership.component.scss'],
+  standalone: false,
 })
 export class ApiGeneralTransferOwnershipComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

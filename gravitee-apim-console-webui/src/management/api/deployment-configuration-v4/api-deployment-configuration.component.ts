@@ -36,6 +36,7 @@ type DeploymentConfigurationFormGroup = FormGroup<{ tags: FormControl<string[]> 
   selector: 'api-deployment-configuration',
   templateUrl: './api-deployment-configuration.component.html',
   styleUrls: ['./api-deployment-configuration.component.scss'],
+  standalone: false,
 })
 export class ApiDeploymentConfigurationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

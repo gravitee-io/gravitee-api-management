@@ -51,6 +51,7 @@ class MemberDataSource {
   selector: 'application-general-members',
   templateUrl: './application-general-members.component.html',
   styleUrls: ['./application-general-members.component.scss'],
+  standalone: false,
 })
 export class ApplicationGeneralMembersComponent {
   form: UntypedFormGroup;

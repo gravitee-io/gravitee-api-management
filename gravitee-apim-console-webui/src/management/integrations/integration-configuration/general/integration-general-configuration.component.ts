@@ -31,6 +31,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
   selector: 'app-integration-general-configuration',
   templateUrl: './integration-general-configuration.component.html',
   styleUrl: './integration-general-configuration.component.scss',
+  standalone: false,
 })
 export class IntegrationGeneralConfigurationComponent {
   private destroyRef: DestroyRef = inject(DestroyRef);

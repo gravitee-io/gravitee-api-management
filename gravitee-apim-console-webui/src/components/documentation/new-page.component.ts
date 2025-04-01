@@ -25,6 +25,7 @@ import CategoryService from '../../services/category.service';
 @Component({
   template: '',
   selector: 'documentation-new-page',
+  standalone: false,
   host: {
     class: 'bootstrap gv-sub-content',
   },

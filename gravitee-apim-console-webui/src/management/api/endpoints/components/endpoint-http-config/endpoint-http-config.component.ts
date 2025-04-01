@@ -41,6 +41,7 @@ export interface EndpointHttpConfigValue {
   selector: 'endpoint-http-config',
   templateUrl: './endpoint-http-config.component.html',
   styleUrls: ['./endpoint-http-config.component.scss'],
+  standalone: false,
 })
 export class EndpointHttpConfigComponent implements OnDestroy, OnChanges {
   public static getHttpConfigFormGroup(endpointGroup: EndpointGroupV2 | EndpointV2, isReadonly: boolean): UntypedFormGroup {

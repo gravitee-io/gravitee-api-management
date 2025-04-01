@@ -22,6 +22,7 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
   selector: 'org-settings-identity-provider-oidc',
   styleUrls: ['./org-settings-identity-provider-oidc.component.scss'],
   templateUrl: './org-settings-identity-provider-oidc.component.html',
+  standalone: false,
 })
 export class OrgSettingsIdentityProviderOidcComponent implements ProviderConfiguration {
   name = 'OrgSettingsIdentityProviderOidcComponent';

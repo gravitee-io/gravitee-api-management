@@ -28,6 +28,7 @@ import { ApiService } from '../../../services-ngx/api.service';
 @Component({
   template: '',
   selector: 'alert-ajs',
+  standalone: false,
   host: {
     class: 'bootstrap',
   },

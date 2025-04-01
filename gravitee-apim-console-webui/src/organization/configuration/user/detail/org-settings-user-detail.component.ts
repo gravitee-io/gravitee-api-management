@@ -91,6 +91,7 @@ interface TokenDS {
   selector: 'org-settings-user-detail',
   templateUrl: './org-settings-user-detail.component.html',
   styleUrls: ['./org-settings-user-detail.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   user: UserVM;

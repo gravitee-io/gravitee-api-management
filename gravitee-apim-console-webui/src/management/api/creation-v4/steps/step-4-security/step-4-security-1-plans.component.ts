@@ -25,6 +25,7 @@ import { ApiCreationPayload } from '../../models/ApiCreationPayload';
   selector: 'step-4-security-1-plans',
   templateUrl: './step-4-security-1-plans.component.html',
   styleUrls: ['./step-4-security-1-plans.component.scss', '../api-creation-steps-common.component.scss'],
+  standalone: false,
 })
 export class Step4Security1PlansComponent implements OnInit {
   public view: 'list' | 'add' | 'edit' = 'list';

@@ -37,6 +37,7 @@ export interface GioMetadataDialogData {
   selector: 'gio-metadata-dialog',
   templateUrl: './gio-metadata-dialog.component.html',
   styleUrls: ['./gio-metadata-dialog.component.scss'],
+  standalone: false,
 })
 export class GioMetadataDialogComponent implements OnInit, AfterViewChecked {
   private unsubscribe$: Subject<void> = new Subject<void>();

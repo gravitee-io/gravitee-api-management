@@ -36,6 +36,7 @@ import { gioTableFilterCollection } from '../../../shared/components/gio-table-w
   selector: 'app-custom-user-fields',
   templateUrl: './custom-user-fields.component.html',
   styleUrl: './custom-user-fields.component.scss',
+  standalone: false,
 })
 export class CustomUserFieldsComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);

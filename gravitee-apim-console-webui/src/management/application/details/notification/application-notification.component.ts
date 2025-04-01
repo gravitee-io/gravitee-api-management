@@ -41,6 +41,7 @@ import { Hooks } from '../../../../entities/notification/hooks';
   selector: 'app-notification',
   templateUrl: './application-notification.component.html',
   styleUrls: ['./application-notification.component.scss'],
+  standalone: false,
 })
 export class ApplicationNotificationComponent implements OnInit, OnDestroy {
   private applicationId = this.activatedRoute.snapshot.params.applicationId;

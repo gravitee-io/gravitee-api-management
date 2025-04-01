@@ -21,6 +21,7 @@ import { MenuItem, MenuItemHeader } from '../application-navigation.component';
   selector: 'application-navigation-tabs',
   templateUrl: './application-navigation-tabs.component.html',
   styleUrls: ['./application-navigation-tabs.component.scss'],
+  standalone: false,
 })
 export class ApplicationNavigationTabsComponent {
   @Input()

@@ -155,6 +155,7 @@ interface PortalForm {
   selector: 'portal-settings',
   templateUrl: './portal-settings.component.html',
   styleUrls: ['./portal-settings.component.scss'],
+  standalone: false,
 })
 export class PortalSettingsComponent implements OnInit {
   settings: PortalSettings;

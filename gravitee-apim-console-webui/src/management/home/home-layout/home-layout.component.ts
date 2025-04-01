@@ -24,6 +24,7 @@ import { TaskService } from '../../../services-ngx/task.service';
   templateUrl: './home-layout.component.html',
   styleUrls: ['./home-layout.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class HomeLayoutComponent {
   public taskLabel = this.taskService.getTasks().pipe(

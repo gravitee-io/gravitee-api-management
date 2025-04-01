@@ -28,6 +28,7 @@ import { AuthService } from '../../auth/auth.service';
   selector: 'sign-up-confirm',
   templateUrl: './sign-up-confirm.component.html',
   styleUrls: ['../auth-common.component.scss'],
+  standalone: false,
 })
 export class SignUpConfirmComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

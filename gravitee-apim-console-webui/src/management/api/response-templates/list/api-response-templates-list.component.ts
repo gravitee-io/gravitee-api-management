@@ -30,6 +30,7 @@ import { onlyApiV2V4Filter } from '../../../../util/apiFilter.operator';
   selector: 'api-proxy-response-templates-list',
   templateUrl: './api-response-templates-list.component.html',
   styleUrls: ['./api-response-templates-list.component.scss'],
+  standalone: false,
 })
 export class ApiResponseTemplatesListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

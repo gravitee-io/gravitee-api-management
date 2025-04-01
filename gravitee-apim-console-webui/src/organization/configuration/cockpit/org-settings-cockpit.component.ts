@@ -25,6 +25,7 @@ import { Installation } from '../../../entities/installation/installation';
   selector: 'org-settings-cockpit',
   templateUrl: './org-settings-cockpit.component.html',
   styleUrls: ['./org-settings-cockpit.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsCockpitComponent implements OnInit, OnDestroy {
   isLoading = true;

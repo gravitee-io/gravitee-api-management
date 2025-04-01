@@ -26,6 +26,7 @@ import { DEFAULT_FILTERS, DEFAULT_PERIOD, MoreFiltersForm, MultiFilter, PERIODS 
   selector: 'api-runtime-logs-more-filters-form',
   templateUrl: './api-runtime-logs-more-filters-form.component.html',
   styleUrls: ['./api-runtime-logs-more-filters-form.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

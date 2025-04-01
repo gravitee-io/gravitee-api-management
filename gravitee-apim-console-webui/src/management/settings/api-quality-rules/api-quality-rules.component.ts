@@ -56,6 +56,7 @@ interface ApiQualityRulesForm {
   selector: 'api-quality-rules',
   templateUrl: './api-quality-rules.component.html',
   styleUrls: ['./api-quality-rules.component.scss'],
+  standalone: false,
 })
 export class ApiQualityRulesComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

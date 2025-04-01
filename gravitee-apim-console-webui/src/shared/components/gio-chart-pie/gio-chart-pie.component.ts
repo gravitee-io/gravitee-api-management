@@ -27,6 +27,7 @@ export interface GioChartPieInput {
   selector: 'gio-chart-pie',
   templateUrl: './gio-chart-pie.component.html',
   styleUrls: ['./gio-chart-pie.component.scss'],
+  standalone: false,
 })
 export class GioChartPieComponent implements OnInit {
   @Input()
