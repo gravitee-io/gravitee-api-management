@@ -2927,7 +2927,7 @@ __metadata:
     "@ngx-translate/http-loader": "npm:7.0.0"
     "@types/jest": "npm:29.5.14"
     "@types/js-yaml": "npm:4.0.9"
-    "@types/node": "npm:20.17.23"
+    "@types/node": "npm:20.17.30"
     "@types/swagger-ui": "npm:3.52.4"
     "@typescript-eslint/eslint-plugin": "npm:6.21.0"
     "@typescript-eslint/parser": "npm:6.21.0"
@@ -6089,12 +6089,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.17.23":
-  version: 20.17.23
-  resolution: "@types/node@npm:20.17.23"
+"@types/node@npm:20.17.30":
+  version: 20.17.30
+  resolution: "@types/node@npm:20.17.30"
   dependencies:
     undici-types: "npm:~6.19.2"
-  checksum: 10c0/4f7da7383ee8516b2e580d772a196fd76487670bd9d32a296621c5df63b077cc7d06c2a0040885b3e4a28c1751f9ad3d5ed55cff15d50b707e3d454993bfe33a
+  checksum: 10c0/649782c7822367d751472d70c948bcc50cded1a4744610f706f81cd54e1fc015523567d7e3e17f6b19e3e2797f6f23b653e898bdb4a2f21f8759ceba49976310
   languageName: node
   linkType: hard
 
