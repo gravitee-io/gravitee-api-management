@@ -53,7 +53,10 @@ public interface GraviteeDefinitionAdapter {
 
     List<PageExport> mapPage(Collection<Page> source);
 
-    @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getPlanDefinitionHttpV4().getSecurity()))")
+    @Mapping(
+        target = "security",
+        expression = "java(source.getPlanDefinitionHttpV4() != null ? mapPlanSecurity(source.getPlanDefinitionHttpV4().getSecurity()) : null)"
+    )
     @Mapping(target = "mode", source = "planDefinitionHttpV4.mode")
     @Mapping(target = "status", source = "planDefinitionHttpV4.status")
     PlanDescriptor.V4 mapPlanV4(Plan source);
@@ -187,7 +190,7 @@ public interface GraviteeDefinitionAdapter {
         Collection<io.gravitee.definition.model.flow.Flow> flows
     );
 
-    Set<NewApiMetadata> mapMetadata(Collection<Metadata> source);
+    NewApiMetadata mapMetadata(Metadata source);
 
     default Map<String, Object> map(Collection<NewApiMetadata> sources) {
         return stream(sources).collect(Collectors.toMap(NewApiMetadata::getName, NewApiMetadata::getValue));

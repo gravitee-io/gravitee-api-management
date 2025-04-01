@@ -107,7 +107,7 @@ class ExportApiUseCaseTest {
     @InjectMocks
     ExportApiUseCase sut;
 
-    AuditInfo auditInfo = AuditInfo.builder().organizationId(ORG_ID).build();
+    AuditInfo auditInfo = AuditInfo.builder().organizationId(ORG_ID).environmentId("DEFAULT").build();
 
     @BeforeEach
     void setUp() {
@@ -127,6 +127,8 @@ class ExportApiUseCaseTest {
                 mediaService,
                 workflowCrudService,
                 membershipCrudService,
+                userCrudService,
+                roleQueryService,
                 metadataCrudService,
                 pageQueryService,
                 apiCrudService,

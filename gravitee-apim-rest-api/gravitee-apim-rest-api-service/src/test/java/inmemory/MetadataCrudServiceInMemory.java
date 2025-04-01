@@ -50,7 +50,16 @@ public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemor
 
     @Override
     public Collection<Metadata> findByApiId(String id) {
-        return storage.stream().filter(m -> Metadata.ReferenceType.API == m.getReferenceType() && id.equals(m.getReferenceId())).toList();
+        return findByReferenceId(Metadata.ReferenceType.API, id);
+    }
+
+    @Override
+    public Collection<Metadata> findByEnvId(String id) {
+        return findByReferenceId(Metadata.ReferenceType.ENVIRONMENT, id);
+    }
+
+    private Collection<Metadata> findByReferenceId(Metadata.ReferenceType reference, String id) {
+        return storage.stream().filter(m -> reference == m.getReferenceType() && id.equals(m.getReferenceId())).toList();
     }
 
     @Override

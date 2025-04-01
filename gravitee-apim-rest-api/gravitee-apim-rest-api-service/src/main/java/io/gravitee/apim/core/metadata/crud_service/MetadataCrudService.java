@@ -24,6 +24,7 @@ public interface MetadataCrudService {
     Metadata create(Metadata metadata);
     Optional<Metadata> findById(MetadataId id);
     Collection<Metadata> findByApiId(String id);
+    Collection<Metadata> findByEnvId(String id);
     Metadata update(Metadata metadata);
     void delete(MetadataId metadataId);
 }
