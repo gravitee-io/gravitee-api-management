@@ -60,6 +60,7 @@ public class AccessPointHttpAcceptor implements HttpAcceptor, EventListener<Acce
             this.httpAcceptors =
                 reactableAccessPoints
                     .stream()
+                    .filter(reactableAccessPoint -> reactableAccessPoint.getTarget() == ReactableAccessPoint.Target.GATEWAY)
                     .<HttpAcceptor>map(reactableAccessPoint ->
                         new DefaultHttpAcceptor(reactableAccessPoint.getHost(), path, reactor, serverIds)
                     )
@@ -80,6 +81,10 @@ public class AccessPointHttpAcceptor implements HttpAcceptor, EventListener<Acce
     @Override
     public void onEvent(final Event<AccessPointEvent, ReactableAccessPoint> event) {
         if (environmentId.equals(event.content().getEnvironmentId())) {
+            if (event.content().getTarget() != ReactableAccessPoint.Target.GATEWAY) {
+                return;
+            }
+
             DefaultHttpAcceptor httpAcceptor = new DefaultHttpAcceptor(event.content().getHost(), path, reactor, serverIds);
             AccessPointEvent type = event.type();
             if (Objects.requireNonNull(type) == AccessPointEvent.DEPLOY) {

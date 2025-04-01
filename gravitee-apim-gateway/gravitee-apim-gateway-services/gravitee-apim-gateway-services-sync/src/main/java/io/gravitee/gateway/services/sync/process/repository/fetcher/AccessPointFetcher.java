@@ -51,7 +51,7 @@ public class AccessPointFetcher {
                         AccessPointCriteria
                             .builder()
                             .referenceType(AccessPointReferenceType.ENVIRONMENT)
-                            .target(AccessPointTarget.GATEWAY)
+                            .targets(List.of(AccessPointTarget.GATEWAY, AccessPointTarget.TCP_GATEWAY, AccessPointTarget.KAFKA_GATEWAY))
                             .referenceIds(environments)
                             .status(status)
                             .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
