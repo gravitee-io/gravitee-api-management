@@ -75,7 +75,9 @@ class AccessPointFetcherTest {
                     arg.getStatus().equals(AccessPointStatus.CREATED) &&
                     arg.getFrom() < from.toEpochMilli() &&
                     arg.getTo() > to.toEpochMilli() &&
-                    arg.getTarget().equals(AccessPointTarget.GATEWAY) &&
+                    arg
+                        .getTargets()
+                        .equals(List.of(AccessPointTarget.GATEWAY, AccessPointTarget.TCP_GATEWAY, AccessPointTarget.KAFKA_GATEWAY)) &&
                     arg.getReferenceType().equals(AccessPointReferenceType.ENVIRONMENT) &&
                     arg.getReferenceIds().containsAll(List.of("env1", "env2")) &&
                     arg.getReferenceIds().size() == 2

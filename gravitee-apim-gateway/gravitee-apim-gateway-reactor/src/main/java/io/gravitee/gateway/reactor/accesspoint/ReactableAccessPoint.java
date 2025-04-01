@@ -45,6 +45,7 @@ public class ReactableAccessPoint implements Reactable, Serializable {
 
     private String environmentId;
     private String host;
+    private Target target;
 
     @Override
     public boolean enabled() {
@@ -54,5 +55,11 @@ public class ReactableAccessPoint implements Reactable, Serializable {
     @Override
     public <D> Set<D> dependencies(final Class<D> type) {
         return Set.of();
+    }
+
+    public enum Target {
+        GATEWAY,
+        TCP_GATEWAY,
+        KAFKA_GATEWAY,
     }
 }

@@ -28,6 +28,7 @@ public class AccessPointMapper {
             .id(accessPointModel.getId())
             .environmentId(accessPointModel.getReferenceId())
             .host(accessPointModel.getHost())
+            .target(accessPointModel.getTarget() != null ? ReactableAccessPoint.Target.valueOf(accessPointModel.getTarget().name()) : null)
             .build();
     }
 }

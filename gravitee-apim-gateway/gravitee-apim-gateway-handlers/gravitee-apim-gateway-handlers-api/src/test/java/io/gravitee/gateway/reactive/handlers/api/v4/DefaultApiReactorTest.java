@@ -904,8 +904,18 @@ class DefaultApiReactorTest {
         when(accessPointManager.getByEnvironmentId(ENVIRONMENT_ID))
             .thenReturn(
                 List.of(
-                    ReactableAccessPoint.builder().environmentId(ENVIRONMENT_ID).host("host1").build(),
-                    ReactableAccessPoint.builder().environmentId(ENVIRONMENT_ID).host("host2").build()
+                    ReactableAccessPoint
+                        .builder()
+                        .environmentId(ENVIRONMENT_ID)
+                        .host("host1")
+                        .target(ReactableAccessPoint.Target.GATEWAY)
+                        .build(),
+                    ReactableAccessPoint
+                        .builder()
+                        .environmentId(ENVIRONMENT_ID)
+                        .host("host2")
+                        .target(ReactableAccessPoint.Target.GATEWAY)
+                        .build()
                 )
             );
 

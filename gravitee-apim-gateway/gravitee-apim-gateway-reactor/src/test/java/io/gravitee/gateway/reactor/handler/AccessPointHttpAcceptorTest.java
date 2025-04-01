@@ -107,11 +107,26 @@ class AccessPointHttpAcceptorTest {
     class WithSingleAccessPointsTest {
 
         @Test
-        void should_accept_with_matching_path_and_server_and_host() {
+        void should_accept_with_matching_path_and_server_and_host_and_target() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
                 ENV_ID,
-                List.of(ReactableAccessPoint.builder().id("id").environmentId(ENV_ID).host("host").build()),
+                List.of(
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id")
+                        .environmentId(ENV_ID)
+                        .host("host")
+                        .target(ReactableAccessPoint.Target.GATEWAY)
+                        .build(),
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id")
+                        .environmentId(ENV_ID)
+                        .host("host")
+                        .target(ReactableAccessPoint.Target.TCP_GATEWAY)
+                        .build()
+                ),
                 "/test",
                 reactorHandler,
                 List.of("a", "b", SERVER_ID)
@@ -153,7 +168,15 @@ class AccessPointHttpAcceptorTest {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
                 ENV_ID,
-                List.of(ReactableAccessPoint.builder().id("id").environmentId(ENV_ID).host("host").build()),
+                List.of(
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id")
+                        .environmentId(ENV_ID)
+                        .host("host")
+                        .target(ReactableAccessPoint.Target.GATEWAY)
+                        .build()
+                ),
                 "/test",
                 reactorHandler,
                 List.of("a", "b", SERVER_ID)
@@ -169,13 +192,39 @@ class AccessPointHttpAcceptorTest {
     class WithMultipleAccessPointsTest {
 
         @Test
-        void should_accept_with_matching_path_and_server_and_host() {
+        void should_accept_with_matching_path_and_server_and_host_and_target() {
             final AccessPointHttpAcceptor cut = new AccessPointHttpAcceptor(
                 eventManager,
                 ENV_ID,
                 List.of(
-                    ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build(),
-                    ReactableAccessPoint.builder().id("id2").environmentId(ENV_ID).host("host2").build()
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id1")
+                        .environmentId(ENV_ID)
+                        .host("host1")
+                        .target(ReactableAccessPoint.Target.GATEWAY)
+                        .build(),
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id2")
+                        .environmentId(ENV_ID)
+                        .host("host2")
+                        .target(ReactableAccessPoint.Target.GATEWAY)
+                        .build(),
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id3")
+                        .environmentId(ENV_ID)
+                        .host("host1")
+                        .target(ReactableAccessPoint.Target.TCP_GATEWAY)
+                        .build(),
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id4")
+                        .environmentId(ENV_ID)
+                        .host("host1")
+                        .target(ReactableAccessPoint.Target.KAFKA_GATEWAY)
+                        .build()
                 ),
                 "/test",
                 reactorHandler,
@@ -191,8 +240,20 @@ class AccessPointHttpAcceptorTest {
                 eventManager,
                 ENV_ID,
                 List.of(
-                    ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build(),
-                    ReactableAccessPoint.builder().id("id2").environmentId(ENV_ID).host("host2").build()
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id1")
+                        .environmentId(ENV_ID)
+                        .target(ReactableAccessPoint.Target.GATEWAY)
+                        .host("host1")
+                        .build(),
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id2")
+                        .environmentId(ENV_ID)
+                        .target(ReactableAccessPoint.Target.GATEWAY)
+                        .host("host2")
+                        .build()
                 ),
                 "/test",
                 reactorHandler,
@@ -225,8 +286,20 @@ class AccessPointHttpAcceptorTest {
                 eventManager,
                 ENV_ID,
                 List.of(
-                    ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build(),
-                    ReactableAccessPoint.builder().id("id2").environmentId(ENV_ID).host("host2").build()
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id1")
+                        .environmentId(ENV_ID)
+                        .host("host1")
+                        .target(ReactableAccessPoint.Target.GATEWAY)
+                        .build(),
+                    ReactableAccessPoint
+                        .builder()
+                        .id("id2")
+                        .environmentId(ENV_ID)
+                        .host("host2")
+                        .target(ReactableAccessPoint.Target.GATEWAY)
+                        .build()
                 ),
                 "/test",
                 reactorHandler,
@@ -250,7 +323,15 @@ class AccessPointHttpAcceptorTest {
                 new AccessPointHttpAcceptor(
                     eventManager,
                     ENV_ID,
-                    List.of(ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build()),
+                    List.of(
+                        ReactableAccessPoint
+                            .builder()
+                            .id("id1")
+                            .environmentId(ENV_ID)
+                            .host("host1")
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .build()
+                    ),
                     "/test",
                     reactorHandler,
                     List.of("a", "b", SERVER_ID)
@@ -262,7 +343,13 @@ class AccessPointHttpAcceptorTest {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             eventManager.publishEvent(
                 AccessPointEvent.DEPLOY,
-                ReactableAccessPoint.builder().id("id").host("host").environmentId(ENV_ID).build()
+                ReactableAccessPoint
+                    .builder()
+                    .id("id")
+                    .host("host")
+                    .environmentId(ENV_ID)
+                    .target(ReactableAccessPoint.Target.GATEWAY)
+                    .build()
             );
             assertThat(cut.innerHttpsAcceptors()).hasSize(2);
         }
@@ -272,7 +359,29 @@ class AccessPointHttpAcceptorTest {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             eventManager.publishEvent(
                 AccessPointEvent.DEPLOY,
-                ReactableAccessPoint.builder().id("id").host("host").environmentId("other-env").build()
+                ReactableAccessPoint
+                    .builder()
+                    .id("id")
+                    .host("host")
+                    .environmentId("other-env")
+                    .target(ReactableAccessPoint.Target.GATEWAY)
+                    .build()
+            );
+            assertThat(cut.innerHttpsAcceptors()).hasSize(1);
+        }
+
+        @Test
+        void should_not_add_new_http_acceptors_on_wrong_target() {
+            assertThat(cut.innerHttpsAcceptors()).hasSize(1);
+            eventManager.publishEvent(
+                AccessPointEvent.DEPLOY,
+                ReactableAccessPoint
+                    .builder()
+                    .id("id")
+                    .host("host")
+                    .environmentId("other-env")
+                    .target(ReactableAccessPoint.Target.KAFKA_GATEWAY)
+                    .build()
             );
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
         }
@@ -282,7 +391,13 @@ class AccessPointHttpAcceptorTest {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             eventManager.publishEvent(
                 AccessPointEvent.UNDEPLOY,
-                ReactableAccessPoint.builder().id("id1").host("host1").environmentId(ENV_ID).build()
+                ReactableAccessPoint
+                    .builder()
+                    .id("id1")
+                    .host("host1")
+                    .environmentId(ENV_ID)
+                    .target(ReactableAccessPoint.Target.GATEWAY)
+                    .build()
             );
             assertThat(cut.innerHttpsAcceptors()).isEmpty();
         }
@@ -292,7 +407,13 @@ class AccessPointHttpAcceptorTest {
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
             eventManager.publishEvent(
                 AccessPointEvent.UNDEPLOY,
-                ReactableAccessPoint.builder().id("id1").host("host1").environmentId("other-env").build()
+                ReactableAccessPoint
+                    .builder()
+                    .id("id1")
+                    .host("host1")
+                    .environmentId("other-env")
+                    .target(ReactableAccessPoint.Target.GATEWAY)
+                    .build()
             );
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
         }
@@ -309,7 +430,15 @@ class AccessPointHttpAcceptorTest {
                 new AccessPointHttpAcceptor(
                     eventManager,
                     ENV_ID,
-                    List.of(ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build()),
+                    List.of(
+                        ReactableAccessPoint
+                            .builder()
+                            .id("id1")
+                            .environmentId(ENV_ID)
+                            .host("host1")
+                            .target(ReactableAccessPoint.Target.GATEWAY)
+                            .build()
+                    ),
                     "/test",
                     reactorHandler,
                     List.of("a", "b", SERVER_ID)
@@ -322,7 +451,13 @@ class AccessPointHttpAcceptorTest {
             cut.clear();
             eventManager.publishEvent(
                 AccessPointEvent.DEPLOY,
-                ReactableAccessPoint.builder().id("id").host("host").environmentId(ENV_ID).build()
+                ReactableAccessPoint
+                    .builder()
+                    .id("id")
+                    .host("host")
+                    .target(ReactableAccessPoint.Target.GATEWAY)
+                    .environmentId(ENV_ID)
+                    .build()
             );
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
         }
@@ -333,7 +468,13 @@ class AccessPointHttpAcceptorTest {
             cut.clear();
             eventManager.publishEvent(
                 AccessPointEvent.UNDEPLOY,
-                ReactableAccessPoint.builder().id("id1").host("host1").environmentId(ENV_ID).build()
+                ReactableAccessPoint
+                    .builder()
+                    .id("id1")
+                    .host("host1")
+                    .target(ReactableAccessPoint.Target.GATEWAY)
+                    .environmentId(ENV_ID)
+                    .build()
             );
             assertThat(cut.innerHttpsAcceptors()).hasSize(1);
         }
