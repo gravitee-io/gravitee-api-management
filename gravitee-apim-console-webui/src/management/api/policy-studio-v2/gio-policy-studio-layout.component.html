@@ -32,7 +32,7 @@
   </nav>
 </div>
 <mat-tab-nav-panel #tabPanel class="gio-policy-studio-layout__tab-nav-panel">
-  <section class="gio-policy-studio-layout__tab-content" [class.save-bar-opened]="this.isDirty">
+  <section class="gio-policy-studio-layout__tab-content" [class.save-bar-opened]="isDirty">
     <div class="gio-policy-studio-layout__tab-content__container">
       <router-outlet></router-outlet>
     </div>
@@ -41,7 +41,7 @@
 
 <gio-save-bar
   class="gio-policy-studio-layout__save-bar"
-  [opened]="this.isDirty && !this.isSubmitting"
+  [opened]="isDirty && !isSubmitting"
   [creationMode]="false"
   (resetClicked)="onReset()"
   (submitted)="onSubmit()"

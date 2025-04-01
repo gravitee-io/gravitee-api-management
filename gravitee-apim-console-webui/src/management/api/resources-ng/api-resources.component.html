@@ -19,18 +19,18 @@
   <gv-resources
     *ngIf="api"
     class="policy-studio-resources"
-    [attr.readonly]="this.isReadonly"
-    (:gv-resources:change)="this.onChange($any($event))"
-    (:gv-resources:display-resource-cta)="this.onDisplayResourceCTA($any($event))"
+    [attr.readonly]="isReadonly"
+    (:gv-resources:change)="onChange($any($event))"
+    (:gv-resources:display-resource-cta)="onDisplayResourceCTA($any($event))"
     [resources]="api.resources ?? []"
     [types]="resourceTypes"
   ></gv-resources>
 </section>
 
 <gio-save-bar
-  *ngIf="this.isDirty"
+  *ngIf="isDirty"
   class="save-bar"
-  [opened]="this.isDirty"
+  [opened]="isDirty"
   [creationMode]="false"
   (resetClicked)="onReset()"
   (submitted)="onSubmit()"
