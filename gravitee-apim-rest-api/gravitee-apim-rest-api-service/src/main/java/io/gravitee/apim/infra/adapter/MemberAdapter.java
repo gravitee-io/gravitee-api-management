@@ -19,18 +19,27 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
 import io.gravitee.apim.core.member.model.Member;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.RoleEntity;
 import java.util.List;
 import java.util.Set;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface MemberAdapter {
     MemberAdapter INSTANCE = Mappers.getMapper(MemberAdapter.class);
 
-    ApiMember toApiMember(Membership member);
+    @Mapping(target = "id", source = "member.memberId")
+    @Mapping(target = "type", source = "member.memberType")
+    @Mapping(target = "displayName", expression = "java(user != null ? user.displayName() : null)")
+    @Mapping(target = "roles", expression = "java(role != null ? List.of(mapRole(role)) : null)")
+    ApiMember toApiMember(Membership member, BaseUserEntity user, Role role);
+
     MemberEntity toEntity(ApiMember member);
     Set<MemberEntity> toEntities(Set<ApiMember> members);
 
@@ -39,4 +48,13 @@ public interface MemberAdapter {
 
     Member toMember(MemberEntity member);
     MemberEntity toMemberEntity(Member member);
+
+    default MembershipMemberType mapType(Membership.Type type) {
+        return switch (type) {
+            case USER -> MembershipMemberType.USER;
+            case GROUP -> MembershipMemberType.GROUP;
+        };
+    }
+
+    ApiMemberRole mapRole(Role role);
 }
