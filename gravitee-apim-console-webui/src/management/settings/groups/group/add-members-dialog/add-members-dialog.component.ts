@@ -109,7 +109,14 @@ export class AddMembersDialogComponent implements OnInit {
       defaultIntegrationRole: new FormControl<string>({ value: 'USER', disabled: false }),
       searchTerm: new FormControl<string>({ value: '', disabled: false }),
     });
+    this.disableSearch();
     this.disableSubmit.set(true);
+  }
+
+  private disableSearch() {
+    if (this.group.max_invitation <= this.members.length + this.selectedUsers.length) {
+      this.addMemberForm.controls.searchTerm.disable();
+    }
   }
 
   private initializeFilterFn() {
@@ -239,6 +246,7 @@ export class AddMembersDialogComponent implements OnInit {
   private changeFormState() {
     const noOfPrimaryOwners = this.filterPrimaryOwners().length;
     this.addMemberForm.controls.searchTerm.setValue('');
+    this.disableSearch();
 
     if (this.addMemberForm.controls.defaultAPIRole.value === RoleName.PRIMARY_OWNER) {
       if (noOfPrimaryOwners > 0) {
