@@ -23,6 +23,7 @@ import { ConnectionLog, Pagination } from '../../../../../../entities/management
   selector: 'api-runtime-logs-list',
   templateUrl: './api-runtime-logs-list.component.html',
   styleUrls: ['./api-runtime-logs-list.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsListComponent {
   @Input()

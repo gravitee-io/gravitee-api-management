@@ -31,6 +31,7 @@ import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
   selector: 'api-dynamic-properties',
   templateUrl: './api-dynamic-properties.component.html',
   styleUrls: ['./api-dynamic-properties.component.scss'],
+  standalone: false,
 })
 export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();

@@ -24,6 +24,7 @@ import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector
 @Component({
   selector: 'api-endpoint-group-configuration',
   templateUrl: './api-endpoint-group-configuration.component.html',
+  standalone: false,
 })
 export class ApiEndpointGroupConfigurationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

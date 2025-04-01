@@ -32,6 +32,7 @@ import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugi
   selector: 'api-cors',
   templateUrl: './api-cors.component.html',
   styleUrls: ['./api-cors.component.scss'],
+  standalone: false,
 })
 export class ApiCorsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

@@ -46,6 +46,7 @@ export interface UrlParams {
   selector: 'policy-studio-design',
   templateUrl: './policy-studio-design.component.html',
   styleUrls: ['./policy-studio-design.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
   organization: Organization;

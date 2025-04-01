@@ -21,6 +21,7 @@ import { MenuItemHeader } from '../MenuGroupItem';
   selector: 'api-navigation-header',
   templateUrl: './api-navigation-header.component.html',
   styleUrls: ['./api-navigation-header.component.scss'],
+  standalone: false,
 })
 export class ApiNavigationHeaderComponent {
   @Input()

@@ -30,6 +30,7 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
   selector: 'app-integration-overview',
   templateUrl: './integration-overview.component.html',
   styleUrls: ['./integration-overview.component.scss'],
+  standalone: false,
 })
 export class IntegrationOverviewComponent implements OnInit {
   protected readonly AgentStatus = AgentStatus;

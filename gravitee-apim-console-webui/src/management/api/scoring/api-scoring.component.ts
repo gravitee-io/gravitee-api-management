@@ -37,6 +37,7 @@ interface ScoreEvaluationErrors {
   selector: 'app-api-scoring',
   templateUrl: './api-scoring.component.html',
   styleUrl: './api-scoring.component.scss',
+  standalone: false,
 })
 export class ApiScoringComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);

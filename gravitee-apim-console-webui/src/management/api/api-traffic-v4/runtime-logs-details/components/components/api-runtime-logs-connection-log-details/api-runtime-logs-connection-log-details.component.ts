@@ -22,6 +22,7 @@ import { ConnectionLogDetail } from '../../../../../../../entities/management-ap
   selector: 'api-runtime-logs-connection-log-details',
   templateUrl: './api-runtime-logs-connection-log-details.component.html',
   styleUrls: ['./api-runtime-logs-connection-log-details.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsConnectionLogDetailsComponent {
   @Input()

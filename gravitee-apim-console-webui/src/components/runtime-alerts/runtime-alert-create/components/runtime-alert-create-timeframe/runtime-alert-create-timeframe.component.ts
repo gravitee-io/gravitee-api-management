@@ -42,6 +42,7 @@ export type TimeframeFormValue = {
   selector: 'runtime-alert-create-timeframe',
   templateUrl: './runtime-alert-create-timeframe.component.html',
   styleUrls: ['./runtime-alert-create-timeframe.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

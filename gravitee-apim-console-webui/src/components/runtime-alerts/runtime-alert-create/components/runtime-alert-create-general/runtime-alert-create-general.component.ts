@@ -44,6 +44,7 @@ export type GeneralFormValue = {
   selector: 'runtime-alert-create-general',
   templateUrl: './runtime-alert-create-general.component.html',
   styleUrls: ['./runtime-alert-create-general.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

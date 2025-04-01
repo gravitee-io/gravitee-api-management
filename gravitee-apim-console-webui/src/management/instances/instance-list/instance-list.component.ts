@@ -38,6 +38,7 @@ type TableData = {
   selector: 'instance-list',
   templateUrl: './instance-list.component.html',
   styleUrls: ['./instance-list.component.scss'],
+  standalone: false,
 })
 export class InstanceListComponent implements OnInit, OnDestroy {
   displayedColumns = ['hostname', 'version', 'state', 'lastHeartbeat', 'os', 'ip-port', 'tenant', 'tags'];

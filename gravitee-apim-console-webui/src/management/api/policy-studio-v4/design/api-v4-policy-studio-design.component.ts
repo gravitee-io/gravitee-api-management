@@ -46,6 +46,7 @@ import { getApiProtocolTypeFromApi } from '../../../../entities/management-api-v
   selector: 'api-v4-policy-studio-design',
   templateUrl: './api-v4-policy-studio-design.component.html',
   styleUrls: ['./api-v4-policy-studio-design.component.scss'],
+  standalone: false,
 })
 export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();

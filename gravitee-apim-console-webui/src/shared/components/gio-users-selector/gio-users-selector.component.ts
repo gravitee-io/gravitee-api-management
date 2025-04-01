@@ -31,6 +31,7 @@ export interface GioUsersSelectorData {
   selector: 'gio-users-selector',
   templateUrl: './gio-users-selector.component.html',
   styleUrls: ['./gio-users-selector.component.scss'],
+  standalone: false,
 })
 export class GioUsersSelectorComponent implements OnInit {
   private readonly userFilterPredicate: (user: SearchableUser) => boolean;

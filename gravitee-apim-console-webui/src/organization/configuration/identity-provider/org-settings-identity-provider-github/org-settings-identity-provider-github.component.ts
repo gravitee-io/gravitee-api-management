@@ -22,6 +22,7 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
   selector: 'org-settings-identity-provider-github',
   styleUrls: ['./org-settings-identity-provider-github.component.scss'],
   templateUrl: './org-settings-identity-provider-github.component.html',
+  standalone: false,
 })
 export class OrgSettingsIdentityProviderGithubComponent implements ProviderConfiguration {
   name = 'OrgSettingsIdentityProviderGithubComponent';

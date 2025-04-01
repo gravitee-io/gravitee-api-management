@@ -30,6 +30,7 @@ export type PropertiesAddDialogResult = Property;
   selector: 'properties-add-dialog',
   templateUrl: './properties-add-dialog.component.html',
   styleUrls: ['./properties-add-dialog.component.scss'],
+  standalone: false,
 })
 export class PropertiesAddDialogComponent {
   private existingKeys: string[] = [];

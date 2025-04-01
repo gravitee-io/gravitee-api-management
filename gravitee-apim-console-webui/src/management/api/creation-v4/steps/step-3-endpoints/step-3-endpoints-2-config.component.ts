@@ -31,6 +31,7 @@ import { ApiCreationPayload } from '../../models/ApiCreationPayload';
   selector: 'step-3-endpoints-2-config',
   templateUrl: './step-3-endpoints-2-config.component.html',
   styleUrls: ['./step-3-endpoints-2-config.component.scss', '../api-creation-steps-common.component.scss'],
+  standalone: false,
 })
 export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

@@ -22,6 +22,7 @@ import { TimelineStep } from '../policy-studio-debug-timeline-card/policy-studio
   selector: 'policy-studio-debug-timeline-overview',
   templateUrl: './policy-studio-debug-timeline-overview.component.html',
   styleUrls: ['./policy-studio-debug-timeline-overview.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDebugTimelineOverviewComponent {
   @Input()

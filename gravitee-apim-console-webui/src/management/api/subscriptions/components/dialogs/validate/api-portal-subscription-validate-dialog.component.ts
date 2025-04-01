@@ -34,6 +34,7 @@ export interface ApiPortalSubscriptionAcceptDialogResult {
   selector: 'api-portal-subscription-validate-dialog',
   templateUrl: './api-portal-subscription-validate-dialog.component.html',
   styleUrls: ['./api-portal-subscription-validate-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiPortalSubscriptionValidateDialogComponent implements OnInit {
   data: ApiPortalSubscriptionAcceptDialogData;

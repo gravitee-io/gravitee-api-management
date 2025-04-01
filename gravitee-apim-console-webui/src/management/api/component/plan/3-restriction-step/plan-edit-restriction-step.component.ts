@@ -25,6 +25,7 @@ import { InternalPlanFormValue } from '../api-plan-form.component';
   selector: 'plan-edit-restriction-step',
   templateUrl: './plan-edit-restriction-step.component.html',
   styleUrls: ['./plan-edit-restriction-step.component.scss'],
+  standalone: false,
 })
 export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

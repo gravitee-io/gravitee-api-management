@@ -23,6 +23,7 @@ import { ResourceService } from '../../../services-ngx/resource.service';
 @Component({
   template: '',
   selector: 'api-resources-v1',
+  standalone: false,
   host: {
     class: 'bootstrap gv-sub-content',
   },

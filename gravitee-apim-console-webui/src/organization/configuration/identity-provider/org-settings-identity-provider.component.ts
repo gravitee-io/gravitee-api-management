@@ -38,6 +38,7 @@ export interface ProviderConfiguration {
   selector: 'org-settings-identity-provider',
   styleUrls: ['./org-settings-identity-provider.component.scss'],
   templateUrl: './org-settings-identity-provider.component.html',
+  standalone: false,
 })
 export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   isLoading = true;

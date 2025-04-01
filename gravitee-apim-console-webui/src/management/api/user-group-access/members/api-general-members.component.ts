@@ -60,6 +60,7 @@ export interface GroupData {
   selector: 'api-general-members',
   templateUrl: './api-general-members.component.html',
   styleUrls: ['./api-general-members.component.scss'],
+  standalone: false,
 })
 export class ApiGeneralMembersComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

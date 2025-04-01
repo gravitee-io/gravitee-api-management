@@ -45,6 +45,7 @@ export type FailoverForm = {
   selector: 'api-failover-v4',
   templateUrl: './api-failover-v4.component.html',
   styleUrls: ['./api-failover-v4.component.scss'],
+  standalone: false,
 })
 export class ApiFailoverV4Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

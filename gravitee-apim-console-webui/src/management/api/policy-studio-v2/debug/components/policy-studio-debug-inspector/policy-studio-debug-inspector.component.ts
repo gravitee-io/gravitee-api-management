@@ -95,6 +95,7 @@ export function getDiffState(input: string, output: string): 'added' | 'deleted'
   selector: 'policy-studio-debug-inspector',
   templateUrl: './policy-studio-debug-inspector.component.html',
   styleUrls: ['./policy-studio-debug-inspector.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDebugInspectorComponent implements OnChanges {
   @Input()

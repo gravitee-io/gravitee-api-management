@@ -74,6 +74,7 @@ export const KEYSTORE_TYPE_LABELS: { label: string; value: KeyStore['type'] }[] 
   selector: 'ssl-keystore-form',
   templateUrl: './ssl-keystore-form.component.html',
   styleUrls: ['./ssl-keystore-form.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

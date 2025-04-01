@@ -20,6 +20,7 @@ import { ActivatedRoute } from '@angular/router';
 @Component({
   template: '',
   selector: 'api-alerts-dashboard',
+  standalone: false,
   host: {
     class: 'bootstrap gv-sub-content',
   },

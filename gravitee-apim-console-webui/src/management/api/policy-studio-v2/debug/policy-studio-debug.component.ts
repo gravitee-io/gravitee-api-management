@@ -29,6 +29,7 @@ import { PolicyListItem } from '../../../../entities/policy';
   selector: 'policy-studio-debug',
   templateUrl: './policy-studio-debug.component.html',
   styleUrls: ['./policy-studio-debug.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDebugComponent implements OnInit {
   public debugResponse: DebugResponse;

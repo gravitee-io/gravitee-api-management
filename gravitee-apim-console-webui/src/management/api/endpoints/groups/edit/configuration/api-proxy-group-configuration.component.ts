@@ -26,6 +26,7 @@ import { EndpointGroupV2 } from '../../../../../../entities/management-api-v2';
   selector: 'api-proxy-group-configuration',
   templateUrl: './api-proxy-group-configuration.component.html',
   styleUrls: ['./api-proxy-group-configuration.component.scss'],
+  standalone: false,
 })
 export class ApiProxyGroupConfigurationComponent {
   public static getGroupConfigurationFormGroup(endpointGroup: EndpointGroupV2, isReadonly: boolean): UntypedFormGroup {

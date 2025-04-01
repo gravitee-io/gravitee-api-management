@@ -22,6 +22,7 @@ import { ApiService } from '../../../services-ngx/api.service';
 @Component({
   template: '',
   selector: 'api-properties-v1',
+  standalone: false,
   host: {
     class: 'bootstrap gv-sub-content',
   },

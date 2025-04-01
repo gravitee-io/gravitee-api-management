@@ -27,6 +27,7 @@ export type GioConnectorDialogData = {
   selector: 'gio-information-dialog',
   templateUrl: './gio-information-dialog.component.html',
   styleUrls: ['./gio-information-dialog.component.scss'],
+  standalone: false,
 })
 export class GioInformationDialogComponent {
   public name: string;

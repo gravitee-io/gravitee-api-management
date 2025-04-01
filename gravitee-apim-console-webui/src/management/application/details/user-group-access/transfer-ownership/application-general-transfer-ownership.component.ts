@@ -34,6 +34,7 @@ import { ApplicationService } from '../../../../../services-ngx/application.serv
   selector: 'application-general-transfer-ownership',
   templateUrl: './application-general-transfer-ownership.component.html',
   styleUrls: ['./application-general-transfer-ownership.component.scss'],
+  standalone: false,
 })
 export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

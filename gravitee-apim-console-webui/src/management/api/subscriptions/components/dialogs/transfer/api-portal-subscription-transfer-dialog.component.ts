@@ -42,6 +42,7 @@ interface PlanVM {
   selector: 'api-portal-subscription-transfer',
   templateUrl: './api-portal-subscription-transfer-dialog.component.html',
   styleUrls: ['./api-portal-subscription-transfer-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiPortalSubscriptionTransferDialogComponent implements OnInit {
   plans: PlanVM[];

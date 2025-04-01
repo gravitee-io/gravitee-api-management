@@ -34,6 +34,7 @@ import { isEndpointNameUnique } from '../../api-endpoint-v4-unique-name';
   selector: 'api-endpoints-group-create',
   templateUrl: './api-endpoint-group-create.component.html',
   styleUrls: ['./api-endpoint-group-create.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: STEPPER_GLOBAL_OPTIONS,

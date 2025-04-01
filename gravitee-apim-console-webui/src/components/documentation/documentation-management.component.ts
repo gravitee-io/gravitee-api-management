@@ -27,6 +27,7 @@ import { ApiService } from '../../services/api.service';
 @Component({
   template: '',
   selector: 'ng-documentation-management',
+  standalone: false,
   host: {
     class: 'bootstrap gv-sub-content',
   },

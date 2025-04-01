@@ -51,6 +51,7 @@ export interface Result {
   selector: 'api-creation-v4',
   templateUrl: './api-creation-v4.component.html',
   styleUrls: ['./api-creation-v4.component.scss'],
+  standalone: false,
 })
 export class ApiCreationV4Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

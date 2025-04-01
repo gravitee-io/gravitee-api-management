@@ -29,6 +29,7 @@ export type OrgSettingAddMappingDialogData = {
   selector: 'org-settings-add-mapping-dialog',
   templateUrl: './org-settings-add-mapping-dialog.component.html',
   styleUrls: ['./org-settings-add-mapping-dialog.component.scss'],
+  standalone: false,
 })
 export class OrgSettingAddMappingDialogComponent {
   entrypoint?: Entrypoint;

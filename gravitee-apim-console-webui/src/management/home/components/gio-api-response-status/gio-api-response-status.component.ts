@@ -54,6 +54,7 @@ const STATUS_DISPLAYABLE = {
 @Component({
   selector: 'gio-api-response-status',
   templateUrl: './gio-api-response-status.component.html',
+  standalone: false,
 })
 export class GioApiResponseStatusComponent implements OnChanges {
   @Input()

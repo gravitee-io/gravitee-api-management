@@ -24,6 +24,7 @@ import { onlyApiV4Filter } from '../../../../util/apiFilter.operator';
 @Component({
   selector: 'api-runtime-logs-details',
   templateUrl: './api-runtime-logs-details.component.html',
+  standalone: false,
 })
 export class ApiRuntimeLogsDetailsComponent {
   api$: Observable<ApiV4> = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter());

@@ -32,6 +32,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   selector: 'runtime-alert-create',
   templateUrl: './runtime-alert-create.component.html',
   styleUrls: ['./runtime-alert-create.component.scss'],
+  standalone: false,
 })
 export class RuntimeAlertCreateComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

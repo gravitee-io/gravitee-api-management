@@ -31,6 +31,7 @@ export type PropertiesImportDialogResult = (existingProperties: Property[]) => P
   selector: 'properties-import-dialog',
   templateUrl: './properties-import-dialog.component.html',
   styleUrls: ['./properties-import-dialog.component.scss'],
+  standalone: false,
 })
 export class PropertiesImportDialogComponent {
   public formGroup = new UntypedFormGroup({

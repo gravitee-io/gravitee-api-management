@@ -39,6 +39,7 @@ type ExportFrom = {
   templateUrl: './api-general-info-export-v4-dialog.component.html',
   styleUrls: ['./api-general-info-export-v4-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class ApiGeneralInfoExportV4DialogComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

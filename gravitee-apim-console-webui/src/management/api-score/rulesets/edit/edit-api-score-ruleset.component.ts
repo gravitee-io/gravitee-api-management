@@ -30,6 +30,7 @@ import { EditRulesetRequestData } from '../../../../entities/management-api-v2/a
   selector: 'edit-api-score-ruleset',
   templateUrl: './edit-api-score-ruleset.component.html',
   styleUrl: './edit-api-score-ruleset.component.scss',
+  standalone: false,
 })
 export class EditApiScoreRulesetComponent implements OnInit {
   public isLoading = false;

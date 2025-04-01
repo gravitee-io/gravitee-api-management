@@ -31,6 +31,7 @@ export type ApiConfirmDeploymentDialogResult = void;
   selector: 'api-confirm-deployment-dialog',
   templateUrl: './api-confirm-deployment-dialog.component.html',
   styleUrls: ['./api-confirm-deployment-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiConfirmDeploymentDialogComponent implements OnDestroy {
   private unsubscribe$ = new Subject<void>();

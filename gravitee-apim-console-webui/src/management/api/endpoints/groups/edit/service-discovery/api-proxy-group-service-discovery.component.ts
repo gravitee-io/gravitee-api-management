@@ -25,6 +25,7 @@ import { ServiceDiscoveryService } from '../../../../../../services-ngx/service-
   selector: 'api-proxy-group-service-discovery',
   templateUrl: './api-proxy-group-service-discovery.component.html',
   styleUrls: ['./api-proxy-group-service-discovery.component.scss'],
+  standalone: false,
 })
 export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

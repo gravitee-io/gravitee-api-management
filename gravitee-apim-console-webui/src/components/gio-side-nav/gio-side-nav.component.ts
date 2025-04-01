@@ -43,6 +43,7 @@ export const SIDE_NAV_GROUP_ID = 'side-nav-items';
   selector: 'gio-side-nav',
   templateUrl: './gio-side-nav.component.html',
   styleUrls: ['./gio-side-nav.component.scss'],
+  standalone: false,
 })
 export class GioSideNavComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();

@@ -21,6 +21,7 @@ import { AggregationCondition } from '../../../../../../../entities/alert';
 @Component({
   selector: 'threshold-condition',
   styleUrls: ['../../scss/conditions.component.scss'],
+  standalone: false,
   template: `
     <form *ngIf="form" [formGroup]="form" class="condition-row">
       <mat-form-field class="condition-row__form-field">

@@ -25,6 +25,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
   selector: 'app-integration-configuration',
   templateUrl: './integration-configuration.component.html',
   styleUrls: ['./integration-configuration.component.scss'],
+  standalone: false,
 })
 export class IntegrationConfigurationComponent {
   public configurationTabs: IntegrationNavigationItem[] = [
