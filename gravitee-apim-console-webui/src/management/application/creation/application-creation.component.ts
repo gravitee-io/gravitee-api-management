@@ -87,6 +87,7 @@ export class ApplicationCreationComponent implements OnInit {
     groups: new FormControl([]),
   });
 
+  requireUserGroups = false;
   public applicationTypes$ = this.applicationTypesService.getEnabledApplicationTypes().pipe(
     map((types) =>
       types.map((type) => {
@@ -173,6 +174,7 @@ export class ApplicationCreationComponent implements OnInit {
         tap((consoleSettings) => {
           if (consoleSettings.userGroup.required.enabled) {
             this.applicationFormGroup.controls.groups?.setValidators(Validators.required);
+            this.requireUserGroups = true;
           }
         }),
         takeUntilDestroyed(this.destroyRef),
