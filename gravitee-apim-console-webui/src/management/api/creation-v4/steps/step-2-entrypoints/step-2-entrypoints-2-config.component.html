@@ -30,15 +30,15 @@
         <div class="step-2-entrypoints-2-config__listeners-context__title">
           <span class="mat-body-strong">Entrypoints context</span>
 
-          <button id="switchListenerType" mat-button type="button" (click)="this.enableVirtualHost = !this.enableVirtualHost">
+          <button id="switchListenerType" mat-button type="button" (click)="enableVirtualHost = !enableVirtualHost">
             <mat-icon [svgIcon]="enableVirtualHost ? 'gio:cancel' : 'gio:check'"></mat-icon>
             {{ enableVirtualHost ? 'Disable virtual hosts' : 'Enable virtual hosts' }}
           </button>
         </div>
 
-        <gio-form-listeners-context-path *ngIf="!this.enableVirtualHost" formControlName="paths"></gio-form-listeners-context-path>
+        <gio-form-listeners-context-path *ngIf="!enableVirtualHost" formControlName="paths"></gio-form-listeners-context-path>
         <gio-form-listeners-virtual-host
-          *ngIf="this.enableVirtualHost"
+          *ngIf="enableVirtualHost"
           formControlName="paths"
           [domainRestrictions]="domainRestrictions"
         ></gio-form-listeners-virtual-host>

@@ -31,7 +31,7 @@
   <nav mat-tab-nav-bar class="gio-instance-details-header__navigation-tabs" [tabPanel]="tabPanel">
     <a
       mat-tab-link
-      *ngFor="let menuItem of this.tabMenuItems"
+      *ngFor="let menuItem of tabMenuItems"
       [routerLink]="menuItem.routerLink"
       routerLinkActive
       #rla="routerLinkActive"

@@ -81,11 +81,11 @@
           <input matInput name="name" minlength="2" maxlength="50" formControlName="name" required />
           <mat-hint>Identity provider name. The name will be used to define the authentication endpoint</mat-hint>
 
-          <mat-error *ngIf="this.identityProviderFormGroup.get('name').hasError('required')">Identity provider name is required.</mat-error>
-          <mat-error *ngIf="this.identityProviderFormGroup.get('name').hasError('maxlength')"
+          <mat-error *ngIf="identityProviderFormGroup.get('name').hasError('required')">Identity provider name is required.</mat-error>
+          <mat-error *ngIf="identityProviderFormGroup.get('name').hasError('maxlength')"
             >The identity provider has to be less than 50 characters long.</mat-error
           >
-          <mat-error *ngIf="this.identityProviderFormGroup.get('name').hasError('minlength')"
+          <mat-error *ngIf="identityProviderFormGroup.get('name').hasError('minlength')"
             >The identity provider has to be more than 2 characters long.</mat-error
           >
         </mat-form-field>
@@ -189,7 +189,7 @@
       <mat-card-content>
         <h2 gioTableOfContents>Roles Mapping</h2>
         <mat-card
-          *ngFor="let roleMappingControl of $any(this.identityProviderFormGroup.get('roleMappings'))?.controls; index as roleMappingIndex"
+          *ngFor="let roleMappingControl of $any(identityProviderFormGroup.get('roleMappings'))?.controls; index as roleMappingIndex"
           [formGroupName]="roleMappingIndex"
         >
           <mat-card-content class="identity-provider__card__role-mapping">

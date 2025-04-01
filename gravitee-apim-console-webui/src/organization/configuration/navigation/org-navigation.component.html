@@ -21,7 +21,7 @@
       <button gioSubmenuTitle mat-button aria-label="Organization Settings" (click)="goBack()">
         <mat-icon svgIcon="gio:arrow-left"></mat-icon>Organization
       </button>
-      <ng-container *ngFor="let group of this.groupItems">
+      <ng-container *ngFor="let group of groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.title" theme="light">
           <ng-container *ngFor="let subItem of group.items">
             <ng-container *ngIf="subItem?.routerLink">
