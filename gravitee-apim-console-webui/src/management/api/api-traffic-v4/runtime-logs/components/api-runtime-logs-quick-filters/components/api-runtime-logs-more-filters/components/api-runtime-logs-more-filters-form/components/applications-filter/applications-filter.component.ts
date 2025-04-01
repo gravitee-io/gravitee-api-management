@@ -28,6 +28,7 @@ import { MultiFilter } from '../../../../../../../../models';
   selector: 'applications-filter',
   templateUrl: './applications-filter.component.html',
   styleUrls: ['./applications-filter.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -20,6 +20,7 @@ import { toNumber } from 'lodash';
   selector: 'gio-circular-percentage',
   templateUrl: './gio-circular-percentage.component.html',
   styleUrls: ['./gio-circular-percentage.component.scss'],
+  standalone: false,
 })
 export class GioCircularPercentageComponent {
   @Input()

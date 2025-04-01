@@ -69,6 +69,7 @@ export const TRUSTSTORE_TYPE_LABELS: { label: string; value: TrustStore['type'] 
   selector: 'ssl-truststore-form',
   templateUrl: './ssl-truststore-form.component.html',
   styleUrls: ['./ssl-truststore-form.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -26,6 +26,7 @@ import { TagService } from '../../../../services-ngx/tag.service';
 @Component({
   template: '',
   selector: 'notifications-component',
+  standalone: false,
   host: {
     class: 'bootstrap gv-sub-content',
   },

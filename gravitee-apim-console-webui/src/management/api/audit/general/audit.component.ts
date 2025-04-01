@@ -20,6 +20,7 @@ import { ActivatedRoute } from '@angular/router';
 @Component({
   template: '',
   selector: 'api-audit',
+  standalone: false,
   host: {
     class: 'bootstrap gv-sub-content',
   },

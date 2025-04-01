@@ -70,6 +70,7 @@ export type ApisTableDS = {
   templateUrl: './api-list.component.html',
   styleUrls: ['./api-list.component.scss'],
   providers: [TitleCasePipe],
+  standalone: false,
 })
 export class ApiListComponent implements OnInit, OnDestroy {
   displayedColumns = ['picture', 'name', 'definitionVersion', 'states', 'access', 'tags', 'categories', 'owner', 'visibility', 'actions'];

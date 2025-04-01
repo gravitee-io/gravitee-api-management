@@ -19,6 +19,7 @@ import { Component, Input } from '@angular/core';
   selector: 'api-navigation-disabled',
   templateUrl: './api-navigation-disabled.component.html',
   styleUrls: ['./api-navigation-disabled.component.scss'],
+  standalone: false,
 })
 export class ApiNavigationDisabledComponent {
   @Input()

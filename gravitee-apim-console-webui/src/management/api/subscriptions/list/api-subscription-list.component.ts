@@ -55,6 +55,7 @@ type SubscriptionsTableDS = {
   selector: 'api-subscription-list',
   templateUrl: './api-subscription-list.component.html',
   styleUrls: ['./api-subscription-list.component.scss'],
+  standalone: false,
 })
 export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
   public displayedColumns = ['securityType', 'plan', 'application', 'createdAt', 'processedAt', 'startingAt', 'endAt', 'status', 'actions'];

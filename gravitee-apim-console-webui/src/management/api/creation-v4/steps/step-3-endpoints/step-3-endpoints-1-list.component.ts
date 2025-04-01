@@ -38,6 +38,7 @@ import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-licen
   selector: 'step-3-endpoints-1-list',
   templateUrl: './step-3-endpoints-1-list.component.html',
   styleUrls: ['../api-creation-steps-common.component.scss'],
+  standalone: false,
 })
 export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

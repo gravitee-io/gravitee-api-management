@@ -99,6 +99,7 @@ interface ApiKeyVM {
   templateUrl: './api-subscription-edit.component.html',
   styleUrls: ['./api-subscription-edit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class ApiSubscriptionEditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

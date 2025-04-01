@@ -24,6 +24,7 @@ import { ConnectorVM } from '../../../../../entities/management-api-v2';
   selector: 'step-endpoint-menu-item',
   templateUrl: './step-connector-menu-item.component.html',
   styleUrls: ['./step-connector-menu-item.component.scss'],
+  standalone: false,
 })
 export class StepEndpointMenuItemComponent implements OnInit {
   public connectors: Partial<ConnectorVM>[];

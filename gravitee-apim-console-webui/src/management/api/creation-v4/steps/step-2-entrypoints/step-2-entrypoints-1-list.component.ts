@@ -34,6 +34,7 @@ import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-licen
   selector: 'step-2-entrypoints-1-list',
   templateUrl: './step-2-entrypoints-1-list.component.html',
   styleUrls: ['./step-2-entrypoints-1-list.component.scss', '../api-creation-steps-common.component.scss'],
+  standalone: false,
 })
 export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

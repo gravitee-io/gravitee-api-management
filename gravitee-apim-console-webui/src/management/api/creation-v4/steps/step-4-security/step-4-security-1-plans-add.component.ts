@@ -25,6 +25,7 @@ import { ApiType, CreatePlanV4 } from '../../../../../entities/management-api-v2
   templateUrl: './step-4-security-1-plans-add.component.html',
   styleUrls: ['./step-4-security-1-plans-add.component.scss', '../api-creation-steps-common.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class Step4Security1PlansAddComponent implements OnInit {
   @Input()

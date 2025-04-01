@@ -32,6 +32,7 @@ import { PortalSettingsService } from '../../../services-ngx/portal-settings.ser
   selector: 'app-categories',
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.scss',
+  standalone: false,
 })
 export class CategoriesComponent implements OnInit {
   categoriesDS$: Observable<Category[]> = of([]);

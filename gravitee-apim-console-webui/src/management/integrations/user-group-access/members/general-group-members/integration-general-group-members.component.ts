@@ -35,6 +35,7 @@ interface MemberDataSource {
   selector: 'integration-general-group-members',
   templateUrl: './integration-general-group-members.component.html',
   styleUrls: ['./integration-general-group-members.component.scss'],
+  standalone: false,
 })
 export class IntegrationGeneralGroupMembersComponent implements OnInit, OnDestroy {
   @Input()

@@ -29,6 +29,7 @@ interface RowItem {
   selector: 'policy-studio-debug-inspector-table',
   templateUrl: './policy-studio-debug-inspector-table.component.html',
   styleUrls: ['./policy-studio-debug-inspector-table.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDebugInspectorTableComponent implements OnChanges {
   @Input()

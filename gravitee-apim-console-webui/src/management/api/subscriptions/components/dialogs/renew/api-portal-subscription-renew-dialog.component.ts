@@ -30,6 +30,7 @@ export interface ApiPortalSubscriptionRenewDialogResult {
   selector: 'api-portal-subscription-renew-dialog',
   templateUrl: './api-portal-subscription-renew-dialog.component.html',
   styleUrls: ['./api-portal-subscription-renew-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiPortalSubscriptionRenewDialogComponent implements OnInit {
   data: ApiPortalSubscriptionRenewDialogData;

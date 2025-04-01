@@ -151,10 +151,7 @@
       <mat-card-content>
         <h2 gioTableOfContents>Groups Mapping</h2>
         <mat-card
-          *ngFor="
-            let groupMappingControl of $any(this.identityProviderFormGroup.get('groupMappings'))?.controls;
-            index as groupMappingIndex
-          "
+          *ngFor="let groupMappingControl of $any(identityProviderFormGroup.get('groupMappings'))?.controls; index as groupMappingIndex"
           [formGroupName]="groupMappingIndex"
           class="identity-provider__card__group-mapping"
         >

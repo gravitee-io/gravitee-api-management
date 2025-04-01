@@ -34,6 +34,7 @@ import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscr
   selector: 'api-key-validation',
   templateUrl: './api-key-validation.component.html',
   styleUrls: ['./api-key-validation.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

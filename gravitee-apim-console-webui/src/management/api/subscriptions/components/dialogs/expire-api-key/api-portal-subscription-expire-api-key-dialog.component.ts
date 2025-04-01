@@ -28,6 +28,7 @@ export interface ApiPortalSubscriptionExpireApiKeyDialogResult {
   selector: 'api-portal-subscription-expire-api-key-dialog',
   templateUrl: './api-portal-subscription-expire-api-key-dialog.component.html',
   styleUrls: ['./api-portal-subscription-expire-api-key-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiPortalSubscriptionExpireApiKeyDialogComponent implements OnInit {
   expirationDate: Date;

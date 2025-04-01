@@ -46,6 +46,7 @@ const loadOauth2RedirectUrl = () => {
   selector: 'gio-swagger-ui',
   templateUrl: './gio-swagger-ui.component.html',
   styleUrls: ['./gio-swagger-ui.component.scss'],
+  standalone: false,
 })
 export class GioSwaggerUiComponent implements AfterViewInit, OnChanges {
   @Input()

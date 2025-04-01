@@ -35,6 +35,7 @@ type EndpointHealthCheckFormGroup = FormGroup<{
     </div>
     <aggregation-condition [form]="form.controls.projections" [properties]="properties"></aggregation-condition>
   `,
+  standalone: false,
 })
 export class EndpointHealthCheckConditionComponent {
   @Input({ required: true }) form: EndpointHealthCheckFormGroup;

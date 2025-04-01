@@ -56,6 +56,7 @@ type EntrypointTableDS = {
   selector: 'org-settings-entrypoints-and-sharding-tags',
   templateUrl: './org-settings-entrypoints-and-sharding-tags.component.html',
   styleUrls: ['./org-settings-entrypoints-and-sharding-tags.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, OnDestroy {
   isLoading = true;

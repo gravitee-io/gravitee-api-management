@@ -36,6 +36,7 @@ type ResponseDisplayableVM = {
   selector: 'policy-studio-debug-response',
   templateUrl: './policy-studio-debug-response.component.html',
   styleUrls: ['./policy-studio-debug-response.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDebugResponseComponent implements OnChanges {
   @Input()

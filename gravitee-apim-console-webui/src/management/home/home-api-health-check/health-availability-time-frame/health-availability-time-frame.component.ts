@@ -37,6 +37,7 @@ interface HealthAvailabilityTimeFrameColors {
   selector: 'health-availability-time-frame',
   templateUrl: './health-availability-time-frame.component.html',
   styleUrls: ['./health-availability-time-frame.component.scss'],
+  standalone: false,
 })
 export class HealthAvailabilityTimeFrameComponent implements AfterViewInit, OnChanges {
   @Input()

@@ -27,6 +27,7 @@ import { ApiService } from '../../services/api.service';
 @Component({
   template: '',
   selector: 'documentation-edit-page',
+  standalone: false,
   host: {
     class: 'bootstrap gv-sub-content',
   },

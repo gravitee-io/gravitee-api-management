@@ -21,6 +21,7 @@ import { AggregationCondition, Conditions, ConditionType, Metrics } from '../../
 @Component({
   selector: 'compare-condition',
   styleUrls: ['../../scss/conditions.component.scss'],
+  standalone: false,
   template: `
     <form *ngIf="form" [formGroup]="form" class="condition-row">
       <mat-form-field class="condition-row__form-field">

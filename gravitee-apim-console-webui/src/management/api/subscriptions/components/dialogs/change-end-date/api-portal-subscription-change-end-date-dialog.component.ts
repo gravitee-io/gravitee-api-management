@@ -31,6 +31,7 @@ export interface ApiPortalSubscriptionChangeEndDateDialogResult {
   selector: 'api-portal-subscription-change-end-date-dialog',
   templateUrl: './api-portal-subscription-change-end-date-dialog.component.html',
   styleUrls: ['./api-portal-subscription-change-end-date-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiPortalSubscriptionChangeEndDateDialogComponent implements OnInit {
   form: UntypedFormGroup;

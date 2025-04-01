@@ -27,6 +27,7 @@ import { ClientRegistrationProvider } from '../../../../entities/client-registra
   selector: 'client-registration-provider',
   templateUrl: './client-registration-provider.component.html',
   styleUrls: ['./client-registration-provider.component.scss'],
+  standalone: false,
 })
 export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();

@@ -30,6 +30,7 @@ import { Step2Entrypoints1ListComponent } from '../step-2-entrypoints/step-2-ent
   selector: 'step-1-api-details',
   templateUrl: './step-1-api-details.component.html',
   styleUrls: ['./step-1-api-details.component.scss', '../api-creation-steps-common.component.scss'],
+  standalone: false,
 })
 export class Step1ApiDetailsComponent implements OnInit {
   private unsubscribe$: Subject<void> = new Subject<void>();

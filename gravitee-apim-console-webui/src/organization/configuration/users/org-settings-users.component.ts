@@ -43,6 +43,7 @@ type TableData = {
   selector: 'org-settings-users',
   styleUrls: ['./org-settings-users.component.scss'],
   templateUrl: './org-settings-users.component.html',
+  standalone: false,
 })
 export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['userPicture', 'displayName', 'status', 'email', 'source', 'actions'];

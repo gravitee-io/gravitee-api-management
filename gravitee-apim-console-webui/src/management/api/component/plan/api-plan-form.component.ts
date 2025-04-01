@@ -107,6 +107,7 @@ export type PlanFormValue = Pick<
 @Component({
   selector: 'api-plan-form',
   templateUrl: './api-plan-form.component.html',
+  standalone: false,
   providers: [
     {
       provide: STEPPER_GLOBAL_OPTIONS,

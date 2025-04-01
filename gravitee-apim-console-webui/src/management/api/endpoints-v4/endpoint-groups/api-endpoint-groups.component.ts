@@ -35,6 +35,7 @@ import { disableDlqEntrypoint, getMatchingDlqEntrypoints, getMatchingDlqEntrypoi
   selector: 'api-endpoint-groups',
   templateUrl: './api-endpoint-groups.component.html',
   styleUrls: ['./api-endpoint-groups.component.scss'],
+  standalone: false,
 })
 export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   public endpointsDisplayedColumns = ['name', 'options', 'weight', 'actions'];

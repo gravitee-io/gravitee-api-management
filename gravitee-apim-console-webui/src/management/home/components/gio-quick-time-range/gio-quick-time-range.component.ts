@@ -22,6 +22,7 @@ import { timeFrames } from '../../../../shared/utils/timeFrameRanges';
 @Component({
   selector: 'gio-quick-time-range',
   templateUrl: './gio-quick-time-range.component.html',
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

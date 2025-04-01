@@ -26,6 +26,7 @@ import { ConditionType, Metrics, Scope } from '../../../../../../entities/alert'
   selector: 'metrics-simple-condition',
   templateUrl: './metrics-simple-condition.component.html',
   styleUrls: ['../scss/conditions.component.scss'],
+  standalone: false,
 })
 export class MetricsSimpleConditionComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

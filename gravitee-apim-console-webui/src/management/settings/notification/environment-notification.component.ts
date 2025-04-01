@@ -41,6 +41,7 @@ import { Constants } from '../../../entities/Constants';
   selector: 'environment-notification',
   templateUrl: './environment-notification.component.html',
   styleUrls: ['./environment-notification.component.scss'],
+  standalone: false,
 })
 export class EnvironmentNotificationComponent implements OnInit, OnDestroy {
   private envId = this.constants.org.currentEnv.id;

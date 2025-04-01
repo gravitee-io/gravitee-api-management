@@ -74,6 +74,7 @@ export type ApplicationSubscriptionCreationDialogResult = {
   selector: 'application-subscription-list',
   templateUrl: './application-subscription-list.component.html',
   styleUrls: ['./application-subscription-list.component.scss'],
+  standalone: false,
 })
 export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

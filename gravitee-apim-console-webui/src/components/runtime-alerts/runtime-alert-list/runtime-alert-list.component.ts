@@ -21,6 +21,7 @@ import { AlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity'
   selector: 'runtime-alert-list',
   templateUrl: './runtime-alert-list.component.html',
   styleUrls: ['./runtime-alert-list.component.scss'],
+  standalone: false,
 })
 export class RuntimeAlertListComponent {
   @Input() public alerts: AlertTriggerEntity[];

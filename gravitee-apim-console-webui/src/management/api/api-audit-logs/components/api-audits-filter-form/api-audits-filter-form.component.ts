@@ -32,6 +32,7 @@ export interface ApiAuditFilter {
   selector: 'api-audits-filter-form',
   templateUrl: './api-audits-filter-form.component.html',
   styleUrls: ['./api-audits-filter-form.component.scss'],
+  standalone: false,
 })
 export class ApiAuditsFilterFormComponent implements OnInit, OnDestroy {
   @Input()

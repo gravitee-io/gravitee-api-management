@@ -19,5 +19,6 @@ import { Component } from '@angular/core';
   selector: 'gio-go-back-button',
   templateUrl: './gio-go-back-button.component.html',
   styleUrls: ['./gio-go-back-button.component.scss'],
+  standalone: false,
 })
 export class GioGoBackComponent {}

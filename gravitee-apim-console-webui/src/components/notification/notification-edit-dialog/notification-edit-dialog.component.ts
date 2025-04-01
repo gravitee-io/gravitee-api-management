@@ -36,6 +36,7 @@ export type NotificationEditDialogResult = NotificationSettings;
   templateUrl: './notification-edit-dialog.component.html',
   styleUrls: ['./notification-edit-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class NotificationEditDialogComponent {
   protected readonly hooks: Hooks[] = this.dialogData.hooks;

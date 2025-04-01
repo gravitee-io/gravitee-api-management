@@ -30,6 +30,7 @@ import { PortalConfigurationService } from '../../../../../services-ngx/portal-c
   selector: 'step-5-summary',
   templateUrl: './step-5-summary.component.html',
   styleUrls: ['./step-5-summary.component.scss', '../api-creation-steps-common.component.scss'],
+  standalone: false,
 })
 export class Step5SummaryComponent implements OnInit {
   public currentStepPayload: ApiCreationPayload;

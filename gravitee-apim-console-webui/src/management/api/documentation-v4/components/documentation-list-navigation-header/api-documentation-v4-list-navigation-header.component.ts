@@ -23,6 +23,7 @@ import { ApiSpecGenState } from '../../../../../services-ngx/api-spec-gen.servic
   selector: 'api-documentation-list-navigation-header',
   templateUrl: './api-documentation-v4-list-navigation-header.component.html',
   styleUrls: ['./api-documentation-v4-list-navigation-header.component.scss'],
+  standalone: false,
 })
 export class ApiDocumentationV4ListNavigationHeaderComponent {
   @Input()

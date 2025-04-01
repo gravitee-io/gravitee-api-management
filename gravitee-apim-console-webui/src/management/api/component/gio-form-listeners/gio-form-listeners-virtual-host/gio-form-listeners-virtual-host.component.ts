@@ -41,6 +41,7 @@ interface InternalPathV4 extends PathV4 {
   selector: 'gio-form-listeners-virtual-host',
   templateUrl: './gio-form-listeners-virtual-host.component.html',
   styleUrls: ['../gio-form-listeners.common.scss', './gio-form-listeners-virtual-host.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -43,6 +43,7 @@ enum ToggleOptions {
   selector: 'app-api-portal-header',
   templateUrl: './api-portal-header.component.html',
   styleUrls: ['./api-portal-header.component.scss'],
+  standalone: false,
 })
 export class ApiPortalHeaderComponent implements OnInit, OnDestroy {
   protected readonly ToggleOptions = ToggleOptions;

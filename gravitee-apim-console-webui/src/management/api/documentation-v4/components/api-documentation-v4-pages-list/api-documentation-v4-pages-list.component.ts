@@ -23,6 +23,7 @@ import { getLogoForPageType, Page, getTooltipForPageType, getTitleForPageType } 
   selector: 'api-documentation-v4-pages-list',
   templateUrl: './api-documentation-v4-pages-list.component.html',
   styleUrls: ['./api-documentation-v4-pages-list.component.scss'],
+  standalone: false,
 })
 export class ApiDocumentationV4PagesListComponent implements OnInit, OnChanges {
   @Input()

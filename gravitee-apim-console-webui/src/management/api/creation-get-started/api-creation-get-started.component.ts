@@ -37,6 +37,7 @@ import {
   selector: 'api-creation-get-started',
   templateUrl: './api-creation-get-started.component.html',
   styleUrls: ['./api-creation-get-started.component.scss'],
+  standalone: false,
 })
 export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
   cockpitLink: string;

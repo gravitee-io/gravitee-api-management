@@ -38,6 +38,7 @@ import { HealthcheckMetrics } from '../../../../../entities/alerts/healthcheck.m
   selector: 'runtime-alert-create-filters',
   templateUrl: './runtime-alert-create-filters.component.html',
   styleUrls: ['./runtime-alert-create-filters.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

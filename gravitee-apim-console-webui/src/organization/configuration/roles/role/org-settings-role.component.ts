@@ -34,6 +34,7 @@ type RolePermissionsTableDM = {
   selector: 'org-settings-role',
   templateUrl: './org-settings-role.component.html',
   styleUrls: ['./org-settings-role.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   isLoading = true;

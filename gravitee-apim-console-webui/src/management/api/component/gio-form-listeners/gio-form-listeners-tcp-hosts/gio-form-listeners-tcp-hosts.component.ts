@@ -39,6 +39,7 @@ import { hostAsyncValidator } from '../../../../../shared/validators/host/host-a
   selector: 'gio-form-listeners-tcp-hosts',
   templateUrl: './gio-form-listeners-tcp-hosts.component.html',
   styleUrls: ['../gio-form-listeners.common.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

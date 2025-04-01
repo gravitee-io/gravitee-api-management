@@ -29,6 +29,7 @@ type UserValue = SearchableUser;
   selector: 'gio-form-user-autocomplete',
   templateUrl: './gio-form-user-autocomplete.component.html',
   styleUrls: ['./gio-form-user-autocomplete.component.scss'],
+  standalone: false,
 })
 export class GioFormUserAutocompleteComponent implements OnInit, ControlValueAccessor {
   private unsubscribe$: Subject<void> = new Subject<void>();

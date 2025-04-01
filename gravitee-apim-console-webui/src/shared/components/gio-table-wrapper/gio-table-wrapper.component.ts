@@ -61,6 +61,7 @@ const INITIAL_FILTERS_VALUE: GioTableWrapperFilters = {
   selector: 'gio-table-wrapper',
   templateUrl: './gio-table-wrapper.component.html',
   styleUrls: ['./gio-table-wrapper.component.scss'],
+  standalone: false,
 })
 export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   // Change filters value
