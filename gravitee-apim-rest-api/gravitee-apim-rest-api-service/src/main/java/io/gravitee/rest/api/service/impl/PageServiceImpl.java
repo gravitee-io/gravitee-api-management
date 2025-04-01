@@ -610,15 +610,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private String getContextPath(GenericApiEntity genericApiEntity) {
-        if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
-            return null;
-        }
-
-        if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
-            ApiEntity apiEntity = (ApiEntity) genericApiEntity;
+        if (genericApiEntity instanceof ApiEntity apiEntity) {
             return apiEntity.getContextPath();
-        } else {
-            io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
+        } else if (genericApiEntity instanceof io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity) {
             return apiEntity
                 .getListeners()
                 .stream()
@@ -628,6 +622,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 .map(listener -> listener.getPaths().get(0).getPath())
                 .orElse(null);
         }
+        return null;
     }
 
     private void sanitizeMarkdown(PageEntity pageEntity) {
