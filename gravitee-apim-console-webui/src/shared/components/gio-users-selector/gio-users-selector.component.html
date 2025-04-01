@@ -28,14 +28,14 @@
       <mat-icon matPrefix>search</mat-icon>
       <mat-label>Search a user by name or email</mat-label>
       <input matInput type="search" [matAutocomplete]="auto" [formControl]="userSearchTerm" />
-      <button *ngIf="this.userSearchTerm.value" matSuffix mat-icon-button aria-label="Clear" (click)="resetSearchTerm()">
+      <button *ngIf="userSearchTerm.value" matSuffix mat-icon-button aria-label="Clear" (click)="resetSearchTerm()">
         <mat-icon>close</mat-icon>
       </button>
       <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectUser($event)">
         <mat-option *ngFor="let option of users | async" [value]="option">
           {{ option.displayName }}
         </mat-option>
-        <mat-option *ngIf="(users | async)?.length === 0 && this.userSearchTerm.value?.length > 0" disabled
+        <mat-option *ngIf="(users | async)?.length === 0 && userSearchTerm.value?.length > 0" disabled
           >No user matching the term or user already selected</mat-option
         >
       </mat-autocomplete>

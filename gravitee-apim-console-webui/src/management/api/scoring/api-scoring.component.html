@@ -41,7 +41,7 @@
             ><mat-icon class="gio-left" svgIcon="gio:shield-check"></mat-icon> {{ apiScoring.summary.score * 100 | number: '1.0-0' }}%
           </span>
         }
-        @if (this.evaluationErrors.length > 0) {
+        @if (evaluationErrors.length > 0) {
           <span class="gio-badge-error"><mat-icon svgIcon="gio:shield-alert"></mat-icon></span>
         }
 

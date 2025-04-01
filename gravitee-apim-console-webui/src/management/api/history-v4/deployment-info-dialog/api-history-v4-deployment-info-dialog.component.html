@@ -52,8 +52,8 @@
       *gioPermission="{ anyOf: ['api-definition-u'] }"
       mat-stroked-button
       aria-label="Button to rollback"
-      [matTooltip]="'Rollback to version ' + this.data.version"
-      [mat-dialog-close]="{ rollbackTo: this.data.eventId }"
+      [matTooltip]="'Rollback to version ' + data.version"
+      [mat-dialog-close]="{ rollbackTo: data.eventId }"
     >
       <mat-icon svgIcon="gio:rotate-ccw"></mat-icon> Rollback
     </button>

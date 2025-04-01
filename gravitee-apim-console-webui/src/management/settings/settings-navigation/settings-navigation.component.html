@@ -18,7 +18,7 @@
 <div class="settings-navigation">
   <div class="settings-navigation__menu">
     <gio-submenu class="settings-navigation__submenu">
-      <ng-container *ngFor="let group of this.groupItems">
+      <ng-container *ngFor="let group of groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.items && group.items.length > 0">
           <ng-container *ngFor="let item of group.items">
             <a [routerLink]="item.routerLink" routerLinkActive #rla="routerLinkActive">
@@ -32,7 +32,7 @@
   <div class="settings-navigation__content">
     <gio-breadcrumb *ngIf="hasBreadcrumb" class="settings-navigation__breadcrumb">
       <span *gioBreadcrumbItem class="settings-navigation__breadcrumb__item">Settings</span>
-      <ng-template ngFor let-item [ngForOf]="this.computeBreadcrumbItems()">
+      <ng-template ngFor let-item [ngForOf]="computeBreadcrumbItems()">
         <span *gioBreadcrumbItem class="settings-navigation__breadcrumb__item">{{ item }}</span>
       </ng-template>
     </gio-breadcrumb>

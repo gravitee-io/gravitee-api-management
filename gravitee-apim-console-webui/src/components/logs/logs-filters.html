@@ -79,7 +79,7 @@
         <md-option ng-value="tenant.id" ng-repeat="tenant in $ctrl.metadata.tenants">{{tenant.name}}</md-option>
       </md-select>
     </md-input-container>
-    <md-input-container ng-if="$ctrl.this.activatedRoute.snapshot.params.apiId">
+    <md-input-container ng-if="$ctrl.activatedRoute.snapshot.params.apiId">
       <md-select ng-model="$ctrl.displayMode" ng-change="$ctrl.updateDisplayMode()" placeholder="Display mode">
         <md-option ng-repeat="displayMode in $ctrl.displayModes" ng-value="displayMode"> {{displayMode.label}} </md-option>
       </md-select>
