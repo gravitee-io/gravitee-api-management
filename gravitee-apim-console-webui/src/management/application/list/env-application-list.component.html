@@ -24,7 +24,7 @@
       class="status__radio-group"
       aria-label="Select a status"
       (change)="onStatusChange()"
-      [(ngModel)]="this.currentStatus"
+      [(ngModel)]="currentStatus"
     >
       <mat-radio-button class="status__radio-group__button" *ngFor="let status of statusFilters" [value]="status">
         {{ status }}
@@ -129,12 +129,12 @@
       </td>
     </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="this.displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: this.displayedColumns"></tr>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
     <!-- Row shown when there is no data -->
     <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="this.displayedColumns.length">
+      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
         {{ 'ACTIVE' === currentStatus ? 'There is no application (yet).' : 'There is no archived application.' }}
       </td>
     </tr>

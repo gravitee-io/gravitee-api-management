@@ -24,7 +24,7 @@
           [selectedItemValue]="currentEnv.id"
           selectorTitle="Environment"
           [selectorItems]="environments"
-          (selectChange)="this.changeCurrentEnv($event)"
+          (selectChange)="changeCurrentEnv($event)"
         ></gio-menu-selector>
       </div>
       <gio-menu-search (valueChanges)="navigate($event)"> </gio-menu-search>

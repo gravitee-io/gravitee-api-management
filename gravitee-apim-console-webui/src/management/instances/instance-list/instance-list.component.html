@@ -105,12 +105,12 @@
       </td>
     </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="this.displayedColumns" data-testid="instance-list-table-header"></tr>
-    <tr mat-row *matRowDef="let row; columns: this.displayedColumns" data-testid="instance-list-table-row"></tr>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns" data-testid="instance-list-table-header"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="instance-list-table-row"></tr>
 
     <!-- Row shown when there is no data -->
     <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="this.displayedColumns.length">
+      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
         {{ 'There are no Gateway instances (yet).' }}
       </td>
     </tr>

@@ -29,13 +29,13 @@
             </button>
           </div>
           <gio-form-listeners-context-path
-            *ngIf="!this.enableVirtualHost"
+            *ngIf="!enableVirtualHost"
             [formControl]="pathsFormControl"
             [apiId]="apiId"
           ></gio-form-listeners-context-path>
 
           <gio-form-listeners-virtual-host
-            *ngIf="this.enableVirtualHost"
+            *ngIf="enableVirtualHost"
             [formControl]="pathsFormControl"
             [apiId]="apiId"
             [domainRestrictions]="domainRestrictions"

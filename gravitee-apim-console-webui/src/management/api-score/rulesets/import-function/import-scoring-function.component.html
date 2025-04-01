@@ -53,7 +53,7 @@
               mat-raised-button
               disabled
               data-testid="import-button"
-              [disabled]="form.invalid || !this.importType"
+              [disabled]="form.invalid || !importType"
               color="primary"
               (click)="importFunction()"
             >

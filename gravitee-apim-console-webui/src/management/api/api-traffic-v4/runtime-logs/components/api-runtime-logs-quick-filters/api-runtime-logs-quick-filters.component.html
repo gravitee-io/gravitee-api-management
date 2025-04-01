@@ -50,7 +50,7 @@
         <api-runtime-logs-more-filters
           [showMoreFilters]="showMoreFilters"
           [formValues]="moreFiltersValues"
-          (closeMoreFiltersEvent)="this.showMoreFilters = false"
+          (closeMoreFiltersEvent)="showMoreFilters = false"
           (applyMoreFiltersEvent)="applyMoreFilters($event)"
         ></api-runtime-logs-more-filters>
         <button mat-stroked-button type="button" class="action__button" [disabled]="loading" (click)="showMoreFilters = true">
