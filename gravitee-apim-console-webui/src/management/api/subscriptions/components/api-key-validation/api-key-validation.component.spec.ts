@@ -35,6 +35,7 @@ const APP_ID = 'my-app-id';
 @Component({
   selector: 'test-component',
   template: `<api-key-validation [formControl]="apiKey" [apiId]="apiId" [applicationId]="applicationId"></api-key-validation>`,
+  standalone: false,
 })
 class TestComponent {
   apiId: string = API_ID;

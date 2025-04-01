@@ -32,6 +32,7 @@ import { Constants } from '../../../../../entities/Constants';
 
 @Component({
   template: ` <gio-form-listeners-context-path [formControl]="formControl"></gio-form-listeners-context-path> `,
+  standalone: false,
 })
 class TestComponent {
   public formControl = new FormControl([]);
@@ -39,6 +40,7 @@ class TestComponent {
 
 @Component({
   template: ` <gio-form-listeners-context-path [formControl]="formControl" apiId="api-id"></gio-form-listeners-context-path> `,
+  standalone: false,
 })
 class TestComponentWithApiId {
   public formControl = new FormControl([]);

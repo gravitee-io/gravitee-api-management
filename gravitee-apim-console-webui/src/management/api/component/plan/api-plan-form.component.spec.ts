@@ -64,6 +64,7 @@ import { isApiV4 } from '../../../../util';
       [isTcpApi]="isTcpApi"
     ></api-plan-form>
   `,
+  standalone: false,
 })
 class TestComponent {
   @ViewChild('apiPlanForm') apiPlanForm: ApiPlanFormComponent;

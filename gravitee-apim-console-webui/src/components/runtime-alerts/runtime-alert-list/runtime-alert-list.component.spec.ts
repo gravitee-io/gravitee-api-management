@@ -31,6 +31,7 @@ import { GioTestingModule } from '../../../shared/testing';
 @Component({
   selector: 'test-component',
   template: ` <runtime-alert-list [alerts]="alerts"></runtime-alert-list>`,
+  standalone: false,
 })
 class TestComponent {
   alerts: AlertTriggerEntity[] = [

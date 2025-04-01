@@ -32,6 +32,7 @@ import { ListenerType } from '../../../../../entities/management-api-v2';
 
 @Component({
   template: ` <gio-form-listeners-tcp-hosts [formControl]="formControl"></gio-form-listeners-tcp-hosts> `,
+  standalone: false,
 })
 class TestComponent {
   public formControl = new FormControl([]);
@@ -39,6 +40,7 @@ class TestComponent {
 
 @Component({
   template: ` <gio-form-listeners-tcp-hosts [formControl]="formControl" apiId="api-id"></gio-form-listeners-tcp-hosts> `,
+  standalone: false,
 })
 class TestComponentWithApiId {
   public formControl = new FormControl([]);

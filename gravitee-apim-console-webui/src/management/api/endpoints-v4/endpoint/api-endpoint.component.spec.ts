@@ -58,6 +58,7 @@ function expectHealthCheckSchemaGet(fixture: ComponentFixture<any>, httpTestingC
 
 @Component({
   template: `<api-endpoint #apiEndpoint></api-endpoint>`,
+  standalone: false,
 })
 class TestComponent {
   @ViewChild('apiEndpoint') apiEndpoint: ApiEndpointComponent;
