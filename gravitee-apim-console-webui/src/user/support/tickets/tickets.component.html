@@ -63,18 +63,18 @@
       </td>
     </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="this.displayedColumns" data-testid="tickets-table-header"></tr>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns" data-testid="tickets-table-header"></tr>
     <tr
       mat-row
       class="user-support-tickets__row"
-      *matRowDef="let row; columns: this.displayedColumns"
+      *matRowDef="let row; columns: displayedColumns"
       data-testid="tickets-table-row"
       [routerLink]="['.', row.id]"
     ></tr>
 
     <!-- Row shown when there is no data -->
     <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="this.displayedColumns.length">
+      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
         {{ 'There are no tickets (yet).' }}
       </td>
     </tr>

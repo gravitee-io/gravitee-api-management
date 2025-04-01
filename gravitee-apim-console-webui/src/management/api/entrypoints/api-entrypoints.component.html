@@ -19,23 +19,21 @@
   <mat-card-content>
     <form [formGroup]="formGroup" *ngIf="formGroup" (ngSubmit)="onSubmit()">
       <div class="title">
-        <button *ngIf="!this.isReadOnly" (click)="switchEntrypointMode()" mat-button type="button">
-          <ng-container *ngIf="!this.virtualHostModeEnabled"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
-          <ng-container *ngIf="this.virtualHostModeEnabled">
-            <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts
-          </ng-container>
+        <button *ngIf="!isReadOnly" (click)="switchEntrypointMode()" mat-button type="button">
+          <ng-container *ngIf="!virtualHostModeEnabled"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
+          <ng-container *ngIf="virtualHostModeEnabled"> <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts </ng-container>
         </button>
       </div>
 
       <ng-container *ngIf="apiProxy">
         <gio-form-listeners-context-path
-          *ngIf="!this.virtualHostModeEnabled"
+          *ngIf="!virtualHostModeEnabled"
           [formControl]="pathsFormControl"
           [apiId]="api.id"
         ></gio-form-listeners-context-path>
 
         <gio-form-listeners-virtual-host
-          *ngIf="this.virtualHostModeEnabled"
+          *ngIf="virtualHostModeEnabled"
           [formControl]="pathsFormControl"
           [apiId]="api.id"
           [domainRestrictions]="domainRestrictions"

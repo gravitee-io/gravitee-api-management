@@ -21,7 +21,7 @@
   </button>
 
   <mat-menu #menu="matMenu">
-    @for (pageTypeVm of this.pageTypesVm; track pageTypeVm.pageType) {
+    @for (pageTypeVm of pageTypesVm; track pageTypeVm.pageType) {
       <button (click)="addPage.emit(pageTypeVm.pageType)" mat-menu-item>
         {{ pageTypeVm.label }}
         <img [ngSrc]="pageTypeVm.src" height="24" width="24" [alt]="pageTypeVm.alt" />

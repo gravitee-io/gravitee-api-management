@@ -18,8 +18,8 @@
 
 <mat-card class="card">
   <mat-card-header>
-    <mat-card-title class="mat-h5">Availability Per-{{ this.field | titlecase }}</mat-card-title>
-    <mat-card-subtitle> Availability per-{{ this.field }} where health-check is enabled.</mat-card-subtitle>
+    <mat-card-title class="mat-h5">Availability Per-{{ field | titlecase }}</mat-card-title>
+    <mat-card-subtitle> Availability per-{{ field }} where health-check is enabled.</mat-card-subtitle>
   </mat-card-header>
 
   @if (isLoading) {
@@ -38,7 +38,7 @@
       >
         <table mat-table matSort [dataSource]="filteredDataSource">
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef id="name">{{ this.field | titlecase }}</th>
+            <th mat-header-cell *matHeaderCellDef id="name">{{ field | titlecase }}</th>
             <td mat-cell *matCellDef="let group">{{ group.name }}</td>
           </ng-container>
           <ng-container matColumnDef="availability">

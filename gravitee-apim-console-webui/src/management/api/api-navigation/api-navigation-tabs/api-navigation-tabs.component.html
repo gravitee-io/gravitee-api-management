@@ -16,7 +16,7 @@
 
 -->
 <nav mat-tab-nav-bar class="api-navigation-tabs" [tabPanel]="tabPanel">
-  @for (menuItem of this.tabMenuItems; track menuItem.displayName) {
+  @for (menuItem of tabMenuItems; track menuItem.displayName) {
     <a
       *ngIf="menuItem.routerLink !== 'DISABLED'"
       mat-tab-link

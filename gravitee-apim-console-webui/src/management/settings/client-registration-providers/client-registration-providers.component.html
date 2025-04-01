@@ -28,7 +28,7 @@
           class="client-registration-providers__card__type__toggle"
           formGroupName="simple"
           [matTooltip]="disabledMessage"
-          [matTooltipDisabled]="!this.applicationForm.get('types.simple.enabled').disabled"
+          [matTooltipDisabled]="!applicationForm.get('types.simple.enabled').disabled"
         >
           <gio-form-label>Simple</gio-form-label>
           A hands-free application. Using this type, you will be able to define the client_id by your own
@@ -64,7 +64,7 @@
         class="client-registration-providers__card__toggle"
         formGroupName="registration"
         [matTooltip]="disabledMessage"
-        [matTooltipDisabled]="!this.applicationForm.get('registration.enabled').disabled"
+        [matTooltipDisabled]="!applicationForm.get('registration.enabled').disabled"
       >
         <gio-form-label> Enable Dynamic Client Registration</gio-form-label>
 
@@ -83,7 +83,7 @@
           class="client-registration-providers__card__type__toggle"
           formGroupName="browser"
           [matTooltip]="disabledMessage"
-          [matTooltipDisabled]="!this.applicationForm.get('types.browser.enabled').disabled"
+          [matTooltipDisabled]="!applicationForm.get('types.browser.enabled').disabled"
         >
           <gio-form-label>Browser</gio-form-label>
           Angular, React, ...
@@ -99,7 +99,7 @@
           class="client-registration-providers__card__type__toggle"
           formGroupName="web"
           [matTooltip]="disabledMessage"
-          [matTooltipDisabled]="!this.applicationForm.get('types.web.enabled').disabled"
+          [matTooltipDisabled]="!applicationForm.get('types.web.enabled').disabled"
         >
           <gio-form-label>Web</gio-form-label>
           Java, .Net, ...
@@ -115,7 +115,7 @@
           class="client-registration-providers__card__type__toggle"
           formGroupName="native"
           [matTooltip]="disabledMessage"
-          [matTooltipDisabled]="!this.applicationForm.get('types.native.enabled').disabled"
+          [matTooltipDisabled]="!applicationForm.get('types.native.enabled').disabled"
         >
           <gio-form-label>Native</gio-form-label>
           iOS, Android, ...
@@ -131,7 +131,7 @@
           class="client-registration-providers__card__type__toggle"
           formGroupName="backend_to_backend"
           [matTooltip]="disabledMessage"
-          [matTooltipDisabled]="!this.applicationForm.get('types.backend_to_backend.enabled').disabled"
+          [matTooltipDisabled]="!applicationForm.get('types.backend_to_backend.enabled').disabled"
         >
           <gio-form-label>Backend-to-Backend</gio-form-label>
           <mat-slide-toggle

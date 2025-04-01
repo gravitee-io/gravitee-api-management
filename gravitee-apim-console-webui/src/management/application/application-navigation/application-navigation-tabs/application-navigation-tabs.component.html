@@ -24,7 +24,7 @@
   </div>
 </div>
 <nav mat-tab-nav-bar class="application-navigation-tabs" [tabPanel]="tabPanel">
-  <ng-container *ngFor="let menuItem of this.tabMenuItems">
+  <ng-container *ngFor="let menuItem of tabMenuItems">
     <a
       *ngIf="menuItem.routerLink !== 'DISABLED'"
       mat-tab-link
