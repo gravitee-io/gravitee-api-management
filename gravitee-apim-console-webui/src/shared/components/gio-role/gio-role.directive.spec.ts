@@ -23,7 +23,7 @@ import { GioRoleService } from './gio-role.service';
 import { User } from '../../../entities/user/user';
 import { fakeAdminUser } from '../../../entities/user/user.fixture';
 
-@Component({ template: `<div *gioRole="role">A Content</div>` })
+@Component({ template: `<div *gioRole="role">A Content</div>`, standalone: false })
 class TestRoleComponent {
   @Input()
   role: GioRoleCheckOptions;

@@ -23,6 +23,7 @@ import { GioDiffModule } from './gio-diff.module';
 
 @Component({
   template: `<gio-diff [left]="left" [right]="right"></gio-diff>`,
+  standalone: false,
 })
 class TestComponent {
   left = '';
