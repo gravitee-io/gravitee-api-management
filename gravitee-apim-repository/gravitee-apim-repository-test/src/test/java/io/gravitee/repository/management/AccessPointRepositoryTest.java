@@ -127,6 +127,31 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
             .builder()
             .from(1486771200000L - 1)
             .to(1486771200000L + 1)
+            .targets(List.of(AccessPointTarget.GATEWAY))
+            .status(AccessPointStatus.CREATED)
+            .referenceType(AccessPointReferenceType.ENVIRONMENT)
+            .referenceIds(Set.of("b78f2219-890d-4344-8f22-19890d834442"))
+            .build();
+
+        List<AccessPoint> accessPoints = accessPointRepository.findByCriteria(accessPointCriteria, null, null);
+
+        assertEquals(1, accessPoints.size());
+        AccessPoint accessPoint = accessPoints.get(0);
+        assertEquals("prod.en.company.apim-gateway.gravitee.io:8082", accessPoint.getHost());
+        assertEquals("b78f2219-890d-4344-8f22-19890d834442", accessPoint.getReferenceId());
+        assertEquals(AccessPointTarget.GATEWAY, accessPoint.getTarget());
+        assertFalse(accessPoint.isSecured());
+        assertFalse(accessPoint.isOverriding());
+        assertEquals(AccessPointStatus.CREATED, accessPoint.getStatus());
+        assertTrue(compareDate(new Date(1486771200000L), accessPoint.getUpdatedAt()));
+    }
+
+    @Test
+    public void should_return_access_point_from_criteria_with_target() throws Exception {
+        AccessPointCriteria accessPointCriteria = AccessPointCriteria
+            .builder()
+            .from(1486771200000L - 1)
+            .to(1486771200000L + 1)
             .target(AccessPointTarget.GATEWAY)
             .status(AccessPointStatus.CREATED)
             .referenceType(AccessPointReferenceType.ENVIRONMENT)

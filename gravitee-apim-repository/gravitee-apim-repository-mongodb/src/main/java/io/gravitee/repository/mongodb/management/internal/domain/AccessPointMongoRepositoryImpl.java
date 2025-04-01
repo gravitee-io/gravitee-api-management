@@ -73,6 +73,10 @@ public class AccessPointMongoRepositoryImpl implements AccessPointMongoRepositor
             criteriaList.add(Criteria.where("target").is(criteria.getTarget().name()));
         }
 
+        if (criteria.getTargets() != null && !criteria.getTargets().isEmpty()) {
+            criteriaList.add(Criteria.where("target").in(criteria.getTargets()));
+        }
+
         if (criteria.getFrom() > 0 && criteria.getTo() > 0) {
             criteriaList.add(Criteria.where("updatedAt").gt(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
         } else {
