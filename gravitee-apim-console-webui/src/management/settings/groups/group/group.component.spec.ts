@@ -576,6 +576,43 @@ describe('GroupComponent', () => {
       expect(disabled).toEqual(true);
     });
 
+    it('should disable user search when maximum allowed invitations limit reached', async () => {
+      await init(GROUP.id);
+      expectGetGroup({
+        disable_membership_notifications: false,
+        email_invitation: false,
+        event_rules: [],
+        lock_api_role: false,
+        lock_application_role: false,
+        max_invitation: 2,
+        manageable: true,
+        name: 'Group 1',
+        roles: {},
+        system_invitation: true,
+        id: '1',
+      });
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetGroupAPIs();
+      expectGetGroupApplications();
+      const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
+      await buttonHarness.click();
+      const menuHarness = await harnessLoader.getHarness(MatMenuHarness);
+      const userSearchMenuItem = await menuHarness.getHarness(
+        MatMenuItemHarness.with({ selector: '[aria-label="Click to invite user via search"]' }),
+      );
+      await userSearchMenuItem.click();
+      await rootLoader.getHarness(MatDialogHarness);
+      const autoCompleteHarness = await rootLoader.getHarness(MatAutocompleteHarness);
+      expect(await autoCompleteHarness.isDisabled()).toEqual(false);
+      await autoCompleteHarness.enterText('test');
+      const searchResults = await autoCompleteHarness.getOptions();
+      await searchResults[0].click();
+      expect(await autoCompleteHarness.isDisabled()).toEqual(true);
+    });
+
     it('should search and add users', async () => {
       await init(GROUP.id);
       expectGetGroup({
