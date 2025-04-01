@@ -28,7 +28,7 @@
         [apiDeploymentState]="currentApi.deploymentState"
         [apiOrigin]="currentApi.originContext.origin"
       ></api-navigation-title>
-      <ng-container *ngFor="let menuItem of this.subMenuItems">
+      <ng-container *ngFor="let menuItem of subMenuItems">
         <ng-container *ngIf="!menuItem?.routerLink && menuItem?.tabs?.length > 0">
           <a [routerLink]="menuItem?.tabs[0]?.routerLink">
             <gio-submenu-item
@@ -78,7 +78,7 @@
           [icon]="menuItem.icon"
         ></api-navigation-disabled>
       </ng-container>
-      <ng-container *ngFor="let group of this.groupItems">
+      <ng-container *ngFor="let group of groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.title">
           <ng-container *ngFor="let subItem of group.items">
             <ng-container *ngIf="!subItem?.routerLink && subItem?.tabs?.length > 0">
@@ -141,17 +141,14 @@
           [apiOrigin]="currentApi.originContext.origin"
           *gioBreadcrumbItem
         ></api-navigation-title>
-        <ng-template ngFor let-item [ngForOf]="this.computeBreadcrumbItems()">
+        <ng-template ngFor let-item [ngForOf]="computeBreadcrumbItems()">
           <span *gioBreadcrumbItem class="api-navigation__breadcrumb__item">{{ item }}</span>
         </ng-template>
       </gio-breadcrumb>
 
       <api-navigation-header *ngIf="selectedItemHeader" [menuItemHeader]="selectedItemHeader"></api-navigation-header>
 
-      <api-navigation-tabs
-        *ngIf="selectedItemWithTabs"
-        class="api-navigation__content__tabs"
-        [tabMenuItems]="this.selectedItemWithTabs.tabs"
+      <api-navigation-tabs *ngIf="selectedItemWithTabs" class="api-navigation__content__tabs" [tabMenuItems]="selectedItemWithTabs.tabs"
         ><router-outlet></router-outlet
       ></api-navigation-tabs>
       <ng-container *ngIf="!selectedItemWithTabs">

@@ -65,7 +65,7 @@
 
   <mat-dialog-actions align="end">
     <button mat-stroked-button type="button" [attr.aria-label]="'Cancel'" (click)="onClose()" data-testid="dialog-cancel">Cancel</button>
-    <button [disabled]="this.form.invalid || this.form.pristine" mat-raised-button type="submit" color="primary" data-testid="dialog-save">
+    <button [disabled]="form.invalid || form.pristine" mat-raised-button type="submit" color="primary" data-testid="dialog-save">
       Save
     </button>
   </mat-dialog-actions>

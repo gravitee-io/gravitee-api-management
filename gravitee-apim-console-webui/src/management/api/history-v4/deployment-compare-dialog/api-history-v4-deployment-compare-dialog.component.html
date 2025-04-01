@@ -15,36 +15,36 @@
     limitations under the License.
 
 -->
-<span mat-dialog-title>Comparing version {{ this.data.left.version }} with version {{ this.data.right.version }}</span>
+<span mat-dialog-title>Comparing version {{ data.left.version }} with version {{ data.right.version }}</span>
 
 <mat-dialog-content class="diff">
-  <gio-diff [left]="this.data.left.apiDefinition" [right]="this.data.right.apiDefinition"></gio-diff>
+  <gio-diff [left]="data.left.apiDefinition" [right]="data.right.apiDefinition"></gio-diff>
 </mat-dialog-content>
 <mat-dialog-actions class="actions">
   <ng-container *gioPermission="{ anyOf: ['api-definition-u'] }">
     <div class="actions__left">
       <span>
         <button
-          *ngIf="!this.data.left.hideRollback"
-          [matTooltip]="'Rollback to version ' + this.data.left.version"
+          *ngIf="!data.left.hideRollback"
+          [matTooltip]="'Rollback to version ' + data.left.version"
           mat-stroked-button
-          [aria-label]="'Button to rollback to ' + this.data.left.version"
-          [mat-dialog-close]="{ rollbackTo: this.data.left.eventId }"
+          [aria-label]="'Button to rollback to ' + data.left.version"
+          [mat-dialog-close]="{ rollbackTo: data.left.eventId }"
         >
-          <mat-icon svgIcon="gio:rotate-ccw"></mat-icon>Rollback to version {{ this.data.left.version }}
+          <mat-icon svgIcon="gio:rotate-ccw"></mat-icon>Rollback to version {{ data.left.version }}
         </button>
       </span>
     </div>
     <div class="actions__right">
       <button
-        *ngIf="!this.data.right.hideRollback"
+        *ngIf="!data.right.hideRollback"
         class="actions__right__rollbackBtn"
-        [matTooltip]="'Rollback to version ' + this.data.right.version"
+        [matTooltip]="'Rollback to version ' + data.right.version"
         mat-stroked-button
-        [aria-label]="'Button to rollback to ' + this.data.right.version"
-        [mat-dialog-close]="{ rollbackTo: this.data.right.eventId }"
+        [aria-label]="'Button to rollback to ' + data.right.version"
+        [mat-dialog-close]="{ rollbackTo: data.right.eventId }"
       >
-        <mat-icon svgIcon="gio:rotate-ccw"></mat-icon>Rollback to version {{ this.data.right.version }}
+        <mat-icon svgIcon="gio:rotate-ccw"></mat-icon>Rollback to version {{ data.right.version }}
       </button>
 
       <button mat-raised-button mat-dialog-close color="primary" type="button" aria-label="Close">Close</button>
