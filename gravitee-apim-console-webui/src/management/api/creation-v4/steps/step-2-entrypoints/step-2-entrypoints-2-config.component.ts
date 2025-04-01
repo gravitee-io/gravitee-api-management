@@ -58,7 +58,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public portalSettings$: Observable<PortalSettingsPortal>;
 
   private apiType: ApiCreationPayload['type'];
-  private envId: string;
 
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
@@ -69,14 +68,12 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     private readonly licenseService: GioLicenseService,
     private readonly portalConfigurationService: PortalConfigurationService,
     private readonly activatedRoute: ActivatedRoute,
-  ) {
-    this.envId = this.activatedRoute.snapshot.params.envHrid;
-  }
+  ) {}
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
     this.apiType = currentStepPayload.type;
-    this.portalSettings$ = this.portalConfigurationService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
+    this.portalSettings$ = this.portalConfigurationService.get().pipe(map(({ portal }) => portal));
 
     const paths = currentStepPayload.paths ?? [];
     const tcpHosts = currentStepPayload.hosts ?? [];

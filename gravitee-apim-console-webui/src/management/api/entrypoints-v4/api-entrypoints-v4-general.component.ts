@@ -106,11 +106,10 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     private readonly portalConfigurationService: PortalConfigurationService,
   ) {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
-    this.envId = this.activatedRoute.snapshot.params.envHrid;
   }
 
   ngOnInit(): void {
-    this.portalSettings$ = this.portalConfigurationService.getByEnvironmentId(this.envId).pipe(map(({ portal }) => portal));
+    this.portalSettings$ = this.portalConfigurationService.get().pipe(map(({ portal }) => portal));
 
     forkJoin([this.restrictedDomainService.get(), this.apiService.get(this.apiId), this.connectorPluginsV2Service.listEntrypointPlugins()])
       .pipe(takeUntil(this.unsubscribe$))
