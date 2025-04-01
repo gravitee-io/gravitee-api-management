@@ -31,6 +31,7 @@ import { ListenerType } from '../../../../../entities/management-api-v2';
 
 @Component({
   template: ` <form [formGroup]="form"><gio-form-listeners-kafka-host formControlName="kafka" /></form> `,
+  standalone: false,
 })
 class TestComponent {
   public form = new FormGroup({
@@ -40,6 +41,7 @@ class TestComponent {
 
 @Component({
   template: ` <form [formGroup]="form"><gio-form-listeners-kafka-host formControlName="kafka" apiId="api-id" /></form> `,
+  standalone: false,
 })
 class TestComponentWithApiId {
   public form = new FormGroup({

@@ -35,6 +35,7 @@ import { Constants } from '../../../../../entities/Constants';
       [domainRestrictions]="['aa.com', 'bb.com']"
     ></gio-form-listeners-virtual-host>
   `,
+  standalone: false,
 })
 class TestComponent {
   public formControl = new FormControl([]);

@@ -37,6 +37,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/te
     [subscriptionId]="subscriptionId"
     [readonly]="readonly"
   ></subscription-api-keys>`,
+  standalone: false,
 })
 class TestComponent {
   applicationId = 'applicationId';

@@ -36,6 +36,7 @@ import { GioFormColorInputModule } from './gio-form-color-input.module';
       <mat-error *ngIf="!colorControl.hasError('color')"> Has Error </mat-error>
     </mat-form-field>
   `,
+  standalone: false,
 })
 class TestComponent {
   required = false;

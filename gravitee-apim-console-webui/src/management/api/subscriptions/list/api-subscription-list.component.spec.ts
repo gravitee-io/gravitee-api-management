@@ -56,6 +56,7 @@ import { Constants } from '../../../../entities/Constants';
 
 @Component({
   template: ` <api-subscription-list #apiSubscriptionList></api-subscription-list> `,
+  standalone: false,
 })
 class TestComponent {
   @ViewChild('apiSubscriptionList') apiSubscriptionListComponent: ApiSubscriptionListComponent;
