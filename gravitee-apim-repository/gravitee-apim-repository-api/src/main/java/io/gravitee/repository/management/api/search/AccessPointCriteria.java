@@ -39,7 +39,14 @@ public class AccessPointCriteria {
 
     private final AccessPointReferenceType referenceType;
 
+    /**
+     * @deprecated Use {@link #targets} instead.
+     * Keep for backward compatibility with bridge for gateway <= 4.7.x
+     */
+    @Deprecated
     private final AccessPointTarget target;
+
+    private final List<AccessPointTarget> targets;
 
     private final Set<String> referenceIds;
 

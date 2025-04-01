@@ -183,6 +183,14 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
             args.add(criteria.getTarget().name());
         }
 
+        if (criteria.getTargets() != null && !criteria.getTargets().isEmpty()) {
+            first = addClause(first, criteriaBuilder);
+            criteriaBuilder.append("target IN (");
+            criteriaBuilder.append(criteria.getTargets().stream().map(target -> "?").collect(Collectors.joining(",")));
+            criteriaBuilder.append(")");
+            args.addAll(criteria.getTargets().stream().map(AccessPointTarget::name).toList());
+        }
+
         if (criteria.getStatus() != null) {
             first = addClause(first, criteriaBuilder);
             criteriaBuilder.append("status = ?");
