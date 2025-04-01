@@ -28,14 +28,16 @@ import {
   Header,
 } from '@gravitee/ui-particles-angular';
 import { MatRadioModule } from '@angular/material/radio';
-import { filter, map, share, startWith, tap } from 'rxjs/operators';
+import { filter, map, share, startWith, switchMap, tap } from 'rxjs/operators';
 import { MatSelectModule } from '@angular/material/select';
 import { Observable, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ApplicationType } from '../../../../entities/application-type/ApplicationType';
-import { GroupService } from '../../../../services-ngx/group.service';
 import { Group } from '../../../../entities/group/group';
+import { UsersService } from '../../../../services-ngx/users.service';
+import { CurrentUserService } from '../../../../services-ngx/current-user.service';
+import { User } from '../../../../entities/user/user';
 
 export type ApplicationForm = {
   name: FormControl<string>;
@@ -86,6 +88,11 @@ export class ApplicationCreationFormComponent implements OnInit {
   @Input({ required: true })
   public applicationFormGroup: FormGroup<ApplicationForm>;
 
+  @Input({ required: true })
+  public requireUserGroups: boolean;
+
+  hasGroupsToAdd: boolean = true;
+
   private destroyRef = inject(DestroyRef);
 
   public applicationType$?: Observable<
@@ -97,10 +104,13 @@ export class ApplicationCreationFormComponent implements OnInit {
   >;
   groupsList: Observable<Group[]> = of([]);
 
-  constructor(private readonly groupService: GroupService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private currentUserService: CurrentUserService,
+  ) {}
 
   ngOnInit() {
-    this.initializeGroups();
+    this.initializeUserGroups();
 
     this.applicationType$ = this.applicationFormGroup.get('type').valueChanges.pipe(
       startWith(this.applicationFormGroup.get('type').value),
@@ -142,9 +152,17 @@ export class ApplicationCreationFormComponent implements OnInit {
     );
   }
 
-  private initializeGroups() {
-    this.groupsList = this.groupService.list().pipe(
-      map((_) => _.sort((a, b) => a.name.localeCompare(b.name))),
+  private initializeUserGroups() {
+    this.groupsList = this.currentUserService.current().pipe(
+      switchMap((user: User) =>
+        this.usersService.getUserGroups(user.id).pipe(
+          map((groups) => {
+            this.hasGroupsToAdd = groups.length > 0;
+            return groups.sort((a, b) => a.name.localeCompare(b.name));
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        ),
+      ),
       takeUntilDestroyed(this.destroyRef),
     );
   }

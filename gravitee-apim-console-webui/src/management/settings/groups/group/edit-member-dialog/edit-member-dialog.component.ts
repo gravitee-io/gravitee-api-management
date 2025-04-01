@@ -28,7 +28,7 @@ import { MatInput } from '@angular/material/input';
 import { Observable, of, startWith } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { MatChip, MatChipRemove, MatChipSet } from '@angular/material/chips';
-import { GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { RoleName } from '../membershipState';
@@ -64,6 +64,7 @@ import { Group } from '../../../../../entities/group/group';
     MatChipRemove,
     MatChipSet,
     GioFormSlideToggleModule,
+    GioBannerModule,
   ],
   templateUrl: './edit-member-dialog.component.html',
   styleUrl: './edit-member-dialog.component.scss',

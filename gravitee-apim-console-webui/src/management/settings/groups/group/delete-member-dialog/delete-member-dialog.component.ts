@@ -27,6 +27,7 @@ import { Observable, of, startWith } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { MatListModule } from '@angular/material/list';
 import { MatChip, MatChipRemove, MatChipSet } from '@angular/material/chips';
+import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
 import { GroupMembership } from '../../../../../entities/group/groupMember';
 import { RoleName } from '../membershipState';
@@ -50,6 +51,7 @@ import { DeleteMemberDialogData } from '../group.component';
     MatChip,
     MatChipRemove,
     MatChipSet,
+    GioBannerModule,
   ],
   templateUrl: './delete-member-dialog.component.html',
   styleUrl: './delete-member-dialog.component.scss',
