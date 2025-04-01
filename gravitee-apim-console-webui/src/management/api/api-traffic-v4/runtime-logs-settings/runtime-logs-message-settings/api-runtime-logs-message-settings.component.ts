@@ -32,6 +32,7 @@ import { ConsoleSettingsService } from '../../../../../services-ngx/console-sett
   selector: 'api-runtime-logs-message-settings',
   templateUrl: './api-runtime-logs-message-settings.component.html',
   styleUrls: ['./api-runtime-logs-message-settings.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy {
   @Input() public api: ApiV4;

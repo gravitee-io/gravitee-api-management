@@ -35,6 +35,7 @@ import { Rule } from '../../../../../entities/alerts/rule.metrics';
   selector: 'runtime-alert-create-conditions',
   templateUrl: './runtime-alert-create-conditions.component.html',
   styleUrls: ['./runtime-alert-create-conditions.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

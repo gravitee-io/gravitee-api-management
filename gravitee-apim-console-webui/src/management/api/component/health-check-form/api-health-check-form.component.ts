@@ -25,6 +25,7 @@ import { EndpointHealthCheckService } from '../../../../entities/management-api-
   selector: 'api-health-check-form',
   templateUrl: './api-health-check-form.component.html',
   styleUrls: ['./api-health-check-form.component.scss'],
+  standalone: false,
 })
 export class ApiHealthCheckFormComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

@@ -25,6 +25,7 @@ import { Api, ApiType, ApiV4 } from '../../../entities/management-api-v2';
   selector: 'api-creation-v4-confirmation',
   templateUrl: './api-creation-v4-confirmation.component.html',
   styleUrls: ['./api-creation-v4-confirmation.component.scss'],
+  standalone: false,
 })
 export class ApiCreationV4ConfirmationComponent implements OnInit {
   private unsubscribe$: Subject<void> = new Subject<void>();

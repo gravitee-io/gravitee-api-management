@@ -24,6 +24,7 @@ export interface GioPermissionCheckOptions {
 
 @Directive({
   selector: '[gioPermission]',
+  standalone: false,
 })
 export class GioPermissionDirective implements OnInit {
   @Input()

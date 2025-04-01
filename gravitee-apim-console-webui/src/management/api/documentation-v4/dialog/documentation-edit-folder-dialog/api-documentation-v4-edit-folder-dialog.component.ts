@@ -32,6 +32,7 @@ export interface ApiDocumentationV4EditFolderDialogData {
   selector: 'api-documentation-v4-edit-folder-dialog',
   templateUrl: './api-documentation-v4-edit-folder-dialog.component.html',
   styleUrls: ['./api-documentation-v4-edit-folder-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiDocumentationV4EditFolderDialog implements OnInit {
   public formGroup: UntypedFormGroup;

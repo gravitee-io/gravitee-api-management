@@ -28,6 +28,7 @@ interface MenuItemVM {
   selector: 'step-4-menu-item',
   templateUrl: './step-4-menu-item.component.html',
   styleUrls: ['./step-4-menu-item.component.scss'],
+  standalone: false,
 })
 export class Step4MenuItemComponent implements OnInit {
   public menuItems: MenuItemVM[];

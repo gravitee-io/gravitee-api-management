@@ -24,6 +24,7 @@ import { Instance } from '../../../entities/instance/instance';
 @Component({
   selector: 'instance-details',
   templateUrl: './instance-details.component.html',
+  standalone: false,
 })
 export class InstanceDetailsComponent implements OnInit, OnDestroy {
   public instance: Instance;

@@ -43,6 +43,7 @@ type TableData = {
   selector: 'org-settings-identity-providers',
   styleUrls: ['./org-settings-identity-providers.component.scss'],
   templateUrl: './org-settings-identity-providers.component.html',
+  standalone: false,
 })
 export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy {
   providedConfigurationMessage = 'Configuration provided by the system';

@@ -29,6 +29,7 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
   selector: 'messages',
   templateUrl: './messages.component.html',
   styleUrls: ['./messages.component.scss'],
+  standalone: false,
 })
 export class MessagesComponent implements OnInit, OnDestroy {
   channels = [

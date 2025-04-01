@@ -39,6 +39,7 @@ type DefaultConfiguration = {
   selector: 'api-runtime-logs-proxy-settings',
   templateUrl: './api-runtime-logs-proxy-settings.component.html',
   styleUrls: ['./api-runtime-logs-proxy-settings.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

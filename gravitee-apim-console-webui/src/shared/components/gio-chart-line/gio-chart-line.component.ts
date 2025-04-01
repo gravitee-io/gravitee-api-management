@@ -30,6 +30,7 @@ export interface GioChartLineOptions {
   selector: 'gio-chart-line',
   templateUrl: './gio-chart-line.component.html',
   styleUrls: ['./gio-chart-line.component.scss'],
+  standalone: false,
 })
 export class GioChartLineComponent implements OnInit {
   @Input()

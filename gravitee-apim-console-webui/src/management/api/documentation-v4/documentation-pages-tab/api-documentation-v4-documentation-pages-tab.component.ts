@@ -53,6 +53,7 @@ interface ApiDocumentationV4ListData {
   selector: 'api-documentation-v4-documentation-pages-tab',
   templateUrl: './api-documentation-v4-documentation-pages-tab.component.html',
   styleUrls: ['./api-documentation-v4-documentation-pages-tab.component.scss'],
+  standalone: false,
 })
 export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit, OnDestroy {
   api: Api;

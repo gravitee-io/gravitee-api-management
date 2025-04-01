@@ -36,6 +36,7 @@ export type GioApiImportDialogData = {
   selector: 'gio-api-import-dialog',
   templateUrl: './gio-api-import-dialog.component.html',
   styleUrls: ['./gio-api-import-dialog.component.scss'],
+  standalone: false,
 })
 export class GioApiImportDialogComponent implements OnDestroy {
   tabLabels = {

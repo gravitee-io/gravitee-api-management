@@ -33,6 +33,7 @@ import { AnalyticsTopApis } from '../../../entities/analytics/analytics';
   selector: 'home-overview',
   templateUrl: './home-overview.component.html',
   styleUrls: ['./home-overview.component.scss'],
+  standalone: false,
 })
 export class HomeOverviewComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

@@ -49,6 +49,7 @@ export type ApiPortalSubscriptionCreationDialogResult = {
   selector: 'api-portal-subscription-creation-dialog',
   templateUrl: './api-portal-subscription-creation-dialog.component.html',
   styleUrls: ['./api-portal-subscription-creation-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnDestroy {
   public plans: Plan[];

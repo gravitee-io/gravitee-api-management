@@ -32,6 +32,7 @@ export type ApiPortalDetailsExportV2DialogData = {
   selector: 'api-general-info-export-v2-dialog',
   templateUrl: './api-general-info-export-v2-dialog.component.html',
   styleUrls: ['./api-general-info-export-v2-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiGeneralInfoExportV2DialogComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

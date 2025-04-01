@@ -33,6 +33,7 @@ import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-licen
   selector: 'api-endpoints-group-selection',
   templateUrl: './api-endpoint-group-selection.component.html',
   styleUrls: ['./api-endpoint-group-selection.component.scss'],
+  standalone: false,
 })
 export class ApiEndpointGroupSelectionComponent implements OnInit {
   private unsubscribe$: Subject<void> = new Subject<void>();

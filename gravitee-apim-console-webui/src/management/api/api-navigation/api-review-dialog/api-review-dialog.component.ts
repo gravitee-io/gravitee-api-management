@@ -42,6 +42,7 @@ type QualityRuleVM = {
   selector: 'api-review-dialog',
   templateUrl: './api-review-dialog.component.html',
   styleUrls: ['./api-review-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiReviewDialogComponent implements OnDestroy {
   private unsubscribe$ = new Subject<void>();

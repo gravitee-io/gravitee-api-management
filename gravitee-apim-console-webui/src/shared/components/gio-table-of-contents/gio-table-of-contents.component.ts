@@ -27,6 +27,7 @@ import { GioTableOfContentsService } from './gio-table-of-contents.service';
   selector: 'gio-table-of-contents',
   templateUrl: './gio-table-of-contents.component.html',
   styleUrls: ['./gio-table-of-contents.component.scss'],
+  standalone: false,
 })
 export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input()

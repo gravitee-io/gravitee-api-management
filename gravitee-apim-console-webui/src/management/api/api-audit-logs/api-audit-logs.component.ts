@@ -50,6 +50,7 @@ const INITIAL_SEARCH_QUERY: SearchQuery = {
   selector: 'api-audit-logs',
   templateUrl: './api-audit-logs.component.html',
   styleUrls: ['./api-audit-logs.component.scss'],
+  standalone: false,
 })
 export class ApiAuditLogsComponent {
   private apiId = this.activatedRoute.snapshot.params.apiId;

@@ -33,6 +33,7 @@ export interface ApiGroupsDialogResult {
   selector: 'api-general-access-groups',
   templateUrl: './api-general-groups.component.html',
   styleUrls: ['./api-general-groups.component.scss'],
+  standalone: false,
 })
 export class ApiGeneralGroupsComponent implements OnInit {
   public isReadOnly = true;

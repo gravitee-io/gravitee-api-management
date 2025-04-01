@@ -22,6 +22,7 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
   selector: 'org-settings-identity-provider-google',
   styleUrls: ['./org-settings-identity-provider-google.component.scss'],
   templateUrl: './org-settings-identity-provider-google.component.html',
+  standalone: false,
 })
 export class OrgSettingsIdentityProviderGoogleComponent implements ProviderConfiguration {
   name = 'OrgSettingsIdentityProviderGoogleComponent';

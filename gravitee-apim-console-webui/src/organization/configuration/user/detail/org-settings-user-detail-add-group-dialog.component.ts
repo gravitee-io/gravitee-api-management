@@ -39,6 +39,7 @@ export type OrgSettingsUserDetailAddGroupDialogData = {
   selector: 'org-settings-user-detail-add-group-dialog',
   templateUrl: './org-settings-user-detail-add-group-dialog.component.html',
   styleUrls: ['./org-settings-user-detail-add-group-dialog.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsUserDetailAddGroupDialogComponent {
   isUpdate = false;

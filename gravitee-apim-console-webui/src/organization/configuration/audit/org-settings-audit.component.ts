@@ -44,6 +44,7 @@ interface AuditDataTable {
   selector: 'org-settings-audit',
   templateUrl: './org-settings-audit.component.html',
   styleUrls: ['./org-settings-audit.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   public displayedColumns = ['date', 'user', 'referenceType', 'reference', 'event', 'targets', 'patch'];

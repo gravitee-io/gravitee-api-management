@@ -22,6 +22,7 @@ import { LOAD_BALANCER_TYPES } from '../../../../../entities/management-api-v2';
   selector: 'api-endpoint-group-general',
   templateUrl: './api-endpoint-group-general.component.html',
   styleUrls: ['./api-endpoint-group-general.component.scss'],
+  standalone: false,
 })
 export class ApiEndpointGroupGeneralComponent {
   @Input() generalForm: UntypedFormGroup;

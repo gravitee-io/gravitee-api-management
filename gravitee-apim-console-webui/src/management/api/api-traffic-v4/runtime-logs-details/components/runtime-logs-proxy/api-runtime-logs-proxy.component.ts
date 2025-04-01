@@ -25,6 +25,7 @@ import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.ser
   selector: 'api-runtime-logs-proxy',
   templateUrl: './api-runtime-logs-proxy.component.html',
   styleUrls: ['./api-runtime-logs-proxy.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsProxyComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

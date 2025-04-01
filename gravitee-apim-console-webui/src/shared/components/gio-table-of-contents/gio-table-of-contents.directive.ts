@@ -22,6 +22,7 @@ import { TocSectionLink } from './TocSection';
 
 @Directive({
   selector: 'h2[gioTableOfContents], h3[gioTableOfContents], h4[gioTableOfContents], [mat-subheader][gioTableOfContents]',
+  standalone: false,
 })
 export class GioTableOfContentsDirective implements AfterViewInit, OnDestroy {
   constructor(

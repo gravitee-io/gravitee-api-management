@@ -24,6 +24,7 @@ import { ApplicationService } from '../../../../services-ngx/application.service
 @Component({
   template: '',
   selector: 'application-analytics',
+  standalone: false,
   host: {
     class: 'bootstrap',
   },

@@ -24,6 +24,7 @@ export interface GioRoleCheckOptions {
 
 @Directive({
   selector: '[gioRole]',
+  standalone: false,
 })
 export class GioRoleDirective implements OnInit {
   @Input()

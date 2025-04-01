@@ -24,6 +24,7 @@ import FetcherService from '../../services/fetcher.service';
 @Component({
   template: '',
   selector: 'documentation-import-pages',
+  standalone: false,
   host: {
     class: 'bootstrap gv-sub-content',
   },

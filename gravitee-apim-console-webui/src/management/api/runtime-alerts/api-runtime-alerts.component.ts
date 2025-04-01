@@ -28,6 +28,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 @Component({
   selector: 'api-runtime-alerts',
   templateUrl: './api-runtime-alerts.component.html',
+  standalone: false,
 })
 export class ApiRuntimeAlertsComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

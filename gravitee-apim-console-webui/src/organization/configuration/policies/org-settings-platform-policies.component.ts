@@ -45,6 +45,7 @@ export interface DefinitionVM {
   selector: 'org-settings-platform-policies',
   templateUrl: './org-settings-platform-policies.component.html',
   styleUrls: ['./org-settings-platform-policies.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
   isLoading = true;

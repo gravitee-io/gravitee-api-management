@@ -35,6 +35,7 @@ import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-pl
   selector: 'api-runtime-logs',
   templateUrl: './api-runtime-logs.component.html',
   styleUrls: ['./api-runtime-logs.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

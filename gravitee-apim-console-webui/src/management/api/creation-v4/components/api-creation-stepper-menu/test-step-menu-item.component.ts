@@ -23,6 +23,7 @@ import { ApiCreationPayload } from '../../models/ApiCreationPayload';
   selector: 'test-step-menu-item',
   template: `Payload Json : <br />
     {{ menuItemPayload | json }}`,
+  standalone: false,
 })
 export class TestStepMenuItemComponent {
   constructor(@Inject(MENU_ITEM_PAYLOAD) public readonly menuItemPayload: ApiCreationPayload) {}

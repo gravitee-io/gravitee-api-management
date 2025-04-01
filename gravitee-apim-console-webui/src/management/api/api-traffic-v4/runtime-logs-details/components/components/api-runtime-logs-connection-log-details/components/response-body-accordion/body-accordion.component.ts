@@ -19,6 +19,7 @@ import { Component, Input } from '@angular/core';
   selector: 'body-accordion',
   templateUrl: './body-accordion.component.html',
   styleUrls: ['./body-accordion.component.scss'],
+  standalone: false,
 })
 export class BodyAccordionComponent {
   @Input() body: string;

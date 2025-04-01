@@ -32,6 +32,7 @@ export type NotificationAddDialogResult = {
   selector: 'notification-add-dialog',
   templateUrl: './notification-add-dialog.component.html',
   styleUrls: ['./notification-add-dialog.component.scss'],
+  standalone: false,
 })
 export class NotificationAddDialogComponent {
   protected readonly notifiersList: Notifier[] = this.dialogData.notifiers;

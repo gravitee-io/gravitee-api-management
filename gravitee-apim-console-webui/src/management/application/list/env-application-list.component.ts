@@ -47,6 +47,7 @@ type TableData = {
   selector: 'env-application-list',
   templateUrl: './env-application-list.component.html',
   styleUrls: ['./env-application-list.component.scss'],
+  standalone: false,
 })
 export class EnvApplicationListComponent implements OnInit, OnDestroy {
   nbTotalApplications = 0;

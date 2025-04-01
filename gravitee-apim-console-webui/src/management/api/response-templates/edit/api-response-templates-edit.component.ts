@@ -33,6 +33,7 @@ import { gatewayErrorKeys } from '../../../../entities/gateway-error-keys/Gatewa
   selector: 'api-proxy-response-templates-edit',
   templateUrl: './api-response-templates-edit.component.html',
   styleUrls: ['./api-response-templates-edit.component.scss'],
+  standalone: false,
 })
 export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

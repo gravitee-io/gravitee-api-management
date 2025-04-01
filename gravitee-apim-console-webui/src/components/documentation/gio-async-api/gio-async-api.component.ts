@@ -18,6 +18,7 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'gio-async-api',
   templateUrl: './gio-async-api.component.html',
+  standalone: false,
 })
 export class GioAsyncApiComponent {
   @Input()

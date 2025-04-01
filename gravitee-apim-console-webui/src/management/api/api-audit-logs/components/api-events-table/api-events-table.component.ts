@@ -21,6 +21,7 @@ import { Event } from '../../../../../entities/management-api-v2/event';
   selector: 'api-events-table',
   templateUrl: './api-events-table.component.html',
   styleUrls: ['./api-events-table.component.scss'],
+  standalone: false,
 })
 export class ApiEventsTableComponent {
   protected displayedColumns = ['icon', 'type', 'createdAt', 'user'];

@@ -21,7 +21,7 @@ type IterableFilter = MultiFilter | string[] | Set<number>;
 
 const SEPARATOR = ', ';
 
-@Pipe({ name: 'chipValue' })
+@Pipe({ name: 'chipValue', standalone: false })
 export class ChipValuePipe implements PipeTransform {
   transform(filter: SimpleFilter | IterableFilter): string {
     if (filter instanceof Set) {

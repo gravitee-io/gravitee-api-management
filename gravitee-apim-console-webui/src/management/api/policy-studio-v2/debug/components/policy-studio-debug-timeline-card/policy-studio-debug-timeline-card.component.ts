@@ -73,6 +73,7 @@ interface TimelineCardVM {
   selector: 'policy-studio-debug-timeline-card',
   templateUrl: './policy-studio-debug-timeline-card.component.html',
   styleUrls: ['./policy-studio-debug-timeline-card.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
   @Input()

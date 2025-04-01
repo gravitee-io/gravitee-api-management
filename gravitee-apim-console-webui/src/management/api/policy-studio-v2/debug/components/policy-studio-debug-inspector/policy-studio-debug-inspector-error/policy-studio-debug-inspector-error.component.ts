@@ -22,6 +22,7 @@ import { DebugStepError } from '../../../models/DebugStep';
   selector: 'policy-studio-debug-inspector-error',
   templateUrl: './policy-studio-debug-inspector-error.component.html',
   styleUrls: ['./policy-studio-debug-inspector-error.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDebugInspectorErrorComponent {
   @Input()

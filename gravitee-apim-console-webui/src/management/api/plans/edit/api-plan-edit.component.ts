@@ -32,6 +32,7 @@ import { isApiV4 } from '../../../../util';
   selector: 'api-plan-edit',
   templateUrl: './api-plan-edit.component.html',
   styleUrls: ['./api-plan-edit.component.scss'],
+  standalone: false,
 })
 export class ApiPlanEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

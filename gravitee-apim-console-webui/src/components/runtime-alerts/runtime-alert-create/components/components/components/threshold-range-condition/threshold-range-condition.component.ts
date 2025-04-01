@@ -34,6 +34,7 @@ import { FormGroup } from '@angular/forms';
       </mat-form-field>
     </form>
   `,
+  standalone: false,
 })
 export class ThresholdRangeConditionComponent {
   @Input({ required: true }) form: FormGroup;

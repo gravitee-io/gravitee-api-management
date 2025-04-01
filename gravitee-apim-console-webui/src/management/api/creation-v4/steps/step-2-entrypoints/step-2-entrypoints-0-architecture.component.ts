@@ -34,6 +34,7 @@ import { IconService } from '../../../../../services-ngx/icon.service';
   selector: 'step-2-entrypoints-0-architecture',
   templateUrl: './step-2-entrypoints-0-architecture.component.html',
   styleUrls: ['./step-2-entrypoints-0-architecture.component.scss', '../api-creation-steps-common.component.scss'],
+  standalone: false,
 })
 export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
