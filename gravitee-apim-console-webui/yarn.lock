@@ -265,9 +265,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/cdk@npm:19.2.4":
-  version: 19.2.4
-  resolution: "@angular/cdk@npm:19.2.4"
+"@angular/cdk@npm:19.2.7":
+  version: 19.2.7
+  resolution: "@angular/cdk@npm:19.2.7"
   dependencies:
     parse5: "npm:^7.1.2"
     tslib: "npm:^2.3.0"
@@ -275,10 +275,7 @@ __metadata:
     "@angular/common": ^19.0.0 || ^20.0.0
     "@angular/core": ^19.0.0 || ^20.0.0
     rxjs: ^6.5.3 || ^7.4.0
-  dependenciesMeta:
-    parse5:
-      optional: true
-  checksum: 10c0/5b0b87e7f84a1be0e9689b041d600bd2bcbba18b7aa51579f597e8556c950ad45022d568d3475dccf9b06095ec27548b0fa5de6c5e43a71f5a746b0f67cf524e
+  checksum: 10c0/e9fb1e39fdfd9839ca1dbb1c4da2cd8656790aa0677ea1d0cb5e383cb54af90a8694c532f5c1c34f732b4006912e0c922d1566be65405b8504797b80c528e5ee
   languageName: node
   linkType: hard
 
@@ -379,32 +376,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/material-moment-adapter@npm:19.2.4":
-  version: 19.2.4
-  resolution: "@angular/material-moment-adapter@npm:19.2.4"
+"@angular/material-moment-adapter@npm:19.2.7":
+  version: 19.2.7
+  resolution: "@angular/material-moment-adapter@npm:19.2.7"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
     "@angular/core": ^19.0.0 || ^20.0.0
-    "@angular/material": 19.2.4
+    "@angular/material": 19.2.7
     moment: ^2.18.1
-  checksum: 10c0/6eba8507d9ac39e7a04c6c0217bc8ee0fb3059892fcf6969dae9666299f259afc3b5cf0b0b815d6f6a6093dd8329893209fa5abc8d1cb1f064a5b6198c924271
+  checksum: 10c0/53cb39034bbe9ed2d9e193495b59d8b610edd0293be91aad7b65badef14c5b9397d17c89257aeeeb58d9d2fb63ad71198892cb5f14b0352d0c272bb6ec1d332c
   languageName: node
   linkType: hard
 
-"@angular/material@npm:19.2.4":
-  version: 19.2.4
-  resolution: "@angular/material@npm:19.2.4"
+"@angular/material@npm:19.2.7":
+  version: 19.2.7
+  resolution: "@angular/material@npm:19.2.7"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/cdk": 19.2.4
+    "@angular/cdk": 19.2.7
     "@angular/common": ^19.0.0 || ^20.0.0
     "@angular/core": ^19.0.0 || ^20.0.0
     "@angular/forms": ^19.0.0 || ^20.0.0
     "@angular/platform-browser": ^19.0.0 || ^20.0.0
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/d9d7f43e771079d686da26f2ca719420f21fbb2c44c222ebcdd5caa752af92f98c3b629f729374db756f3e4e619254a2bd326bd43edf5235d77f5c52b2b78b50
+  checksum: 10c0/b3395c2d2f1fb875dd91dcd565d52ad1730b8c224bfe3ff4f641563dc0d0fe911d7dff0b1c02d2715c3627f434f85163c261bf218ad4d46618a6f322972aa2cc
   languageName: node
   linkType: hard
 
@@ -13307,15 +13304,15 @@ __metadata:
     "@angular-devkit/architect": "npm:0.1902.5"
     "@angular-devkit/build-angular": "npm:19.2.5"
     "@angular/animations": "npm:19.2.4"
-    "@angular/cdk": "npm:19.2.4"
+    "@angular/cdk": "npm:19.2.7"
     "@angular/cli": "npm:19.2.5"
     "@angular/common": "npm:19.2.4"
     "@angular/compiler": "npm:19.2.4"
     "@angular/compiler-cli": "npm:19.2.4"
     "@angular/core": "npm:19.2.4"
     "@angular/forms": "npm:19.2.4"
-    "@angular/material": "npm:19.2.4"
-    "@angular/material-moment-adapter": "npm:19.2.4"
+    "@angular/material": "npm:19.2.7"
+    "@angular/material-moment-adapter": "npm:19.2.7"
     "@angular/platform-browser": "npm:19.2.4"
     "@angular/platform-browser-dynamic": "npm:19.2.4"
     "@angular/router": "npm:19.2.4"
