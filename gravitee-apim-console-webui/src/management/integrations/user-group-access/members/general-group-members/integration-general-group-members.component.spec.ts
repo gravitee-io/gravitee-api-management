@@ -37,6 +37,7 @@ const GROUP_NAME = 'groupName1';
 @Component({
   selector: `host-component`,
   template: `<integration-general-group-members [groupData]="groupData"></integration-general-group-members>`,
+  standalone: false,
 })
 class TestComponent {
   groupData: GroupData = {

@@ -37,6 +37,7 @@ const API_ID = 'apiId';
 @Component({
   selector: 'gio-dialog-test',
   template: `<button mat-button id="open-dialog-test" (click)="openDialog()">Open dialog</button>`,
+  standalone: false,
 })
 class TestComponent {
   public result?: any;

@@ -22,7 +22,7 @@ import { GioTestingPermissionProvider } from './gio-permission.service';
 
 import { GioTestingModule } from '../../testing';
 
-@Component({ template: `<div *gioPermission="permissions">A Content</div>` })
+@Component({ template: `<div *gioPermission="permissions">A Content</div>`, standalone: false })
 class TestPermissionComponent {
   @Input()
   permissions: GioPermissionCheckOptions;

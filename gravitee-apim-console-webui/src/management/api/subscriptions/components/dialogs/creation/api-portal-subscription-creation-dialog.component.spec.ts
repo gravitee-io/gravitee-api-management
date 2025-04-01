@@ -60,6 +60,7 @@ import { fakeSubscriptionPage } from '../../../../../../entities/subscription/su
 @Component({
   selector: 'gio-dialog-test',
   template: `<button mat-button id="open-dialog" (click)="openDialog()">Open dialog</button>`,
+  standalone: false,
 })
 class TestComponent {
   public plans?: Plan[];

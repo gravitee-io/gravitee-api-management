@@ -30,6 +30,7 @@ import { SearchableUser } from '../../../entities/user/searchableUser';
 
 @Component({
   template: ` <gio-form-user-autocomplete [formControl]="formControl"></gio-form-user-autocomplete> `,
+  standalone: false,
 })
 class TestComponent {
   formControl = new FormControl();

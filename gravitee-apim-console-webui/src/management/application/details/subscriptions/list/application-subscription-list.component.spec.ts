@@ -38,6 +38,7 @@ import { Application } from '../../../../../entities/application/Application';
 
 @Component({
   template: ` <application-subscription-list #subscriptionListComponent></application-subscription-list> `,
+  standalone: false,
 })
 class TestComponent {
   @ViewChild('subscriptionListComponent') subscriptionListComponent: ApplicationSubscriptionListComponent;
