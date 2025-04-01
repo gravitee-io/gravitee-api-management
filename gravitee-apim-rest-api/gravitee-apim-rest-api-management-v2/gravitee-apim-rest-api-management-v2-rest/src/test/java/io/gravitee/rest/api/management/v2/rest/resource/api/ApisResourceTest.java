@@ -24,7 +24,6 @@ import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -130,7 +129,7 @@ class ApisResourceTest extends AbstractResourceTest {
     }
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         GraviteeContext.cleanContext();
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
@@ -142,8 +141,10 @@ class ApisResourceTest extends AbstractResourceTest {
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(environment);
     }
 
+    @Override
     @AfterEach
     public void tearDown() {
+        super.tearDown();
         apiQueryServiceInMemory.reset();
         reset(createApiDomainService, validateApiDomainService);
     }
@@ -260,7 +261,7 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_return_403_if_incorrect_permissions() {
+        void should_return_403_if_incorrect_permissions() {
             when(
                 permissionService.hasPermission(
                     eq(GraviteeContext.getExecutionContext()),
@@ -281,14 +282,14 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_return_400_when_no_content() {
+        void should_return_400_when_no_content() {
             final Response response = target.request().post(null);
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
         }
 
         @Test
-        public void should_return_400_when_an_api_without_name() {
+        void should_return_400_when_an_api_without_name() {
             final Response response = target
                 .request()
                 .post(
@@ -317,7 +318,7 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_return_400_when_an_api_without_listeners() {
+        void should_return_400_when_an_api_without_listeners() {
             final Response response = target
                 .request()
                 .post(Entity.json(CreateApiV4.builder().name("no-listeners").apiVersion("v1").type(ApiType.PROXY).build()));
@@ -326,7 +327,7 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_return_400_when_native_api_has_multiple_flows() {
+        void should_return_400_when_native_api_has_multiple_flows() {
             doThrow(new NativeApiWithMultipleFlowsException()).when(createApiDomainService).create(any(), any(), any(), any(), any());
 
             var newApi = aValidNativeV4Api().toBuilder().flows(List.of(FlowV4.builder().build(), FlowV4.builder().build())).build();
@@ -337,7 +338,7 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_return_400_when_an_api_without_endpoints() {
+        void should_return_400_when_an_api_without_endpoints() {
             final Response response = target
                 .request()
                 .post(
@@ -366,7 +367,7 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_return_created_api() {
+        void should_return_created_api() {
             when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -405,7 +406,7 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_return_created_native_api() {
+        void should_return_created_native_api() {
             when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -444,7 +445,7 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_return_created_native_api_without_kafka_listener_port() {
+        void should_return_created_native_api_without_kafka_listener_port() {
             when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 

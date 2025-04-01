@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.crud_service.metadata;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
+import static io.gravitee.repository.management.model.MetadataReferenceType.ENVIRONMENT;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
@@ -82,6 +83,17 @@ public class MetadataCrudServiceImpl implements MetadataCrudService {
     public Collection<Metadata> findByApiId(String id) {
         try {
             return stream(metadataRepository.findByReferenceTypeAndReferenceId(API, id)).map(MetadataAdapter.INSTANCE::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurred while finding metadata by API id [%s]".formatted(id), e);
+        }
+    }
+
+    @Override
+    public Collection<Metadata> findByEnvId(String id) {
+        try {
+            return stream(metadataRepository.findByReferenceTypeAndReferenceId(ENVIRONMENT, id))
+                .map(MetadataAdapter.INSTANCE::toEntity)
+                .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurred while finding metadata by API id [%s]".formatted(id), e);
         }

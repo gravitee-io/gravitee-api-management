@@ -23,6 +23,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_DOCUMENTATION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_MEMBER;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+import static java.util.function.Predicate.not;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
@@ -43,9 +44,13 @@ import io.gravitee.apim.core.media.query_service.MediaQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.apim.infra.adapter.GraviteeDefinitionAdapter;
@@ -65,6 +70,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -78,6 +84,8 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
 
     private final WorkflowCrudService workflowCrudService;
     private final MembershipCrudService membershipCrudService;
+    private final UserCrudService userCrudService;
+    private final RoleQueryService roleQueryService;
     private final MetadataCrudService metadataCrudService;
     private final PageQueryService pageQueryService;
     private final ApiCrudService apiCrudService;
@@ -94,7 +102,9 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         var api1 = apiCrudService.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
         var members = !excluded.contains(MEMBERS) ? exportApiMembers(apiId) : null;
-        var metadata = !excluded.contains(METADATA) ? exportApiMetadata(executionContext, apiId) : null;
+        var metadata = !excluded.contains(METADATA)
+            ? exportApiMetadata(executionContext, apiId, executionContext.getEnvironmentId())
+            : null;
 
         var pages = !excluded.contains(PAGES_MEDIA) ? exportApiPages(apiId) : null;
         var medias = !excluded.contains(PAGES_MEDIA) ? exportApiMedia(apiId) : null;
@@ -141,18 +151,42 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
     }
 
     private Set<ApiMember> exportApiMembers(String apiId) {
-        return permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_MEMBER, apiId, READ)
-            ? stream(membershipCrudService.findByApiId(apiId))
-                .filter(memberEntity -> memberEntity.getMemberType() == Membership.Type.USER)
-                .map(MemberAdapter.INSTANCE::toApiMember)
-                .collect(Collectors.toSet())
-            : null;
+        if (!permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_MEMBER, apiId, READ)) {
+            return null;
+        }
+        List<Membership> members = stream(membershipCrudService.findByApiId(apiId))
+            .filter(memberEntity -> memberEntity.getMemberType() == Membership.Type.USER)
+            .toList();
+        var userIds = members.stream().map(Membership::getMemberId).distinct().toList();
+        var userByIds = stream(userCrudService.findBaseUsersByIds(userIds))
+            .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity()));
+        var roles = stream(roleQueryService.findByIds(members.stream().map(Membership::getRoleId).collect(Collectors.toSet())))
+            .collect(Collectors.toMap(Role::getId, Function.identity()));
+
+        return members
+            .stream()
+            .map(m -> MemberAdapter.INSTANCE.toApiMember(m, userByIds.get(m.getMemberId()), roles.get(m.getRoleId())))
+            .collect(Collectors.toSet());
     }
 
-    private Set<NewApiMetadata> exportApiMetadata(ExecutionContext executionContext, String apiId) {
-        return permissionService.hasPermission(executionContext, RolePermission.API_METADATA, apiId, READ)
-            ? DEFINITION_ADAPTER.mapMetadata(metadataCrudService.findByApiId(apiId))
-            : null;
+    private Collection<NewApiMetadata> exportApiMetadata(ExecutionContext executionContext, String apiId, String envId) {
+        if (!permissionService.hasPermission(executionContext, RolePermission.API_METADATA, apiId, READ)) {
+            return null;
+        }
+        return Stream
+            .concat(stream(metadataCrudService.findByEnvId(envId)), stream(metadataCrudService.findByApiId(apiId)))
+            .map(DEFINITION_ADAPTER::mapMetadata)
+            .collect(
+                Collectors.toMap(
+                    NewApiMetadata::getKey,
+                    Function.identity(),
+                    (envMetadata, apiMetadata) -> {
+                        apiMetadata.setDefaultValue(envMetadata.getValue());
+                        return apiMetadata;
+                    }
+                )
+            )
+            .values();
     }
 
     private List<PageExport> exportApiPages(String apiId) {
@@ -198,7 +232,9 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
 
     @Nullable
     private <T> Collection<T> mapPlan(String apiId, Function<Plan, T> mapper, Collection<Excludable> excluded) {
-        return excluded.contains(Excludable.PLANS) ? null : stream(planCrudService.findByApiId(apiId)).map(mapper).toList();
+        return excluded.contains(Excludable.PLANS)
+            ? null
+            : stream(planCrudService.findByApiId(apiId)).filter(not(Plan::isClosed)).map(mapper).toList();
     }
 
     private PlanDescriptor.V4 planWithFlowV4(PlanDescriptor.V4 planV4) {
