@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import 'jest-preset-angular/setup-jest';
+
+import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
+
+setupZoneTestEnv();
 
 // mocking swagger-ui for tests as it contains some JS incompatible with Jest
 // This means we will not be able to test Swagger in our components tests
