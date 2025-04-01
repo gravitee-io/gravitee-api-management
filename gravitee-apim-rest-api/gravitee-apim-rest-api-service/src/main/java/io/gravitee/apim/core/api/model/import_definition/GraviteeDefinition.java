@@ -32,7 +32,7 @@ public sealed interface GraviteeDefinition {
     Export export();
     ApiDescriptor api();
     Set<ApiMember> members();
-    Set<NewApiMetadata> metadata();
+    Collection<NewApiMetadata> metadata();
     List<PageExport> pages();
     Collection<? extends PlanDescriptor> plans();
     List<Media> apiMedia();
@@ -44,7 +44,7 @@ public sealed interface GraviteeDefinition {
         Export export,
         ApiDescriptor.ApiDescriptorV4 api,
         Set<ApiMember> members,
-        Set<NewApiMetadata> metadata,
+        Collection<NewApiMetadata> metadata,
         List<PageExport> pages,
         Collection<PlanDescriptor.V4> plans,
         List<Media> apiMedia,
@@ -58,7 +58,7 @@ public sealed interface GraviteeDefinition {
         Export export,
         ApiDescriptor.Native api,
         Set<ApiMember> members,
-        Set<NewApiMetadata> metadata,
+        Collection<NewApiMetadata> metadata,
         List<PageExport> pages,
         Collection<PlanDescriptor.Native> plans,
         List<Media> apiMedia,
@@ -72,7 +72,7 @@ public sealed interface GraviteeDefinition {
         Export export,
         ApiDescriptor.Federated api,
         Set<ApiMember> members,
-        Set<NewApiMetadata> metadata,
+        Collection<NewApiMetadata> metadata,
         List<PageExport> pages,
         Collection<PlanDescriptor.Federated> plans,
         List<Media> apiMedia,
@@ -86,7 +86,7 @@ public sealed interface GraviteeDefinition {
         Export export,
         ApiDescriptor.ApiDescriptorV2 api,
         Set<ApiMember> members,
-        Set<NewApiMetadata> metadata,
+        Collection<NewApiMetadata> metadata,
         List<PageExport> pages,
         Collection<PlanDescriptor.V2> plans,
         List<Media> apiMedia,
@@ -104,7 +104,7 @@ public sealed interface GraviteeDefinition {
     static GraviteeDefinition from(
         ApiDescriptor.ApiDescriptorV2 api,
         Set<ApiMember> members,
-        Set<NewApiMetadata> metadata,
+        Collection<NewApiMetadata> metadata,
         List<PageExport> pages,
         Collection<PlanDescriptor.V2> plans,
         List<Media> media,
@@ -118,7 +118,7 @@ public sealed interface GraviteeDefinition {
     static GraviteeDefinition from(
         ApiDescriptor.ApiDescriptorV4 api,
         Set<ApiMember> members,
-        Set<NewApiMetadata> metadata,
+        Collection<NewApiMetadata> metadata,
         List<PageExport> pages,
         Collection<PlanDescriptor.V4> plans,
         List<Media> media,
@@ -132,7 +132,7 @@ public sealed interface GraviteeDefinition {
     static GraviteeDefinition from(
         ApiDescriptor.Native api,
         Set<ApiMember> members,
-        Set<NewApiMetadata> metadata,
+        Collection<NewApiMetadata> metadata,
         List<PageExport> pages,
         Collection<PlanDescriptor.Native> plans,
         List<Media> media,
@@ -146,7 +146,7 @@ public sealed interface GraviteeDefinition {
     static GraviteeDefinition from(
         ApiDescriptor.Federated api,
         Set<ApiMember> members,
-        Set<NewApiMetadata> metadata,
+        Collection<NewApiMetadata> metadata,
         List<PageExport> pages,
         Collection<PlanDescriptor.Federated> plans,
         List<Media> media,
