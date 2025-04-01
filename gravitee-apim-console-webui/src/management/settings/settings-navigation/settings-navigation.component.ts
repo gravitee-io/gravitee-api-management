@@ -25,6 +25,7 @@ import { GroupItem, MenuItem, SettingsNavigationService } from './settings-navig
   selector: 'settings-navigation',
   templateUrl: './settings-navigation.component.html',
   styleUrls: ['./settings-navigation.component.scss'],
+  standalone: false,
 })
 export class SettingsNavigationComponent implements OnInit {
   public groupItems: GroupItem[] = [];

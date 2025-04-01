@@ -55,6 +55,7 @@ import { IntegrationsService } from '../../../services-ngx/integrations.service'
   selector: 'api-general-info',
   templateUrl: './api-general-info.component.html',
   styleUrls: ['./api-general-info.component.scss'],
+  standalone: false,
 })
 export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

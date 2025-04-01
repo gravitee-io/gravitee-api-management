@@ -42,6 +42,7 @@ export type EndpointHealthCheckFormType = FormGroup<{
   selector: 'api-endpoint',
   templateUrl: './api-endpoint.component.html',
   styleUrls: ['./api-endpoint.component.scss'],
+  standalone: false,
 })
 export class ApiEndpointComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

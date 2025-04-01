@@ -28,6 +28,7 @@ import { FlowConfigurationSchema } from '../../../../entities/flow/configuration
   selector: 'org-settings-platform-policies-config',
   templateUrl: './org-settings-platform-policies-config.component.html',
   styleUrls: ['./org-settings-platform-policies-config.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsPlatformPoliciesConfigComponent implements OnInit, OnDestroy {
   flowConfigurationSchema: FlowConfigurationSchema;

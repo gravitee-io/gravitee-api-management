@@ -57,6 +57,7 @@ import { distinctUntilChanged, filter, map, startWith, takeUntil } from 'rxjs/op
           grid-template-areas:
             'header  header  header'
             'sidebar content documentation';
+          standalone: false;
         }
       }
 
@@ -80,6 +81,7 @@ import { distinctUntilChanged, filter, map, startWith, takeUntil } from 'rxjs/op
       }
     `,
   ],
+  standalone: false,
 })
 export class ManagementComponent {
   private unsubscribe$ = new Subject<void>();

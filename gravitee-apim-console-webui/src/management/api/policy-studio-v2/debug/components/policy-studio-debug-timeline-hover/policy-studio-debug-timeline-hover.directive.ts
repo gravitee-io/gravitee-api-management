@@ -22,6 +22,7 @@ import { PolicyStudioDebugTimelineHoverService } from './policy-studio-debug-tim
 
 @Directive({
   selector: '[timelineHover]',
+  standalone: false,
 })
 export class PolicyStudioDebugTimelineHoverComponent implements OnInit, OnDestroy {
   @Input()

@@ -28,6 +28,7 @@ import { ApplicationSubscriptionService } from '../../../../services-ngx/applica
   host: {
     class: 'bootstrap',
   },
+  standalone: false,
 })
 export class ApplicationSubscriptionComponent extends UpgradeComponent {
   private unsubscribe$ = new Subject<void>();

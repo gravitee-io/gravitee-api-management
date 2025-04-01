@@ -20,5 +20,6 @@ import { Component } from '@angular/core';
   selector: 'policy-studio-debug-timeline-legend',
   templateUrl: './policy-studio-debug-timeline-legend.component.html',
   styleUrls: ['./policy-studio-debug-timeline-legend.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDebugTimelineLegendComponent {}

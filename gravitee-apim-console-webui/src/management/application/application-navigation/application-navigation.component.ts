@@ -44,6 +44,7 @@ export interface MenuItemHeader {
   selector: 'application-navigation',
   templateUrl: './application-navigation.component.html',
   styleUrls: ['./application-navigation.component.scss'],
+  standalone: false,
 })
 export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   public application: Application;

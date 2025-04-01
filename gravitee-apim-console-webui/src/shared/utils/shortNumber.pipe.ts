@@ -17,6 +17,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'shortNumber',
+  standalone: false,
 })
 export class ShortNumberPipe implements PipeTransform {
   transform(number: number, fractionSize = 0): string | null {

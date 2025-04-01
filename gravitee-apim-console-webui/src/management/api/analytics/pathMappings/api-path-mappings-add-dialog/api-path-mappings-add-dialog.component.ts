@@ -38,6 +38,7 @@ export interface ApiPathMappingsAddDialogData {
   selector: 'api-path-mappings-add-dialog',
   templateUrl: './api-path-mappings-add-dialog.component.html',
   styleUrls: ['./api-path-mappings-add-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiPathMappingsAddDialogComponent implements OnInit {
   public tabLabels = {

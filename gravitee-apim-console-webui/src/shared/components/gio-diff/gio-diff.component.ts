@@ -26,6 +26,7 @@ import { FormGroup, UntypedFormControl, UntypedFormGroup } from '@angular/forms'
   templateUrl: './gio-diff.component.html',
   styleUrls: ['./gio-diff.component.scss'],
   encapsulation: ViewEncapsulation.None,
+  standalone: false,
 })
 export class GioDiffComponent implements OnChanges {
   @Input()

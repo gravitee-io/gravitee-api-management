@@ -28,6 +28,7 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
   selector: 'gio-api-metadata-list',
   templateUrl: './gio-api-metadata-list.component.html',
   styleUrls: ['./gio-api-metadata-list.component.scss'],
+  standalone: false,
 })
 export class GioApiMetadataListComponent implements OnInit, OnDestroy {
   metadataSaveServices: MetadataSaveServices;

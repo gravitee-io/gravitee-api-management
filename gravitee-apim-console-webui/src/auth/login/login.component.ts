@@ -34,6 +34,7 @@ export type SocialIdentityProviderVM = SocialIdentityProvider & { textColor?: st
   selector: 'login',
   templateUrl: './login.component.html',
   styleUrls: ['../auth-common.component.scss', './login.component.scss'],
+  standalone: false,
 })
 export class LoginComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

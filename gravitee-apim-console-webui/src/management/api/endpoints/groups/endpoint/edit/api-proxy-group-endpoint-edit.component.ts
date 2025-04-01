@@ -38,6 +38,7 @@ import { ApiHealthCheckFormComponent } from '../../../../component/health-check-
   selector: 'api-proxy-group-endpoint-edit',
   templateUrl: './api-proxy-group-endpoint-edit.component.html',
   styleUrls: ['./api-proxy-group-endpoint-edit.component.scss'],
+  standalone: false,
 })
 export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

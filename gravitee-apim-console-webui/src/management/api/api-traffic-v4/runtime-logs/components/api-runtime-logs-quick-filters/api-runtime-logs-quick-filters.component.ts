@@ -38,6 +38,7 @@ import { Plan } from '../../../../../../entities/management-api-v2';
   selector: 'api-runtime-logs-quick-filters',
   templateUrl: './api-runtime-logs-quick-filters.component.html',
   styleUrls: ['./api-runtime-logs-quick-filters.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

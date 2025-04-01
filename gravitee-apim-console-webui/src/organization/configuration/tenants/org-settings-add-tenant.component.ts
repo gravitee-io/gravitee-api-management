@@ -27,6 +27,7 @@ export type OrgSettingAddTenantDialogData = {
   selector: 'org-settings-add-tenant',
   templateUrl: './org-settings-add-tenant.component.html',
   styleUrls: ['./org-settings-add-tenant.component.scss'],
+  standalone: false,
 })
 export class OrgSettingAddTenantComponent {
   tenant?: Tenant;

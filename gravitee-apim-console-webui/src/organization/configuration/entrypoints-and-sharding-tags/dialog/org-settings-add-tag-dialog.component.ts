@@ -29,6 +29,7 @@ export type OrgSettingAddTagDialogData = {
   selector: 'org-settings-add-tag-dialog',
   templateUrl: './org-settings-add-tag-dialog.component.html',
   styleUrls: ['./org-settings-add-tag-dialog.component.scss'],
+  standalone: false,
 })
 export class OrgSettingAddTagDialogComponent {
   tag?: Tag;

@@ -25,6 +25,7 @@ type EventDS = Event & { selected: boolean };
   selector: 'api-deployments-table',
   templateUrl: './api-history-v4-deployments-table.component.html',
   styleUrls: ['./api-history-v4-deployments-table.component.scss'],
+  standalone: false,
 })
 export class ApiHistoryV4DeploymentsTableComponent implements OnChanges {
   DEPLOYMENT_NUMBER_PROPERTY = 'DEPLOYMENT_NUMBER';

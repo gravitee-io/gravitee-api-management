@@ -30,6 +30,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
   selector: 'application-general-access-groups',
   templateUrl: './application-general-groups.component.html',
   styleUrls: ['./application-general-groups.component.scss'],
+  standalone: false,
 })
 export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
   public groups: Group[];

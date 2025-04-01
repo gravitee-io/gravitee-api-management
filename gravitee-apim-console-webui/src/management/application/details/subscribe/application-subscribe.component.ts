@@ -28,6 +28,7 @@ import { GroupService } from '../../../../services-ngx/group.service';
   host: {
     class: 'bootstrap',
   },
+  standalone: false,
 })
 export class ApplicationSubscribeComponent extends UpgradeComponent {
   private unsubscribe$ = new Subject<void>();

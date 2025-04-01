@@ -56,6 +56,7 @@ type MetricsRateFormGroup = FormGroup<{
       <aggregation-condition [form]="form.controls.projections" [properties]="properties"></aggregation-condition>
     </form>
   `,
+  standalone: false,
 })
 export class RequestMetricsRateConditionComponent {
   @Input({ required: true }) form: MetricsRateFormGroup;

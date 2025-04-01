@@ -71,6 +71,7 @@ export type ApisTableDS = {
   selector: 'home-api-health-check',
   templateUrl: './home-api-health-check.component.html',
   styleUrls: ['./home-api-health-check.component.scss'],
+  standalone: false,
 })
 export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   displayedColumns = ['picture', 'name', 'states', 'availability', 'actions'];

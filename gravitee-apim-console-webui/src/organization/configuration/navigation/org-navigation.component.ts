@@ -25,6 +25,7 @@ import { Constants } from '../../../entities/Constants';
   selector: 'org-navigation',
   styleUrls: ['./org-navigation.component.scss'],
   templateUrl: './org-navigation.component.html',
+  standalone: false,
 })
 export class OrgNavigationComponent implements OnInit {
   public groupItems: GroupItem[] = [];

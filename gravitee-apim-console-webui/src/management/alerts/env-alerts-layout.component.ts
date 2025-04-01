@@ -36,11 +36,13 @@ import { Component } from '@angular/core';
         display: flex;
         align-items: center;
         width: 100%;
+        standalone: false;
       }
       .navigation-tabs__icon {
         margin-right: 8px;
       }
     `,
   ],
+  standalone: false,
 })
 export class EnvAlertsLayoutComponent {}

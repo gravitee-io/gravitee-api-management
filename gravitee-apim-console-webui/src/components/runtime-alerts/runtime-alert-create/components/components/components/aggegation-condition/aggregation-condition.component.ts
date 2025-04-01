@@ -28,6 +28,7 @@ export type AggregationFormGroup = FormGroup<{
   selector: 'aggregation-condition',
   templateUrl: './aggregation-condition.component.html',
   styleUrls: ['./aggregation-condition.component.scss'],
+  standalone: false,
 })
 export class AggregationConditionComponent {
   @Input({ required: true }) form: AggregationFormGroup;

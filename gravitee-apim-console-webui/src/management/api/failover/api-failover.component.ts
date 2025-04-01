@@ -29,6 +29,7 @@ import { Failover } from '../../../entities/management-api-v2';
   selector: 'api-failover',
   templateUrl: './api-failover.component.html',
   styleUrls: ['./api-failover.component.scss'],
+  standalone: false,
 })
 export class ApiFailoverComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

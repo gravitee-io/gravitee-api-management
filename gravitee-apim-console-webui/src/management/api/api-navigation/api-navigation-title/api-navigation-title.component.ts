@@ -21,6 +21,7 @@ import { Api } from '../../../../entities/management-api-v2';
   selector: 'api-navigation-title',
   templateUrl: './api-navigation-title.component.html',
   styleUrls: ['./api-navigation-title.component.scss'],
+  standalone: false,
 })
 export class ApiNavigationTitleComponent {
   @Input()

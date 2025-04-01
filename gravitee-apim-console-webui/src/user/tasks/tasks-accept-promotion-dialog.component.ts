@@ -29,6 +29,7 @@ export interface TasksAcceptPromotionDialogResult {
   selector: 'tasks-accept-promotion-dialog',
   templateUrl: './tasks-accept-promotion-dialog.component.html',
   styleUrls: ['./tasks-accept-promotion-dialog.component.scss'],
+  standalone: false,
 })
 export class TasksAcceptPromotionDialogComponent {
   data: TasksAcceptPromotionDialogData;

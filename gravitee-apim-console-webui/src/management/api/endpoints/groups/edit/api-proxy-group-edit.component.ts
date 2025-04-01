@@ -36,6 +36,7 @@ import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
   selector: 'api-proxy-group-edit',
   templateUrl: './api-proxy-group-edit.component.html',
   styleUrls: ['./api-proxy-group-edit.component.scss'],
+  standalone: false,
 })
 export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

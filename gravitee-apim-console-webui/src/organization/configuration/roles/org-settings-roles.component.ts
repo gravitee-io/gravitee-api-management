@@ -41,6 +41,7 @@ interface RoleVM {
   selector: 'org-settings-roles',
   templateUrl: './org-settings-roles.component.html',
   styleUrls: ['./org-settings-roles.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   rolesByScope: Array<{ scope: string; scopeId: string; roles: RoleVM[] }>;

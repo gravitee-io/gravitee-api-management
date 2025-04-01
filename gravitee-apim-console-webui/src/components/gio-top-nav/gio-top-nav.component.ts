@@ -29,6 +29,7 @@ import { EnvironmentSettingsService } from '../../services-ngx/environment-setti
   selector: 'gio-top-nav',
   templateUrl: './gio-top-nav.component.html',
   styleUrls: ['./gio-top-nav.component.scss'],
+  standalone: false,
 })
 export class GioTopNavComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();

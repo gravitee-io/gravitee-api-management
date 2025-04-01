@@ -28,6 +28,7 @@ import { CustomUserField } from '../../entities/customUserFields';
   selector: 'sign-up',
   templateUrl: './sign-up.component.html',
   styleUrls: ['../auth-common.component.scss'],
+  standalone: false,
 })
 export class SignUpComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

@@ -30,6 +30,7 @@ import { Proxy } from '../../../entities/management-api-v2';
   selector: 'api-health-check',
   templateUrl: './api-health-check.component.html',
   styleUrls: ['./api-health-check.component.scss'],
+  standalone: false,
 })
 export class ApiHealthCheckComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

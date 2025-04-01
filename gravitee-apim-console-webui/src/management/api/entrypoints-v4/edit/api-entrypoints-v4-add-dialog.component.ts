@@ -31,6 +31,7 @@ export type ApiEntrypointsV4AddDialogComponentData = {
   selector: 'api-entrypoints-v4-add-dialog',
   templateUrl: './api-entrypoints-v4-add-dialog.component.html',
   styleUrls: ['./api-entrypoints-v4-add-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiEntrypointsV4AddDialogComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

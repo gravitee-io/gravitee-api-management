@@ -28,6 +28,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   selector: 'app-api-score-rulesets',
   templateUrl: './api-score-rulesets.component.html',
   styleUrl: './api-score-rulesets.component.scss',
+  standalone: false,
 })
 export class ApiScoreRulesetsComponent implements OnInit {
   public rulesets: ScoringRuleset[];

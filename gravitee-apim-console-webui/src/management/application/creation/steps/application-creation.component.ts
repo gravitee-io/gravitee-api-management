@@ -28,6 +28,7 @@ import { ApplicationTypesService } from '../../../../services-ngx/application-ty
   host: {
     class: 'bootstrap',
   },
+  standalone: false,
 })
 export class ApplicationCreationComponent extends UpgradeComponent {
   private unsubscribe$ = new Subject<void>();

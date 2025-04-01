@@ -19,6 +19,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   selector: 'runtime-alert-list-empty-state',
   templateUrl: './runtime-alert-list-empty-state.component.html',
   styleUrls: ['./runtime-alert-list-empty-state.component.scss'],
+  standalone: false,
 })
 export class RuntimeAlertListEmptyStateComponent {
   @Input() canCreateAlert: boolean;

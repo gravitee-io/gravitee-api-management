@@ -20,6 +20,7 @@ import { ActivatedRoute } from '@angular/router';
 @Component({
   template: '',
   selector: 'api-analytics-logs',
+  standalone: false,
   host: {
     class: 'bootstrap gv-sub-content',
   },

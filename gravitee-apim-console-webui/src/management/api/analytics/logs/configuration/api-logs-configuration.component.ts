@@ -40,6 +40,7 @@ interface LoggingConfiguration {
   selector: 'api-log-configuration',
   templateUrl: './api-logs-configuration.component.html',
   styleUrls: ['./api-logs-configuration.component.scss'],
+  standalone: false,
 })
 export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

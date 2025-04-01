@@ -36,6 +36,7 @@ import { v4ApisRequestStats } from '../components/dashboard-v4-api-request-stats
   selector: 'home-overview',
   templateUrl: './home-overview.component.html',
   styleUrls: ['./home-overview.component.scss'],
+  standalone: false,
 })
 export class HomeOverviewComponent implements OnInit, OnDestroy {
   loading = false;

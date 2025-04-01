@@ -42,6 +42,7 @@ interface MenuItem {
   selector: 'gio-policy-studio-layout',
   templateUrl: './gio-policy-studio-layout.component.html',
   styleUrls: ['./gio-policy-studio-layout.component.scss'],
+  standalone: false,
 })
 export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();

@@ -33,6 +33,7 @@ export enum UserType {
   selector: 'org-settings-new-user',
   templateUrl: './org-settings-new-user.component.html',
   styleUrls: ['./org-settings-new-user.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
   isLoading = true;

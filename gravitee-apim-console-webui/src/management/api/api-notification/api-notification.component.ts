@@ -41,6 +41,7 @@ import { Hooks } from '../../../entities/notification/hooks';
   selector: 'api-notification',
   templateUrl: './api-notification.component.html',
   styleUrls: ['./api-notification.component.scss'],
+  standalone: false,
 })
 export class ApiNotificationComponent implements OnInit, OnDestroy {
   private apiId = this.activatedRoute.snapshot.params.apiId;

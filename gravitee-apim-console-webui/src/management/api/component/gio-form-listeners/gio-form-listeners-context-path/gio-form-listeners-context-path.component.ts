@@ -44,6 +44,7 @@ const DEFAULT_LISTENER: PathV4 = {
   selector: 'gio-form-listeners-context-path',
   templateUrl: './gio-form-listeners-context-path.component.html',
   styleUrls: ['../gio-form-listeners.common.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

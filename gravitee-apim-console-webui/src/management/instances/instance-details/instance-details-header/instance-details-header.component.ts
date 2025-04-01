@@ -28,6 +28,7 @@ interface MenuItem {
   selector: 'instance-details-header',
   templateUrl: './instance-details-header.component.html',
   styleUrls: ['./instance-details-header.component.scss'],
+  standalone: false,
 })
 export class InstanceDetailsHeaderComponent implements OnInit {
   @Input()

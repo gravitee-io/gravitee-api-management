@@ -36,6 +36,7 @@ export type OrgSettingsUserGenerateTokenDialogData = {
   selector: 'org-settings-add-tenant',
   templateUrl: './org-settings-user-generate-token.component.html',
   styleUrls: ['./org-settings-user-generate-token.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
   token?: Token;

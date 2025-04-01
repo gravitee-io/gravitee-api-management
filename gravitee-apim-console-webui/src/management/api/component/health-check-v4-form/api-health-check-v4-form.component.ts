@@ -23,6 +23,7 @@ import { EndpointHealthCheckFormType } from '../../endpoints-v4/endpoint/api-end
   selector: 'api-health-check-v4-form',
   templateUrl: './api-health-check-v4-form.component.html',
   styleUrls: ['./api-health-check-v4-form.component.scss'],
+  standalone: false,
 })
 export class ApiHealthCheckV4FormComponent {
   @Input() healthCheckForm: EndpointGroupHealthCheckFormType | EndpointHealthCheckFormType;

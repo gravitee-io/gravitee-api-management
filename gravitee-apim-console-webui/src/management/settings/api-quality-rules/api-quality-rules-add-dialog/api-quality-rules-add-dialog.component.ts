@@ -40,6 +40,7 @@ interface NewQualityRuleForm {
   selector: 'api-quality-rules-add-dialog',
   templateUrl: './api-quality-rules-add-dialog.component.html',
   styleUrls: ['./api-quality-rules-add-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiQualityRulesAddDialogComponent implements OnInit {
   newQualityRuleForm: UntypedFormGroup;

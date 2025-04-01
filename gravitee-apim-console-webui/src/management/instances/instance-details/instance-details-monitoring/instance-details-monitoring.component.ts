@@ -29,6 +29,7 @@ import { InstanceService } from '../../../../services-ngx/instance.service';
   selector: 'instance-monitoring',
   templateUrl: './instance-details-monitoring.component.html',
   styleUrls: ['./instance-details-monitoring.component.scss'],
+  standalone: false,
 })
 export class InstanceDetailsMonitoringComponent implements OnInit, OnDestroy {
   public instance: Instance;

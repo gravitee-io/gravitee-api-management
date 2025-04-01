@@ -29,6 +29,7 @@ import { ApisScoring, ApisScoringOverview, ApisScoringResponse } from '../api-sc
   selector: 'app-api-score-dashboard',
   templateUrl: './api-score-dashboard.component.html',
   styleUrl: './api-score-dashboard.component.scss',
+  standalone: false,
 })
 export class ApiScoreDashboardComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);

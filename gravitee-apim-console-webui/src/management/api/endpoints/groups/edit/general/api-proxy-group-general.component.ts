@@ -22,6 +22,7 @@ import { LOAD_BALANCER_TYPES } from '../../../../../../entities/management-api-v
   selector: 'api-proxy-group-general',
   templateUrl: './api-proxy-group-general.component.html',
   styleUrls: ['./api-proxy-group-general.component.scss'],
+  standalone: false,
 })
 export class ApiProxyGroupGeneralComponent {
   @Input() generalForm: UntypedFormGroup;

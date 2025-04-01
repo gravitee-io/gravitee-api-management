@@ -22,6 +22,7 @@ import { PageType } from '../../../../../entities/management-api-v2';
   selector: 'api-documentation-empty-state',
   templateUrl: './api-documentation-v4-empty-state.component.html',
   styleUrls: ['./api-documentation-v4-empty-state.component.scss'],
+  standalone: false,
 })
 export class ApiDocumentationV4EmptyStateComponent {
   @Output()

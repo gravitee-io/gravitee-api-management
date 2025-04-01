@@ -56,6 +56,7 @@ export interface MetadataSaveServices {
   selector: 'gio-metadata',
   templateUrl: './gio-metadata.component.html',
   styleUrls: ['./gio-metadata.component.scss'],
+  standalone: false,
 })
 export class GioMetadataComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

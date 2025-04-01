@@ -19,6 +19,7 @@ import { FormGroup } from '@angular/forms';
 @Component({
   selector: 'missing-data-condition',
   styleUrls: ['../scss/conditions.component.scss'],
+  standalone: false,
   template: `
     <form *ngIf="form" [formGroup]="form" class="condition-row">
       <div class="condition-row__label">

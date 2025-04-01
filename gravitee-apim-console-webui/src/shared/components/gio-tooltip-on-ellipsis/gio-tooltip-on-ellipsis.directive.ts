@@ -27,6 +27,7 @@ import { DOCUMENT } from '@angular/common';
  */
 @Directive({
   selector: '[gioTooltipOnEllipsis]',
+  standalone: false,
 })
 export class GioTooltipOnEllipsisDirective extends MatTooltip implements AfterViewInit {
   private nativeElement: HTMLElement;

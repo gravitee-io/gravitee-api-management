@@ -29,6 +29,7 @@ export interface NotificationSummary {
   selector: 'notification-list',
   templateUrl: './notification-list.component.html',
   styleUrls: ['./notification-list.component.scss'],
+  standalone: false,
 })
 export class NotificationListComponent {
   public displayedColumns = ['name', 'subscribedEvents', 'notifier', 'actions'];

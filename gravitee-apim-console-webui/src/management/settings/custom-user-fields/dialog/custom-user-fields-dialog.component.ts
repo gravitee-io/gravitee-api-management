@@ -35,6 +35,7 @@ export type CustomUserFieldsDialogResult = CustomUserField;
   selector: 'app-custom-user-fields-dialog',
   templateUrl: './custom-user-fields-dialog.component.html',
   styleUrl: './custom-user-fields-dialog.component.scss',
+  standalone: false,
 })
 export class CustomUserFieldsDialogComponent implements OnInit {
   public customUserFieldsDialogData: CustomUserFieldsDialogData;

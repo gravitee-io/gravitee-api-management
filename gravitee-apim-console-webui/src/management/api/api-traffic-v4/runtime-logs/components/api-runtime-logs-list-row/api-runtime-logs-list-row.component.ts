@@ -22,6 +22,7 @@ import { ConnectionLog } from '../../../../../../entities/management-api-v2';
   selector: 'api-runtime-logs-list-row',
   templateUrl: './api-runtime-logs-list-row.component.html',
   styleUrls: ['./api-runtime-logs-list-row.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsListRowComponent {
   @Input()

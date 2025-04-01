@@ -20,6 +20,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
   selector: 'api-runtime-logs-empty',
   templateUrl: './api-runtime-logs-empty.component.html',
   styleUrls: ['./api-runtime-logs-empty.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsEmptyComponent {
   @Output()

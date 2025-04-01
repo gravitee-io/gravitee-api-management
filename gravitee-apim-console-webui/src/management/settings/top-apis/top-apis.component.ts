@@ -36,6 +36,7 @@ import {
   selector: 'app-top-apis',
   templateUrl: './top-apis.component.html',
   styleUrls: ['./top-apis.component.scss'],
+  standalone: false,
 })
 export class TopApisComponent implements OnInit {
   public topApisList: TopApi[] = [];

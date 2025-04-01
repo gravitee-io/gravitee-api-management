@@ -29,6 +29,7 @@ import { isIso8601DateValid } from '../../api/api-traffic-v4/runtime-logs-settin
   selector: 'api-logging',
   templateUrl: './api-logging.component.html',
   styleUrls: ['./api-logging.component.scss'],
+  standalone: false,
 })
 export class ApiLoggingComponent implements OnInit, OnDestroy {
   isLoading = true;

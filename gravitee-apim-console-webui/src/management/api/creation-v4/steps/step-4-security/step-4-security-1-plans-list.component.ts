@@ -26,6 +26,7 @@ import { Step5SummaryComponent } from '../step-5-summary/step-5-summary.componen
   selector: 'step-4-security-1-plans-list',
   templateUrl: './step-4-security-1-plans-list.component.html',
   styleUrls: ['./step-4-security-1-plans-list.component.scss', '../api-creation-steps-common.component.scss'],
+  standalone: false,
 })
 export class Step4Security1PlansListComponent implements OnInit {
   @Input()
