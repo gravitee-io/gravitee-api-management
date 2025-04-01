@@ -28,6 +28,7 @@ import { ApiCreationStep } from '../../services/api-creation-stepper.service';
 
 @Component({
   template: `<api-creation-stepper-menu [menuSteps]="menuSteps" [currentStep]="currentStep"></api-creation-stepper-menu>`,
+  standalone: false,
 })
 class TestHostComponent {
   public menuSteps: MenuStepItem[] = [];

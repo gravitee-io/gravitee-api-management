@@ -34,6 +34,7 @@ import { ApiSpecGenState } from '../../../../../services-ngx/api-spec-gen.servic
 @Component({
   selector: 'gio-dialog-test',
   template: ` <button mat-button id="open-dialog-test" (click)="openDialog()">Open dialog</button>`,
+  standalone: false,
 })
 class TestComponent {
   public result?: any;

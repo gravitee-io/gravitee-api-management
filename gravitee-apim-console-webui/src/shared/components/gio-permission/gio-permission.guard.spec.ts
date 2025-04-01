@@ -28,11 +28,13 @@ import { Constants } from '../../../entities/Constants';
 
 @Component({
   template: '<router-outlet></router-outlet>',
+  standalone: false,
 })
 class TestRootComponent {}
 
 @Component({
   template: '',
+  standalone: false,
 })
 class TestComponent {}
 

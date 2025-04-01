@@ -37,6 +37,7 @@ const GROUP_NAME = 'groupName1';
 @Component({
   selector: `host-component`,
   template: `<api-general-group-members [groupData]="groupData" (destroy)="isDestroy()"></api-general-group-members>`,
+  standalone: false,
 })
 class TestComponent {
   groupData: GroupData = {
