@@ -27,6 +27,7 @@ export type ApiHistoryV4DeploymentCompareDialogResult = null | { rollbackTo: str
   selector: 'app-deployment-compare-dialog',
   templateUrl: './api-history-v4-deployment-compare-dialog.component.html',
   styleUrls: ['./api-history-v4-deployment-compare-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiHistoryV4DeploymentCompareDialogComponent {
   constructor(

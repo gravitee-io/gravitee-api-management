@@ -30,6 +30,7 @@ export class RequestStats {
   selector: 'gio-request-stats',
   templateUrl: './gio-request-stats.component.html',
   styleUrls: ['./gio-request-stats.component.scss'],
+  standalone: false,
 })
 export class GioRequestStatsComponent {
   @Input()

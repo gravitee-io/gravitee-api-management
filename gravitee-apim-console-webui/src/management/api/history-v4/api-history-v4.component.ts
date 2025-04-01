@@ -48,6 +48,7 @@ const INITIAL_SEARCH_PARAM: SearchApiEventParam = {
   selector: 'app-api-history-v4',
   templateUrl: './api-history-v4.component.html',
   styleUrls: ['./api-history-v4.component.scss'],
+  standalone: false,
 })
 export class ApiHistoryV4Component {
   private apiId = this.activatedRoute.snapshot.params.apiId;

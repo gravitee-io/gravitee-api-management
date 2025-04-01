@@ -31,6 +31,7 @@ import { gioTableFilterCollection } from '../../../shared/components/gio-table-w
   selector: 'app-discovery-preview',
   templateUrl: './discovery-preview.component.html',
   styleUrls: ['./discovery-preview.component.scss'],
+  standalone: false,
 })
 export class DiscoveryPreviewComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);

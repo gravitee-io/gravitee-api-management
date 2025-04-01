@@ -20,6 +20,7 @@ import { License } from '@gravitee/ui-particles-angular';
   selector: 'gio-license-banner',
   templateUrl: './gio-license-banner.component.html',
   styleUrls: ['./gio-license-banner.component.scss'],
+  standalone: false,
   host: {},
 })
 export class GioLicenseBannerComponent implements OnInit {

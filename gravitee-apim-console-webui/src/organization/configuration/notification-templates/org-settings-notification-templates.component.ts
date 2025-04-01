@@ -38,6 +38,7 @@ export type NotificationTemplatesByScope = Record<string, NotificationTemplateVM
   selector: 'org-settings-notification-templates',
   styleUrls: ['./org-settings-notification-templates.component.scss'],
   templateUrl: './org-settings-notification-templates.component.html',
+  standalone: false,
 })
 export class OrgSettingsNotificationTemplatesComponent implements OnInit {
   displayedColumns: string[] = ['name', 'description', 'actions'];

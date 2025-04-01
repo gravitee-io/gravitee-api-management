@@ -25,6 +25,7 @@ import { DebugRequest } from '../../models/DebugRequest';
   selector: 'policy-studio-debug-request',
   templateUrl: './policy-studio-debug-request.component.html',
   styleUrls: ['./policy-studio-debug-request.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDebugRequestComponent implements OnInit {
   @Input()

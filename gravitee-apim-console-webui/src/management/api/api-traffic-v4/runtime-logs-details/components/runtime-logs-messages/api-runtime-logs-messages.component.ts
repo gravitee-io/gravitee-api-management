@@ -31,6 +31,7 @@ import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connec
   selector: 'api-runtime-logs-messages',
   templateUrl: './api-runtime-logs-messages.component.html',
   styleUrls: ['./api-runtime-logs-messages.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
   private readonly pageSize: number = 5;

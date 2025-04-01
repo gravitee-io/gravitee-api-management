@@ -51,6 +51,7 @@ type SubscriptionCreationForm = FormGroup<{
   selector: 'application-subscription-creation-dialog',
   templateUrl: './application-subscription-creation-dialog.component.html',
   styleUrls: ['./application-subscription-creation-dialog.component.scss'],
+  standalone: false,
 })
 export class ApplicationSubscriptionCreationDialogComponent {
   private destroyRef = inject(DestroyRef);

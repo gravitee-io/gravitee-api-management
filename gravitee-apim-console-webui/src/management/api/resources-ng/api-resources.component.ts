@@ -33,6 +33,7 @@ import { Constants } from '../../../entities/Constants';
   selector: 'api-resources-old',
   templateUrl: './api-resources.component.html',
   styleUrls: ['./api-resources.component.scss'],
+  standalone: false,
 })
 export class ApiResourcesComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();

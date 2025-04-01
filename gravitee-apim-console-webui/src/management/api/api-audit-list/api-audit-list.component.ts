@@ -41,6 +41,7 @@ interface ApiAuditData {
   selector: 'api-audit-list',
   templateUrl: './api-audit-list.component.html',
   styleUrls: ['./api-audit-list.component.scss'],
+  standalone: false,
 })
 export class ApiAuditListComponent implements OnInit, OnDestroy {
   auditList: ApiAuditData[] = [];

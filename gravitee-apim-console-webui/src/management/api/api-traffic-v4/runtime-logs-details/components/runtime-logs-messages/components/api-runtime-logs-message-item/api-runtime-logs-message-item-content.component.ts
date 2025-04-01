@@ -30,6 +30,7 @@ type ContentTab = {
   selector: 'api-runtime-logs-message-item-content',
   templateUrl: './api-runtime-logs-message-item-content.component.html',
   styleUrls: ['./api-runtime-logs-message-item-content.component.scss'],
+  standalone: false,
 })
 export class ApiRuntimeLogsMessageItemContentComponent {
   @Input()

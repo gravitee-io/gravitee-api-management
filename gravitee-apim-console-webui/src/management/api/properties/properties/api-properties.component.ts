@@ -54,6 +54,7 @@ type TableDataSource = {
   selector: 'api-properties',
   templateUrl: './api-properties.component.html',
   styleUrls: ['./api-properties.component.scss'],
+  standalone: false,
 })
 export class ApiPropertiesComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();

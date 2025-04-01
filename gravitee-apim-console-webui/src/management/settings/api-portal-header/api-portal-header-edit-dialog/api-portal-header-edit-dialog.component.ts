@@ -29,6 +29,7 @@ export type ApiPortalHeaderDialogData = ApiPortalHeaderEditDialogResult;
   selector: 'api-portal-header-edit-dialog',
   templateUrl: './api-portal-header-edit-dialog.component.html',
   styleUrls: ['./api-portal-header-edit-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiPortalHeaderEditDialogComponent implements OnInit {
   public isUpdate = false;

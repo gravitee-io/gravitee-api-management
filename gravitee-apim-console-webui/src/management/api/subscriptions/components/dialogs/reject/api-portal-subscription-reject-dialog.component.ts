@@ -24,6 +24,7 @@ export interface ApiPortalSubscriptionRejectDialogResult {
   selector: 'api-portal-subscription-reject-dialog',
   templateUrl: './api-portal-subscription-reject-dialog.component.html',
   styleUrls: ['./api-portal-subscription-reject-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiPortalSubscriptionRejectDialogComponent implements OnInit {
   form: UntypedFormGroup;

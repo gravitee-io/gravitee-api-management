@@ -29,6 +29,7 @@ export interface MenuStepItem extends ApiCreationGroup {
   selector: 'api-creation-stepper-menu',
   templateUrl: './api-creation-stepper-menu.component.html',
   styleUrls: ['./api-creation-stepper-menu.component.scss'],
+  standalone: false,
 })
 export class ApiCreationStepperMenuComponent {
   @Input()

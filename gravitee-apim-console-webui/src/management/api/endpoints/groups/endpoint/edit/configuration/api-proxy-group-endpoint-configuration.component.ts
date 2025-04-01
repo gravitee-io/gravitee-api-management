@@ -30,6 +30,7 @@ export type EndpointConfigurationData = {
   selector: 'api-proxy-group-endpoint-configuration',
   templateUrl: './api-proxy-group-endpoint-configuration.component.html',
   styleUrls: ['./api-proxy-group-endpoint-configuration.component.scss'],
+  standalone: false,
 })
 export class ApiProxyGroupEndpointConfigurationComponent {
   public static getConfigurationFormGroup(endpoint: EndpointV2, isReadonly: boolean, unsubscribe$: Subject<boolean>): UntypedFormGroup {

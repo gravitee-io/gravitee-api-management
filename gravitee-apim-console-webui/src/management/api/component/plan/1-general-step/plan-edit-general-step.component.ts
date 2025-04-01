@@ -29,6 +29,7 @@ import { TagService } from '../../../../../services-ngx/tag.service';
   selector: 'plan-edit-general-step',
   templateUrl: './plan-edit-general-step.component.html',
   styleUrls: ['./plan-edit-general-step.component.scss'],
+  standalone: false,
 })
 export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

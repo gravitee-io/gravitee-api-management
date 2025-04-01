@@ -33,6 +33,7 @@ import { RestrictedDomainService } from '../../../services-ngx/restricted-domain
   selector: 'api-entrypoints',
   templateUrl: './api-entrypoints.component.html',
   styleUrls: ['./api-entrypoints.component.scss'],
+  standalone: false,
 })
 export class ApiEntrypointsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

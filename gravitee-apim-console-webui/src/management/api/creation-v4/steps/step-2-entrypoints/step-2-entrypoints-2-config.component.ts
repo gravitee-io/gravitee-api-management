@@ -40,6 +40,7 @@ import { PortalSettingsPortal } from '../../../../../entities/portal/portalSetti
   templateUrl: './step-2-entrypoints-2-config.component.html',
   styleUrls: ['./step-2-entrypoints-2-config.component.scss', '../api-creation-steps-common.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

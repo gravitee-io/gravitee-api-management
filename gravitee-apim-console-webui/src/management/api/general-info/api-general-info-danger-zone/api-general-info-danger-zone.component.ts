@@ -39,6 +39,7 @@ import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/
   selector: 'api-general-info-danger-zone',
   templateUrl: './api-general-info-danger-zone.component.html',
   styleUrls: ['./api-general-info-danger-zone.component.scss'],
+  standalone: false,
 })
 export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

@@ -59,6 +59,7 @@ export interface GroupData {
   selector: 'integration-general-members',
   templateUrl: './integration-general-members.component.html',
   styleUrls: ['./integration-general-members.component.scss'],
+  standalone: false,
 })
 export class IntegrationGeneralMembersComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);

@@ -30,6 +30,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   selector: 'org-settings-notification-template',
   styleUrls: ['./org-settings-notification-template.component.scss'],
   templateUrl: './org-settings-notification-template.component.html',
+  standalone: false,
 })
 export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestroy {
   notificationTemplates: NotificationTemplate[] = [];

@@ -23,6 +23,7 @@ import { IntegrationsService } from '../../../../services-ngx/integrations.servi
   selector: 'app-integration-user-permissions',
   templateUrl: './integration-user-permissions.component.html',
   styleUrl: './integration-user-permissions.component.scss',
+  standalone: false,
 })
 export class IntegrationUserPermissionsComponent implements OnInit {
   constructor(

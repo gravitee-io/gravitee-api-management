@@ -25,6 +25,7 @@ import { AuthService } from '../../auth/auth.service';
 @Component({
   template: '',
   selector: 'user-my-account',
+  standalone: false,
   host: {
     class: 'bootstrap',
   },

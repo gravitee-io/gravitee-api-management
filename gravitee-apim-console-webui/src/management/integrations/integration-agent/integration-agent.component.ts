@@ -30,6 +30,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   selector: 'app-integration-agent',
   templateUrl: './integration-agent.component.html',
   styleUrl: './integration-agent.component.scss',
+  standalone: false,
 })
 export class IntegrationAgentComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);

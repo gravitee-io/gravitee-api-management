@@ -30,6 +30,7 @@ import { FlowConfigurationSchema } from '../../../../entities/flow/configuration
   selector: 'policy-studio-config',
   templateUrl: './policy-studio-config.component.html',
   styleUrls: ['./policy-studio-config.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();

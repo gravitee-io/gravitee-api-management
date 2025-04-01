@@ -39,6 +39,7 @@ type TicketForm = FormGroup<{
   selector: 'new-ticket',
   templateUrl: './new-ticket.component.html',
   styleUrls: ['./new-ticket.component.scss'],
+  standalone: false,
 })
 export class NewTicketComponent implements OnInit {
   ticketForm: TicketForm;

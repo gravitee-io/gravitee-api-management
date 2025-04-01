@@ -55,6 +55,7 @@ import { RuntimeAlertCreateService } from '../../../services/runtime-alert-creat
     </form>
   `,
   encapsulation: ViewEncapsulation.None,
+  standalone: false,
 })
 export class StringConditionComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

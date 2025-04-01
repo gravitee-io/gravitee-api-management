@@ -33,6 +33,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
   selector: 'org-settings-tenants',
   templateUrl: './org-settings-tenants.component.html',
   styleUrls: ['./org-settings-tenants.component.scss'],
+  standalone: false,
 })
 export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['id', 'name', 'description', 'actions'];

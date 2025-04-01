@@ -24,6 +24,7 @@ import { Qos } from '../../../../entities/management-api-v2';
   selector: 'gio-form-qos',
   templateUrl: './gio-form-qos.component.html',
   styleUrls: ['./gio-form-qos.component.scss'],
+  standalone: false,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

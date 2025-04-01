@@ -18,5 +18,6 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'api-documentation-v4-metadata-tab',
   templateUrl: './api-documentation-v4-metadata-tab.component.html',
+  standalone: false,
 })
 export class ApiDocumentationV4MetadataTabComponent {}

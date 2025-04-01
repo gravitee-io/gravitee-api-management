@@ -23,6 +23,7 @@ import { gioTableFilterCollection } from '../../../../shared/components/gio-tabl
   selector: 'app-api-scoring-list',
   templateUrl: './api-scoring-list.component.html',
   styleUrl: './api-scoring-list.component.scss',
+  standalone: false,
 })
 export class ApiScoringListComponent {
   private _asset: ScoringAsset;

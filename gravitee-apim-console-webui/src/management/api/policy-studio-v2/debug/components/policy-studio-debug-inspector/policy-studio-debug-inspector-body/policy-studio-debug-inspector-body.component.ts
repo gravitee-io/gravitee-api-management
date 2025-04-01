@@ -20,6 +20,7 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
   selector: 'policy-studio-debug-inspector-body',
   templateUrl: './policy-studio-debug-inspector-body.component.html',
   styleUrls: ['./policy-studio-debug-inspector-body.component.scss'],
+  standalone: false,
 })
 export class PolicyStudioDebugInspectorBodyComponent implements OnChanges {
   @Input()

@@ -33,6 +33,7 @@ type RequestMetricsAggregationFormGroup = FormGroup<{
 @Component({
   selector: 'request-metrics-aggregation-condition',
   styleUrls: ['../scss/conditions.component.scss'],
+  standalone: false,
   template: `
     <form *ngIf="form" [formGroup]="form">
       <div class="condition-row">

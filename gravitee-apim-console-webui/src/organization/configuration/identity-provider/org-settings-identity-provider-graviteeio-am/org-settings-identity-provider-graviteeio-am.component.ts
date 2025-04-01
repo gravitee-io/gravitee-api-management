@@ -22,6 +22,7 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
   selector: 'org-settings-identity-provider-graviteeio-am',
   styleUrls: ['./org-settings-identity-provider-graviteeio-am.component.scss'],
   templateUrl: './org-settings-identity-provider-graviteeio-am.component.html',
+  standalone: false,
 })
 export class OrgSettingsIdentityProviderGraviteeioAmComponent implements ProviderConfiguration {
   name = 'OrgSettingsIdentityProviderGraviteeioAmComponent';

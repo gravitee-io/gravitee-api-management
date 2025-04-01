@@ -33,6 +33,7 @@ export interface IntegrationGroupsDialogResult {
   selector: 'integration-general-access-groups',
   templateUrl: './integration-general-groups.component.html',
   styleUrls: ['./integration-general-groups.component.scss'],
+  standalone: false,
 })
 export class IntegrationGeneralGroupsComponent implements OnInit {
   public isReadOnly = true;

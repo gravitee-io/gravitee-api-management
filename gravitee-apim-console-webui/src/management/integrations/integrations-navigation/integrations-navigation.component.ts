@@ -24,6 +24,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
   selector: 'app-integrations-navigation',
   templateUrl: './integrations-navigation.component.html',
   styleUrls: ['./integrations-navigation.component.scss'],
+  standalone: false,
 })
 export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
   protected readonly AgentStatus = AgentStatus;

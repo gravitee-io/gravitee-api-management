@@ -25,6 +25,7 @@ export type EndpointGeneralData = Pick<EndpointV2, 'name' | 'type' | 'target' | 
   selector: 'api-proxy-group-endpoint-edit-general',
   templateUrl: './api-proxy-group-endpoint-edit-general.component.html',
   styleUrls: ['./api-proxy-group-endpoint-edit-general.component.scss'],
+  standalone: false,
 })
 export class ApiProxyGroupEndpointEditGeneralComponent {
   @Input() generalForm: UntypedFormGroup;

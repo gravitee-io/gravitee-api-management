@@ -39,6 +39,7 @@ import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
   selector: 'api-plan-list',
   templateUrl: './api-plan-list.component.html',
   styleUrls: ['./api-plan-list.component.scss'],
+  standalone: false,
 })
 export class ApiPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

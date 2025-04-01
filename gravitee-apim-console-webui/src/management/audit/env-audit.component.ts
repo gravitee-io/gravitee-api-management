@@ -43,6 +43,7 @@ interface AuditDataTable {
   selector: 'env-audit',
   templateUrl: './env-audit.component.html',
   styleUrls: ['./env-audit.component.scss'],
+  standalone: false,
 })
 export class EnvAuditComponent implements OnInit, OnDestroy {
   public displayedColumns = ['date', 'user', 'referenceType', 'reference', 'event', 'targets', 'patch'];

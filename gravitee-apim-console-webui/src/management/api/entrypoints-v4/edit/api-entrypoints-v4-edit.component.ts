@@ -31,6 +31,7 @@ type DlqElement = { name: string; type: string; icon: string };
   selector: 'api-entrypoints-v4-edit',
   templateUrl: './api-entrypoints-v4-edit.component.html',
   styleUrls: ['./api-entrypoints-v4-edit.component.scss'],
+  standalone: false,
 })
 export class ApiEntrypointsV4EditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

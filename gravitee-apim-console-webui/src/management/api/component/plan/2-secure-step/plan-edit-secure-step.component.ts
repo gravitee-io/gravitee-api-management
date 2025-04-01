@@ -32,6 +32,7 @@ import { ResourceTypeService } from '../../../../../shared/components/form-json-
   selector: 'plan-edit-secure-step',
   templateUrl: './plan-edit-secure-step.component.html',
   styleUrls: ['./plan-edit-secure-step.component.scss'],
+  standalone: false,
 })
 export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

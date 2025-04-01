@@ -28,6 +28,7 @@ interface MenuItemVM {
   selector: 'step-1-menu-item',
   templateUrl: './step-1-menu-item.component.html',
   styleUrls: ['./step-1-menu-item.component.scss'],
+  standalone: false,
 })
 export class Step1MenuItemComponent implements OnInit {
   public menuItem: MenuItemVM;

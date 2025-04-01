@@ -32,6 +32,7 @@ type EventsTableDS = {
   selector: 'api-events',
   templateUrl: './api-events.component.html',
   styleUrls: ['./api-events.component.scss'],
+  standalone: false,
 })
 export class ApiEventsComponent implements OnInit, OnDestroy {
   private eventTypes = ['START_API', 'STOP_API', 'PUBLISH_API'];

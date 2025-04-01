@@ -22,6 +22,7 @@ import { FieldParameter } from '../../../entities/management-api-v2/api/v4/healt
   selector: 'app-health-check-dashboard-v4',
   templateUrl: './api-health-check-dashboard-v4.component.html',
   styleUrl: './api-health-check-dashboard-v4.component.scss',
+  standalone: false,
 })
 export class ApiHealthCheckDashboardV4Component {
   protected readonly FieldParameter = FieldParameter;

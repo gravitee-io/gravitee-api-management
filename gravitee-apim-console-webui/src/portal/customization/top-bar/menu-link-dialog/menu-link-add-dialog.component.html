@@ -67,8 +67,6 @@
   </mat-dialog-content>
   <mat-dialog-actions align="end">
     <button mat-stroked-button [mat-dialog-close]="" [attr.aria-label]="'Cancel'" data-testid="menu-link_dialog_cancel">Cancel</button>
-    <button mat-raised-button [disabled]="this.form.invalid" color="primary" type="submit" data-testid="menu-link_dialog_save">
-      Add Link
-    </button>
+    <button mat-raised-button [disabled]="form.invalid" color="primary" type="submit" data-testid="menu-link_dialog_save">Add Link</button>
   </mat-dialog-actions>
 </form>

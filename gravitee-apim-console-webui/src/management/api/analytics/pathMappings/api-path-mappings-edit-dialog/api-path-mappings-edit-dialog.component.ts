@@ -36,6 +36,7 @@ export interface ApiPathMappingsEditDialogData {
   selector: 'api-path-mappings-edit-dialog',
   templateUrl: './api-path-mappings-edit-dialog.component.html',
   styleUrls: ['./api-path-mappings-edit-dialog.component.scss'],
+  standalone: false,
 })
 export class ApiPathMappingsEditDialogComponent {
   private api: ApiV1 | ApiV2;

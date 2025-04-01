@@ -27,6 +27,7 @@ import { CreateRulesetRequestData, RulesetFormat } from '../../../../entities/ma
   selector: 'import-api-score-ruleset',
   templateUrl: './import-api-score-ruleset.component.html',
   styleUrl: './import-api-score-ruleset.component.scss',
+  standalone: false,
 })
 export class ImportApiScoreRulesetComponent implements OnInit {
   protected importType: string;

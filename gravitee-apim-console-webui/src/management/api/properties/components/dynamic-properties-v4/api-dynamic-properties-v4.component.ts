@@ -37,6 +37,7 @@ export type DynamicPropertiesType = {
   selector: 'api-dynamic-properties-v4',
   templateUrl: './api-dynamic-properties-v4.component.html',
   styleUrls: ['./api-dynamic-properties-v4.component.scss'],
+  standalone: false,
 })
 export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();

@@ -43,6 +43,7 @@ interface IdentityProviderForm {
   selector: 'identity-providers',
   templateUrl: './identity-providers.component.html',
   styleUrls: ['./identity-providers.component.scss'],
+  standalone: false,
 })
 export class IdentityProvidersComponent implements OnInit {
   identityProvidersForm: FormGroup;

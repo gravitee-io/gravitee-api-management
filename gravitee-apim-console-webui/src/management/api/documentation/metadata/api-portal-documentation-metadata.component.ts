@@ -18,5 +18,6 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'api-portal-documentation-metadata',
   templateUrl: './api-portal-documentation-metadata.component.html',
+  standalone: false,
 })
 export class ApiPortalDocumentationMetadataComponent {}

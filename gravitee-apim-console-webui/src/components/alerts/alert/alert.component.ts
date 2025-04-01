@@ -30,6 +30,7 @@ import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 @Component({
   template: '',
   selector: 'alert-ajs',
+  standalone: false,
   host: {
     class: 'bootstrap',
   },
