@@ -48,6 +48,7 @@ describe('GioTableWrapperComponent', () => {
           </table>
         </gio-table-wrapper>
       `,
+      standalone: false,
     })
     class TestComponent {
       length = 0;
@@ -240,6 +241,7 @@ describe('GioTableWrapperComponent', () => {
           </table>
         </gio-table-wrapper>
       `,
+      standalone: false,
     })
     class TestComponentWithSort {
       length = 100;

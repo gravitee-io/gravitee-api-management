@@ -34,11 +34,13 @@ import { EnvironmentService } from '../services-ngx/environment.service';
 
 @Component({
   template: '<router-outlet></router-outlet>',
+  standalone: false,
 })
 class TestRootComponent {}
 
 @Component({
   template: '',
+  standalone: false,
 })
 class TestComponent {}
 

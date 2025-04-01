@@ -28,6 +28,7 @@ import { GioTestingModule } from '../../../../shared/testing';
 
 @Component({
   template: ` <api-health-check-v4-form [healthCheckForm]="healthCheckForm"></api-health-check-v4-form> `,
+  standalone: false,
 })
 class TestComponent {
   healthCheckForm = new UntypedFormGroup({

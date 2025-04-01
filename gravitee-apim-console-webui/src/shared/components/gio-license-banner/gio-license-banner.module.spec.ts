@@ -29,6 +29,7 @@ const onRequestUpgrade = jest.fn();
 
 @Component({
   template: `<gio-license-banner [license]="license" [isOEM]="isOEM" (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>`,
+  standalone: false,
 })
 class TestComponent {
   public onRequestUpgrade = onRequestUpgrade;
