@@ -241,7 +241,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             return apiKey;
         }
         jdbcTemplate.update("insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )", id, subscriptionId);
-        jdbcTemplate.update("update " + this.tableName + " set updated_at=now() where id=?", id);
+        jdbcTemplate.update("update " + this.tableName + " set updated_at=? where id=?", new Date(), id);
         return findById(id);
     }
 
