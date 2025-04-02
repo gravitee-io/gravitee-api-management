@@ -284,6 +284,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membership.setSource(source);
                     membership.setCreatedAt(updateDate);
                     membership.setUpdatedAt(updateDate);
+                    membership.setReferenceId(executionContext.getEnvironmentId());
                     membershipRepository.create(membership);
                     createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
 
@@ -359,6 +360,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membership.setSource(source);
                     membership.setCreatedAt(updateDate);
                     membership.setUpdatedAt(updateDate);
+                    membership.setReferenceId(executionContext.getEnvironmentId());
                     membershipRepository.create(membership);
                     createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
                 }
@@ -673,6 +675,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipMemberType memberType,
         String memberId
     ) {
+        System.out.println("executionContext.getEnvironmentId()1 >>>>>" + referenceId);
         deleteReferenceMemberBySource(executionContext, referenceType, referenceId, memberType, memberId, null);
     }
 

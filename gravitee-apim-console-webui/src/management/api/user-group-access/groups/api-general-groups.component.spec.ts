@@ -122,6 +122,38 @@ describe('ApiGeneralGroupsComponent', () => {
       expectApiPutRequest({ ...api, groups: [] });
       expectGetRequests({ ...api, groups: [] });
     });
+    it('should allow unselecting a pre-selected group and save', async () => {
+      const api = fakeApiV4({ id: apiId, groups: [groupId1, groupId2] }); // API initially has two groups
+      await expectGetRequests(api, [groupId1, groupId2]);
+
+      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+
+      await harness.manageGroupsClick();
+      const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
+
+      // Ensure pre-selected groups are present
+      const selectedGroups = await groupsHarness.getSelectedGroups();
+      expect(selectedGroups.length).toEqual(2);
+      expect(await selectedGroups[0].getText()).toEqual(`${groupId1}-name`);
+      expect(await selectedGroups[1].getText()).toEqual(`${groupId2}-name`);
+
+      // Unselect groupId2
+      await groupsHarness.deselectGroups({ text: `${groupId2}-name` });
+
+      // Ensure only one group is now selected
+      expect(await groupsHarness.getGroupsListValueText()).toEqual(`${groupId1}-name`);
+      await groupsHarness.closeGroupsList();
+
+      // Save the updated selection
+      await groupsHarness.clickSave();
+
+      // Verify PUT request is made with the updated groups list (only groupId1)
+      expectApiPutRequest({ ...api, groups: [groupId1] });
+
+      // Ensure API is refreshed after save
+      expectApiGetRequest({ ...api, groups: [groupId1] });
+      expectGetRequests({ ...api, groups: [groupId1] });
+    });
 
     it('should be read-only for V1 API', async () => {
       const api = fakeApiV1({ id: apiId, groups: [groupId1] });
@@ -186,6 +218,7 @@ describe('ApiGeneralGroupsComponent', () => {
 
   function expectApiPutRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
+    fixture.detectChanges();
   }
 
   function expectGetGroupsListRequest(groups: string[]) {
