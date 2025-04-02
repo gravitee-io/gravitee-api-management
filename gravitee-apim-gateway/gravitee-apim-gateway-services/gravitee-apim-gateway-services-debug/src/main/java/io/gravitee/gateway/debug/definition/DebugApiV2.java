@@ -24,13 +24,13 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DebugApi extends Api {
+public class DebugApiV2 extends Api {
 
     private HttpRequest request;
     private HttpResponse response;
     private String eventId;
 
-    public DebugApi(String eventId, io.gravitee.definition.model.debug.DebugApi debugApi) {
+    public DebugApiV2(String eventId, io.gravitee.definition.model.debug.DebugApiV2 debugApi) {
         super(debugApi);
         this.setResponse(debugApi.getResponse());
         this.setRequest(debugApi.getRequest());

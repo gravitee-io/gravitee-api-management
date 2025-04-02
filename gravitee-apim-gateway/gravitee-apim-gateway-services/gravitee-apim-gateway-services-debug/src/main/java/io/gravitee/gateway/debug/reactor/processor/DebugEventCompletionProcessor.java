@@ -26,7 +26,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
-import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.definition.DebugApiV2;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugStep;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerResponseDebugDecorator;
@@ -65,7 +65,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
     @Override
     public void handle(ExecutionContext context) {
         final DebugExecutionContext debugContext = (DebugExecutionContext) context;
-        final DebugApi debugApiComponent = (DebugApi) debugContext.getComponent(Api.class);
+        final DebugApiV2 debugApiComponent = (DebugApiV2) debugContext.getComponent(Api.class);
 
         final Vertx vertx = context.getComponent(Vertx.class);
         vertx.executeBlocking(
@@ -73,7 +73,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
                 Event event = null;
                 try {
                     event = eventRepository.findById(debugApiComponent.getEventId()).orElseThrow(TechnicalException::new);
-                    final io.gravitee.definition.model.debug.DebugApi debugApi = computeDebugApiEventPayload(
+                    final io.gravitee.definition.model.debug.DebugApiV2 debugApi = computeDebugApiEventPayload(
                         debugContext,
                         debugApiComponent
                     );
@@ -93,11 +93,11 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         );
     }
 
-    private io.gravitee.definition.model.debug.DebugApi computeDebugApiEventPayload(
+    private io.gravitee.definition.model.debug.DebugApiV2 computeDebugApiEventPayload(
         DebugExecutionContext debugContext,
-        DebugApi debugApiComponent
+        DebugApiV2 debugApiComponent
     ) {
-        final io.gravitee.definition.model.debug.DebugApi debugApi = convert(debugApiComponent);
+        final io.gravitee.definition.model.debug.DebugApiV2 debugApi = convert(debugApiComponent);
         PreprocessorStep preprocessorStep = createPreprocessorStep(debugContext);
         debugApi.setPreprocessorStep(preprocessorStep);
         debugApi.setDebugSteps(convert(debugContext.getDebugSteps()));
@@ -181,8 +181,8 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         eventRepository.update(debugEvent);
     }
 
-    protected io.gravitee.definition.model.debug.DebugApi convert(DebugApi content) {
-        io.gravitee.definition.model.debug.DebugApi debugAPI = new io.gravitee.definition.model.debug.DebugApi();
+    protected io.gravitee.definition.model.debug.DebugApiV2 convert(DebugApiV2 content) {
+        io.gravitee.definition.model.debug.DebugApiV2 debugAPI = new io.gravitee.definition.model.debug.DebugApiV2();
         debugAPI.setName(content.getName());
         debugAPI.setId(content.getId());
         debugAPI.setDefinitionVersion(content.getDefinitionVersion());

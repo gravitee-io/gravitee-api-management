@@ -39,7 +39,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.LoggingContent;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.LoggingScope;
-import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PlanStatus;
 import java.util.Comparator;
@@ -91,7 +91,7 @@ public class DebugApiUseCase {
         }
     }
 
-    private Event createDebugApiEvent(AuditInfo auditInfo, DebugApi debugApi, Instance selectedInstance) {
+    private Event createDebugApiEvent(AuditInfo auditInfo, DebugApiV2 debugApi, Instance selectedInstance) {
         return eventCrudService.createEvent(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
@@ -113,7 +113,7 @@ public class DebugApiUseCase {
         }
     }
 
-    private static void validatePlan(DebugApi debugApi) {
+    private static void validatePlan(DebugApiV2 debugApi) {
         boolean hasValidPlan = debugApi
             .getPlans()
             .stream()
@@ -139,7 +139,7 @@ public class DebugApiUseCase {
             .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(apiDefinition.getId()));
     }
 
-    private static void disableLoggingForDebug(DebugApi debugApi) {
+    private static void disableLoggingForDebug(DebugApiV2 debugApi) {
         if (debugApi.getProxy() != null && debugApi.getProxy().getLogging() != null) {
             debugApi.getProxy().getLogging().setMode(LoggingMode.NONE);
             debugApi.getProxy().getLogging().setContent(LoggingContent.NONE);
@@ -147,14 +147,14 @@ public class DebugApiUseCase {
         }
     }
 
-    private static void disableHealthCheckForDebug(DebugApi debugApi) {
+    private static void disableHealthCheckForDebug(DebugApiV2 debugApi) {
         if (debugApi.getServices() != null && debugApi.getServices().getHealthCheckService() != null) {
             debugApi.getServices().getHealthCheckService().setEnabled(false);
         }
     }
 
     @Builder
-    public record Input(String apiId, DebugApi debugApi, AuditInfo auditInfo) {
+    public record Input(String apiId, DebugApiV2 debugApi, AuditInfo auditInfo) {
         public Input {
             requireNonNull(apiId);
             requireNonNull(debugApi);

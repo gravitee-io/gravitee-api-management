@@ -24,7 +24,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.definition.DebugApiV2;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.reactor.Reactable;
@@ -46,7 +46,6 @@ import io.vertx.core.net.OpenSSLEngineOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.security.GeneralSecurityException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -92,7 +91,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
             ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent =
                 (ReactableEvent<io.gravitee.repository.management.model.Event>) reactorEvent.content();
             io.gravitee.repository.management.model.Event debugEvent = reactableEvent.getContent();
-            DebugApi debugApi = toDebugApi(reactableEvent);
+            DebugApiV2 debugApi = toDebugApi(reactableEvent);
             if (debugApi != null) {
                 if (reactorHandlerRegistry.contains(debugApi)) {
                     logger.info("Api for debug already deployed. No need to do it again.");
@@ -150,13 +149,13 @@ public class DebugReactorEventListener extends ReactorEventListener {
         }
     }
 
-    private DebugApi toDebugApi(final ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent) {
+    private DebugApiV2 toDebugApi(final ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent) {
         io.gravitee.repository.management.model.Event event = reactableEvent.getContent();
         try {
             // Read API definition from event
-            io.gravitee.definition.model.debug.DebugApi eventDebugApi = objectMapper.readValue(
+            io.gravitee.definition.model.debug.DebugApiV2 eventDebugApi = objectMapper.readValue(
                 event.getPayload(),
-                io.gravitee.definition.model.debug.DebugApi.class
+                io.gravitee.definition.model.debug.DebugApiV2.class
             );
 
             if (null != eventDebugApi.getProperties()) {
@@ -167,7 +166,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
                 eventDebugApi.getPlans().stream().filter(plan -> !PlanStatus.CLOSED.name().equalsIgnoreCase(plan.getStatus())).toList()
             );
 
-            DebugApi debugApi = new DebugApi(reactableEvent.getId(), eventDebugApi);
+            DebugApiV2 debugApi = new DebugApiV2(reactableEvent.getId(), eventDebugApi);
             debugApi.setDeployedAt(reactableEvent.getDeployedAt());
             debugApi.setEnvironmentHrid(reactableEvent.getEnvironmentHrid());
             debugApi.setEnvironmentId(reactableEvent.getEnvironmentId());
@@ -202,7 +201,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
         return options;
     }
 
-    MultiMap buildHeaders(DebugApi debugApi, HttpRequest req) {
+    MultiMap buildHeaders(DebugApiV2 debugApi, HttpRequest req) {
         final HeadersMultiMap headers = new HeadersMultiMap();
         headers.addAll(convertHeaders(req.getHeaders()));
 

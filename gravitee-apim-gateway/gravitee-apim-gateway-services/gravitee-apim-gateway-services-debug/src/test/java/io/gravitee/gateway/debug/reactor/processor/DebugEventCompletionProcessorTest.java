@@ -31,7 +31,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
-import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.definition.DebugApiV2;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContext;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugRequestStep;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerResponseDebugDecorator;
@@ -49,8 +49,6 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.future.PromiseImpl;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,7 +75,7 @@ class DebugEventCompletionProcessorTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private DebugApi debugApi;
+    private DebugApiV2 debugApi;
 
     @Mock
     private Request request;
@@ -102,7 +100,7 @@ class DebugEventCompletionProcessorTest {
             .when(vertx)
             .executeBlocking(any(Handler.class), any());
 
-        io.gravitee.definition.model.debug.DebugApi definition = new io.gravitee.definition.model.debug.DebugApi();
+        io.gravitee.definition.model.debug.DebugApiV2 definition = new io.gravitee.definition.model.debug.DebugApiV2();
         definition.setPlans(
             Arrays.asList(plan(PlanStatus.STAGING), plan(PlanStatus.PUBLISHED), plan(PlanStatus.DEPRECATED), plan(PlanStatus.CLOSED))
         );
@@ -260,21 +258,16 @@ class DebugEventCompletionProcessorTest {
 
         final Map<String, List<String>> result = cut.convertHeaders(headers);
 
-        assertThat(result.get("transfer-encoding")).hasSize(1);
-        assertThat(result.get("transfer-encoding")).contains("chunked");
-        assertThat(result.get("X-Gravitee-Transaction-Id")).hasSize(1);
-        assertThat(result.get("X-Gravitee-Transaction-Id")).contains("transaction-id");
-        assertThat(result.get("content-type")).hasSize(1);
-        assertThat(result.get("content-type")).contains("application/json");
-        assertThat(result.get("X-Gravitee-Request-Id")).hasSize(1);
-        assertThat(result.get("X-Gravitee-Request-Id")).contains("request-id");
-        assertThat(result.get("accept-encoding")).hasSize(3);
-        assertThat(result.get("accept-encoding")).contains("deflate", "gzip", "compress");
+        assertThat(result.get("transfer-encoding")).hasSize(1).contains("chunked");
+        assertThat(result.get("X-Gravitee-Transaction-Id")).hasSize(1).contains("transaction-id");
+        assertThat(result.get("content-type")).hasSize(1).contains("application/json");
+        assertThat(result.get("X-Gravitee-Request-Id")).hasSize(1).contains("request-id");
+        assertThat(result.get("accept-encoding")).hasSize(3).contains("deflate", "gzip", "compress");
     }
 
     @Test
     void shouldConvertDebugApi() {
-        final io.gravitee.definition.model.debug.DebugApi debugApiConverted = cut.convert(debugApi);
+        final io.gravitee.definition.model.debug.DebugApiV2 debugApiConverted = cut.convert(debugApi);
 
         assertNotEquals(debugApiConverted.getPlans().size(), debugApi.getDefinition().getPlans().size());
 
@@ -282,7 +275,7 @@ class DebugEventCompletionProcessorTest {
             .getPlans()
             .stream()
             .filter(plan -> PlanStatus.CLOSED.getLabel().equalsIgnoreCase(plan.getStatus()))
-            .collect(Collectors.toList());
+            .toList();
 
         assertEquals(0, unexpectedPlans.size());
     }

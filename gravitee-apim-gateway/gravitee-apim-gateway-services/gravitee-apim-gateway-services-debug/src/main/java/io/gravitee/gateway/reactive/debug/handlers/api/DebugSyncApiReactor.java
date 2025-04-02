@@ -19,7 +19,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
-import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.definition.DebugApiV2;
 import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -93,7 +93,7 @@ public class DebugSyncApiReactor extends SyncApiReactor {
          * The code bellow remove this generated uuid from both context path, path and pathInfo and override request attributes to be sure the gateway find the right api
          */
         String debugContextPath = ctx.request().contextPath();
-        String cleanContextPath = PathTransformer.removeEventIdFromPath(((DebugApi) api).getEventId(), debugContextPath);
+        String cleanContextPath = PathTransformer.removeEventIdFromPath(((DebugApiV2) api).getEventId(), debugContextPath);
         ctx.request().contextPath(cleanContextPath);
 
         return super.handle(ctx);
