@@ -107,7 +107,7 @@ export interface GroupsResponse {
 export class GroupsComponent implements OnInit {
   groups$: Observable<Group[]> = of([]);
   columnDefs: string[] = ['name', 'actions'];
-  settingsForm: FormGroup<{ enabled: FormControl<boolean> }>;
+  settingsForm: FormGroup<{ userGroupRequired: FormControl<boolean> }>;
   initialSettings: unknown;
   defaultFilters: GioTableWrapperFilters = {
     searchTerm: '',
@@ -119,8 +119,8 @@ export class GroupsComponent implements OnInit {
   filteredData: GroupsResponse[] = [];
   noOfRecords: number = 0;
   isLoading: boolean = false;
-  disableDelete = signal(false);
-  disableAddGroup = signal(false);
+  deleteGroupDisabled = signal(false);
+  addGroupDisabled = false;
 
   private groups = new BehaviorSubject<Group[]>([]);
   private settings: ConsoleSettings = {};
@@ -138,8 +138,8 @@ export class GroupsComponent implements OnInit {
     this.resetFilters();
     this.initializeSettingsForm();
     this.initializeGroups();
-    this.hideActionsForReadOnlyUser();
     this.disableCreateGroup();
+    this.disableDeleteGroup();
   }
 
   private initializeGroups() {
@@ -163,7 +163,6 @@ export class GroupsComponent implements OnInit {
         ),
         tap((groups) => {
           this.groups.next(groups);
-          this.disableDeleteGroup();
           this.filterData(this.defaultFilters);
         }),
         finalize(() => {
@@ -184,33 +183,31 @@ export class GroupsComponent implements OnInit {
   }
 
   private initializeSettingsForm() {
-    this.consoleSettingsService
-      .get()
-      .pipe(
-        tap((response) => {
-          this.settings = response;
-          this.initializeFormValues();
-        }),
-        catchError(() => {
-          this.snackBarService.error(`Error occurred while fetching console settings.`);
-          return EMPTY;
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    const canReadSettings = this.permissionService.hasAnyMatching(['environment-settings-r']);
+
+    if (canReadSettings) {
+      this.consoleSettingsService
+        .get()
+        .pipe(
+          tap((response) => {
+            this.settings = response;
+            this.initializeFormValues();
+          }),
+          catchError(() => {
+            this.snackBarService.error(`Error occurred while fetching console settings.`);
+            return EMPTY;
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
+    }
   }
 
   private initializeFormValues() {
-    this.settingsForm = new FormGroup<{ enabled: FormControl<boolean> }>({
-      enabled: new FormControl(this.settings.userGroup.required.enabled),
+    this.settingsForm = new FormGroup({
+      userGroupRequired: new FormControl<boolean>(this.settings.userGroup.required.enabled),
     });
     this.initialSettings = this.settingsForm.getRawValue();
-  }
-
-  private hideActionsForReadOnlyUser() {
-    if (!this.permissionService.hasAnyMatching(['environment-group-u', 'environment-group-d'])) {
-      this.columnDefs.pop();
-    }
   }
 
   deleteGroup(group: Group) {
@@ -244,7 +241,7 @@ export class GroupsComponent implements OnInit {
   }
 
   saveSettings() {
-    this.settings.userGroup.required.enabled = this.settingsForm.controls['enabled'].value;
+    this.settings.userGroup.required.enabled = this.settingsForm.controls.userGroupRequired.value;
 
     this.consoleSettingsService
       .save(this.settings)
@@ -277,12 +274,19 @@ export class GroupsComponent implements OnInit {
 
   private disableDeleteGroup() {
     const groups = this.groups.value;
-    this.disableDelete.set(groups.length === 1 && groups[0].roles['API'] === RoleName.PRIMARY_OWNER);
+    const isOnlyGroupWithAPIRolePrimaryOwner = groups.length === 1 && groups[0].roles.API === RoleName.PRIMARY_OWNER;
+    const canDeleteGroup = this.permissionService.hasAnyMatching(['environment-group-d']);
+
+    if (isOnlyGroupWithAPIRolePrimaryOwner) {
+      this.deleteGroupDisabled.set(true);
+    } else if (!canDeleteGroup) {
+      this.deleteGroupDisabled.set(true);
+    }
   }
 
   private disableCreateGroup() {
     if (!this.permissionService.hasAnyMatching(['environment-group-c'])) {
-      this.disableAddGroup.set(true);
+      this.addGroupDisabled = true;
     }
   }
 }

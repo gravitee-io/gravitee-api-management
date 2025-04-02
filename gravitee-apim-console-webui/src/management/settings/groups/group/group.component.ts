@@ -219,7 +219,6 @@ export class GroupComponent implements OnInit {
   ngOnInit(): void {
     this.initializeDefaultRoles();
     this.initializeGroup();
-    this.disableForm();
   }
 
   private initializeGroup() {
@@ -230,6 +229,7 @@ export class GroupComponent implements OnInit {
         this.initialFormValues = this.groupForm.getRawValue();
         this.hideActionsForReadOnlyUser();
         this.initializeDependents();
+        this.disableForm();
       }),
       takeUntilDestroyed(this.destroyRef),
     );
@@ -510,9 +510,9 @@ export class GroupComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((dialogResult: AddOrUpdateMemberDialogResult) => dialogResult.memberships?.length > 0),
+        filter((dialogResult: AddOrUpdateMemberDialogResult) => dialogResult?.memberships?.length > 0),
         switchMap((dialogResult) =>
-          this.groupService.addOrUpdateMemberships(this.groupId, dialogResult.memberships).pipe(
+          this.groupService.addOrUpdateMemberships(this.groupId, dialogResult?.memberships).pipe(
             tap(() => {
               this.snackBarService.success('Successfully saved edited member(s) of the group.');
               this.initializeGroupMembers();
