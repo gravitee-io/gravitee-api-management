@@ -352,12 +352,13 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private void validateExcludedGroups(List<String> excludedGroups, String environmentId) throws TechnicalException {
         var envGroupsIds = groupService.findAllByEnvironment(environmentId).stream().map(Group::getId).collect(Collectors.toSet());
-
-        excludedGroups.forEach(excludedGroupId -> {
-            if (!envGroupsIds.contains(excludedGroupId)) {
-                throw new GroupNotFoundException(String.format("Excluded group %s doesn't exist", excludedGroupId));
-            }
-        });
+        if (excludedGroups != null && !excludedGroups.isEmpty()) {
+            excludedGroups.forEach(excludedGroupId -> {
+                if (!envGroupsIds.contains(excludedGroupId)) {
+                    throw new GroupNotFoundException(String.format("Excluded group %s doesn't exist", excludedGroupId));
+                }
+            });
+        }
     }
 
     @Override
