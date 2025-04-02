@@ -50,7 +50,6 @@ type ApiAnalyticsVM = {
 
 @Component({
   selector: 'api-analytics-proxy',
-  standalone: true,
   imports: [
     CommonModule,
     MatButton,

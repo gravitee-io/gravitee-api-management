@@ -31,7 +31,6 @@ export type HistoryJsonDialogResult = boolean;
   selector: 'history-json-dialog',
   templateUrl: './history-json-dialog.component.html',
   styleUrls: ['./history-json-dialog.component.scss'],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatDialogModule, MatButtonModule, GioMonacoEditorModule, FormsModule],
 })

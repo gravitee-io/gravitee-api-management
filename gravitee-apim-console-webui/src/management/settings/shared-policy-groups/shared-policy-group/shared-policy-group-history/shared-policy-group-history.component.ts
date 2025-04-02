@@ -83,7 +83,6 @@ type PageTableVM = {
     MatCheckbox,
     FormsModule,
   ],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SharedPolicyGroupHistoryComponent implements OnInit {

@@ -38,7 +38,6 @@ export type HistoryStudioDialogResult = false | 'RESTORE_VERSION';
   selector: 'history-studio-dialog',
   templateUrl: './history-studio-dialog.component.html',
   styleUrls: ['./history-studio-dialog.component.scss'],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatDialogModule,

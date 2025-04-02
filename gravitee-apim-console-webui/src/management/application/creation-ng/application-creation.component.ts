@@ -62,7 +62,6 @@ const TYPES_INFOS = {
 @Component({
   selector: 'application-creation',
   imports: [CommonModule, ReactiveFormsModule, MatCardModule, MatSnackBarModule, ApplicationCreationFormComponent, GioSaveBarModule],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./application-creation.component.scss'],
   templateUrl: './application-creation.component.html',

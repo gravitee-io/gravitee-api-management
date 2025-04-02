@@ -20,7 +20,6 @@ import { SharedPolicyGroup } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'shared-policy-groups-state-badge',
-  standalone: true,
   imports: [MatTooltipModule],
   templateUrl: './shared-policy-groups-state-badge.component.html',
   styleUrl: './shared-policy-groups-state-badge.component.scss',

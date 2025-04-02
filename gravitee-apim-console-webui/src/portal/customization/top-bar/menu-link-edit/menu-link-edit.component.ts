@@ -51,7 +51,6 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
     RouterLink,
     GioFormSelectionInlineModule,
   ],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuLinkEditComponent implements OnInit {

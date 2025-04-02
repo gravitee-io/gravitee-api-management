@@ -27,7 +27,6 @@ import { FieldParameter } from '../../../../../entities/management-api-v2/api/v4
 
 @Component({
   selector: 'global-availability',
-  standalone: true,
   imports: [MatCardModule, DecimalPipe, GioLoaderModule],
   templateUrl: './global-availability.component.html',
   styleUrl: './global-availability.component.scss',

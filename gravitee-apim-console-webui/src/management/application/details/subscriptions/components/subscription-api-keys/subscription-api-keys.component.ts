@@ -71,7 +71,6 @@ type ApiKeyVM = {
     GioClipboardModule,
     GioPermissionModule,
   ],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubscriptionApiKeysComponent implements OnChanges {

@@ -80,7 +80,6 @@ interface FetcherVM {
 
 @Component({
   selector: 'documentation-new-page',
-  standalone: true,
   imports: [
     AsyncPipe,
     GioFormJsonSchemaModule,

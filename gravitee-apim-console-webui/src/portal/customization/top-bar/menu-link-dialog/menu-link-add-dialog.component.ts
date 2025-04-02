@@ -45,7 +45,6 @@ export interface MenuLinkAddDialogResult {
   selector: 'menu-link-add-dialog',
   templateUrl: './menu-link-add-dialog.component.html',
   styleUrls: ['./menu-link-add-dialog.component.scss'],
-  standalone: true,
   imports: [
     MatButtonModule,
     MatDialogModule,
