@@ -29,7 +29,6 @@ import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-docum
 
 @Component({
   selector: 'documentation-edit-custom-page',
-  standalone: true,
   templateUrl: './documentation-edit-custom-page.component.html',
   imports: [DocumentationEditPageComponent, MatCard, AsyncPipe, ApiDocumentationV4Module, DocumentationNewPageComponent],
   styleUrl: './documentation-edit-custom-page.component.scss',

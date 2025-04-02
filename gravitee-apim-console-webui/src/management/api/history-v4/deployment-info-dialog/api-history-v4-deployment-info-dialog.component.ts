@@ -42,7 +42,6 @@ export type ApiHistoryV4DeploymentInfoDialogResult = null | { rollbackTo: string
   selector: 'app-deployment-info-dialog',
   templateUrl: './api-history-v4-deployment-info-dialog.component.html',
   styleUrls: ['./api-history-v4-deployment-info-dialog.component.scss'],
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     MatDialogModule,

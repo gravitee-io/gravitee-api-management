@@ -27,7 +27,6 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
 
 @Component({
   selector: 'api-analytics-response-status-overtime',
-  standalone: true,
   imports: [MatCardModule, GioChartLineModule, GioLoaderModule],
   templateUrl: './api-analytics-response-status-overtime.component.html',
   styleUrl: './api-analytics-response-status-overtime.component.scss',

@@ -38,7 +38,6 @@ type FileExtension = (typeof allowedFileExtensions)[number];
       multi: true,
     },
   ],
-  standalone: true,
   imports: [GioFormFilePickerModule, MatIcon, FormsModule, MarkdownComponent, GioSwaggerUiModule, GioAsyncApiModule],
 })
 export class ApiDocumentationV4FileUploadComponent implements OnInit, ControlValueAccessor {

@@ -58,7 +58,6 @@ import { BothPortalsBadgeComponent } from '../../../components/portal-badge/both
 
 @Component({
   selector: 'category-list',
-  standalone: true,
   imports: [
     AsyncPipe,
     FormsModule,

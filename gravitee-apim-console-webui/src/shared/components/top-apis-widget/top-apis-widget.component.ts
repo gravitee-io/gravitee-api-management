@@ -36,7 +36,6 @@ export interface TopApisV4 {
 
 @Component({
   selector: 'app-top-apis-widget',
-  standalone: true,
   imports: [
     CommonModule,
     RouterModule,

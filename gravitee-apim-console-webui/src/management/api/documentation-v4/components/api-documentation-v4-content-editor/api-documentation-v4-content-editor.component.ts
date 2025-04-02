@@ -34,7 +34,6 @@ import { GioAsyncApiModule } from '../../../../../components/documentation/gio-a
       multi: true,
     },
   ],
-  standalone: true,
   imports: [FormsModule, GioMonacoEditorModule, MarkdownComponent, GioSwaggerUiModule, GioAsyncApiModule, MatButtonModule],
 })
 export class ApiDocumentationV4ContentEditorComponent implements ControlValueAccessor {

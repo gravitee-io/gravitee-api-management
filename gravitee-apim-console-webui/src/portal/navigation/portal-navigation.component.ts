@@ -42,7 +42,6 @@ import { PortalSettingsService } from '../../services-ngx/portal-settings.servic
 
 @Component({
   selector: 'portal-navigation',
-  standalone: true,
   imports: [
     GioSideNavModule,
     GioTopNavModule,

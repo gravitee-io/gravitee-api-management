@@ -64,7 +64,6 @@ type PageVM = {
     SubscriptionApiKeysComponent,
     MatTooltip,
   ],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplicationSubscriptionComponent {

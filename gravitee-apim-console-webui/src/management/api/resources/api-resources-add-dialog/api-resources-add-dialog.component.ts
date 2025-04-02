@@ -44,7 +44,6 @@ export type ApiResourcesAddDialogResult =
   selector: 'api-resources-add-dialog',
   templateUrl: './api-resources-add-dialog.component.html',
   styleUrls: ['./api-resources-add-dialog.component.scss'],
-  standalone: true,
   imports: [
     CommonModule,
     MatDialogModule,

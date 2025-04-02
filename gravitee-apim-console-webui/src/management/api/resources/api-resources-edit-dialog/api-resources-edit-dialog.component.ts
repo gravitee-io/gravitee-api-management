@@ -48,7 +48,6 @@ export type ApiResourcesEditDialogResult = Api['resources'][number] | undefined;
   selector: 'api-resources-edit-dialog',
   templateUrl: './api-resources-edit-dialog.component.html',
   styleUrls: ['./api-resources-edit-dialog.component.scss'],
-  standalone: true,
   imports: [
     MatDialogModule,
     MatButtonModule,

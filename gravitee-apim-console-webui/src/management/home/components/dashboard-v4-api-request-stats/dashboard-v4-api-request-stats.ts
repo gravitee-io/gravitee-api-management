@@ -32,7 +32,6 @@ export type v4ApisRequestStats = {
 
 @Component({
   selector: 'dashboard-v4-api-request-stats',
-  standalone: true,
   imports: [CommonModule, MatTooltip, DecimalPipe, GioShortNumberPipeModule, GioLoaderModule, MatCard, MatIcon],
   templateUrl: './dashboard-v4-api-request-stats.html',
   styleUrls: ['./dashboard-v4-api-request-stats.scss'],

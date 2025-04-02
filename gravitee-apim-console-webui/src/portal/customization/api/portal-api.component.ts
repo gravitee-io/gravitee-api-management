@@ -20,7 +20,6 @@ import { PortalHeaderComponent } from '../../components/header/portal-header.com
 
 @Component({
   selector: 'portal-api',
-  standalone: true,
   imports: [PortalHeaderComponent, RouterOutlet],
   templateUrl: './portal-api.component.html',
   styleUrl: './portal-api.component.scss',

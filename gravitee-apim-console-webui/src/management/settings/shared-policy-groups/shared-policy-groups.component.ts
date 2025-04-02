@@ -80,7 +80,6 @@ type PageTableVM = {
     GioTableWrapperModule,
     SharedPolicyGroupsStateBadgeComponent,
   ],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SharedPolicyGroupsComponent implements OnInit {

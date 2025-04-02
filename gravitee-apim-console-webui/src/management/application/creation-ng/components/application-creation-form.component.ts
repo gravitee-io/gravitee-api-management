@@ -72,7 +72,6 @@ export type ApplicationCreationFormApplicationType = ApplicationType & {
     GioBannerModule,
     GioFormHeadersModule,
   ],
-  standalone: true,
   styleUrls: ['./application-creation-form.component.scss'],
   templateUrl: './application-creation-form.component.html',
 })

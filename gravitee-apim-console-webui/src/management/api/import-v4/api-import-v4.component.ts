@@ -34,7 +34,6 @@ import { PolicyV2Service } from '../../../services-ngx/policy-v2.service';
 
 @Component({
   selector: 'api-import-v4',
-  standalone: true,
   imports: [
     FormsModule,
     GioBannerModule,
