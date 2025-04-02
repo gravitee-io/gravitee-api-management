@@ -25,7 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class DebugApiSerializerTest extends AbstractTest {
+public class DebugApiV2SerializerTest extends AbstractTest {
 
     private static Stream<Arguments> provideParameters() {
         return Stream.of(

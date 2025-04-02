@@ -17,6 +17,7 @@ package io.gravitee.gateway.debug.definition;
 
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import lombok.Getter;
@@ -30,7 +31,7 @@ public class DebugApi extends Api {
     private HttpResponse response;
     private String eventId;
 
-    public DebugApi(String eventId, io.gravitee.definition.model.debug.DebugApi debugApi) {
+    public DebugApi(String eventId, DebugApiV2 debugApi) {
         super(debugApi);
         this.setResponse(debugApi.getResponse());
         this.setRequest(debugApi.getRequest());

@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
@@ -87,7 +88,7 @@ class DebugCompletionProcessorTest {
         spyResponseHeaders = spy(HttpHeaders.create());
         lenient().when(mockRequest.headers()).thenReturn(spyRequestHeaders);
         lenient().when(mockResponse.headers()).thenReturn(spyResponseHeaders);
-        io.gravitee.definition.model.debug.DebugApi debugApi = new io.gravitee.definition.model.debug.DebugApi();
+        DebugApiV2 debugApi = new DebugApiV2();
         debugApi.setId("id");
         debugApi.setName("name");
         debugApi.setVersion("version");

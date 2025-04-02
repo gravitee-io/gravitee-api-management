@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.rest.api.model.DebugApiEntity;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ class DebugApiMapperTest {
 
     @Test
     void test() {
-        DebugApi debugApi = DebugApiMapper.INSTANCE.fromEntity(
+        DebugApiV2 debugApi = DebugApiMapper.INSTANCE.fromEntity(
             DebugApiEntity.builder().id("api-id").name("api-name").plans(Set.of()).build()
         );
         assertThat(debugApi).isNotNull();

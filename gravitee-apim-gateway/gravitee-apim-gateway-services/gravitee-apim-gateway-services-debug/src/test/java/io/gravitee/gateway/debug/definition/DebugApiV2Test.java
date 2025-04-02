@@ -17,6 +17,7 @@ package io.gravitee.gateway.debug.definition;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.gateway.debug.utils.Stubs;
 import org.junit.Test;
 
@@ -24,18 +25,18 @@ import org.junit.Test;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugApiTest {
+public class DebugApiV2Test {
 
     public static final String EVENT_ID = "evt-id";
 
     @Test
     public void shouldConstructAndComputeNewPath() throws Exception {
-        final io.gravitee.definition.model.debug.DebugApi debugApi = Stubs.getADebugApiDefinition();
+        final DebugApiV2 debugApi = Stubs.getADebugApiDefinition();
 
         final DebugApi result = new DebugApi(EVENT_ID, debugApi);
 
-        assertThat(result.getDefinition().getProxy().getVirtualHosts()).hasSize(3);
         assertThat(result.getDefinition().getProxy().getVirtualHosts())
+            .hasSize(3)
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path1"))
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path2"))
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path3"));

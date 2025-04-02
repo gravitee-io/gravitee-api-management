@@ -18,6 +18,7 @@ package io.gravitee.gateway.debug.reactor.processor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.HttpResponse;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.debug.DebugMetrics;
 import io.gravitee.definition.model.debug.PreprocessorStep;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -73,10 +74,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
                 Event event = null;
                 try {
                     event = eventRepository.findById(debugApiComponent.getEventId()).orElseThrow(TechnicalException::new);
-                    final io.gravitee.definition.model.debug.DebugApi debugApi = computeDebugApiEventPayload(
-                        debugContext,
-                        debugApiComponent
-                    );
+                    final DebugApiV2 debugApi = computeDebugApiEventPayload(debugContext, debugApiComponent);
 
                     event.setPayload(objectMapper.writeValueAsString(debugApi));
                     updateEvent(event, ApiDebugStatus.SUCCESS);
@@ -93,11 +91,8 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         );
     }
 
-    private io.gravitee.definition.model.debug.DebugApi computeDebugApiEventPayload(
-        DebugExecutionContext debugContext,
-        DebugApi debugApiComponent
-    ) {
-        final io.gravitee.definition.model.debug.DebugApi debugApi = convert(debugApiComponent);
+    private DebugApiV2 computeDebugApiEventPayload(DebugExecutionContext debugContext, DebugApi debugApiComponent) {
+        final DebugApiV2 debugApi = convert(debugApiComponent);
         PreprocessorStep preprocessorStep = createPreprocessorStep(debugContext);
         debugApi.setPreprocessorStep(preprocessorStep);
         debugApi.setDebugSteps(convert(debugContext.getDebugSteps()));
@@ -181,8 +176,8 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         eventRepository.update(debugEvent);
     }
 
-    protected io.gravitee.definition.model.debug.DebugApi convert(DebugApi content) {
-        io.gravitee.definition.model.debug.DebugApi debugAPI = new io.gravitee.definition.model.debug.DebugApi();
+    protected DebugApiV2 convert(DebugApi content) {
+        DebugApiV2 debugAPI = new DebugApiV2();
         debugAPI.setName(content.getName());
         debugAPI.setId(content.getId());
         debugAPI.setDefinitionVersion(content.getDefinitionVersion());

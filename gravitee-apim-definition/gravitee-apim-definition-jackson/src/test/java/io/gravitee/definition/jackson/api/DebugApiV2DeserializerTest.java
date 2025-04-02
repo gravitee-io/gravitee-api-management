@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.PolicyScope;
-import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.debug.DebugStep;
 import io.gravitee.definition.model.debug.DebugStepStatus;
 import java.util.List;
@@ -28,11 +28,11 @@ import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class DebugApiDeserializerTest extends AbstractTest {
+public class DebugApiV2DeserializerTest extends AbstractTest {
 
     @Test
     public void debugApi_withRequest() throws Exception {
-        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-request.json", DebugApi.class);
+        DebugApiV2 debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-request.json", DebugApiV2.class);
 
         Assertions.assertEquals(debugApi.getRequest().getPath(), "/");
         Assertions.assertEquals(debugApi.getRequest().getMethod(), "GET");
@@ -46,7 +46,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
 
     @Test
     public void debugApi_withResponse() throws Exception {
-        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-response.json", DebugApi.class);
+        DebugApiV2 debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-response.json", DebugApiV2.class);
 
         Assertions.assertEquals(debugApi.getResponse().getStatusCode(), 200);
         Assertions.assertEquals(debugApi.getResponse().getBody(), "response-body");
@@ -57,7 +57,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
 
     @Test
     public void debugApi_withDebugSteps() throws Exception {
-        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps.json", DebugApi.class);
+        DebugApiV2 debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps.json", DebugApiV2.class);
 
         Assertions.assertEquals(debugApi.getDebugSteps().size(), 10);
         Assertions.assertEquals(
@@ -116,7 +116,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
 
     @Test
     public void debugApi_withDebugStepsError() throws Exception {
-        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error.json", DebugApi.class);
+        DebugApiV2 debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error.json", DebugApiV2.class);
 
         Assertions.assertEquals(debugApi.getDebugSteps().size(), 2);
         DebugStep errorStep = debugApi.getDebugSteps().get(1);
@@ -129,7 +129,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
 
     @Test
     public void debugApi_withBackendResponse() throws Exception {
-        DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-backend-response.json", DebugApi.class);
+        DebugApiV2 debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-backend-response.json", DebugApiV2.class);
 
         Assertions.assertEquals(debugApi.getBackendResponse().getStatusCode(), 200);
         Assertions.assertEquals(debugApi.getBackendResponse().getBody(), "{\"message\": \"mock backend response\"}");
@@ -144,7 +144,7 @@ public class DebugApiDeserializerTest extends AbstractTest {
     public void debugApi_withoutRequest() throws Exception {
         assertThrows(
             JsonMappingException.class,
-            () -> load("/io/gravitee/definition/jackson/debug/debug-api-without-request.json", DebugApi.class)
+            () -> load("/io/gravitee/definition/jackson/debug/debug-api-without-request.json", DebugApiV2.class)
         );
     }
 }
