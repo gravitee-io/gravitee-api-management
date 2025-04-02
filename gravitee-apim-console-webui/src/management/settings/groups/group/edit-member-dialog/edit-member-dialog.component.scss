@@ -9,5 +9,9 @@ $typography: map.get(gio.$mat-theme, typography);
   &__form {
     display: flex;
     flex-direction: column;
+
+    &__actions {
+      display: flex;
+    }
   }
 }
