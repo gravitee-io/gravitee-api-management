@@ -22,7 +22,7 @@ import { switchMap, tap } from 'rxjs/operators';
 import { Observable, zip } from 'rxjs';
 import { MatSort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
-import { AsyncPipe, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { GioChartLineModule } from '../../../../../shared/components/gio-chart-line/gio-chart-line.module';
@@ -40,17 +40,7 @@ interface TableData {
 }
 
 @Component({
-  imports: [
-    MatCardModule,
-    GioLoaderModule,
-    GioChartLineModule,
-    AsyncPipe,
-    GioTableWrapperModule,
-    MatSort,
-    MatTableModule,
-    DecimalPipe,
-    TitleCasePipe,
-  ],
+  imports: [MatCardModule, GioLoaderModule, GioChartLineModule, GioTableWrapperModule, MatSort, MatTableModule, DecimalPipe, TitleCasePipe],
   selector: 'availability-per-field',
   styleUrl: './availability-per-field.component.scss',
   templateUrl: './availability-per-field.component.html',

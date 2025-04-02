@@ -21,7 +21,7 @@ import { GioBannerModule, GioLoaderModule } from '@gravitee/ui-particles-angular
 import { GioPolicyGroupStudioComponent, PolicyDocumentationFetcher, PolicySchemaFetcher } from '@gravitee/ui-policy-studio-angular';
 import { map } from 'rxjs/operators';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 
 import { IconService } from '../../../../../../services-ngx/icon.service';
@@ -47,7 +47,6 @@ export type HistoryStudioDialogResult = false | 'RESTORE_VERSION';
     GioPolicyGroupStudioComponent,
     FormsModule,
     MatFormField,
-    MatHint,
     MatInput,
     MatLabel,
     ReactiveFormsModule,

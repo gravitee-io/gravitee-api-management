@@ -34,7 +34,7 @@ import { BehaviorSubject, merge, Observable } from 'rxjs';
 import { CollectionViewer, DataSource, SelectionChange } from '@angular/cdk/collections';
 import { MatRadioModule } from '@angular/material/radio';
 import { FormsModule } from '@angular/forms';
-import { NgIf, NgOptimizedImage, TitleCasePipe } from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { MatTooltip } from '@angular/material/tooltip';
 
 import { getLogoForPageType, getTitleForPageType, getTooltipForPageType, Page } from '../../../../../entities/management-api-v2';
@@ -185,8 +185,6 @@ export class PageDataSource implements DataSource<PageFlatNode> {
     MatRadioModule,
     NgOptimizedImage,
     MatTooltip,
-    NgIf,
-    TitleCasePipe,
   ],
   standalone: true,
 })

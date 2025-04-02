@@ -20,7 +20,7 @@ import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { MatSort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
-import { AsyncPipe, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { catchError, distinctUntilChanged, tap } from 'rxjs/operators';
 import { BehaviorSubject, combineLatestWith, EMPTY, Observable, switchMap } from 'rxjs';
 import { isEqual } from 'lodash';
@@ -33,17 +33,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { HealthCheckLogsResponse } from '../../../../../entities/management-api-v2/api/v4/healthCheck';
 
 @Component({
-  imports: [
-    MatCardModule,
-    GioLoaderModule,
-    GioChartLineModule,
-    AsyncPipe,
-    GioTableWrapperModule,
-    MatSort,
-    MatTableModule,
-    DecimalPipe,
-    TitleCasePipe,
-  ],
+  imports: [MatCardModule, GioLoaderModule, GioChartLineModule, AsyncPipe, GioTableWrapperModule, MatSort, MatTableModule],
   selector: 'failed-health-checks',
   styleUrl: './failed-health-checks.component.scss',
   templateUrl: './failed-health-checks.component.html',

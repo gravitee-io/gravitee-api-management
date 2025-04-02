@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { MatCard } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest, EMPTY, Observable, of, switchMap } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
@@ -30,7 +29,7 @@ import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-docum
 @Component({
   selector: 'documentation-edit-custom-page',
   templateUrl: './documentation-edit-custom-page.component.html',
-  imports: [DocumentationEditPageComponent, MatCard, AsyncPipe, ApiDocumentationV4Module, DocumentationNewPageComponent],
+  imports: [DocumentationEditPageComponent, AsyncPipe, ApiDocumentationV4Module, DocumentationNewPageComponent],
   styleUrl: './documentation-edit-custom-page.component.scss',
 })
 export class DocumentationEditCustomPageComponent implements OnInit {
