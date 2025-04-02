@@ -19,7 +19,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import { filter, switchMap } from 'rxjs/operators';
 import { MatTableModule } from '@angular/material/table';
-import { DatePipe, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
 import { HomeService } from '../../../../services-ngx/home.service';
@@ -30,7 +30,7 @@ import { PlatformService } from '../../../../services-ngx/platform.service';
 
 @Component({
   selector: 'v2-api-calls-with-no-context-path',
-  imports: [GioTableWrapperModule, MatTableModule, NgIf, GioLoaderModule, DatePipe],
+  imports: [GioTableWrapperModule, MatTableModule, GioLoaderModule, DatePipe],
   templateUrl: './v2-api-calls-with-no-context-path.component.html',
   styleUrl: './v2-api-calls-with-no-context-path.component.scss',
 })

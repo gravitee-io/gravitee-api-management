@@ -15,17 +15,14 @@
  */
 import { Component, inject } from '@angular/core';
 import { GioSubmenuModule } from '@gravitee/ui-particles-angular';
-import { MatAnchor } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatTabLink, MatTabNav, MatTabNavPanel } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
-import { AsyncPipe } from '@angular/common';
 
 import { PortalNavigationService } from '../navigation/portal-navigation.service';
 
 @Component({
   selector: 'portal-customization',
-  imports: [MatAnchor, MatIcon, MatTabLink, MatTabNav, MatTabNavPanel, RouterModule, GioSubmenuModule, AsyncPipe],
+  imports: [MatIcon, RouterModule, GioSubmenuModule],
   templateUrl: './portal-customization.component.html',
   styleUrl: './portal-customization.component.scss',
 })

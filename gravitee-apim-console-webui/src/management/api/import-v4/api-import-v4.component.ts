@@ -23,7 +23,6 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { MatCheckbox } from '@angular/material/checkbox';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { ApiImportFilePickerComponent } from '../component/api-import-file-picker/api-import-file-picker.component';
@@ -45,7 +44,6 @@ import { PolicyV2Service } from '../../../services-ngx/policy-v2.service';
     ReactiveFormsModule,
     RouterModule,
     ApiImportFilePickerComponent,
-    MatCheckbox,
     GioFormSlideToggleModule,
     MatSlideToggle,
   ],

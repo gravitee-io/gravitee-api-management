@@ -15,7 +15,6 @@
  */
 import { Component, inject } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { combineLatest, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
@@ -63,7 +62,6 @@ type ApiAnalyticsVM = {
   selector: 'api-analytics-message',
   imports: [
     CommonModule,
-    MatButton,
     MatCardModule,
     GioLoaderModule,
     GioCardEmptyStateModule,

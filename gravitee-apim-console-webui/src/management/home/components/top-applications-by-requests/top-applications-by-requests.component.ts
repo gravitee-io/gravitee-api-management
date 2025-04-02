@@ -17,8 +17,8 @@
 import { ChangeDetectorRef, Component, DestroyRef, OnInit } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
-import { DecimalPipe, NgIf } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DecimalPipe } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
@@ -36,7 +36,7 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
 
 @Component({
   selector: 'top-applications-by-requests',
-  imports: [MatCardModule, GioTableWrapperModule, MatTableModule, MatSortModule, NgIf, DecimalPipe, GioLoaderModule, RouterLink],
+  imports: [MatCardModule, GioTableWrapperModule, MatTableModule, MatSortModule, DecimalPipe, GioLoaderModule],
   templateUrl: './top-applications-by-requests.component.html',
   styleUrl: './top-applications-by-requests.component.scss',
 })
