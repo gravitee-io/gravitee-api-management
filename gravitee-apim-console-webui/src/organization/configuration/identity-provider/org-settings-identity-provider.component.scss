@@ -1,7 +1,7 @@
 @use '../../../scss/gio-layout' as gio-layout;
 
 // Use identity provider components common scss
-@import './org-settings-identity-provider.common-style';
+@use './org-settings-identity-provider.common-style';
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
