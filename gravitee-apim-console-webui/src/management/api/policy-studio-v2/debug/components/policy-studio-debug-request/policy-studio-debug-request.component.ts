@@ -37,7 +37,7 @@ export class PolicyStudioDebugRequestComponent implements OnInit {
   @Output()
   public cancelSubmitted = new EventEmitter<void>();
 
-  public httpMethods = CorsUtil.httpMethods;
+  public httpMethods = ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'];
 
   public requestFormGroup: UntypedFormGroup;
 
