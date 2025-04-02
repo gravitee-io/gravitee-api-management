@@ -27,6 +27,8 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -59,7 +61,7 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getPlanDefinitionNativeV4().getSecurity()))")
     @Mapping(target = "mode", source = "planDefinitionNativeV4.mode")
     @Mapping(target = "status", source = "planDefinitionNativeV4.status")
-    PlanDescriptor.V4 mapPlanNative(Plan source);
+    PlanDescriptor.Native mapPlanNative(Plan source);
 
     @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getFederatedPlanDefinition().getSecurity()))")
     @Mapping(target = "mode", source = "federatedPlanDefinition.mode")
@@ -96,12 +98,17 @@ public interface GraviteeDefinitionAdapter {
         expression = "java(apiEntity.getApiDefinitionHttpV4() != null ? apiEntity.getApiDefinitionHttpV4().getFailover() : null)"
     )
     @Mapping(target = "endpointGroups", source = "apiEntity.apiDefinitionHttpV4.endpointGroups")
+    @Mapping(target = "primaryOwner", source = "primaryOwner")
+    @Mapping(target = "workflowState", source = "workflowState")
+    @Mapping(target = "groups", source = "groups")
+    @Mapping(target = "metadata", source = "metadata")
     ApiDescriptor.ApiDescriptorV4 mapV4(
         Api apiEntity,
         PrimaryOwnerEntity primaryOwner,
         WorkflowState workflowState,
         Set<String> groups,
-        Collection<NewApiMetadata> metadata
+        Collection<NewApiMetadata> metadata,
+        List<Flow> flows
     );
 
     @Mapping(target = "id", source = "apiEntity.id")
@@ -113,12 +120,17 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "properties", source = "apiEntity.apiDefinitionNativeV4.properties")
     @Mapping(target = "resources", source = "apiEntity.apiDefinitionNativeV4.resources")
     @Mapping(target = "endpointGroups", source = "apiEntity.apiDefinitionNativeV4.endpointGroups")
+    @Mapping(target = "primaryOwner", source = "primaryOwner")
+    @Mapping(target = "workflowState", source = "workflowState")
+    @Mapping(target = "groups", source = "groups")
+    @Mapping(target = "metadata", source = "metadata")
     ApiDescriptor.Native mapNative(
         Api apiEntity,
         PrimaryOwnerEntity primaryOwner,
         WorkflowState workflowState,
         Set<String> groups,
-        Collection<NewApiMetadata> metadata
+        Collection<NewApiMetadata> metadata,
+        List<NativeFlow> flows
     );
 
     @Mapping(target = "id", source = "apiEntity.id")
@@ -126,7 +138,6 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "description", source = "apiEntity.description")
     @Mapping(target = "createdAt", source = "apiEntity.createdAt")
     @Mapping(target = "updatedAt", source = "apiEntity.updatedAt")
-    @Mapping(target = "groups", source = "apiEntity.groups")
     @Mapping(target = "type", source = "apiEntity.type")
     @Mapping(target = "state", source = "apiEntity.lifecycleState")
     @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
@@ -134,6 +145,11 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "originContext.integrationId", source = "integration.id")
     @Mapping(target = "originContext.integrationName", source = "integration.name")
     @Mapping(target = "originContext.provider", source = "integration.provider")
+    @Mapping(target = "primaryOwner", source = "primaryOwner")
+    @Mapping(target = "workflowState", source = "workflowState")
+    @Mapping(target = "groups", source = "groups")
+    @Mapping(target = "metadata", source = "metadata")
+    @Mapping(target = "originContext", source = "integration")
     ApiDescriptor.Federated mapFederated(
         Api apiEntity,
         PrimaryOwnerEntity primaryOwner,
@@ -158,12 +174,17 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "responseTemplates", source = "apiEntity.apiDefinition.responseTemplates")
     @Mapping(target = "plans", source = "apiEntity.apiDefinition.plans")
     @Mapping(target = "executionMode", source = "apiEntity.apiDefinition.executionMode")
+    @Mapping(target = "primaryOwner", source = "primaryOwner")
+    @Mapping(target = "workflowState", source = "workflowState")
+    @Mapping(target = "groups", source = "groups")
+    @Mapping(target = "metadata", source = "metadata")
     ApiDescriptor.ApiDescriptorV2 mapV2(
         Api apiEntity,
         PrimaryOwnerEntity primaryOwner,
         WorkflowState workflowState,
         Set<String> groups,
-        Collection<NewApiMetadata> metadata
+        Collection<NewApiMetadata> metadata,
+        Collection<io.gravitee.definition.model.flow.Flow> flows
     );
 
     Set<NewApiMetadata> mapMetadata(Collection<Metadata> source);

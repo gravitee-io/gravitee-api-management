@@ -92,9 +92,9 @@ export class ConsumerConfigurationRetryComponent implements ControlValueAccessor
       this.retryForm.patchValue(
         {
           retryStrategy: value.retryStrategy ?? 'LINEAR',
-          maxAttempts: value.maxAttempts ?? 1,
-          initialDelaySeconds: value.initialDelaySeconds ?? 1,
-          maxDelaySeconds: value.maxDelaySeconds ?? 1,
+          maxAttempts: value.maxAttempts ?? null,
+          initialDelaySeconds: value.initialDelaySeconds ?? null,
+          maxDelaySeconds: value.maxDelaySeconds ?? null,
         },
         { emitEvent: false },
       );
@@ -120,13 +120,13 @@ export class ConsumerConfigurationRetryComponent implements ControlValueAccessor
   private updateFormControls(): void {
     if (this.retryForm.controls.retryOption.value !== this.defaultRetryOption) {
       this.retryForm.addControl('retryStrategy', new FormControl<RetryStrategiesType>('LINEAR', Validators.required), { emitEvent: false });
-      this.retryForm.addControl('maxAttempts', new FormControl<number | null>(1, [Validators.required, Validators.min(1)]), {
+      this.retryForm.addControl('maxAttempts', new FormControl<number | null>(null, [Validators.required, Validators.min(1)]), {
         emitEvent: false,
       });
-      this.retryForm.addControl('initialDelaySeconds', new FormControl<number | null>(1, [Validators.required, Validators.min(1)]), {
+      this.retryForm.addControl('initialDelaySeconds', new FormControl<number | null>(null, [Validators.required, Validators.min(1)]), {
         emitEvent: false,
       });
-      this.retryForm.addControl('maxDelaySeconds', new FormControl<number | null>(1, [Validators.required, Validators.min(1)]), {
+      this.retryForm.addControl('maxDelaySeconds', new FormControl<number | null>(null, [Validators.required, Validators.min(1)]), {
         emitEvent: false,
       });
     } else {

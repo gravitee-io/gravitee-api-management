@@ -56,6 +56,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.homeService.resetTimeRange();
     this.homeService
       .timeRangeParams()
       .pipe(
@@ -205,7 +206,6 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.homeService.resetTimeRange();
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
   }
