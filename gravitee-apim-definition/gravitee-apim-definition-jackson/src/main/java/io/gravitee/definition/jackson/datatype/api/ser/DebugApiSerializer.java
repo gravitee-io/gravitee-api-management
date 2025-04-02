@@ -19,20 +19,20 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import java.io.IOException;
 
-public class DebugApiSerializer extends StdScalarSerializer<DebugApi> {
+public class DebugApiSerializer extends StdScalarSerializer<DebugApiV2> {
 
     private final ApiSerializer base;
 
-    public DebugApiSerializer(Class<DebugApi> t) {
+    public DebugApiSerializer(Class<DebugApiV2> t) {
         super(t);
         this.base = new ApiSerializer(Api.class);
     }
 
     @Override
-    public void serialize(DebugApi api, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(DebugApiV2 api, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         this.base.serializeContent(api, jgen, provider);
 

@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.debug.reactor.processor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.definition.model.PolicyScope;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.debug.DebugMetrics;
 import io.gravitee.definition.model.debug.PreprocessorStep;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -96,12 +97,9 @@ public class DebugCompletionProcessor implements Processor {
             .subscribeOn(Schedulers.io());
     }
 
-    private Single<io.gravitee.definition.model.debug.DebugApi> computeDebugApiEventPayload(
-        DebugExecutionContext debugContext,
-        DebugApi debugApi
-    ) {
+    private Single<DebugApiV2> computeDebugApiEventPayload(DebugExecutionContext debugContext, DebugApi debugApi) {
         return Single.defer(() -> {
-            final io.gravitee.definition.model.debug.DebugApi definitionDebugApi = convert(debugApi);
+            final DebugApiV2 definitionDebugApi = convert(debugApi);
             PreprocessorStep preprocessorStep = createPreprocessorStep(debugContext);
             definitionDebugApi.setPreprocessorStep(preprocessorStep);
             definitionDebugApi.setDebugSteps(convert(debugContext.getDebugSteps()));
@@ -165,8 +163,8 @@ public class DebugCompletionProcessor implements Processor {
         eventRepository.update(debugEvent);
     }
 
-    private io.gravitee.definition.model.debug.DebugApi convert(DebugApi content) {
-        io.gravitee.definition.model.debug.DebugApi debugAPI = new io.gravitee.definition.model.debug.DebugApi();
+    private DebugApiV2 convert(DebugApi content) {
+        DebugApiV2 debugAPI = new DebugApiV2();
         debugAPI.setName(content.getName());
         debugAPI.setId(content.getId());
         debugAPI.setDefinitionVersion(content.getDefinitionVersion());

@@ -22,6 +22,7 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.debug.definition.DebugApi;
@@ -46,7 +47,6 @@ import io.vertx.core.net.OpenSSLEngineOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.security.GeneralSecurityException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -154,10 +154,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
         io.gravitee.repository.management.model.Event event = reactableEvent.getContent();
         try {
             // Read API definition from event
-            io.gravitee.definition.model.debug.DebugApi eventDebugApi = objectMapper.readValue(
-                event.getPayload(),
-                io.gravitee.definition.model.debug.DebugApi.class
-            );
+            DebugApiV2 eventDebugApi = objectMapper.readValue(event.getPayload(), DebugApiV2.class);
 
             if (null != eventDebugApi.getProperties()) {
                 decryptProperties(eventDebugApi.getProperties());

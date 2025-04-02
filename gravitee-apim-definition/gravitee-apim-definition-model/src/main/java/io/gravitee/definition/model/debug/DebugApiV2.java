@@ -26,7 +26,7 @@ import lombok.experimental.SuperBuilder;
 
 @NoArgsConstructor
 @SuperBuilder
-public class DebugApi extends Api implements Serializable {
+public class DebugApiV2 extends Api implements Serializable {
 
     @JsonProperty("request")
     private HttpRequest request;

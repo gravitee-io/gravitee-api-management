@@ -41,6 +41,7 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -140,7 +141,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_debug_api_successfully() throws TechnicalException, JsonProcessingException, GeneralSecurityException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
 
         Properties properties = new Properties();
         properties.setProperties(List.of(new Property("key", "encrypted", true)));
@@ -189,7 +190,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_debug_api_successfully_null_body() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -230,7 +231,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_remove_reactor_handler_if_body_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -270,7 +271,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_remove_reactor_handler_if_response_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -305,7 +306,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_remove_reactor_handler_if_request_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -340,7 +341,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_remove_reactor_handler_if_technical_exception_during_event_updating() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -369,7 +370,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_do_nothing_when_reactable_already_debugging() throws JsonProcessingException, TechnicalException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
@@ -420,7 +421,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_enforce_host_headers_from_virtual_host() {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
         debugApiModel.getProxy().getVirtualHosts().get(0).setHost("custom_host");
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
@@ -433,7 +434,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_enforce_host_headers_from_access_points() {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
         when(accessPointManager.getByEnvironmentId(any())).thenReturn(List.of(ReactableAccessPoint.builder().host("custom_host").build()));
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
@@ -446,7 +447,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_not_enforce_host_headers_from_neither_empty_virtual_host_or_empty_access_points() {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
         when(accessPointManager.getByEnvironmentId(any())).thenReturn(List.of());
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
@@ -459,7 +460,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_debug_api_and_filter_closed_plan() throws JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        DebugApiV2 debugApiModel = getADebugApiDefinition();
         Plan keylessPlan = new Plan();
         keylessPlan.setId("keyless-plan");
         keylessPlan.setSecurity("KEY_LESS");
