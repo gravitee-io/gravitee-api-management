@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
@@ -253,6 +253,8 @@ describe('ApiCreationV4Component - Message', () => {
       ]);
 
       httpExpects.expectEndpointsGetRequest([]);
+
+      flush();
     }));
 
     it('should not validate with empty host', fakeAsync(async () => {
@@ -330,6 +332,8 @@ describe('ApiCreationV4Component - Message', () => {
       ]);
 
       httpExpects.expectEndpointsGetRequest([]);
+
+      flush();
     }));
 
     it('should allow to disable virtual host when domain restrictions are set', fakeAsync(async () => {
