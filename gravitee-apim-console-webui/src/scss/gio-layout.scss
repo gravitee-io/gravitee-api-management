@@ -1,5 +1,5 @@
 @use 'sass:map';
-@import '../constants';
+@use '../constants';
 
 // Value extracted from https://material.io/design/layout/responsive-layout-grid.html#breakpoints
 $small-desktop-width: 905px;

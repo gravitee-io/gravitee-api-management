@@ -1,30 +1,32 @@
 @use '../node_modules/@gravitee/ui-particles-angular' as gio;
 
-@import '../node_modules/angular-gridster/dist/angular-gridster.css';
-@import '../node_modules/angular-loading-bar/build/loading-bar.css';
-@import '../node_modules/angular-material/modules/scss/angular-material';
-@import '../node_modules/angular-material-data-table/dist/md-data-table.css';
-@import '../node_modules/angular-moment-picker/dist/angular-moment-picker.css';
-@import '../node_modules/angular-timeline/dist/angular-timeline.css';
-@import './scss/bootstrap';
-@import '../node_modules/codemirror/addon/dialog/dialog.css';
-@import '../node_modules/codemirror/addon/lint/lint.css';
-@import '../node_modules/codemirror/lib/codemirror.css';
-@import '../node_modules/dragular/dist/dragular.css';
-@import '../node_modules/highlight.js/styles/a11y-light.css';
-@import '../node_modules/md-color-picker/dist/mdColorPicker.css';
-@import '../node_modules/md-steppers/dist/md-steppers.min.css';
-@import '../node_modules/@toast-ui/editor/dist/toastui-editor.css';
-@import '../node_modules/@toast-ui/editor/dist/toastui-editor-viewer.css';
-@import '../node_modules/@gravitee/ui-components/assets/css/gravitee-console-theme.css';
+@use '../node_modules/angular-gridster/dist/angular-gridster.css';
+@use '../node_modules/angular-loading-bar/build/loading-bar.css';
+@use '../node_modules/angular-material/modules/scss/angular-material';
+@use '../node_modules/angular-material-data-table/dist/md-data-table.css';
+@use '../node_modules/angular-moment-picker/dist/angular-moment-picker.css';
+@use '../node_modules/angular-timeline/dist/angular-timeline.css';
+@use './scss/bootstrap';
+@use '../node_modules/codemirror/addon/dialog/dialog.css';
+@use '../node_modules/codemirror/addon/lint/lint.css';
+@use '../node_modules/codemirror/lib/codemirror.css';
+@use '../node_modules/dragular/dist/dragular.css';
+@use '../node_modules/highlight.js/styles/a11y-light.css';
+@use '../node_modules/md-color-picker/dist/mdColorPicker.css';
+@use '../node_modules/md-steppers/dist/md-steppers.min.css';
+@use '../node_modules/@toast-ui/editor/dist/toastui-editor.css';
+@use '../node_modules/@toast-ui/editor/dist/toastui-editor-viewer.css';
+@use '../node_modules/@gravitee/ui-components/assets/css/gravitee-console-theme.css';
+@use '../node_modules/@fontsource/libre-franklin/scss/mixins';
+@use './scss/material-layout-compatibility.scss' as mlc;
 
-@import '../node_modules/v-accordion/dist/v-accordion.css';
+@use '../node_modules/v-accordion/dist/v-accordion.css';
 
-@import 'constants';
+@use 'constants' as constants;
 
 // Not encapsulated because used when encapsulation is .mat
-@import 'components/contextual/contextual-doc.component';
-@import 'management/submenu';
+@use 'components/contextual/contextual-doc.component';
+@use 'management/submenu';
 
 // Try to encapsulate all scss with .bootstrap class
 :where(.bootstrap, .md-dialog-container) {
@@ -52,10 +54,6 @@
   @import 'user/my-accout/user';
 }
 
-@import '../node_modules/@fontsource/libre-franklin/scss/mixins';
-
-@import './scss/material-layout-compatibility.scss';
-
 @include gio.import-fonts();
 
 body {
@@ -74,7 +72,7 @@ body {
   // Scss component from Gravitee ui particles
   @include gio.all-components();
 
-  @include material-layout-compatibility();
+  @include mlc.material-layout-compatibility();
 
   @import './scss/gio-global-style';
 
@@ -87,7 +85,7 @@ body {
      * Note: this does not affect fonts as they are imported before this block
      */
   & .revert-all-gravitee-styles * {
-    all: revert-layer;
+    all: revert;
   }
 }
 
@@ -239,7 +237,7 @@ body {
   }
 
   table[md-data-table] {
-    background-color: $backgroundColor;
+    background-color: constants.$backgroundColor;
   }
 
   table {
@@ -332,7 +330,7 @@ body {
   }
 
   .gravitee-no-sidenav-container {
-    background: $backgroundColor;
+    background: constants.$backgroundColor;
     height: 100%;
   }
 
@@ -560,7 +558,7 @@ body {
       0 1px 3px 0 rgba(0, 0, 0, 0.2),
       0 1px 1px 0 rgba(0, 0, 0, 0.14),
       0 2px 1px -1px rgba(0, 0, 0, 0.12);
-    height: $graviteeHeader;
+    height: constants.$graviteeHeader;
   }
 
   .gv-button-toggled {

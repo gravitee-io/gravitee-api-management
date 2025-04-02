@@ -1,5 +1,5 @@
-@import '../../../../node_modules/prismjs/themes/prism';
-@import '../../../../node_modules/@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight';
+@use '../../../../node_modules/prismjs/themes/prism';
+@use '../../../../node_modules/@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight';
 
 #page-content {
   font-size: 14px;
@@ -158,7 +158,7 @@
     border: initial;
   }
 
-  //@import 'swagger-ui-dist/swagger-ui.css';
+  //@use 'swagger-ui-dist/swagger-ui.css';
 
   a.tablelinks {
     color: #3b4151;
