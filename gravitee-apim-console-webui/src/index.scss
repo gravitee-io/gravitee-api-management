@@ -63,7 +63,7 @@
 body {
   font-family: 'Golos UI', 'Roboto', 'Helvetica Neue', sans-serif;
   top: 0px !important;
-  background-color: lightgrey;
+  background-color: var(--mat-app-background-color, var(--mat-app-background, transparent));
   position: inherit !important;
 }
 
