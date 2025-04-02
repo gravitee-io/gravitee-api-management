@@ -41,7 +41,7 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
-import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.definition.DebugApiV2;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
@@ -140,7 +140,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_debug_api_successfully() throws TechnicalException, JsonProcessingException, GeneralSecurityException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
 
         Properties properties = new Properties();
         properties.setProperties(List.of(new Property("key", "encrypted", true)));
@@ -152,12 +152,12 @@ class DebugReactorEventListenerTest {
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
         debugApiModel.setRequest(httpRequest);
-        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
+        when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
         final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
-        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
+        when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
 
         final HttpClient mockHttpClient = mock(HttpClient.class);
         when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
@@ -177,9 +177,9 @@ class DebugReactorEventListenerTest {
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
         verify(dataEncryptor, times(1)).decrypt("encrypted");
-        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
-        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
         verify(eventRepository, times(1)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
@@ -189,18 +189,18 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_debug_api_successfully_null_body() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody(null);
         debugApiModel.setRequest(httpRequest);
-        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
+        when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
         final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
-        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
+        when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
         when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
@@ -218,9 +218,9 @@ class DebugReactorEventListenerTest {
 
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
         verify(eventRepository, times(1)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
@@ -230,18 +230,18 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_remove_reactor_handler_if_body_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
         debugApiModel.setRequest(httpRequest);
-        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
+        when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
         final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
-        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
+        when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
         when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
@@ -258,9 +258,9 @@ class DebugReactorEventListenerTest {
 
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -270,18 +270,18 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_remove_reactor_handler_if_response_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
         debugApiModel.setRequest(httpRequest);
-        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
+        when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
         final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
-        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
+        when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
         when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
@@ -293,9 +293,9 @@ class DebugReactorEventListenerTest {
 
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -305,18 +305,18 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_remove_reactor_handler_if_request_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
         debugApiModel.setRequest(httpRequest);
-        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
+        when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
         final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
-        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
+        when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
 
         final HttpClient mockHttpClient = mock(HttpClient.class);
         when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
@@ -327,9 +327,9 @@ class DebugReactorEventListenerTest {
 
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -340,25 +340,25 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_remove_reactor_handler_if_technical_exception_during_event_updating() throws TechnicalException, JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
         debugApiModel.setRequest(httpRequest);
-        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
+        when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
         final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
-        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
+        when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
         when(eventRepository.update(any())).thenThrow(TechnicalException.class);
 
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
-        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
-        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApiV2.class));
+        verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -369,18 +369,18 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_do_nothing_when_reactable_already_debugging() throws JsonProcessingException, TechnicalException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
         debugApiModel.setRequest(httpRequest);
-        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
+        when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
         final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
-        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(true);
+        when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(true);
 
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
@@ -420,46 +420,46 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_enforce_host_headers_from_virtual_host() {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         debugApiModel.getProxy().getVirtualHosts().get(0).setHost("custom_host");
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
         debugApiModel.setRequest(httpRequest);
-        final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApi("eventId", debugApiModel), httpRequest);
+        final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApiV2("eventId", debugApiModel), httpRequest);
         assertThat(result.get("host")).contains("custom_host");
     }
 
     @Test
     void should_enforce_host_headers_from_access_points() {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         when(accessPointManager.getByEnvironmentId(any())).thenReturn(List.of(ReactableAccessPoint.builder().host("custom_host").build()));
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
         debugApiModel.setRequest(httpRequest);
-        final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApi("eventId", debugApiModel), httpRequest);
+        final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApiV2("eventId", debugApiModel), httpRequest);
         assertThat(result.get("host")).contains("custom_host");
     }
 
     @Test
     void should_not_enforce_host_headers_from_neither_empty_virtual_host_or_empty_access_points() {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         when(accessPointManager.getByEnvironmentId(any())).thenReturn(List.of());
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
         debugApiModel.setRequest(httpRequest);
-        final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApi("eventId", debugApiModel), httpRequest);
+        final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApiV2("eventId", debugApiModel), httpRequest);
         assertThat(result.get("host")).isNull();
     }
 
     @Test
     void should_debug_api_and_filter_closed_plan() throws JsonProcessingException {
-        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         Plan keylessPlan = new Plan();
         keylessPlan.setId("keyless-plan");
         keylessPlan.setSecurity("KEY_LESS");
@@ -470,12 +470,12 @@ class DebugReactorEventListenerTest {
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
         debugApiModel.setRequest(httpRequest);
-        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
+        when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
         final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
-        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
+        when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
 
         final HttpClient mockHttpClient = mock(HttpClient.class);
         when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
@@ -489,7 +489,7 @@ class DebugReactorEventListenerTest {
         verify(reactorHandlerRegistry, times(1))
             .contains(
                 argThat(debugApi ->
-                    ((DebugApi) debugApi).getDefinition().getPlans().stream().noneMatch(plan -> plan.getStatus().equals("CLOSED"))
+                    ((DebugApiV2) debugApi).getDefinition().getPlans().stream().noneMatch(plan -> plan.getStatus().equals("CLOSED"))
                 )
             );
     }

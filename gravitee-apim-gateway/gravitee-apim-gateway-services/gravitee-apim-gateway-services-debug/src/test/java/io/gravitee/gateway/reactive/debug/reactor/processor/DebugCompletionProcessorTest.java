@@ -30,7 +30,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.debug.core.invoker.InvokerResponse;
-import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.definition.DebugApiV2;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
@@ -72,7 +72,7 @@ class DebugCompletionProcessorTest {
     private MutableResponse mockResponse;
 
     private HttpHeaders spyResponseHeaders;
-    private DebugApi debugApi;
+    private DebugApiV2 debugApi;
     private CustomComponentProvider componentProvider;
     private DebugExecutionContext debugCtx;
 
@@ -87,11 +87,11 @@ class DebugCompletionProcessorTest {
         spyResponseHeaders = spy(HttpHeaders.create());
         lenient().when(mockRequest.headers()).thenReturn(spyRequestHeaders);
         lenient().when(mockResponse.headers()).thenReturn(spyResponseHeaders);
-        io.gravitee.definition.model.debug.DebugApi debugApi = new io.gravitee.definition.model.debug.DebugApi();
+        io.gravitee.definition.model.debug.DebugApiV2 debugApi = new io.gravitee.definition.model.debug.DebugApiV2();
         debugApi.setId("id");
         debugApi.setName("name");
         debugApi.setVersion("version");
-        this.debugApi = new DebugApi("event-id", debugApi);
+        this.debugApi = new DebugApiV2("event-id", debugApi);
         componentProvider = new CustomComponentProvider();
         componentProvider.add(Api.class, this.debugApi);
         debugCtx = new DebugExecutionContext(mockRequest, mockResponse);

@@ -20,7 +20,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.debug.core.invoker.InvokerDebugDecorator;
-import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.definition.DebugApiV2;
 import io.gravitee.gateway.debug.reactor.handler.http.ContextualizedDebugHttpServerRequest;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.ApiReactorHandler;
@@ -28,7 +28,6 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.node.api.opentelemetry.Tracer;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -50,7 +49,7 @@ public class DebugApiReactorHandler extends ApiReactorHandler {
     protected void contextualizeRequest(ExecutionContext context) {
         final String path = ((HttpAcceptor) context.getAttribute(ATTR_ENTRYPOINT)).path();
         ((MutableExecutionContext) context).request(
-                new ContextualizedDebugHttpServerRequest(path, context.request(), ((DebugApi) reactable).getEventId())
+                new ContextualizedDebugHttpServerRequest(path, context.request(), ((DebugApiV2) reactable).getEventId())
             );
     }
 

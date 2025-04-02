@@ -48,7 +48,7 @@ import io.gravitee.definition.model.LoggingScope;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.definition.model.debug.DebugApi;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.management.model.ApiDebugStatus;
@@ -105,7 +105,7 @@ class DebugApiUseCaseTest {
     @ParameterizedTest
     @EnumSource(value = DefinitionVersion.class, names = "V2", mode = EnumSource.Mode.EXCLUDE)
     void should_throw_when_debugging_non_v2_api(DefinitionVersion definitionVersion) {
-        final DebugApi debugApi = new DebugApi();
+        final DebugApiV2 debugApi = new DebugApiV2();
         debugApi.setDefinitionVersion(definitionVersion);
         assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
             )
@@ -115,7 +115,7 @@ class DebugApiUseCaseTest {
 
     @Test
     void should_throw_when_debugging_non_existing_api() {
-        final DebugApi debugApi = debugApiDefinition();
+        final DebugApiV2 debugApi = debugApiV2Definition();
         assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
             )
             .isInstanceOf(ApiNotFoundException.class)
@@ -127,7 +127,7 @@ class DebugApiUseCaseTest {
     @SneakyThrows
     void should_throw_when_no_gateway_available(List<Instance> instances) {
         instanceQueryService.initWith(instances);
-        final DebugApi debugApi = debugApiDefinition();
+        final DebugApiV2 debugApi = debugApiV2Definition();
 
         apiCrudServiceInMemory.initWith(List.of(originalApi(debugApi)));
         debugApi.setDefinitionVersion(DefinitionVersion.V2);
@@ -143,8 +143,8 @@ class DebugApiUseCaseTest {
     @SneakyThrows
     void should_throw_when_no_active_plan(PlanStatus planStatus) {
         instanceQueryService.initWith(List.of(validInstance()));
-        apiCrudServiceInMemory.initWith(List.of(originalApi(debugApiDefinition())));
-        final DebugApi debugApi = debugApiDefinition();
+        apiCrudServiceInMemory.initWith(List.of(originalApi(debugApiV2Definition())));
+        final DebugApiV2 debugApi = debugApiV2Definition();
         debugApi.getPlan(PLAN_ID).setStatus(planStatus.name());
         debugApi.setTags(Set.of("valid-tag"));
         assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
@@ -157,7 +157,7 @@ class DebugApiUseCaseTest {
     @SneakyThrows
     void should_create_debug_event() {
         instanceQueryService.initWith(List.of(validInstance()));
-        final DebugApi debugApi = debugApiDefinition();
+        final DebugApiV2 debugApi = debugApiV2Definition();
         apiCrudServiceInMemory.initWith(List.of(originalApi(debugApi)));
         debugApi.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
         debugApi.setPlans(List.of(keylessPlan()));
@@ -182,11 +182,11 @@ class DebugApiUseCaseTest {
                 ),
                 Index.atIndex(2)
             );
-        final DebugApi debugApiFromEvent = GraviteeJacksonMapper
+        final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper
             .getInstance()
-            .readValue(output.debugApiEvent().getPayload(), DebugApi.class);
+            .readValue(output.debugApiEvent().getPayload(), DebugApiV2.class);
         assertThat(debugApiFromEvent)
-            .extracting(DebugApi::getExecutionMode, DebugApi::getProxy, DebugApi::getServices)
+            .extracting(DebugApiV2::getExecutionMode, DebugApiV2::getProxy, DebugApiV2::getServices)
             // Compare field by field because instance of Proxy and Services have changed due to ser/deser
             .usingRecursiveFieldByFieldElementComparator()
             .containsExactly(ExecutionMode.V4_EMULATION_ENGINE, proxyWithLogging(false), healthcheckService(false));
@@ -243,8 +243,8 @@ class DebugApiUseCaseTest {
     }
 
     @NotNull
-    private static DebugApi debugApiDefinition() {
-        final DebugApi apiDefinition = new DebugApi();
+    private static DebugApiV2 debugApiV2Definition() {
+        final DebugApiV2 apiDefinition = new DebugApiV2();
         apiDefinition.setId(API_ID);
         apiDefinition.setDefinitionVersion(DefinitionVersion.V2);
         final Proxy proxy = new Proxy();

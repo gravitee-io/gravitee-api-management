@@ -22,7 +22,7 @@ import io.gravitee.definition.model.debug.DebugMetrics;
 import io.gravitee.definition.model.debug.PreprocessorStep;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.definition.DebugApiV2;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
@@ -71,7 +71,7 @@ public class DebugCompletionProcessor implements Processor {
         return Completable
             .defer(() -> {
                 final DebugExecutionContext debugContext = (DebugExecutionContext) ctx;
-                final DebugApi debugApi = (DebugApi) debugContext.getComponent(Api.class);
+                final DebugApiV2 debugApi = (DebugApiV2) debugContext.getComponent(Api.class);
 
                 return Maybe
                     .fromCallable(() -> eventRepository.findById(debugApi.getEventId()))
@@ -96,12 +96,12 @@ public class DebugCompletionProcessor implements Processor {
             .subscribeOn(Schedulers.io());
     }
 
-    private Single<io.gravitee.definition.model.debug.DebugApi> computeDebugApiEventPayload(
+    private Single<io.gravitee.definition.model.debug.DebugApiV2> computeDebugApiEventPayload(
         DebugExecutionContext debugContext,
-        DebugApi debugApi
+        DebugApiV2 debugApi
     ) {
         return Single.defer(() -> {
-            final io.gravitee.definition.model.debug.DebugApi definitionDebugApi = convert(debugApi);
+            final io.gravitee.definition.model.debug.DebugApiV2 definitionDebugApi = convert(debugApi);
             PreprocessorStep preprocessorStep = createPreprocessorStep(debugContext);
             definitionDebugApi.setPreprocessorStep(preprocessorStep);
             definitionDebugApi.setDebugSteps(convert(debugContext.getDebugSteps()));
@@ -165,8 +165,8 @@ public class DebugCompletionProcessor implements Processor {
         eventRepository.update(debugEvent);
     }
 
-    private io.gravitee.definition.model.debug.DebugApi convert(DebugApi content) {
-        io.gravitee.definition.model.debug.DebugApi debugAPI = new io.gravitee.definition.model.debug.DebugApi();
+    private io.gravitee.definition.model.debug.DebugApiV2 convert(DebugApiV2 content) {
+        io.gravitee.definition.model.debug.DebugApiV2 debugAPI = new io.gravitee.definition.model.debug.DebugApiV2();
         debugAPI.setName(content.getName());
         debugAPI.setId(content.getId());
         debugAPI.setDefinitionVersion(content.getDefinitionVersion());
