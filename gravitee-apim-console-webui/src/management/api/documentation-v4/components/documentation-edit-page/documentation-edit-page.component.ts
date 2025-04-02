@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Input, Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
-import { AsyncPipe, NgOptimizedImage } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import {
   GioBannerModule,
   GioConfirmDialogComponent,
@@ -46,11 +46,9 @@ import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-docum
 import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ApiDocumentationV4VisibilityComponent } from '../api-documentation-v4-visibility/api-documentation-v4-visibility.component';
 import { AccessControl, Api, Breadcrumb, EditDocumentation, Group, Page, Visibility } from '../../../../../entities/management-api-v2';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
 import { ApiDocumentationV4ContentEditorComponent } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
-import { ApiDocumentationV4FileUploadComponent } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 import {
   ApiDocumentationV4PageConfigurationComponent,
@@ -101,12 +99,9 @@ interface EditPageForm {
     MatOption,
     MatSelect,
     MatSlideToggle,
-    NgOptimizedImage,
     ReactiveFormsModule,
-    ApiDocumentationV4VisibilityComponent,
     MatTooltip,
     ApiDocumentationV4ContentEditorComponent,
-    ApiDocumentationV4FileUploadComponent,
     ApiDocumentationV4Module,
     ApiDocumentationV4PageConfigurationComponent,
     MatTabGroup,

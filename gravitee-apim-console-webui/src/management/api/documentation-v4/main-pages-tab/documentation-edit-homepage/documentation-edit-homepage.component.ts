@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MatCard } from '@angular/material/card';
+
 import { Component, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Observable, of, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
@@ -30,7 +30,7 @@ import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-docum
 @Component({
   selector: 'documentation-edit-homepage',
   templateUrl: './documentation-edit-homepage.component.html',
-  imports: [DocumentationEditPageComponent, MatCard, ApiDocumentationV4Module, AsyncPipe, DocumentationNewPageComponent],
+  imports: [DocumentationEditPageComponent, ApiDocumentationV4Module, AsyncPipe, DocumentationNewPageComponent],
   styleUrl: './documentation-edit-homepage.component.scss',
 })
 export class DocumentationEditHomepageComponent implements OnInit {

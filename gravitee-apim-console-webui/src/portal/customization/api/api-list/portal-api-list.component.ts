@@ -15,17 +15,16 @@
  */
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
+import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef, MatTable, MatTableModule } from '@angular/material/table';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { EMPTY, Observable } from 'rxjs';
-import { MatDialog, MatDialogContent } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { catchError, filter, switchMap, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { MatFormFieldModule, MatFormField, MatLabel } from '@angular/material/form-field';
-import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInput } from '@angular/material/input';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -55,9 +54,6 @@ interface ApiForm {
     MatButton,
     MatCard,
     MatCardContent,
-    MatCardHeader,
-    MatCardSubtitle,
-    MatCardTitle,
     MatHeaderRow,
     MatHeaderRowDef,
     MatIcon,
@@ -69,9 +65,7 @@ interface ApiForm {
     MatTableModule,
     CdkDropList,
     CdkDrag,
-    RouterLink,
     FormsModule,
-    MatDialogContent,
     MatFormField,
     MatInput,
     MatLabel,
