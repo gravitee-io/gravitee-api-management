@@ -22,7 +22,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { GioFormSelectionInlineModule } from '@gravitee/ui-particles-angular';
-import { NgIf } from '@angular/common';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 
 import {
@@ -54,7 +53,6 @@ export interface MenuLinkAddDialogResult {
     MatSelectModule,
     ReactiveFormsModule,
     GioFormSelectionInlineModule,
-    NgIf,
     MatButtonToggle,
     MatButtonToggleGroup,
   ],

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { AsyncPipe, NgForOf, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
   GioLicenseExpirationNotificationModule,
@@ -45,7 +45,6 @@ import { PortalSettingsService } from '../../services-ngx/portal-settings.servic
   imports: [
     GioSideNavModule,
     GioTopNavModule,
-    NgIf,
     RouterOutlet,
     GioNotificationMenuModule,
     GioTopBarLinkModule,
@@ -59,7 +58,6 @@ import { PortalSettingsService } from '../../services-ngx/portal-settings.servic
     GioLicenseExpirationNotificationModule,
     GioMenuModule,
     GioPermissionModule,
-    NgForOf,
     RouterLinkActive,
     PortalUserAvatarComponent,
   ],

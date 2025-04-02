@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatDialog, MatDialogActions, MatDialogClose, MatDialogContent } from '@angular/material/dialog';
-import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -31,18 +30,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-documentation-choose-existing-page',
-  imports: [
-    ApiDocumentationChoosePageListComponent,
-    MatButton,
-    MatDialogActions,
-    MatDialogClose,
-    MatDialogContent,
-    MatIcon,
-    MatIconButton,
-    MatCard,
-    GioBannerModule,
-    MatCardContent,
-  ],
+  imports: [ApiDocumentationChoosePageListComponent, MatButton, MatCard, GioBannerModule, MatCardContent],
   templateUrl: './api-documentation-choose-existing-page.component.html',
   styleUrl: './api-documentation-choose-existing-page.component.scss',
 })

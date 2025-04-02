@@ -36,7 +36,6 @@ import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { MatOption } from '@angular/material/autocomplete';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { MatIcon } from '@angular/material/icon';
@@ -56,7 +55,6 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { CategoryV2Service } from '../../../../services-ngx/category-v2.service';
 import { CategoryService } from '../../../../services-ngx/category.service';
 import { Category } from '../../../../entities/category/Category';
-import { PortalHeaderComponent } from '../../../components/header/portal-header.component';
 import { BothPortalsBadgeComponent } from '../../../components/portal-badge/both-portals-badge/both-portals-badge.component';
 
 interface ApiVM {
@@ -85,11 +83,9 @@ interface ApiVM {
     MatTableModule,
     MatInput,
     MatLabel,
-    MatOption,
     MatTooltip,
     ReactiveFormsModule,
     RouterLink,
-    PortalHeaderComponent,
     CdkDropList,
     CdkDrag,
     MatIcon,

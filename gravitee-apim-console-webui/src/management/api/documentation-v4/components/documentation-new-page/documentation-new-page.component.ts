@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Input, Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
-import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import {
   GioFormJsonSchemaModule,
   GioFormSelectionInlineModule,
@@ -23,17 +22,12 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
 import { MatCard } from '@angular/material/card';
-import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
-import { MatOption } from '@angular/material/autocomplete';
-import { MatSelect } from '@angular/material/select';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatError } from '@angular/material/form-field';
 import { MatStepperModule } from '@angular/material/stepper';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, EMPTY, Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { catchError, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
-import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -43,7 +37,6 @@ import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { FetcherService } from '../../../../../services-ngx/fetcher.service';
-import { ApiDocumentationV4VisibilityComponent } from '../api-documentation-v4-visibility/api-documentation-v4-visibility.component';
 import {
   Api,
   Breadcrumb,
@@ -81,7 +74,6 @@ interface FetcherVM {
 @Component({
   selector: 'documentation-new-page',
   imports: [
-    AsyncPipe,
     GioFormJsonSchemaModule,
     GioFormSelectionInlineModule,
     GioFormSlideToggleModule,
@@ -89,18 +81,8 @@ interface FetcherVM {
     MatButton,
     MatCard,
     MatError,
-    MatFormField,
-    MatHint,
-    MatInput,
-    MatLabel,
-    MatOption,
-    MatSelect,
-    MatSlideToggle,
     MatStepperModule,
-    NgOptimizedImage,
     ReactiveFormsModule,
-    MatTooltip,
-    ApiDocumentationV4VisibilityComponent,
     ApiDocumentationV4ContentEditorComponent,
     ApiDocumentationV4FileUploadComponent,
     ApiDocumentationV4PageConfigurationComponent,

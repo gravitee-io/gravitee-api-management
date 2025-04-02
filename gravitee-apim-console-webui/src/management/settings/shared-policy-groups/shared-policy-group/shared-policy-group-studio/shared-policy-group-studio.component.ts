@@ -17,16 +17,11 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, switchMap } from 'rxjs';
-import {
-  GioPolicyGroupStudioComponent,
-  GioPolicyStudioComponent,
-  PolicyDocumentationFetcher,
-  PolicySchemaFetcher,
-} from '@gravitee/ui-policy-studio-angular';
+import { GioPolicyGroupStudioComponent, PolicyDocumentationFetcher, PolicySchemaFetcher } from '@gravitee/ui-policy-studio-angular';
 import { filter, map } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -55,9 +50,7 @@ import { toReadableFlowPhase } from '../../../../../entities/management-api-v2';
     MatCardModule,
     MatButtonModule,
     GioIconsModule,
-    RouterLink,
     GioLoaderModule,
-    GioPolicyStudioComponent,
     GioPermissionModule,
     GioPolicyGroupStudioComponent,
     MatTooltip,
