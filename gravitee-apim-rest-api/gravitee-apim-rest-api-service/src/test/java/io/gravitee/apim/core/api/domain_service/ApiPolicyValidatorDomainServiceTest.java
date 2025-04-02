@@ -25,6 +25,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.debug.DebugApiProxy;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.plugin.core.api.PluginMoreInformation;
@@ -67,21 +69,22 @@ class ApiPolicyValidatorDomainServiceTest {
 
         @Test
         void should_not_validate_null_v1_api() {
-            assertThatThrownBy(() -> cut.checkPolicyConfigurations(null, null))
+            assertThatThrownBy(() -> cut.checkPolicyConfigurations(null))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Api should not be null");
         }
 
         @ParameterizedTest
         @MethodSource("provideEmptyCasesForPaths")
-        void should_validate_v1_api_without_any_path(Api api, Set<Plan> plans) {
+        void should_validate_v1_api_without_any_path(DebugApiV2 api, List<Plan> plans) {
             api.setDefinitionVersion(DefinitionVersion.V1);
-            assertDoesNotThrow(() -> cut.checkPolicyConfigurations(api, plans));
+            api.setPlans(plans);
+            assertDoesNotThrow(() -> cut.checkPolicyConfigurations(api));
         }
 
         @Test
         void should_validate_paths() {
-            final Api api = new Api();
+            var api = new DebugApiV2();
             api.setDefinitionVersion(DefinitionVersion.V1);
             api.setPaths(
                 Map.of(
@@ -93,39 +96,40 @@ class ApiPolicyValidatorDomainServiceTest {
                     List.of()
                 )
             );
-
-            final Set<Plan> plans = Set.of(
-                Plan
-                    .builder()
-                    .id("plan1")
-                    .paths(
-                        Map.of(
-                            "path1",
-                            List.of(buildRule("policy1", "config1")),
-                            "path2",
-                            List.of(buildRule("policy1", "config1"), buildRule("policy2", "config2")),
-                            "path-no-rule",
-                            List.of()
+            api.setPlans(
+                List.of(
+                    Plan
+                        .builder()
+                        .id("plan1")
+                        .paths(
+                            Map.of(
+                                "path1",
+                                List.of(buildRule("policy1", "config1")),
+                                "path2",
+                                List.of(buildRule("policy1", "config1"), buildRule("policy2", "config2")),
+                                "path-no-rule",
+                                List.of()
+                            )
                         )
-                    )
-                    .build(),
-                Plan
-                    .builder()
-                    .id("plan2")
-                    .paths(
-                        Map.of(
-                            "path1",
-                            List.of(buildRule("policy1", "config1")),
-                            "path2",
-                            List.of(buildRule("policy1", "config1"), buildRule("policy2", "config2")),
-                            "path-no-rule",
-                            List.of()
+                        .build(),
+                    Plan
+                        .builder()
+                        .id("plan2")
+                        .paths(
+                            Map.of(
+                                "path1",
+                                List.of(buildRule("policy1", "config1")),
+                                "path2",
+                                List.of(buildRule("policy1", "config1"), buildRule("policy2", "config2")),
+                                "path-no-rule",
+                                List.of()
+                            )
                         )
-                    )
-                    .build()
+                        .build()
+                )
             );
 
-            cut.checkPolicyConfigurations(api, plans);
+            cut.checkPolicyConfigurations(api);
 
             SoftAssertions.assertSoftly(softly -> {
                 // Verify paths at api level
@@ -138,7 +142,8 @@ class ApiPolicyValidatorDomainServiceTest {
                 // verify paths for plans
                 softly
                     .assertThat(
-                        plans
+                        api
+                            .getPlans()
                             .stream()
                             .flatMap(plan -> plan.getPaths().values().stream().flatMap(Collection::stream))
                             .map(rule -> rule.getPolicy().getConfiguration())
@@ -155,9 +160,9 @@ class ApiPolicyValidatorDomainServiceTest {
         }
 
         private static Stream<Arguments> provideEmptyCasesForPaths() {
-            final Api api = new Api();
+            var api = new DebugApiV2();
             api.setPaths(Map.of());
-            return Stream.concat(provideEmptyCases(), Stream.of(Arguments.of(api, null), Arguments.of(api, Set.of())));
+            return Stream.concat(provideEmptyCases(), Stream.of(Arguments.of(api, null), Arguments.of(api, List.of())));
         }
     }
 
@@ -166,21 +171,21 @@ class ApiPolicyValidatorDomainServiceTest {
 
         @Test
         void should_not_validate_null_v2_api() {
-            assertThatThrownBy(() -> cut.checkPolicyConfigurations(null, null))
+            assertThatThrownBy(() -> cut.checkPolicyConfigurations(null))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Api should not be null");
         }
 
         @ParameterizedTest
         @MethodSource("provideEmptyCasesForFlows")
-        void should_validate_v2_api_without_any_flow(Api api, Set<Plan> plans) {
+        void should_validate_v2_api_without_any_flow(DebugApiV2 api) {
             api.setDefinitionVersion(DefinitionVersion.V2);
-            assertDoesNotThrow(() -> cut.checkPolicyConfigurations(api, plans));
+            assertDoesNotThrow(() -> cut.checkPolicyConfigurations(api));
         }
 
         @Test
         void should_validate_flows() {
-            final Api api = new Api();
+            var api = new DebugApiV2();
             api.setDefinitionVersion(DefinitionVersion.V2);
             api.setFlows(
                 List.of(
@@ -198,49 +203,50 @@ class ApiPolicyValidatorDomainServiceTest {
                     Flow.builder().build()
                 )
             );
-
-            final Set<Plan> plans = Set.of(
-                Plan
-                    .builder()
-                    .id("plan1")
-                    .flows(
-                        List.of(
-                            Flow
-                                .builder()
-                                .id("flow1")
-                                .pre(
-                                    List.of(
-                                        Step.builder().policy("policy1").configuration("config1").build(),
-                                        Step.builder().policy("policy2").configuration("config2").build()
+            api.setPlans(
+                List.of(
+                    Plan
+                        .builder()
+                        .id("plan1")
+                        .flows(
+                            List.of(
+                                Flow
+                                    .builder()
+                                    .id("flow1")
+                                    .pre(
+                                        List.of(
+                                            Step.builder().policy("policy1").configuration("config1").build(),
+                                            Step.builder().policy("policy2").configuration("config2").build()
+                                        )
                                     )
-                                )
-                                .post(List.of(Step.builder().policy("policy3").configuration("config3").build()))
-                                .build()
+                                    .post(List.of(Step.builder().policy("policy3").configuration("config3").build()))
+                                    .build()
+                            )
                         )
-                    )
-                    .build(),
-                Plan
-                    .builder()
-                    .id("plan2")
-                    .flows(
-                        List.of(
-                            Flow
-                                .builder()
-                                .id("flow1")
-                                .pre(
-                                    List.of(
-                                        Step.builder().policy("policy1").configuration("config1").build(),
-                                        Step.builder().policy("policy2").configuration("config2").build()
+                        .build(),
+                    Plan
+                        .builder()
+                        .id("plan2")
+                        .flows(
+                            List.of(
+                                Flow
+                                    .builder()
+                                    .id("flow1")
+                                    .pre(
+                                        List.of(
+                                            Step.builder().policy("policy1").configuration("config1").build(),
+                                            Step.builder().policy("policy2").configuration("config2").build()
+                                        )
                                     )
-                                )
-                                .post(List.of(Step.builder().policy("policy3").configuration("config3").build()))
-                                .build()
+                                    .post(List.of(Step.builder().policy("policy3").configuration("config3").build()))
+                                    .build()
+                            )
                         )
-                    )
-                    .build()
+                        .build()
+                )
             );
 
-            cut.checkPolicyConfigurations(api, plans);
+            cut.checkPolicyConfigurations(api);
 
             SoftAssertions.assertSoftly(softly -> {
                 // Verify flows at api level
@@ -257,7 +263,8 @@ class ApiPolicyValidatorDomainServiceTest {
                 // verify paths for plans
                 softly
                     .assertThat(
-                        plans
+                        api
+                            .getPlans()
                             .stream()
                             .flatMap(plan ->
                                 plan.getFlows().stream().flatMap(flow -> Stream.concat(flow.getPre().stream(), flow.getPost().stream()))
@@ -270,9 +277,9 @@ class ApiPolicyValidatorDomainServiceTest {
         }
 
         private static Stream<Arguments> provideEmptyCasesForFlows() {
-            final Api api = new Api();
+            var api = new DebugApiV2();
             api.setFlows(List.of(Flow.builder().build()));
-            return Stream.concat(provideEmptyCases(), Stream.of(Arguments.of(api, null), Arguments.of(api, Set.of())));
+            return Stream.concat(provideEmptyCases(), Stream.of(Arguments.of(api, null), Arguments.of(api, List.of())));
         }
     }
 
@@ -281,16 +288,16 @@ class ApiPolicyValidatorDomainServiceTest {
 
         @Test
         void should_not_validate_v4_api() {
-            final Api api = new Api();
+            var api = new DebugApiV2();
             api.setDefinitionVersion(DefinitionVersion.V4);
-            assertThatThrownBy(() -> cut.checkPolicyConfigurations(api, Set.of()))
+            assertThatThrownBy(() -> cut.checkPolicyConfigurations(api))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Cannot validate V4 api");
         }
     }
 
     private static Stream<Arguments> provideEmptyCases() {
-        return Stream.of(Arguments.of(new Api(), null), Arguments.of(new Api(), Set.of()));
+        return Stream.of(Arguments.of(new DebugApiV2(), null), Arguments.of(new DebugApiV2(), List.of()));
     }
 
     private static class SimpleValidationOnlyPolicyService implements PolicyPluginService {

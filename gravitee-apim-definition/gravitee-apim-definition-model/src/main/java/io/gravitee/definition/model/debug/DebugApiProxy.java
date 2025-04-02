@@ -15,38 +15,25 @@
  */
 package io.gravitee.definition.model.debug;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
+import io.gravitee.secrets.api.discovery.Definition;
 import java.io.Serializable;
 import java.util.List;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
-@Setter
-@Getter
-@NoArgsConstructor
-@SuperBuilder
-public class DebugApiV2 extends Api implements DebugApiProxy, Serializable {
+/**
+ * Interface to represent a debug API proxy.
+ * This interface needs to be implemented by all debug API proxy classes (V2 and V4)
+ */
+public interface DebugApiProxy {
+    HttpRequest getRequest();
+    HttpResponse getResponse();
+    List<DebugStep> getDebugSteps();
+    HttpResponse getBackendResponse();
+    PreprocessorStep getPreprocessorStep();
+    DebugMetrics getMetrics();
 
-    @JsonProperty("request")
-    private HttpRequest request;
-
-    @JsonProperty("response")
-    private HttpResponse response;
-
-    @JsonProperty("debugSteps")
-    private List<DebugStep> debugSteps;
-
-    @JsonProperty("preprocessorStep")
-    private PreprocessorStep preprocessorStep;
-
-    @JsonProperty("backendResponse")
-    private HttpResponse backendResponse;
-
-    @JsonProperty("metrics")
-    private DebugMetrics metrics;
+    String getId();
+    DefinitionVersion getDefinitionVersion();
 }

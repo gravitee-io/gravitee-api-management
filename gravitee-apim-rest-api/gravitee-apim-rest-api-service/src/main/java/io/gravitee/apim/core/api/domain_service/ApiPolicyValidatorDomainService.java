@@ -20,9 +20,11 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.debug.DebugApiProxy;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -33,14 +35,18 @@ public class ApiPolicyValidatorDomainService {
 
     private final PolicyValidationDomainService policyValidationDomainService;
 
-    public void checkPolicyConfigurations(Api api, Set<Plan> plans) {
-        if (api == null) {
+    public void checkPolicyConfigurations(DebugApiProxy debugApiProxy) {
+        if (debugApiProxy == null) {
             throw new IllegalStateException("Api should not be null");
         }
-        switch (api.getDefinitionVersion()) {
-            case V1 -> validatePathConfigurations(api, plans);
-            case V2 -> validateFlowConfigurations(api, plans);
-            case V4 -> throw new IllegalStateException("Cannot validate V4 api");
+
+        if (debugApiProxy instanceof Api api) {
+            var plans = new HashSet<Plan>(api.getPlans());
+            switch (api.getDefinitionVersion()) {
+                case V1 -> validatePathConfigurations(api, plans);
+                case V2 -> validateFlowConfigurations(api, plans);
+                case V4 -> throw new IllegalStateException("Cannot validate V4 api");
+            }
         }
     }
 

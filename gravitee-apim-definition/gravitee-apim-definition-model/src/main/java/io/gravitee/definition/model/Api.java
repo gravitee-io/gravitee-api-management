@@ -114,8 +114,10 @@ public class Api implements Serializable {
 
     public void setPlans(List<Plan> plans) {
         this.plans.clear();
-        for (Plan plan : plans) {
-            this.plans.put(plan.getId(), plan);
+        if (plans != null) {
+            for (Plan plan : plans) {
+                this.plans.put(plan.getId(), plan);
+            }
         }
     }
 
