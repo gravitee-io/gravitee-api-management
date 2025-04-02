@@ -1,5 +1,5 @@
 // Correction of the styles applied to the menu when the bootstrap is disabled in favor of the material
-@import '../constants';
+@use '../constants';
 
 @mixin material-layout-compatibility() {
   .sidenav-list {

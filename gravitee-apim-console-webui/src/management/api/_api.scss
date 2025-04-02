@@ -1,11 +1,13 @@
-@import 'analytics/logs/logs';
-@import 'analytics/overview/analytics';
-@import 'creation-v2/steps/api-creation';
-@import 'audit/history/apiHistory';
-@import 'policy-studio-v1/policies/policy';
-@import 'properties-v1/properties';
-@import 'health-check-dashboard/healthcheck';
-@import 'resources-v1/resources';
+@use './analytics/logs/logs';
+@use './analytics/overview/analytics';
+@use './creation-v2/steps/api-creation';
+@use './audit/history/apiHistory';
+@use './policy-studio-v1/policies/policy';
+@use './properties-v1/properties';
+@use './health-check-dashboard/healthcheck';
+@use './resources-v1/resources';
+
+@use '../../constants' as constants;
 
 .gravitee-api-container {
   border: 1px solid;
@@ -88,7 +90,7 @@
 }
 
 .gravitee-api-header {
-  height: $graviteeHeader;
+  height: constants.$graviteeHeader;
   //background: #fff;
   //border-bottom: 1px solid #f1f1f1;
   //box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12);
