@@ -23,7 +23,6 @@ import { Breadcrumb } from '../../../../../entities/management-api-v2';
   selector: 'api-documentation-breadcrumb',
   templateUrl: './api-documentation-v4-breadcrumb.component.html',
   styleUrls: ['./api-documentation-v4-breadcrumb.component.scss'],
-  standalone: true,
   imports: [CommonModule, MatIcon],
 })
 export class ApiDocumentationV4BreadcrumbComponent {

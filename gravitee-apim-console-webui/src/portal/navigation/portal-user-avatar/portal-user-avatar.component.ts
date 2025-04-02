@@ -35,7 +35,6 @@ interface UserVM {
 
 @Component({
   selector: 'portal-user-avatar',
-  standalone: true,
   imports: [GioAvatarModule, MatDivider, MatIcon, MatIconButton, MatMenu, MatMenuItem, AsyncPipe, MatMenuTrigger],
   templateUrl: './portal-user-avatar.component.html',
   styleUrl: './portal-user-avatar.component.scss',

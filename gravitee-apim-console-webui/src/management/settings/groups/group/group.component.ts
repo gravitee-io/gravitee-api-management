@@ -104,7 +104,6 @@ interface DeleteMemberDialogResult {
   selector: 'app-group',
   templateUrl: './group.component.html',
   styleUrls: ['./group.component.scss'],
-  standalone: true,
   imports: [
     CommonModule,
     MatCardModule,

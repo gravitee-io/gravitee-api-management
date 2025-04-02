@@ -52,7 +52,6 @@ interface TableData {
     TitleCasePipe,
   ],
   selector: 'availability-per-field',
-  standalone: true,
   styleUrl: './availability-per-field.component.scss',
   templateUrl: './availability-per-field.component.html',
 })

@@ -27,7 +27,6 @@ export type ApiAnalyticsResponseStatusRanges = {
 
 @Component({
   selector: 'api-analytics-response-status-ranges',
-  standalone: true,
   imports: [MatCard, GioChartPieModule, GioLoaderModule],
   templateUrl: './api-analytics-response-status-ranges.component.html',
   styleUrl: './api-analytics-response-status-ranges.component.scss',

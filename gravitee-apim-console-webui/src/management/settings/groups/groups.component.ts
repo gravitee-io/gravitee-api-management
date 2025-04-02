@@ -79,7 +79,6 @@ export interface GroupsResponse {
   templateUrl: './groups.component.html',
   selector: 'app-groups',
   styleUrls: ['./groups.component.scss'],
-  standalone: true,
   imports: [
     CommonModule,
     MatCardModule,

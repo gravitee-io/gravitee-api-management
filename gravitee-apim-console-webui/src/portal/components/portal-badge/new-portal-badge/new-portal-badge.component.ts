@@ -18,7 +18,6 @@ import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'new-portal-badge',
-  standalone: true,
   imports: [MatIcon],
   templateUrl: './new-portal-badge.component.html',
 })

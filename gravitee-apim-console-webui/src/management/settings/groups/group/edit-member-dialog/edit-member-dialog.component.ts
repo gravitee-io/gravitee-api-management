@@ -46,7 +46,6 @@ import { Group } from '../../../../../entities/group/group';
 
 @Component({
   selector: 'edit-member-dialog',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

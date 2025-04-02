@@ -36,7 +36,6 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
 
 @Component({
   selector: 'top-applications-by-requests',
-  standalone: true,
   imports: [MatCardModule, GioTableWrapperModule, MatTableModule, MatSortModule, NgIf, DecimalPipe, GioLoaderModule, RouterLink],
   templateUrl: './top-applications-by-requests.component.html',
   styleUrl: './top-applications-by-requests.component.scss',

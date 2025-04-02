@@ -40,7 +40,6 @@ export type SubscriptionEditPushConfigDialogResult = {
   selector: 'subscription-edit-push-config-dialog',
   templateUrl: './subscription-edit-push-config-dialog.component.html',
   styleUrls: ['./subscription-edit-push-config-dialog.component.scss'],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatDialogModule,

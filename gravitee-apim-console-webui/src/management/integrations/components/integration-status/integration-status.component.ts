@@ -22,7 +22,6 @@ import { AgentStatus } from '../../integrations.model';
 @Component({
   selector: 'app-integration-status',
   templateUrl: './integration-status.component.html',
-  standalone: true,
   imports: [CommonModule, MatIconModule],
 })
 export class IntegrationStatusComponent {

@@ -22,7 +22,6 @@ import { Breadcrumb, getLogoForPageType, getTooltipForPageType, PageType } from 
 
 @Component({
   selector: 'api-documentation-v4-page-header',
-  standalone: true,
   imports: [ApiDocumentationV4BreadcrumbComponent, NgOptimizedImage, MatTooltip],
   templateUrl: './api-documentation-v4-page-header.component.html',
   styleUrl: './api-documentation-v4-page-header.component.scss',
