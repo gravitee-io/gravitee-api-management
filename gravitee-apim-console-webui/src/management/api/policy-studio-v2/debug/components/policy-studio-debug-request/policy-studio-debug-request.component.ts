@@ -19,7 +19,6 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import '@gravitee/ui-components/wc/gv-schema-form';
 
-import { CorsUtil } from '../../../../../../shared/utils';
 import { DebugRequest } from '../../models/DebugRequest';
 
 @Component({
@@ -37,7 +36,7 @@ export class PolicyStudioDebugRequestComponent implements OnInit {
   @Output()
   public cancelSubmitted = new EventEmitter<void>();
 
-  public httpMethods = CorsUtil.httpMethods;
+  public httpMethods = ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'];
 
   public requestFormGroup: UntypedFormGroup;
 
