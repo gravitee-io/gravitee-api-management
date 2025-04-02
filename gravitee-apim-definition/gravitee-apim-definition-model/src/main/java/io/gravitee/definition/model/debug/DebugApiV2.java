@@ -21,12 +21,16 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import java.io.Serializable;
 import java.util.List;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+@Setter
+@Getter
 @NoArgsConstructor
 @SuperBuilder
-public class DebugApiV2 extends Api implements Serializable {
+public class DebugApiV2 extends Api implements DebugApiProxy, Serializable {
 
     @JsonProperty("request")
     private HttpRequest request;
@@ -45,52 +49,4 @@ public class DebugApiV2 extends Api implements Serializable {
 
     @JsonProperty("metrics")
     private DebugMetrics metrics;
-
-    public HttpRequest getRequest() {
-        return request;
-    }
-
-    public void setRequest(HttpRequest request) {
-        this.request = request;
-    }
-
-    public HttpResponse getResponse() {
-        return response;
-    }
-
-    public void setResponse(HttpResponse response) {
-        this.response = response;
-    }
-
-    public List<DebugStep> getDebugSteps() {
-        return debugSteps;
-    }
-
-    public void setDebugSteps(List<DebugStep> debugSteps) {
-        this.debugSteps = debugSteps;
-    }
-
-    public HttpResponse getBackendResponse() {
-        return backendResponse;
-    }
-
-    public void setBackendResponse(HttpResponse backendResponse) {
-        this.backendResponse = backendResponse;
-    }
-
-    public PreprocessorStep getPreprocessorStep() {
-        return preprocessorStep;
-    }
-
-    public void setPreprocessorStep(PreprocessorStep preprocessorStep) {
-        this.preprocessorStep = preprocessorStep;
-    }
-
-    public DebugMetrics getMetrics() {
-        return metrics;
-    }
-
-    public void setMetrics(DebugMetrics metrics) {
-        this.metrics = metrics;
-    }
 }

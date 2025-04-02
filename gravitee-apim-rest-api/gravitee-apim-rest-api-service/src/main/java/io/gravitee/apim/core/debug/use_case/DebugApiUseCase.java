@@ -34,16 +34,15 @@ import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.gateway.model.Instance;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.common.util.EnvironmentUtils;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.LoggingContent;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.LoggingScope;
+import io.gravitee.definition.model.debug.DebugApiProxy;
 import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PlanStatus;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import lombok.Builder;
@@ -67,7 +66,7 @@ public class DebugApiUseCase {
         validateApiExists(input);
 
         // Check policy configuration
-        apiPolicyValidatorDomainService.checkPolicyConfigurations(input.debugApi, new HashSet<>(input.debugApi.getPlans()));
+        apiPolicyValidatorDomainService.checkPolicyConfigurations(input.debugApi);
 
         final Instance selectedGateway = selectTargetGateway(
             input.auditInfo.organizationId(),
@@ -91,7 +90,7 @@ public class DebugApiUseCase {
         }
     }
 
-    private Event createDebugApiEvent(AuditInfo auditInfo, DebugApiV2 debugApi, Instance selectedInstance) {
+    private Event createDebugApiEvent(AuditInfo auditInfo, DebugApiProxy debugApi, Instance selectedInstance) {
         return eventCrudService.createEvent(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
@@ -113,48 +112,58 @@ public class DebugApiUseCase {
         }
     }
 
-    private static void validatePlan(DebugApiV2 debugApi) {
-        boolean hasValidPlan = debugApi
-            .getPlans()
-            .stream()
-            .anyMatch(plan ->
-                PlanStatus.STAGING.name().equalsIgnoreCase(plan.getStatus()) ||
-                PlanStatus.PUBLISHED.name().equalsIgnoreCase(plan.getStatus())
-            );
+    private static void validatePlan(DebugApiProxy debugApi) {
+        if (debugApi instanceof DebugApiV2 debugApiV2) {
+            boolean hasValidPlan = debugApiV2
+                .getPlans()
+                .stream()
+                .anyMatch(plan ->
+                    PlanStatus.STAGING.name().equalsIgnoreCase(plan.getStatus()) ||
+                    PlanStatus.PUBLISHED.name().equalsIgnoreCase(plan.getStatus())
+                );
 
-        if (!hasValidPlan) {
-            throw new DebugApiNoValidPlanException(debugApi.getId());
+            if (!hasValidPlan) {
+                throw new DebugApiNoValidPlanException(debugApiV2.getId());
+            }
         }
     }
 
-    private Instance selectTargetGateway(String organizationId, String environmentId, Api apiDefinition) {
-        return instanceQueryService
-            .findAllStarted(organizationId, environmentId)
-            .stream()
-            .filter(Instance::isClusterPrimaryNode)
-            .filter(instance -> instance.isRunningForEnvironment(environmentId))
-            .filter(Instance::hasDebugPluginInstalled)
-            .filter(instance -> EnvironmentUtils.hasMatchingTags(ofNullable(instance.getTags()), apiDefinition.getTags()))
-            .max(Comparator.comparing(Instance::getStartedAt))
-            .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(apiDefinition.getId()));
+    private Instance selectTargetGateway(String organizationId, String environmentId, DebugApiProxy debugApi) {
+        if (debugApi instanceof DebugApiV2 debugApiV2) {
+            return instanceQueryService
+                .findAllStarted(organizationId, environmentId)
+                .stream()
+                .filter(Instance::isClusterPrimaryNode)
+                .filter(instance -> instance.isRunningForEnvironment(environmentId))
+                .filter(Instance::hasDebugPluginInstalled)
+                .filter(instance -> EnvironmentUtils.hasMatchingTags(ofNullable(instance.getTags()), debugApiV2.getTags()))
+                .max(Comparator.comparing(Instance::getStartedAt))
+                .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(debugApiV2.getId()));
+        }
+
+        throw new DebugApiNoCompatibleInstanceException(debugApi.getId());
     }
 
-    private static void disableLoggingForDebug(DebugApiV2 debugApi) {
-        if (debugApi.getProxy() != null && debugApi.getProxy().getLogging() != null) {
-            debugApi.getProxy().getLogging().setMode(LoggingMode.NONE);
-            debugApi.getProxy().getLogging().setContent(LoggingContent.NONE);
-            debugApi.getProxy().getLogging().setScope(LoggingScope.NONE);
+    private static void disableLoggingForDebug(DebugApiProxy debugApi) {
+        if (debugApi instanceof DebugApiV2 debugApiV2) {
+            if (debugApiV2.getProxy() != null && debugApiV2.getProxy().getLogging() != null) {
+                debugApiV2.getProxy().getLogging().setMode(LoggingMode.NONE);
+                debugApiV2.getProxy().getLogging().setContent(LoggingContent.NONE);
+                debugApiV2.getProxy().getLogging().setScope(LoggingScope.NONE);
+            }
         }
     }
 
-    private static void disableHealthCheckForDebug(DebugApiV2 debugApi) {
-        if (debugApi.getServices() != null && debugApi.getServices().getHealthCheckService() != null) {
-            debugApi.getServices().getHealthCheckService().setEnabled(false);
+    private static void disableHealthCheckForDebug(DebugApiProxy debugApi) {
+        if (debugApi instanceof DebugApiV2 debugApiV2) {
+            if (debugApiV2.getServices() != null && debugApiV2.getServices().getHealthCheckService() != null) {
+                debugApiV2.getServices().getHealthCheckService().setEnabled(false);
+            }
         }
     }
 
     @Builder
-    public record Input(String apiId, DebugApiV2 debugApi, AuditInfo auditInfo) {
+    public record Input(String apiId, DebugApiProxy debugApi, AuditInfo auditInfo) {
         public Input {
             requireNonNull(apiId);
             requireNonNull(debugApi);
