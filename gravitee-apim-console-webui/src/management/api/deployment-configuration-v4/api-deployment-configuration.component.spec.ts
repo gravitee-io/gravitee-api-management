@@ -21,7 +21,6 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { ActivatedRoute } from '@angular/router';
-import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 
 import { ApiDeploymentConfigurationComponent } from './api-deployment-configuration.component';
 import { ApiDeploymentConfigurationModule } from './api-deployment-configuration.module';
@@ -31,13 +30,13 @@ import { GioTestingPermissionProvider } from '../../../shared/components/gio-per
 import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { fakeTag } from '../../../entities/tag/tag.fixture';
 import { Tag } from '../../../entities/tag/tag';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 describe('ApiDeploymentConfigurationComponent', () => {
   const API_ID = 'apiId';
 
   let fixture: ComponentFixture<ApiDeploymentConfigurationComponent>;
   let loader: HarnessLoader;
-  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   describe.each([{ api: fakeApiV2({ id: API_ID, tags: ['tag2'] }) }, { api: fakeApiV4({ id: API_ID, tags: ['tag2'] }) }])(
@@ -54,7 +53,6 @@ describe('ApiDeploymentConfigurationComponent', () => {
 
         fixture = TestBed.createComponent(ApiDeploymentConfigurationComponent);
         loader = TestbedHarnessEnvironment.loader(fixture);
-        rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
         httpTestingController = TestBed.inject(HttpTestingController);
         fixture.detectChanges();
@@ -65,6 +63,8 @@ describe('ApiDeploymentConfigurationComponent', () => {
       });
 
       it('should update deployment', async () => {
+        const snackBarServiceSpy = jest.spyOn(TestBed.inject(SnackBarService), 'success');
+
         expectApiGetRequest(api);
         expectTagGetRequest([
           fakeTag({ id: 'tag1', name: 'tag1' }),
@@ -93,8 +93,9 @@ describe('ApiDeploymentConfigurationComponent', () => {
         expect(req.request.body.tags).toStrictEqual(['tag1', 'tag3']);
         req.flush(api);
 
-        const snackBars = await rootLoader.getAllHarnesses(MatSnackBarHarness);
-        expect(snackBars.length).toBe(1);
+        fixture.detectChanges();
+
+        expect(snackBarServiceSpy).toHaveBeenCalledWith('Configuration successfully saved!');
 
         // No flush to stop on new call of ngOnInit
         httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' });
@@ -136,7 +137,6 @@ describe('ApiDeploymentConfigurationComponent', () => {
 
       fixture = TestBed.createComponent(ApiDeploymentConfigurationComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);
-      rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
