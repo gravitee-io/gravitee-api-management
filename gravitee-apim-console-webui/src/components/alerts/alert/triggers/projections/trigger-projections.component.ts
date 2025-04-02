@@ -19,6 +19,7 @@ const AlertTriggerProjectionsComponent: ng.IComponentOptions = {
     condition: '<',
     metrics: '<',
     isReadonly: '<',
+    formRef: '<',
   },
   template: require('html-loader!./trigger-projections.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: function () {
@@ -32,6 +33,9 @@ const AlertTriggerProjectionsComponent: ng.IComponentOptions = {
 
     this.removeProjection = (idx: number) => {
       this.condition.projections.splice(idx, 1);
+      if (this.formRef) {
+        this.formRef.$setDirty();
+      }
     };
   },
 };
