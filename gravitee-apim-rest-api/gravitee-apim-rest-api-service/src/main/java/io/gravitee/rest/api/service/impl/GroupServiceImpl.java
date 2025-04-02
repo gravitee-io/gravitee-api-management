@@ -351,13 +351,22 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     private void removeOldDefaultRole(ExecutionContext executionContext, String groupId, MembershipReferenceType referenceType) {
-        membershipService.deleteReferenceMember(executionContext, referenceType, null, MembershipMemberType.GROUP, groupId);
+        membershipService.deleteReferenceMember(
+            executionContext,
+            referenceType,
+            executionContext.getEnvironmentId(),
+            MembershipMemberType.GROUP,
+            groupId
+        );
     }
 
     private void addNewDefaultRole(ExecutionContext executionContext, String groupId, String newRole, RoleScope roleScope) {
         membershipService.addRoleToMemberOnReference(
             executionContext,
-            new MembershipService.MembershipReference(MembershipReferenceType.valueOf(roleScope.name()), null),
+            new MembershipService.MembershipReference(
+                MembershipReferenceType.valueOf(roleScope.name()),
+                executionContext.getEnvironmentId()
+            ),
             new MembershipService.MembershipMember(groupId, null, MembershipMemberType.GROUP),
             new MembershipService.MembershipRole(roleScope, newRole)
         );
@@ -945,11 +954,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
 
         Map<RoleScope, String> roles = new HashMap<>();
-        RoleEntity defaultApiRole = getDefaultRole(group.getId(), RoleScope.API);
+        RoleEntity defaultApiRole = getDefaultRole(executionContext, group.getId(), RoleScope.API);
         if (defaultApiRole != null) {
             roles.put(RoleScope.API, defaultApiRole.getName());
         }
-        RoleEntity defaultApplicationRole = getDefaultRole(group.getId(), RoleScope.APPLICATION);
+        RoleEntity defaultApplicationRole = getDefaultRole(executionContext, group.getId(), RoleScope.APPLICATION);
         if (defaultApplicationRole != null) {
             roles.put(RoleScope.APPLICATION, defaultApplicationRole.getName());
         }
@@ -994,9 +1003,14 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
     }
 
-    private RoleEntity getDefaultRole(String groupId, RoleScope scope) {
+    private RoleEntity getDefaultRole(ExecutionContext executionContext, String groupId, RoleScope scope) {
         Optional<RoleEntity> optDefaultRole = membershipService
-            .getRoles(MembershipReferenceType.valueOf(scope.name()), null, MembershipMemberType.GROUP, groupId)
+            .getRoles(
+                MembershipReferenceType.valueOf(scope.name()),
+                executionContext != null ? executionContext.getEnvironmentId() : null,
+                MembershipMemberType.GROUP,
+                groupId
+            )
             .stream()
             .findFirst();
         if (optDefaultRole.isPresent()) {

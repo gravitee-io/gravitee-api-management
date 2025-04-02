@@ -67,6 +67,14 @@ export class ApiGeneralGroupsHarness extends ComponentHarness {
     return this.getGroupsList().then((selectList) => selectList.clickOptions(filters));
   }
 
+  async deselectGroups(filters: OptionHarnessFilters = {}): Promise<void> {
+    await this.openGroupsList();
+    const selectedOptions = await this.getGroups({ ...filters, isSelected: true });
+    for (const option of selectedOptions) {
+      await option.click();
+    }
+  }
+
   async getGroupsListValueText(): Promise<string> {
     return this.getGroupsList().then((selectList) => selectList.getValueText());
   }
