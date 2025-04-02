@@ -61,7 +61,6 @@ type ApiAnalyticsVM = {
 
 @Component({
   selector: 'api-analytics-message',
-  standalone: true,
   imports: [
     CommonModule,
     MatButton,

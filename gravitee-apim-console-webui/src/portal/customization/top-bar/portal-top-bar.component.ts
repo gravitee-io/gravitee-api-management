@@ -22,7 +22,6 @@ import { PortalHeaderComponent } from '../../components/header/portal-header.com
   selector: 'portal-top-bar',
   templateUrl: './portal-top-bar.component.html',
   styleUrls: ['./portal-top-bar.component.scss'],
-  standalone: true,
   imports: [PortalHeaderComponent, RouterOutlet],
 })
 export class PortalTopBarComponent {}

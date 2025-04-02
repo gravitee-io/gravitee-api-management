@@ -64,7 +64,6 @@ interface CatalogViewModeVM {
 
 @Component({
   selector: 'category-list',
-  standalone: true,
   imports: [
     AsyncPipe,
     FormsModule,

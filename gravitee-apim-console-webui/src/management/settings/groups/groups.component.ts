@@ -23,6 +23,7 @@ import { ActivatedRoute } from '@angular/router';
   host: {
     class: 'bootstrap gv-sub-content',
   },
+  standalone: false,
 })
 export class GroupsComponent extends UpgradeComponent {
   constructor(

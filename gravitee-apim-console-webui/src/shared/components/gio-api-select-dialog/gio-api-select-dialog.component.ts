@@ -39,7 +39,6 @@ export type GioApiSelectDialogResult = Api;
   selector: 'gio-api-select-dialog',
   templateUrl: './gio-api-select-dialog.component.html',
   styleUrls: ['./gio-api-select-dialog.component.scss'],
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

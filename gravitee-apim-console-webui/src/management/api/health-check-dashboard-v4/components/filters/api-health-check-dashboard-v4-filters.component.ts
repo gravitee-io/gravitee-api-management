@@ -31,7 +31,6 @@ export interface ActiveFilter {
 
 @Component({
   selector: 'api-health-check-dashboard-v4-filters',
-  standalone: true,
   imports: [ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatSelectModule, MatButton],
   templateUrl: './api-health-check-dashboard-v4-filters.component.html',
   styleUrl: './api-health-check-dashboard-v4-filters.component.scss',

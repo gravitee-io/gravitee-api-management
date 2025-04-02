@@ -25,7 +25,6 @@ import { PortalNavigationService } from '../navigation/portal-navigation.service
 
 @Component({
   selector: 'portal-customization',
-  standalone: true,
   imports: [MatAnchor, MatIcon, MatTabLink, MatTabNav, MatTabNavPanel, RouterModule, GioSubmenuModule, AsyncPipe],
   templateUrl: './portal-customization.component.html',
   styleUrl: './portal-customization.component.scss',

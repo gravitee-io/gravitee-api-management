@@ -49,7 +49,6 @@ const PHASE_BY_API_TYPE: Record<ApiV4['type'], FlowPhase[]> = {
   selector: 'shared-policy-groups-add-edit-dialog',
   templateUrl: './shared-policy-groups-add-edit-dialog.component.html',
   styleUrls: ['./shared-policy-groups-add-edit-dialog.component.scss'],
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

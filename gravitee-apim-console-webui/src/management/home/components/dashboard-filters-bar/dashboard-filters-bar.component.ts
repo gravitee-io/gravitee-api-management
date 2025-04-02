@@ -35,7 +35,6 @@ import { calculateCustomInterval } from '../../../../shared/utils/intervalFromTi
 
 @Component({
   selector: 'app-dashboard-filters-bar',
-  standalone: true,
   imports: [
     CommonModule,
     MatFormFieldModule,

@@ -29,7 +29,6 @@ import { CommonModule } from '@angular/common';
       multi: true,
     },
   ],
-  standalone: true,
   imports: [CommonModule, GioFormSelectionInlineModule, FormsModule],
 })
 export class ApiDocumentationV4VisibilityComponent implements ControlValueAccessor {

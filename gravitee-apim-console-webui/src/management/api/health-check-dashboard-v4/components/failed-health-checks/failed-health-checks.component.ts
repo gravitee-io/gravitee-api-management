@@ -45,7 +45,6 @@ import { HealthCheckLogsResponse } from '../../../../../entities/management-api-
     TitleCasePipe,
   ],
   selector: 'failed-health-checks',
-  standalone: true,
   styleUrl: './failed-health-checks.component.scss',
   templateUrl: './failed-health-checks.component.html',
 })
