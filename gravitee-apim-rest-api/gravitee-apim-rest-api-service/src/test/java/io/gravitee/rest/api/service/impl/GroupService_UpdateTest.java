@@ -124,7 +124,7 @@ public class GroupService_UpdateTest {
             .addRoleToMemberOnReference(
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(membershipReference ->
-                    membershipReference.getType() == MembershipReferenceType.API && membershipReference.getId() == null
+                    membershipReference.getType() == MembershipReferenceType.API
                 ),
                 argThat(membershipMember ->
                     membershipMember.getMemberId().equals(GROUP_ID) &&
