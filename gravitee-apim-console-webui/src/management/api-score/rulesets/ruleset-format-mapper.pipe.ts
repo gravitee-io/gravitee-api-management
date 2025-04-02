@@ -19,7 +19,6 @@ import { RulesetFormat } from '../../../entities/management-api-v2/api/v4/rulese
 
 @Pipe({
   name: 'rulesetFormatPipe',
-  standalone: true,
   pure: true,
 })
 export class RulesetFormatPipe implements PipeTransform {

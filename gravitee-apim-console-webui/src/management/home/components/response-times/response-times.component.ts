@@ -27,7 +27,6 @@ import { GioChartLineModule } from '../../../../shared/components/gio-chart-line
 
 @Component({
   selector: 'response-times',
-  standalone: true,
   imports: [GioChartLineModule, GioLoaderModule, MatCardModule],
   templateUrl: './response-times.component.html',
   styleUrl: './response-times.component.scss',

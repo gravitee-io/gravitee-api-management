@@ -37,7 +37,6 @@ import { Group } from '../../../../../entities/group/group';
 
 @Component({
   selector: 'invite-member-dialog',
-  standalone: true,
   imports: [
     CommonModule,
     MatDialogModule,

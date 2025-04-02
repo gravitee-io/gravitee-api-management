@@ -69,7 +69,6 @@ interface ApiVM {
 
 @Component({
   selector: 'category',
-  standalone: true,
   imports: [
     AsyncPipe,
     FormsModule,

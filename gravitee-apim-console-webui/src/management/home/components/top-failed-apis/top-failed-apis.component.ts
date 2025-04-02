@@ -36,7 +36,6 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
 
 @Component({
   selector: 'top-failed-apis',
-  standalone: true,
   imports: [GioLoaderModule, GioTableWrapperModule, MatCardModule, MatSortModule, MatTableModule, DecimalPipe],
   templateUrl: './top-failed-apis.component.html',
   styleUrl: './top-failed-apis.component.scss',

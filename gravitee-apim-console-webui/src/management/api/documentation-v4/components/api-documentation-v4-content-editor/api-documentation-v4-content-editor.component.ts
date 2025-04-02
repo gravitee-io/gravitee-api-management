@@ -35,7 +35,6 @@ import { GioAsyncApiModule } from '../../../../../components/documentation/gio-a
       multi: true,
     },
   ],
-  standalone: true,
   imports: [
     FormsModule,
     GioMonacoEditorModule,

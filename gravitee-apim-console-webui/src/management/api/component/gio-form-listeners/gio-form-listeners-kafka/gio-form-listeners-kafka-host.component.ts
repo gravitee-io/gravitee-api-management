@@ -59,7 +59,6 @@ export type KafkaHostData = KafkaHost;
     MatTooltipModule,
     GioClipboardModule,
   ],
-  standalone: true,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

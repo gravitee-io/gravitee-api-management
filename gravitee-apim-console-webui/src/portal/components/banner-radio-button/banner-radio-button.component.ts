@@ -18,7 +18,6 @@ import { MatRadioButton } from '@angular/material/radio';
 
 @Component({
   selector: 'banner-radio-button',
-  standalone: true,
   imports: [MatRadioButton],
   templateUrl: './banner-radio-button.component.html',
   styleUrl: './banner-radio-button.component.scss',

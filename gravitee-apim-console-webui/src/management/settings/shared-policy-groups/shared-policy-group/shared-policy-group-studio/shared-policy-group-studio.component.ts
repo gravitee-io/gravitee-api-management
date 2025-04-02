@@ -63,7 +63,6 @@ import { toReadableFlowPhase } from '../../../../../entities/management-api-v2';
     MatTooltip,
     SharedPolicyGroupsStateBadgeComponent,
   ],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SharedPolicyGroupStudioComponent {

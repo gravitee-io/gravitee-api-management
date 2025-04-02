@@ -64,7 +64,6 @@ export interface PageConfigurationForm {
     MatSlideToggle,
     ReactiveFormsModule,
   ],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApiDocumentationV4PageConfigurationComponent implements OnInit, OnChanges {

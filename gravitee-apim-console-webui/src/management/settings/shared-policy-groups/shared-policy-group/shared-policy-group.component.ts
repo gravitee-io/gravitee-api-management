@@ -21,7 +21,6 @@ import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'shared-policy-group',
-  standalone: true,
   imports: [MatTabsModule, MatAnchor, MatIcon, RouterModule],
   templateUrl: './shared-policy-group.component.html',
   styleUrl: './shared-policy-group.component.scss',

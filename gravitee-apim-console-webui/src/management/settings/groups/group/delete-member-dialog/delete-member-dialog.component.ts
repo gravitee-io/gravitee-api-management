@@ -36,7 +36,6 @@ import { DeleteMemberDialogData } from '../group.component';
 
 @Component({
   selector: 'delete-member-dialog',
-  standalone: true,
   imports: [
     CommonModule,
     MatDialogModule,
