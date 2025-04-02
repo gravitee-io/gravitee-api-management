@@ -22,11 +22,9 @@ import {
   GioFormSelectionInlineModule,
   GioJsonSchema,
 } from '@gravitee/ui-particles-angular';
-import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
-import { AsyncPipe, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
-import { MatIcon } from '@angular/material/icon';
+import { AsyncPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { map, startWith } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -52,17 +50,10 @@ export type ApiResourcesEditDialogResult = Api['resources'][number] | undefined;
     MatDialogModule,
     MatButtonModule,
     GioFormSelectionInlineModule,
-    MatRadioButton,
-    MatRadioGroup,
-    NgForOf,
-    NgIf,
-    NgTemplateOutlet,
     GioSelectionListModule,
-    MatIcon,
     ReactiveFormsModule,
     GioFormJsonSchemaModule,
     GioFormFocusInvalidModule,
-    MatError,
     MatFormField,
     MatInput,
     MatLabel,

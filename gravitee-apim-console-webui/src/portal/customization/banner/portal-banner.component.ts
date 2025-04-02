@@ -20,9 +20,8 @@ import { ReactiveFormsModule, Validators, FormControl, FormGroup, FormsModule } 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { GioFormSelectionInlineModule, GioFormSlideToggleModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
-import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
+import { MatRadioGroup } from '@angular/material/radio';
 import { EMPTY } from 'rxjs';
-import { MatOption } from '@angular/material/autocomplete';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { catchError, startWith, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -61,11 +60,9 @@ interface BannerForm {
     MatFormFieldModule,
     MatInputModule,
     ReactiveFormsModule,
-    MatRadioButton,
     MatRadioGroup,
     GioRoleModule,
     FormsModule,
-    MatOption,
     GioFormSlideToggleModule,
     MatSlideToggle,
     NgOptimizedImage,

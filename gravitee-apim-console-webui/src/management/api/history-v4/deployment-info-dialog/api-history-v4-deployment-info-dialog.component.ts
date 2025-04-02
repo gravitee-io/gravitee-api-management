@@ -20,7 +20,6 @@ import { DatePipe } from '@angular/common';
 import { GioClipboardModule, GioIconsModule, GioMonacoEditorModule, MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
-import { MatCardActions } from '@angular/material/card';
 import { MatTooltip } from '@angular/material/tooltip';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
@@ -47,14 +46,12 @@ export type ApiHistoryV4DeploymentInfoDialogResult = null | { rollbackTo: string
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
-
     GioIconsModule,
     GioDiffModule,
     GioPermissionModule,
     GioMonacoEditorModule,
     GioClipboardModule,
     DatePipe,
-    MatCardActions,
     MatTooltip,
   ],
 })
