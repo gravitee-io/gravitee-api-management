@@ -30,7 +30,6 @@ import { PlatformService } from '../../../../services-ngx/platform.service';
 
 @Component({
   selector: 'v2-api-calls-with-no-context-path',
-  standalone: true,
   imports: [GioTableWrapperModule, MatTableModule, NgIf, GioLoaderModule, DatePipe],
   templateUrl: './v2-api-calls-with-no-context-path.component.html',
   styleUrl: './v2-api-calls-with-no-context-path.component.scss',

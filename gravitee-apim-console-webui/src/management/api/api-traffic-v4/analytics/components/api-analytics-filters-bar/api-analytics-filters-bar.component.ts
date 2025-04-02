@@ -36,7 +36,6 @@ import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analyt
 
 @Component({
   selector: 'api-analytics-filters-bar',
-  standalone: true,
   imports: [
     CommonModule,
     MatButtonModule,

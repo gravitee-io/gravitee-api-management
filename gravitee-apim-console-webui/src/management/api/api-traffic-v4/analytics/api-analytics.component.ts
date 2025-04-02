@@ -25,7 +25,6 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-analytics',
-  standalone: true,
   imports: [CommonModule, ApiAnalyticsMessageComponent, ApiAnalyticsProxyComponent],
   template: `
     @if (api$ | async; as api) {

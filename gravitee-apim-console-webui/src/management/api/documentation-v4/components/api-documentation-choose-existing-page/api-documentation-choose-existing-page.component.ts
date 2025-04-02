@@ -31,7 +31,6 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-documentation-choose-existing-page',
-  standalone: true,
   imports: [
     ApiDocumentationChoosePageListComponent,
     MatButton,

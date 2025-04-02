@@ -53,7 +53,6 @@ type PortalMenuLinkListVM = PortalMenuLink & {
   selector: 'menu-link-list',
   templateUrl: './menu-link-list.component.html',
   styleUrls: ['./menu-link-list.component.scss'],
-  standalone: true,
   imports: [
     CommonModule,
 

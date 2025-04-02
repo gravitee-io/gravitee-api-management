@@ -27,7 +27,6 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
 
 @Component({
   selector: 'api-analytics-response-time-over-time',
-  standalone: true,
   imports: [MatCardModule, GioChartLineModule, GioLoaderModule],
   templateUrl: './api-analytics-response-time-over-time.component.html',
   styleUrl: './api-analytics-response-time-over-time.component.scss',

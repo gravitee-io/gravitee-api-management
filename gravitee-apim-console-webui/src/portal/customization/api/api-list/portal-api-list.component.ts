@@ -50,7 +50,6 @@ interface ApiForm {
 
 @Component({
   selector: 'portal-api-list',
-  standalone: true,
   imports: [
     GioPermissionModule,
     MatButton,

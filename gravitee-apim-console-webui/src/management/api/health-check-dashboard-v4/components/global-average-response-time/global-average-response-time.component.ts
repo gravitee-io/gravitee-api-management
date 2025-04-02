@@ -26,7 +26,6 @@ import { FieldParameter } from '../../../../../entities/management-api-v2/api/v4
 
 @Component({
   selector: 'global-average-response-time',
-  standalone: true,
   imports: [MatCardModule, GioLoaderModule],
   templateUrl: './global-average-response-time.component.html',
   styleUrl: './global-average-response-time.component.scss',

@@ -23,7 +23,6 @@ export type AnalyticsRequestStats = { label: string; unitLabel?: string; value?:
 
 @Component({
   selector: 'app-api-analytics-request-stats',
-  standalone: true,
   imports: [CommonModule, GioLoaderModule, MatCardModule],
   templateUrl: './api-analytics-request-stats.component.html',
   styleUrl: './api-analytics-request-stats.component.scss',

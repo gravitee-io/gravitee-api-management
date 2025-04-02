@@ -42,7 +42,6 @@ type PushConfigVM = {
   templateUrl: './subscription-edit-push-config.component.html',
   styleUrls: ['./subscription-edit-push-config.component.scss'],
   imports: [CommonModule, MatCardModule, MatButtonModule, MatIcon, GioClipboardModule, MatDialogModule],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubscriptionEditPushConfigComponent implements OnInit {

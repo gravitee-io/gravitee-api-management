@@ -31,7 +31,6 @@ export interface NavigationItem {
 
 @Component({
   selector: 'app-api-score-navigation',
-  standalone: true,
   imports: [RouterModule, GioSubmenuModule, MatIconModule, RouterLinkActive],
   templateUrl: './api-score-navigation.component.html',
   styleUrl: './api-score-navigation.component.scss',

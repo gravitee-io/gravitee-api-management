@@ -23,7 +23,6 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-import-file-picker',
-  standalone: true,
   imports: [CommonModule, FormsModule, GioFormFilePickerModule, ReactiveFormsModule],
   templateUrl: './api-import-file-picker.component.html',
   styleUrls: ['./api-import-file-picker.component.scss'],

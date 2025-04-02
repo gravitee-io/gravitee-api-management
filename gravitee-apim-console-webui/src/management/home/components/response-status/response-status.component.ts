@@ -29,7 +29,6 @@ import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
 
 @Component({
   selector: 'response-status',
-  standalone: true,
   imports: [GioChartLineModule, GioLoaderModule, MatCard, MatCardHeader, MatCardSubtitle, MatCardTitle],
   templateUrl: './response-status.component.html',
   styleUrl: './response-status.component.scss',

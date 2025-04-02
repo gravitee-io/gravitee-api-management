@@ -32,7 +32,6 @@ export type HistoryCompareDialogResult = boolean;
   selector: 'history-compare-dialog',
   templateUrl: './history-compare-dialog.component.html',
   styleUrls: ['./history-compare-dialog.component.scss'],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatDialogModule, MatButtonModule, GioDiffModule],
 })

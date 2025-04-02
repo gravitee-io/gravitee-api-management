@@ -32,7 +32,6 @@ import { AnalyticsDefinitionVersion, AnalyticsTopApis } from '../../../entities/
 
 @Component({
   selector: 'app-top-apis-widget',
-  standalone: true,
   imports: [
     CommonModule,
     RouterModule,

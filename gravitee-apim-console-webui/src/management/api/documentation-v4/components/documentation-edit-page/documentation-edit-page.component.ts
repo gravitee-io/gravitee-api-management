@@ -85,7 +85,6 @@ interface EditPageForm {
 
 @Component({
   selector: 'documentation-edit-page',
-  standalone: true,
   imports: [
     AsyncPipe,
     GioFormJsonSchemaModule,

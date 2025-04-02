@@ -28,7 +28,6 @@ import { ApiHealthV2Service } from '../../../../../services-ngx/api-health-v2.se
 
 @Component({
   selector: 'app-global-response-time-trend',
-  standalone: true,
   imports: [MatCardModule, GioLoaderModule, GioChartLineModule],
   templateUrl: './global-response-time-trend.component.html',
   styleUrl: './global-response-time-trend.component.scss',

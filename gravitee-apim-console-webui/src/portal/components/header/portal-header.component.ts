@@ -20,7 +20,6 @@ import { IntegrationsService } from '../../../services-ngx/integrations.service'
 
 @Component({
   selector: 'portal-header',
-  standalone: true,
   imports: [GioBannerModule],
   templateUrl: './portal-header.component.html',
   styleUrl: './portal-header.component.scss',
