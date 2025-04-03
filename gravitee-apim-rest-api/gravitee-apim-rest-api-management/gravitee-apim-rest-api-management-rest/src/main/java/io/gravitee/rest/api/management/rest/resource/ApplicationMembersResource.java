@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -170,7 +171,12 @@ public class ApplicationMembersResource extends AbstractResource {
                 application,
                 applicationMembership.getId()
             );
-            if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
+            if (
+                userMember != null &&
+                userMember.getRoles() != null &&
+                !userMember.getRoles().isEmpty() &&
+                !hasPrimaryOwnerRole(userMember.getRoles())
+            ) {
                 membership = membershipService.updateRoleToMemberOnReference(executionContext, reference, member, role);
             }
         }
@@ -231,5 +237,23 @@ public class ApplicationMembersResource extends AbstractResource {
             newRoles
         );
         return Response.ok().build();
+    }
+
+    /**
+     * Checks whether the list of roles contains a role with the "PRIMARY_OWNER" name
+     * and "APPLICATION" scope. If such a role is found, a {@link PrimaryOwnerRemovalException}
+     * is thrown to prevent the removal of the primary owner role. If no such role is found,
+     * the method simply returns false.
+     *
+     * @param roles the list of {@link RoleEntity} objects to check for the primary owner role.
+     * @return false, as the method is designed to throw an exception if the primary owner role exists.
+     * @throws PrimaryOwnerRemovalException if the list of roles contains a role with the name "PRIMARY_OWNER"
+     *         and the scope "APPLICATION", indicating that the primary owner role cannot be removed.
+     */
+    public boolean hasPrimaryOwnerRole(List<RoleEntity> roles) {
+        if (roles.stream().anyMatch(role -> role.getScope() == RoleScope.APPLICATION && PRIMARY_OWNER.name().equals(role.getName()))) {
+            throw new PrimaryOwnerRemovalException();
+        }
+        return false;
     }
 }

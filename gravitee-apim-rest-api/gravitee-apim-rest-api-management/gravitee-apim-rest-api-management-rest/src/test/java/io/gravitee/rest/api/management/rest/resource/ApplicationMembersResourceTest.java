@@ -17,19 +17,24 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.model.ApplicationMembership;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
+import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import java.util.List;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -81,5 +86,57 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals(APPLICATION, memberShipRefCaptor.getValue().getId());
         assertEquals("my-application-membership-role", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());
+    }
+
+    @Test
+    public void shouldFailToCreatePrimaryOwner() {
+        ApplicationMembership applicationMembership = new ApplicationMembership();
+        applicationMembership.setId(MEMBER_1);
+        applicationMembership.setRole("PRIMARY_OWNER");
+        final Response response = envTarget(APPLICATION).path("members").request().post(Entity.json(applicationMembership));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenAddingAnotherPrimaryOwner() {
+        ApplicationMembersResource resource = new ApplicationMembersResource();
+        ApplicationMembership applicationMembership = new ApplicationMembership();
+        applicationMembership.setId(MEMBER_1);
+        applicationMembership.setRole("PRIMARY_OWNER");
+
+        SinglePrimaryOwnerException thrownException = assertThrows(
+            SinglePrimaryOwnerException.class,
+            () -> resource.addOrUpdateApplicationMember(applicationMembership)
+        );
+        assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", thrownException.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenModifyingPrimaryOwnerRole() {
+        RoleEntity primaryOwnerRole = new RoleEntity();
+        primaryOwnerRole.setScope(RoleScope.APPLICATION);
+        primaryOwnerRole.setName("PRIMARY_OWNER");
+        List<RoleEntity> roles = List.of(primaryOwnerRole);
+        ApplicationMembersResource resource = new ApplicationMembersResource();
+        PrimaryOwnerRemovalException thrownException = assertThrows(
+            PrimaryOwnerRemovalException.class,
+            () -> resource.hasPrimaryOwnerRole(roles)
+        );
+        assertEquals("Primary Owner cannot be removed", thrownException.getMessage());
+    }
+
+    @Test
+    public void shouldReturnFalseWhenNoPrimaryOwnerRoleExists() {
+        RoleEntity adminRole = new RoleEntity();
+        adminRole.setScope(RoleScope.APPLICATION);
+        adminRole.setName("USER");
+        RoleEntity moderatorRole = new RoleEntity();
+        moderatorRole.setScope(RoleScope.APPLICATION);
+        moderatorRole.setName("OWNER");
+        List<RoleEntity> roles = List.of(adminRole, moderatorRole);
+        ApplicationMembersResource resource = new ApplicationMembersResource();
+
+        boolean result = resource.hasPrimaryOwnerRole(roles);
+        assertEquals(result, false);
     }
 }
