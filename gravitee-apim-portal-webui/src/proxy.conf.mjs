@@ -16,34 +16,43 @@
 
 const env = process.env.BACKEND_ENV;
 const target = `${env ? `https://${env}` : 'http://localhost:8083'}`
-export default {
-  '/portal/ui/bootstrap': {
+export default [
+  {
+    context: ['/portal/ui/bootstrap'],
     target,
     secure: false,
     changeOrigin: true,
-    onProxyRes: function(proxyRes, req, res) {
-      // Replace bootstrap full baseURL to use proxy configured bellow (/portal)
-      // This allows to bypass cors security with cloud env
-      var body = new Buffer('');
-      proxyRes.on('data', function(data) {
-        body = Buffer.concat([body, data]);
-      });
-      proxyRes.on('end', function() {
-        body = body.toString();
-        res.writeHead(proxyRes.statusCode);
-        res.end(body.replace(`${target}/`, ""));
-      });
+    // Vite can access the proxyRes event via configure
+    configure: function (proxy) {
+      // Replace the full baseURL returned from /ui/bootstrap with just "portal"
+      // This bypasses cors security in `serve:apim-master` and cloud env
+      //   because the origin (localhost:4101) will match the backend
+      proxy.on('proxyRes', (proxyRes, req, res) => {
+        let body = Buffer.from('');
+        proxyRes.on('data', function(data) {
+          body = Buffer.concat([body, data]);
+        });
+        proxyRes.on('end', function() {
+          body = body.toString();
+          res.writeHead(proxyRes.statusCode);
+          res.end(body.replace(`${target}/`, ""));
+        });
+      })
     },
     selfHandleResponse: true,
-    logLevel: 'debug',
+    logLevel: 'debug'
   },
-  '/portal': {
+  {
+    // Whenever there is a request starting with "portal", then replace target
+    context: ['/portal'],
     target,
     secure: false,
     changeOrigin: true,
-    onProxyReq: function (proxyReq, req, res) {
-      proxyReq.setHeader('origin', target.replace("-api", "-portal"));
+    configure: function (proxy) {
+      proxy.on('proxyReq', (proxyReq, req, res) => {
+        proxyReq.setHeader('origin', target.replace("-api", "-portal"));
+      })
     },
     logLevel: 'debug',
-  },
-};
+  }
+]

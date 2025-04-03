@@ -15,11 +15,12 @@
  */
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpClientTestingModule, HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Application } from 'projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 
@@ -35,8 +36,9 @@ describe('ApplicationsComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ApplicationsComponent],
-      imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      teardown: { destroyAfterEach: false },
+      imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -44,8 +46,9 @@ describe('ApplicationsComponent', () => {
             queryParamMap: mockActivatedRouteQueryParamMap$,
           },
         },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
       ],
-      teardown: { destroyAfterEach: false },
     }).compileComponents();
 
     httpTestingController = TestBed.inject(HttpTestingController);

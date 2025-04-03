@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -34,10 +34,9 @@ import { GvPageSwaggerUIComponent } from '../components/gv-page-swaggerui/gv-pag
 import { GvMarkdownTocComponent } from '../components/gv-markdown-toc/gv-markdown-toc.component';
 import { GvPageAsyncApiComponent } from '../components/gv-page-asyncapi/gv-page-asyncapi.component';
 import { MarkdownDescriptionPipe } from '../pipes/markdown-description.pipe';
-
-import { ApiStatesPipe } from './../pipes/api-states.pipe';
-import { SafePipe } from './../pipes/safe.pipe';
-import { ApiLabelsPipe } from './../pipes/api-labels.pipe';
+import { ApiStatesPipe } from '../pipes/api-states.pipe';
+import { SafePipe } from '../pipes/safe.pipe';
+import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
 
 @NgModule({
   declarations: [
@@ -57,9 +56,20 @@ import { ApiLabelsPipe } from './../pipes/api-labels.pipe';
     GvPageSwaggerUIComponent,
     GvMarkdownTocComponent,
   ],
+  exports: [
+    HttpClientModule,
+    ReactiveFormsModule,
+    OAuthModule,
+    GvFormControlDirective,
+    SafePipe,
+    MarkdownDescriptionPipe,
+    LocalizedDatePipe,
+    GvCheckboxControlValueAccessorDirective,
+    GvPageComponent,
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     CommonModule,
-    HttpClientModule,
     ReactiveFormsModule,
     OAuthModule.forRoot(),
     TranslateModule.forChild({
@@ -74,18 +84,6 @@ import { ApiLabelsPipe } from './../pipes/api-labels.pipe';
       },
     }),
   ],
-  exports: [
-    HttpClientModule,
-    ReactiveFormsModule,
-    OAuthModule,
-    GvFormControlDirective,
-    SafePipe,
-    MarkdownDescriptionPipe,
-    LocalizedDatePipe,
-    GvCheckboxControlValueAccessorDirective,
-    GvPageComponent,
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  providers: [ApiLabelsPipe, ApiStatesPipe, MarkdownDescriptionPipe, LocalizedDatePipe],
+  providers: [ApiLabelsPipe, ApiStatesPipe, MarkdownDescriptionPipe, LocalizedDatePipe, provideHttpClient(withInterceptorsFromDi())],
 })
 export class SharedModule {}
