@@ -748,10 +748,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
-    private void assertNoPrimaryOwnerRemoval(RoleEntity apiPORole, Set<io.gravitee.repository.management.model.Membership> memberships) {
+    private void assertNoPrimaryOwnerRemoval(RoleEntity poRole, Set<io.gravitee.repository.management.model.Membership> memberships) {
         memberships
             .stream()
-            .filter(membership -> membership.getRoleId().equals(apiPORole.getId()))
+            .filter(membership -> membership.getRoleId().equals(poRole.getId()))
             .findFirst()
             .ifPresent(membership -> {
                 throw new PrimaryOwnerRemovalException();
@@ -1751,6 +1751,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             RoleEntity integrationPORole = roleService
                 .findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElseThrow(() -> new TechnicalManagementException("Unable to find Integration Primary Owner role"));
+            RoleEntity appPORole = roleService
+                .findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                .orElseThrow(() -> new TechnicalManagementException("Unable to find APPLICATION Primary Owner role"));
 
             Set<io.gravitee.repository.management.model.Membership> existingMemberships =
                 this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -1763,6 +1766,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             // If new roles do not contain PRIMARY_OWNER, check we are not removing PRIMARY_OWNER membership
             if (roles.stream().filter(role -> role.getName().equals(PRIMARY_OWNER.name())).findAny().isEmpty()) {
                 assertNoPrimaryOwnerRemoval(apiPORole, existingMemberships);
+                assertNoPrimaryOwnerRemoval(appPORole, existingMemberships);
                 assertNoPrimaryOwnerRemoval(integrationPORole, existingMemberships);
             }
 
