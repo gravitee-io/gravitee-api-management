@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -48,6 +49,7 @@ public class MembershipService_EditMemberTest {
 
     private static final String ORG_ID = "DEFAULT";
     private static final String API_PO_ROLE_ID = "API_PRIMARY_OWNER_ROLE_ID";
+    private static final String APP_PO_ROLE_ID = "APP_PRIMARY_OWNER_ROLE_ID";
     private static final String REFERENCE_ID = "REFERENCE_ID";
     private static final String MEMBER_ID = "MEMBER_ID";
     private static final String API_ID = "API_ID";
@@ -86,6 +88,7 @@ public class MembershipService_EditMemberTest {
     @Test
     public void shouldNotRemoveApiPrimaryOwner() throws TechnicalException {
         when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(apiPrimaryOwnerRole());
+        when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(appPrimaryOwnerRole());
 
         Membership membership = new Membership();
         membership.setRoleId(API_PO_ROLE_ID);
@@ -109,6 +112,37 @@ public class MembershipService_EditMemberTest {
         role.setName(PRIMARY_OWNER.name());
         role.setScope(RoleScope.API);
         role.setId(API_PO_ROLE_ID);
+        role.setPermissions(Map.of());
+        return Optional.of(role);
+    }
+
+    @Test
+    public void shouldNotRemoveApplicationPrimaryOwner() throws TechnicalException {
+        when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(apiPrimaryOwnerRole());
+        when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(appPrimaryOwnerRole());
+
+        Membership membership = new Membership();
+        membership.setRoleId(APP_PO_ROLE_ID);
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any()))
+            .thenReturn(Set.of(membership));
+        assertThatThrownBy(() ->
+                membershipService.updateRolesToMemberOnReference(
+                    GraviteeContext.getExecutionContext(),
+                    new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, API_ID),
+                    new MembershipService.MembershipMember(MEMBER_ID, REFERENCE_ID, MembershipMemberType.USER),
+                    List.of(new MembershipService.MembershipRole(RoleScope.APPLICATION, "USER")),
+                    "source",
+                    true
+                )
+            )
+            .isInstanceOf(PrimaryOwnerRemovalException.class);
+    }
+
+    private static Optional<RoleEntity> appPrimaryOwnerRole() {
+        RoleEntity role = new RoleEntity();
+        role.setName(PRIMARY_OWNER.name());
+        role.setScope(RoleScope.APPLICATION);
+        role.setId(APP_PO_ROLE_ID);
         role.setPermissions(Map.of());
         return Optional.of(role);
     }
