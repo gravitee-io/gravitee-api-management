@@ -90,11 +90,18 @@ export class AlertComponent extends UpgradeComponent {
     });
 
     this.reload.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
+<<<<<<< HEAD
       Promise.all([
         this.ajsAlertService.listAlerts(AlertScope.API, true, this.apiId).then((response) => {
           return response.data;
         }),
       ]).then(([alerts]) => {
+=======
+      const listAlertPromise = apiId
+        ? this.ajsAlertService.listAlerts(AlertScope.API, true, apiId).then((response) => response.data)
+        : this.ajsAlertService.listAlerts(AlertScope.ENVIRONMENT, true).then((response) => response.data);
+      Promise.all([listAlertPromise]).then(([alerts]) => {
+>>>>>>> 50b7f0f7a9 (fix:APIM-9123 Global Alert configuration does not refresh properly after change)
         // Hack to Force the binding between Angular and AngularJS
         this.ngOnChanges({
           alerts: new SimpleChange(null, alerts, false),
