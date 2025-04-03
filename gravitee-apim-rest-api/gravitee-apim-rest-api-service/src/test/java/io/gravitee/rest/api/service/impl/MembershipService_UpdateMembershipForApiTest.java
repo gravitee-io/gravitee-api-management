@@ -140,6 +140,8 @@ public class MembershipService_UpdateMembershipForApiTest {
         when(membershipRepository.findById("existing-membership-id")).thenReturn(Optional.of(existingMembership));
         when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
             .thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+            .thenReturn(Optional.of(new RoleEntity()));
 
         MemberEntity updatedMember = membershipService.updateMembershipForApi(
             GraviteeContext.getExecutionContext(),
