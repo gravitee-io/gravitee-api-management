@@ -42,6 +42,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -128,6 +129,9 @@ public class PlanService_CreateOrUpdateTest {
 
     @Mock
     private FlowCrudService flowCrudService;
+
+    @Mock
+    private GroupService groupService;
 
     @Before
     public void setup() throws Exception {
