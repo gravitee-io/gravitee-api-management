@@ -35,6 +35,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
@@ -50,6 +51,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PolicyService;
@@ -58,6 +60,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
 import io.gravitee.rest.api.service.exceptions.NativePlanAuthenticationConflictException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
@@ -175,6 +178,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Autowired
     private PathParametersValidationService pathParametersValidationService;
+
+    @Autowired
+    private GroupService groupService;
 
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String planId) {
@@ -343,6 +349,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 checkStatusOfGeneralConditions(newPlan);
             }
 
+            validateExcludedGroups(updatePlan.getExcludedGroups(), executionContext.getEnvironmentId());
             newPlan.setExcludedGroups(updatePlan.getExcludedGroups());
 
             if (newPlan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
@@ -397,6 +404,35 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 ex
             );
         }
+    }
+
+    private void validateExcludedGroups(List<String> excludedGroups, String environmentId) throws TechnicalException {
+        var envGroupsIds = groupService.findAllByEnvironment(environmentId).stream().map(Group::getId).collect(Collectors.toSet());
+        if (excludedGroups != null && !excludedGroups.isEmpty()) {
+            excludedGroups.forEach(excludedGroupId -> {
+                if (!envGroupsIds.contains(excludedGroupId)) {
+                    throw new GroupNotFoundException(String.format("Excluded group %s doesn't exist", excludedGroupId));
+                }
+            });
+        }
+    }
+
+    private void validatePathParameters(Api api, UpdatePlanEntity updatePlan) throws TechnicalException {
+        final Set<Plan> plans = planRepository.findByApi(api.getId());
+        final Stream<Flow> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
+
+        Stream<Flow> planFlows = plans
+            .stream()
+            .map(plan -> {
+                if (plan.getId().equals(updatePlan.getId())) {
+                    return updatePlan.getFlows();
+                } else {
+                    return flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
+                }
+            })
+            .flatMap(Collection::stream);
+
+        pathParametersValidationService.validate(api.getType(), apiFlows, planFlows);
     }
 
     private void checkStatusOfGeneralConditions(Plan plan) {
