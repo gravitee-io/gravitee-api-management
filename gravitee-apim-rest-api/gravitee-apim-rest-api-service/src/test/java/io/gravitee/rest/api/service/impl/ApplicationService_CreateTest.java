@@ -21,10 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApiKeyMode;
@@ -32,6 +28,7 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
@@ -142,6 +139,42 @@ public class ApplicationService_CreateTest {
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
+        verify(applicationRepository).create(argThat(appToCreate -> appToCreate.getGroups().isEmpty()));
+    }
+
+    @Test
+    public void shouldCreateAppWithDefaultGroup() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM).build());
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(applicationRepository.create(any())).thenReturn(application);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+
+        GroupEntity defaultGroupToAdd = new GroupEntity();
+        defaultGroupToAdd.setId("default-group-to-add");
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Set.of(defaultGroupToAdd));
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+
+        final ApplicationEntity applicationEntity = applicationService.create(
+            GraviteeContext.getExecutionContext(),
+            newApplication,
+            USER_NAME
+        );
+
+        assertNotNull(applicationEntity);
+        verify(applicationRepository)
+            .create(
+                argThat(appToCreate -> appToCreate.getGroups().size() == 1 && appToCreate.getGroups().contains("default-group-to-add"))
+            );
     }
 
     @Test(expected = IllegalStateException.class)
