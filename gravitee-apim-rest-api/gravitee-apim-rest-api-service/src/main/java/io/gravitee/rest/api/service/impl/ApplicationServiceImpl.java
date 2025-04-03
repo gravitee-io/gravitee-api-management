@@ -514,10 +514,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .stream()
             .map(GroupEntity::getId)
             .collect(toSet());
-        if (!defaultGroups.isEmpty() && application.getGroups() == null) {
-            application.setGroups(defaultGroups);
-        } else if (!defaultGroups.isEmpty()) {
-            application.getGroups().addAll(defaultGroups);
+        if (!defaultGroups.isEmpty()) {
+            application.addAllGroups(defaultGroups);
         }
 
         // Set date fields
