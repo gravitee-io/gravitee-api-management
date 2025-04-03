@@ -148,6 +148,13 @@ public class Application {
         return groups.add(group);
     }
 
+    public boolean addAllGroups(Collection<String> groupsToAdd) {
+        if (groups == null) {
+            groups = new HashSet<>();
+        }
+        return groups.addAll(groupsToAdd);
+    }
+
     public Set<String> getGroups() {
         return groups != null ? new HashSet<>(groups) : new HashSet<>();
     }
