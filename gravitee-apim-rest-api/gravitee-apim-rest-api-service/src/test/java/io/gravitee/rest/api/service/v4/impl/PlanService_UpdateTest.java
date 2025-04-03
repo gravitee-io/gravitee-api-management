@@ -25,6 +25,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,6 +41,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -47,6 +50,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.PlanFlowRequiredException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
@@ -68,6 +72,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -141,6 +146,9 @@ public class PlanService_UpdateTest {
 
     @Mock
     private PathParametersValidationService pathParametersValidationService;
+
+    @Mock
+    private GroupService groupService;
 
     @Before
     public void setup() throws Exception {
@@ -398,5 +406,20 @@ public class PlanService_UpdateTest {
         updatePlan.setSecurity(planSecurity);
         updatePlan.setFlows(List.of(new Flow()));
         return updatePlan;
+    }
+
+    @Test(expected = GroupNotFoundException.class)
+    public void should_throw_GroupNotFoundException_if_updated_excluded_group_not_found() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(true);
+
+        final UpdatePlanEntity updatePlan = initUpdatePlanEntity();
+        updatePlan.setExcludedGroups(List.of("not-existing-group"));
+        planService.update(GraviteeContext.getExecutionContext(), updatePlan);
     }
 }
