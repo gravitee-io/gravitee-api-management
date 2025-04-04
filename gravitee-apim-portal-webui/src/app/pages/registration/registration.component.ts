@@ -77,12 +77,13 @@ export class RegistrationComponent implements OnInit {
   }
 
   onSubmitRegistration() {
+    const confirmationPageUrl = window.location.origin + window.location.pathname + '/confirm';
     if (this.registrationForm.valid && !this.isSubmitted) {
       const registerUserInput: RegisterUserInput = {
         email: this.registrationForm.value.email,
         firstname: this.registrationForm.value.firstname,
         lastname: this.registrationForm.value.lastname,
-        confirmation_page_url: window.location.href + '/confirm',
+        confirmation_page_url: confirmationPageUrl,
       };
 
       if (this.customUserFields) {
