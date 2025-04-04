@@ -23,7 +23,7 @@ import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDupl
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupInvalidPhaseException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.validation.Validator;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
@@ -90,7 +90,7 @@ public class ValidateCreateSharedPolicyGroupDomainService implements Validator<V
             sharedPolicyGroupToCreate
                 .getSteps()
                 .stream()
-                .filter(Step::isEnabled)
+                .filter(StepV4::isEnabled)
                 .forEach(step ->
                     step.setConfiguration(
                         policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
@@ -98,7 +98,7 @@ public class ValidateCreateSharedPolicyGroupDomainService implements Validator<V
                 );
 
             policyValidationDomainService.validatePoliciesFlowPhase(
-                sharedPolicyGroupToCreate.getSteps().stream().map(Step::getPolicy).toList(),
+                sharedPolicyGroupToCreate.getSteps().stream().map(StepV4::getPolicy).toList(),
                 sharedPolicyGroupToCreate.getApiType(),
                 sharedPolicyGroupToCreate.getPhase()
             );

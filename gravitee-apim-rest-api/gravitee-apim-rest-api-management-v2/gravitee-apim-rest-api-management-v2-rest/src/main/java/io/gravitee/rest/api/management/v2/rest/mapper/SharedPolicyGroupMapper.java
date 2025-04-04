@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup;
 import io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroupPolicyPlugin;
-import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateSharedPolicyGroup;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -48,10 +47,10 @@ public interface SharedPolicyGroupMapper {
     );
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    StepV4 mapStep(Step step);
+    io.gravitee.rest.api.management.v2.rest.model.StepV4 mapStep(StepV4 step);
 
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    Step mapStep(StepV4 stepV4);
+    StepV4 mapStep(io.gravitee.rest.api.management.v2.rest.model.StepV4 stepV4);
 
     List<SharedPolicyGroupPolicyPlugin> mapToSharedPolicyGroupPolicyPlugins(
         List<io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin> sharedPolicyGroupPolicyPlugins

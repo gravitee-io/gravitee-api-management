@@ -33,10 +33,9 @@ import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.tag.model.Tag;
 import io.gravitee.apim.core.tag.query_service.TagQueryService;
 import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -228,7 +227,7 @@ public class OAIToImportApiUseCase {
             importDefinition.getApiExport().setResources(List.of(resource));
 
             // Add Flow with OAS validation policy to API flows
-            var step = Step
+            var step = StepV4
                 .builder()
                 .policy(oasValidationPolicy.getId())
                 .name(oasValidationPolicy.getName())
@@ -237,7 +236,7 @@ public class OAIToImportApiUseCase {
 
             var httpSelector = HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build();
 
-            var flow = Flow
+            var flow = FlowV4Impl
                 .builder()
                 .name("OpenAPI Specification Validation")
                 .selectors(List.of(httpSelector))
@@ -245,7 +244,7 @@ public class OAIToImportApiUseCase {
                 .response(List.of(step))
                 .build();
 
-            List<Flow> apiExportFlows = (List<Flow>) importDefinition.getApiExport().getFlows();
+            List<FlowV4Impl> apiExportFlows = (List<FlowV4Impl>) importDefinition.getApiExport().getFlows();
             apiExportFlows.addFirst(flow);
 
             importDefinition.getApiExport().setFlows(apiExportFlows);

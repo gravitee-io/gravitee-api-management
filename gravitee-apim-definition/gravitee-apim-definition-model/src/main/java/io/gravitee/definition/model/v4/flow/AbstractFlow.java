@@ -17,7 +17,8 @@ package io.gravitee.definition.model.v4.flow;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.Plugin;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.Collection;

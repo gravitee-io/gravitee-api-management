@@ -55,7 +55,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -230,7 +230,7 @@ class CreatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("plans")
-        void should_throw_when_api_is_deprecated(Api api, Plan plan, List<Flow> flows) {
+        void should_throw_when_api_is_deprecated(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             var deprecatedApi = api.toBuilder().apiLifecycleState(Api.ApiLifecycleState.DEPRECATED).build();
 
@@ -243,7 +243,7 @@ class CreatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("plans")
-        void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api(Api api, Plan plan, List<Flow> flows) {
+        void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             if (api.isNative()) {
                 api.getApiDefinitionNativeV4().setTags(Set.of());
@@ -264,8 +264,8 @@ class CreatePlanDomainServiceTest {
         @MethodSource("httpPlans")
         void should_throw_when_flows_are_invalid(Api api, Plan plan) {
             // Given
-            List<Flow> invalidFlows = List.of(
-                Flow.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
+            List<FlowV4Impl> invalidFlows = List.of(
+                FlowV4Impl.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
             );
 
             // When
@@ -282,7 +282,7 @@ class CreatePlanDomainServiceTest {
         void should_throw_when_general_conditions_page_is_not_published_while_updating_a_published_plan(
             Api api,
             Plan plan,
-            List<Flow> flows
+            List<FlowV4Impl> flows
         ) {
             // Given
             pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
@@ -314,8 +314,8 @@ class CreatePlanDomainServiceTest {
                 ? HttpSelector.builder().path("/:productId").pathOperator(Operator.STARTS_WITH).build()
                 : ChannelSelector.builder().channel("/:productId").channelOperator(Operator.STARTS_WITH).build();
             var invalidFlows = List.of(
-                Flow.builder().name("flow1").selectors(List.of(selector1)).build(),
-                Flow.builder().name("flow2").selectors(List.of(selector2)).build()
+                FlowV4Impl.builder().name("flow1").selectors(List.of(selector1)).build(),
+                FlowV4Impl.builder().name("flow2").selectors(List.of(selector2)).build()
             );
 
             // When
@@ -329,7 +329,7 @@ class CreatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("plans")
-        void should_create_plan(Api api, Plan plan, List<Flow> flows) {
+        void should_create_plan(Api api, Plan plan, List<FlowV4Impl> flows) {
             // When
             var result = service.create(plan, flows, api, AUDIT_INFO);
 
@@ -348,7 +348,7 @@ class CreatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("plans")
-        void should_create_plan_with_generated_id_when_no_id_provided(Api api, Plan plan, List<Flow> flows) {
+        void should_create_plan_with_generated_id_when_no_id_provided(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             var idLessPlan = plan.toBuilder().id(null).build();
 
@@ -361,7 +361,7 @@ class CreatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("plans")
-        void should_create_plan_with_publishedAt_filled_when_creating_a_published_plan(Api api, Plan plan, List<Flow> flows) {
+        void should_create_plan_with_publishedAt_filled_when_creating_a_published_plan(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             var publishedPlan = plan.toBuilder().generalConditions(null).build().setPlanStatus(PlanStatus.PUBLISHED);
 
@@ -374,7 +374,7 @@ class CreatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("plans")
-        void should_create_plan_with_general_condition_and_no_page_linked(Api api, Plan plan, List<Flow> flows) {
+        void should_create_plan_with_general_condition_and_no_page_linked(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             var publishedPlan = plan.toBuilder().generalConditions("page-not-found-id").build().setPlanStatus(PlanStatus.PUBLISHED);
 
@@ -387,7 +387,7 @@ class CreatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("plans")
-        void should_save_all_flows(Api api, Plan plan, List<Flow> flows) {
+        void should_save_all_flows(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
 
             // When
@@ -399,7 +399,7 @@ class CreatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("plans")
-        void should_create_an_audit(Api api, Plan plan, List<Flow> flows) {
+        void should_create_an_audit(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
 
             // When
@@ -445,7 +445,7 @@ class CreatePlanDomainServiceTest {
                 .build()
                 .setPlanStatus(PlanStatus.PUBLISHED)
                 .setPlanTags(Set.of(TAG));
-            List<Flow> flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
+            List<FlowV4Impl> flows = List.of(FlowV4Impl.builder().name("flow").selectors(List.of(new HttpSelector())).build());
 
             // When
             var result = service.create(plan, flows, TCP_PROXY_API_V4, AUDIT_INFO);
@@ -475,7 +475,7 @@ class CreatePlanDomainServiceTest {
                         .build()
                         .setPlanStatus(PlanStatus.STAGING)
                         .setPlanTags(Set.of(TAG)),
-                    List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
+                    List.of(FlowV4Impl.builder().name("flow").selectors(List.of(new HttpSelector())).build())
                 ),
                 Arguments.of(
                     API_MESSAGE_V4,
@@ -486,7 +486,7 @@ class CreatePlanDomainServiceTest {
                         .build()
                         .setPlanStatus(PlanStatus.STAGING)
                         .setPlanTags(Set.of(TAG)),
-                    List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
+                    List.of(FlowV4Impl.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
                 ),
                 Arguments.of(
                     API_NATIVE_V4,

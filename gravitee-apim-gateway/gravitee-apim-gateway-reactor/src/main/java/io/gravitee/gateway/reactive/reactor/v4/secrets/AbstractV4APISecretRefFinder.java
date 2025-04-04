@@ -17,9 +17,10 @@ package io.gravitee.gateway.reactive.reactor.v4.secrets;
 
 import static io.gravitee.secrets.api.discovery.SecretRefsLocation.PLUGIN_KIND;
 
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.resource.Resource;

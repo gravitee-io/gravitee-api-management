@@ -24,14 +24,13 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
@@ -61,7 +60,7 @@ import org.slf4j.LoggerFactory;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DefaultSharedPolicyGroupPolicyChainFactoryTest {
 
-    public static final Step STEP_FOR_ALREADY_REGISTERED_CHAIN = Step
+    public static final StepV4 STEP_FOR_ALREADY_REGISTERED_CHAIN = StepV4
         .builder()
         .name("in-a-registered-chain")
         .policy("policy")
@@ -91,14 +90,14 @@ class DefaultSharedPolicyGroupPolicyChainFactoryTest {
 
     @Test
     void should_not_create_policy_chain_from_a_flow() {
-        assertThatThrownBy(() -> cut.create("id", Flow.builder().build(), ExecutionPhase.REQUEST))
+        assertThatThrownBy(() -> cut.create("id", FlowV2Impl.builder().build(), ExecutionPhase.REQUEST))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Cannot build a policy chain from a Flow for Shared Policy Group");
     }
 
     @Test
     void should_not_create_policy_chain_if_already_registered_and_return_it() {
-        final List<Step> steps = List.of(STEP_FOR_ALREADY_REGISTERED_CHAIN);
+        final List<StepV4> steps = List.of(STEP_FOR_ALREADY_REGISTERED_CHAIN);
         final HttpPolicyChain expectedPolicyChain = new HttpPolicyChain("result", List.of(), ExecutionPhase.REQUEST);
         cut.policyChains.put(
             cut.getSharedPolicyGroupKey(SHARED_GROUP_POLICY_ID, ENV_ID, steps, ExecutionPhase.REQUEST),
@@ -113,7 +112,7 @@ class DefaultSharedPolicyGroupPolicyChainFactoryTest {
 
     @ParameterizedTest
     @MethodSource("provideTestData")
-    void should_create_policy_chain(List<Step> steps, ExecutionPhase phase) {
+    void should_create_policy_chain(List<StepV4> steps, ExecutionPhase phase) {
         Logger logger = (Logger) LoggerFactory.getLogger(DefaultSharedPolicyGroupPolicyChainFactory.class);
 
         // create and start a ListAppender
@@ -126,7 +125,7 @@ class DefaultSharedPolicyGroupPolicyChainFactoryTest {
             .thenAnswer(answer -> fakePolicy(answer.<PolicyMetadata>getArgument(1).getName()));
         final HttpPolicyChain result = cut.create(SHARED_GROUP_POLICY_ID, ENV_ID, steps, phase);
         int nestedSharedPolicyGroupLog = 0;
-        for (Step step : steps) {
+        for (StepV4 step : steps) {
             final boolean isSharedPolicyGroup = step.getPolicy().equals(SharedPolicyGroupPolicy.POLICY_ID);
             if (isSharedPolicyGroup && step.isEnabled()) {
                 nestedSharedPolicyGroupLog++;
@@ -145,13 +144,13 @@ class DefaultSharedPolicyGroupPolicyChainFactoryTest {
 
     public static Stream<Arguments> provideTestData() {
         return Stream.of(
-            Arguments.of(List.of(Step.builder().policy("policy").enabled(true).build()), ExecutionPhase.REQUEST),
-            Arguments.of(List.of(Step.builder().policy("policy").enabled(false).build()), ExecutionPhase.REQUEST),
+            Arguments.of(List.of(StepV4.builder().policy("policy").enabled(true).build()), ExecutionPhase.REQUEST),
+            Arguments.of(List.of(StepV4.builder().policy("policy").enabled(false).build()), ExecutionPhase.REQUEST),
             Arguments.of(
                 List.of(
-                    Step.builder().policy("policy-1").enabled(false).build(),
-                    Step.builder().policy(SharedPolicyGroupPolicy.POLICY_ID).enabled(false).build(),
-                    Step.builder().policy(SharedPolicyGroupPolicy.POLICY_ID).enabled(true).build()
+                    StepV4.builder().policy("policy-1").enabled(false).build(),
+                    StepV4.builder().policy(SharedPolicyGroupPolicy.POLICY_ID).enabled(false).build(),
+                    StepV4.builder().policy(SharedPolicyGroupPolicy.POLICY_ID).enabled(true).build()
                 ),
                 ExecutionPhase.REQUEST
             )

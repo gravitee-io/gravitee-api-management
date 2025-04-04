@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.GroupRepository;
@@ -289,7 +289,7 @@ public class PlanService_UpdateTest {
         UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
         when(updatePlan.getId()).thenReturn(PLAN_ID);
         when(updatePlan.getName()).thenReturn("NameUpdated");
-        when(updatePlan.getFlows()).thenReturn(asList(new Flow()));
+        when(updatePlan.getFlows()).thenReturn(asList(new FlowV2Impl()));
 
         planService.update(GraviteeContext.getExecutionContext(), updatePlan, true);
 
@@ -315,7 +315,7 @@ public class PlanService_UpdateTest {
         UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
         when(updatePlan.getId()).thenReturn(PLAN_ID);
         when(updatePlan.getName()).thenReturn("NameUpdated");
-        when(updatePlan.getFlows()).thenReturn(asList(new Flow()));
+        when(updatePlan.getFlows()).thenReturn(asList(new FlowV2Impl()));
         when(updatePlan.getOrder()).thenReturn(2);
 
         planService.update(GraviteeContext.getExecutionContext(), updatePlan, true);

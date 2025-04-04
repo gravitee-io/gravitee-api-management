@@ -19,12 +19,14 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.FlowStage;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.flow.StepV2;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.List;
 import java.util.Set;
@@ -34,10 +36,10 @@ public class FlowFixtures {
 
     private FlowFixtures() {}
 
-    private static final Supplier<Flow.FlowBuilder<?, ?>> BASE_HTTP_V4 = () -> Flow.builder().name("my-flow");
+    private static final Supplier<FlowV4Impl.FlowV4ImplBuilder<?, ?>> BASE_HTTP_V4 = () -> FlowV4Impl.builder().name("my-flow");
     private static final Supplier<NativeFlow.NativeFlowBuilder<?, ?>> BASE_NATIVE_V4 = () -> NativeFlow.builder().name("my-flow");
-    private static final Supplier<io.gravitee.definition.model.flow.Flow.FlowBuilder> BASE_V2 = () ->
-        io.gravitee.definition.model.flow.Flow
+    private static final Supplier<FlowV2Impl.FlowV2ImplBuilder> BASE_V2 = () ->
+        FlowV2Impl
             .builder()
             .id("flow-id")
             .name("my-flow")
@@ -48,7 +50,7 @@ public class FlowFixtures {
             .stage(FlowStage.API)
             .pre(
                 List.of(
-                    io.gravitee.definition.model.flow.Step
+                    StepV2
                         .builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
@@ -60,7 +62,7 @@ public class FlowFixtures {
             )
             .post(
                 List.of(
-                    io.gravitee.definition.model.flow.Step
+                    StepV2
                         .builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
@@ -71,17 +73,17 @@ public class FlowFixtures {
                 )
             );
 
-    public static Flow aSimpleFlowV4() {
-        return Flow.builder().name("simple-flow").build();
+    public static FlowV4Impl aSimpleFlowV4() {
+        return FlowV4Impl.builder().name("simple-flow").build();
     }
 
-    public static Flow aProxyFlowV4() {
+    public static FlowV4Impl aProxyFlowV4() {
         return BASE_HTTP_V4
             .get()
             .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
             .request(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
@@ -93,7 +95,7 @@ public class FlowFixtures {
             )
             .response(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
@@ -106,13 +108,13 @@ public class FlowFixtures {
             .build();
     }
 
-    public static Flow aMessageFlowV4() {
+    public static FlowV4Impl aMessageFlowV4() {
         return BASE_HTTP_V4
             .get()
             .selectors(List.of(ChannelSelector.builder().channel("/").channelOperator(Operator.STARTS_WITH).build()))
             .subscribe(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-1")
                         .policy("my-policy")
@@ -124,7 +126,7 @@ public class FlowFixtures {
             )
             .publish(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-2")
                         .policy("my-policy")
@@ -142,7 +144,7 @@ public class FlowFixtures {
             .get()
             .interact(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-1")
                         .policy("my-policy")
@@ -154,7 +156,7 @@ public class FlowFixtures {
             )
             .connect(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-2")
                         .policy("my-policy")
@@ -167,7 +169,7 @@ public class FlowFixtures {
             .build();
     }
 
-    public static io.gravitee.definition.model.flow.Flow aFlowV2() {
+    public static FlowV2Impl aFlowV2() {
         return BASE_V2.get().build();
     }
 }

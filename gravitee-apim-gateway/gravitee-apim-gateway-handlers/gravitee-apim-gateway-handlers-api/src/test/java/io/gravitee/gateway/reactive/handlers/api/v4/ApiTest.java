@@ -18,8 +18,9 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -120,8 +121,8 @@ class ApiTest {
         return plan;
     }
 
-    private List<Flow> aFlowList(String name) {
-        Flow enabledFlow = new Flow();
+    private List<FlowV4Impl> aFlowList(String name) {
+        FlowV4Impl enabledFlow = new FlowV4Impl();
         enabledFlow.setName(name);
         enabledFlow.setEnabled(true);
         enabledFlow.setRequest(aStepList(name + "-request"));
@@ -129,7 +130,7 @@ class ApiTest {
         enabledFlow.setPublish(aStepList(name + "-publish"));
         enabledFlow.setSubscribe(aStepList(name + "-subscribe"));
 
-        Flow disabledFlow = new Flow();
+        FlowV4Impl disabledFlow = new FlowV4Impl();
         disabledFlow.setRequest(aStepList("disabled-" + name + "-request"));
         disabledFlow.setResponse(aStepList("disabled-" + name + "-response"));
         disabledFlow.setPublish(aStepList("disabled-" + name + "-publish"));
@@ -145,12 +146,8 @@ class ApiTest {
     }
 
     private List<Step> aStepList(String policy) {
-        Step enabledPreStep = new Step();
-        enabledPreStep.setPolicy(policy);
-        enabledPreStep.setEnabled(true);
-        Step disabledPreStep = new Step();
-        disabledPreStep.setName("disabled-" + policy);
-        disabledPreStep.setEnabled(false);
+        StepV4 enabledPreStep = StepV4.builder().enabled(true).policy(policy).build();
+        StepV4 disabledPreStep = StepV4.builder().enabled(false).policy("disabled-" + policy).build();
         return List.of(enabledPreStep, disabledPreStep);
     }
 }

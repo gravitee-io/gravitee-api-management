@@ -28,7 +28,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -96,7 +96,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -254,11 +253,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         }
     }
 
-    private void validatePathParameters(Api api, List<Flow> newPlanFlows) throws TechnicalException {
+    private void validatePathParameters(Api api, List<FlowV4Impl> newPlanFlows) throws TechnicalException {
         final Set<Plan> plans = planRepository.findByApi(api.getId());
-        final Stream<Flow> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
+        final Stream<FlowV4Impl> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
 
-        Stream<Flow> planFlows = plans
+        Stream<FlowV4Impl> planFlows = plans
             .stream()
             .map(plan -> flowService.findByReference(FlowReferenceType.PLAN, plan.getId()))
             .flatMap(Collection::stream);
@@ -753,7 +752,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private PlanEntity mapToEntity(final Plan plan) {
-        List<Flow> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
+        List<FlowV4Impl> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
         return planMapper.toEntity(plan, flows);
     }
 

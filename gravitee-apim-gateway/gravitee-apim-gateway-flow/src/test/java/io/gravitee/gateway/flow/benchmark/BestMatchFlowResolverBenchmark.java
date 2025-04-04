@@ -18,7 +18,7 @@ package io.gravitee.gateway.flow.benchmark;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.util.MultiValueMap;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -87,7 +87,7 @@ public class BestMatchFlowResolverBenchmark {
         new BestMatchFlowResolver(flowResolver, new BestMatchFlowSelector()).resolve(executionContext);
     }
 
-    private List<Flow> buildFlows() {
+    private List<FlowV2Impl> buildFlows() {
         return List
             .of(
                 "/book",
@@ -107,7 +107,7 @@ public class BestMatchFlowResolverBenchmark {
             )
             .stream()
             .map(path -> {
-                Flow flow = new Flow();
+                FlowV2Impl flow = new FlowV2Impl();
                 PathOperator pathOperator = new PathOperator();
                 pathOperator.setPath(path);
                 // No need to test different operator in this test.
@@ -121,15 +121,15 @@ public class BestMatchFlowResolverBenchmark {
 
     private static class TestFlowResolver extends ConditionalFlowResolver {
 
-        private List<Flow> flows;
+        private List<FlowV2Impl> flows;
 
-        public TestFlowResolver(ConditionEvaluator evaluator, List<Flow> flows) {
+        public TestFlowResolver(ConditionEvaluator evaluator, List<FlowV2Impl> flows) {
             super(evaluator);
             this.flows = flows;
         }
 
         @Override
-        protected List<Flow> resolve0(ExecutionContext context) {
+        protected List<FlowV2Impl> resolve0(ExecutionContext context) {
             return flows;
         }
     }

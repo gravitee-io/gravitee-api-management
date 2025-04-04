@@ -30,7 +30,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -93,7 +93,7 @@ public class CreatePlanDomainService {
             return createNativeV4ApiPlan(plan, (List<NativeFlow>) flows, api, auditInfo);
         }
 
-        return createHttpV4ApiPlan(plan, (List<Flow>) flows, api, auditInfo);
+        return createHttpV4ApiPlan(plan, (List<FlowV4Impl>) flows, api, auditInfo);
     }
 
     private PlanWithFlows createNativeV4ApiPlan(Plan plan, List<NativeFlow> flows, Api api, AuditInfo auditInfo) {
@@ -118,7 +118,7 @@ public class CreatePlanDomainService {
         return new PlanWithFlows(createdPlan, createdFlows);
     }
 
-    private PlanWithFlows createHttpV4ApiPlan(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
+    private PlanWithFlows createHttpV4ApiPlan(Plan plan, List<FlowV4Impl> flows, Api api, AuditInfo auditInfo) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),

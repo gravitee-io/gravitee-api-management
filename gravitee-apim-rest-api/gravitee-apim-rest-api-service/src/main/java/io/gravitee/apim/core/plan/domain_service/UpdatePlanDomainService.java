@@ -31,7 +31,7 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.Date;
@@ -125,10 +125,10 @@ public class UpdatePlanDomainService {
             return updateNativeV4ApiPlan(existingPlan, updatePlan, (List<NativeFlow>) flows, api, auditInfo);
         }
 
-        return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<Flow>) flows, api, auditInfo);
+        return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<FlowV4Impl>) flows, api, auditInfo);
     }
 
-    private Plan updateHttpV4ApiPlan(Plan existingPlan, Plan updatePlan, List<Flow> flows, Api api, AuditInfo auditInfo) {
+    private Plan updateHttpV4ApiPlan(Plan existingPlan, Plan updatePlan, List<FlowV4Impl> flows, Api api, AuditInfo auditInfo) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),

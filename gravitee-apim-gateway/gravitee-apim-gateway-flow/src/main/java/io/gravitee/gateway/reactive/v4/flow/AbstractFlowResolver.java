@@ -15,8 +15,7 @@
  */
 package io.gravitee.gateway.reactive.v4.flow;
 
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.reactivex.rxjava3.core.Flowable;
@@ -27,13 +26,13 @@ import io.reactivex.rxjava3.core.Flowable;
  */
 public abstract class AbstractFlowResolver implements FlowResolver<BaseExecutionContext> {
 
-    private final ConditionFilter<BaseExecutionContext, Flow> filter;
+    private final ConditionFilter<BaseExecutionContext, FlowV4Impl> filter;
 
-    protected AbstractFlowResolver(ConditionFilter<BaseExecutionContext, Flow> filter) {
+    protected AbstractFlowResolver(ConditionFilter<BaseExecutionContext, FlowV4Impl> filter) {
         this.filter = filter;
     }
 
-    public Flowable<Flow> resolve(BaseExecutionContext ctx) {
+    public Flowable<FlowV4Impl> resolve(BaseExecutionContext ctx) {
         return provideFlows(ctx).concatMapMaybe(flow -> filter.filter(ctx, flow));
     }
 }

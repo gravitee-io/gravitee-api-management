@@ -15,98 +15,21 @@
  */
 package io.gravitee.definition.model.flow;
 
-import com.fasterxml.jackson.annotation.*;
 import io.gravitee.definition.model.Plugin;
-import io.swagger.v3.oas.annotations.media.Schema;
-import java.io.Serializable;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
- * @author GraviteeSource Team
+ * Flow step interface.
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-@EqualsAndHashCode
-public class Step implements Serializable {
+public interface Step {
+    String getName();
+    String getPolicy();
+    String getDescription();
+    String getConfiguration();
+    boolean isEnabled();
+    List<Plugin> getPlugins();
+    String getCondition();
+    String getMessageCondition();
 
-    @JsonProperty("name")
-    private String name;
-
-    @JsonProperty("policy")
-    private String policy;
-
-    @JsonProperty("description")
-    private String description;
-
-    @Schema(implementation = Object.class)
-    @JsonRawValue
-    @JsonProperty("configuration")
-    private Object configuration;
-
-    @JsonProperty("enabled")
-    @Builder.Default
-    private boolean enabled = true;
-
-    @JsonProperty("condition")
-    private String condition;
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPolicy(String policy) {
-        this.policy = policy;
-    }
-
-    public String getPolicy() {
-        return policy;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getConfiguration() {
-        return configuration == null ? null : configuration.toString();
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
-
-    public String getCondition() {
-        return condition;
-    }
-
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
-
-    @JsonIgnore
-    public List<Plugin> getPlugins() {
-        return List.of(new Plugin("policy", policy));
-    }
+    void setConfiguration(String configuration);
 }

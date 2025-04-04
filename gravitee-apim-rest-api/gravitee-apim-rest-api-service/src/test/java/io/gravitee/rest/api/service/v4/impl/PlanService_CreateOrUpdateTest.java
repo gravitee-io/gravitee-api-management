@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -245,7 +245,7 @@ public class PlanService_CreateOrUpdateTest {
         plan.setValidation(PlanValidationType.AUTO);
         plan.setName("NameUpdated");
         plan.setTags(Set.of("tag1"));
-        plan.setFlows(List.of(new Flow()));
+        plan.setFlows(List.of(new FlowV4Impl()));
         plan.setMode(PlanMode.STANDARD);
         return plan;
     }

@@ -16,24 +16,29 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowChannelSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowConditionSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +51,7 @@ public interface FlowAdapter {
     @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
-    Flow toRepository(io.gravitee.definition.model.v4.flow.Flow source, FlowReferenceType referenceType, String referenceId, int order);
+    Flow toRepository(FlowV4Impl source, FlowReferenceType referenceType, String referenceId, int order);
 
     @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
@@ -55,7 +60,7 @@ public interface FlowAdapter {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
-    Flow toRepositoryUpdate(@MappingTarget Flow repository, io.gravitee.definition.model.v4.flow.Flow source, int order);
+    Flow toRepositoryUpdate(@MappingTarget Flow repository, FlowV4Impl source, int order);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
@@ -64,17 +69,35 @@ public interface FlowAdapter {
     @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
-    Flow toRepository(io.gravitee.definition.model.flow.Flow source, FlowReferenceType referenceType, String referenceId, int order);
+    Flow toRepository(FlowV2Impl source, FlowReferenceType referenceType, String referenceId, int order);
 
-    io.gravitee.definition.model.v4.flow.Flow toFlowV4(Flow source);
-    List<io.gravitee.definition.model.v4.flow.Flow> toFlowV4(List<Flow> source);
+    @Mapping(target = "request", source = "request", qualifiedByName = "stepV4")
+    @Mapping(target = "response", source = "response", qualifiedByName = "stepV4")
+    @Mapping(target = "subscribe", source = "subscribe", qualifiedByName = "stepV4")
+    @Mapping(target = "publish", source = "publish", qualifiedByName = "stepV4")
+    FlowV4Impl toFlowV4(Flow source);
 
+    List<FlowV4Impl> toFlowV4(List<Flow> source);
+
+    @Mapping(target = "connect", source = "connect", qualifiedByName = "stepV4")
+    @Mapping(target = "interact", source = "interact", qualifiedByName = "stepV4")
+    @Mapping(target = "subscribe", source = "subscribe", qualifiedByName = "stepV4")
+    @Mapping(target = "publish", source = "publish", qualifiedByName = "stepV4")
     NativeFlow toNativeFlow(Flow source);
+
     List<NativeFlow> toNativeFlow(List<Flow> source);
 
+    @Named("stepV4")
+    StepV4 mapStepV4(FlowStep source);
+
+    @Mapping(target = "pre", source = "pre", qualifiedByName = "stepV2")
+    @Mapping(target = "post", source = "post", qualifiedByName = "stepV2")
     @Mapping(target = "pathOperator.path", source = "path")
     @Mapping(target = "pathOperator.operator", source = "operator")
-    io.gravitee.definition.model.flow.Flow toFlowV2(Flow source);
+    FlowV2Impl toFlowV2(Flow source);
+
+    @Named("stepV2")
+    StepV2 mapStepV2(FlowStep source);
 
     default FlowSelector toRepository(Selector source) {
         if (source instanceof HttpSelector) {
@@ -113,8 +136,8 @@ public interface FlowAdapter {
     ConditionSelector toModel(FlowConditionSelector source);
 
     default Flow toRepositoryFromAbstract(AbstractFlow flow, FlowReferenceType referenceType, String referenceId, int order) {
-        if (flow instanceof io.gravitee.definition.model.v4.flow.Flow) {
-            return this.toRepository((io.gravitee.definition.model.v4.flow.Flow) flow, referenceType, referenceId, order);
+        if (flow instanceof FlowV4Impl) {
+            return this.toRepository((FlowV4Impl) flow, referenceType, referenceId, order);
         } else if (flow instanceof NativeFlow) {
             return this.toRepository((NativeFlow) flow, referenceType, referenceId, order);
         }
@@ -122,8 +145,8 @@ public interface FlowAdapter {
     }
 
     default Flow toRepositoryUpdateFromAbstract(Flow repository, AbstractFlow source, int order) {
-        if (source instanceof io.gravitee.definition.model.v4.flow.Flow) {
-            return this.toRepositoryUpdate(repository, (io.gravitee.definition.model.v4.flow.Flow) source, order);
+        if (source instanceof FlowV4Impl) {
+            return this.toRepositoryUpdate(repository, (FlowV4Impl) source, order);
         } else if (source instanceof NativeFlow) {
             return this.toRepositoryUpdate(repository, (NativeFlow) source, order);
         }

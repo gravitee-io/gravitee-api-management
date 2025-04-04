@@ -22,10 +22,11 @@ import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowConsumer;
 import io.gravitee.repository.management.model.flow.FlowConsumerType;
@@ -84,7 +85,7 @@ class FlowAdapterTest {
             )
             .request(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
@@ -96,7 +97,7 @@ class FlowAdapterTest {
             )
             .response(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
@@ -108,7 +109,7 @@ class FlowAdapterTest {
             )
             .publish(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
@@ -120,7 +121,7 @@ class FlowAdapterTest {
             )
             .subscribe(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
@@ -230,7 +231,7 @@ class FlowAdapterTest {
             )
             .request(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
@@ -242,7 +243,7 @@ class FlowAdapterTest {
             )
             .response(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
@@ -254,7 +255,7 @@ class FlowAdapterTest {
             )
             .publish(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
@@ -266,7 +267,7 @@ class FlowAdapterTest {
             )
             .subscribe(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
@@ -289,7 +290,7 @@ class FlowAdapterTest {
             .request(List.of())
             .response(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-updated-step-name-2")
                         .policy("a-updated-policy")
@@ -301,7 +302,7 @@ class FlowAdapterTest {
             )
             .publish(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-updated-step-name-3")
                         .policy("a-updated-policy")
@@ -496,7 +497,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getRequest())
                 .containsOnly(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
@@ -508,7 +509,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getResponse())
                 .containsOnly(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
@@ -520,7 +521,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPublish())
                 .containsOnly(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
@@ -532,7 +533,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getSubscribe())
                 .containsOnly(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
@@ -620,7 +621,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPre())
                 .containsOnly(
-                    io.gravitee.definition.model.flow.Step
+                    StepV2
                         .builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
@@ -632,7 +633,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPost())
                 .containsOnly(
-                    io.gravitee.definition.model.flow.Step
+                    StepV2
                         .builder()
                         .name("my-step-name-2")
                         .policy("a-policy")

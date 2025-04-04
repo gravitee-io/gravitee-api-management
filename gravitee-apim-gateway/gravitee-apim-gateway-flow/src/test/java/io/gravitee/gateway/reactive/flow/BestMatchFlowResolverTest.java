@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.flow;
 
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
@@ -49,7 +49,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
 
-        final TestSubscriber<Flow> obs = cut.resolve(executionContext).test();
+        final TestSubscriber<FlowV2Impl> obs = cut.resolve(executionContext).test();
         obs.assertComplete();
 
         if (expectedBestMatchResult == null) {

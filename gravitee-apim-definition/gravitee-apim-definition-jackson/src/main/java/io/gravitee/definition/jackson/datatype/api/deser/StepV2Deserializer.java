@@ -19,25 +19,24 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class StepDeserializer extends StdScalarDeserializer<Step> {
+public class StepV2Deserializer extends StdScalarDeserializer<StepV2> {
 
-    public StepDeserializer(Class<Step> vc) {
+    public StepV2Deserializer(Class<StepV2> vc) {
         super(vc);
     }
 
     @Override
-    public Step deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public StepV2 deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        Step step = new Step();
+        StepV2 step = new StepV2();
         step.setName(node.path("name").asText());
 
         JsonNode description = node.path("description");

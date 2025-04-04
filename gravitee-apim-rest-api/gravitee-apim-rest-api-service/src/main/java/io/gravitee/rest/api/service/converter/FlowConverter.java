@@ -19,10 +19,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.repository.management.model.flow.FlowConsumer;
 import io.gravitee.repository.management.model.flow.FlowConsumerType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -52,8 +53,8 @@ public class FlowConverter {
         this.objectMapper = objectMapper;
     }
 
-    public Flow toDefinition(io.gravitee.repository.management.model.flow.Flow model) {
-        Flow flow = new Flow();
+    public FlowV2Impl toDefinition(io.gravitee.repository.management.model.flow.Flow model) {
+        FlowV2Impl flow = new FlowV2Impl();
         flow.setId(model.getId());
 
         flow.setCondition(model.getCondition());
@@ -71,7 +72,7 @@ public class FlowConverter {
     }
 
     public io.gravitee.repository.management.model.flow.Flow toRepository(
-        Flow flowDefinition,
+        FlowV2Impl flowDefinition,
         FlowReferenceType referenceType,
         String referenceId,
         int order
@@ -138,9 +139,9 @@ public class FlowConverter {
         return flowStep;
     }
 
-    protected Step toDefinitionStep(FlowStep flowStep) {
+    protected StepV2 toDefinitionStep(FlowStep flowStep) {
         try {
-            return objectMapper.readValue(objectMapper.writeValueAsString(flowStep), Step.class);
+            return objectMapper.readValue(objectMapper.writeValueAsString(flowStep), StepV2.class);
         } catch (JsonProcessingException e) {
             log.error("Failed to convert repository flow step to model", e);
             return null;
@@ -149,7 +150,7 @@ public class FlowConverter {
 
     public io.gravitee.repository.management.model.flow.Flow toRepositoryUpdate(
         io.gravitee.repository.management.model.flow.Flow dbFlow,
-        Flow flowDefinition,
+        FlowV2Impl flowDefinition,
         int order
     ) {
         io.gravitee.repository.management.model.flow.Flow flow = toRepository(

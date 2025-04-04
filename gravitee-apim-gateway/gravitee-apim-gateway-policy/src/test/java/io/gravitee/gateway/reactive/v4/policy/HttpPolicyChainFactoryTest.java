@@ -27,16 +27,15 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
-import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +43,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.StandardEnvironment;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -66,9 +64,9 @@ class HttpPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainForRequestPhase() {
         final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
-        final Step step1 = mock(Step.class);
-        final Step step2 = mock(Step.class);
+        final FlowV4Impl flow = mock(FlowV4Impl.class);
+        final StepV4 step1 = mock(StepV4.class);
+        final StepV4 step2 = mock(StepV4.class);
 
         when(step1.isEnabled()).thenReturn(true);
         when(step2.isEnabled()).thenReturn(true);
@@ -114,9 +112,9 @@ class HttpPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainWithoutDisabledSteps() {
         final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
-        final Step step1 = mock(Step.class);
-        final Step step2 = mock(Step.class);
+        final FlowV4Impl flow = mock(FlowV4Impl.class);
+        final StepV4 step1 = mock(StepV4.class);
+        final StepV4 step2 = mock(StepV4.class);
 
         when(step1.isEnabled()).thenReturn(false);
         when(step2.isEnabled()).thenReturn(true);
@@ -148,9 +146,9 @@ class HttpPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainOnceAndPutInCache() {
         final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
-        final Step step1 = mock(Step.class);
-        final Step step2 = mock(Step.class);
+        final FlowV4Impl flow = mock(FlowV4Impl.class);
+        final StepV4 step1 = mock(StepV4.class);
+        final StepV4 step2 = mock(StepV4.class);
 
         when(step1.isEnabled()).thenReturn(true);
         when(step2.isEnabled()).thenReturn(true);
@@ -198,8 +196,8 @@ class HttpPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainForResponsePhase() {
         final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
-        final Step step1 = mock(Step.class);
+        final FlowV4Impl flow = mock(FlowV4Impl.class);
+        final StepV4 step1 = mock(StepV4.class);
 
         when(step1.isEnabled()).thenReturn(true);
         when(flow.getResponse()).thenReturn(List.of(step1));
@@ -216,9 +214,9 @@ class HttpPolicyChainFactoryTest {
     @Test
     public void shouldFilterNullPoliciesReturnedByPolicyManager() {
         final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
-        final Step step1 = mock(Step.class);
-        final Step step2 = mock(Step.class);
+        final FlowV4Impl flow = mock(FlowV4Impl.class);
+        final StepV4 step1 = mock(StepV4.class);
+        final StepV4 step2 = mock(StepV4.class);
 
         when(step1.isEnabled()).thenReturn(true);
         when(step2.isEnabled()).thenReturn(true);
@@ -244,7 +242,7 @@ class HttpPolicyChainFactoryTest {
 
     @Test
     public void shouldNotFailIfFlowMethodsIsNull() {
-        final Flow flow = mock(Flow.class);
+        final FlowV4Impl flow = mock(FlowV4Impl.class);
         final HttpSelector selector = mock(HttpSelector.class);
 
         when(flow.selectorByType(eq(SelectorType.HTTP))).thenReturn(Optional.of(selector));

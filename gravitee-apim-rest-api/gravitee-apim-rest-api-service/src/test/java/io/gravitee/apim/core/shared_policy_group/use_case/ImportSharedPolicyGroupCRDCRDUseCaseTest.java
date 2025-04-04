@@ -36,8 +36,7 @@ import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateUpdateSh
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.step.Step;
-import java.nio.charset.StandardCharsets;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -151,7 +150,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             // Given
             var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
             crd.setSteps(
-                List.of(Step.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build())
+                List.of(StepV4.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build())
             );
 
             // When
@@ -169,7 +168,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             // Given
             var crd = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
             crd.setSteps(
-                List.of(Step.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
+                List.of(StepV4.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
             );
 
             // When
@@ -254,7 +253,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
 
             // When
             crd.setSteps(
-                List.of(Step.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build())
+                List.of(StepV4.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build())
             );
             var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
@@ -273,7 +272,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
 
             // When
             crd.setSteps(
-                List.of(Step.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
+                List.of(StepV4.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
             );
             var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 

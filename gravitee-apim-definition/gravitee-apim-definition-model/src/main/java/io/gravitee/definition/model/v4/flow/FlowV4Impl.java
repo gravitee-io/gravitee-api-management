@@ -17,16 +17,22 @@ package io.gravitee.definition.model.v4.flow;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.Plugin;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.definition.model.v4.flow.step.Step;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.With;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -42,7 +48,7 @@ import lombok.experimental.SuperBuilder;
 @Schema(name = "FlowV4")
 @SuperBuilder(toBuilder = true)
 @With
-public class Flow extends AbstractFlow {
+public class FlowV4Impl extends AbstractFlow {
 
     @Valid
     private List<Step> request;

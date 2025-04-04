@@ -22,9 +22,10 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.flow.Step;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.StepV2;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.*;
@@ -177,34 +178,34 @@ public class PlanMapperTest {
 
     @Test
     public void shouldMapMultipleRateLimitsToOneV2() {
-        var stepNoLimit = new Step();
+        var stepNoLimit = new StepV2();
         stepNoLimit.setPolicy(RATE_LIMIT);
         stepNoLimit.setConfiguration("{ \"rate\": { \"periodTime\": 2, \"periodTimeUnit\": \"MONTHS\" } }");
         stepNoLimit.setEnabled(true);
 
-        var stepDynamicLimitMostRestrictive = new Step();
+        var stepDynamicLimitMostRestrictive = new StepV2();
         stepDynamicLimitMostRestrictive.setPolicy(RATE_LIMIT);
         stepDynamicLimitMostRestrictive.setConfiguration(
             "{ \"rate\": { \"dynamicLimit\": 25, \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }"
         );
         stepDynamicLimitMostRestrictive.setEnabled(true);
 
-        var stepLowLimit = new Step();
+        var stepLowLimit = new StepV2();
         stepLowLimit.setPolicy(RATE_LIMIT);
         stepLowLimit.setConfiguration(
             "{ \"rate\": { \"limit\": 2, \"dynamicLimit\": 25, \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
         );
         stepLowLimit.setEnabled(true);
 
-        var stepDisabledLowestLimit = new Step();
+        var stepDisabledLowestLimit = new StepV2();
         stepDisabledLowestLimit.setPolicy(RATE_LIMIT);
         stepDisabledLowestLimit.setConfiguration("{ \"rate\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
         stepDisabledLowestLimit.setEnabled(false);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(stepNoLimit, stepDynamicLimitMostRestrictive));
 
-        var flow2 = new Flow();
+        var flow2 = new FlowV2Impl();
         flow2.setPre(List.of(stepLowLimit, stepDisabledLowestLimit));
 
         planEntityV2.setFlows(List.of(flow1, flow2));
@@ -220,35 +221,35 @@ public class PlanMapperTest {
 
     @Test
     public void shouldMapMultipleRateLimitsToOneV4() {
-        var stepNoLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepNoLimit = new StepV4();
         stepNoLimit.setPolicy(RATE_LIMIT);
         stepNoLimit.setConfiguration("{ \"rate\": { \"periodTime\": 2, \"periodTimeUnit\": \"MONTHS\" } }");
         stepNoLimit.setEnabled(true);
 
-        var stepEnabledLongestDuration = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepEnabledLongestDuration = new StepV4();
         stepEnabledLongestDuration.setPolicy(RATE_LIMIT);
         stepEnabledLongestDuration.setConfiguration(
             "{ \"rate\": { \"dynamicLimit\": 25, \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }"
         );
         stepEnabledLongestDuration.setEnabled(true);
 
-        var stepLowLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepLowLimit = new StepV4();
         stepLowLimit.setPolicy(RATE_LIMIT);
         stepLowLimit.setConfiguration(
             "{ \"rate\": { \"limit\": 2, \"dynamicLimit\": 25, \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
         );
         stepLowLimit.setEnabled(true);
 
-        var stepDisabledLowestLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepDisabledLowestLimit = new StepV4();
         stepDisabledLowestLimit.setPolicy(RATE_LIMIT);
         stepDisabledLowestLimit.setConfiguration("{ \"rate\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
         stepDisabledLowestLimit.setEnabled(false);
 
-        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        var flow1 = new FlowV4Impl();
         flow1.setRequest(List.of(stepNoLimit, stepEnabledLongestDuration));
         flow1.setEnabled(true);
 
-        var disabledFlow = new io.gravitee.definition.model.v4.flow.Flow();
+        var disabledFlow = new FlowV4Impl();
         disabledFlow.setRequest(List.of(stepLowLimit, stepDisabledLowestLimit));
         disabledFlow.setEnabled(false);
 
@@ -266,34 +267,34 @@ public class PlanMapperTest {
 
     @Test
     public void shouldMapMultipleQuotaToOneV2() {
-        var stepNoLimit = new Step();
+        var stepNoLimit = new StepV2();
         stepNoLimit.setPolicy(QUOTA);
         stepNoLimit.setConfiguration("{ \"quota\": { \"periodTime\": 2, \"periodTimeUnit\": \"MONTHS\" } }");
         stepNoLimit.setEnabled(true);
 
-        var stepDynamicLimitMostRestrictive = new Step();
+        var stepDynamicLimitMostRestrictive = new StepV2();
         stepDynamicLimitMostRestrictive.setPolicy(QUOTA);
         stepDynamicLimitMostRestrictive.setConfiguration(
             "{ \"quota\": { \"dynamicLimit\": 25, \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }"
         );
         stepDynamicLimitMostRestrictive.setEnabled(true);
 
-        var stepLowLimit = new Step();
+        var stepLowLimit = new StepV2();
         stepLowLimit.setPolicy(QUOTA);
         stepLowLimit.setConfiguration(
             "{ \"quota\": { \"limit\": 2, \"dynamicLimit\": 25, \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
         );
         stepLowLimit.setEnabled(true);
 
-        var stepDisabledLowestLimit = new Step();
+        var stepDisabledLowestLimit = new StepV2();
         stepDisabledLowestLimit.setPolicy(QUOTA);
         stepDisabledLowestLimit.setConfiguration("{ \"quota\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
         stepDisabledLowestLimit.setEnabled(false);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(stepNoLimit, stepDynamicLimitMostRestrictive));
 
-        var flow2 = new Flow();
+        var flow2 = new FlowV2Impl();
         flow2.setPre(List.of(stepLowLimit, stepDisabledLowestLimit));
 
         planEntityV2.setFlows(List.of(flow1, flow2));
@@ -310,33 +311,33 @@ public class PlanMapperTest {
 
     @Test
     public void shouldMapMultipleQuotaToOneV4() {
-        var stepNoLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepNoLimit = new StepV4();
         stepNoLimit.setPolicy(QUOTA);
         stepNoLimit.setConfiguration("{ \"quota\": { \"periodTime\": 2, \"periodTimeUnit\": \"MONTHS\" } }");
         stepNoLimit.setEnabled(true);
 
-        var stepDynamicLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepDynamicLimit = new StepV4();
         stepDynamicLimit.setPolicy(QUOTA);
         stepDynamicLimit.setConfiguration("{ \"quota\": { \"dynamicLimit\": \"25\", \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }");
         stepDynamicLimit.setEnabled(true);
 
-        var stepLowLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepLowLimit = new StepV4();
         stepLowLimit.setPolicy(QUOTA);
         stepLowLimit.setConfiguration(
             "{ \"quota\": { \"limit\": 2, \"dynamicLimit\": 25, \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
         );
         stepLowLimit.setEnabled(true);
 
-        var stepDisabledLowestLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepDisabledLowestLimit = new StepV4();
         stepDisabledLowestLimit.setPolicy(QUOTA);
         stepDisabledLowestLimit.setConfiguration("{ \"quota\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
         stepDisabledLowestLimit.setEnabled(false);
 
-        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        var flow1 = new FlowV4Impl();
         flow1.setRequest(List.of(stepNoLimit, stepDynamicLimit));
         flow1.setEnabled(true);
 
-        var disabledFlow = new io.gravitee.definition.model.v4.flow.Flow();
+        var disabledFlow = new FlowV4Impl();
         disabledFlow.setRequest(List.of(stepLowLimit, stepDisabledLowestLimit));
         disabledFlow.setEnabled(false);
 
@@ -354,33 +355,33 @@ public class PlanMapperTest {
 
     @Test
     public void shouldHandleStringDynamicLimit() {
-        var stepNoLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepNoLimit = new StepV4();
         stepNoLimit.setPolicy(QUOTA);
         stepNoLimit.setConfiguration("{ \"quota\": { \"periodTime\": 2, \"periodTimeUnit\": \"MONTHS\" } }");
         stepNoLimit.setEnabled(true);
 
-        var stepDynamicLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepDynamicLimit = new StepV4();
         stepDynamicLimit.setPolicy(QUOTA);
         stepDynamicLimit.setConfiguration("{ \"quota\": { \"dynamicLimit\": \"25\", \"periodTime\": 4, \"periodTimeUnit\": \"HOURS\" } }");
         stepDynamicLimit.setEnabled(true);
 
-        var stepLowLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepLowLimit = new StepV4();
         stepLowLimit.setPolicy(QUOTA);
         stepLowLimit.setConfiguration(
             "{ \"quota\": { \"limit\": 2, \"dynamicLimit\": \"25\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
         );
         stepLowLimit.setEnabled(true);
 
-        var stepDisabledLowestLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepDisabledLowestLimit = new StepV4();
         stepDisabledLowestLimit.setPolicy(QUOTA);
         stepDisabledLowestLimit.setConfiguration("{ \"quota\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
         stepDisabledLowestLimit.setEnabled(false);
 
-        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        var flow1 = new FlowV4Impl();
         flow1.setRequest(List.of(stepNoLimit, stepDynamicLimit));
         flow1.setEnabled(true);
 
-        var disabledFlow = new io.gravitee.definition.model.v4.flow.Flow();
+        var disabledFlow = new FlowV4Impl();
         disabledFlow.setRequest(List.of(stepLowLimit, stepDisabledLowestLimit));
         disabledFlow.setEnabled(false);
 
@@ -398,14 +399,14 @@ public class PlanMapperTest {
 
     @Test
     public void shouldHandleELDynamicLimitForApiPropertiesV4() {
-        var stepNoLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepNoLimit = new StepV4();
         stepNoLimit.setPolicy(RATE_LIMIT);
         stepNoLimit.setConfiguration(
             "{ \"rate\": {  \"dynamicLimit\": \"{#api.properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
         );
         stepNoLimit.setEnabled(true);
 
-        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        var flow1 = new FlowV4Impl();
         flow1.setRequest(List.of(stepNoLimit));
         flow1.setEnabled(true);
 
@@ -423,14 +424,14 @@ public class PlanMapperTest {
 
     @Test
     public void shouldHandleELDynamicLimitForLegacyPropertiesV4() {
-        var stepNoLimit = new io.gravitee.definition.model.v4.flow.step.Step();
+        var stepNoLimit = new StepV4();
         stepNoLimit.setPolicy(RATE_LIMIT);
         stepNoLimit.setConfiguration(
             "{ \"rate\": {  \"dynamicLimit\": \"{#properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" } }"
         );
         stepNoLimit.setEnabled(true);
 
-        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        var flow1 = new FlowV4Impl();
         flow1.setRequest(List.of(stepNoLimit));
         flow1.setEnabled(true);
 
@@ -448,14 +449,14 @@ public class PlanMapperTest {
 
     @Test
     public void shouldHandleELDynamicLimitForApiPropertiesV2() {
-        var step = new Step();
+        var step = new StepV2();
         step.setPolicy(RATE_LIMIT);
         step.setConfiguration(
             "{ \"rate\": { \"limit\": 0, \"dynamicLimit\": \"{#api.properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
         );
         step.setEnabled(true);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(step));
         flow1.setEnabled(true);
 
@@ -473,14 +474,14 @@ public class PlanMapperTest {
 
     @Test
     public void shouldHandleELDynamicLimitForLegacyPropertiesV2() {
-        var step = new Step();
+        var step = new StepV2();
         step.setPolicy(RATE_LIMIT);
         step.setConfiguration(
             "{ \"rate\": { \"limit\": 0, \"dynamicLimit\": \"{#properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
         );
         step.setEnabled(true);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(step));
         flow1.setEnabled(true);
 
@@ -498,14 +499,14 @@ public class PlanMapperTest {
 
     @Test
     public void shouldNotMapDynamicLimitIfPropertyNotFound() {
-        var step = new Step();
+        var step = new StepV2();
         step.setPolicy(RATE_LIMIT);
         step.setConfiguration(
             "{ \"rate\": { \"limit\": 0, \"dynamicLimit\": \"{#api.properties['not-found']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
         );
         step.setEnabled(true);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(step));
         flow1.setEnabled(true);
 
@@ -520,14 +521,14 @@ public class PlanMapperTest {
 
     @Test
     public void shouldNotReturnDynamicLimitIfELInvalid() {
-        var step = new Step();
+        var step = new StepV2();
         step.setPolicy(RATE_LIMIT);
         step.setConfiguration(
             "{ \"rate\": { \"limit\": 0, \"dynamicLimit\": \"{##api.properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
         );
         step.setEnabled(true);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(step));
         flow1.setEnabled(true);
 
@@ -542,14 +543,14 @@ public class PlanMapperTest {
 
     @Test
     public void shouldNotReturnDynamicLimitIfApiNull() {
-        var step = new Step();
+        var step = new StepV2();
         step.setPolicy(RATE_LIMIT);
         step.setConfiguration(
             "{ \"rate\": { \"limit\": 0, \"dynamicLimit\": \"{##api.properties['ratelimit']}\", \"periodTime\": 6, \"periodTimeUnit\": \"MINUTES\" }}"
         );
         step.setEnabled(true);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(step));
         flow1.setEnabled(true);
 

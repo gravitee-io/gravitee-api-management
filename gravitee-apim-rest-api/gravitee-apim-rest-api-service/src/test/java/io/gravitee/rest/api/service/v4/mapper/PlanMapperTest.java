@@ -20,7 +20,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -77,7 +77,7 @@ public class PlanMapperTest {
         plan.setGeneralConditions("general_conditions");
         plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
 
-        List<Flow> flows = new ArrayList<>();
+        List<FlowV4Impl> flows = new ArrayList<>();
 
         PlanEntity planEntity = planMapper.toEntity(plan, flows);
 
@@ -150,7 +150,7 @@ public class PlanMapperTest {
         plan.setApi("api1");
         plan.setGeneralConditions("general_conditions");
 
-        List<Flow> flows = new ArrayList<>();
+        List<FlowV4Impl> flows = new ArrayList<>();
 
         PlanEntity planEntity = planMapper.toEntity(plan, flows);
 

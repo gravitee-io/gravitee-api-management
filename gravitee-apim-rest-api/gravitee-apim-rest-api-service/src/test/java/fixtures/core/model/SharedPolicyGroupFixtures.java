@@ -23,7 +23,7 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatu
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
@@ -46,7 +46,7 @@ public class SharedPolicyGroupFixtures {
             .version(1)
             .apiType(ApiType.MESSAGE)
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED)
-            .steps(List.of(Step.builder().policy("policyId").name("Step name").configuration("{\"key\":\"value\"}").build()))
+            .steps(List.of(StepV4.builder().policy("policyId").name("Step name").configuration("{\"key\":\"value\"}").build()))
             .phase(FlowPhase.REQUEST)
             .deployedAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
@@ -83,7 +83,7 @@ public class SharedPolicyGroupFixtures {
             .get()
             .description("description")
             .crossId("crossId")
-            .steps(List.of(Step.builder().policy("policyId").name("Step name").configuration("{\"key\":\"value\"}").build()))
+            .steps(List.of(StepV4.builder().policy("policyId").name("Step name").configuration("{\"key\":\"value\"}").build()))
             .build();
     }
 

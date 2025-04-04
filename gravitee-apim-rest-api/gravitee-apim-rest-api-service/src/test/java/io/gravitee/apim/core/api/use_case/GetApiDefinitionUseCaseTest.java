@@ -27,7 +27,8 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -77,7 +78,7 @@ class GetApiDefinitionUseCaseTest {
         void should_return_api_definition_with_flows() {
             // Given
             //   Api flow
-            List<Flow> flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
+            List<FlowV4Impl> flows = List.of(FlowV4Impl.builder().name("flow").selectors(List.of(new HttpSelector())).build());
             flowCrudServiceInMemory.saveApiFlows(API_ID, flows);
 
             //   Plan flow
@@ -89,7 +90,7 @@ class GetApiDefinitionUseCaseTest {
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 
-            List<Flow> planFlows = List.of(Flow.builder().name("plan-flow").selectors(List.of(new HttpSelector())).build());
+            List<FlowV4Impl> planFlows = List.of(FlowV4Impl.builder().name("plan-flow").selectors(List.of(new HttpSelector())).build());
             flowCrudServiceInMemory.savePlanFlows(planPublished.getId(), planFlows);
             flowCrudServiceInMemory.savePlanFlows(planDeprecated.getId(), planFlows);
             flowCrudServiceInMemory.savePlanFlows(planStaging.getId(), planFlows);
@@ -192,7 +193,7 @@ class GetApiDefinitionUseCaseTest {
         void should_return_api_definition_with_flows() {
             // Given
             //   Api flow
-            var flows = List.of(io.gravitee.definition.model.flow.Flow.builder().name("flow").build());
+            var flows = List.of(FlowV2Impl.builder().name("flow").build());
             flowCrudServiceInMemory.saveApiFlowsV2(API_ID, flows);
 
             //   Plan flow
@@ -204,7 +205,7 @@ class GetApiDefinitionUseCaseTest {
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 
-            var planFlows = List.of(io.gravitee.definition.model.flow.Flow.builder().name("plan-flow").build());
+            var planFlows = List.of(FlowV2Impl.builder().name("plan-flow").build());
             flowCrudServiceInMemory.savePlanFlowsV2(planPublished.getId(), planFlows);
             flowCrudServiceInMemory.savePlanFlowsV2(planDeprecated.getId(), planFlows);
             flowCrudServiceInMemory.savePlanFlowsV2(planStaging.getId(), planFlows);

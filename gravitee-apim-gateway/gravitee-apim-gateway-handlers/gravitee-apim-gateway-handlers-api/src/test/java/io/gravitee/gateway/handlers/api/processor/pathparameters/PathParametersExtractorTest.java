@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import java.io.IOException;
@@ -55,7 +55,7 @@ class PathParametersExtractorTest {
     @Test
     void can_not_extract_param_no_flow_with_path_param() {
         final Api api = new Api();
-        final Flow flow = new Flow();
+        final FlowV2Impl flow = new FlowV2Impl();
         final PathOperator pathOperator = new PathOperator();
         pathOperator.setOperator(Operator.STARTS_WITH);
         pathOperator.setPath("/products");
@@ -67,7 +67,7 @@ class PathParametersExtractorTest {
     @Test
     void can_extract_param_flow_with_path_param() {
         final Api api = new io.gravitee.definition.model.Api();
-        final Flow flow = new Flow();
+        final FlowV2Impl flow = new FlowV2Impl();
         final PathOperator pathOperator = new PathOperator();
         pathOperator.setOperator(Operator.STARTS_WITH);
         pathOperator.setPath("/products/:productId");

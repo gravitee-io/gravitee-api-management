@@ -15,9 +15,11 @@
  */
 package fixtures;
 
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.StepV2;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +35,7 @@ public class FlowModelFixtures {
         .operations(Set.of(ChannelSelector.Operation.SUBSCRIBE, ChannelSelector.Operation.PUBLISH))
         .channelOperator(io.gravitee.definition.model.flow.Operator.EQUALS);
 
-    private static final Step.StepBuilder BASE_MODEL_STEP_V4 = Step
+    private static final StepV4.StepV4Builder BASE_MODEL_STEP_V4 = StepV4
         .builder()
         .name("step")
         .description("description")
@@ -43,7 +45,7 @@ public class FlowModelFixtures {
         .messageCondition("{#context.attribute['messageCondition'] == true}")
         .configuration("{\n  \"nice\" : \"config\"\n}");
 
-    private static final Flow.FlowBuilder BASE_MODEL_FLOW_HTTP_V4 = Flow
+    private static final FlowV4Impl.FlowV4ImplBuilder BASE_MODEL_FLOW_HTTP_V4 = FlowV4Impl
         .builder()
         .name("Flow")
         .enabled(true)
@@ -62,7 +64,7 @@ public class FlowModelFixtures {
         .interact(List.of(BASE_MODEL_STEP_V4.name("step_interact").build()))
         .subscribe(List.of(BASE_MODEL_STEP_V4.name("step_subscribe").build()));
 
-    private static final io.gravitee.definition.model.flow.Step.StepBuilder BASE_MODEL_STEP_V2 = io.gravitee.definition.model.flow.Step
+    private static final StepV2.StepV2Builder BASE_MODEL_STEP_V2 = StepV2
         .builder()
         .name("step")
         .description("description")
@@ -71,7 +73,7 @@ public class FlowModelFixtures {
         .condition("{#context.attribute['condition'] == true}")
         .configuration("{\n  \"nice\" : \"config\"\n}");
 
-    private static final io.gravitee.definition.model.flow.Flow.FlowBuilder BASE_MODEL_FLOW_V2 = io.gravitee.definition.model.flow.Flow
+    private static final FlowV2Impl.FlowV2ImplBuilder BASE_MODEL_FLOW_V2 = FlowV2Impl
         .builder()
         .name("Flow")
         .enabled(true)
@@ -86,7 +88,7 @@ public class FlowModelFixtures {
         .pre(List.of(BASE_MODEL_STEP_V2.name("step_pre").build()))
         .post(List.of(BASE_MODEL_STEP_V2.name("step_pot").build()));
 
-    public static Flow aModelFlowHttpV4() {
+    public static FlowV4Impl aModelFlowHttpV4() {
         return BASE_MODEL_FLOW_HTTP_V4.build();
     }
 
@@ -94,7 +96,7 @@ public class FlowModelFixtures {
         return BASE_MODEL_FLOW_NATIVE_V4.build();
     }
 
-    public static io.gravitee.definition.model.flow.Flow aModelFlowV2() {
+    public static FlowV2Impl aModelFlowV2() {
         return BASE_MODEL_FLOW_V2.build();
     }
 }

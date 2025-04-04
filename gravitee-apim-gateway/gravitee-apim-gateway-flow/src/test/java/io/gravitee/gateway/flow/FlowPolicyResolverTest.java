@@ -17,8 +17,8 @@ package io.gravitee.gateway.flow;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
@@ -41,22 +41,20 @@ public class FlowPolicyResolverTest {
     @Mock
     private ExecutionContext executionContext;
 
-    private Step step;
+    private StepV2 step;
 
     @Before
     public void setUp() {
-        final Flow flow = new Flow();
-        step = new Step();
-        step.setEnabled(true);
-        flow.setPre(List.of(step));
+        step = StepV2.builder().enabled(true).build();
+        final FlowV2Impl flow = FlowV2Impl.builder().pre(List.of(step)).build();
         cut = new FlowPolicyResolver(flow);
     }
 
     @Test
     public void shouldCreateNewPolicyMetadataIfNotInCache() {
-        assertThat(cut.cache.size()).isEqualTo(0);
+        assertThat(cut.cache.size()).isZero();
         final List<PolicyMetadata> result = cut.resolve(StreamType.ON_REQUEST, executionContext);
-        assertThat(cut.cache.size()).isEqualTo(1);
+        assertThat(cut.cache.size()).isOne();
         assertThat(result).hasSize(1);
     }
 
@@ -65,9 +63,9 @@ public class FlowPolicyResolverTest {
         final PolicyMetadata cachedPolicyMetadata = new PolicyMetadata("policy-id", "{}");
         cut.cache.put(step, cachedPolicyMetadata);
 
-        assertThat(cut.cache.size()).isEqualTo(1);
+        assertThat(cut.cache.size()).isOne();
         final List<PolicyMetadata> result = cut.resolve(StreamType.ON_REQUEST, executionContext);
-        assertThat(cut.cache.size()).isEqualTo(1);
-        assertThat(result.get(0)).isEqualTo(cachedPolicyMetadata);
+        assertThat(cut.cache.size()).isOne();
+        assertThat(result.getFirst()).isEqualTo(cachedPolicyMetadata);
     }
 }

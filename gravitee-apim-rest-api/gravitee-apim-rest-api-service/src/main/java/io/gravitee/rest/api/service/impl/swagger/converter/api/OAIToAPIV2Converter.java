@@ -17,14 +17,13 @@ package io.gravitee.rest.api.service.impl.swagger.converter.api;
 
 import static io.gravitee.rest.api.service.validator.JsonHelper.clearNullValues;
 import static io.gravitee.rest.api.service.validator.JsonHelper.getScope;
-import static java.util.Collections.singleton;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
@@ -37,7 +36,6 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -58,7 +56,7 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
     protected SwaggerApiEntity fill(SwaggerApiEntity apiEntity, OpenAPI oai) {
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
 
-        List<Flow> allFlows = new ArrayList();
+        List<FlowV2Impl> allFlows = new ArrayList();
         Set<String> pathMappings = new HashSet();
 
         if (swaggerDescriptor.isWithPolicyPaths() || swaggerDescriptor.isWithPathMapping()) {
@@ -73,14 +71,14 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
                     if (swaggerDescriptor.isWithPolicyPaths()) {
                         Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
                         operations.forEach((httpMethod, operation) -> {
-                            final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
+                            final FlowV2Impl flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
 
                             getVisitors()
                                 .forEach(
                                     (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
                                         Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
                                         if (policy.isPresent()) {
-                                            final Step step = new Step();
+                                            final StepV2 step = new StepV2();
                                             step.setName(policy.get().getName());
                                             step.setEnabled(true);
                                             step.setDescription(
@@ -124,8 +122,8 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
         return apiEntity;
     }
 
-    private Flow createFlow(String path, Set<HttpMethod> methods) {
-        final Flow flow = new Flow();
+    private FlowV2Impl createFlow(String path, Set<HttpMethod> methods) {
+        final FlowV2Impl flow = new FlowV2Impl();
         flow.setName("");
         flow.setCondition("");
         flow.setEnabled(true);

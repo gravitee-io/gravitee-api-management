@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.platform.organization.flow;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
@@ -47,7 +47,7 @@ public class OrganizationFlowResolver extends ConditionalFlowResolver {
     }
 
     @Override
-    protected List<Flow> resolve0(final ExecutionContext context) {
+    protected List<FlowV2Impl> resolve0(final ExecutionContext context) {
         ReactableOrganization reactableOrganization = organizationManager.getOrganization(
             (String) context.getAttribute(ExecutionContext.ATTR_ORGANIZATION)
         );

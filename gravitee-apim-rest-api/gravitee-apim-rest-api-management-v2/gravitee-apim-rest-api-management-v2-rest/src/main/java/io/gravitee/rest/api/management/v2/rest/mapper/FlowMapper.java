@@ -20,18 +20,18 @@ import static java.util.Optional.ofNullable;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.ChannelSelector;
 import io.gravitee.rest.api.management.v2.rest.model.ConditionSelector;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.HttpSelector;
 import io.gravitee.rest.api.management.v2.rest.model.Selector;
 import io.gravitee.rest.api.management.v2.rest.model.StepV2;
-import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Objects;
@@ -52,29 +52,42 @@ public interface FlowMapper {
 
     // Flow V4
     @Mapping(target = "selectors", qualifiedByName = "mapToSelectorApiModelList")
-    FlowV4 mapFromHttpV4(io.gravitee.definition.model.v4.flow.Flow flow);
+    io.gravitee.rest.api.management.v2.rest.model.FlowV4 mapFromHttpV4(FlowV4Impl flow);
 
     @Mapping(target = "selectors", qualifiedByName = "mapToSelectorEntityList")
-    io.gravitee.definition.model.v4.flow.Flow mapToHttpV4(FlowV4 flow);
+    @Mapping(target = "request", source = "request", qualifiedByName = "mapStepV4")
+    @Mapping(target = "response", source = "response", qualifiedByName = "mapStepV4")
+    @Mapping(target = "subscribe", source = "subscribe", qualifiedByName = "mapStepV4")
+    @Mapping(target = "publish", source = "publish", qualifiedByName = "mapStepV4")
+    FlowV4Impl mapToHttpV4(io.gravitee.rest.api.management.v2.rest.model.FlowV4 flow);
 
-    FlowV4 mapFromNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeFlow flow);
+    io.gravitee.rest.api.management.v2.rest.model.FlowV4 mapFromNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeFlow flow);
 
-    io.gravitee.definition.model.v4.nativeapi.NativeFlow mapToNativeV4(FlowV4 flow);
+    @Mapping(target = "connect", source = "connect", qualifiedByName = "mapStepV4")
+    @Mapping(target = "interact", source = "interact", qualifiedByName = "mapStepV4")
+    @Mapping(target = "subscribe", source = "subscribe", qualifiedByName = "mapStepV4")
+    @Mapping(target = "publish", source = "publish", qualifiedByName = "mapStepV4")
+    io.gravitee.definition.model.v4.nativeapi.NativeFlow mapToNativeV4(io.gravitee.rest.api.management.v2.rest.model.FlowV4 flow);
 
     @Named("mapListToFlowHttpV4")
-    List<io.gravitee.definition.model.v4.flow.Flow> mapToHttpV4(List<FlowV4> flows);
+    List<FlowV4Impl> mapToHttpV4(List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> flows);
 
     @Named("mapListToFlowNativeV4")
-    List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> mapToNativeV4(List<FlowV4> flows);
+    List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> mapToNativeV4(
+        List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> flows
+    );
 
-    List<FlowV4> mapFromHttpV4(List<io.gravitee.definition.model.v4.flow.Flow> flow);
-    List<FlowV4> mapFromNativeV4(List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> flow);
+    List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> mapFromHttpV4(List<FlowV4Impl> flow);
+    List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> mapFromNativeV4(
+        List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> flow
+    );
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    StepV4 mapStep(Step step);
+    io.gravitee.rest.api.management.v2.rest.model.StepV4 mapStep(StepV4 step);
 
+    @Named("mapStepV4")
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    Step mapStep(StepV4 stepV4);
+    StepV4 mapStep(io.gravitee.rest.api.management.v2.rest.model.StepV4 stepV4);
 
     // Selectors
     HttpSelector mapSelector(io.gravitee.definition.model.v4.flow.selector.HttpSelector selector);
@@ -122,34 +135,37 @@ public interface FlowMapper {
 
     // Flow V2
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    io.gravitee.definition.model.flow.Step mapStep(StepV2 stepV2);
+    io.gravitee.definition.model.flow.StepV2 mapStep(StepV2 stepV2);
 
-    io.gravitee.definition.model.flow.Flow map(FlowV2 flowV2);
+    FlowV2Impl map(FlowV2 flowV2);
 
+    @Named("mapStepV2")
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    StepV2 mapStep(io.gravitee.definition.model.flow.Step stepV2);
+    StepV2 mapStepV2(io.gravitee.definition.model.flow.Step source);
 
-    FlowV2 map(io.gravitee.definition.model.flow.Flow flowV2);
+    @Mapping(target = "pre", source = "pre", qualifiedByName = "mapStepV2")
+    @Mapping(target = "post", source = "post", qualifiedByName = "mapStepV2")
+    FlowV2 map(FlowV2Impl flowV2);
 
-    default List<? extends AbstractFlow> map(@Valid List<FlowV4> flows, Api api) {
+    default List<? extends AbstractFlow> map(@Valid List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> flows, Api api) {
         return ofNullable(api.isNative() ? mapToNativeV4(flows) : mapToHttpV4(flows)).orElseGet(List::of);
     }
 
-    default <T extends AbstractFlow> FlowV4 map(T src) {
+    default <T extends AbstractFlow> io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(T src) {
         return switch (src) {
-            case Flow flow -> map(flow);
+            case FlowV4Impl flow -> map(flow);
             case NativeFlow nativeFlow -> map(nativeFlow);
             default -> throw new IllegalStateException("Unexpected value: " + src);
         };
     }
 
-    FlowV4 map(Flow src);
+    io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(FlowV4Impl src);
 
-    FlowV4 map(NativeFlow src);
+    io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(NativeFlow src);
 
     @SneakyThrows
     @AfterMapping
-    default void mapConfiguration(Object ignored, @MappingTarget StepV4 target) {
+    default void mapConfiguration(Object ignored, @MappingTarget io.gravitee.rest.api.management.v2.rest.model.StepV4 target) {
         if (target.getConfiguration() instanceof String conf) {
             target.setConfiguration(JSON_MAPPER.readTree(conf));
         }

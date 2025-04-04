@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters;
 
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.plan.Plan;
@@ -34,19 +34,19 @@ import java.util.stream.Stream;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PathParametersExtractor extends AbstractPathParametersExtractor<Api, Flow, Plan> {
+public class PathParametersExtractor extends AbstractPathParametersExtractor<Api, FlowV4Impl, Plan> {
 
     public PathParametersExtractor(Api api) {
         super(api);
     }
 
     @Override
-    protected List<Flow> getApiFlows(Api api) {
+    protected List<FlowV4Impl> getApiFlows(Api api) {
         return api.getFlows();
     }
 
     @Override
-    protected List<Flow> getPlanFlows(Plan plan) {
+    protected List<FlowV4Impl> getPlanFlows(Plan plan) {
         return plan.getFlows();
     }
 
@@ -57,7 +57,7 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
     }
 
     @Override
-    protected boolean hasPathParam(Flow flow) {
+    protected boolean hasPathParam(FlowV4Impl flow) {
         return flow
             .selectorByType(SelectorType.HTTP)
             .stream()
@@ -65,12 +65,12 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
     }
 
     @Override
-    protected boolean isEnabled(Flow flow) {
+    protected boolean isEnabled(FlowV4Impl flow) {
         return flow.isEnabled();
     }
 
     @Override
-    protected Map<PathParameterHttpMethod, Set<PathParameters>> groupPatternsByMethod(Stream<Flow> flows) {
+    protected Map<PathParameterHttpMethod, Set<PathParameters>> groupPatternsByMethod(Stream<FlowV4Impl> flows) {
         final Map<PathParameterHttpMethod, Set<PathParameters>> patternsByMethod = flows
             .flatMap(f -> f.selectorByType(SelectorType.HTTP).map(selector -> (HttpSelector) selector).stream())
             .flatMap(selector -> {

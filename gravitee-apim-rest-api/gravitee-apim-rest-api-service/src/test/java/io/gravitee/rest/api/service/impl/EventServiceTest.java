@@ -35,7 +35,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
@@ -769,8 +769,8 @@ public class EventServiceTest {
         return plan.build();
     }
 
-    private Flow buildFlow(String name) {
-        Flow flow = new Flow();
+    private FlowV2Impl buildFlow(String name) {
+        FlowV2Impl flow = new FlowV2Impl();
         flow.setName(name);
         return flow;
     }

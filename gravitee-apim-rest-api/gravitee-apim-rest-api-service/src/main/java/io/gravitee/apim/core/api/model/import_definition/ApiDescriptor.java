@@ -26,12 +26,13 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -106,7 +107,7 @@ public sealed interface ApiDescriptor {
         List<EndpointGroup> endpointGroups,
         Analytics analytics,
         FlowExecution flowExecution,
-        List<Flow> flows,
+        List<FlowV4Impl> flows,
         Map<String, Map<String, ResponseTemplate>> responseTemplates,
         List<Property> properties,
         List<Resource> resources,
@@ -216,7 +217,7 @@ public sealed interface ApiDescriptor {
         Services services,
         List<io.gravitee.definition.model.plugins.resources.Resource> resources,
         Map<String, List<Rule>> paths,
-        List<io.gravitee.definition.model.flow.Flow> flows,
+        List<FlowV2Impl> flows,
         Properties properties,
         Set<String> tags,
         Map<String, Pattern> pathMappings,

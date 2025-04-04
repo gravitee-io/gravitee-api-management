@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.platform.organization.policy;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganizationReactor;
 import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactor;
@@ -35,7 +35,7 @@ public class OrganizationPolicyChainFactory implements PolicyChainFactory<HttpPo
     private final OrganizationReactorRegistry organizationReactorRegistry;
 
     @Override
-    public HttpPolicyChain create(final String flowChainId, final Flow flow, final ExecutionPhase phase) {
+    public HttpPolicyChain create(final String flowChainId, final FlowV2Impl flow, final ExecutionPhase phase) {
         OrganizationReactor organizationReactor = organizationReactorRegistry.get(organizationId);
         if (organizationReactor instanceof DefaultOrganizationReactor defaultOrganizationReactor) {
             return defaultOrganizationReactor.policyChainFactory().create(flowChainId, flow, phase);

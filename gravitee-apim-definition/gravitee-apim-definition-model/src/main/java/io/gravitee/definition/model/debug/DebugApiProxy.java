@@ -13,14 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.domain_service;
+package io.gravitee.definition.model.debug;
 
-import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.HttpRequest;
+import io.gravitee.definition.model.HttpResponse;
 import java.util.List;
 
-public interface PlanSynchronizationService {
-    boolean checkSynchronized(Plan oldPlan, List<FlowV4Impl> oldFlows, Plan newPlan, List<FlowV4Impl> newFlows);
-    boolean checkNativePlanSynchronized(Plan oldPlan, List<NativeFlow> oldFlows, Plan newPlan, List<NativeFlow> newFlows);
+/**
+ * Interface to represent a debug API proxy.
+ * This interface needs to be implemented by all debug API proxy classes (V2 and V4)
+ */
+public interface DebugApiProxy {
+    HttpRequest getRequest();
+    HttpResponse getResponse();
+    List<DebugStep> getDebugSteps();
+    HttpResponse getBackendResponse();
+    PreprocessorStep getPreprocessorStep();
+    DebugMetrics getMetrics();
+
+    String getId();
+    DefinitionVersion getDefinitionVersion();
 }

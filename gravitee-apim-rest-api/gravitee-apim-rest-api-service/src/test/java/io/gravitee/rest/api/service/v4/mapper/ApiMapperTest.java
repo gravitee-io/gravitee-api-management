@@ -28,7 +28,7 @@ import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -120,7 +120,7 @@ public class ApiMapperTest {
         apiDefinition.setProperties(List.of(new Property("key", "value")));
         apiDefinition.setTags(Set.of("tag"));
         apiDefinition.setFlowExecution(new FlowExecution());
-        apiDefinition.setFlows(List.of(new Flow(), new Flow()));
+        apiDefinition.setFlows(List.of(new FlowV4Impl(), new FlowV4Impl()));
         apiDefinition.setResponseTemplates(Map.of("/", Map.of("/", new ResponseTemplate())));
         apiDefinition.setFailover(
             Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
@@ -273,7 +273,7 @@ public class ApiMapperTest {
         newApiEntity.setListeners(List.of(new HttpListener()));
         newApiEntity.setEndpointGroups(List.of(new EndpointGroup()));
         newApiEntity.setFlowExecution(new FlowExecution());
-        newApiEntity.setFlows(List.of(new Flow(), new Flow()));
+        newApiEntity.setFlows(List.of(new FlowV4Impl(), new FlowV4Impl()));
         newApiEntity.setFailover(
             Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
         );
@@ -309,7 +309,7 @@ public class ApiMapperTest {
         apiDefinition.setEndpointGroups(List.of(new EndpointGroup()));
         apiDefinition.setTags(Set.of("tag"));
         apiDefinition.setFlowExecution(new FlowExecution());
-        apiDefinition.setFlows(List.of(new Flow(), new Flow()));
+        apiDefinition.setFlows(List.of(new FlowV4Impl(), new FlowV4Impl()));
         apiDefinition.setFailover(
             Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
         );
@@ -338,7 +338,7 @@ public class ApiMapperTest {
         updateApiEntity.setListeners(List.of(new HttpListener()));
         updateApiEntity.setEndpointGroups(List.of(new EndpointGroup()));
         updateApiEntity.setFlowExecution(new FlowExecution());
-        updateApiEntity.setFlows(List.of(new Flow(), new Flow()));
+        updateApiEntity.setFlows(List.of(new FlowV4Impl(), new FlowV4Impl()));
         updateApiEntity.setMetadata(List.of(new ApiMetadataEntity()));
         updateApiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED);
         updateApiEntity.setDisableMembershipNotifications(true);
@@ -400,7 +400,7 @@ public class ApiMapperTest {
         );
         apiDefinition.setResources(List.of(new Resource()));
         apiDefinition.setFlowExecution(new FlowExecution());
-        apiDefinition.setFlows(List.of(new Flow(), new Flow()));
+        apiDefinition.setFlows(List.of(new FlowV4Impl(), new FlowV4Impl()));
         apiDefinition.setResponseTemplates(new HashMap<>());
         assertThat(api.getDefinition()).isEqualTo(objectMapper.writeValueAsString(apiDefinition));
     }
@@ -426,7 +426,7 @@ public class ApiMapperTest {
         apiEntity.setListeners(List.of(new HttpListener()));
         apiEntity.setEndpointGroups(List.of(new EndpointGroup()));
         apiEntity.setFlowExecution(new FlowExecution());
-        apiEntity.setFlows(List.of(new Flow(), new Flow()));
+        apiEntity.setFlows(List.of(new FlowV4Impl(), new FlowV4Impl()));
         apiEntity.setMetadata(Map.of("key", "value"));
         apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED);
         apiEntity.setDisableMembershipNotifications(true);
@@ -484,7 +484,7 @@ public class ApiMapperTest {
         apiDefinition.setProperties(null);
         apiDefinition.setResources(List.of(new Resource()));
         apiDefinition.setFlowExecution(new FlowExecution());
-        apiDefinition.setFlows(List.of(new Flow(), new Flow()));
+        apiDefinition.setFlows(List.of(new FlowV4Impl(), new FlowV4Impl()));
         apiDefinition.setResponseTemplates(new HashMap<>());
         apiDefinition.setFailover(
             Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()

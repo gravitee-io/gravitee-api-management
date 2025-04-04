@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.v4.flow;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import java.util.List;
 import org.junit.Before;
@@ -43,12 +43,12 @@ public class BestMatchFlowSelectorTest {
 
     @Test
     public void should_return_empty_string_when_flow_has_no_path() {
-        assertThat(cut.providePath(new Flow())).isEmpty();
+        assertThat(cut.providePath(new FlowV4Impl())).isEmpty();
     }
 
     @Test
     public void should_return_flow_path_when_http_selector() {
-        final Flow flow = new Flow();
+        final FlowV4Impl flow = new FlowV4Impl();
         final HttpSelector httpSelector = new HttpSelector();
         httpSelector.setPath("path");
         flow.setSelectors(List.of(httpSelector));

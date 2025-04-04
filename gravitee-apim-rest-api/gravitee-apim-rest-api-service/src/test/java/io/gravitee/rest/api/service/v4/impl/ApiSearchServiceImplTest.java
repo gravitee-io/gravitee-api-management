@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -236,11 +236,11 @@ public class ApiSearchServiceImplTest {
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        Flow flow1 = new Flow();
+        FlowV4Impl flow1 = new FlowV4Impl();
         flow1.setName("flow1");
-        Flow flow2 = new Flow();
+        FlowV4Impl flow2 = new FlowV4Impl();
         flow1.setName("flow2");
-        List<Flow> apiFlows = List.of(flow1, flow2);
+        List<FlowV4Impl> apiFlows = List.of(flow1, flow2);
         when(flowServiceV4.findByReference(FlowReferenceType.API, API_ID)).thenReturn(apiFlows);
 
         UserEntity userEntity = new UserEntity();

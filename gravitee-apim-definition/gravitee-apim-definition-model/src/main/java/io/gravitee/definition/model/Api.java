@@ -17,7 +17,7 @@ package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import java.io.Serializable;
@@ -77,7 +77,7 @@ public class Api implements Serializable {
     private Map<String, List<Rule>> paths;
 
     @JsonProperty("flows")
-    private List<Flow> flows;
+    private List<FlowV2Impl> flows;
 
     @JsonProperty("properties")
     private Properties properties;
@@ -114,8 +114,10 @@ public class Api implements Serializable {
 
     public void setPlans(List<Plan> plans) {
         this.plans.clear();
-        for (Plan plan : plans) {
-            this.plans.put(plan.getId(), plan);
+        if (plans != null) {
+            for (Plan plan : plans) {
+                this.plans.put(plan.getId(), plan);
+            }
         }
     }
 
@@ -129,7 +131,7 @@ public class Api implements Serializable {
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getFlows())
-                    .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
+                    .map(f -> f.stream().filter(FlowV2Impl::isEnabled).map(FlowV2Impl::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getPlans())

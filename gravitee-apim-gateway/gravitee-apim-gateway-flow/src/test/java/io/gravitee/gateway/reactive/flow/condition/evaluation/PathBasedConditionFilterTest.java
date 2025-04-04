@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.flow.condition.evaluation;
 
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpRequest;
@@ -44,7 +44,7 @@ class PathBasedConditionFilterTest {
     private HttpRequest request;
 
     @Mock
-    private Flow flow;
+    private FlowV2Impl flow;
 
     @BeforeEach
     void init() {
@@ -57,7 +57,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.EQUALS);
         when(flow.getPath()).thenReturn("/my/path2");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult();
     }
 
@@ -67,7 +67,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.EQUALS);
         when(flow.getPath()).thenReturn("/my/path");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult();
     }
 
@@ -77,7 +77,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.EQUALS);
         when(flow.getPath()).thenReturn("/my/path");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -87,7 +87,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.EQUALS);
         when(flow.getPath()).thenReturn("/my/path");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -97,7 +97,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.EQUALS);
         when(flow.getPath()).thenReturn("/my/path/");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -107,7 +107,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/my/path2");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult();
     }
 
@@ -117,7 +117,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/my/path");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -127,7 +127,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/my/path");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -137,7 +137,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/my/path/subpath/");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -147,7 +147,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -157,7 +157,7 @@ class PathBasedConditionFilterTest {
         when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
         when(flow.getPath()).thenReturn("/my/:param");
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 }

@@ -19,8 +19,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiTemplateVariables;
@@ -212,10 +213,10 @@ public class PlanMapper {
                 return planV2
                     .getFlows()
                     .stream()
-                    .filter(Flow::isEnabled)
+                    .filter(FlowV2Impl::isEnabled)
                     .flatMap(flow -> flow.getPre().stream())
                     .filter(step -> step.isEnabled() && Objects.equals(policyId, step.getPolicy()))
-                    .map(io.gravitee.definition.model.flow.Step::getConfiguration)
+                    .map(Step::getConfiguration)
                     .toList();
             }
             case V4 -> {
@@ -226,7 +227,7 @@ public class PlanMapper {
                 return planV4
                     .getFlows()
                     .stream()
-                    .filter(io.gravitee.definition.model.v4.flow.Flow::isEnabled)
+                    .filter(FlowV4Impl::isEnabled)
                     .flatMap(flow -> flow.getRequest().stream())
                     .filter(step -> step.isEnabled() && Objects.equals(policyId, step.getPolicy()))
                     .map(Step::getConfiguration)

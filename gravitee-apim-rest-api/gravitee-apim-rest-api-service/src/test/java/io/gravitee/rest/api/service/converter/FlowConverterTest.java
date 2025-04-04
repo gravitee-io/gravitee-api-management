@@ -15,14 +15,18 @@
  */
 package io.gravitee.rest.api.service.converter;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
@@ -52,13 +56,13 @@ public class FlowConverterTest {
     }
 
     private static List<Step> pre() {
-        Step step = new Step();
+        StepV2 step = new StepV2();
         step.setEnabled(true);
         step.setName("IPFiltering");
         step.setPolicy("ip-filtering");
         step.setConfiguration("{\"whitelistIps\":[\"0.0.0.0/0\"]}");
 
-        Step step2 = new Step();
+        StepV2 step2 = new StepV2();
         step2.setEnabled(true);
         step2.setName("HTTP Callout");
         step2.setPolicy("http-callout");
@@ -67,7 +71,7 @@ public class FlowConverterTest {
     }
 
     private static List<Step> post() {
-        Step step = new Step();
+        StepV2 step = new StepV2();
         step.setEnabled(true);
         step.setName("Transform Headers");
         step.setPolicy("transform-headers");
@@ -77,7 +81,7 @@ public class FlowConverterTest {
 
     @Test
     public void to_model_should_initialize_non_nullable_fields() {
-        Flow flowDefinition = new Flow();
+        FlowV2Impl flowDefinition = new FlowV2Impl();
         flowDefinition.setName("platform");
         flowDefinition.setPathOperator(pathOperator());
         flowDefinition.setConsumers(consumers());
@@ -101,7 +105,7 @@ public class FlowConverterTest {
 
     @Test
     public void to_model_should_keep_the_step_order() {
-        Flow flowDefinition = new Flow();
+        FlowV2Impl flowDefinition = new FlowV2Impl();
         flowDefinition.setPre(pre());
 
         var model = converter.toRepository(flowDefinition, FlowReferenceType.ORGANIZATION, "DEFAULT", 0);
@@ -122,7 +126,7 @@ public class FlowConverterTest {
         flow.setOperator(FlowOperator.STARTS_WITH);
         flow.setConsumers(List.of());
 
-        Flow flowDefinition = converter.toDefinition(flow);
+        FlowV2Impl flowDefinition = converter.toDefinition(flow);
 
         assertNotNull(flowDefinition.getPathOperator());
         assertEquals(expectedOperator.getOperator(), flowDefinition.getPathOperator().getOperator());
@@ -139,7 +143,7 @@ public class FlowConverterTest {
         flowStep.setName("test-name");
         flowStep.setConfiguration("{}");
 
-        Step step = converter.toDefinitionStep(flowStep);
+        StepV2 step = converter.toDefinitionStep(flowStep);
 
         assertEquals(flowStep.getPolicy(), step.getPolicy());
         assertEquals(flowStep.getDescription(), step.getDescription());
@@ -155,7 +159,7 @@ public class FlowConverterTest {
         flowStep.setPolicy("test-policy");
         flowStep.setConfiguration("{\"key\": \"value\"}");
 
-        Step step = converter.toDefinitionStep(flowStep);
+        StepV2 step = converter.toDefinitionStep(flowStep);
         assertEquals("{\"key\":\"value\"}", step.getConfiguration());
     }
 
@@ -165,7 +169,7 @@ public class FlowConverterTest {
         flowStep.setPolicy("test-policy");
         flowStep.setConfiguration("{\"key\": \"<\\/value\\nvalue>\"}");
 
-        Step step = converter.toDefinitionStep(flowStep);
+        StepV2 step = converter.toDefinitionStep(flowStep);
         assertEquals("{\"key\":\"</value\\nvalue>\"}", step.getConfiguration());
     }
 
@@ -179,7 +183,7 @@ public class FlowConverterTest {
         flow.setConsumers(List.of());
         flow.setPre(definitionPre());
 
-        Flow flowDefinition = converter.toDefinition(flow);
+        FlowV2Impl flowDefinition = converter.toDefinition(flow);
 
         assertEquals(2, flowDefinition.getPre().size());
         assertEquals("IPFiltering", flowDefinition.getPre().get(0).getName());
@@ -204,7 +208,7 @@ public class FlowConverterTest {
         flow.setConsumers(List.of());
         flow.setPre(List.of(flowStep));
 
-        Flow convertedFlow = converter.toDefinition(flow);
+        FlowV2Impl convertedFlow = converter.toDefinition(flow);
         assertNull(convertedFlow.getName());
         assertNull(convertedFlow.getCondition());
         assertNull(convertedFlow.getPre().get(0).getDescription());

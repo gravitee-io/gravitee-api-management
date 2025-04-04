@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.flow.condition.evaluation;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 
@@ -25,10 +25,10 @@ import io.gravitee.gateway.core.condition.ConditionEvaluator;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ExpressionLanguageFlowConditionEvaluator implements ConditionEvaluator<Flow> {
+public class ExpressionLanguageFlowConditionEvaluator implements ConditionEvaluator<FlowV2Impl> {
 
     @Override
-    public boolean evaluate(ExecutionContext context, Flow flow) {
+    public boolean evaluate(ExecutionContext context, FlowV2Impl flow) {
         if (flow.getCondition() != null && !flow.getCondition().isEmpty()) {
             return context.getTemplateEngine().getValue(flow.getCondition(), Boolean.class);
         }

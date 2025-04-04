@@ -17,7 +17,7 @@ package io.gravitee.gateway.debug.utils;
 
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.repository.management.model.Event;
@@ -30,8 +30,8 @@ import java.util.HashMap;
  */
 public class Stubs {
 
-    public static io.gravitee.definition.model.debug.DebugApi getADebugApiDefinition() {
-        final io.gravitee.definition.model.debug.DebugApi debugApi = new io.gravitee.definition.model.debug.DebugApi();
+    public static DebugApiV2 getADebugApiDefinition() {
+        final DebugApiV2 debugApi = new DebugApiV2();
 
         final Proxy proxy = new Proxy();
         proxy.setVirtualHosts(new ArrayList<>());

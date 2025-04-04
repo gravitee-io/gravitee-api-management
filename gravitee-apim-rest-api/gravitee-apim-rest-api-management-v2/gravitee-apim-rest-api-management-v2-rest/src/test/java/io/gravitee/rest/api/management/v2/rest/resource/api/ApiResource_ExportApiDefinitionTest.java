@@ -40,11 +40,11 @@ import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -243,11 +243,11 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
             .build();
         var endpointGroup = EndpointGroup.builder().type("http-get").endpoints(List.of(endpoint)).build();
 
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         flow.setName("flowName");
         flow.setEnabled(true);
 
-        Step step = new Step();
+        StepV4 step = new StepV4();
         step.setEnabled(true);
         step.setPolicy("my-policy");
         step.setCondition("my-condition");
@@ -292,7 +292,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         var endpointGroup = NativeEndpointGroup.builder().type("kafka").endpoints(List.of(endpoint)).build();
 
         var kafkaListener = KafkaListener.builder().host("my.fake.host").build();
-        var step = Step.builder().enabled(true).policy("my-policy").condition("my-condition").build();
+        var step = StepV4.builder().enabled(true).policy("my-policy").condition("my-condition").build();
 
         var flow = NativeFlow.builder().name("flowName").enabled(true).interact(List.of(step)).tags(Set.of("tag1", "tag2")).build();
 
@@ -347,7 +347,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     }
 
     private Set<PlanDescriptor.V4> fakeApiPlansV4() {
-        Step step = new Step();
+        StepV4 step = new StepV4();
         step.setName("stepName");
         step.setDescription("stepDescription");
         step.setConfiguration("{\n \"nice\" : \"configuration\"\n}");
@@ -356,7 +356,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         step.setEnabled(true);
         step.setMessageCondition("stepMessageCondition");
 
-        Flow planFlow = new Flow();
+        FlowV4Impl planFlow = new FlowV4Impl();
         planFlow.setEnabled(true);
         planFlow.setName("planFlowName");
         planFlow.setPublish(null);
@@ -402,7 +402,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     }
 
     private Set<PlanDescriptor.Native> fakeApiPlansNative() {
-        Step step = new Step();
+        StepV4 step = new StepV4();
         step.setName("stepName");
         step.setDescription("stepDescription");
         step.setConfiguration("{\n \"nice\" : \"configuration\"\n}");

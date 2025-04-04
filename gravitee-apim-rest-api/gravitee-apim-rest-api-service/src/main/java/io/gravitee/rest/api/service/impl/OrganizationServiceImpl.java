@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
@@ -220,7 +220,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         organizationEntity.setDescription(organization.getDescription());
         FlowMode flowMode = organization.getFlowMode() != null ? FlowMode.valueOf(organization.getFlowMode()) : FlowMode.DEFAULT;
         organizationEntity.setFlowMode(flowMode);
-        List<Flow> flows = flowService.findByReference(FlowReferenceType.ORGANIZATION, organization.getId());
+        List<FlowV2Impl> flows = flowService.findByReference(FlowReferenceType.ORGANIZATION, organization.getId());
         organizationEntity.setFlows(flows);
         return organizationEntity;
     }

@@ -20,10 +20,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
@@ -53,7 +54,7 @@ public class FlowMapperTest {
     }
 
     private static List<Step> request() {
-        Step step = new Step();
+        StepV4 step = new StepV4();
         step.setEnabled(true);
         step.setName("IPFiltering");
         step.setPolicy("ip-filtering");
@@ -64,7 +65,7 @@ public class FlowMapperTest {
     }
 
     private static List<Step> response() {
-        Step step = new Step();
+        StepV4 step = new StepV4();
         step.setEnabled(true);
         step.setName("Transform Headers");
         step.setPolicy("transform-headers");
@@ -76,7 +77,7 @@ public class FlowMapperTest {
 
     @Test
     public void toRepositoryShouldInitializeNonNullableFields() {
-        Flow flowDefinition = new Flow();
+        FlowV4Impl flowDefinition = new FlowV4Impl();
         flowDefinition.setName("platform");
         flowDefinition.setSelectors(selectors());
         flowDefinition.setTags(tags());
@@ -116,7 +117,7 @@ public class FlowMapperTest {
         flow.setSelectors(List.of(flowHttpSelector));
         flow.setTags(Set.of());
 
-        Flow flowDefinition = flowMapper.toDefinition(flow);
+        FlowV4Impl flowDefinition = flowMapper.toDefinition(flow);
 
         assertNotNull(flowDefinition.getSelectors());
         assertEquals(selectors, flowDefinition.getSelectors());

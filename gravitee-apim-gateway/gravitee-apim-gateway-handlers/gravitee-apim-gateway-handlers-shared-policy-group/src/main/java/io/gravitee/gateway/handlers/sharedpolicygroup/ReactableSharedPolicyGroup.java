@@ -16,7 +16,7 @@
 package io.gravitee.gateway.handlers.sharedpolicygroup;
 
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
@@ -83,7 +83,7 @@ public class ReactableSharedPolicyGroup implements Reactable, Serializable {
         return definition
             .getPolicies()
             .stream()
-            .filter(Step::isEnabled)
+            .filter(StepV4::isEnabled)
             .map(step -> {
                 Policy policy = new Policy();
                 policy.setName(step.getPolicy());

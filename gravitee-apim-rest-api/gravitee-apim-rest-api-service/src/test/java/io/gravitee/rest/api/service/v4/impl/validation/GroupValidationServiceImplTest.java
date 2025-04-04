@@ -19,7 +19,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -34,7 +33,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
-import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;

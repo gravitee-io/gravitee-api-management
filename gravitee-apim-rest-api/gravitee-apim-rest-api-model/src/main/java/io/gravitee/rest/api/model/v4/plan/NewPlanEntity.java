@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -75,7 +75,7 @@ public class NewPlanEntity {
     private PlanStatus status = PlanStatus.STAGING;
 
     @JsonProperty(required = true)
-    private List<Flow> flows = new ArrayList<>();
+    private List<FlowV4Impl> flows = new ArrayList<>();
 
     private List<String> characteristics;
 

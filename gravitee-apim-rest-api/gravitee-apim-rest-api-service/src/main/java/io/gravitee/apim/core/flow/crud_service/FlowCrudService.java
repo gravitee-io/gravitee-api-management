@@ -15,22 +15,23 @@
  */
 package io.gravitee.apim.core.flow.crud_service;
 
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.List;
 
 public interface FlowCrudService {
-    List<Flow> savePlanFlows(String planId, List<Flow> flows);
+    List<FlowV4Impl> savePlanFlows(String planId, List<FlowV4Impl> flows);
 
-    List<Flow> saveApiFlows(String apiId, List<Flow> flows);
+    List<FlowV4Impl> saveApiFlows(String apiId, List<FlowV4Impl> flows);
 
-    List<Flow> getApiV4Flows(String apiId);
+    List<FlowV4Impl> getApiV4Flows(String apiId);
 
-    List<Flow> getPlanV4Flows(String planId);
+    List<FlowV4Impl> getPlanV4Flows(String planId);
 
-    List<io.gravitee.definition.model.flow.Flow> getApiV2Flows(String apiId);
+    List<FlowV2Impl> getApiV2Flows(String apiId);
 
-    List<io.gravitee.definition.model.flow.Flow> getPlanV2Flows(String planId);
+    List<FlowV2Impl> getPlanV2Flows(String planId);
 
     //    Native APIs
     List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows);

@@ -19,7 +19,7 @@ import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.secrets.api.discovery.Definition;
@@ -63,7 +63,7 @@ public class ApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRefFinde
         safeStream(definition.getResources()).forEach(resource -> processResource(listener, resource));
 
         // flows api and plan
-        List<Flow> flows = safeList(definition.getPlans())
+        List<FlowV4Impl> flows = safeList(definition.getPlans())
             .stream()
             .flatMap(p -> safeStream(p.getFlows()))
             .collect(Collectors.toCollection(ArrayList::new));

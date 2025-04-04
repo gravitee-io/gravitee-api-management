@@ -16,16 +16,18 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Step;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -67,7 +69,7 @@ public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest
         List<HttpMethod> firstRuleMethods,
         String firstRuleDescription
     ) {
-        List<Flow> flows = api.getFlows().stream().filter(flow1 -> flow1.getPath().equals(path)).collect(Collectors.toList());
+        List<FlowV2Impl> flows = api.getFlows().stream().filter(flow1 -> flow1.getPath().equals(path)).collect(Collectors.toList());
         //        assertEquals(1, flows.size());
         assertEquals(expectedRuleSize, flows.get(0).getPre().size());
         assertTrue(flows.get(0).getMethods().containsAll(firstRuleMethods));

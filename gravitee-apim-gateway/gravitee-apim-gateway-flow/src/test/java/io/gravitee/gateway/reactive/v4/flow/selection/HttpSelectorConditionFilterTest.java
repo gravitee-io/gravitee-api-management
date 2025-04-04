@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
@@ -54,7 +54,7 @@ class HttpSelectorConditionFilterTest {
     private EntrypointConnector entrypointConnector;
 
     @Mock
-    private Flow flow;
+    private FlowV4Impl flow;
 
     @BeforeEach
     void init() {
@@ -66,7 +66,7 @@ class HttpSelectorConditionFilterTest {
     void shouldNotFilterWithNoHttpSelector() {
         when(flow.selectorByType(SelectorType.HTTP)).thenReturn(Optional.empty());
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
 
         obs.assertResult(flow);
     }
@@ -77,7 +77,7 @@ class HttpSelectorConditionFilterTest {
         HttpSelector httpSelector = new HttpSelector();
         when(flow.selectorByType(SelectorType.HTTP)).thenReturn(Optional.of(httpSelector));
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -89,7 +89,7 @@ class HttpSelectorConditionFilterTest {
         httpSelector.setPathOperator(Operator.EQUALS);
         when(flow.selectorByType(SelectorType.HTTP)).thenReturn(Optional.of(httpSelector));
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -101,7 +101,7 @@ class HttpSelectorConditionFilterTest {
         httpSelector.setPathOperator(Operator.EQUALS);
         when(flow.selectorByType(SelectorType.HTTP)).thenReturn(Optional.of(httpSelector));
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -113,7 +113,7 @@ class HttpSelectorConditionFilterTest {
         httpSelector.setPathOperator(Operator.EQUALS);
         when(flow.selectorByType(SelectorType.HTTP)).thenReturn(Optional.of(httpSelector));
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult();
     }
 
@@ -125,7 +125,7 @@ class HttpSelectorConditionFilterTest {
         httpSelector.setMethods(Set.of(HttpMethod.GET));
         when(flow.selectorByType(SelectorType.HTTP)).thenReturn(Optional.of(httpSelector));
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult(flow);
     }
 
@@ -136,7 +136,7 @@ class HttpSelectorConditionFilterTest {
         httpSelector.setMethods(Set.of(HttpMethod.GET));
         when(flow.selectorByType(SelectorType.HTTP)).thenReturn(Optional.of(httpSelector));
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult();
     }
 }

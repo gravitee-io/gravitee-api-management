@@ -16,12 +16,13 @@
 package io.gravitee.rest.api.service.v4.mapper;
 
 import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
@@ -45,11 +46,11 @@ public class FlowMapper {
 
     private static final String FLOW_TO_MAP_CANNOT_BE_NULL = "Flow to map cannot be null";
 
-    public Flow toDefinition(io.gravitee.repository.management.model.flow.Flow repositoryFlow) {
+    public FlowV4Impl toDefinition(io.gravitee.repository.management.model.flow.Flow repositoryFlow) {
         if (repositoryFlow == null) {
             throw new IllegalArgumentException(FLOW_TO_MAP_CANNOT_BE_NULL);
         }
-        Flow definitionFlow = new Flow();
+        FlowV4Impl definitionFlow = new FlowV4Impl();
         definitionFlow.setId(repositoryFlow.getId());
         definitionFlow.setName(repositoryFlow.getName());
         definitionFlow.setEnabled(repositoryFlow.isEnabled());
@@ -79,7 +80,7 @@ public class FlowMapper {
     }
 
     public io.gravitee.repository.management.model.flow.Flow toRepository(
-        final Flow definitionFlow,
+        final FlowV4Impl definitionFlow,
         final FlowReferenceType referenceType,
         final String referenceId,
         final int order
@@ -129,8 +130,8 @@ public class FlowMapper {
         return repositoryStep;
     }
 
-    private Step toDefinition(final FlowStep repositoryStep) {
-        Step definitionStep = new Step();
+    private StepV4 toDefinition(final FlowStep repositoryStep) {
+        StepV4 definitionStep = new StepV4();
         definitionStep.setPolicy(repositoryStep.getPolicy());
         definitionStep.setName(repositoryStep.getName());
         definitionStep.setEnabled(repositoryStep.isEnabled());

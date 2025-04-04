@@ -64,11 +64,11 @@ import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -735,7 +735,7 @@ public class ApiServiceImplTest {
     public void shouldUpdateFlows() throws TechnicalException {
         prepareUpdate();
 
-        List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
+        List<FlowV4Impl> apiFlows = List.of(mock(FlowV4Impl.class), mock(FlowV4Impl.class));
         updateApiEntity.setFlows(apiFlows);
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
@@ -1284,11 +1284,11 @@ public class ApiServiceImplTest {
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));
 
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         flow.setName("flowName");
         flow.setEnabled(true);
 
-        Step step = new Step();
+        StepV4 step = new StepV4();
         step.setEnabled(true);
         step.setPolicy("my-policy");
         step.setCondition("my-condition");

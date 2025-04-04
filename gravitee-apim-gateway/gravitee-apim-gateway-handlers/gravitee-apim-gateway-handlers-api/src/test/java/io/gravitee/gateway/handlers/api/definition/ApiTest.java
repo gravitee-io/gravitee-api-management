@@ -19,22 +19,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiTest {
 
     @Test
     public void shouldFilterDisabledFlowPreStep() {
         io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
         Api api = new Api(definition);
-        Flow flow = new Flow();
+        FlowV2Impl flow = new FlowV2Impl();
         flow.setPre(aStepList());
         definition.setFlows(List.of(flow));
 
@@ -47,7 +48,7 @@ public class ApiTest {
     public void shouldFilterDisabledFlowPostStep() {
         io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
         Api api = new Api(definition);
-        Flow flow = new Flow();
+        FlowV2Impl flow = new FlowV2Impl();
         flow.setPost(aStepList());
         definition.setFlows(List.of(flow));
 
@@ -60,7 +61,7 @@ public class ApiTest {
     public void shouldFilterDisabledPlanFlowPreStep() {
         io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
         Api api = new Api(definition);
-        Flow flow = new Flow();
+        FlowV2Impl flow = new FlowV2Impl();
         flow.setPre(aStepList());
         Plan plan = aPlan(List.of(flow));
         definition.setPlans(List.of(plan));
@@ -74,7 +75,7 @@ public class ApiTest {
     public void shouldFilterDisabledPlanFlowPostStep() {
         io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
         Api api = new Api(definition);
-        Flow flow = new Flow();
+        FlowV2Impl flow = new FlowV2Impl();
         flow.setPost(aStepList());
         Plan plan = aPlan(List.of(flow));
         definition.setPlans(List.of(plan));
@@ -92,7 +93,7 @@ public class ApiTest {
 
         Set<Policy> result = api.dependencies(Policy.class);
 
-        assertThat(result).hasSize(0);
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -108,16 +109,12 @@ public class ApiTest {
     }
 
     private List<Step> aStepList() {
-        Step enabledPreStep = new Step();
-        enabledPreStep.setPolicy("enabledPolicy");
-        enabledPreStep.setEnabled(true);
-        Step disabledPreStep = new Step();
-        disabledPreStep.setName("disabledPolicy");
-        disabledPreStep.setEnabled(false);
+        StepV2 enabledPreStep = StepV2.builder().enabled(true).policy("enabledPolicy").build();
+        StepV2 disabledPreStep = StepV2.builder().enabled(false).policy("disabledPolicy").build();
         return List.of(enabledPreStep, disabledPreStep);
     }
 
-    private Plan aPlan(List<Flow> flowList) {
+    private Plan aPlan(List<FlowV2Impl> flowList) {
         Plan plan = new Plan();
         plan.setPaths(null);
         plan.setSecurity("KEY_LESS");
@@ -125,10 +122,10 @@ public class ApiTest {
         return plan;
     }
 
-    private List<Flow> aFlowList() {
-        Flow enabledFlow = new Flow();
+    private List<FlowV2Impl> aFlowList() {
+        FlowV2Impl enabledFlow = new FlowV2Impl();
         enabledFlow.setEnabled(true);
-        Flow disabledFlow = new Flow();
+        FlowV2Impl disabledFlow = new FlowV2Impl();
         disabledFlow.setPre(aStepList());
         disabledFlow.setEnabled(false);
         return List.of(enabledFlow, disabledFlow);

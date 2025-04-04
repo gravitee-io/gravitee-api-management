@@ -18,22 +18,21 @@ package io.gravitee.definition.jackson.datatype.api.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class StepSerializer extends StdScalarSerializer<Step> {
+public class StepV2Serializer extends StdScalarSerializer<StepV2> {
 
-    public StepSerializer(Class<Step> vc) {
+    public StepV2Serializer(Class<StepV2> vc) {
         super(vc);
     }
 
     @Override
-    public void serialize(Step step, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(StepV2 step, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("name", step.getName());
         if (step.getDescription() != null) {

@@ -15,9 +15,8 @@
  */
 package io.gravitee.gateway.reactive.flow;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
-import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.reactivex.rxjava3.core.Flowable;
 
 /**
@@ -31,9 +30,9 @@ public interface FlowResolver<C extends BaseExecutionContext> {
      * The implementation can decide to cache the list of flows or evaluate it against the current context.
      *
      * @param ctx the current context
-     * @return a {@link Flowable} of {@link Flow}.
+     * @return a {@link Flowable} of {@link FlowV2Impl}.
      */
-    Flowable<Flow> provideFlows(final C ctx);
+    Flowable<FlowV2Impl> provideFlows(final C ctx);
 
     /**
      * Resolve the flows against the current context.
@@ -42,7 +41,7 @@ public interface FlowResolver<C extends BaseExecutionContext> {
      * Initial flow list must be provided by a concrete implementation of {@link #provideFlows(BaseExecutionContext)}.
      *
      * @param ctx the current context.
-     * @return a {@link Flowable} of {@link Flow} that have passed the filter step.
+     * @return a {@link Flowable} of {@link FlowV2Impl} that have passed the filter step.
      */
-    Flowable<Flow> resolve(final C ctx);
+    Flowable<FlowV2Impl> resolve(final C ctx);
 }

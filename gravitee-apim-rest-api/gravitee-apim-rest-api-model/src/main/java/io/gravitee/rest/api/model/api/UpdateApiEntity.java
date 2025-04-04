@@ -27,7 +27,7 @@ import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
@@ -94,7 +94,7 @@ public class UpdateApiEntity {
 
     @JsonProperty(value = "flows")
     @Schema(description = "a list of flows (the policies configuration)")
-    private List<Flow> flows = new ArrayList<>();
+    private List<FlowV2Impl> flows = new ArrayList<>();
 
     @JsonProperty(value = "plans")
     @Schema(description = "a list of plans with flows (the policies configuration)")
