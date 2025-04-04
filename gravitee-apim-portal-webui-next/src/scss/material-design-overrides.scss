@@ -29,6 +29,8 @@ mat-chip {
 mat-card {
   --mdc-elevated-card-container-elevation: 0;
   --mdc-outlined-card-container-color: #{theme.$card-background-color};
+  --mdc-outlined-card-container-shape: #{theme.$card-container-shape};
+  --mdc-elevated-card-container-shape: #{theme.$card-container-shape};
 }
 
 mat-dialog-container {
@@ -39,6 +41,7 @@ mat-form-field {
   --mdc-filled-text-field-container-color: #{m3-adapter.$surface-variant};
   --mdc-filled-text-field-disabled-container-color: #{m3-adapter.$surface-variant};
   --mdc-filled-text-field-disabled-input-text-color: var(--mdc-filled-text-field-input-text-color);
+  --mdc-outlined-text-field-container-color: #{theme.$card-background-color};
 }
 
 mat-expansion-panel {
@@ -47,11 +50,15 @@ mat-expansion-panel {
 
 table.mat-mdc-table {
   --mat-table-row-item-outline-color: #{theme.$table-border-color};
-  --mat-table-background-color: color-mix(in srgb, #{m3-adapter.$surface-variant} 30%, transparent);
+  --mat-table-background-color: #{theme.$table-header-background-color};
 
   overflow: hidden;
   border: 1px solid theme.$table-border-color;
-  border-radius: 16px;
+  border-radius: #{theme.$card-container-shape};
+
+  th {
+    color: theme.$default-text-contrast-color;
+  }
 
   tbody {
     background: theme.$card-background-color;
@@ -64,4 +71,10 @@ table.mat-mdc-table {
 
 mat-datepicker-content.mat-datepicker-content.mat-primary {
   --mat-datepicker-calendar-container-background-color: #{theme.$calendar-background-color};
+}
+
+button,
+a {
+  --mdc-outlined-button-container-shape: #{theme.$button-container-shape};
+  --mdc-filled-button-container-shape: #{theme.$button-container-shape};
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @use 'sass:map';
-@use '../../scss/theme/theme' as *;
+@use '../../scss/theme' as theme;
 
 :host {
   --mat-form-field-subscript-text-line-height: 0;
@@ -25,19 +25,12 @@
   display: flex;
 
   &__form {
-    margin-left: auto;
-
-    --mdc-filled-text-field-active-indicator-color: transparent;
-    --mdc-filled-text-field-focus-active-indicator-color: transparent;
-    --mdc-filled-text-field-hover-active-indicator-color: transparent;
-    --mdc-filled-text-field-container-shape: 28px;
+    --mdc-outlined-text-field-container-shape: #{theme.$search-bar-container-shape};
+    --mat-form-field-leading-icon-color: #{theme.$primary-main-color};
   }
 }
 
-::ng-deep {
-  .search-input {
-    .mdc-text-field {
-      border-radius: 28px;
-    }
-  }
+button[mat-icon-button] {
+  margin-right: 6px;
+  margin-left: 2px;
 }

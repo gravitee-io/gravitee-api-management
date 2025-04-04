@@ -20,7 +20,7 @@
   z-index: 99;
   top: 0;
   backdrop-filter: blur(10px);
-  background-color: color-mix(in srgb, theme.$background-color, transparent 20%);
+  background-color: theme.$nav-bar-background-color;
 }
 
 .nav-bar__container {
@@ -37,7 +37,7 @@
 .menu-items {
   display: flex;
   flex: 1 1 100%;
-  gap: 8px;
+  gap: 16px;
 
   &__custom_link {
     width: max-content;

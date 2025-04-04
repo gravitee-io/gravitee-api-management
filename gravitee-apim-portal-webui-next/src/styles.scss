@@ -41,15 +41,17 @@
 
 html {
   @include mat.all-component-themes(theme.$light-theme);
+
+  overflow-y: scroll;
 }
 
 body {
   --mat-app-background-color: #{theme.$background-color};
+  --mat-menu-container-color: #{theme.$card-background-color};
 
   margin: 0;
   background-color: theme.$background-color;
   font-family: theme.$font-family;
-  overflow-y: scroll;
 
   .main-container-wrapper,
   app-footer {

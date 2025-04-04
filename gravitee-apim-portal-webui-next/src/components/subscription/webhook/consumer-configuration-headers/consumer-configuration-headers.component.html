@@ -24,7 +24,7 @@
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef i18n="@@subscriptionConfigurationHeaderName">Name</th>
         <td mat-cell *matCellDef="let control; let i = index" [formGroupName]="i">
-          <mat-form-field class="form-headers__table__form-field">
+          <mat-form-field appearance="outline" class="form-headers__table__form-field">
             <input
               [id]="'header-name-' + i"
               formControlName="name"
@@ -49,7 +49,7 @@
       <ng-container matColumnDef="value">
         <th mat-header-cell *matHeaderCellDef i18n="@@subscriptionConfigurationHeaderValue">Value</th>
         <td mat-cell *matCellDef="let control; let i = index" [formGroupName]="i">
-          <mat-form-field class="form-headers__table__form-field"
+          <mat-form-field appearance="outline" class="form-headers__table__form-field"
             ><input [id]="'header-value-' + i" formControlName="value" matInput placeholder="Value..."
           /></mat-form-field>
         </td>

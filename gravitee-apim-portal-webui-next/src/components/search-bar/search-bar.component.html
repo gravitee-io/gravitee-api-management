@@ -16,13 +16,14 @@
 
 -->
 <div class="search-input">
-  <mat-form-field class="search-input__form">
-    <mat-icon matPrefix>{{ searchControl.value ? 'arrow_backword' : 'search' }}</mat-icon>
-    <input matInput [formControl]="searchControl" placeholder="Search..." i18n-placeholder="@@searchPlaceholder" />
+  <mat-form-field appearance="outline" class="search-input__form">
     @if (searchControl.value) {
-      <button matSuffix mat-icon-button aria-label="Clear" (click)="searchControl.reset()">
+      <button matPrefix mat-icon-button aria-label="Clear" (click)="searchControl.reset()">
         <mat-icon>close</mat-icon>
       </button>
+    } @else {
+      <mat-icon matPrefix>search</mat-icon>
     }
+    <input matInput [formControl]="searchControl" placeholder="Search..." i18n-placeholder="@@searchPlaceholder" />
   </mat-form-field>
 </div>

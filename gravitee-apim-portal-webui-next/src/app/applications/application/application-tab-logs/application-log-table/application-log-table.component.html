@@ -87,14 +87,14 @@
           }
         </mat-select>
       </mat-form-field>
-    </div>
-    <div class="filters__row-one__btn">
-      <button mat-stroked-button (click)="openMoreFiltersDialog()" aria-label="Add more filters">
-        <mat-icon>filter_alt</mat-icon><span i18n="@@applicatonLogsMoreFilters">More</span>
-      </button>
-      <button mat-flat-button color="primary" (click)="search()" [disabled]="filtersPristine()" aria-label="Apply filters">
-        <mat-icon>search</mat-icon><span i18n="@@applicatonLogsSearch">Search</span>
-      </button>
+      <div class="filters__row-one__btn">
+        <button mat-stroked-button (click)="openMoreFiltersDialog()" aria-label="Add more filters">
+          <mat-icon>filter_alt</mat-icon><span i18n="@@applicatonLogsMoreFilters">More</span>
+        </button>
+        <button mat-flat-button color="primary" (click)="search()" [disabled]="filtersPristine()" aria-label="Apply filters">
+          <mat-icon>search</mat-icon><span i18n="@@applicatonLogsSearch">Search</span>
+        </button>
+      </div>
     </div>
   </div>
   <div class="filters__row-two">

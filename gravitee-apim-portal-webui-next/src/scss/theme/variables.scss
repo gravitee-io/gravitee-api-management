@@ -20,8 +20,12 @@ Global variables
 
 $font-family: var(--gio-app-font-family);
 $background-color: var(--gio-app-background-color);
+$nav-bar-background-color: var(--gio-app-nav-bar-container-color, color-mix(in srgb, $background-color, transparent 20%));
 $card-background-color: var(--gio-app-card-background-color);
-$default-text-color: #1d192b;
+$card-container-shape: var(--gio-app-card-container-shape, 4px);
+$button-container-shape: var(--gio-app-button-container-shape, 4px);
+$default-text-color: var(--gio-app-font-color, #1d192b);
+$default-text-contrast-color: var(--gio-app-font-contrast-color, #fff);
 $paragraph-color: color-mix(in srgb, $default-text-color 75%, transparent);
 
 // HSL values calculated in theme.service.ts
@@ -35,9 +39,10 @@ Component variables
  */
 $banner-background-color: var(--mdc-list-list-item-leading-avatar-color);
 $banner-text-color: var(--mdc-outlined-text-field-focus-label-text-color);
-$chip-background: color-mix(in srgb, $primary-main-color 20%, transparent);
+$chip-background: var(--gio-app-chip-container-color, $card-background-color);
 $table-border-color: color-mix(in srgb, $secondary-main-color 35%, transparent);
-$table-header-background-color: color-mix(in srgb, $banner-background-color 8%, transparent);
-$table-border-radius: var(--gio-app-table-border-radius, 4px);
+$table-header-background-color: var(--gio-app-table-header-container-color, $secondary-main-color);
+$table-border-radius: var(--gio-app-table-container-shape, 4px);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
+$search-bar-container-shape: var(--gio-app-search-bar-container-shape, 4px);
