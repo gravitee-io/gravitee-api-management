@@ -24,7 +24,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.PathOperator;
-import io.gravitee.definition.model.flow.StepV2;
+import io.gravitee.definition.model.flow.Step;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,13 +77,13 @@ public class FlowV2Serializer extends StdScalarSerializer<FlowV2Impl> {
         jgen.writeEndArray();
 
         jgen.writeArrayFieldStart("pre");
-        for (StepV2 step : flow.getPre()) {
+        for (Step step : flow.getPre()) {
             jgen.writeObject(step);
         }
         jgen.writeEndArray();
 
         jgen.writeArrayFieldStart("post");
-        for (StepV2 step : flow.getPost()) {
+        for (Step step : flow.getPost()) {
             jgen.writeObject(step);
         }
         jgen.writeEndArray();

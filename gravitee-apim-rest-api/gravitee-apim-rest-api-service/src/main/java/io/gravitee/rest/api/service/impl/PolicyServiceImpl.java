@@ -19,7 +19,7 @@ import io.github.classgraph.ClassGraph;
 import io.github.classgraph.MethodInfoList;
 import io.github.classgraph.ScanResult;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.flow.StepV2;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginClassLoader;
@@ -103,7 +103,7 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
     }
 
     @Override
-    public void validatePolicyConfiguration(StepV2 step) {
+    public void validatePolicyConfiguration(Step step) {
         if (step != null) {
             step.setConfiguration(validatePolicyConfiguration(step.getPolicy(), step.getConfiguration()));
         }

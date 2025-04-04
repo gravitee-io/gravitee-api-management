@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.plan.Plan;
@@ -144,13 +145,9 @@ class ApiTest {
         return List.of(enabledFlow, disabledFlow);
     }
 
-    private List<StepV4> aStepList(String policy) {
-        StepV4 enabledPreStep = new StepV4();
-        enabledPreStep.setPolicy(policy);
-        enabledPreStep.setEnabled(true);
-        StepV4 disabledPreStep = new StepV4();
-        disabledPreStep.setName("disabled-" + policy);
-        disabledPreStep.setEnabled(false);
+    private List<Step> aStepList(String policy) {
+        StepV4 enabledPreStep = StepV4.builder().enabled(true).policy(policy).build();
+        StepV4 disabledPreStep = StepV4.builder().enabled(false).policy("disabled-" + policy).build();
         return List.of(enabledPreStep, disabledPreStep);
     }
 }

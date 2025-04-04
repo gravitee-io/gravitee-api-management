@@ -91,7 +91,7 @@ public class FlowV2Deserializer extends StdScalarDeserializer<FlowV2Impl> {
 
         JsonNode preNode = node.get("pre");
         if (preNode != null && preNode.isArray()) {
-            final List<StepV2> steps = new ArrayList<>();
+            final List<Step> steps = new ArrayList<>();
             preNode
                 .elements()
                 .forEachRemaining(jsonNode -> {
@@ -107,7 +107,7 @@ public class FlowV2Deserializer extends StdScalarDeserializer<FlowV2Impl> {
 
         JsonNode postNode = node.get("post");
         if (postNode != null && postNode.isArray()) {
-            final List<StepV2> steps = new ArrayList<>();
+            final List<Step> steps = new ArrayList<>();
             postNode
                 .elements()
                 .forEachRemaining(jsonNode -> {

@@ -22,6 +22,7 @@ import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.repository.management.model.flow.FlowConsumer;
 import io.gravitee.repository.management.model.flow.FlowConsumerType;
@@ -100,7 +101,7 @@ public class FlowConverter {
     }
 
     @NotNull
-    private List<FlowStep> toRepositoryFlowSteps(List<StepV2> steps) {
+    private List<FlowStep> toRepositoryFlowSteps(List<Step> steps) {
         if (steps == null) {
             return Collections.emptyList();
         }
@@ -126,7 +127,7 @@ public class FlowConverter {
     }
 
     @NotNull
-    private FlowStep toRepositoryStep(StepV2 step, int order) {
+    private FlowStep toRepositoryStep(Step step, int order) {
         FlowStep flowStep = new FlowStep();
         flowStep.setPolicy(step.getPolicy());
         flowStep.setName(step.getName());

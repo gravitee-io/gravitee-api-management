@@ -20,6 +20,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
@@ -52,7 +53,7 @@ public class FlowMapperTest {
         return Set.of("consumer");
     }
 
-    private static List<StepV4> request() {
+    private static List<Step> request() {
         StepV4 step = new StepV4();
         step.setEnabled(true);
         step.setName("IPFiltering");
@@ -63,7 +64,7 @@ public class FlowMapperTest {
         return List.of(step);
     }
 
-    private static List<StepV4> response() {
+    private static List<Step> response() {
         StepV4 step = new StepV4();
         step.setEnabled(true);
         step.setName("Transform Headers");

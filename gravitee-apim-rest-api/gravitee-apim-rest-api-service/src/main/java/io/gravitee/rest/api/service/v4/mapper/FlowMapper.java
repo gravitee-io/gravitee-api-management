@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.mapper;
 
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
@@ -117,7 +118,7 @@ public class FlowMapper {
         return repositoryFlow;
     }
 
-    private FlowStep toRepository(final StepV4 definitionStep) {
+    private FlowStep toRepository(final Step definitionStep) {
         FlowStep repositoryStep = new FlowStep();
         repositoryStep.setPolicy(definitionStep.getPolicy());
         repositoryStep.setName(definitionStep.getName());

@@ -15,13 +15,17 @@
  */
 package io.gravitee.rest.api.service.converter;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.PathOperator;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
@@ -51,7 +55,7 @@ public class FlowConverterTest {
         return List.of(consumer);
     }
 
-    private static List<StepV2> pre() {
+    private static List<Step> pre() {
         StepV2 step = new StepV2();
         step.setEnabled(true);
         step.setName("IPFiltering");
@@ -66,7 +70,7 @@ public class FlowConverterTest {
         return List.of(step, step2);
     }
 
-    private static List<StepV2> post() {
+    private static List<Step> post() {
         StepV2 step = new StepV2();
         step.setEnabled(true);
         step.setName("Transform Headers");

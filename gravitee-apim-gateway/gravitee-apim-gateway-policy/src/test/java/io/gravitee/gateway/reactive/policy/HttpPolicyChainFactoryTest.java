@@ -59,25 +59,25 @@ class HttpPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainForRequestPhase() {
         final Policy policy = mock(Policy.class);
-        final FlowV2Impl flow = mock(FlowV2Impl.class);
-        final StepV2 step1 = mock(StepV2.class);
-        final StepV2 step2 = mock(StepV2.class);
-
-        when(step1.isEnabled()).thenReturn(true);
-        when(step2.isEnabled()).thenReturn(true);
-        when(flow.getPre()).thenReturn(List.of(step1, step2));
+        final StepV2 step1 = StepV2
+            .builder()
+            .enabled(true)
+            .policy("policy-step1")
+            .configuration("config-step1")
+            .condition("condition-step1")
+            .build();
+        final StepV2 step2 = StepV2
+            .builder()
+            .enabled(true)
+            .policy("policy-step2")
+            .configuration("config-step2")
+            .condition("condition-step2")
+            .build();
+        final FlowV2Impl flow = FlowV2Impl.builder().pre(List.of(step1, step2)).build();
 
         when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy);
 
-        when(step1.getPolicy()).thenReturn("policy-step1");
-        when(step1.getConfiguration()).thenReturn("config-step1");
-        when(step1.getCondition()).thenReturn("condition-step1");
-
-        when(step2.getPolicy()).thenReturn("policy-step2");
-        when(step2.getConfiguration()).thenReturn("config-step2");
-        when(step2.getCondition()).thenReturn("condition-step2");
-
-        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
+        final HttpPolicyChain policyChain = cut.create("flow-chain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
         verify(policyManager, times(1))
@@ -107,21 +107,25 @@ class HttpPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainWithoutDisabledSteps() {
         final Policy policy = mock(Policy.class);
-        final FlowV2Impl flow = mock(FlowV2Impl.class);
-        final StepV2 step1 = mock(StepV2.class);
-        final StepV2 step2 = mock(StepV2.class);
-
-        when(step1.isEnabled()).thenReturn(false);
-        when(step2.isEnabled()).thenReturn(true);
-        when(flow.getPre()).thenReturn(List.of(step1, step2));
+        final StepV2 step1 = StepV2
+            .builder()
+            .enabled(false)
+            .policy("policy-step1")
+            .configuration("config-step1")
+            .condition("condition-step1")
+            .build();
+        final StepV2 step2 = StepV2
+            .builder()
+            .enabled(true)
+            .policy("policy-step2")
+            .configuration("config-step2")
+            .condition("condition-step2")
+            .build();
+        final FlowV2Impl flow = FlowV2Impl.builder().pre(List.of(step1, step2)).build();
 
         when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy);
 
-        when(step2.getPolicy()).thenReturn("policy-step2");
-        when(step2.getConfiguration()).thenReturn("config-step2");
-        when(step2.getCondition()).thenReturn("condition-step2");
-
-        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
+        final HttpPolicyChain policyChain = cut.create("flow-chain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
         verify(policyManager, times(1))
@@ -141,26 +145,26 @@ class HttpPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainOnceAndPutInCache() {
         final Policy policy = mock(Policy.class);
-        final FlowV2Impl flow = mock(FlowV2Impl.class);
-        final StepV2 step1 = mock(StepV2.class);
-        final StepV2 step2 = mock(StepV2.class);
-
-        when(step1.isEnabled()).thenReturn(true);
-        when(step2.isEnabled()).thenReturn(true);
-        when(flow.getPre()).thenReturn(List.of(step1, step2));
+        final StepV2 step1 = StepV2
+            .builder()
+            .enabled(true)
+            .policy("policy-step1")
+            .configuration("config-step1")
+            .condition("condition-step1")
+            .build();
+        final StepV2 step2 = StepV2
+            .builder()
+            .enabled(true)
+            .policy("policy-step2")
+            .configuration("config-step2")
+            .condition("condition-step2")
+            .build();
+        final FlowV2Impl flow = FlowV2Impl.builder().pre(List.of(step1, step2)).build();
 
         when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy);
 
-        when(step1.getPolicy()).thenReturn("policy-step1");
-        when(step1.getConfiguration()).thenReturn("config-step1");
-        when(step1.getCondition()).thenReturn("condition-step1");
-
-        when(step2.getPolicy()).thenReturn("policy-step2");
-        when(step2.getConfiguration()).thenReturn("config-step2");
-        when(step2.getCondition()).thenReturn("condition-step2");
-
         for (int i = 0; i < 10; i++) {
-            cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
+            cut.create("flow-chain-test", flow, ExecutionPhase.REQUEST);
         }
 
         verify(policyManager, times(1))
@@ -191,15 +195,18 @@ class HttpPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainForResponsePhase() {
         final Policy policy = mock(Policy.class);
-        final FlowV2Impl flow = mock(FlowV2Impl.class);
-        final StepV2 step1 = mock(StepV2.class);
-
-        when(step1.isEnabled()).thenReturn(true);
-        when(flow.getPost()).thenReturn(List.of(step1));
+        final StepV2 step1 = StepV2
+            .builder()
+            .enabled(true)
+            .policy("policy-step1")
+            .configuration("config-step1")
+            .condition("condition-step1")
+            .build();
+        final FlowV2Impl flow = FlowV2Impl.builder().post(List.of(step1)).build();
 
         when(policyManager.create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class))).thenReturn(policy);
 
-        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.RESPONSE);
+        final HttpPolicyChain policyChain = cut.create("flow-chain-test", flow, ExecutionPhase.RESPONSE);
         assertNotNull(policyChain);
 
         verify(policyManager, times(1)).create(eq(ExecutionPhase.RESPONSE), any(PolicyMetadata.class));
@@ -209,25 +216,25 @@ class HttpPolicyChainFactoryTest {
     @Test
     public void shouldFilterNullPoliciesReturnedByPolicyManager() {
         final Policy policy = mock(Policy.class);
-        final FlowV2Impl flow = mock(FlowV2Impl.class);
-        final StepV2 step1 = mock(StepV2.class);
-        final StepV2 step2 = mock(StepV2.class);
-
-        when(step1.isEnabled()).thenReturn(true);
-        when(step2.isEnabled()).thenReturn(true);
-        when(flow.getPre()).thenReturn(List.of(step1, step2));
+        final StepV2 step1 = StepV2
+            .builder()
+            .enabled(true)
+            .policy("policy-step1")
+            .configuration("config-step1")
+            .condition("condition-step1")
+            .build();
+        final StepV2 step2 = StepV2
+            .builder()
+            .enabled(true)
+            .policy("policy-step2")
+            .configuration("config-step2")
+            .condition("condition-step2")
+            .build();
+        final FlowV2Impl flow = FlowV2Impl.builder().pre(List.of(step1, step2)).build();
 
         when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(null).thenReturn(policy);
 
-        when(step1.getPolicy()).thenReturn("policy-step1");
-        when(step1.getConfiguration()).thenReturn("config-step1");
-        when(step1.getCondition()).thenReturn("condition-step1");
-
-        when(step2.getPolicy()).thenReturn("policy-step2");
-        when(step2.getConfiguration()).thenReturn("config-step2");
-        when(step2.getCondition()).thenReturn("condition-step2");
-
-        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.REQUEST);
+        final HttpPolicyChain policyChain = cut.create("flow-chain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
 
         verify(policyManager, times(2)).create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class));
@@ -239,7 +246,7 @@ class HttpPolicyChainFactoryTest {
     public void shouldNoCreateAnyPolicyWhenUnsupportedPhase() {
         final FlowV2Impl flow = mock(FlowV2Impl.class);
 
-        final HttpPolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.MESSAGE_REQUEST);
+        final HttpPolicyChain policyChain = cut.create("flow-chain-test", flow, ExecutionPhase.MESSAGE_REQUEST);
         assertNotNull(policyChain);
 
         verifyNoInteractions(policyManager);
