@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.flow;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import java.util.Optional;
 
@@ -23,10 +23,10 @@ import java.util.Optional;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BestMatchFlowSelector extends AbstractBestMatchFlowSelector<Flow> {
+public class BestMatchFlowSelector extends AbstractBestMatchFlowSelector<FlowV2Impl> {
 
     @Override
-    protected Optional<String> providePath(Flow flow) {
+    protected Optional<String> providePath(FlowV2Impl flow) {
         return flow != null ? Optional.ofNullable(flow.getPath()) : Optional.empty();
     }
 }

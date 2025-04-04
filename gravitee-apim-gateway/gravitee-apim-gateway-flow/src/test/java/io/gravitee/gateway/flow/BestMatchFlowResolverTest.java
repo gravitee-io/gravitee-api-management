@@ -18,7 +18,7 @@ package io.gravitee.gateway.flow;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.reactive.flow.BestMatchFlowBaseTest;
@@ -48,13 +48,13 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
 
-        final List<Flow> result = cut.resolve(executionContext);
+        final List<FlowV2Impl> result = cut.resolve(executionContext);
 
         if (expectedBestMatchResult == null) {
             assertThat(result).isEmpty();
         } else {
             assertThat(result).hasSize(1);
-            final Flow bestMatchFlow = result.get(0);
+            final FlowV2Impl bestMatchFlow = result.get(0);
             assertThat(bestMatchFlow.getPath()).isEqualTo(expectedBestMatchResult);
         }
     }

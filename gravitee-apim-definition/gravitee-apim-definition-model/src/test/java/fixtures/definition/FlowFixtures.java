@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.FlowStage;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -36,8 +37,8 @@ public class FlowFixtures {
 
     private static final Supplier<Flow.FlowBuilder<?, ?>> BASE_HTTP_V4 = () -> Flow.builder().name("my-flow");
     private static final Supplier<NativeFlow.NativeFlowBuilder<?, ?>> BASE_NATIVE_V4 = () -> NativeFlow.builder().name("my-flow");
-    private static final Supplier<io.gravitee.definition.model.flow.Flow.FlowBuilder> BASE_V2 = () ->
-        io.gravitee.definition.model.flow.Flow
+    private static final Supplier<FlowV2Impl.FlowV2ImplBuilder> BASE_V2 = () ->
+        FlowV2Impl
             .builder()
             .id("flow-id")
             .name("my-flow")
@@ -167,7 +168,7 @@ public class FlowFixtures {
             .build();
     }
 
-    public static io.gravitee.definition.model.flow.Flow aFlowV2() {
+    public static FlowV2Impl aFlowV2() {
         return BASE_V2.get().build();
     }
 }

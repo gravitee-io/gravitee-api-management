@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.flow;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * This flow provider is resolving only the {@link Flow} which best match according to the incoming request.
+ * This flow provider is resolving only the {@link FlowV2Impl} which best match according to the incoming request.
  * This flow provider relies on the result of the {@link io.gravitee.gateway.flow.condition.ConditionalFlowResolver} use to build this instance.
  * This means that the flows list patterns to filter for Best Match mode already matches the request.
  *
@@ -32,16 +32,16 @@ import java.util.List;
 public class BestMatchFlowResolver implements FlowResolver {
 
     private final FlowResolver flowResolver;
-    private AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
+    private AbstractBestMatchFlowSelector<FlowV2Impl> bestMatchFlowSelector;
 
-    public BestMatchFlowResolver(final FlowResolver flowResolver, AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector) {
+    public BestMatchFlowResolver(final FlowResolver flowResolver, AbstractBestMatchFlowSelector<FlowV2Impl> bestMatchFlowSelector) {
         this.flowResolver = flowResolver;
         this.bestMatchFlowSelector = bestMatchFlowSelector;
     }
 
     @Override
-    public List<Flow> resolve(ExecutionContext context) {
-        final Flow bestMatch = bestMatchFlowSelector.forPath(flowResolver.resolve(context), context.request().pathInfo());
+    public List<FlowV2Impl> resolve(ExecutionContext context) {
+        final FlowV2Impl bestMatch = bestMatchFlowSelector.forPath(flowResolver.resolve(context), context.request().pathInfo());
         return bestMatch == null ? Collections.emptyList() : List.of(bestMatch);
     }
 }

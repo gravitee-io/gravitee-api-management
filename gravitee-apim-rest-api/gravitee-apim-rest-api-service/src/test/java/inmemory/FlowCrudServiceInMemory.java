@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -33,8 +34,8 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     final Map<String, List<NativeFlow>> apiFlowsNativeV4 = new HashMap<>();
     final Map<String, List<NativeFlow>> planFlowsNativeV4 = new HashMap<>();
 
-    final Map<String, List<io.gravitee.definition.model.flow.Flow>> apiFlowsV2 = new HashMap<>();
-    final Map<String, List<io.gravitee.definition.model.flow.Flow>> planFlowsV2 = new HashMap<>();
+    final Map<String, List<FlowV2Impl>> apiFlowsV2 = new HashMap<>();
+    final Map<String, List<FlowV2Impl>> planFlowsV2 = new HashMap<>();
 
     @Override
     public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
@@ -59,12 +60,12 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     }
 
     @Override
-    public List<io.gravitee.definition.model.flow.Flow> getApiV2Flows(String apiId) {
+    public List<FlowV2Impl> getApiV2Flows(String apiId) {
         return apiFlowsV2.getOrDefault(apiId, new ArrayList<>());
     }
 
     @Override
-    public List<io.gravitee.definition.model.flow.Flow> getPlanV2Flows(String planId) {
+    public List<FlowV2Impl> getPlanV2Flows(String planId) {
         return planFlowsV2.getOrDefault(planId, new ArrayList<>());
     }
 
@@ -127,12 +128,12 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
         return flows;
     }
 
-    public List<io.gravitee.definition.model.flow.Flow> savePlanFlowsV2(String planId, List<io.gravitee.definition.model.flow.Flow> flows) {
+    public List<FlowV2Impl> savePlanFlowsV2(String planId, List<FlowV2Impl> flows) {
         planFlowsV2.put(planId, flows);
         return flows;
     }
 
-    public List<io.gravitee.definition.model.flow.Flow> saveApiFlowsV2(String apiId, List<io.gravitee.definition.model.flow.Flow> flows) {
+    public List<FlowV2Impl> saveApiFlowsV2(String apiId, List<FlowV2Impl> flows) {
         apiFlowsV2.put(apiId, flows);
         return flows;
     }

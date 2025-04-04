@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -133,7 +133,7 @@ public class OrganizationService_CreateTest {
         org1.setHrids(List.of("orgid"));
         org1.setName("org_name");
         org1.setDescription("org_desc");
-        org1.setFlows(List.of(mock(Flow.class)));
+        org1.setFlows(List.of(mock(FlowV2Impl.class)));
 
         Organization createdOrganization = new Organization();
         createdOrganization.setId("org_id");

@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fixtures.FlowFixtures;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -179,7 +180,7 @@ public class FlowMapperTest {
         assertFlowV2Equals(flowEntityV2, flowV2);
     }
 
-    private void assertFlowV2Equals(io.gravitee.definition.model.flow.Flow flowEntityV2, FlowV2 flowV2) throws JsonProcessingException {
+    private void assertFlowV2Equals(FlowV2Impl flowEntityV2, FlowV2 flowV2) throws JsonProcessingException {
         assertEquals(flowEntityV2.getName(), flowV2.getName());
         assertEquals(flowEntityV2.getPath(), flowV2.getPathOperator().getPath());
         assertEquals(flowEntityV2.getOperator().name(), flowV2.getPathOperator().getOperator().name());

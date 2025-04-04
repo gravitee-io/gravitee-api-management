@@ -19,7 +19,7 @@ import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
 
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -28,7 +28,6 @@ import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
-import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import io.netty.util.internal.StringUtil;
 import java.util.ArrayList;
@@ -80,7 +79,7 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
      * Once created, the policy chain is put in cache to avoid useless re-instantiations.
      */
     @Override
-    public HttpPolicyChain create(final String flowChainId, Flow flow, ExecutionPhase phase) {
+    public HttpPolicyChain create(final String flowChainId, FlowV2Impl flow, ExecutionPhase phase) {
         final String key = getFlowKey(flow, phase);
         HttpPolicyChain policyChain = policyChains.get(key);
 
@@ -111,7 +110,7 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
         return policyMetadata;
     }
 
-    private List<Step> getSteps(Flow flow, ExecutionPhase phase) {
+    private List<Step> getSteps(FlowV2Impl flow, ExecutionPhase phase) {
         List<Step> steps = null;
 
         if (phase == REQUEST) {
@@ -123,11 +122,11 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
         return steps != null ? steps : Collections.emptyList();
     }
 
-    private String getFlowKey(Flow flow, ExecutionPhase phase) {
+    private String getFlowKey(FlowV2Impl flow, ExecutionPhase phase) {
         return flow.hashCode() + "-" + phase.name();
     }
 
-    private String getFlowId(final String flowChainId, final Flow flow) {
+    private String getFlowId(final String flowChainId, final FlowV2Impl flow) {
         StringBuilder flowNameBuilder = new StringBuilder(flowChainId).append(ID_SEPARATOR);
         if (StringUtil.isNullOrEmpty(flow.getName())) {
             if (flow.getMethods().isEmpty()) {

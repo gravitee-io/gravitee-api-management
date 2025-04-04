@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
@@ -72,7 +72,7 @@ public class ApiConverterTest {
 
         io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
         apiDefinition.setProxy(new Proxy());
-        apiDefinition.setFlows(List.of(new Flow(), new Flow()));
+        apiDefinition.setFlows(List.of(new FlowV2Impl(), new FlowV2Impl()));
         when(objectMapper.readValue("my-api-definition", io.gravitee.definition.model.Api.class)).thenReturn(apiDefinition);
         when(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories())).thenReturn(Set.of("category-key"));
 

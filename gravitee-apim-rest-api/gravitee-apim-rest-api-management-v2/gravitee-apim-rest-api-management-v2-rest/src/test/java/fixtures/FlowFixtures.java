@@ -15,6 +15,7 @@
  */
 package fixtures;
 
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.BaseSelector;
@@ -122,7 +123,7 @@ public class FlowFixtures {
         return FlowModelFixtures.aModelFlowNativeV4();
     }
 
-    public static io.gravitee.definition.model.flow.Flow aModelFlowV2() {
+    public static FlowV2Impl aModelFlowV2() {
         return FlowModelFixtures.aModelFlowV2();
     }
 }

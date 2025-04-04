@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.handlers.api.processor.pathparameters;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import java.nio.charset.Charset;
 import java.util.Collection;

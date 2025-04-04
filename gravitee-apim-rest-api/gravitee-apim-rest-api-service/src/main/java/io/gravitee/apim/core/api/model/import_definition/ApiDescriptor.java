@@ -26,6 +26,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -216,7 +217,7 @@ public sealed interface ApiDescriptor {
         Services services,
         List<io.gravitee.definition.model.plugins.resources.Resource> resources,
         Map<String, List<Rule>> paths,
-        List<io.gravitee.definition.model.flow.Flow> flows,
+        List<FlowV2Impl> flows,
         Properties properties,
         Set<String> tags,
         Map<String, Pattern> pathMappings,

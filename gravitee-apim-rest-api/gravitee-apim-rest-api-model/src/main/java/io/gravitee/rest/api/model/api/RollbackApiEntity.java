@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.definition.jackson.datatype.api.deser.PropertiesAsListDeserializer;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
@@ -33,10 +33,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.*;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author GraviteeSource Team
@@ -77,7 +75,7 @@ public class RollbackApiEntity {
 
     @JsonProperty(value = "flows", required = true)
     @Schema(description = "a list of flows (the policies configuration)")
-    private List<Flow> flows = new ArrayList<>();
+    private List<FlowV2Impl> flows = new ArrayList<>();
 
     @JsonProperty(value = "plans", required = true)
     @Schema(description = "a list of plans with flows (the policies configuration)")

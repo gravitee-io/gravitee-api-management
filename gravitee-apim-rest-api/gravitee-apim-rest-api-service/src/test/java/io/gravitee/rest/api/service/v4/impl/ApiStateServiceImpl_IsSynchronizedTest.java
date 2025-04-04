@@ -27,6 +27,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -35,9 +36,6 @@ import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.*;
@@ -573,7 +571,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         );
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         // Add Flows to make API not synchronized
-        io.gravitee.definition.model.flow.Flow flow = new io.gravitee.definition.model.flow.Flow();
+        FlowV2Impl flow = new FlowV2Impl();
         apiEntity.setFlows(Collections.singletonList(flow));
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);

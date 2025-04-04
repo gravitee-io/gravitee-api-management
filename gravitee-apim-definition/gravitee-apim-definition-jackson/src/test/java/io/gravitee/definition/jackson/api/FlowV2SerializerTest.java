@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.AbstractTest;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import java.io.IOException;
 import java.util.Set;
 import org.apache.commons.io.IOUtils;
@@ -30,14 +30,14 @@ import org.junit.jupiter.api.Test;
 /**
  * @author GraviteeSource Team
  */
-public class FlowSerializerTest extends AbstractTest {
+public class FlowV2SerializerTest extends AbstractTest {
 
     @Test
     public void should_serialize_methods_in_the_same_order() throws JsonProcessingException {
-        Flow flow1 = new Flow();
+        FlowV2Impl flow1 = new FlowV2Impl();
         flow1.setMethods(Set.of(HttpMethod.POST, HttpMethod.PUT));
 
-        Flow flow2 = new Flow();
+        FlowV2Impl flow2 = new FlowV2Impl();
         flow2.setMethods(Set.of(HttpMethod.PUT, HttpMethod.POST));
 
         String flow1json = objectMapper().writeValueAsString(flow1);
@@ -50,7 +50,7 @@ public class FlowSerializerTest extends AbstractTest {
     public void should_handle_null_values() throws IOException {
         final String rawDefinitionToSerialize = IOUtils.toString(read("/io/gravitee/definition/jackson/flow-nullvalue.json"));
 
-        final Flow flow = objectMapper().readValue(rawDefinitionToSerialize, Flow.class);
+        final FlowV2Impl flow = objectMapper().readValue(rawDefinitionToSerialize, FlowV2Impl.class);
         assertNull(flow.getName());
         assertNull(flow.getCondition());
         assertNull(flow.getPre().get(0).getDescription());
@@ -60,7 +60,7 @@ public class FlowSerializerTest extends AbstractTest {
     public void should_map_missing_fields_to_null() throws IOException {
         final String rawDefinitionToSerialize = IOUtils.toString(read("/io/gravitee/definition/jackson/flow-missingfields.json"));
 
-        final Flow flow = objectMapper().readValue(rawDefinitionToSerialize, Flow.class);
+        final FlowV2Impl flow = objectMapper().readValue(rawDefinitionToSerialize, FlowV2Impl.class);
         assertNull(flow.getName());
         assertNull(flow.getCondition());
         assertNull(flow.getPre().get(0).getDescription());

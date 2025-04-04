@@ -601,9 +601,9 @@ public class ApiDeserializerTest extends AbstractTest {
         assertNotNull(api.getDefinitionVersion());
         assertEquals(DefinitionVersion.V2, api.getDefinitionVersion());
         assertNotNull(api.getFlows());
-        List<Flow> flows = api.getFlows();
+        List<FlowV2Impl> flows = api.getFlows();
         assertEquals(1, flows.size());
-        Flow flow = flows.get(0);
+        FlowV2Impl flow = flows.get(0);
         assertEquals(3, flow.getPre().size());
         assertEquals(2, flow.getPost().size());
         assertEquals(3, flow.getMethods().size());

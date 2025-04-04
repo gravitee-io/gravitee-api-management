@@ -22,9 +22,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Step;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.*;
@@ -201,10 +200,10 @@ public class PlanMapperTest {
         stepDisabledLowestLimit.setConfiguration("{ \"rate\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
         stepDisabledLowestLimit.setEnabled(false);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(stepNoLimit, stepDynamicLimitMostRestrictive));
 
-        var flow2 = new Flow();
+        var flow2 = new FlowV2Impl();
         flow2.setPre(List.of(stepLowLimit, stepDisabledLowestLimit));
 
         planEntityV2.setFlows(List.of(flow1, flow2));
@@ -290,10 +289,10 @@ public class PlanMapperTest {
         stepDisabledLowestLimit.setConfiguration("{ \"quota\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
         stepDisabledLowestLimit.setEnabled(false);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(stepNoLimit, stepDynamicLimitMostRestrictive));
 
-        var flow2 = new Flow();
+        var flow2 = new FlowV2Impl();
         flow2.setPre(List.of(stepLowLimit, stepDisabledLowestLimit));
 
         planEntityV2.setFlows(List.of(flow1, flow2));
@@ -455,7 +454,7 @@ public class PlanMapperTest {
         );
         step.setEnabled(true);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(step));
         flow1.setEnabled(true);
 
@@ -480,7 +479,7 @@ public class PlanMapperTest {
         );
         step.setEnabled(true);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(step));
         flow1.setEnabled(true);
 
@@ -505,7 +504,7 @@ public class PlanMapperTest {
         );
         step.setEnabled(true);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(step));
         flow1.setEnabled(true);
 
@@ -527,7 +526,7 @@ public class PlanMapperTest {
         );
         step.setEnabled(true);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(step));
         flow1.setEnabled(true);
 
@@ -549,7 +548,7 @@ public class PlanMapperTest {
         );
         step.setEnabled(true);
 
-        var flow1 = new Flow();
+        var flow1 = new FlowV2Impl();
         flow1.setPre(List.of(step));
         flow1.setEnabled(true);
 

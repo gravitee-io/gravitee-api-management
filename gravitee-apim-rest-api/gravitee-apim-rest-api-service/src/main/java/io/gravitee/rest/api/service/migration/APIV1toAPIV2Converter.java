@@ -26,7 +26,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -73,12 +72,12 @@ public class APIV1toAPIV2Converter {
      * @param policies, the list of available policies, containing available scopes
      * @return the list of Flows
      */
-    private List<Flow> migratePathsToFlows(Map<String, List<Rule>> paths, Set<PolicyEntity> policies) {
-        List<Flow> flows = new ArrayList<>();
+    private List<FlowV2Impl> migratePathsToFlows(Map<String, List<Rule>> paths, Set<PolicyEntity> policies) {
+        List<FlowV2Impl> flows = new ArrayList<>();
         if (!CollectionUtils.isEmpty(paths)) {
             paths.forEach((pathKey, pathValue) -> {
                 Set<HttpMethod> flowMethods = pathValue.stream().flatMap(rule -> rule.getMethods().stream()).collect(Collectors.toSet());
-                final Flow flow = createFlow(pathKey, flowMethods);
+                final FlowV2Impl flow = createFlow(pathKey, flowMethods);
                 pathValue.forEach(rule -> {
                     configurePolicies(policies, rule, flow);
                 });
@@ -116,7 +115,7 @@ public class APIV1toAPIV2Converter {
      * @param rule, the rule to transform into Step
      * @param flow, the current Flow
      */
-    private void configurePolicies(Set<PolicyEntity> policies, Rule rule, Flow flow) {
+    private void configurePolicies(Set<PolicyEntity> policies, Rule rule, FlowV2Impl flow) {
         policies
             .stream()
             .filter(policy -> policy.getId().equals(rule.getPolicy().getName()))
@@ -192,11 +191,11 @@ public class APIV1toAPIV2Converter {
     }
 
     @NotNull
-    private Flow createFlow(String path, Set<HttpMethod> methods) {
+    private FlowV2Impl createFlow(String path, Set<HttpMethod> methods) {
         // If contains all methods of HttpMethod enum or all methods without OTHER
         Set<HttpMethod> flowMethods = methods.containsAll(HTTP_METHODS) ? Collections.emptySet() : methods;
 
-        final Flow flow = new Flow();
+        final FlowV2Impl flow = new FlowV2Impl();
         flow.setName("");
         flow.setCondition("");
         flow.setEnabled(true);

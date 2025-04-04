@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.crud_service.flow;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.infra.adapter.FlowAdapter;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -70,12 +71,12 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     }
 
     @Override
-    public List<io.gravitee.definition.model.flow.Flow> getApiV2Flows(String apiId) {
+    public List<FlowV2Impl> getApiV2Flows(String apiId) {
         return getV2(FlowReferenceType.API, apiId);
     }
 
     @Override
-    public List<io.gravitee.definition.model.flow.Flow> getPlanV2Flows(String planId) {
+    public List<FlowV2Impl> getPlanV2Flows(String planId) {
         return getV2(FlowReferenceType.PLAN, planId);
     }
 
@@ -149,7 +150,7 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
         }
     }
 
-    private List<io.gravitee.definition.model.flow.Flow> getV2(FlowReferenceType flowReferenceType, String referenceId) {
+    private List<FlowV2Impl> getV2(FlowReferenceType flowReferenceType, String referenceId) {
         try {
             log.debug("Get flows for reference {},{}", flowReferenceType, flowReferenceType);
             return flowRepository

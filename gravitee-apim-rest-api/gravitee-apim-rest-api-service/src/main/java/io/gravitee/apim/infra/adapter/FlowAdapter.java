@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
@@ -30,7 +31,6 @@ import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -64,7 +64,7 @@ public interface FlowAdapter {
     @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
-    Flow toRepository(io.gravitee.definition.model.flow.Flow source, FlowReferenceType referenceType, String referenceId, int order);
+    Flow toRepository(FlowV2Impl source, FlowReferenceType referenceType, String referenceId, int order);
 
     io.gravitee.definition.model.v4.flow.Flow toFlowV4(Flow source);
     List<io.gravitee.definition.model.v4.flow.Flow> toFlowV4(List<Flow> source);
@@ -74,7 +74,7 @@ public interface FlowAdapter {
 
     @Mapping(target = "pathOperator.path", source = "path")
     @Mapping(target = "pathOperator.operator", source = "operator")
-    io.gravitee.definition.model.flow.Flow toFlowV2(Flow source);
+    FlowV2Impl toFlowV2(Flow source);
 
     default FlowSelector toRepository(Selector source) {
         if (source instanceof HttpSelector) {

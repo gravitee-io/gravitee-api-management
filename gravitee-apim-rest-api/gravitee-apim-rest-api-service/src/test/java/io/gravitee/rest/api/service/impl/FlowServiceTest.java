@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -162,7 +162,7 @@ public class FlowServiceTest {
 
         when(flowRepository.findByReference(FlowReferenceType.API, "api-id")).thenReturn(flows);
 
-        List<Flow> byReference = flowService.findByReference(FlowReferenceType.API, "api-id");
+        List<FlowV2Impl> byReference = flowService.findByReference(FlowReferenceType.API, "api-id");
 
         assertNotNull(byReference);
         assertEquals(byReference.stream().map(f -> f.getId()).collect(Collectors.joining(", ", "[", "]")), "[flow-0, flow-1, flow-2]");
@@ -182,12 +182,12 @@ public class FlowServiceTest {
         io.gravitee.repository.management.model.flow.Flow createdFlow5 = createRepoFlow(5);
         when(flowRepository.createAll(any())).thenReturn(List.of(createdFlow4, createdFlow5));
 
-        List<Flow> savedFlows = new ArrayList<>();
+        List<FlowV2Impl> savedFlows = new ArrayList<>();
         savedFlows.add(createFlow("flow-1"));
         savedFlows.add(createFlow("ignore"));
         savedFlows.add(createFlow(null));
 
-        List<Flow> byReference = flowService.save(FlowReferenceType.API, "api-id", savedFlows);
+        List<FlowV2Impl> byReference = flowService.save(FlowReferenceType.API, "api-id", savedFlows);
 
         verify(flowRepository, times(1)).delete("flow-0");
         verify(flowRepository, times(1)).delete("flow-2");
@@ -205,11 +205,11 @@ public class FlowServiceTest {
         io.gravitee.repository.management.model.flow.Flow createdFlow2 = createRepoFlow(2);
         when(flowRepository.createAll(any())).thenReturn(List.of(createdFlow1, createdFlow2));
 
-        List<Flow> savedFlows = new ArrayList<>();
+        List<FlowV2Impl> savedFlows = new ArrayList<>();
         savedFlows.add(createFlow("flow-1"));
         savedFlows.add(createFlow(null));
 
-        List<Flow> byReference = flowService.save(FlowReferenceType.API, "api-id", savedFlows);
+        List<FlowV2Impl> byReference = flowService.save(FlowReferenceType.API, "api-id", savedFlows);
 
         verify(flowRepository, never()).delete(any());
         verify(flowRepository, never()).updateAll(any());
@@ -218,8 +218,8 @@ public class FlowServiceTest {
         assertEquals(2, byReference.size());
     }
 
-    private Flow createFlow(String id) {
-        Flow flow = new Flow();
+    private FlowV2Impl createFlow(String id) {
+        FlowV2Impl flow = new FlowV2Impl();
         if (id != null) {
             flow.setId(id);
         }
