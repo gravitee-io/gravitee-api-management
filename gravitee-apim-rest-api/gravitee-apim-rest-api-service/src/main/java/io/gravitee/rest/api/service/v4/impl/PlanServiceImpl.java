@@ -409,7 +409,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         if (excludedGroups != null && !excludedGroups.isEmpty()) {
             excludedGroups.forEach(excludedGroupId -> {
                 if (!envGroupsIds.contains(excludedGroupId)) {
-                    throw new GroupNotFoundException(String.format("Excluded group %s doesn't exist", excludedGroupId));
+                    throw new GroupNotFoundException(excludedGroupId);
                 }
             });
         }
