@@ -25,7 +25,8 @@
 
 .nav-bar__container {
   display: flex;
-  width: 1040px;
+  min-width: 1040px;
+  max-width: 1280px;
   flex-flow: row;
   align-items: center;
   padding: 18px 24px;
