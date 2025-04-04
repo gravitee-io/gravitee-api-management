@@ -24,6 +24,7 @@ import { ApplicationTypeOption } from '../application-creation.component';
   selector: 'app-application-creation-step5',
   templateUrl: './application-creation-step5.component.html',
   styleUrls: ['../application-creation.component.css'],
+  standalone: false,
 })
 export class ApplicationCreationStep5Component implements OnInit {
   @Input() canValidate: boolean;

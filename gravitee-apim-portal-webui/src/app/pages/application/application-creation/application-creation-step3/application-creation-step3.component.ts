@@ -44,6 +44,7 @@ type PlanFormType = FormGroup<{
   selector: 'app-application-creation-step3',
   templateUrl: './application-creation-step3.component.html',
   styleUrls: ['../application-creation.component.css'],
+  standalone: false,
 })
 export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   @Output() updated = new EventEmitter<any[]>();

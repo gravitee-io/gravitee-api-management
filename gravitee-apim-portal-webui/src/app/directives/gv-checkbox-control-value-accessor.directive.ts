@@ -25,6 +25,7 @@ const GV_CHECKBOX_ACCESSOR: any = {
 @Directive({
   selector: 'gv-checkbox[formControlName],gv-checkbox[formControl],gv-checkbox[ngModel],gv-checkbox[gvControl]',
   providers: [GV_CHECKBOX_ACCESSOR],
+  standalone: false,
 })
 export class GvCheckboxControlValueAccessorDirective extends CheckboxControlValueAccessor {
   constructor(_renderer: Renderer2, _elementRef: ElementRef) {

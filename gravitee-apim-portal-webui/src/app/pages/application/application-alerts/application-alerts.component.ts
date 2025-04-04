@@ -42,6 +42,7 @@ import { NotificationService } from '../../../services/notification.service';
   selector: 'app-application-alerts',
   templateUrl: './application-alerts.component.html',
   styleUrls: ['./application-alerts.component.css'],
+  standalone: false,
 })
 export class ApplicationAlertsComponent implements OnInit {
   private permissions: Array<string>;

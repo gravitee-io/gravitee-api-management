@@ -24,6 +24,7 @@ import '@asyncapi/web-component/lib/asyncapi-web-component';
   selector: 'app-gv-page-asyncapi',
   templateUrl: './gv-page-asyncapi.component.html',
   styleUrls: ['./gv-page-asyncapi.component.css'],
+  standalone: false,
 })
 export class GvPageAsyncApiComponent implements OnInit {
   page: Page;

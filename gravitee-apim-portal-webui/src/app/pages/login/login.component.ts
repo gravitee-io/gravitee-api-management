@@ -30,6 +30,7 @@ import { ReCaptchaService } from '../../services/recaptcha.service';
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
+  standalone: false,
 })
 export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   loginForm: FormGroup<{ username: FormControl<string>; password: FormControl<string> }>;

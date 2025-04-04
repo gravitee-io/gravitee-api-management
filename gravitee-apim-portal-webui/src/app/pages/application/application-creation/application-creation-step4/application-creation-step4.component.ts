@@ -23,6 +23,7 @@ import '@gravitee/ui-components/wc/gv-option';
   selector: 'app-application-creation-step4',
   templateUrl: './application-creation-step4.component.html',
   styleUrls: ['../application-creation.component.css'],
+  standalone: false,
 })
 export class ApplicationCreationStep4Component implements OnInit {
   @Input() apiKeyMode: ApiKeyModeEnum;

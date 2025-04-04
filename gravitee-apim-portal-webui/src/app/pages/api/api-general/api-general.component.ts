@@ -68,6 +68,7 @@ type SearchableKeys = keyof typeof searchableKeysMapping;
   selector: 'app-api-general',
   templateUrl: './api-general.component.html',
   styleUrls: ['./api-general.component.css'],
+  standalone: false,
 })
 export class ApiGeneralComponent implements OnInit {
   private apiId: any;

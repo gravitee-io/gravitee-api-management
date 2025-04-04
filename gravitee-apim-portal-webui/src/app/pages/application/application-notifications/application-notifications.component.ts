@@ -24,6 +24,7 @@ import { NotificationService } from '../../../services/notification.service';
   selector: 'app-application-notifications',
   templateUrl: './application-notifications.component.html',
   styleUrls: ['./application-notifications.component.css'],
+  standalone: false,
 })
 export class ApplicationNotificationsComponent implements OnInit {
   hooks: Array<string>;

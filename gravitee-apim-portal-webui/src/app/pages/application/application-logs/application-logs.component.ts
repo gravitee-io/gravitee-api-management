@@ -31,6 +31,7 @@ import '@gravitee/ui-components/wc/gv-stats';
   selector: 'app-application-logs',
   templateUrl: './application-logs.component.html',
   styleUrls: ['./application-logs.component.css'],
+  standalone: false,
 })
 export class ApplicationLogsComponent implements OnInit, OnDestroy {
   private subscription: any;

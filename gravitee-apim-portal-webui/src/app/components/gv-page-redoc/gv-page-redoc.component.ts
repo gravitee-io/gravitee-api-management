@@ -28,6 +28,7 @@ declare let Redoc: any;
   selector: 'app-gv-page-redoc',
   templateUrl: './gv-page-redoc.component.html',
   styleUrls: ['./gv-page-redoc.component.css'],
+  standalone: false,
 })
 export class GvPageRedocComponent implements OnInit, OnDestroy {
   isLoaded = false;

@@ -37,6 +37,7 @@ export type OAuthFormType = FormGroup<{
   selector: 'app-application-creation-step2',
   templateUrl: './application-creation-step2.component.html',
   styleUrls: ['../application-creation.component.css'],
+  standalone: false,
 })
 export class ApplicationCreationStep2Component implements OnInit, OnChanges {
   @Input() allowedTypes: Array<ApplicationTypeOption>;

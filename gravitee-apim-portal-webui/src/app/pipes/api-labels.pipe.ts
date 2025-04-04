@@ -19,6 +19,7 @@ import { Api } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Pipe({
   name: 'apiLabels',
+  standalone: false,
 })
 export class ApiLabelsPipe implements PipeTransform {
   transform(api: Api): string[] | undefined {

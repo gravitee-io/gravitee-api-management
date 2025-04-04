@@ -34,6 +34,7 @@ type RegistrationConfirmationFormType = FormGroup<{
   selector: 'app-registration-confirmation',
   templateUrl: './registration-confirmation.component.html',
   styleUrls: ['./registration-confirmation.component.css'],
+  standalone: false,
 })
 export class RegistrationConfirmationComponent implements OnInit {
   registrationConfirmationForm: RegistrationConfirmationFormType;

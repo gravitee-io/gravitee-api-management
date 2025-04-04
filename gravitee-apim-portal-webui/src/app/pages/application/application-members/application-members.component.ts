@@ -59,6 +59,7 @@ const StatusEnum = Subscription.StatusEnum;
   selector: 'app-application-members',
   templateUrl: './application-members.component.html',
   styleUrls: ['./application-members.component.css'],
+  standalone: false,
 })
 export class ApplicationMembersComponent implements OnInit {
   constructor(

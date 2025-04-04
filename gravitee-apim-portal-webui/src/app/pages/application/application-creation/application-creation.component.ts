@@ -84,6 +84,7 @@ function mapToApplicationInput(rawValue): ApplicationInput {
   selector: 'app-application-creation',
   templateUrl: './application-creation.component.html',
   styleUrls: ['./application-creation.component.css'],
+  standalone: false,
 })
 export class ApplicationCreationComponent implements OnInit {
   private _allSteps: any;

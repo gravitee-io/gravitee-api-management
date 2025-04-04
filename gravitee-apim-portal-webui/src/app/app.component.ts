@@ -65,6 +65,7 @@ import { PreviewService } from './services/preview.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   animations: [animation],
+  standalone: false,
 })
 export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   static UPDATE_USER_AVATAR: ':gv-user:avatar';

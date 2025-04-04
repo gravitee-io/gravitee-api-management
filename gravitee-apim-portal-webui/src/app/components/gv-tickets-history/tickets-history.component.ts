@@ -29,6 +29,7 @@ import { GetTicketsRequestParams, PortalService, Ticket } from '../../../../proj
   selector: 'app-gv-tickets-history',
   templateUrl: './tickets-history.component.html',
   styleUrls: ['./tickets-history.component.css'],
+  standalone: false,
 })
 export class TicketsHistoryComponent implements OnInit, OnDestroy {
   queryParamSubscription: Subscription;

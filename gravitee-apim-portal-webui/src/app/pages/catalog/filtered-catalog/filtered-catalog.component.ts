@@ -44,6 +44,7 @@ import '@gravitee/ui-components/wc/gv-option';
   selector: 'app-all',
   templateUrl: './filtered-catalog.component.html',
   styleUrls: ['./filtered-catalog.component.css'],
+  standalone: false,
 })
 export class FilteredCatalogComponent implements OnInit {
   static readonly RANDOM_MAX_SIZE = 4;

@@ -19,6 +19,7 @@ import { GvSlot } from './gv-slot';
 
 @Directive({
   selector: '[gvMenuRightSlot]',
+  standalone: false,
 })
 export class GvMenuRightSlotDirective extends GvSlot {
   constructor(viewContainerRef: ViewContainerRef) {

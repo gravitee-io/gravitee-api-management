@@ -29,6 +29,7 @@ import { createPromiseList } from '../../../utils/utils';
   selector: 'app-search',
   templateUrl: './catalog-search.component.html',
   styleUrls: ['./catalog-search.component.css'],
+  standalone: false,
 })
 export class CatalogSearchComponent implements OnInit {
   searchForm: FormGroup<{ query: FormControl<string> }>;

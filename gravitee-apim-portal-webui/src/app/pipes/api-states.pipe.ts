@@ -19,6 +19,7 @@ import { Api } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Pipe({
   name: 'apiStates',
+  standalone: false,
 })
 export class ApiStatesPipe implements PipeTransform {
   transform(api: Api): { value: string; major?: boolean }[] {

@@ -24,6 +24,7 @@ import { ApiService, ApisResponse } from '../../../../projects/portal-webclient-
 @Component({
   selector: 'app-gv-search-api',
   templateUrl: './gv-search-api.component.html',
+  standalone: false,
 })
 export class GvSearchApiComponent implements OnInit {
   @ViewChild('searchAutocomplete', { static: true }) searchAutocomplete;

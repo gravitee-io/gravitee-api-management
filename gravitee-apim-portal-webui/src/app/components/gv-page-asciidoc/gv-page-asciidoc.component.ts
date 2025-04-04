@@ -24,6 +24,7 @@ import { PageService } from '../../services/page.service';
   selector: 'app-gv-page-asciidoc',
   templateUrl: './gv-page-asciidoc.component.html',
   styleUrls: ['./gv-page-asciidoc.component.css'],
+  standalone: false,
 })
 export class GvPageAsciiDocComponent implements OnInit {
   page: Page;

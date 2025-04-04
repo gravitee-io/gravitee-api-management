@@ -28,6 +28,7 @@ type docExpansion = 'list' | 'full' | 'none';
   selector: 'app-gv-page-swaggerui',
   templateUrl: './gv-page-swaggerui.component.html',
   styleUrls: ['./gv-page-swaggerui.component.css'],
+  standalone: false,
 })
 export class GvPageSwaggerUIComponent implements OnInit {
   currentUser: User;

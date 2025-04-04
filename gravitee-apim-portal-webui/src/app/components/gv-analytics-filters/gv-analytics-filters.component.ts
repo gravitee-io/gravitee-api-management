@@ -45,6 +45,7 @@ type AnalyticsFormType = FormGroup<{
   selector: 'app-gv-analytics-filters',
   templateUrl: './gv-analytics-filters.component.html',
   styleUrls: ['./gv-analytics-filters.component.css'],
+  standalone: false,
 })
 export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() dashboard: Dashboard;
