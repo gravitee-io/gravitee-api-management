@@ -16,6 +16,7 @@
 package fixtures;
 
 import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -63,7 +64,7 @@ public class FlowModelFixtures {
         .interact(List.of(BASE_MODEL_STEP_V4.name("step_interact").build()))
         .subscribe(List.of(BASE_MODEL_STEP_V4.name("step_subscribe").build()));
 
-    private static final io.gravitee.definition.model.flow.Step.StepBuilder BASE_MODEL_STEP_V2 = io.gravitee.definition.model.flow.Step
+    private static final StepV2.StepV2Builder BASE_MODEL_STEP_V2 = StepV2
         .builder()
         .name("step")
         .description("description")

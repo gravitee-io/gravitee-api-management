@@ -189,7 +189,7 @@ public class FlowMapperTest {
         assertStepsV2Equals(flowEntityV2.getPost(), flowV2.getPost());
     }
 
-    private void assertStepsV2Equals(List<io.gravitee.definition.model.flow.Step> steps, List<StepV2> stepsV2)
+    private void assertStepsV2Equals(List<io.gravitee.definition.model.flow.StepV2> steps, List<StepV2> stepsV2)
         throws JsonProcessingException {
         assertEquals(steps.size(), stepsV2.size());
 

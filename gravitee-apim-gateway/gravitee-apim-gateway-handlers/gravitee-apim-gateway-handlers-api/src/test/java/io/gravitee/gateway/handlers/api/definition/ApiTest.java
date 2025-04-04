@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
@@ -107,11 +107,11 @@ public class ApiTest {
         assertThat(result).hasSize(1).extracting(Policy::getName).containsExactlyInAnyOrder("key-less");
     }
 
-    private List<Step> aStepList() {
-        Step enabledPreStep = new Step();
+    private List<StepV2> aStepList() {
+        StepV2 enabledPreStep = new StepV2();
         enabledPreStep.setPolicy("enabledPolicy");
         enabledPreStep.setEnabled(true);
-        Step disabledPreStep = new Step();
+        StepV2 disabledPreStep = new StepV2();
         disabledPreStep.setName("disabledPolicy");
         disabledPreStep.setEnabled(false);
         return List.of(enabledPreStep, disabledPreStep);

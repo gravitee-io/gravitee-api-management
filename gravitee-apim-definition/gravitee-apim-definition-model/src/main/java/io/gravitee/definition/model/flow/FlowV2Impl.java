@@ -58,11 +58,11 @@ public class FlowV2Impl implements Serializable, ConditionSupplier {
 
     @JsonProperty("pre")
     @Builder.Default
-    private List<Step> pre = new ArrayList<>();
+    private List<StepV2> pre = new ArrayList<>();
 
     @JsonProperty("post")
     @Builder.Default
-    private List<Step> post = new ArrayList<>();
+    private List<StepV2> post = new ArrayList<>();
 
     @JsonProperty("enabled")
     @Builder.Default
@@ -102,10 +102,10 @@ public class FlowV2Impl implements Serializable, ConditionSupplier {
     }
 
     @JsonIgnore
-    private List<Plugin> computePlugins(List<Step> steps) {
+    private List<Plugin> computePlugins(List<StepV2> steps) {
         return Optional
             .ofNullable(steps)
-            .map(s -> s.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+            .map(s -> s.stream().filter(StepV2::isEnabled).map(StepV2::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
             .orElse(List.of());
     }
 }

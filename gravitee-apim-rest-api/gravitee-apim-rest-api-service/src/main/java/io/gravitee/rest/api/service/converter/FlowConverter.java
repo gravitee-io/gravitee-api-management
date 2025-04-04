@@ -22,7 +22,7 @@ import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.repository.management.model.flow.FlowConsumer;
 import io.gravitee.repository.management.model.flow.FlowConsumerType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -100,7 +100,7 @@ public class FlowConverter {
     }
 
     @NotNull
-    private List<FlowStep> toRepositoryFlowSteps(List<Step> steps) {
+    private List<FlowStep> toRepositoryFlowSteps(List<StepV2> steps) {
         if (steps == null) {
             return Collections.emptyList();
         }
@@ -126,7 +126,7 @@ public class FlowConverter {
     }
 
     @NotNull
-    private FlowStep toRepositoryStep(Step step, int order) {
+    private FlowStep toRepositoryStep(StepV2 step, int order) {
         FlowStep flowStep = new FlowStep();
         flowStep.setPolicy(step.getPolicy());
         flowStep.setName(step.getName());
@@ -138,9 +138,9 @@ public class FlowConverter {
         return flowStep;
     }
 
-    protected Step toDefinitionStep(FlowStep flowStep) {
+    protected StepV2 toDefinitionStep(FlowStep flowStep) {
         try {
-            return objectMapper.readValue(objectMapper.writeValueAsString(flowStep), Step.class);
+            return objectMapper.readValue(objectMapper.writeValueAsString(flowStep), StepV2.class);
         } catch (JsonProcessingException e) {
             log.error("Failed to convert repository flow step to model", e);
             return null;

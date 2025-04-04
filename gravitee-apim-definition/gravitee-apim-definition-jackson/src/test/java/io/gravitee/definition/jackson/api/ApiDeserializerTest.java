@@ -621,7 +621,7 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals(ConsumerType.TAG, consumer2.getConsumerType());
         assertEquals(FlowStage.API, flow.getStage());
 
-        Step rule = flow.getPre().get(0);
+        StepV2 rule = flow.getPre().get(0);
         assertNotNull(rule);
         assertEquals("Rate Limit", rule.getName());
         assertEquals("rate-limit", rule.getPolicy());
@@ -629,7 +629,7 @@ public class ApiDeserializerTest extends AbstractTest {
         assertTrue(rule.isEnabled());
         assertNull(rule.getCondition());
 
-        Step ruleApiKey = flow.getPre().get(1);
+        StepV2 ruleApiKey = flow.getPre().get(1);
         assertNotNull(ruleApiKey);
         assertEquals("Check API Key", ruleApiKey.getName());
         assertEquals("api-key", ruleApiKey.getPolicy());
@@ -637,7 +637,7 @@ public class ApiDeserializerTest extends AbstractTest {
         assertTrue(ruleApiKey.isEnabled());
         assertNull(ruleApiKey.getCondition());
 
-        Step ruleTransformHeaders = flow.getPre().get(2);
+        StepV2 ruleTransformHeaders = flow.getPre().get(2);
         assertNotNull(ruleTransformHeaders);
         assertEquals("Add HTTP headers", ruleTransformHeaders.getName());
         assertEquals("transform-headers", ruleTransformHeaders.getPolicy());

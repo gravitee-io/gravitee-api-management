@@ -22,7 +22,7 @@ import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.PathOperator;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
@@ -51,14 +51,14 @@ public class FlowConverterTest {
         return List.of(consumer);
     }
 
-    private static List<Step> pre() {
-        Step step = new Step();
+    private static List<StepV2> pre() {
+        StepV2 step = new StepV2();
         step.setEnabled(true);
         step.setName("IPFiltering");
         step.setPolicy("ip-filtering");
         step.setConfiguration("{\"whitelistIps\":[\"0.0.0.0/0\"]}");
 
-        Step step2 = new Step();
+        StepV2 step2 = new StepV2();
         step2.setEnabled(true);
         step2.setName("HTTP Callout");
         step2.setPolicy("http-callout");
@@ -66,8 +66,8 @@ public class FlowConverterTest {
         return List.of(step, step2);
     }
 
-    private static List<Step> post() {
-        Step step = new Step();
+    private static List<StepV2> post() {
+        StepV2 step = new StepV2();
         step.setEnabled(true);
         step.setName("Transform Headers");
         step.setPolicy("transform-headers");
@@ -139,7 +139,7 @@ public class FlowConverterTest {
         flowStep.setName("test-name");
         flowStep.setConfiguration("{}");
 
-        Step step = converter.toDefinitionStep(flowStep);
+        StepV2 step = converter.toDefinitionStep(flowStep);
 
         assertEquals(flowStep.getPolicy(), step.getPolicy());
         assertEquals(flowStep.getDescription(), step.getDescription());
@@ -155,7 +155,7 @@ public class FlowConverterTest {
         flowStep.setPolicy("test-policy");
         flowStep.setConfiguration("{\"key\": \"value\"}");
 
-        Step step = converter.toDefinitionStep(flowStep);
+        StepV2 step = converter.toDefinitionStep(flowStep);
         assertEquals("{\"key\":\"value\"}", step.getConfiguration());
     }
 
@@ -165,7 +165,7 @@ public class FlowConverterTest {
         flowStep.setPolicy("test-policy");
         flowStep.setConfiguration("{\"key\": \"<\\/value\\nvalue>\"}");
 
-        Step step = converter.toDefinitionStep(flowStep);
+        StepV2 step = converter.toDefinitionStep(flowStep);
         assertEquals("{\"key\":\"</value\\nvalue>\"}", step.getConfiguration());
     }
 

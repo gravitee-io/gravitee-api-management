@@ -123,12 +123,12 @@ public interface FlowMapper {
 
     // Flow V2
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    io.gravitee.definition.model.flow.Step mapStep(StepV2 stepV2);
+    io.gravitee.definition.model.flow.StepV2 mapStep(StepV2 stepV2);
 
     FlowV2Impl map(FlowV2 flowV2);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    StepV2 mapStep(io.gravitee.definition.model.flow.Step stepV2);
+    StepV2 mapStep(io.gravitee.definition.model.flow.StepV2 stepV2);
 
     FlowV2 map(FlowV2Impl flowV2);
 

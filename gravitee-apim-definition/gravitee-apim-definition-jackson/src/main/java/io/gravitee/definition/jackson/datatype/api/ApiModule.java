@@ -24,7 +24,7 @@ import io.gravitee.definition.jackson.datatype.api.ser.ssl.*;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
 import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
 import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
@@ -68,7 +68,7 @@ public class ApiModule extends GraviteeModule {
         addDeserializer(ResponseTemplate.class, new ResponseTemplateDeserializer(ResponseTemplate.class));
         addDeserializer(VirtualHost.class, new VirtualHostDeserializer(VirtualHost.class));
         addDeserializer(FlowV2Impl.class, new FlowV2Deserializer(FlowV2Impl.class));
-        addDeserializer(Step.class, new StepDeserializer(Step.class));
+        addDeserializer(StepV2.class, new StepV2Deserializer(StepV2.class));
         addDeserializer(Consumer.class, new ConsumerDeserializer(Consumer.class));
 
         // then serializers:
@@ -96,7 +96,7 @@ public class ApiModule extends GraviteeModule {
         addSerializer(ResponseTemplate.class, new ResponseTemplateSerializer(ResponseTemplate.class));
         addSerializer(VirtualHost.class, new VirtualHostSerializer(VirtualHost.class));
         addSerializer(FlowV2Impl.class, new FlowV2Serializer(FlowV2Impl.class));
-        addSerializer(Step.class, new StepSerializer(Step.class));
+        addSerializer(StepV2.class, new StepV2Serializer(StepV2.class));
         addSerializer(Consumer.class, new ConsumerSerializer(Consumer.class));
     }
 }

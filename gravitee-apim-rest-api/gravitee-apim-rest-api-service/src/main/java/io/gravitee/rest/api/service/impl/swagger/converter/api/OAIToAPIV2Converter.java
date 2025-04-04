@@ -23,7 +23,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
@@ -78,7 +78,7 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
                                     (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
                                         Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
                                         if (policy.isPresent()) {
-                                            final Step step = new Step();
+                                            final StepV2 step = new StepV2();
                                             step.setName(policy.get().getName());
                                             step.setEnabled(true);
                                             step.setDescription(

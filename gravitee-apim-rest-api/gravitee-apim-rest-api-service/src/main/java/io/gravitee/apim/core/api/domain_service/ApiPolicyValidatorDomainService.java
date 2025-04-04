@@ -22,7 +22,7 @@ import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.debug.DebugApiProxy;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -87,14 +87,14 @@ public class ApiPolicyValidatorDomainService {
     }
 
     private void validateFlowConfigurations(Api api, Set<Plan> plans) {
-        final Stream<Step> flowsStream = getFlowsStream(api, plans);
+        final Stream<StepV2> flowsStream = getFlowsStream(api, plans);
 
         if (flowsStream == null) {
             return;
         }
 
         flowsStream
-            .filter(Step::isEnabled)
+            .filter(StepV2::isEnabled)
             .forEach(step ->
                 step.setConfiguration(
                     policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
@@ -102,7 +102,7 @@ public class ApiPolicyValidatorDomainService {
             );
     }
 
-    private static Stream<Step> getFlowsStream(Api api, Set<Plan> plans) {
+    private static Stream<StepV2> getFlowsStream(Api api, Set<Plan> plans) {
         Stream<FlowV2Impl> flowsStream = null;
         if (api.getFlows() != null) {
             flowsStream = api.getFlows().stream();
