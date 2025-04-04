@@ -25,6 +25,7 @@ import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -46,6 +47,7 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
@@ -78,6 +80,7 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -833,6 +836,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN))
                 .thenReturn(PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build());
+            when(groupService.findAllByEnvironment(anyString())).thenReturn(mockExcludedGroups());
             when(updatePlanDomainService.update(any(), any(), any(), any(), any()))
                 .thenAnswer(invocation -> {
                     io.gravitee.apim.core.plan.model.Plan updated = invocation.getArgument(0);
@@ -879,7 +883,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 List.of(fixtures.core.model.PlanFixtures.aPlanNativeV4().toBuilder().apiId(API).id(PLAN).build())
             );
             apiCrudServiceInMemory.initWith(List.of(fixtures.core.model.ApiFixtures.aNativeApi().toBuilder().id(API).build()));
-
+            when(groupService.findAllByEnvironment(anyString())).thenReturn(mockExcludedGroups());
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN))
                 .thenReturn(PlanFixtures.aNativePlanEntityV4().toBuilder().id(PLAN).apiId(API).build());
             when(updatePlanDomainService.update(any(), any(), any(), any(), any()))
@@ -1004,6 +1008,50 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
                 .hasMessage("Plan [" + PLAN + "] is not valid.");
+        }
+
+        @Test
+        public void should_return_group_not_found_exception_when_excluded_group_not_found() {
+            String nonExistentGroupId = "unknown-group-id";
+            planCrudServiceInMemory.initWith(
+                List.of(
+                    fixtures.core.model.PlanFixtures
+                        .aPlanHttpV4()
+                        .toBuilder()
+                        .apiId(API)
+                        .id(PLAN)
+                        .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
+                        .build()
+                )
+            );
+            apiCrudServiceInMemory.initWith(List.of(fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().id(API).build()));
+            when(groupService.findAllByEnvironment(anyString())).thenReturn(mockExcludedGroups());
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN))
+                .thenReturn(PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build());
+            when(updatePlanDomainService.update(any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> {
+                    io.gravitee.apim.core.plan.model.Plan updated = invocation.getArgument(0);
+                    updated.setUpdatedAt(null);
+                    updated.setCreatedAt(null);
+                    return updated;
+                });
+
+            final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanV4();
+            updatePlanV4.setExcludedGroups(List.of(nonExistentGroupId));
+            final Response response = target.request().put(Entity.json(updatePlanV4));
+
+            assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Group [" + nonExistentGroupId + "] cannot be found.");
+        }
+
+        private Set<Group> mockExcludedGroups() {
+            Set<Group> mockExcludedGroups = new HashSet<>();
+            mockExcludedGroups.add(Group.builder().id("excludedGroup1").environmentId("environmentId").name("Group 1").build());
+            mockExcludedGroups.add(Group.builder().id("excludedGroup2").environmentId("environmentId").name("Group 2").build());
+            return mockExcludedGroups;
         }
     }
 

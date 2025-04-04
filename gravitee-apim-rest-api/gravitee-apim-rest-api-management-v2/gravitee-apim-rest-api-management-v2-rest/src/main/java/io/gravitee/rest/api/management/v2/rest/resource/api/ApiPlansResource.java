@@ -26,6 +26,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreateGenericPlan;
@@ -51,8 +52,10 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import jakarta.annotation.Nonnull;
@@ -105,6 +108,9 @@ public class ApiPlansResource extends AbstractResource {
 
     @Inject
     private UpdateFederatedPlanUseCase updateFederatedPlanUseCase;
+
+    @Inject
+    private GroupService groupService;
 
     @PathParam("apiId")
     private String apiId;
@@ -250,6 +256,7 @@ public class ApiPlansResource extends AbstractResource {
                 if (planEntity instanceof BasePlanEntity) {
                     var updatePlanV4 = (UpdatePlanV4) updatePlan;
                     var userDetails = getAuthenticatedUserDetails();
+                    validateExcludedGroups(updatePlanV4.getExcludedGroups(), executionContext.getEnvironmentId());
                     var updatePlanEntity = planMapper.mapToPlanUpdates(updatePlanV4);
                     updatePlanEntity.setId(planId);
 
@@ -424,5 +431,16 @@ public class ApiPlansResource extends AbstractResource {
             .message("Plan [" + plan + "] is not valid.")
             .putParametersItem("plan", plan)
             .technicalCode("plan.invalid");
+    }
+
+    private void validateExcludedGroups(List<String> excludedGroups, String environmentId) {
+        var envGroupsIds = groupService.findAllByEnvironment(environmentId).stream().map(Group::getId).collect(Collectors.toSet());
+        if (excludedGroups != null && !excludedGroups.isEmpty()) {
+            excludedGroups.forEach(excludedGroupId -> {
+                if (!envGroupsIds.contains(excludedGroupId)) {
+                    throw new GroupNotFoundException(excludedGroupId);
+                }
+            });
+        }
     }
 }
