@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -310,6 +311,137 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     });
                 });
         }
+
+        @Test
+        public void should_create_subscription_with_null_custom_api_key_and_auto_process_it_if_pending() {
+            final CreateSubscription createSubscription = SubscriptionFixtures
+                .aCreateSubscription()
+                .toBuilder()
+                .applicationId(APPLICATION)
+                .planId(PLAN)
+                .customApiKey(null)
+                .build();
+
+            when(
+                parameterService.findAsBoolean(
+                    GraviteeContext.getExecutionContext(),
+                    Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            )
+                .thenReturn(true);
+            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), eq(null)))
+                .thenReturn(
+                    SubscriptionFixtures
+                        .aSubscriptionEntity()
+                        .toBuilder()
+                        .id(SUBSCRIPTION)
+                        .application(APPLICATION)
+                        .plan(PLAN)
+                        .status(SubscriptionStatus.PENDING)
+                        .build()
+                );
+
+            doReturn(
+                new AcceptSubscriptionUseCase.Output(
+                    fixtures.core.model.SubscriptionFixtures
+                        .aSubscription()
+                        .toBuilder()
+                        .id(SUBSCRIPTION)
+                        .planId(PLAN)
+                        .applicationId(APPLICATION)
+                        .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
+                        .build()
+                )
+            )
+                .when(acceptSubscriptionUseCase)
+                .execute(any());
+
+            final Response response = target.request().post(Entity.json(createSubscription));
+
+            assertThat(response)
+                .hasStatus(CREATED_201)
+                .asEntity(Subscription.class)
+                .satisfies(subscription -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(subscription.getId()).isEqualTo(SUBSCRIPTION);
+                        soft.assertThat(subscription.getPlan()).extracting(BasePlan::getId).isEqualTo(PLAN);
+                        soft.assertThat(subscription.getApplication()).extracting(BaseApplication::getId).isEqualTo(APPLICATION);
+                    });
+                });
+
+            ArgumentCaptor<AcceptSubscriptionUseCase.Input> inputCaptor = ArgumentCaptor.forClass(AcceptSubscriptionUseCase.Input.class);
+            verify(acceptSubscriptionUseCase, atLeastOnce()).execute(inputCaptor.capture());
+
+            AcceptSubscriptionUseCase.Input capturedInput = inputCaptor.getValue();
+            assertThat(capturedInput.customKey()).isNull();
+        }
+
+        @Test
+        public void should_create_subscription_with_custom_api_key_and_auto_accept_it() {
+            final String customApiKey = "custom-api-key";
+            final CreateSubscription createSubscription = SubscriptionFixtures
+                .aCreateSubscription()
+                .toBuilder()
+                .applicationId(APPLICATION)
+                .planId(PLAN)
+                .customApiKey(customApiKey)
+                .build();
+
+            when(
+                parameterService.findAsBoolean(
+                    GraviteeContext.getExecutionContext(),
+                    Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            )
+                .thenReturn(true);
+            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), eq(customApiKey)))
+                .thenReturn(
+                    SubscriptionFixtures
+                        .aSubscriptionEntity()
+                        .toBuilder()
+                        .id(SUBSCRIPTION)
+                        .application(APPLICATION)
+                        .plan(PLAN)
+                        .status(SubscriptionStatus.PENDING)
+                        .build()
+                );
+
+            doReturn(
+                new AcceptSubscriptionUseCase.Output(
+                    fixtures.core.model.SubscriptionFixtures
+                        .aSubscription()
+                        .toBuilder()
+                        .id(SUBSCRIPTION)
+                        .planId(PLAN)
+                        .applicationId(APPLICATION)
+                        .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.ACCEPTED)
+                        .build()
+                )
+            )
+                .when(acceptSubscriptionUseCase)
+                .execute(any());
+
+            final Response response = target.request().post(Entity.json(createSubscription));
+
+            assertThat(response)
+                .hasStatus(CREATED_201)
+                .asEntity(Subscription.class)
+                .satisfies(subscription -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(subscription.getId()).isEqualTo(SUBSCRIPTION);
+                        soft.assertThat(subscription.getPlan()).extracting(BasePlan::getId).isEqualTo(PLAN);
+                        soft.assertThat(subscription.getApplication()).extracting(BaseApplication::getId).isEqualTo(APPLICATION);
+                    });
+                });
+
+            ArgumentCaptor<AcceptSubscriptionUseCase.Input> inputCaptor = ArgumentCaptor.forClass(AcceptSubscriptionUseCase.Input.class);
+            verify(acceptSubscriptionUseCase, atLeastOnce()).execute(inputCaptor.capture());
+
+            AcceptSubscriptionUseCase.Input capturedInput = inputCaptor.getValue();
+            assertThat(capturedInput.customKey()).isEqualTo(customApiKey);
+        }
     }
 
     @Nested
@@ -368,6 +500,58 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 soft.assertThat(input.endingAt()).isEqualTo(Objects.requireNonNull(acceptSubscription.getEndingAt()).toZonedDateTime());
                 soft.assertThat(input.reasonMessage()).isEqualTo(acceptSubscription.getReason());
                 soft.assertThat(input.customKey()).isEqualTo(acceptSubscription.getCustomApiKey());
+            });
+        }
+
+        @Test
+        public void should_accept_subscription_with_random_api_key() {
+            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
+                .aSubscriptionEntity()
+                .toBuilder()
+                .id(SUBSCRIPTION)
+                .api(API)
+                .plan(PLAN)
+                .status(SubscriptionStatus.PENDING)
+                .build();
+            final var acceptSubscription = SubscriptionFixtures.anAcceptSubscriptionWithRandomKey();
+            doReturn(
+                new AcceptSubscriptionUseCase.Output(
+                    fixtures.core.model.SubscriptionFixtures
+                        .aSubscription()
+                        .toBuilder()
+                        .id(SUBSCRIPTION)
+                        .planId(PLAN)
+                        .applicationId(APPLICATION)
+                        .build()
+                )
+            )
+                .when(acceptSubscriptionUseCase)
+                .execute(any());
+            final Response response = target.request().post(Entity.json(acceptSubscription));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(Subscription.class)
+                .satisfies(subscription -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(subscription.getId()).isEqualTo(SUBSCRIPTION);
+                        soft.assertThat(subscription.getPlan()).extracting(BasePlan::getId).isEqualTo(PLAN);
+                        soft.assertThat(subscription.getApplication()).extracting(BaseApplication::getId).isEqualTo(APPLICATION);
+                    });
+                });
+
+            var captor = ArgumentCaptor.forClass(AcceptSubscriptionUseCase.Input.class);
+            verify(acceptSubscriptionUseCase, atLeastOnce()).execute(captor.capture());
+
+            SoftAssertions.assertSoftly(soft -> {
+                var input = captor.getValue();
+                soft.assertThat(input.subscriptionId()).isEqualTo(SUBSCRIPTION);
+                soft.assertThat(input.apiId()).isEqualTo(API);
+                soft.assertThat(input.startingAt()).isEqualTo(Objects.requireNonNull(acceptSubscription.getStartingAt()).toZonedDateTime());
+                soft.assertThat(input.endingAt()).isEqualTo(Objects.requireNonNull(acceptSubscription.getEndingAt()).toZonedDateTime());
+                soft.assertThat(input.reasonMessage()).isEqualTo(acceptSubscription.getReason());
+                soft.assertThat(input.customKey()).isNotNull();
+                soft.assertThat(input.customKey()).matches("^[a-f0-9\\-]{36}$"); // Validate it's a valid UUID format (e.g., 123e4567-e89b-12d3-a456-426614174000)
             });
         }
 
