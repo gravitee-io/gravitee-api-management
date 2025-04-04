@@ -18,7 +18,7 @@ package io.gravitee.apim.infra.domain_service.plan;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
@@ -37,7 +37,7 @@ public class PlanSynchronizationLegacyWrapper implements PlanSynchronizationServ
     }
 
     @Override
-    public boolean checkSynchronized(Plan oldPlan, List<Flow> oldFlows, Plan newPlan, List<Flow> newFlows) {
+    public boolean checkSynchronized(Plan oldPlan, List<FlowV4Impl> oldFlows, Plan newPlan, List<FlowV4Impl> newFlows) {
         var oldPlanEntity = PlanAdapter.INSTANCE.toEntityV4(oldPlan);
         oldPlanEntity.setFlows(oldFlows);
         var newPlanEntity = PlanAdapter.INSTANCE.toEntityV4(newPlan);

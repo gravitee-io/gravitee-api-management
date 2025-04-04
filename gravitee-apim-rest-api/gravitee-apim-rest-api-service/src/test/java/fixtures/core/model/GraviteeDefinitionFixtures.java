@@ -41,7 +41,7 @@ import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer;
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -212,7 +212,7 @@ public class GraviteeDefinitionFixtures {
                     .flowExecution(new FlowExecution())
                     .flows(
                         List.of(
-                            Flow
+                            FlowV4Impl
                                 .builder()
                                 .id("flow-id")
                                 .name("api flows")

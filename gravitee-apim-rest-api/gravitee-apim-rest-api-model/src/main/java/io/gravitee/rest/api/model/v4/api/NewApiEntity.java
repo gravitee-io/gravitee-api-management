@@ -20,9 +20,8 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -95,7 +94,7 @@ public class NewApiEntity {
 
     @Valid
     @Schema(description = "A list of flows containing the policies configuration.")
-    private List<Flow> flows;
+    private List<FlowV4Impl> flows;
 
     @Schema(description = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<@NotBlank String> groups;

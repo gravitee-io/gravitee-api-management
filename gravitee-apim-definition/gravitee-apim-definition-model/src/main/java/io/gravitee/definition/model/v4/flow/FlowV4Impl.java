@@ -42,7 +42,7 @@ import lombok.experimental.SuperBuilder;
 @Schema(name = "FlowV4")
 @SuperBuilder(toBuilder = true)
 @With
-public class Flow extends AbstractFlow {
+public class FlowV4Impl extends AbstractFlow {
 
     @Valid
     private List<Step> request;

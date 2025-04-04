@@ -20,7 +20,7 @@ import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.infra.adapter.FlowAdapter;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
@@ -51,22 +51,22 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     }
 
     @Override
-    public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
+    public List<FlowV4Impl> savePlanFlows(String planId, List<FlowV4Impl> flows) {
         return FlowAdapter.INSTANCE.toFlowV4(save(FlowReferenceType.PLAN, planId, flows));
     }
 
     @Override
-    public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
+    public List<FlowV4Impl> saveApiFlows(String apiId, List<FlowV4Impl> flows) {
         return FlowAdapter.INSTANCE.toFlowV4(save(FlowReferenceType.API, apiId, flows));
     }
 
     @Override
-    public List<Flow> getApiV4Flows(String apiId) {
+    public List<FlowV4Impl> getApiV4Flows(String apiId) {
         return getHttpV4(FlowReferenceType.API, apiId);
     }
 
     @Override
-    public List<Flow> getPlanV4Flows(String planId) {
+    public List<FlowV4Impl> getPlanV4Flows(String planId) {
         return getHttpV4(FlowReferenceType.PLAN, planId);
     }
 
@@ -166,7 +166,7 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
         }
     }
 
-    private List<Flow> getHttpV4(FlowReferenceType flowReferenceType, String referenceId) {
+    private List<FlowV4Impl> getHttpV4(FlowReferenceType flowReferenceType, String referenceId) {
         return getRepositoryV4(flowReferenceType, referenceId).map(FlowAdapter.INSTANCE::toFlowV4).collect(Collectors.toList());
     }
 

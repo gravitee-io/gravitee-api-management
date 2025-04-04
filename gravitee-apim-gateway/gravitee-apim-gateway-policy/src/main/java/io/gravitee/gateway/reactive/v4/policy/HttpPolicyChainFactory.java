@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.v4.policy;
 
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -40,7 +40,7 @@ import java.util.Locale;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolicy, Flow, HttpPolicyChain> {
+public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolicy, FlowV4Impl, HttpPolicyChain> {
 
     protected final List<HttpHook> policyHooks = new ArrayList<>();
 
@@ -61,7 +61,7 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
     }
 
     @Override
-    protected List<Step> getSteps(Flow flow, ExecutionPhase phase) {
+    protected List<Step> getSteps(FlowV4Impl flow, ExecutionPhase phase) {
         final List<Step> steps =
             switch (phase) {
                 case REQUEST -> flow.getRequest();
@@ -73,7 +73,7 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
     }
 
     @Override
-    protected HttpPolicyChain buildPolicyChain(String flowChainId, Flow flow, ExecutionPhase phase, List<HttpPolicy> policies) {
+    protected HttpPolicyChain buildPolicyChain(String flowChainId, FlowV4Impl flow, ExecutionPhase phase, List<HttpPolicy> policies) {
         String policyChainId = getPolicyChainId(flowChainId, flow);
         HttpPolicyChain httpPolicyChain = new HttpPolicyChain(policyChainId, policies, phase);
         httpPolicyChain.addHooks(policyHooks);
@@ -88,7 +88,7 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
         return policyMetadata;
     }
 
-    private String getPolicyChainId(final String flowChainId, final Flow flow) {
+    private String getPolicyChainId(final String flowChainId, final FlowV4Impl flow) {
         StringBuilder flowNameBuilder = new StringBuilder(flowChainId).append(ID_SEPARATOR);
         if (StringUtil.isNullOrEmpty(flow.getName())) {
             flow

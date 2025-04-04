@@ -18,7 +18,7 @@ package io.gravitee.apim.core.api.model;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import java.util.List;
@@ -47,7 +47,7 @@ public class NewHttpApi extends AbstractNewApi {
     private FlowExecution flowExecution;
 
     @Builder.Default
-    private List<Flow> flows = List.of();
+    private List<FlowV4Impl> flows = List.of();
 
     private Failover failover;
 

@@ -15,10 +15,9 @@
  */
 package io.gravitee.gateway.reactive.v4.flow;
 
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
@@ -45,11 +44,11 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
         flowResolver = new TestFlowResolver(conditionFilter, buildFlows());
     }
 
-    private List<Flow> buildFlows() {
+    private List<FlowV4Impl> buildFlows() {
         return flowPaths
             .stream()
             .map(path -> {
-                Flow flow = new Flow();
+                FlowV4Impl flow = new FlowV4Impl();
                 // Http selector
                 HttpSelector httpSelector = new HttpSelector();
                 httpSelector.setPath(path);
@@ -71,20 +70,20 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
 
     protected static class TestFlowResolver extends AbstractFlowResolver {
 
-        private final List<Flow> flows;
+        private final List<FlowV4Impl> flows;
 
-        public TestFlowResolver(ConditionFilter<BaseExecutionContext, Flow> conditionFilter, List<Flow> flows) {
+        public TestFlowResolver(ConditionFilter<BaseExecutionContext, FlowV4Impl> conditionFilter, List<FlowV4Impl> flows) {
             super(conditionFilter);
             this.flows = flows;
         }
 
         @Override
-        public Flowable<Flow> provideFlows(BaseExecutionContext ctx) {
+        public Flowable<FlowV4Impl> provideFlows(BaseExecutionContext ctx) {
             return Flowable.fromIterable(flows);
         }
 
         @Override
-        public Flowable<Flow> resolve(BaseExecutionContext ctx) {
+        public Flowable<FlowV4Impl> resolve(BaseExecutionContext ctx) {
             return super.resolve(ctx);
         }
     }

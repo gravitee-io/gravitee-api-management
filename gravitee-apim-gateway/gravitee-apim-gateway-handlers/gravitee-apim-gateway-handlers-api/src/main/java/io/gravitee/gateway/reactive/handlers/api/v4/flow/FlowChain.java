@@ -18,7 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.flow;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
@@ -52,19 +52,23 @@ public class FlowChain implements Hookable<ChainHook> {
     private final String id;
     private final FlowResolver flowResolver;
     private final String resolvedFlowAttribute;
-    private final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory;
+    private final PolicyChainFactory<HttpPolicyChain, FlowV4Impl> policyChainFactory;
     private final boolean validateFlowMatching;
     private final boolean interruptIfNoMatch;
     private List<ChainHook> hooks;
 
-    public FlowChain(final String id, final FlowResolver flowResolver, final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory) {
+    public FlowChain(
+        final String id,
+        final FlowResolver flowResolver,
+        final PolicyChainFactory<HttpPolicyChain, FlowV4Impl> policyChainFactory
+    ) {
         this(id, flowResolver, policyChainFactory, false, false);
     }
 
     public FlowChain(
         final String id,
         final FlowResolver flowResolver,
-        final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory,
+        final PolicyChainFactory<HttpPolicyChain, FlowV4Impl> policyChainFactory,
         final boolean validateFlowMatching,
         final boolean interruptIfNoMatch
     ) {
@@ -96,7 +100,7 @@ public class FlowChain implements Hookable<ChainHook> {
      * The {@link Completable} may complete in error in case of any error occurred during the execution.
      */
     public Completable execute(ExecutionContext ctx, ExecutionPhase phase) {
-        Flowable<Flow> flowable = callResolveFlows(ctx, phase);
+        Flowable<FlowV4Impl> flowable = callResolveFlows(ctx, phase);
 
         return flowable
             .doOnNext(flow -> {
@@ -112,7 +116,7 @@ public class FlowChain implements Hookable<ChainHook> {
             .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
     }
 
-    private Flowable<Flow> callResolveFlows(ExecutionContext ctx, ExecutionPhase phase) {
+    private Flowable<FlowV4Impl> callResolveFlows(ExecutionContext ctx, ExecutionPhase phase) {
         if (validateFlowMatching && ExecutionPhase.REQUEST == phase) {
             // Only deal with execution flow matching if required
             return resolveFlows(ctx)
@@ -147,9 +151,9 @@ public class FlowChain implements Hookable<ChainHook> {
      * @param ctx the context used to temporary store the resolved flows.
      * @return the resolved flows.
      */
-    private Flowable<Flow> resolveFlows(GenericExecutionContext ctx) {
+    private Flowable<FlowV4Impl> resolveFlows(GenericExecutionContext ctx) {
         return Flowable.defer(() -> {
-            Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
+            Flowable<FlowV4Impl> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
 
             if (flows == null) {
                 // Resolves the flows once. Subsequent resolutions will return the same flows.
@@ -172,7 +176,7 @@ public class FlowChain implements Hookable<ChainHook> {
      *
      * @return a {@link Completable} that completes when the flow policy chain completes.
      */
-    private Completable executeFlow(final ExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
+    private Completable executeFlow(final ExecutionContext ctx, final FlowV4Impl flow, final ExecutionPhase phase) {
         HttpPolicyChain policyChain = policyChainFactory.create(id, flow, phase);
         return HookHelper
             .hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase)

@@ -21,18 +21,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
@@ -55,7 +53,7 @@ class PathParametersExtractorTest {
     @Test
     void can_extract_param_flow_with_path_param() {
         final Api api = new Api();
-        final Flow flow = new Flow();
+        final FlowV4Impl flow = new FlowV4Impl();
         HttpSelector httpSelector = new HttpSelector();
         httpSelector.setPath("/products/:productId");
         httpSelector.setPathOperator(Operator.STARTS_WITH);

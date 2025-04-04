@@ -25,7 +25,7 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -102,14 +102,14 @@ class ApiV4DefinitionSecretRefsFinderTest {
 
         Api withPlanAndFlowNoStep = new Api();
         Plan planFlowNoStep = new Plan();
-        planFlowNoStep.setFlows(List.of(new Flow()));
+        planFlowNoStep.setFlows(List.of(new FlowV4Impl()));
         withPlanAndFlowNoStep.setPlans(List.of(planFlowNoStep));
 
         Api withEmptyFlow = new Api();
         withEmptyFlow.setFlows(List.of());
 
         Api withFlowNoStep = new Api();
-        withFlowNoStep.setFlows(List.of(new Flow()));
+        withFlowNoStep.setFlows(List.of(new FlowV4Impl()));
 
         Api withEmptyListener = new Api();
         withEmptyListener.setListeners(List.of());
@@ -266,14 +266,14 @@ class ApiV4DefinitionSecretRefsFinderTest {
         security.setConfiguration(planSecurityConfig);
         security.setType(planSecurityType);
         plan.setSecurity(security);
-        Flow planFlow = new Flow();
+        FlowV4Impl planFlow = new FlowV4Impl();
         planFlow.setRequest(List.of(newStep(planRequestFlowConfig, planRequestFlowPolicy)));
         planFlow.setResponse(List.of(newStep(planResponseFlowConfig, planResponseFlowPolicy)));
         planFlow.setPublish(List.of(newStep(planPublishFlowConfig, planPublishFlowPolicy)));
         plan.setFlows(List.of(planFlow));
         api.setPlans(List.of(plan));
         planFlow.setSubscribe(List.of(newStep(planSubscribeFlowConfig, planSubscribeFlowPolicy)));
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         flow.setRequest(List.of(newStep(definitionRequestFlowConfig, definitionRequestFlowPolicy)));
         flow.setResponse(List.of(newStep(definitionResponseFlowConfig, definitionResponseFlowPolicy)));
         flow.setPublish(List.of(newStep(definitionPublishFlowConfig, definitionPublishFlowPolicy)));

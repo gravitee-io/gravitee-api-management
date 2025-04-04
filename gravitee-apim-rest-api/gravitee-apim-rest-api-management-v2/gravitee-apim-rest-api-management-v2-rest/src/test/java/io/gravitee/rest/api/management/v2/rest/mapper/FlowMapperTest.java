@@ -23,12 +23,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import fixtures.FlowFixtures;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.StepV2;
 import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import java.util.List;
@@ -102,7 +101,8 @@ public class FlowMapperTest {
         assertNativeFlowV4Equals(flows.get(1), flow2);
     }
 
-    private void assertHttpFlowV4Equals(Flow flowEntityV4, FlowV4 flowV4) throws JsonProcessingException {
+    private void assertHttpFlowV4Equals(FlowV4Impl flowEntityV4, io.gravitee.rest.api.management.v2.rest.model.FlowV4 flowV4)
+        throws JsonProcessingException {
         assertEquals(flowEntityV4.getName(), flowV4.getName());
 
         final var flowSelectors = flowEntityV4.getSelectors();
@@ -135,7 +135,8 @@ public class FlowMapperTest {
         assertStepsV4Equals(flowEntityV4.getSubscribe(), flowV4.getSubscribe());
     }
 
-    private void assertNativeFlowV4Equals(NativeFlow flowEntityV4, FlowV4 flowV4) throws JsonProcessingException {
+    private void assertNativeFlowV4Equals(NativeFlow flowEntityV4, io.gravitee.rest.api.management.v2.rest.model.FlowV4 flowV4)
+        throws JsonProcessingException {
         assertEquals(flowEntityV4.getName(), flowV4.getName());
 
         final var flowV4Selectors = flowV4.getSelectors();

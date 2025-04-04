@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -68,47 +68,47 @@ public class FlowValidationServiceImplTest {
 
     @Test
     public void shouldReturnValidatedFlowsWithoutSelectorsNorSteps() {
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
 
-        List<Flow> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
+        List<FlowV4Impl> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
         assertThat(flows.size()).isEqualTo(1);
-        Flow ValidatedFlows = flows.get(0);
+        FlowV4Impl ValidatedFlows = flows.get(0);
         assertThat(ValidatedFlows).isEqualTo(flow);
     }
 
     @Test
     public void shouldReturnValidatedFlowsWithSelectorsAndWithoutSteps() {
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         HttpSelector httpSelector = new HttpSelector();
         httpSelector.setPath("/");
         httpSelector.setPathOperator(Operator.STARTS_WITH);
         flow.setSelectors(List.of(httpSelector));
 
-        List<Flow> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
+        List<FlowV4Impl> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
         assertThat(flows.size()).isEqualTo(1);
-        Flow ValidatedFlows = flows.get(0);
+        FlowV4Impl ValidatedFlows = flows.get(0);
         assertThat(ValidatedFlows).isEqualTo(flow);
     }
 
     @Test
     public void shouldReturnValidatedFlowsWithStepsAndWithoutSelectors() {
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
 
         Step step = new Step();
         step.setPolicy("policy");
         step.setConfiguration("configuration");
         flow.setRequest(List.of(step));
 
-        List<Flow> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
+        List<FlowV4Impl> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
         assertThat(flows.size()).isEqualTo(1);
-        Flow ValidatedFlows = flows.get(0);
+        FlowV4Impl ValidatedFlows = flows.get(0);
         assertThat(ValidatedFlows).isEqualTo(flow);
         verify(policyService).validatePolicyConfiguration(eq("policy"), eq("configuration"));
     }
 
     @Test
     public void shouldReturnValidatedFlowsWithSelectorsAndSteps() {
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         HttpSelector httpSelector = new HttpSelector();
         httpSelector.setPath("/");
         httpSelector.setPathOperator(Operator.STARTS_WITH);
@@ -119,16 +119,16 @@ public class FlowValidationServiceImplTest {
         step.setConfiguration("configuration");
         flow.setRequest(List.of(step));
 
-        List<Flow> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
+        List<FlowV4Impl> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
         assertThat(flows.size()).isEqualTo(1);
-        Flow ValidatedFlows = flows.get(0);
+        FlowV4Impl ValidatedFlows = flows.get(0);
         assertThat(ValidatedFlows).isEqualTo(flow);
         verify(policyService).validatePolicyConfiguration(eq("policy"), eq("configuration"));
     }
 
     @Test
     public void shouldThrowValidationExceptionWithDuplicatedSelectors() {
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         HttpSelector httpSelector = new HttpSelector();
         flow.setSelectors(List.of(httpSelector, httpSelector));
 
@@ -138,7 +138,7 @@ public class FlowValidationServiceImplTest {
 
     @Test
     public void shouldThrowInvalidDataExceptionWithWrongPolicyConfiguration() {
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
 
         Step step = new Step();
         step.setPolicy("policy");
@@ -152,7 +152,7 @@ public class FlowValidationServiceImplTest {
 
     @Test
     public void shouldThrowValidationExceptionWithInvalidSelectorsAndSyncApi() {
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         ChannelSelector channelSelector = new ChannelSelector();
         flow.setSelectors(List.of(channelSelector));
 
@@ -162,7 +162,7 @@ public class FlowValidationServiceImplTest {
 
     @Test
     public void shouldThrowValidationExceptionWithInvalidSelectorsAndAsyncApi() {
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         HttpSelector httpSelector = new HttpSelector();
         flow.setSelectors(List.of(httpSelector));
 
@@ -172,7 +172,7 @@ public class FlowValidationServiceImplTest {
 
     @Test
     public void shouldThrowValidationExceptionWithInvalidEntrypoints() {
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         ChannelSelector channelSelector = new ChannelSelector();
         channelSelector.setEntrypoints(Set.of("entrypoint"));
         flow.setSelectors(List.of(channelSelector));
@@ -184,8 +184,8 @@ public class FlowValidationServiceImplTest {
 
     @Test
     public void shouldIgnoreEmptyList() {
-        List<Flow> emptyFlows = List.of();
-        List<Flow> validatedFlows = flowValidationService.validateAndSanitize(ApiType.PROXY, emptyFlows);
+        List<FlowV4Impl> emptyFlows = List.of();
+        List<FlowV4Impl> validatedFlows = flowValidationService.validateAndSanitize(ApiType.PROXY, emptyFlows);
         assertThat(validatedFlows).isEmpty();
         assertThat(validatedFlows).isEqualTo(emptyFlows);
     }

@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
@@ -67,10 +67,10 @@ class FlowChainTest {
 
     @Test
     void should_execute_when_page_is_Request() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final FlowV4Impl flow1 = mock(FlowV4Impl.class);
+        final FlowV4Impl flow2 = mock(FlowV4Impl.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
+        final Flowable<FlowV4Impl> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
@@ -91,10 +91,10 @@ class FlowChainTest {
 
     @Test
     void should_execute_when_page_is_MessageRequest() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final FlowV4Impl flow1 = mock(FlowV4Impl.class);
+        final FlowV4Impl flow2 = mock(FlowV4Impl.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
+        final Flowable<FlowV4Impl> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
@@ -115,10 +115,10 @@ class FlowChainTest {
 
     @Test
     void should_execute_when_page_is_Response() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final FlowV4Impl flow1 = mock(FlowV4Impl.class);
+        final FlowV4Impl flow2 = mock(FlowV4Impl.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
+        final Flowable<FlowV4Impl> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
@@ -139,10 +139,10 @@ class FlowChainTest {
 
     @Test
     void should_execute_when_page_is_MessageResponse() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final FlowV4Impl flow1 = mock(FlowV4Impl.class);
+        final FlowV4Impl flow2 = mock(FlowV4Impl.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
+        final Flowable<FlowV4Impl> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
@@ -163,10 +163,10 @@ class FlowChainTest {
 
     @Test
     void should_execute_and_reuse_flow_resolved() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final FlowV4Impl flow1 = mock(FlowV4Impl.class);
+        final FlowV4Impl flow2 = mock(FlowV4Impl.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
+        final Flowable<FlowV4Impl> resolvedFlows = Flowable.just(flow1, flow2);
         when(ctx.getInternalAttribute(eq("flow." + FLOW_CHAIN_ID))).thenReturn(resolvedFlows);
 
         final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
@@ -188,10 +188,10 @@ class FlowChainTest {
 
     @Test
     void should_execute_only_flow1_if_error() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final FlowV4Impl flow1 = mock(FlowV4Impl.class);
+        final FlowV4Impl flow2 = mock(FlowV4Impl.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
+        final Flowable<FlowV4Impl> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
@@ -214,7 +214,7 @@ class FlowChainTest {
         lenient().when(ctx.getInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))).thenReturn(false);
 
         when(ctx.interruptWith(any())).thenAnswer(inv -> Completable.error(new InterruptionFailureException(inv.getArgument(0))));
-        final Flowable<Flow> resolvedFlows = Flowable.empty();
+        final Flowable<FlowV4Impl> resolvedFlows = Flowable.empty();
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
@@ -228,7 +228,7 @@ class FlowChainTest {
         lenient().when(ctx.getInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))).thenReturn(null);
 
         when(ctx.interruptWith(any())).thenAnswer(inv -> Completable.error(new InterruptionFailureException(inv.getArgument(0))));
-        final Flowable<Flow> resolvedFlows = Flowable.empty();
+        final Flowable<FlowV4Impl> resolvedFlows = Flowable.empty();
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
@@ -242,7 +242,7 @@ class FlowChainTest {
     void should_not_interrupt_when_no_match_but_previous_match() {
         cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, true, true);
         lenient().when(ctx.getInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))).thenReturn(true);
-        final Flowable<Flow> resolvedFlows = Flowable.empty();
+        final Flowable<FlowV4Impl> resolvedFlows = Flowable.empty();
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
@@ -253,7 +253,7 @@ class FlowChainTest {
     @Test
     void should_not_set_flows_matched_attribute_when_validate_flow_matching_is_false() {
         cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory);
-        final Flowable<Flow> resolvedFlows = Flowable.empty();
+        final Flowable<FlowV4Impl> resolvedFlows = Flowable.empty();
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();

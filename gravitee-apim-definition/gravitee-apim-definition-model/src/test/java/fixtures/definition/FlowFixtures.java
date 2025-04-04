@@ -23,7 +23,7 @@ import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.StepV2;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -36,7 +36,7 @@ public class FlowFixtures {
 
     private FlowFixtures() {}
 
-    private static final Supplier<Flow.FlowBuilder<?, ?>> BASE_HTTP_V4 = () -> Flow.builder().name("my-flow");
+    private static final Supplier<FlowV4Impl.FlowV4ImplBuilder<?, ?>> BASE_HTTP_V4 = () -> FlowV4Impl.builder().name("my-flow");
     private static final Supplier<NativeFlow.NativeFlowBuilder<?, ?>> BASE_NATIVE_V4 = () -> NativeFlow.builder().name("my-flow");
     private static final Supplier<FlowV2Impl.FlowV2ImplBuilder> BASE_V2 = () ->
         FlowV2Impl
@@ -73,11 +73,11 @@ public class FlowFixtures {
                 )
             );
 
-    public static Flow aSimpleFlowV4() {
-        return Flow.builder().name("simple-flow").build();
+    public static FlowV4Impl aSimpleFlowV4() {
+        return FlowV4Impl.builder().name("simple-flow").build();
     }
 
-    public static Flow aProxyFlowV4() {
+    public static FlowV4Impl aProxyFlowV4() {
         return BASE_HTTP_V4
             .get()
             .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
@@ -108,7 +108,7 @@ public class FlowFixtures {
             .build();
     }
 
-    public static Flow aMessageFlowV4() {
+    public static FlowV4Impl aMessageFlowV4() {
         return BASE_HTTP_V4
             .get()
             .selectors(List.of(ChannelSelector.builder().channel("/").channelOperator(Operator.STARTS_WITH).build()))

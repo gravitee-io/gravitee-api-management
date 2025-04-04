@@ -37,7 +37,7 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
@@ -171,7 +171,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .when(apiValidationService)
                 .validateDynamicProperties(any());
 
-            doAnswer(invocation -> invocation.<List<Flow>>getArgument(1))
+            doAnswer(invocation -> invocation.<List<FlowV4Impl>>getArgument(1))
                 .when(flowValidationDomainService)
                 .validateAndSanitizeHttpV4(any(), any());
 

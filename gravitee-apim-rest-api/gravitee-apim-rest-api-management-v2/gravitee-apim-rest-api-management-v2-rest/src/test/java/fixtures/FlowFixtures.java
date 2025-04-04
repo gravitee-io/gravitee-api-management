@@ -16,12 +16,11 @@
 package fixtures;
 
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.BaseSelector;
 import io.gravitee.rest.api.management.v2.rest.model.ChannelSelector;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.Operator;
 import io.gravitee.rest.api.management.v2.rest.model.PathOperator;
 import io.gravitee.rest.api.management.v2.rest.model.Selector;
@@ -64,8 +63,8 @@ public class FlowFixtures {
             .messageCondition("{#context.attribute['messageCondition'] == true}")
             .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
 
-    private static final Supplier<FlowV4> BASE_FLOW_HTTP_V4 = () ->
-        new FlowV4()
+    private static final Supplier<io.gravitee.rest.api.management.v2.rest.model.FlowV4> BASE_FLOW_HTTP_V4 = () ->
+        new io.gravitee.rest.api.management.v2.rest.model.FlowV4()
             .name("Flow")
             .enabled(true)
             .selectors(List.of(new Selector(BASE_CHANNEL_SELECTOR_V4.get())))
@@ -75,8 +74,8 @@ public class FlowFixtures {
             .subscribe(List.of(BASE_STEP_V4.get().name("step_subscribe")))
             .tags(Set.of("tag1", "tag2"));
 
-    private static final Supplier<FlowV4> BASE_FLOW_NATIVE_V4 = () ->
-        new FlowV4()
+    private static final Supplier<io.gravitee.rest.api.management.v2.rest.model.FlowV4> BASE_FLOW_NATIVE_V4 = () ->
+        new io.gravitee.rest.api.management.v2.rest.model.FlowV4()
             .name("Flow")
             .enabled(true)
             .connect(List.of(BASE_STEP_V4.get().name("step_connect")))
@@ -103,11 +102,11 @@ public class FlowFixtures {
             .pre(List.of(BASE_STEP_V2.get().name("step_pre")))
             .post(List.of(BASE_STEP_V2.get().name("step_pot")));
 
-    public static FlowV4 aFlowHttpV4() {
+    public static io.gravitee.rest.api.management.v2.rest.model.FlowV4 aFlowHttpV4() {
         return BASE_FLOW_HTTP_V4.get();
     }
 
-    public static FlowV4 aFlowNativeV4() {
+    public static io.gravitee.rest.api.management.v2.rest.model.FlowV4 aFlowNativeV4() {
         return BASE_FLOW_NATIVE_V4.get();
     }
 
@@ -115,7 +114,7 @@ public class FlowFixtures {
         return BASE_FLOW_V2.get();
     }
 
-    public static Flow aModelFlowHttpV4() {
+    public static FlowV4Impl aModelFlowHttpV4() {
         return FlowModelFixtures.aModelFlowHttpV4();
     }
 

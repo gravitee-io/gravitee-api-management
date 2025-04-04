@@ -22,7 +22,7 @@ import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
@@ -77,7 +77,7 @@ public class Api extends AbstractApi {
     @Builder.Default
     private FlowExecution flowExecution = new FlowExecution();
 
-    private List<Flow> flows;
+    private List<FlowV4Impl> flows;
 
     private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
@@ -113,7 +113,7 @@ public class Api extends AbstractApi {
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getFlows())
-                    .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
+                    .map(f -> f.stream().filter(FlowV4Impl::isEnabled).map(FlowV4Impl::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getPlans())

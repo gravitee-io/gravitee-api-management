@@ -53,7 +53,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -328,7 +328,7 @@ class UpdatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
-        void should_update_existing_plans(Api api, Plan plan, List<Flow> flows) {
+        void should_update_existing_plans(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             givenExistingPlan(plan);
 
@@ -363,7 +363,7 @@ class UpdatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
-        void should_throw_when_a_plan_have_no_tag_matching_api_tags(Api api, Plan plan, List<Flow> flows) {
+        void should_throw_when_a_plan_have_no_tag_matching_api_tags(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             givenExistingPlan(plan);
             api.getApiDefinitionHttpV4().setTags(Set.of("tag1", "tag2"));
@@ -380,8 +380,8 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_flows_are_invalid(Api api, Plan plan) {
             // Given
             givenExistingPlan(plan);
-            List<Flow> invalidFlows = List.of(
-                Flow.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
+            List<FlowV4Impl> invalidFlows = List.of(
+                FlowV4Impl.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
             );
 
             // When
@@ -405,8 +405,8 @@ class UpdatePlanDomainServiceTest {
                 ? HttpSelector.builder().path("/:productId").pathOperator(Operator.STARTS_WITH).build()
                 : ChannelSelector.builder().channel("/:productId").channelOperator(Operator.STARTS_WITH).build();
             var invalidFlows = List.of(
-                Flow.builder().name("flow1").selectors(List.of(selector1)).build(),
-                Flow.builder().name("flow2").selectors(List.of(selector2)).build()
+                FlowV4Impl.builder().name("flow1").selectors(List.of(selector1)).build(),
+                FlowV4Impl.builder().name("flow2").selectors(List.of(selector2)).build()
             );
 
             // When
@@ -423,7 +423,7 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_general_conditions_page_is_not_published_while_updating_a_published_plan(
             Api api,
             Plan plan,
-            List<Flow> flows
+            List<FlowV4Impl> flows
         ) {
             // Given
             var publishedPlan = givenExistingPlan(plan.toBuilder().build().setPlanStatus(PlanStatus.PUBLISHED));
@@ -442,7 +442,7 @@ class UpdatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
-        void should_set_needDeployAt_when_update_triggers_a_synchronization(Api api, Plan plan, List<Flow> flows) {
+        void should_set_needDeployAt_when_update_triggers_a_synchronization(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             givenExistingPlan(plan);
             when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(false);
@@ -464,7 +464,7 @@ class UpdatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4WithFederatedTestData")
-        void should_throw_when_invalid_status_change_detected(Api api, Plan plan, List<Flow> flows) {
+        void should_throw_when_invalid_status_change_detected(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             givenExistingPlan(plan.copy().setPlanStatus(PlanStatus.CLOSED));
 
@@ -477,7 +477,7 @@ class UpdatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4WithFederatedTestData")
-        void should_save_all_flows(Api api, Plan plan, List<Flow> flows) {
+        void should_save_all_flows(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             givenExistingPlan(plan);
 
@@ -490,7 +490,7 @@ class UpdatePlanDomainServiceTest {
 
         @ParameterizedTest
         @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4WithFederatedTestData")
-        void should_create_an_audit(Api api, Plan plan, List<Flow> flows) {
+        void should_create_an_audit(Api api, Plan plan, List<FlowV4Impl> flows) {
             // Given
             givenExistingPlan(plan);
 
@@ -574,7 +574,7 @@ class UpdatePlanDomainServiceTest {
                             .build()
                     )
                     .build(),
-                List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
+                List.of(FlowV4Impl.builder().name("flow").selectors(List.of(new HttpSelector())).build())
             ),
             Arguments.of(
                 API_MESSAGE_V4,
@@ -591,7 +591,7 @@ class UpdatePlanDomainServiceTest {
                             .build()
                     )
                     .build(),
-                List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
+                List.of(FlowV4Impl.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
             )
         );
     }

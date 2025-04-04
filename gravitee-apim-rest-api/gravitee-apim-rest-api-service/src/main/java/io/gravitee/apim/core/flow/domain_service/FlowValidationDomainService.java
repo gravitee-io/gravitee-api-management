@@ -23,7 +23,7 @@ import io.gravitee.apim.core.plugin.model.PlatformPlugin;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
@@ -63,14 +63,14 @@ public class FlowValidationDomainService {
         this.entrypointConnectorPluginService = entrypointConnectorPluginService;
     }
 
-    private static final Map<ApiType, Function<Flow, Optional<String>>> PATH_EXTRACTOR = Map.of(
+    private static final Map<ApiType, Function<FlowV4Impl, Optional<String>>> PATH_EXTRACTOR = Map.of(
         ApiType.PROXY,
         flow -> flow.selectorByType(SelectorType.HTTP).stream().map(selector -> ((HttpSelector) selector).getPath()).findFirst(),
         ApiType.MESSAGE,
         flow -> flow.selectorByType(SelectorType.CHANNEL).stream().map(selector -> ((ChannelSelector) selector).getChannel()).findFirst()
     );
 
-    public List<Flow> validateAndSanitizeHttpV4(final ApiType apiType, List<Flow> flows) {
+    public List<FlowV4Impl> validateAndSanitizeHttpV4(final ApiType apiType, List<FlowV4Impl> flows) {
         if (flows != null) {
             flows.forEach(flow -> {
                 // Check duplicated selectors
@@ -111,7 +111,7 @@ public class FlowValidationDomainService {
         return flows;
     }
 
-    private void checkSelectorsForType(final ApiType apiType, final Flow flow) {
+    private void checkSelectorsForType(final ApiType apiType, final FlowV4Impl flow) {
         if (flow.getSelectors() != null) {
             if (ApiType.PROXY == apiType) {
                 Set<String> invalidSelectors = flow
@@ -139,7 +139,7 @@ public class FlowValidationDomainService {
         }
     }
 
-    private void checkChannelAsyncEntrypoint(final Flow flow) {
+    private void checkChannelAsyncEntrypoint(final FlowV4Impl flow) {
         Optional<ChannelSelector> channelSelectorOpt = flow
             .getSelectors()
             .stream()
@@ -179,7 +179,7 @@ public class FlowValidationDomainService {
             );
     }
 
-    private void checkDuplicatedSelectors(final Flow flow) {
+    private void checkDuplicatedSelectors(final FlowV4Impl flow) {
         if (flow.getSelectors() != null) {
             Set<Selector> seenSelectors = new HashSet<>();
             Set<String> duplicatedSelectors = flow
@@ -194,19 +194,19 @@ public class FlowValidationDomainService {
         }
     }
 
-    public void validatePathParameters(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows) {
+    public void validatePathParameters(ApiType apiType, Stream<FlowV4Impl> apiFlows, Stream<FlowV4Impl> planFlows) {
         apiFlows = apiFlows == null ? Stream.empty() : apiFlows;
         planFlows = planFlows == null ? Stream.empty() : planFlows;
         // group all flows in one stream
-        final Stream<Flow> flowsWithPathParam = filterFlowsWithPathParam(apiType, apiFlows, planFlows);
+        final Stream<FlowV4Impl> flowsWithPathParam = filterFlowsWithPathParam(apiType, apiFlows, planFlows);
         validatePathParamOverlapping(apiType, flowsWithPathParam);
     }
 
-    private Stream<Flow> filterFlowsWithPathParam(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows) {
-        return Stream.concat(apiFlows, planFlows).filter(Flow::isEnabled).filter(flow -> containsPathParam(apiType, flow));
+    private Stream<FlowV4Impl> filterFlowsWithPathParam(ApiType apiType, Stream<FlowV4Impl> apiFlows, Stream<FlowV4Impl> planFlows) {
+        return Stream.concat(apiFlows, planFlows).filter(FlowV4Impl::isEnabled).filter(flow -> containsPathParam(apiType, flow));
     }
 
-    private void validatePathParamOverlapping(ApiType apiType, Stream<Flow> flows) {
+    private void validatePathParamOverlapping(ApiType apiType, Stream<FlowV4Impl> flows) {
         Map<String, Integer> paramWithPosition = new HashMap<>();
         Map<String, List<String>> pathsByParam = new HashMap<>();
         final AtomicBoolean hasOverlap = new AtomicBoolean(false);
@@ -262,12 +262,12 @@ public class FlowValidationDomainService {
         return paramWithPosition.containsKey(param) && !paramWithPosition.get(param).equals(i);
     }
 
-    private static Boolean containsPathParam(ApiType apiType, Flow flow) {
+    private static Boolean containsPathParam(ApiType apiType, FlowV4Impl flow) {
         final String path = extractPath(apiType, flow);
         return PARAM_PATTERN.asPredicate().test(path);
     }
 
-    private static String extractPath(ApiType apiType, Flow flow) {
+    private static String extractPath(ApiType apiType, FlowV4Impl flow) {
         return PATH_EXTRACTOR.get(apiType).apply(flow).orElse("");
     }
 }

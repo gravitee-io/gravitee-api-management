@@ -15,16 +15,12 @@
  */
 package io.gravitee.rest.api.model.v4.plan;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -80,7 +76,7 @@ public class UpdatePlanEntity {
 
     private String selectionRule;
 
-    private List<Flow> flows;
+    private List<FlowV4Impl> flows;
 
     public void setName(String name) {
         this.name = HtmlSanitizer.sanitize(name);

@@ -22,13 +22,12 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.ChannelSelector;
 import io.gravitee.rest.api.management.v2.rest.model.ConditionSelector;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.HttpSelector;
 import io.gravitee.rest.api.management.v2.rest.model.Selector;
 import io.gravitee.rest.api.management.v2.rest.model.StepV2;
@@ -53,23 +52,27 @@ public interface FlowMapper {
 
     // Flow V4
     @Mapping(target = "selectors", qualifiedByName = "mapToSelectorApiModelList")
-    FlowV4 mapFromHttpV4(io.gravitee.definition.model.v4.flow.Flow flow);
+    io.gravitee.rest.api.management.v2.rest.model.FlowV4 mapFromHttpV4(FlowV4Impl flow);
 
     @Mapping(target = "selectors", qualifiedByName = "mapToSelectorEntityList")
-    io.gravitee.definition.model.v4.flow.Flow mapToHttpV4(FlowV4 flow);
+    FlowV4Impl mapToHttpV4(io.gravitee.rest.api.management.v2.rest.model.FlowV4 flow);
 
-    FlowV4 mapFromNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeFlow flow);
+    io.gravitee.rest.api.management.v2.rest.model.FlowV4 mapFromNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeFlow flow);
 
-    io.gravitee.definition.model.v4.nativeapi.NativeFlow mapToNativeV4(FlowV4 flow);
+    io.gravitee.definition.model.v4.nativeapi.NativeFlow mapToNativeV4(io.gravitee.rest.api.management.v2.rest.model.FlowV4 flow);
 
     @Named("mapListToFlowHttpV4")
-    List<io.gravitee.definition.model.v4.flow.Flow> mapToHttpV4(List<FlowV4> flows);
+    List<FlowV4Impl> mapToHttpV4(List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> flows);
 
     @Named("mapListToFlowNativeV4")
-    List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> mapToNativeV4(List<FlowV4> flows);
+    List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> mapToNativeV4(
+        List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> flows
+    );
 
-    List<FlowV4> mapFromHttpV4(List<io.gravitee.definition.model.v4.flow.Flow> flow);
-    List<FlowV4> mapFromNativeV4(List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> flow);
+    List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> mapFromHttpV4(List<FlowV4Impl> flow);
+    List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> mapFromNativeV4(
+        List<io.gravitee.definition.model.v4.nativeapi.NativeFlow> flow
+    );
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     StepV4 mapStep(Step step);
@@ -132,21 +135,21 @@ public interface FlowMapper {
 
     FlowV2 map(FlowV2Impl flowV2);
 
-    default List<? extends AbstractFlow> map(@Valid List<FlowV4> flows, Api api) {
+    default List<? extends AbstractFlow> map(@Valid List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> flows, Api api) {
         return ofNullable(api.isNative() ? mapToNativeV4(flows) : mapToHttpV4(flows)).orElseGet(List::of);
     }
 
-    default <T extends AbstractFlow> FlowV4 map(T src) {
+    default <T extends AbstractFlow> io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(T src) {
         return switch (src) {
-            case Flow flow -> map(flow);
+            case FlowV4Impl flow -> map(flow);
             case NativeFlow nativeFlow -> map(nativeFlow);
             default -> throw new IllegalStateException("Unexpected value: " + src);
         };
     }
 
-    FlowV4 map(Flow src);
+    io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(FlowV4Impl src);
 
-    FlowV4 map(NativeFlow src);
+    io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(NativeFlow src);
 
     @SneakyThrows
     @AfterMapping

@@ -32,7 +32,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -107,7 +107,7 @@ public sealed interface ApiDescriptor {
         List<EndpointGroup> endpointGroups,
         Analytics analytics,
         FlowExecution flowExecution,
-        List<Flow> flows,
+        List<FlowV4Impl> flows,
         Map<String, Map<String, ResponseTemplate>> responseTemplates,
         List<Property> properties,
         List<Resource> resources,

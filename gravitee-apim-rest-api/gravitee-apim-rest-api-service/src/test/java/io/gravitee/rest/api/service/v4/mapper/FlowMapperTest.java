@@ -20,7 +20,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -76,7 +76,7 @@ public class FlowMapperTest {
 
     @Test
     public void toRepositoryShouldInitializeNonNullableFields() {
-        Flow flowDefinition = new Flow();
+        FlowV4Impl flowDefinition = new FlowV4Impl();
         flowDefinition.setName("platform");
         flowDefinition.setSelectors(selectors());
         flowDefinition.setTags(tags());
@@ -116,7 +116,7 @@ public class FlowMapperTest {
         flow.setSelectors(List.of(flowHttpSelector));
         flow.setTags(Set.of());
 
-        Flow flowDefinition = flowMapper.toDefinition(flow);
+        FlowV4Impl flowDefinition = flowMapper.toDefinition(flow);
 
         assertNotNull(flowDefinition.getSelectors());
         assertEquals(selectors, flowDefinition.getSelectors());

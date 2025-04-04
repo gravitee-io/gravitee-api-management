@@ -28,7 +28,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -301,7 +301,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, null, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         // Add Flows to make API not synchronized
-        List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
+        List<FlowV4Impl> apiFlows = List.of(mock(FlowV4Impl.class), mock(FlowV4Impl.class));
         apiEntity.setFlows(apiFlows);
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
