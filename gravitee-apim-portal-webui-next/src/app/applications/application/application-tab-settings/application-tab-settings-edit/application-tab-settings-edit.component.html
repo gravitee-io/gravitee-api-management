@@ -38,11 +38,11 @@
             Delete
           </button>
         </div>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label i18n="@@applicationNameApplicationSettings">Application name</mat-label>
           <input matInput formControlName="name" aria-label="Application name" data-testId="name" />
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label i18n="@@applicationDescriptionApplicationSettings">Application description</mat-label>
           <input matInput formControlName="description" aria-label="Application description" data-testId="description" />
         </mat-form-field>
@@ -55,12 +55,12 @@
               OAuth2 Integration
             </div>
           </div>
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label i18n="@@applicationTypeApplicationSettings">Application type</mat-label>
             <input matInput formControlName="appType" aria-label="Application type" data-testId="simple-type" />
             <mat-hint i18n="@@hintApplicationTypeApplicationSettings">Type of the application (mobile, web, ...)</mat-hint>
           </mat-form-field>
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label i18n="@@applicationClientIdApplicationSettings">ClientID</mat-label>
             <input matInput formControlName="appClientId" aria-label="Client ID" data-testId="simple-clientId" />
             <mat-hint i18n="@@hintClientIdApplicationSettings"
@@ -87,7 +87,7 @@
               data-testId="clientSecret" />
           </div>
           @if (applicationTypeConfiguration.requires_redirect_uris) {
-            <mat-form-field>
+            <mat-form-field appearance="outline">
               <mat-label i18n="@@applicationRedirectUrisApplicationSettings">Redirect URIs</mat-label>
               <mat-chip-grid #redirectURIChipGrid aria-label="Redirect URIs" formControlName="oauthRedirectUris" data-testId="redirectUris">
                 @for (uri of applicationSettingsForm.controls.oauthRedirectUris.value; track uri) {
@@ -110,7 +110,7 @@
               >
             </mat-form-field>
           }
-          <mat-form-field>
+          <mat-form-field appearance="outline">
             <mat-label i18n="@@applicationGrantTypesApplicationSettings">Grant types</mat-label>
             <mat-select formControlName="oauthGrantTypes" multiple aria-label="Grant types" data-testId="grantTypes">
               @for (grantType of grantTypesList; track grantType) {

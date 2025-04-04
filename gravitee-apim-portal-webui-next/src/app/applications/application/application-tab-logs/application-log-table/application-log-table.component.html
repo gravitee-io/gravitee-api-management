@@ -23,7 +23,7 @@
   <div class="filters__row-one">
     <div class="filters__row-one__select-filters">
       @if (applicationApis$ | async; as applicationApis) {
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" appearance="outline">
           <mat-label i18n="@@applicationLogsApis">APIs</mat-label>
           <mat-select (selectionChange)="selectApis($event)" multiple [value]="filters().apis" aria-label="Filter by API">
             @for (api of applicationApis; track api.id) {
@@ -32,7 +32,7 @@
           </mat-select>
         </mat-form-field>
       }
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" appearance="outline">
         <mat-label i18n="@@applicationLogsHttpMethods">HTTP Methods</mat-label>
         <mat-select (selectionChange)="selectHttpMethods($event)" multiple [value]="filters().methods" aria-label="Filter by HTTP Method">
           @for (method of httpMethods; track method) {
@@ -40,7 +40,7 @@
           }
         </mat-select>
       </mat-form-field>
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" appearance="outline">
         <mat-label i18n="@@applicationLogsResponseTimes">Response Times</mat-label>
         <mat-select
           (selectionChange)="selectResponseTimes($event)"
@@ -62,7 +62,7 @@
         </mat-select>
       </mat-form-field>
       <div class="filters__row-one__separator"></div>
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" appearance="outline">
         <mat-label i18n="@@applicationLogsResponsePeriod">Period</mat-label>
         <mat-select
           (selectionChange)="selectPeriod($event)"

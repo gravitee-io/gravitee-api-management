@@ -20,7 +20,7 @@
     <span class="m3-title-medium" i18n="@@consumerConfigurationRetry">Retry</span>
   </app-accordion-title>
   <form [formGroup]="retryForm" class="retry__form">
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-label i18n="@@consumerConfigurationRetryOption">Retry option</mat-label>
       <mat-select formControlName="retryOption">
         @for (retryOption of retryOptions; track retryOption) {
@@ -30,7 +30,7 @@
     </mat-form-field>
 
     @if (!!retryForm.controls.retryStrategy) {
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label i18n="@@consumerConfigurationRetryStrategy">Retry strategy</mat-label>
         <mat-select formControlName="retryStrategy">
           @for (retryStrategy of retryStrategies; track retryStrategy) {
@@ -41,7 +41,7 @@
     }
 
     @if (!!retryForm.controls.maxAttempts) {
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label i18n="@@consumerConfigurationRetryMaxAttempts">Maximum attempts</mat-label>
         <input matInput type="number" formControlName="maxAttempts" />
         @if (retryForm.controls.maxAttempts.hasError('min') || retryForm.controls.maxAttempts.hasError('required')) {
@@ -51,7 +51,7 @@
     }
 
     @if (!!retryForm.controls.initialDelaySeconds) {
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label i18n="@@consumerConfigurationRetryInitialDelaySeconds">Initial delay in seconds</mat-label>
         <input matInput type="number" formControlName="initialDelaySeconds" />
         @if (retryForm.controls.initialDelaySeconds.hasError('min') || retryForm.controls.initialDelaySeconds.hasError('required')) {
@@ -61,7 +61,7 @@
     }
 
     @if (!!retryForm.controls.maxDelaySeconds) {
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label i18n="@@consumerConfigurationRetryMaxDelaySeconds">Maximum delay in seconds</mat-label>
         <input matInput type="number" formControlName="maxDelaySeconds" />
         @if (retryForm.controls.maxDelaySeconds.hasError('min') || retryForm.controls.maxDelaySeconds.hasError('required')) {

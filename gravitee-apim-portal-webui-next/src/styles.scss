@@ -41,6 +41,8 @@
 
 html {
   @include mat.all-component-themes(theme.$light-theme);
+
+  overflow-y: scroll;
 }
 
 body {
@@ -49,7 +51,6 @@ body {
   margin: 0;
   background-color: theme.$background-color;
   font-family: theme.$font-family;
-  overflow-y: scroll;
 
   app-root {
     min-width: 1040px;

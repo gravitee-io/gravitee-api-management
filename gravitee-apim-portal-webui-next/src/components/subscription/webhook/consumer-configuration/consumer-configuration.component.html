@@ -25,13 +25,13 @@
   <mat-card-content class="consumer-configuration__header">
     @if (!!consumerConfigurationForm) {
       <form [formGroup]="consumerConfigurationForm">
-        <mat-form-field class="consumer-configuration__form__fields">
+        <mat-form-field appearance="outline" class="consumer-configuration__form__fields">
           <mat-label i18n="@@consumerConfigurationChannel">Channel</mat-label>
           <input matInput formControlName="channel" />
         </mat-form-field>
 
         <form formGroupName="consumerConfiguration">
-          <mat-form-field class="consumer-configuration__form__fields">
+          <mat-form-field appearance="outline" class="consumer-configuration__form__fields">
             <mat-label i18n="@@consumerConfigurationCallbackUrl">Callback URL</mat-label>
             <input matInput formControlName="callbackUrl" />
             @if (consumerConfigurationForm.controls.consumerConfiguration.controls.callbackUrl.hasError('required')) {

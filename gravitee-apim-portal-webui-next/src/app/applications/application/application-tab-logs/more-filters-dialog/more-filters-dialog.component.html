@@ -20,7 +20,7 @@
   <form [formGroup]="moreFiltersForm">
     <div class="content">
       <div class="content__row">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" appearance="outline">
           <mat-label i18n="@@moreFiltersDialogChooseStartDate">Start date</mat-label>
           <input
             matInput
@@ -31,7 +31,7 @@
           <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
           <mat-datepicker #startPicker />
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" appearance="outline">
           <mat-label i18n="@@moreFiltersDialogChooseEndDate">End date</mat-label>
           <input
             matInput
@@ -44,19 +44,19 @@
         </mat-form-field>
       </div>
       <div class="content__row">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" appearance="outline">
           <mat-label i18n="@@moreFiltersDialogRequestId">Request ID</mat-label>
           <input matInput formControlName="requestId" aria-label="Filter by Request ID" />
         </mat-form-field>
       </div>
       <div class="content__row">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" appearance="outline">
           <mat-label i18n="@@moreFiltersDialogChooseTransactionId">Transaction ID</mat-label>
           <input matInput formControlName="transactionId" aria-label="Filter by Transaction ID" />
         </mat-form-field>
       </div>
       <div class="content__row">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" appearance="outline">
           <mat-label i18n="@@moreFiltersDialogHttpStatus">HTTP Status</mat-label>
           <mat-select multiple formControlName="httpStatuses" aria-label="Filter by HTTP Status">
             @for (httpStatus of httpStatusChoices; track httpStatus) {
@@ -66,13 +66,13 @@
         </mat-form-field>
       </div>
       <div class="content__row">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" appearance="outline">
           <mat-label i18n="@@moreFiltersDialogSearchText">Search Text in Message Bodies</mat-label>
           <input matInput formControlName="messageText" aria-label="Filter by Message Text" />
         </mat-form-field>
       </div>
       <div class="content__row">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" appearance="outline">
           <mat-label i18n="@@moreFiltersDialogPath">Path</mat-label>
           <input matInput formControlName="path" aria-label="Filter by Path" />
         </mat-form-field>

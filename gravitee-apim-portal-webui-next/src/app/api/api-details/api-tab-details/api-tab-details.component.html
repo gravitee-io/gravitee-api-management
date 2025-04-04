@@ -33,7 +33,7 @@
   </div>
 
   <div>
-    <mat-card appearance="raised" class="api-details__tab-details-info__card">
+    <mat-card appearance="outlined" class="api-details__tab-details-info__card">
       @if (apiInformation$ | async; as apiInformationList) {
         @for (apiInformation of apiInformationList; track apiInformation.name) {
           <div>

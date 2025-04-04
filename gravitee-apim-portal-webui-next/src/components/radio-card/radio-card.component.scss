@@ -25,6 +25,7 @@
 
   height: 100%;
   min-height: 220px;
+  padding: 1px;
   cursor: pointer;
 
   &__header {
@@ -62,8 +63,13 @@
 }
 
 .radio-card.selected {
-  border: 1px solid #{theme.$tertiary-main-color};
-  background-color: #{theme.$banner-background-color};
+  --mdc-radio-selected-focus-icon-color: #{theme.$primary-main-color} !important;
+  --mdc-radio-selected-hover-icon-color: #{theme.$primary-main-color} !important;
+  --mdc-radio-selected-icon-color: #{theme.$primary-main-color} !important;
+  --mdc-radio-selected-pressed-icon-color: #{theme.$primary-main-color} !important;
+
+  padding: 0;
+  border: 2px solid #{theme.$tertiary-main-color};
 }
 
 .radio-card.disabled {

@@ -16,7 +16,7 @@
 
 -->
 <form class="form" [formGroup]="trustStoreForm">
-  <mat-form-field class="form__field type">
+  <mat-form-field appearance="outline" class="form__field type">
     <mat-label i18n="@@sslTrustStoreType">Type</mat-label>
     <mat-select formControlName="type">
       @for (type of types; track type.value) {
@@ -29,7 +29,7 @@
     <div>
       @switch (trustStoreForm.controls.type.value) {
         @case ('JKS') {
-          <mat-form-field class="form__field">
+          <mat-form-field appearance="outline" class="form__field">
             <mat-label i18n="@@sslTrustStorePassword">Password</mat-label>
             <input matInput formControlName="jksPassword" type="password" name="jksPassword" autocomplete="off" required />
             <mat-hint i18n="@@sslTrustStorePasswordHint">Trust store password</mat-hint>
@@ -39,7 +39,7 @@
           </mat-form-field>
 
           <div class="path-or-content">
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@sslTrustStorePath">Path</mat-label>
               <input matInput formControlName="jksPath" name="jksPath" autocomplete="off" />
               <mat-hint i18n="@@sslTrustStorePathHint">Path to the trust store file</mat-hint>
@@ -50,7 +50,7 @@
 
             <span i18n="@@sslTrustStoreOr">or</span>
 
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@sslTrustStoreContent">Content</mat-label>
               <textarea matInput formControlName="jksContent" rows="1" name="jksContent"></textarea>
               <mat-hint i18n="@@sslTrustStoreContentHint">Binary content as Base64</mat-hint>
@@ -62,7 +62,7 @@
         }
 
         @case ('PKCS12') {
-          <mat-form-field class="form__field">
+          <mat-form-field appearance="outline" class="form__field">
             <mat-label i18n="@@sslTrustStorePassword">Password</mat-label>
             <input matInput formControlName="pkcs12Password" type="password" name="pkcs12Password" autocomplete="off" required />
             <mat-hint i18n="@@sslTrustStorePasswordHint">Trust store password</mat-hint>
@@ -72,7 +72,7 @@
           </mat-form-field>
 
           <div class="path-or-content">
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@sslTrustStorePath">Path</mat-label>
               <input matInput formControlName="pkcs12Path" name="pkcs12Path" autocomplete="off" />
               <mat-hint i18n="@@sslTrustStorePathHint">Path to the trust store file</mat-hint>
@@ -83,7 +83,7 @@
 
             <span i18n="@@sslTrustStoreOr">or</span>
 
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@sslTrustStoreContent">Content</mat-label>
               <textarea matInput formControlName="pkcs12Content" rows="1" name="pkcs12Content"></textarea>
               <mat-hint i18n="@@sslTrustStoreContentHint">Binary content as Base64</mat-hint>
@@ -96,7 +96,7 @@
 
         @case ('PEM') {
           <div class="path-or-content">
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@sslTrustStorePath">Path</mat-label>
               <input matInput formControlName="pemPath" name="pemPath" autocomplete="off" />
               <mat-hint i18n="@@sslTrustStorePathHint">Path to the trust store file</mat-hint>
@@ -107,7 +107,7 @@
 
             <span i18n="@@sslTrustStoreOr">or</span>
 
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@sslTrustStoreContent">Content</mat-label>
               <textarea matInput formControlName="pemContent" rows="1" name="pemContent"></textarea>
               <mat-hint i18n="@@sslTrustStoreContentHint">Binary content as Base64</mat-hint>

@@ -29,6 +29,8 @@ mat-chip {
 mat-card {
   --mdc-elevated-card-container-elevation: 0;
   --mdc-outlined-card-container-color: #{theme.$card-background-color};
+  --mdc-outlined-card-container-shape: 4px;
+  --mdc-elevated-card-container-shape: 4px;
 }
 
 mat-dialog-container {

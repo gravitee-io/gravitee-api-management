@@ -30,7 +30,7 @@
     </div>
   }
   <form [formGroup]="commentForm">
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-label i18n="@@subscribeToApiCommentLabel">Message</mat-label>
       <textarea matInput maxlength="250" formControlName="message"></textarea>
       @if (commentForm.controls.message.hasError('required')) {
