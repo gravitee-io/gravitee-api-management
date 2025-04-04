@@ -594,16 +594,42 @@ jobs:
       - keeper/env-export:
           secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
           var-name: GIO_PACKAGECLOUD_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_pub_key
+          var-name: GPG_KEY_PUBLIC
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key
+          var-name: GPG_KEY_PRIVATE
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/field/login
+          var-name: GPG_KEY_NAME
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/passphrase
+          var-name: GPG_KEY_PASSPHRASE
       - run:
           name: Building and publishing RPMs
-          command: |-
+          command: |
             export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
-            git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
+            git clone --depth 1 --branch master --single-branch --no-tag git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
 
             cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x
             ./build.sh -v 4.2.0
-            echo "This is just a DRY RUN, RPMs will be published in https://packagecloud.io/graviteeio/nightly"
-            docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/nightly/el/7 /packages/*.rpm
+
+            docker run --rm \
+                -v "${PWD}:/rpms" \
+                -e "GPG_KEY_NAME" \
+                -e "GPG_KEY_PUBLIC" \
+                -e "GPG_KEY_PRIVATE" \
+                -e "GPG_KEY_PASSPHRASE" \
+                graviteeio/rpmsign
+
+            echo "RPMs will be published in https://packagecloud.io/graviteeio/nightly"
+
+            docker run --rm \
+                -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" \
+                -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} \
+                digitalocean/packagecloud \
+                push --yes --skip-errors --verbose graviteeio/nightly/el/7 /packages/*.rpm
   job-release-notes-apim:
     docker:
       - image: cimg/node:20.11.1

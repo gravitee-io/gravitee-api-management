@@ -370,7 +370,8 @@ parameters:
                 package_bundle,
                 nexus_staging,
                 pull_requests,
-                build_rpm_&_docker_images,
+                build_rpm,
+                build_docker_images,
                 release_notes_apim,
                 bridge_e2e,
                 publish_docker_images,
@@ -2284,9 +2285,9 @@ workflows:
                   requires:
                       - Generate e2e tests SDK
 
-    build_rpm_&_docker_images:
+    build_docker_images:
         when:
-            equal: [build_rpm_&_docker_images, << pipeline.parameters.gio_action >>]
+            equal: [build_docker_images, << pipeline.parameters.gio_action >>]
         jobs:
             - job-publish-prod-docker-images:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>

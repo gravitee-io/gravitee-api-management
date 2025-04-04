@@ -20,12 +20,11 @@ import {
   BuildDockerImageJob,
   ConsoleWebuiBuildJob,
   PortalWebuiBuildJob,
-  PublishRpmPackagesJob,
   SetupJob,
 } from '../jobs';
 import { config } from '../config';
 
-export class BuildRpmAndDockerImagesWorkflow {
+export class BuildDockerImagesWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     const setupJob = SetupJob.create(dynamicConfig);
     dynamicConfig.addJob(setupJob);
@@ -37,15 +36,6 @@ export class BuildRpmAndDockerImagesWorkflow {
     dynamicConfig.addJob(backendBuildJob);
     const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(buildDockerImageJob);
-
-    const publishRpmPackagesJob = PublishRpmPackagesJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(publishRpmPackagesJob);
-
-    let publishRpmPackagesJobName = `Build and push RPM packages for APIM ${environment.graviteeioVersion}`;
-
-    if (environment.isDryRun) {
-      publishRpmPackagesJobName += ' - Dry Run';
-    }
 
     const jobs = [
       new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
@@ -100,12 +90,7 @@ export class BuildRpmAndDockerImagesWorkflow {
         'apim-project': config.components.gateway.project,
         'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
         'docker-image-name': config.components.gateway.image,
-      }),
-
-      new workflow.WorkflowJob(publishRpmPackagesJob, {
-        context: config.jobContext,
-        name: publishRpmPackagesJobName,
-      }),
+      })
     ];
 
     return new Workflow('build-rpm-&-docker-images', jobs);
