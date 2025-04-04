@@ -40,7 +40,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
@@ -1432,14 +1432,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .stream()
                 .filter(flow -> flow.getPre() != null)
                 .forEach(flow ->
-                    flow.getPre().stream().filter(Step::isEnabled).forEach(step -> policyService.validatePolicyConfiguration(step))
+                    flow.getPre().stream().filter(StepV2::isEnabled).forEach(step -> policyService.validatePolicyConfiguration(step))
                 );
 
             flows
                 .stream()
                 .filter(flow -> flow.getPost() != null)
                 .forEach(flow ->
-                    flow.getPost().stream().filter(Step::isEnabled).forEach(step -> policyService.validatePolicyConfiguration(step))
+                    flow.getPost().stream().filter(StepV2::isEnabled).forEach(step -> policyService.validatePolicyConfiguration(step))
                 );
         }
     }

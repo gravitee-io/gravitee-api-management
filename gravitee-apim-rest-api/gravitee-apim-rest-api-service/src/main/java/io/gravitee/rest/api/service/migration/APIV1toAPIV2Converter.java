@@ -29,7 +29,7 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PolicyEntity;
@@ -133,31 +133,31 @@ public class APIV1toAPIV2Converter {
                                 case "REQUEST":
                                 case "REQUEST_CONTENT":
                                     {
-                                        final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
+                                        final StepV2 step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
                                         flow.getPre().add(step);
                                         break;
                                     }
                                 case "RESPONSE":
                                 case "RESPONSE_CONTENT":
                                     {
-                                        final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
+                                        final StepV2 step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
                                         flow.getPost().add(step);
                                         break;
                                     }
                             }
                         } else if (isSecurityPolicy(policy)) {
                             // Workaround for security policies, which do not have a scope defined in their configuration
-                            final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
+                            final StepV2 step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
                             flow.getPre().add(step);
                         }
                     } catch (IOException e) {
                         throw new InvalidDataException("Unable to validate policy configuration", e);
                     }
                 } else if (policy.getDevelopment().getOnRequestMethod() != null) {
-                    final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
+                    final StepV2 step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
                     flow.getPre().add(step);
                 } else if (policy.getDevelopment().getOnResponseMethod() != null) {
-                    final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
+                    final StepV2 step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
                     flow.getPost().add(step);
                 }
             });
@@ -168,8 +168,8 @@ public class APIV1toAPIV2Converter {
     }
 
     @NotNull
-    private Step createStep(Rule rule, PolicyEntity policy, String safeRulePolicyConfiguration, Set<HttpMethod> flowMethods) {
-        final Step step = new Step();
+    private StepV2 createStep(Rule rule, PolicyEntity policy, String safeRulePolicyConfiguration, Set<HttpMethod> flowMethods) {
+        final StepV2 step = new StepV2();
         step.setName(policy.getName());
         step.setEnabled(rule.isEnabled());
         step.setDescription(rule.getDescription() != null ? rule.getDescription() : policy.getDescription());

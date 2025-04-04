@@ -22,6 +22,7 @@ import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -620,7 +621,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPre())
                 .containsOnly(
-                    io.gravitee.definition.model.flow.Step
+                    StepV2
                         .builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
@@ -632,7 +633,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPost())
                 .containsOnly(
-                    io.gravitee.definition.model.flow.Step
+                    StepV2
                         .builder()
                         .name("my-step-name-2")
                         .policy("a-policy")

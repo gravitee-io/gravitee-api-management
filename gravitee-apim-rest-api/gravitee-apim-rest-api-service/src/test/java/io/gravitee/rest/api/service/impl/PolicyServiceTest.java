@@ -24,7 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -141,7 +141,7 @@ public class PolicyServiceTest {
 
     @Test(expected = InvalidDataException.class)
     public void shouldRejectInvalidJsonStep() throws Exception {
-        Step step = new Step();
+        StepV2 step = new StepV2();
         step.setPolicy("my-policy");
         step.setConfiguration("{ Invalid: \"test\", \"valid\": false }");
         when(jsonSchemaService.validate(any(), anyString())).thenThrow(InvalidDataException.class);
@@ -162,7 +162,7 @@ public class PolicyServiceTest {
 
     @Test
     public void shouldAcceptValidJsonConfigurationWithNoSchemaStep() throws Exception {
-        Step step = new Step();
+        StepV2 step = new StepV2();
         step.setPolicy("my-policy");
         step.setConfiguration("{ \"name\": \"test\", \"valid\": true }");
 
@@ -194,7 +194,7 @@ public class PolicyServiceTest {
 
     @Test
     public void shouldAcceptNoConfigurationStep() {
-        Step step = new Step();
+        StepV2 step = new StepV2();
         step.setPolicy("my-policy");
         step.setConfiguration(null);
 
@@ -208,7 +208,7 @@ public class PolicyServiceTest {
 
     @Test
     public void shouldAcceptNullStep() {
-        policyService.validatePolicyConfiguration((Step) null);
+        policyService.validatePolicyConfiguration((StepV2) null);
     }
 
     @Test

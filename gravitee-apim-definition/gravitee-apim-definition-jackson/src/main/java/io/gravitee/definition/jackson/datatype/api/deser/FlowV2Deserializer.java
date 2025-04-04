@@ -91,12 +91,12 @@ public class FlowV2Deserializer extends StdScalarDeserializer<FlowV2Impl> {
 
         JsonNode preNode = node.get("pre");
         if (preNode != null && preNode.isArray()) {
-            final List<Step> steps = new ArrayList<>();
+            final List<StepV2> steps = new ArrayList<>();
             preNode
                 .elements()
                 .forEachRemaining(jsonNode -> {
                     try {
-                        steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(Step.class));
+                        steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(StepV2.class));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -107,12 +107,12 @@ public class FlowV2Deserializer extends StdScalarDeserializer<FlowV2Impl> {
 
         JsonNode postNode = node.get("post");
         if (postNode != null && postNode.isArray()) {
-            final List<Step> steps = new ArrayList<>();
+            final List<StepV2> steps = new ArrayList<>();
             postNode
                 .elements()
                 .forEachRemaining(jsonNode -> {
                     try {
-                        steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(Step.class));
+                        steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(StepV2.class));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

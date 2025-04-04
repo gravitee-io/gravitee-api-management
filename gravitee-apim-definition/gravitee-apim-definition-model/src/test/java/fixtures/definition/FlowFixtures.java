@@ -22,6 +22,7 @@ import io.gravitee.definition.model.flow.FlowStage;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -49,7 +50,7 @@ public class FlowFixtures {
             .stage(FlowStage.API)
             .pre(
                 List.of(
-                    io.gravitee.definition.model.flow.Step
+                    StepV2
                         .builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
@@ -61,7 +62,7 @@ public class FlowFixtures {
             )
             .post(
                 List.of(
-                    io.gravitee.definition.model.flow.Step
+                    StepV2
                         .builder()
                         .name("my-step-name-2")
                         .policy("a-policy")

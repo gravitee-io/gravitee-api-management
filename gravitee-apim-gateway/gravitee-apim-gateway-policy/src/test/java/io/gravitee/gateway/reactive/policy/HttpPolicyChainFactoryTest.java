@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
@@ -60,8 +60,8 @@ class HttpPolicyChainFactoryTest {
     public void shouldCreatePolicyChainForRequestPhase() {
         final Policy policy = mock(Policy.class);
         final FlowV2Impl flow = mock(FlowV2Impl.class);
-        final Step step1 = mock(Step.class);
-        final Step step2 = mock(Step.class);
+        final StepV2 step1 = mock(StepV2.class);
+        final StepV2 step2 = mock(StepV2.class);
 
         when(step1.isEnabled()).thenReturn(true);
         when(step2.isEnabled()).thenReturn(true);
@@ -108,8 +108,8 @@ class HttpPolicyChainFactoryTest {
     public void shouldCreatePolicyChainWithoutDisabledSteps() {
         final Policy policy = mock(Policy.class);
         final FlowV2Impl flow = mock(FlowV2Impl.class);
-        final Step step1 = mock(Step.class);
-        final Step step2 = mock(Step.class);
+        final StepV2 step1 = mock(StepV2.class);
+        final StepV2 step2 = mock(StepV2.class);
 
         when(step1.isEnabled()).thenReturn(false);
         when(step2.isEnabled()).thenReturn(true);
@@ -142,8 +142,8 @@ class HttpPolicyChainFactoryTest {
     public void shouldCreatePolicyChainOnceAndPutInCache() {
         final Policy policy = mock(Policy.class);
         final FlowV2Impl flow = mock(FlowV2Impl.class);
-        final Step step1 = mock(Step.class);
-        final Step step2 = mock(Step.class);
+        final StepV2 step1 = mock(StepV2.class);
+        final StepV2 step2 = mock(StepV2.class);
 
         when(step1.isEnabled()).thenReturn(true);
         when(step2.isEnabled()).thenReturn(true);
@@ -192,7 +192,7 @@ class HttpPolicyChainFactoryTest {
     public void shouldCreatePolicyChainForResponsePhase() {
         final Policy policy = mock(Policy.class);
         final FlowV2Impl flow = mock(FlowV2Impl.class);
-        final Step step1 = mock(Step.class);
+        final StepV2 step1 = mock(StepV2.class);
 
         when(step1.isEnabled()).thenReturn(true);
         when(flow.getPost()).thenReturn(List.of(step1));
@@ -210,8 +210,8 @@ class HttpPolicyChainFactoryTest {
     public void shouldFilterNullPoliciesReturnedByPolicyManager() {
         final Policy policy = mock(Policy.class);
         final FlowV2Impl flow = mock(FlowV2Impl.class);
-        final Step step1 = mock(Step.class);
-        final Step step2 = mock(Step.class);
+        final StepV2 step1 = mock(StepV2.class);
+        final StepV2 step2 = mock(StepV2.class);
 
         when(step1.isEnabled()).thenReturn(true);
         when(step2.isEnabled()).thenReturn(true);

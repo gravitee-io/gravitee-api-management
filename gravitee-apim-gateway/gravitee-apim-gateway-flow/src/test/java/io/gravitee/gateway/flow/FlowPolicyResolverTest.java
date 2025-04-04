@@ -18,7 +18,7 @@ package io.gravitee.gateway.flow;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
@@ -41,12 +41,12 @@ public class FlowPolicyResolverTest {
     @Mock
     private ExecutionContext executionContext;
 
-    private Step step;
+    private StepV2 step;
 
     @Before
     public void setUp() {
         final FlowV2Impl flow = new FlowV2Impl();
-        step = new Step();
+        step = new StepV2();
         step.setEnabled(true);
         flow.setPre(List.of(step));
         cut = new FlowPolicyResolver(flow);

@@ -19,7 +19,7 @@ import io.github.classgraph.ClassGraph;
 import io.github.classgraph.MethodInfoList;
 import io.github.classgraph.ScanResult;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginClassLoader;
@@ -36,7 +36,6 @@ import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.PolicyService;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -104,7 +103,7 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
     }
 
     @Override
-    public void validatePolicyConfiguration(Step step) {
+    public void validatePolicyConfiguration(StepV2 step) {
         if (step != null) {
             step.setConfiguration(validatePolicyConfiguration(step.getPolicy(), step.getConfiguration()));
         }

@@ -20,7 +20,7 @@ import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
 import java.util.Collection;
@@ -86,7 +86,7 @@ public class ReactableOrganization implements Reactable, Serializable {
         return policies;
     }
 
-    private Collection<Policy> getPolicies(List<Step> flowStep) {
+    private Collection<Policy> getPolicies(List<StepV2> flowStep) {
         if (flowStep == null || flowStep.isEmpty()) {
             return Collections.emptyList();
         }

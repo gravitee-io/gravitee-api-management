@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fixtures.definition.ApiDefinitionFixtures;
 import fixtures.definition.FlowFixtures;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
@@ -62,8 +62,8 @@ class ApiTest {
     void getPluginsForApiV2WithFlows() {
         Api apiWithFlows = ApiDefinitionFixtures.anApiV2();
         FlowV2Impl flow = FlowFixtures.aFlowV2();
-        flow.setPre(List.of(Step.builder().policy("policy-request-validation").build()));
-        flow.setPost(List.of(Step.builder().policy("json-validation").build()));
+        flow.setPre(List.of(StepV2.builder().policy("policy-request-validation").build()));
+        flow.setPost(List.of(StepV2.builder().policy("json-validation").build()));
         apiWithFlows.setFlows(List.of(flow));
         assertThat(apiWithFlows.getPlugins())
             .containsOnly(new Plugin("policy", "policy-request-validation"), new Plugin("policy", "json-validation"));
@@ -74,8 +74,8 @@ class ApiTest {
         Api apiWithDisabledFlows = ApiDefinitionFixtures.anApiV2();
         FlowV2Impl disabledFlow = FlowFixtures.aFlowV2();
         disabledFlow.setEnabled(false);
-        disabledFlow.setPre(List.of(Step.builder().policy("policy-request-validation").build()));
-        disabledFlow.setPost(List.of(Step.builder().policy("json-validation").build()));
+        disabledFlow.setPre(List.of(StepV2.builder().policy("policy-request-validation").build()));
+        disabledFlow.setPost(List.of(StepV2.builder().policy("json-validation").build()));
         apiWithDisabledFlows.setFlows(List.of(disabledFlow));
         assertThat(apiWithDisabledFlows.getPlugins()).isEmpty();
     }
@@ -83,7 +83,10 @@ class ApiTest {
     @Test
     void getPluginsForApiV2WithPlans() {
         Api apiWithPlans = ApiDefinitionFixtures.anApiV2();
-        Plan plan = Plan.builder().flows(List.of(FlowV2Impl.builder().pre(List.of(Step.builder().policy("json-xml").build())).build())).build();
+        Plan plan = Plan
+            .builder()
+            .flows(List.of(FlowV2Impl.builder().pre(List.of(StepV2.builder().policy("json-xml").build())).build()))
+            .build();
         apiWithPlans.setPlans(List.of(plan));
         assertThat(apiWithPlans.getPlugins()).containsOnly(new Plugin("policy", "json-xml"));
     }

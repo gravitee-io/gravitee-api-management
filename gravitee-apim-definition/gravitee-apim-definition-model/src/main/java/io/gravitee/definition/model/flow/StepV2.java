@@ -23,7 +23,9 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,7 +36,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @EqualsAndHashCode
-public class Step implements Serializable {
+@Setter
+@Getter
+public class StepV2 implements Serializable {
 
     @JsonProperty("name")
     private String name;
@@ -57,52 +61,12 @@ public class Step implements Serializable {
     @JsonProperty("condition")
     private String condition;
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPolicy(String policy) {
-        this.policy = policy;
-    }
-
-    public String getPolicy() {
-        return policy;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getConfiguration() {
         return configuration == null ? null : configuration.toString();
     }
 
     public void setConfiguration(String configuration) {
         this.configuration = configuration;
-    }
-
-    public String getCondition() {
-        return condition;
-    }
-
-    public void setCondition(String condition) {
-        this.condition = condition;
     }
 
     @JsonIgnore

@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -71,7 +71,7 @@ public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest
         //        assertEquals(1, flows.size());
         assertEquals(expectedRuleSize, flows.get(0).getPre().size());
         assertTrue(flows.get(0).getMethods().containsAll(firstRuleMethods));
-        Step step = flows.get(0).getPre().get(0);
+        StepV2 step = flows.get(0).getPre().get(0);
         assertNotNull(step);
         assertEquals(firstRuleDescription, step.getDescription());
     }
