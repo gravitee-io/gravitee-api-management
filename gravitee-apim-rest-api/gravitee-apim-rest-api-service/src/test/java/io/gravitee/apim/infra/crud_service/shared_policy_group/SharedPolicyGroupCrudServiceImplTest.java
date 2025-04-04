@@ -27,13 +27,12 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.SharedPolicyGroupFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.plugin.model.FlowPhase;
-import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapter;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapterImpl;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
@@ -121,8 +120,8 @@ public class SharedPolicyGroupCrudServiceImplTest {
                     .assertThat(result.getSteps())
                     .isEqualTo(
                         List.of(
-                            Step.builder().policy("my-policy").name("my-step-1").build(),
-                            Step.builder().policy("my-policy").name("my-step-2").build()
+                            StepV4.builder().policy("my-policy").name("my-step-1").build(),
+                            StepV4.builder().policy("my-policy").name("my-step-2").build()
                         )
                     );
                 soft.assertThat(result.getPhase()).isEqualTo(FlowPhase.REQUEST);
@@ -192,8 +191,8 @@ public class SharedPolicyGroupCrudServiceImplTest {
             SharedPolicyGroup sharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
             sharedPolicyGroup.setSteps(
                 List.of(
-                    Step.builder().policy("my-policy").name("my-step-1").build(),
-                    Step.builder().policy("my-policy").name("my-step-2").build()
+                    StepV4.builder().policy("my-policy").name("my-step-1").build(),
+                    StepV4.builder().policy("my-policy").name("my-step-2").build()
                 )
             );
             service.update(sharedPolicyGroup);
@@ -288,8 +287,8 @@ public class SharedPolicyGroupCrudServiceImplTest {
                     .assertThat(result.getSteps())
                     .isEqualTo(
                         List.of(
-                            Step.builder().policy("my-policy").name("my-step-1").build(),
-                            Step.builder().policy("my-policy").name("my-step-2").build()
+                            StepV4.builder().policy("my-policy").name("my-step-1").build(),
+                            StepV4.builder().policy("my-policy").name("my-step-2").build()
                         )
                     );
                 soft.assertThat(result.getPhase()).isEqualTo(FlowPhase.REQUEST);

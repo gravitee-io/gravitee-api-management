@@ -37,7 +37,7 @@ import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.resource.ResourceBuilder;
 import io.gravitee.apim.integration.tests.fake.DummyCacheResource;
 import io.gravitee.apim.integration.tests.fake.ThrowingPolicy;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.policy.DefaultSharedPolicyGroupPolicyChainFactory;
@@ -505,7 +505,7 @@ class SharedPolicyGroupV4IntegrationTest {
                         .id(SHARED_POLICY_GROUP_ID)
                         .policies(
                             List.of(
-                                Step
+                                StepV4
                                     .builder()
                                     .enabled(true)
                                     .policy("transform-headers")

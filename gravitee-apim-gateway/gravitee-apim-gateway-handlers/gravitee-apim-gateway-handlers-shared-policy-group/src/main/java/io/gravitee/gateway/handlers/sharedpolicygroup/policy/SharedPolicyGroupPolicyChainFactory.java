@@ -16,7 +16,7 @@
 package io.gravitee.gateway.handlers.sharedpolicygroup.policy;
 
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
@@ -28,5 +28,5 @@ public interface SharedPolicyGroupPolicyChainFactory extends PolicyChainFactory 
         throw new IllegalArgumentException("Cannot build a policy chain from a Flow for Shared Policy Group");
     }
 
-    HttpPolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase);
+    HttpPolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<StepV4> steps, ExecutionPhase phase);
 }

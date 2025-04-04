@@ -25,7 +25,7 @@ import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -60,7 +60,7 @@ public class OAIToFlowsConverter {
                             Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(specification, operation);
                             if (policy.isPresent()) {
                                 String configuration = clearNullValues(policy.get().getConfiguration());
-                                final Step step = mapStep(policy.get(), configuration, operation);
+                                final StepV4 step = mapStep(policy.get(), configuration, operation);
                                 String scope = getScope(configuration);
                                 if (scope != null && scope.equalsIgnoreCase("response")) {
                                     flow.getResponse().add(step);
@@ -90,8 +90,8 @@ public class OAIToFlowsConverter {
             .build();
     }
 
-    private Step mapStep(Policy policy, String configuration, Operation operation) {
-        return Step
+    private StepV4 mapStep(Policy policy, String configuration, Operation operation) {
+        return StepV4
             .builder()
             .name(policy.getName())
             .enabled(true)

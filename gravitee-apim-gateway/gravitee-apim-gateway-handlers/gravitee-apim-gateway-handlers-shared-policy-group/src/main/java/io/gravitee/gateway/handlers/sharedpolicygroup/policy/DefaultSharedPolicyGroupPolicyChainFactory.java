@@ -17,7 +17,7 @@ package io.gravitee.gateway.handlers.sharedpolicygroup.policy;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.hook.HttpHook;
@@ -27,7 +27,6 @@ import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
-import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,14 +62,14 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
     }
 
     @Override
-    public HttpPolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<Step> steps, ExecutionPhase phase) {
+    public HttpPolicyChain create(final String sharedPolicyGroupPolicyId, String environmentId, List<StepV4> steps, ExecutionPhase phase) {
         final String key = getSharedPolicyGroupKey(sharedPolicyGroupPolicyId, environmentId, steps, phase);
         HttpPolicyChain policyChain = policyChains.get(key);
 
         if (policyChain == null) {
             final List<HttpPolicy> policies = steps
                 .stream()
-                .filter(Step::isEnabled)
+                .filter(StepV4::isEnabled)
                 .filter(step -> {
                     final boolean hasNestedSharedPolicyGroup = step.getPolicy().equals(SharedPolicyGroupPolicy.POLICY_ID);
                     if (hasNestedSharedPolicyGroup) {
@@ -91,7 +90,7 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
         return policyChain;
     }
 
-    protected PolicyMetadata buildPolicyMetadata(Step step) {
+    protected PolicyMetadata buildPolicyMetadata(StepV4 step) {
         final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.V4_EMULATION_ENGINE);
 
@@ -102,7 +101,7 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
     protected String getSharedPolicyGroupKey(
         String sharedPolicyGroupPolicyId,
         String environmentId,
-        List<Step> steps,
+        List<StepV4> steps,
         ExecutionPhase phase
     ) {
         return "shared-policy-group-" + sharedPolicyGroupPolicyId + "-" + environmentId + "-" + phase + "-" + steps.hashCode();

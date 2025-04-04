@@ -19,7 +19,7 @@ import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +35,7 @@ public class FlowModelFixtures {
         .operations(Set.of(ChannelSelector.Operation.SUBSCRIBE, ChannelSelector.Operation.PUBLISH))
         .channelOperator(io.gravitee.definition.model.flow.Operator.EQUALS);
 
-    private static final Step.StepBuilder BASE_MODEL_STEP_V4 = Step
+    private static final StepV4.StepV4Builder BASE_MODEL_STEP_V4 = StepV4
         .builder()
         .name("step")
         .description("description")

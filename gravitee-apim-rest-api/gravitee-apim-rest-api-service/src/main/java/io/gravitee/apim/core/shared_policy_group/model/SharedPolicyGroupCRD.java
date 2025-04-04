@@ -17,9 +17,8 @@ package io.gravitee.apim.core.shared_policy_group.model;
 
 import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.rest.api.model.context.OriginContext;
-import io.swagger.models.Model;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -66,7 +65,7 @@ public class SharedPolicyGroupCRD {
     /**
      * The shared policy group steps
      */
-    private List<Step> steps;
+    private List<StepV4> steps;
 
     // Only for update
     private String sharedPolicyGroupId;

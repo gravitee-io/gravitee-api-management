@@ -21,7 +21,7 @@ import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
@@ -117,7 +117,7 @@ public class FlowMapper {
         return repositoryFlow;
     }
 
-    private FlowStep toRepository(final Step definitionStep) {
+    private FlowStep toRepository(final StepV4 definitionStep) {
         FlowStep repositoryStep = new FlowStep();
         repositoryStep.setPolicy(definitionStep.getPolicy());
         repositoryStep.setName(definitionStep.getName());
@@ -129,8 +129,8 @@ public class FlowMapper {
         return repositoryStep;
     }
 
-    private Step toDefinition(final FlowStep repositoryStep) {
-        Step definitionStep = new Step();
+    private StepV4 toDefinition(final FlowStep repositoryStep) {
+        StepV4 definitionStep = new StepV4();
         definitionStep.setPolicy(repositoryStep.getPolicy());
         definitionStep.setName(repositoryStep.getName());
         definitionStep.setEnabled(repositoryStep.isEnabled());

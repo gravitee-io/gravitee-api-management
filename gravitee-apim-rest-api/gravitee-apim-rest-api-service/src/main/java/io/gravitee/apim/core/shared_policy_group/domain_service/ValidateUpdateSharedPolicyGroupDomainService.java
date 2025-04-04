@@ -22,7 +22,7 @@ import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupC
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupDuplicateCrossIdException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.validation.Validator;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +74,7 @@ public class ValidateUpdateSharedPolicyGroupDomainService implements Validator<V
             sharedPolicyGroup
                 .getSteps()
                 .stream()
-                .filter(Step::isEnabled)
+                .filter(StepV4::isEnabled)
                 .forEach(step ->
                     step.setConfiguration(
                         policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
@@ -82,7 +82,7 @@ public class ValidateUpdateSharedPolicyGroupDomainService implements Validator<V
                 );
 
             policyValidationDomainService.validatePoliciesFlowPhase(
-                sharedPolicyGroup.getSteps().stream().map(Step::getPolicy).toList(),
+                sharedPolicyGroup.getSteps().stream().map(StepV4::getPolicy).toList(),
                 sharedPolicyGroup.getApiType(),
                 sharedPolicyGroup.getPhase()
             );

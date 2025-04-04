@@ -21,7 +21,7 @@ import static java.util.Optional.ofNullable;
 import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.ZonedDateTime;
@@ -85,7 +85,7 @@ public class SharedPolicyGroup {
     /**
      * The shared policy group steps
      */
-    private List<Step> steps;
+    private List<StepV4> steps;
     /**
      * Deployment date
      */
@@ -242,7 +242,7 @@ public class SharedPolicyGroup {
         private ApiType apiType;
         private OriginContext originContext;
         private FlowPhase phase;
-        private List<Step> steps;
+        private List<StepV4> steps;
         private ZonedDateTime deployedAt;
         private ZonedDateTime createdAt;
         private ZonedDateTime updatedAt;
@@ -305,7 +305,7 @@ public class SharedPolicyGroup {
             return this;
         }
 
-        public SharedPolicyGroupBuilder steps(List<Step> steps) {
+        public SharedPolicyGroupBuilder steps(List<StepV4> steps) {
             this.steps = steps;
             return this;
         }

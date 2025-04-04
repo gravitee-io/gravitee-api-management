@@ -418,9 +418,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private void validatePathParameters(Api api, UpdatePlanEntity updatePlan) throws TechnicalException {
         final Set<Plan> plans = planRepository.findByApi(api.getId());
-        final Stream<Flow> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
+        final Stream<FlowV4Impl> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
 
-        Stream<Flow> planFlows = plans
+        Stream<FlowV4Impl> planFlows = plans
             .stream()
             .map(plan -> {
                 if (plan.getId().equals(updatePlan.getId())) {

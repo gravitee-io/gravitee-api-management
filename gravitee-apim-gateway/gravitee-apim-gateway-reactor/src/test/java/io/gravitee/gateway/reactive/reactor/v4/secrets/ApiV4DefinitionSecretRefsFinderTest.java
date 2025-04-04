@@ -26,7 +26,7 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -363,8 +363,8 @@ class ApiV4DefinitionSecretRefsFinderTest {
         assertThat(processedTemplate.getHeaders().get("Test")).hasToString(processed(responseTemplateHeaderValue));
     }
 
-    private static Step newStep(String configuration, String policy) {
-        Step requestStep = new Step();
+    private static StepV4 newStep(String configuration, String policy) {
+        StepV4 requestStep = new StepV4();
         requestStep.setConfiguration(configuration);
         requestStep.setPolicy(policy);
         return requestStep;

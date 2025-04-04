@@ -28,7 +28,7 @@ import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -168,7 +168,7 @@ public class FlowValidationDomainService {
         }
     }
 
-    private void checkPolicyConfiguration(final List<Step> steps) {
+    private void checkPolicyConfiguration(final List<StepV4> steps) {
         steps
             .stream()
             .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)

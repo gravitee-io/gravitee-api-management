@@ -27,7 +27,7 @@ import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.integration.tests.fake.ForceClientIdentifierPolicy;
 import io.gravitee.apim.integration.tests.messages.AbstractMqtt5EndpointIntegrationTest;
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -173,7 +173,7 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
         final ReactableApi<?> api = reactableApis.get(apiId);
         ((Api) api.getDefinition()).getFlows()
             .get(0)
-            .setRequest(List.of(Step.builder().name("Force client identifier").policy("force-client-identifier").enabled(true).build()));
+            .setRequest(List.of(StepV4.builder().name("Force client identifier").policy("force-client-identifier").enabled(true).build()));
 
         redeploy(api);
 

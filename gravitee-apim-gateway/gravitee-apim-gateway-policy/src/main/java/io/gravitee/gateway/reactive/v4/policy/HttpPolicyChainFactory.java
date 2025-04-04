@@ -19,7 +19,7 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.hook.HttpHook;
@@ -61,8 +61,8 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
     }
 
     @Override
-    protected List<Step> getSteps(FlowV4Impl flow, ExecutionPhase phase) {
-        final List<Step> steps =
+    protected List<StepV4> getSteps(FlowV4Impl flow, ExecutionPhase phase) {
+        final List<StepV4> steps =
             switch (phase) {
                 case REQUEST -> flow.getRequest();
                 case RESPONSE -> flow.getResponse();
@@ -81,7 +81,7 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
     }
 
     @Override
-    protected PolicyMetadata buildPolicyMetadata(Step step) {
+    protected PolicyMetadata buildPolicyMetadata(StepV4 step) {
         final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.V4_EMULATION_ENGINE);
 

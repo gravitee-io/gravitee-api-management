@@ -31,7 +31,7 @@ import io.gravitee.apim.infra.adapter.FlowAdapter;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
@@ -181,7 +181,7 @@ class FlowCrudServiceImplTest {
         void should_save_flows() {
             // Given
             List<NativeFlow> flows = List.of(
-                NativeFlow.builder().name("My flow").enabled(true).publish(List.of(Step.builder().name("step 1").build())).build()
+                NativeFlow.builder().name("My flow").enabled(true).publish(List.of(StepV4.builder().name("step 1").build())).build()
             );
 
             var repoFlow = io.gravitee.repository.management.model.flow.Flow

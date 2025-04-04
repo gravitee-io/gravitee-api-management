@@ -18,7 +18,7 @@ package io.gravitee.gateway.handlers.sharedpolicygroup;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import java.util.List;
@@ -72,9 +72,9 @@ class ReactableSharedPolicyGroupTest {
                 .builder()
                 .policies(
                     List.of(
-                        Step.builder().policy("policy-enabled").enabled(true).build(),
-                        Step.builder().policy("policy-disabled").enabled(false).build(),
-                        Step.builder().policy("another-policy-enabled").enabled(true).build()
+                        StepV4.builder().policy("policy-enabled").enabled(true).build(),
+                        StepV4.builder().policy("policy-disabled").enabled(false).build(),
+                        StepV4.builder().policy("another-policy-enabled").enabled(true).build()
                     )
                 )
                 .build()
