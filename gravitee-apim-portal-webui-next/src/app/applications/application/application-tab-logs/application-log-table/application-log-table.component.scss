@@ -43,15 +43,15 @@ $form-field-hint-height: 16px;
   --mat-form-field-subscript-text-line-height: 0;
 
   &__row-one {
-    display: inline-flex;
-    max-width: 100%;
+    display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
 
     &__select-filters {
-      display: inline-flex;
+      display: flex;
       min-width: 0;
+      flex: 1;
       justify-content: space-between;
       gap: 16px;
     }
@@ -63,6 +63,7 @@ $form-field-hint-height: 16px;
 
     &__btn {
       display: flex;
+      align-self: center;
       margin-bottom: $form-field-hint-height;
       gap: 16px;
     }

@@ -22,7 +22,8 @@
 
 .file-tree {
   &__node {
-    border-radius: var(--mat-list-active-indicator-shape);
+    border-radius: theme.$card-container-shape;
+    margin-bottom: 2px;
     color: var(--mdc-list-list-item-label-text-color);
     font-family: var(--mdc-list-list-item-label-text-font);
     font-size: var(--mdc-list-list-item-label-text-size);

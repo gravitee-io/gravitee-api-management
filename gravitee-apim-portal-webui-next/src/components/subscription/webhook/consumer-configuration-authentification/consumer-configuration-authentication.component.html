@@ -20,7 +20,7 @@
     <span class="m3-title-medium" i18n="@@subscriptionConfigurationAuthentication">Security configuration</span>
   </app-accordion-title>
   <form class="form" [formGroup]="authForm">
-    <mat-form-field class="form__field type">
+    <mat-form-field appearance="outline" class="form__field type">
       <mat-label i18n="@@subscriptionConfigurationAuthenticationType">Type</mat-label>
       <mat-select formControlName="type" id="authType">
         @for (type of types; track type.value) {
@@ -33,7 +33,7 @@
       <div>
         @switch (authForm.controls.type.value) {
           @case ('basic') {
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@subscriptionConfigurationAuthenticationUsername">Username</mat-label>
               <input matInput formControlName="username" name="username" required />
               <mat-hint i18n="@@subscriptionConfigurationAuthenticationUsernameHint">The user name</mat-hint>
@@ -42,7 +42,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@subscriptionConfigurationAuthenticationPassword">Password</mat-label>
               <input matInput formControlName="password" type="password" name="password" autocomplete="off" required />
               <mat-hint i18n="@@subscriptionConfigurationAuthenticationPasswordHint">The user's password</mat-hint>
@@ -53,7 +53,7 @@
           }
 
           @case ('token') {
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@subscriptionConfigurationAuthenticationToken">Token</mat-label>
               <input matInput formControlName="token" name="token" required />
               <mat-hint i18n="@@subscriptionConfigurationAuthenticationTokenHint">Bearer token</mat-hint>
@@ -64,7 +64,7 @@
           }
 
           @case ('oauth2') {
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@subscriptionConfigurationAuthenticationEndpoint">Endpoint</mat-label>
               <input matInput formControlName="endpoint" name="endpoint" required />
               <mat-hint i18n="@@subscriptionConfigurationAuthenticationEndpointHint"
@@ -75,7 +75,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@subscriptionConfigurationAuthenticationClientId">Client ID</mat-label>
               <input matInput formControlName="clientId" name="clientId" required />
               <mat-hint i18n="@@subscriptionConfigurationAuthenticationClientIdHint">The client identifier</mat-hint>
@@ -84,7 +84,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@subscriptionConfigurationAuthenticationClientSecret">Client secret</mat-label>
               <input matInput formControlName="clientSecret" name="clientSecret" required />
               <mat-hint i18n="@@subscriptionConfigurationAuthenticationEndpointHint">The client secret</mat-hint>
@@ -93,7 +93,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field class="form__field">
+            <mat-form-field appearance="outline" class="form__field">
               <mat-label i18n="@@subscriptionConfigurationAuthenticationScopes">Scopes</mat-label>
               <mat-chip-grid #scopesChipGrid aria-label="Add scope" [formControl]="authForm.controls.scopes">
                 @for (scope of scopes(); track scope) {

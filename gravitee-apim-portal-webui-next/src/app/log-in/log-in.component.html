@@ -22,14 +22,14 @@
     </mat-card-header>
     <mat-card-content class="log-in__form">
       <div class="log-in__form__fields">
-        <mat-form-field class="log-in__form__input">
+        <mat-form-field appearance="outline" class="log-in__form__input">
           <mat-label i18n="@@logInUsername">Username</mat-label>
           <input matInput formControlName="username" appearance="outlined" />
           @if (logInForm.controls.username.hasError('required')) {
             <mat-error i18n="@@logInUsernameErrorRequired">Username is required</mat-error>
           }
         </mat-form-field>
-        <mat-form-field class="log-in__form__input">
+        <mat-form-field appearance="outline" class="log-in__form__input">
           <mat-label i18n="@@logInPassword">Password</mat-label>
           <input type="password" matInput formControlName="password" />
           @if (logInForm.controls.password.hasError('required')) {
