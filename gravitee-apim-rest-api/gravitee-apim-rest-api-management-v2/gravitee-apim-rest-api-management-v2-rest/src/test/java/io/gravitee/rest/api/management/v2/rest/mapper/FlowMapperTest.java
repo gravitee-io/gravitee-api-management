@@ -25,11 +25,10 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
 import io.gravitee.rest.api.management.v2.rest.model.StepV2;
-import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -150,7 +149,8 @@ public class FlowMapperTest {
         assertStepsV4Equals(flowEntityV4.getInteract(), flowV4.getInteract());
     }
 
-    private void assertStepsV4Equals(List<Step> steps, List<StepV4> stepsV4) throws JsonProcessingException {
+    private void assertStepsV4Equals(List<StepV4> steps, List<io.gravitee.rest.api.management.v2.rest.model.StepV4> stepsV4)
+        throws JsonProcessingException {
         assertEquals(steps.size(), steps.size());
 
         for (int i = 0; i < steps.size(); i++) {

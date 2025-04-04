@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.v4.policy;
 
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
@@ -60,11 +60,11 @@ public abstract class AbstractPolicyChainFactory<T extends BasePolicy, F extends
 
     protected abstract String getIdSuffix();
 
-    protected abstract List<Step> getSteps(F flow, ExecutionPhase phase);
+    protected abstract List<StepV4> getSteps(F flow, ExecutionPhase phase);
 
     protected abstract PC buildPolicyChain(String flowChainId, F flow, ExecutionPhase phase, List<T> policies);
 
-    protected abstract PolicyMetadata buildPolicyMetadata(Step step);
+    protected abstract PolicyMetadata buildPolicyMetadata(StepV4 step);
 
     /**
      * Creates a policy chain from the provided flow, for the given execution phase.
@@ -82,11 +82,11 @@ public abstract class AbstractPolicyChainFactory<T extends BasePolicy, F extends
         PC policyChain = policyChains.get(key);
 
         if (policyChain == null) {
-            final List<Step> steps = getSteps(flow, phase);
+            final List<StepV4> steps = getSteps(flow, phase);
 
             final List<T> policies = steps
                 .stream()
-                .filter(Step::isEnabled)
+                .filter(StepV4::isEnabled)
                 .map(this::buildPolicyMetadata)
                 .map(policyMetadata -> (T) policyManager.create(phase, policyMetadata))
                 .filter(Objects::nonNull)

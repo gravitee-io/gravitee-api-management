@@ -68,7 +68,7 @@ import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -1288,7 +1288,7 @@ public class ApiServiceImplTest {
         flow.setName("flowName");
         flow.setEnabled(true);
 
-        Step step = new Step();
+        StepV4 step = new StepV4();
         step.setEnabled(true);
         step.setPolicy("my-policy");
         step.setCondition("my-condition");

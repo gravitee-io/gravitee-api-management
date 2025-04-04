@@ -28,7 +28,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
@@ -94,7 +94,7 @@ public class FlowValidationServiceImplTest {
     public void shouldReturnValidatedFlowsWithStepsAndWithoutSelectors() {
         FlowV4Impl flow = new FlowV4Impl();
 
-        Step step = new Step();
+        StepV4 step = new StepV4();
         step.setPolicy("policy");
         step.setConfiguration("configuration");
         flow.setRequest(List.of(step));
@@ -114,7 +114,7 @@ public class FlowValidationServiceImplTest {
         httpSelector.setPathOperator(Operator.STARTS_WITH);
         flow.setSelectors(List.of(httpSelector));
 
-        Step step = new Step();
+        StepV4 step = new StepV4();
         step.setPolicy("policy");
         step.setConfiguration("configuration");
         flow.setRequest(List.of(step));
@@ -140,7 +140,7 @@ public class FlowValidationServiceImplTest {
     public void shouldThrowInvalidDataExceptionWithWrongPolicyConfiguration() {
         FlowV4Impl flow = new FlowV4Impl();
 
-        Step step = new Step();
+        StepV4 step = new StepV4();
         step.setPolicy("policy");
         step.setConfiguration("configuration");
         flow.setRequest(List.of(step));

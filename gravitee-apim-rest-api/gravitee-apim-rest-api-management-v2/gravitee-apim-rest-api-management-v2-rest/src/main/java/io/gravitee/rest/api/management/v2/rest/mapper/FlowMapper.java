@@ -23,7 +23,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.ChannelSelector;
 import io.gravitee.rest.api.management.v2.rest.model.ConditionSelector;
@@ -31,7 +31,6 @@ import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
 import io.gravitee.rest.api.management.v2.rest.model.HttpSelector;
 import io.gravitee.rest.api.management.v2.rest.model.Selector;
 import io.gravitee.rest.api.management.v2.rest.model.StepV2;
-import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Objects;
@@ -75,10 +74,10 @@ public interface FlowMapper {
     );
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    StepV4 mapStep(Step step);
+    io.gravitee.rest.api.management.v2.rest.model.StepV4 mapStep(StepV4 step);
 
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    Step mapStep(StepV4 stepV4);
+    StepV4 mapStep(io.gravitee.rest.api.management.v2.rest.model.StepV4 stepV4);
 
     // Selectors
     HttpSelector mapSelector(io.gravitee.definition.model.v4.flow.selector.HttpSelector selector);
@@ -153,7 +152,7 @@ public interface FlowMapper {
 
     @SneakyThrows
     @AfterMapping
-    default void mapConfiguration(Object ignored, @MappingTarget StepV4 target) {
+    default void mapConfiguration(Object ignored, @MappingTarget io.gravitee.rest.api.management.v2.rest.model.StepV4 target) {
         if (target.getConfiguration() instanceof String conf) {
             target.setConfiguration(JSON_MAPPER.readTree(conf));
         }

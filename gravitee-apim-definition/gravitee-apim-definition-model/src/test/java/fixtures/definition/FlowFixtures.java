@@ -26,7 +26,7 @@ import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.List;
 import java.util.Set;
@@ -83,7 +83,7 @@ public class FlowFixtures {
             .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
             .request(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
@@ -95,7 +95,7 @@ public class FlowFixtures {
             )
             .response(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
@@ -114,7 +114,7 @@ public class FlowFixtures {
             .selectors(List.of(ChannelSelector.builder().channel("/").channelOperator(Operator.STARTS_WITH).build()))
             .subscribe(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-1")
                         .policy("my-policy")
@@ -126,7 +126,7 @@ public class FlowFixtures {
             )
             .publish(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-2")
                         .policy("my-policy")
@@ -144,7 +144,7 @@ public class FlowFixtures {
             .get()
             .interact(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-1")
                         .policy("my-policy")
@@ -156,7 +156,7 @@ public class FlowFixtures {
             )
             .connect(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .name("my-step-name-2")
                         .policy("my-policy")

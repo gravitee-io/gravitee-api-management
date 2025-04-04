@@ -38,7 +38,7 @@ import lombok.*;
 @ToString
 @EqualsAndHashCode
 @Schema(name = "StepV4")
-public class Step implements Serializable {
+public class StepV4 implements Serializable {
 
     @NotEmpty
     private String name;

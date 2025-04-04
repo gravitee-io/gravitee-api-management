@@ -18,7 +18,7 @@ package io.gravitee.definition.model.v4.sharedpolicygroup;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
@@ -66,7 +66,7 @@ public class SharedPolicyGroup implements Serializable {
     private Phase phase;
 
     @Valid
-    private List<Step> policies;
+    private List<StepV4> policies;
 
     private Date deployedAt;
 
@@ -74,7 +74,7 @@ public class SharedPolicyGroup implements Serializable {
     public List<Plugin> getPlugins() {
         return this.policies == null
             ? List.of()
-            : this.policies.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).toList();
+            : this.policies.stream().filter(StepV4::isEnabled).map(StepV4::getPlugins).flatMap(List::stream).toList();
     }
 
     public enum Phase {

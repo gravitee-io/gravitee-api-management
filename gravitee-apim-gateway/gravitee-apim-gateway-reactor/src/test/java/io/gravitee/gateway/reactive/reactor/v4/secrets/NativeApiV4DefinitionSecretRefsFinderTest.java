@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.*;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -275,8 +275,8 @@ class NativeApiV4DefinitionSecretRefsFinderTest {
         assertThat(api.getEndpointGroups().get(0).getEndpoints().get(0).getConfiguration()).isEqualTo(processed(endpointConfig));
     }
 
-    private static Step newStep(String configuration, String policy) {
-        Step requestStep = new Step();
+    private static StepV4 newStep(String configuration, String policy) {
+        StepV4 requestStep = new StepV4();
         requestStep.setConfiguration(configuration);
         requestStep.setPolicy(policy);
         return requestStep;

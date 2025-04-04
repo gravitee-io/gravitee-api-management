@@ -22,7 +22,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiTemplateVariables;
@@ -231,7 +231,7 @@ public class PlanMapper {
                     .filter(FlowV4Impl::isEnabled)
                     .flatMap(flow -> flow.getRequest().stream())
                     .filter(step -> step.isEnabled() && Objects.equals(policyId, step.getPolicy()))
-                    .map(Step::getConfiguration)
+                    .map(StepV4::getConfiguration)
                     .toList();
             }
             default -> {

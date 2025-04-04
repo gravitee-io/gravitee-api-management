@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -45,16 +45,16 @@ import lombok.experimental.SuperBuilder;
 public class FlowV4Impl extends AbstractFlow {
 
     @Valid
-    private List<Step> request;
+    private List<StepV4> request;
 
     @Valid
-    private List<Step> response;
+    private List<StepV4> response;
 
     @Valid
-    private List<Step> subscribe;
+    private List<StepV4> subscribe;
 
     @Valid
-    private List<Step> publish;
+    private List<StepV4> publish;
 
     @Valid
     protected List<Selector> selectors;

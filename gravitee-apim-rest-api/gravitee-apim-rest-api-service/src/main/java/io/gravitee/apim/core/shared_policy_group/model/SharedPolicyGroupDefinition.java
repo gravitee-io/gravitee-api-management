@@ -15,8 +15,7 @@
  */
 package io.gravitee.apim.core.shared_policy_group.model;
 
-import io.gravitee.apim.core.plugin.model.PolicyPlugin;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,5 +31,5 @@ public class SharedPolicyGroupDefinition {
     /**
      * The shared policy group steps
      */
-    private List<Step> steps;
+    private List<StepV4> steps;
 }

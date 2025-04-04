@@ -37,7 +37,7 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEve
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.Clock;
@@ -247,7 +247,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
     void should_validate_and_sanitize_configuration() {
         // Given
         var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
-        toCreate.setSteps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"value\" }").build()));
+        toCreate.setSteps(List.of(StepV4.builder().policy("policy").configuration("{ \"key\": \"value\" }").build()));
 
         // When
         createSharedPolicyGroupUseCase.execute(new CreateSharedPolicyGroupUseCase.Input(toCreate, AUDIT_INFO));
@@ -258,7 +258,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         // Given
         var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
         toCreate.setSteps(
-            List.of(Step.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build())
+            List.of(StepV4.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build())
         );
 
         // When
@@ -278,7 +278,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         // Given
         var toCreate = SharedPolicyGroupFixtures.aCreateSharedPolicyGroup();
         toCreate.setSteps(
-            List.of(Step.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
+            List.of(StepV4.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
         );
 
         // When

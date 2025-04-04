@@ -35,7 +35,7 @@ import io.gravitee.apim.core.tag.query_service.TagQueryService;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -227,7 +227,7 @@ public class OAIToImportApiUseCase {
             importDefinition.getApiExport().setResources(List.of(resource));
 
             // Add Flow with OAS validation policy to API flows
-            var step = Step
+            var step = StepV4
                 .builder()
                 .policy(oasValidationPolicy.getId())
                 .name(oasValidationPolicy.getName())

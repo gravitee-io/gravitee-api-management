@@ -29,6 +29,7 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -196,10 +197,10 @@ class ApiTest {
     void getPluginsForApiV4WithFlows() {
         io.gravitee.definition.model.v4.Api apiWithMessageFlows = ApiDefinitionFixtures.anApiV4();
         FlowV4Impl flow = FlowFixtures.aMessageFlowV4();
-        flow.setRequest(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("policy-request-validation").build()));
-        flow.setResponse(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("json-validation").build()));
-        flow.setPublish(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("policy-override-request-method").build()));
-        flow.setSubscribe(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("transform-queryparams").build()));
+        flow.setRequest(List.of(StepV4.builder().policy("policy-request-validation").build()));
+        flow.setResponse(List.of(StepV4.builder().policy("json-validation").build()));
+        flow.setPublish(List.of(StepV4.builder().policy("policy-override-request-method").build()));
+        flow.setSubscribe(List.of(StepV4.builder().policy("transform-queryparams").build()));
         apiWithMessageFlows.setFlows(List.of(flow));
         assertThat(apiWithMessageFlows.getPlugins())
             .containsOnly(
@@ -215,16 +216,10 @@ class ApiTest {
         io.gravitee.definition.model.v4.Api apiWithMessageFlowsDisabled = ApiDefinitionFixtures.anApiV4();
         FlowV4Impl flowDisabled = FlowFixtures.aMessageFlowV4();
         flowDisabled.setEnabled(false);
-        flowDisabled.setRequest(
-            List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("policy-request-validation").build())
-        );
-        flowDisabled.setResponse(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("json-validation").build()));
-        flowDisabled.setPublish(
-            List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("policy-override-request-method").build())
-        );
-        flowDisabled.setSubscribe(
-            List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("transform-queryparams").build())
-        );
+        flowDisabled.setRequest(List.of(StepV4.builder().policy("policy-request-validation").build()));
+        flowDisabled.setResponse(List.of(StepV4.builder().policy("json-validation").build()));
+        flowDisabled.setPublish(List.of(StepV4.builder().policy("policy-override-request-method").build()));
+        flowDisabled.setSubscribe(List.of(StepV4.builder().policy("transform-queryparams").build()));
         apiWithMessageFlowsDisabled.setFlows(List.of(flowDisabled));
         assertThat(apiWithMessageFlowsDisabled.getPlugins()).isEmpty();
     }
@@ -233,12 +228,10 @@ class ApiTest {
     void getPluginsForApiV4WithProxyFlows() {
         io.gravitee.definition.model.v4.Api apiWithProxyFlows = ApiDefinitionFixtures.anApiV4();
         FlowV4Impl proxyFlow = FlowFixtures.aProxyFlowV4();
-        proxyFlow.setRequest(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("policy-request-validation").build()));
-        proxyFlow.setResponse(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("json-validation").build()));
-        proxyFlow.setPublish(
-            List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("policy-override-request-method").build())
-        );
-        proxyFlow.setSubscribe(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("transform-queryparams").build()));
+        proxyFlow.setRequest(List.of(StepV4.builder().policy("policy-request-validation").build()));
+        proxyFlow.setResponse(List.of(StepV4.builder().policy("json-validation").build()));
+        proxyFlow.setPublish(List.of(StepV4.builder().policy("policy-override-request-method").build()));
+        proxyFlow.setSubscribe(List.of(StepV4.builder().policy("transform-queryparams").build()));
         apiWithProxyFlows.setFlows(List.of(proxyFlow));
         assertThat(apiWithProxyFlows.getPlugins())
             .containsOnly(
@@ -254,14 +247,7 @@ class ApiTest {
         io.gravitee.definition.model.v4.Api apiWithPlans = ApiDefinitionFixtures.anApiV4();
         io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan
             .builder()
-            .flows(
-                List.of(
-                    FlowV4Impl
-                        .builder()
-                        .request(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("json-xml").build()))
-                        .build()
-                )
-            )
+            .flows(List.of(FlowV4Impl.builder().request(List.of(StepV4.builder().policy("json-xml").build())).build()))
             .build();
         apiWithPlans.setPlans(List.of(plan));
         assertThat(apiWithPlans.getPlugins()).containsOnly(new Plugin("policy", "json-xml"));

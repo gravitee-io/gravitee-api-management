@@ -25,13 +25,12 @@ import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.model.FlowPhase;
-import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupHistoryCrudService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PolicyNotFoundException;
@@ -105,7 +104,7 @@ public class InitializeSharedPolicyGroupUseCase {
             )
             .steps(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .policy(rateLimitPolicy.getId())
                         .name(rateLimitPolicy.getName())
@@ -137,7 +136,7 @@ public class InitializeSharedPolicyGroupUseCase {
                                 )
                         )
                         .build(),
-                    Step
+                    StepV4
                         .builder()
                         .policy(groovyPolicy.getId())
                         .name(groovyPolicy.getName())
@@ -183,7 +182,7 @@ public class InitializeSharedPolicyGroupUseCase {
             .prerequisiteMessage("You need the `ip` field set in your request body.")
             .steps(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .policy(assignAttributesPolicy.getId())
                         .name(assignAttributesPolicy.getName())
@@ -200,7 +199,7 @@ public class InitializeSharedPolicyGroupUseCase {
                                 )
                         )
                         .build(),
-                    Step
+                    StepV4
                         .builder()
                         .policy(httpCalloutPolicy.getId())
                         .name(httpCalloutPolicy.getName())
@@ -232,7 +231,7 @@ public class InitializeSharedPolicyGroupUseCase {
                                 )
                         )
                         .build(),
-                    Step
+                    StepV4
                         .builder()
                         .policy(assignAttributesPolicy.getId())
                         .name(assignAttributesPolicy.getName())
@@ -285,7 +284,7 @@ public class InitializeSharedPolicyGroupUseCase {
             )
             .steps(
                 List.of(
-                    Step
+                    StepV4
                         .builder()
                         .policy(assignContentPolicy.getId())
                         .name(assignContentPolicy.getName())
@@ -302,7 +301,7 @@ public class InitializeSharedPolicyGroupUseCase {
                                 )
                         )
                         .build(),
-                    Step
+                    StepV4
                         .builder()
                         .policy(dynamicRoutingPolicy.getId())
                         .name(dynamicRoutingPolicy.getName())

@@ -35,7 +35,7 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEve
 import io.gravitee.apim.core.shared_policy_group.model.UpdateSharedPolicyGroup;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.Clock;
@@ -107,7 +107,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
             .name("new-name")
             .description("new-description")
             .prerequisiteMessage("new-prerequisite-message")
-            .steps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"newValue\" }").build()))
+            .steps(List.of(StepV4.builder().policy("policy").configuration("{ \"key\": \"newValue\" }").build()))
             .build();
         var updatedSharedPolicyGroup = updateSharedPolicyGroupUseCase.execute(
             new UpdateSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), toUpdate, AUDIT_INFO)
@@ -121,7 +121,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
             .description("new-description")
             .prerequisiteMessage("new-prerequisite-message")
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.PENDING)
-            .steps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"newValue\" }").build()))
+            .steps(List.of(StepV4.builder().policy("policy").configuration("{ \"key\": \"newValue\" }").build()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .build();
         assertThat(updatedSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
@@ -188,7 +188,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
             .crossId("new-cross-id")
             .name("new-name")
             .description("new-description")
-            .steps(List.of(Step.builder().policy("policy").configuration("{ \"key\": \"newValue\" }").build()))
+            .steps(List.of(StepV4.builder().policy("policy").configuration("{ \"key\": \"newValue\" }").build()))
             .build();
         updateSharedPolicyGroupUseCase.execute(
             new UpdateSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), toUpdate, AUDIT_INFO)
@@ -272,7 +272,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         // When
         var toUpdate = UpdateSharedPolicyGroup
             .builder()
-            .steps(List.of(Step.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build()))
+            .steps(List.of(StepV4.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build()))
             .build();
         var throwable = Assertions.catchThrowable(() ->
             updateSharedPolicyGroupUseCase.execute(
@@ -297,7 +297,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         var toUpdate = UpdateSharedPolicyGroup
             .builder()
             .steps(
-                List.of(Step.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
+                List.of(StepV4.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
             )
             .build();
         var throwable = Assertions.catchThrowable(() ->

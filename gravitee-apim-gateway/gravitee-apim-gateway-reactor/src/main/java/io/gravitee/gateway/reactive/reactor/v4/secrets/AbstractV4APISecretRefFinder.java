@@ -19,7 +19,7 @@ import static io.gravitee.secrets.api.discovery.SecretRefsLocation.PLUGIN_KIND;
 
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -70,7 +70,7 @@ public abstract class AbstractV4APISecretRefFinder<D> implements DefinitionSecre
             );
     }
 
-    protected void processStep(DefinitionSecretRefsListener listener, Step step) {
+    protected void processStep(DefinitionSecretRefsListener listener, StepV4 step) {
         listener.onCandidate(step.getConfiguration(), new SecretRefsLocation(PLUGIN_KIND, step.getPolicy()), step::setConfiguration);
     }
 

@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -144,11 +144,11 @@ class ApiTest {
         return List.of(enabledFlow, disabledFlow);
     }
 
-    private List<Step> aStepList(String policy) {
-        Step enabledPreStep = new Step();
+    private List<StepV4> aStepList(String policy) {
+        StepV4 enabledPreStep = new StepV4();
         enabledPreStep.setPolicy(policy);
         enabledPreStep.setEnabled(true);
-        Step disabledPreStep = new Step();
+        StepV4 disabledPreStep = new StepV4();
         disabledPreStep.setName("disabled-" + policy);
         disabledPreStep.setEnabled(false);
         return List.of(enabledPreStep, disabledPreStep);
