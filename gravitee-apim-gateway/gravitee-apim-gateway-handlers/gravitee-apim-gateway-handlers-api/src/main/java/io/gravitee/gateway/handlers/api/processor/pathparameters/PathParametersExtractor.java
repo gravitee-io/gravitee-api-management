@@ -17,7 +17,7 @@ package io.gravitee.gateway.handlers.api.processor.pathparameters;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,14 +28,14 @@ import java.util.stream.Stream;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PathParametersExtractor extends AbstractPathParametersExtractor<Api, Flow, Plan> {
+public class PathParametersExtractor extends AbstractPathParametersExtractor<Api, FlowV2Impl, Plan> {
 
     public PathParametersExtractor(Api api) {
         super(api);
     }
 
     @Override
-    protected List<Flow> getApiFlows(Api api) {
+    protected List<FlowV2Impl> getApiFlows(Api api) {
         return api.getFlows();
     }
 
@@ -45,17 +45,17 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
     }
 
     @Override
-    protected List<Flow> getPlanFlows(Plan plan) {
+    protected List<FlowV2Impl> getPlanFlows(Plan plan) {
         return plan.getFlows();
     }
 
     @Override
-    protected boolean hasPathParam(Flow flow) {
+    protected boolean hasPathParam(FlowV2Impl flow) {
         return PARAM_PATTERN.asPredicate().test(flow.getPath());
     }
 
     @Override
-    protected boolean isEnabled(Flow flow) {
+    protected boolean isEnabled(FlowV2Impl flow) {
         return flow.isEnabled();
     }
 
@@ -65,7 +65,7 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
      * @return
      */
     @Override
-    protected Map<PathParameterHttpMethod, Set<PathParameters>> groupPatternsByMethod(final Stream<Flow> flows) {
+    protected Map<PathParameterHttpMethod, Set<PathParameters>> groupPatternsByMethod(final Stream<FlowV2Impl> flows) {
         final Map<PathParameterHttpMethod, Set<PathParameters>> patternsByMethod = flows
             .flatMap(f -> {
                 List<Map.Entry<PathParameterHttpMethod, PathParameters>> flowByMethod;

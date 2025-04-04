@@ -18,8 +18,6 @@ package io.gravitee.definition.model.debug;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
-import io.gravitee.secrets.api.discovery.Definition;
-import java.io.Serializable;
 import java.util.List;
 
 /**

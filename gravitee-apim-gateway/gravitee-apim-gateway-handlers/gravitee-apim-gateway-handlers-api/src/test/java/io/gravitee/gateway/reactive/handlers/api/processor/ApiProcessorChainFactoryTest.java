@@ -23,7 +23,7 @@ import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -184,7 +184,7 @@ class ApiProcessorChainFactoryTest {
         io.gravitee.definition.model.Api apiModel = new io.gravitee.definition.model.Api();
         final Proxy proxy = new Proxy();
         apiModel.setProxy(proxy);
-        Flow flow = new Flow();
+        FlowV2Impl flow = new FlowV2Impl();
         flow.setPathOperator(new PathOperator("/products/:productId", Operator.STARTS_WITH));
         apiModel.setFlows(List.of(flow));
 

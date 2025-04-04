@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -182,7 +182,7 @@ public sealed interface PlanDescriptor {
 
         String securityDefinition,
         Map<String, List<Rule>> paths,
-        Collection<Flow> flows
+        Collection<FlowV2Impl> flows
     )
         implements PlanDescriptor {
         @JsonProperty("tags")
@@ -190,7 +190,7 @@ public sealed interface PlanDescriptor {
             return tags != null ? tags : Set.of();
         }
 
-        public PlanDescriptor.V2 withFlow(Collection<Flow> newFlow) {
+        public PlanDescriptor.V2 withFlow(Collection<FlowV2Impl> newFlow) {
             return new PlanDescriptor.V2(
                 id,
                 crossId,

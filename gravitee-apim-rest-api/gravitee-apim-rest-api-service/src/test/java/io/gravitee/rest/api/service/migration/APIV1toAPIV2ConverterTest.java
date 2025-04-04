@@ -17,12 +17,10 @@ package io.gravitee.rest.api.service.migration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -115,8 +113,8 @@ public class APIV1toAPIV2ConverterTest {
         assertThat(actual.getFlows()).hasSameSizeAs(expected.getFlows());
 
         for (int i = 0; i < actual.getFlows().size(); i++) {
-            Flow currentflow = actual.getFlows().get(i);
-            Optional<Flow> equivalentFlowInExpectedList = expected
+            FlowV2Impl currentflow = actual.getFlows().get(i);
+            Optional<FlowV2Impl> equivalentFlowInExpectedList = expected
                 .getFlows()
                 .stream()
                 .filter(flow -> flow.getPathOperator().getPath().equals(currentflow.getPathOperator().getPath()))
@@ -159,8 +157,8 @@ public class APIV1toAPIV2ConverterTest {
             assertThat(actualPlans.get(i).getFlows()).hasSameSizeAs(expectedPlans.get(i).getFlows());
 
             for (int j = 0; j < actualPlans.get(i).getFlows().size(); j++) {
-                Flow currentflow = actualPlans.get(i).getFlows().get(j);
-                Optional<Flow> equivalentFlowInExpectedList = expectedPlans
+                FlowV2Impl currentflow = actualPlans.get(i).getFlows().get(j);
+                Optional<FlowV2Impl> equivalentFlowInExpectedList = expectedPlans
                     .get(i)
                     .getFlows()
                     .stream()

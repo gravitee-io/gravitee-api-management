@@ -16,10 +16,8 @@
 package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.AbstractFlowResolver;
@@ -28,7 +26,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Allows resolving {@link Flow}s defined at plan level of a given {@link Api}.
+ * Allows resolving {@link FlowV2Impl}s defined at plan level of a given {@link Api}.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,14 +35,14 @@ class ApiPlanFlowResolver extends AbstractFlowResolver<HttpBaseExecutionContext>
 
     private final Api api;
 
-    public ApiPlanFlowResolver(Api api, ConditionFilter<HttpBaseExecutionContext, Flow> filter) {
+    public ApiPlanFlowResolver(Api api, ConditionFilter<HttpBaseExecutionContext, FlowV2Impl> filter) {
         super(filter);
         this.api = api;
         api.getPlans();
     }
 
     @Override
-    public Flowable<Flow> provideFlows(HttpBaseExecutionContext ctx) {
+    public Flowable<FlowV2Impl> provideFlows(HttpBaseExecutionContext ctx) {
         if (api.getPlans() == null || api.getPlans().isEmpty()) {
             return Flowable.empty();
         }
@@ -58,7 +56,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver<HttpBaseExecutionContext>
                 .filter(plan -> Objects.equals(plan.getId(), planId))
                 .filter(plan -> Objects.nonNull(plan.getFlows()))
                 .flatMap(plan -> plan.getFlows().stream())
-                .filter(Flow::isEnabled)
+                .filter(FlowV2Impl::isEnabled)
                 .collect(Collectors.toList())
         );
     }

@@ -18,7 +18,7 @@ package io.gravitee.gateway.reactive.flow.condition.evaluation;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.GenericRequest;
 import io.reactivex.rxjava3.observers.TestObserver;
@@ -47,7 +47,7 @@ class HttpMethodConditionFilterTest {
     private GenericRequest request;
 
     @Mock
-    private Flow flow;
+    private FlowV2Impl flow;
 
     @BeforeEach
     void init() {
@@ -58,7 +58,7 @@ class HttpMethodConditionFilterTest {
     void shouldNotFilterWithRequestContextWhenNoMethodIsDefined() {
         when(flow.getMethods()).thenReturn(Collections.emptySet());
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
 
         obs.assertResult(flow);
     }
@@ -68,7 +68,7 @@ class HttpMethodConditionFilterTest {
         when(flow.getMethods()).thenReturn(new HashSet<>(Collections.singletonList(HttpMethod.POST)));
         when(request.method()).thenReturn(HttpMethod.GET);
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
 
         obs.assertResult();
     }
@@ -78,7 +78,7 @@ class HttpMethodConditionFilterTest {
         when(flow.getMethods()).thenReturn(new HashSet<>(Arrays.asList(HttpMethod.POST, HttpMethod.GET)));
         when(request.method()).thenReturn(HttpMethod.GET);
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV2Impl> obs = cut.filter(ctx, flow).test();
 
         obs.assertResult(flow);
     }

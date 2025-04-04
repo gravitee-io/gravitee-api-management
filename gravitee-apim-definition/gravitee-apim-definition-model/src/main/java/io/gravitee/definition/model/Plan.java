@@ -17,7 +17,7 @@ package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import java.io.Serializable;
 import java.util.*;
 import lombok.AllArgsConstructor;
@@ -63,7 +63,7 @@ public class Plan implements Serializable {
 
     @Builder.Default
     @JsonProperty("flows")
-    private List<Flow> flows = new ArrayList<>();
+    private List<FlowV2Impl> flows = new ArrayList<>();
 
     @JsonProperty("tags")
     private Set<String> tags;
@@ -75,7 +75,7 @@ public class Plan implements Serializable {
     public List<Plugin> getPlugins() {
         return Optional
             .ofNullable(this.getFlows())
-            .map(f -> f.stream().map(Flow::getPlugins).flatMap(List::stream).toList())
+            .map(f -> f.stream().map(FlowV2Impl::getPlugins).flatMap(List::stream).toList())
             .orElse(List.of());
     }
 

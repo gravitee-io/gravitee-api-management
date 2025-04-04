@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.flow;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.reactivex.rxjava3.core.Flowable;
@@ -26,13 +26,13 @@ import io.reactivex.rxjava3.core.Flowable;
  */
 public abstract class AbstractFlowResolver<C extends BaseExecutionContext> implements FlowResolver<C> {
 
-    private final ConditionFilter<C, Flow> filter;
+    private final ConditionFilter<C, FlowV2Impl> filter;
 
-    protected AbstractFlowResolver(ConditionFilter<C, Flow> filter) {
+    protected AbstractFlowResolver(ConditionFilter<C, FlowV2Impl> filter) {
         this.filter = filter;
     }
 
-    public Flowable<Flow> resolve(C ctx) {
+    public Flowable<FlowV2Impl> resolve(C ctx) {
         return provideFlows(ctx).flatMapMaybe(flow -> filter.filter(ctx, flow));
     }
 }

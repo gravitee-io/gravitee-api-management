@@ -17,7 +17,7 @@ package io.gravitee.gateway.handlers.api.processor;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.BestMatchFlowResolver;
@@ -37,7 +37,6 @@ import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
-import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessor;
 import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessorConfiguration;
@@ -83,7 +82,7 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
         add(() -> new ShutdownProcessor(node));
         add(() -> new TransactionResponseProcessor(this.transactionResponseProcessorConfiguration));
 
-        final ConditionEvaluator<Flow> evaluator = new CompositeConditionEvaluator<>(
+        final ConditionEvaluator<FlowV2Impl> evaluator = new CompositeConditionEvaluator<>(
             new HttpMethodConditionEvaluator(),
             new PathBasedConditionEvaluator(),
             new ExpressionLanguageFlowConditionEvaluator()

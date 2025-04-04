@@ -39,7 +39,7 @@ import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
@@ -1400,7 +1400,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         checkPolicyConfigurations(updateApiEntity.getPaths(), updateApiEntity.getFlows(), updateApiEntity.getPlans());
     }
 
-    public void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, Set<PlanEntity> plans) {
+    public void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<FlowV2Impl> flows, Set<PlanEntity> plans) {
         checkPathsPolicyConfiguration(paths);
         checkFlowsPolicyConfiguration(flows);
 
@@ -1426,7 +1426,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private void checkFlowsPolicyConfiguration(List<Flow> flows) {
+    private void checkFlowsPolicyConfiguration(List<FlowV2Impl> flows) {
         if (flows != null) {
             flows
                 .stream()

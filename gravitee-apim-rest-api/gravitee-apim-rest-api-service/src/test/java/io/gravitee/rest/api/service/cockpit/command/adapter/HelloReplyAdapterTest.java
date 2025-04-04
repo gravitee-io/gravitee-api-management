@@ -26,7 +26,7 @@ import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.hello.HelloReply;
 import io.gravitee.cockpit.api.command.v1.hello.HelloReplyPayload;
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
@@ -109,7 +109,7 @@ public class HelloReplyAdapterTest {
             "commandId",
             HelloReplyPayload.builder().defaultOrganizationCockpitId("org#cockpit-1").build()
         );
-        Flow flow = new Flow();
+        FlowV2Impl flow = new FlowV2Impl();
         flow.setName("My-Flow");
 
         String defaultOrgId = "DEFAULT";

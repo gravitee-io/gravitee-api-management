@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
@@ -95,7 +95,7 @@ public class ApiCRDEntity {
 
     @JsonProperty(value = "flows")
     @Schema(description = "a list of flows (the policies configuration)")
-    private List<Flow> flows = new ArrayList<>();
+    private List<FlowV2Impl> flows = new ArrayList<>();
 
     @JsonProperty(value = "plans")
     @Schema(description = "a list of plans with flows (the policies configuration)")
@@ -241,7 +241,7 @@ public class ApiCRDEntity {
         @DeploymentRequired
         @JsonProperty(value = "flows", required = true)
         @Builder.Default
-        private List<Flow> flows = new ArrayList<>();
+        private List<FlowV2Impl> flows = new ArrayList<>();
 
         @Override
         public boolean equals(Object o) {

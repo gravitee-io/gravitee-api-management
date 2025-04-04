@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Consumer;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
 import java.io.IOException;
@@ -33,14 +33,14 @@ import java.util.List;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FlowSerializer extends StdScalarSerializer<Flow> {
+public class FlowV2Serializer extends StdScalarSerializer<FlowV2Impl> {
 
-    public FlowSerializer(Class<Flow> vc) {
+    public FlowV2Serializer(Class<FlowV2Impl> vc) {
         super(vc);
     }
 
     @Override
-    public void serialize(Flow flow, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(FlowV2Impl flow, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
 
         jgen.writeStringField("id", flow.getId());

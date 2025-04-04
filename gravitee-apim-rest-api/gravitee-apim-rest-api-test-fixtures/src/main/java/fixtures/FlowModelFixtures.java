@@ -15,6 +15,7 @@
  */
 package fixtures;
 
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -71,7 +72,7 @@ public class FlowModelFixtures {
         .condition("{#context.attribute['condition'] == true}")
         .configuration("{\n  \"nice\" : \"config\"\n}");
 
-    private static final io.gravitee.definition.model.flow.Flow.FlowBuilder BASE_MODEL_FLOW_V2 = io.gravitee.definition.model.flow.Flow
+    private static final FlowV2Impl.FlowV2ImplBuilder BASE_MODEL_FLOW_V2 = FlowV2Impl
         .builder()
         .name("Flow")
         .enabled(true)
@@ -94,7 +95,7 @@ public class FlowModelFixtures {
         return BASE_MODEL_FLOW_NATIVE_V4.build();
     }
 
-    public static io.gravitee.definition.model.flow.Flow aModelFlowV2() {
+    public static FlowV2Impl aModelFlowV2() {
         return BASE_MODEL_FLOW_V2.build();
     }
 }

@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.flow;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.EmptyStreamableProcessor;
@@ -54,12 +54,12 @@ public class SimpleFlowProvider implements FlowProvider {
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
-        List<Flow> flows = flowResolver.resolve(context);
+        List<FlowV2Impl> flows = flowResolver.resolve(context);
 
         if (flows != null && !flows.isEmpty()) {
             final List<StreamableProcessor<ExecutionContext, Buffer>> chain = new ArrayList<>(flows.size());
 
-            for (Flow flow : flows) {
+            for (FlowV2Impl flow : flows) {
                 chain.add(
                     policyChainFactory.create(
                         flowPolicyResolverFactory.create(flow).resolve(streamType, context),

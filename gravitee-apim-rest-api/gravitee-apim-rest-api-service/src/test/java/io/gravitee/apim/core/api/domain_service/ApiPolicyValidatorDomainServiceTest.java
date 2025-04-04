@@ -20,21 +20,17 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.domain_service.policy.PolicyValidationDomainServiceLegacyWrapper;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.debug.DebugApiProxy;
 import io.gravitee.definition.model.debug.DebugApiV2;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.plugin.core.api.PluginMoreInformation;
-import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
-import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import java.util.Collection;
 import java.util.List;
@@ -189,7 +185,7 @@ class ApiPolicyValidatorDomainServiceTest {
             api.setDefinitionVersion(DefinitionVersion.V2);
             api.setFlows(
                 List.of(
-                    Flow
+                    FlowV2Impl
                         .builder()
                         .id("flow1")
                         .pre(
@@ -200,7 +196,7 @@ class ApiPolicyValidatorDomainServiceTest {
                         )
                         .post(List.of(Step.builder().policy("policy3").configuration("config3").build()))
                         .build(),
-                    Flow.builder().build()
+                    FlowV2Impl.builder().build()
                 )
             );
             api.setPlans(
@@ -210,7 +206,7 @@ class ApiPolicyValidatorDomainServiceTest {
                         .id("plan1")
                         .flows(
                             List.of(
-                                Flow
+                                FlowV2Impl
                                     .builder()
                                     .id("flow1")
                                     .pre(
@@ -229,7 +225,7 @@ class ApiPolicyValidatorDomainServiceTest {
                         .id("plan2")
                         .flows(
                             List.of(
-                                Flow
+                                FlowV2Impl
                                     .builder()
                                     .id("flow1")
                                     .pre(
@@ -278,7 +274,7 @@ class ApiPolicyValidatorDomainServiceTest {
 
         private static Stream<Arguments> provideEmptyCasesForFlows() {
             var api = new DebugApiV2();
-            api.setFlows(List.of(Flow.builder().build()));
+            api.setFlows(List.of(FlowV2Impl.builder().build()));
             return Stream.concat(provideEmptyCases(), Stream.of(Arguments.of(api, null), Arguments.of(api, List.of())));
         }
     }

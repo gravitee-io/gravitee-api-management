@@ -18,16 +18,14 @@ package io.gravitee.rest.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
-import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
 
@@ -142,7 +140,7 @@ public interface ApiService {
 
     boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
 
-    void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, Set<PlanEntity> plans);
+    void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<FlowV2Impl> flows, Set<PlanEntity> plans);
 
     long countByCategoryForUser(ExecutionContext executionContext, String categoryId, String userId);
 

@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.converter;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public class PlanConverterTest {
         plan.setGeneralConditions("general_conditions");
         plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
 
-        List<Flow> flows = new ArrayList<>();
+        List<FlowV2Impl> flows = new ArrayList<>();
 
         PlanEntity planEntity = planConverter.toPlanEntity(plan, flows);
 

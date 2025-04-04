@@ -17,7 +17,7 @@ package io.gravitee.gateway.flow;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.PathOperator;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,12 +42,12 @@ public class BestMatchFlowSelectorTest {
 
     @Test
     public void should_return_empty_string_when_flow_has_no_path() {
-        assertThat(cut.providePath(new Flow())).isNotEmpty().containsSame("");
+        assertThat(cut.providePath(new FlowV2Impl())).isNotEmpty().containsSame("");
     }
 
     @Test
     public void should_return_flow_path() {
-        final Flow flow = new Flow();
+        final FlowV2Impl flow = new FlowV2Impl();
         final PathOperator pathOperator = new PathOperator();
         pathOperator.setPath("path");
         flow.setPathOperator(pathOperator);

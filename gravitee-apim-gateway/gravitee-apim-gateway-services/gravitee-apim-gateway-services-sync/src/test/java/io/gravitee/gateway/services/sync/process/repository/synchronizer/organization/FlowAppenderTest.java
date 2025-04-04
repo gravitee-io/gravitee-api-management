@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import java.util.List;
@@ -68,7 +68,7 @@ class FlowAppenderTest {
     void should_do_nothing_when_no_sharding_tag() {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         Organization organization = new Organization();
-        organization.setFlows(List.of(new Flow()));
+        organization.setFlows(List.of(new FlowV2Impl()));
         OrganizationDeployable organizationDeployable = OrganizationDeployable
             .builder()
             .reactableOrganization(new ReactableOrganization(organization))
@@ -83,13 +83,13 @@ class FlowAppenderTest {
         when(gatewayConfiguration.hasMatchingTags(Set.of("tag"))).thenReturn(true);
         when(gatewayConfiguration.hasMatchingTags(Set.of("non-tag"))).thenReturn(false);
         Organization organization = new Organization();
-        Flow flow1 = new Flow();
+        FlowV2Impl flow1 = new FlowV2Impl();
         Consumer consumer1 = new Consumer();
         consumer1.setConsumerType(ConsumerType.TAG);
         consumer1.setConsumerId("tag");
         flow1.setConsumers(List.of(consumer1));
 
-        Flow flow2 = new Flow();
+        FlowV2Impl flow2 = new FlowV2Impl();
         Consumer consumer2 = new Consumer();
         consumer2.setConsumerType(ConsumerType.TAG);
         consumer2.setConsumerId("non-tag");

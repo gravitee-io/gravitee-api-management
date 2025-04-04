@@ -21,7 +21,7 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.debug.DebugApiProxy;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Step;
 import java.util.Collection;
 import java.util.HashSet;
@@ -103,7 +103,7 @@ public class ApiPolicyValidatorDomainService {
     }
 
     private static Stream<Step> getFlowsStream(Api api, Set<Plan> plans) {
-        Stream<Flow> flowsStream = null;
+        Stream<FlowV2Impl> flowsStream = null;
         if (api.getFlows() != null) {
             flowsStream = api.getFlows().stream();
         }

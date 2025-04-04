@@ -16,25 +16,25 @@
 package io.gravitee.gateway.flow.condition.evaluation;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 
 /**
  * This {@link ConditionEvaluator} evaluates to true if the method of the request is matching the
- * methods declared within the {@link Flow}.
+ * methods declared within the {@link FlowV2Impl}.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpMethodConditionEvaluator implements ConditionEvaluator<Flow> {
+public class HttpMethodConditionEvaluator implements ConditionEvaluator<FlowV2Impl> {
 
     @Override
-    public boolean evaluate(ExecutionContext context, Flow flow) {
+    public boolean evaluate(ExecutionContext context, FlowV2Impl flow) {
         return evaluate(context.request().method(), flow);
     }
 
-    protected boolean evaluate(HttpMethod method, Flow flow) {
+    protected boolean evaluate(HttpMethod method, FlowV2Impl flow) {
         return flow.getMethods() == null || flow.getMethods().isEmpty() || flow.getMethods().contains(method);
     }
 }

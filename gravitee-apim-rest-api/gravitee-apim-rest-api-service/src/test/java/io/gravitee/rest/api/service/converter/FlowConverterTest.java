@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -77,7 +77,7 @@ public class FlowConverterTest {
 
     @Test
     public void to_model_should_initialize_non_nullable_fields() {
-        Flow flowDefinition = new Flow();
+        FlowV2Impl flowDefinition = new FlowV2Impl();
         flowDefinition.setName("platform");
         flowDefinition.setPathOperator(pathOperator());
         flowDefinition.setConsumers(consumers());
@@ -101,7 +101,7 @@ public class FlowConverterTest {
 
     @Test
     public void to_model_should_keep_the_step_order() {
-        Flow flowDefinition = new Flow();
+        FlowV2Impl flowDefinition = new FlowV2Impl();
         flowDefinition.setPre(pre());
 
         var model = converter.toRepository(flowDefinition, FlowReferenceType.ORGANIZATION, "DEFAULT", 0);
@@ -122,7 +122,7 @@ public class FlowConverterTest {
         flow.setOperator(FlowOperator.STARTS_WITH);
         flow.setConsumers(List.of());
 
-        Flow flowDefinition = converter.toDefinition(flow);
+        FlowV2Impl flowDefinition = converter.toDefinition(flow);
 
         assertNotNull(flowDefinition.getPathOperator());
         assertEquals(expectedOperator.getOperator(), flowDefinition.getPathOperator().getOperator());
@@ -179,7 +179,7 @@ public class FlowConverterTest {
         flow.setConsumers(List.of());
         flow.setPre(definitionPre());
 
-        Flow flowDefinition = converter.toDefinition(flow);
+        FlowV2Impl flowDefinition = converter.toDefinition(flow);
 
         assertEquals(2, flowDefinition.getPre().size());
         assertEquals("IPFiltering", flowDefinition.getPre().get(0).getName());
@@ -204,7 +204,7 @@ public class FlowConverterTest {
         flow.setConsumers(List.of());
         flow.setPre(List.of(flowStep));
 
-        Flow convertedFlow = converter.toDefinition(flow);
+        FlowV2Impl convertedFlow = converter.toDefinition(flow);
         assertNull(convertedFlow.getName());
         assertNull(convertedFlow.getCondition());
         assertNull(convertedFlow.getPre().get(0).getDescription());

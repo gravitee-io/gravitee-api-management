@@ -15,16 +15,14 @@
  */
 package io.gravitee.gateway.reactive.flow;
 
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 
 /**
- * This flow resolver resolves only the {@link Flow} which best matches according to the incoming request.
+ * This flow resolver resolves only the {@link FlowV2Impl} which best matches according to the incoming request.
  * This flow resolver relies on the result of a previous {@link FlowResolver} used to build this instance.
  * This means that the flows list patterns to filter for Best Match mode already matched the request.
  *
@@ -34,15 +32,15 @@ import io.reactivex.rxjava3.core.Maybe;
 public class BestMatchFlowResolver implements FlowResolver<HttpBaseExecutionContext> {
 
     private final FlowResolver flowResolver;
-    private AbstractBestMatchFlowSelector<Flow> bestMatchFlowResolver;
+    private AbstractBestMatchFlowSelector<FlowV2Impl> bestMatchFlowResolver;
 
-    public BestMatchFlowResolver(final FlowResolver flowResolver, AbstractBestMatchFlowSelector<Flow> bestMatchFlowResolver) {
+    public BestMatchFlowResolver(final FlowResolver flowResolver, AbstractBestMatchFlowSelector<FlowV2Impl> bestMatchFlowResolver) {
         this.flowResolver = flowResolver;
         this.bestMatchFlowResolver = bestMatchFlowResolver;
     }
 
     @Override
-    public Flowable<Flow> resolve(final HttpBaseExecutionContext ctx) {
+    public Flowable<FlowV2Impl> resolve(final HttpBaseExecutionContext ctx) {
         return provideFlows(ctx)
             .toList()
             .flatMapMaybe(flows -> Maybe.fromCallable(() -> bestMatchFlowResolver.forPath(flows, ctx.request().pathInfo())))
@@ -50,7 +48,7 @@ public class BestMatchFlowResolver implements FlowResolver<HttpBaseExecutionCont
     }
 
     @Override
-    public Flowable<Flow> provideFlows(final HttpBaseExecutionContext ctx) {
+    public Flowable<FlowV2Impl> provideFlows(final HttpBaseExecutionContext ctx) {
         return flowResolver.resolve(ctx);
     }
 }

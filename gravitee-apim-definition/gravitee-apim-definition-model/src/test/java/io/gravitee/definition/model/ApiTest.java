@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.definition.ApiDefinitionFixtures;
 import fixtures.definition.FlowFixtures;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
@@ -61,7 +61,7 @@ class ApiTest {
     @Test
     void getPluginsForApiV2WithFlows() {
         Api apiWithFlows = ApiDefinitionFixtures.anApiV2();
-        Flow flow = FlowFixtures.aFlowV2();
+        FlowV2Impl flow = FlowFixtures.aFlowV2();
         flow.setPre(List.of(Step.builder().policy("policy-request-validation").build()));
         flow.setPost(List.of(Step.builder().policy("json-validation").build()));
         apiWithFlows.setFlows(List.of(flow));
@@ -72,7 +72,7 @@ class ApiTest {
     @Test
     void getPluginsForApiV2WithDisabledFlows() {
         Api apiWithDisabledFlows = ApiDefinitionFixtures.anApiV2();
-        Flow disabledFlow = FlowFixtures.aFlowV2();
+        FlowV2Impl disabledFlow = FlowFixtures.aFlowV2();
         disabledFlow.setEnabled(false);
         disabledFlow.setPre(List.of(Step.builder().policy("policy-request-validation").build()));
         disabledFlow.setPost(List.of(Step.builder().policy("json-validation").build()));
@@ -83,7 +83,7 @@ class ApiTest {
     @Test
     void getPluginsForApiV2WithPlans() {
         Api apiWithPlans = ApiDefinitionFixtures.anApiV2();
-        Plan plan = Plan.builder().flows(List.of(Flow.builder().pre(List.of(Step.builder().policy("json-xml").build())).build())).build();
+        Plan plan = Plan.builder().flows(List.of(FlowV2Impl.builder().pre(List.of(Step.builder().policy("json-xml").build())).build())).build();
         apiWithPlans.setPlans(List.of(plan));
         assertThat(apiWithPlans.getPlugins()).containsOnly(new Plugin("policy", "json-xml"));
     }

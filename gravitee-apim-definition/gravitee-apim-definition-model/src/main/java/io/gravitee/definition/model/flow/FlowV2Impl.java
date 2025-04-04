@@ -21,22 +21,30 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.definition.model.Plugin;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class Flow implements Serializable, ConditionSupplier {
+public class FlowV2Impl implements Serializable, ConditionSupplier {
 
     @JsonProperty("id")
     private String id;
@@ -74,74 +82,9 @@ public class Flow implements Serializable, ConditionSupplier {
      * In which stage the flow is configured.
      * This data is useful to debug or improve logging.
      * Ignored because only used internally.
-     * @return the stage of the Flow, see {@link FlowStage}.
      */
     @JsonIgnore
     private FlowStage stage;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<Step> getPost() {
-        return post;
-    }
-
-    public void setPost(List<Step> post) {
-        this.post = post;
-    }
-
-    public List<Step> getPre() {
-        return pre;
-    }
-
-    public void setPre(List<Step> pre) {
-        this.pre = pre;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public String getCondition() {
-        return condition;
-    }
-
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
-
-    public Set<HttpMethod> getMethods() {
-        return methods;
-    }
-
-    public void setMethods(Set<HttpMethod> methods) {
-        this.methods = methods;
-    }
-
-    public FlowStage getStage() {
-        return stage;
-    }
-
-    public void setStage(FlowStage stage) {
-        this.stage = stage;
-    }
 
     @JsonIgnore
     public String getPath() {
@@ -151,22 +94,6 @@ public class Flow implements Serializable, ConditionSupplier {
     @JsonIgnore
     public Operator getOperator() {
         return pathOperator != null ? pathOperator.getOperator() : null;
-    }
-
-    public PathOperator getPathOperator() {
-        return pathOperator;
-    }
-
-    public void setPathOperator(PathOperator pathOperator) {
-        this.pathOperator = pathOperator;
-    }
-
-    public List<Consumer> getConsumers() {
-        return consumers;
-    }
-
-    public void setConsumers(List<Consumer> consumers) {
-        this.consumers = consumers;
     }
 
     @JsonIgnore

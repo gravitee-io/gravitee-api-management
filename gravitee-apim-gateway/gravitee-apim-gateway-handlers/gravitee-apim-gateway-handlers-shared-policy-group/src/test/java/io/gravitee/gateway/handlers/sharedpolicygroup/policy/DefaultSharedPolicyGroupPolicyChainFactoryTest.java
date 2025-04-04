@@ -24,13 +24,12 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -91,7 +90,7 @@ class DefaultSharedPolicyGroupPolicyChainFactoryTest {
 
     @Test
     void should_not_create_policy_chain_from_a_flow() {
-        assertThatThrownBy(() -> cut.create("id", Flow.builder().build(), ExecutionPhase.REQUEST))
+        assertThatThrownBy(() -> cut.create("id", FlowV2Impl.builder().build(), ExecutionPhase.REQUEST))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Cannot build a policy chain from a Flow for Shared Policy Group");
     }

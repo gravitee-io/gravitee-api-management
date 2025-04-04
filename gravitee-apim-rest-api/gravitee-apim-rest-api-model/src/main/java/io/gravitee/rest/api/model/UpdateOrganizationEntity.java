@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -49,7 +49,7 @@ public class UpdateOrganizationEntity {
 
     private FlowMode flowMode;
 
-    private List<Flow> flows;
+    private List<FlowV2Impl> flows;
 
     public UpdateOrganizationEntity(OrganizationEntity organization) {
         this.cockpitId = organization.getCockpitId();

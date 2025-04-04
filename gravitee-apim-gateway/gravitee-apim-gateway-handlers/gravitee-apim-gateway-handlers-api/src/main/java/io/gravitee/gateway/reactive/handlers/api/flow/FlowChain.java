@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.flow;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
@@ -97,9 +97,9 @@ public class FlowChain implements Hookable<ChainHook> {
      * @param ctx the context used to temporary store the resolved flows.
      * @return the resolved flows.
      */
-    private Flowable<Flow> resolveFlows(GenericExecutionContext ctx) {
+    private Flowable<FlowV2Impl> resolveFlows(GenericExecutionContext ctx) {
         return Flowable.defer(() -> {
-            Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
+            Flowable<FlowV2Impl> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
 
             if (flows == null) {
                 // Resolves the flows once. Subsequent resolutions will return the same flows.
@@ -122,7 +122,7 @@ public class FlowChain implements Hookable<ChainHook> {
      *
      * @return a {@link Completable} that completes when the flow policy chain completes.
      */
-    private Completable executeFlow(final ExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
+    private Completable executeFlow(final ExecutionContext ctx, final FlowV2Impl flow, final ExecutionPhase phase) {
         HttpPolicyChain policyChain = policyChainFactory.create(id, flow, phase);
         return HookHelper
             .hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase)

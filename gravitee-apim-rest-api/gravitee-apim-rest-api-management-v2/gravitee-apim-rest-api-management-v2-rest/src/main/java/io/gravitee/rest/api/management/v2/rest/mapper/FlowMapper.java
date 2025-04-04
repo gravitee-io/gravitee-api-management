@@ -20,6 +20,7 @@ import static java.util.Optional.ofNullable;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -124,12 +125,12 @@ public interface FlowMapper {
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
     io.gravitee.definition.model.flow.Step mapStep(StepV2 stepV2);
 
-    io.gravitee.definition.model.flow.Flow map(FlowV2 flowV2);
+    FlowV2Impl map(FlowV2 flowV2);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     StepV2 mapStep(io.gravitee.definition.model.flow.Step stepV2);
 
-    FlowV2 map(io.gravitee.definition.model.flow.Flow flowV2);
+    FlowV2 map(FlowV2Impl flowV2);
 
     default List<? extends AbstractFlow> map(@Valid List<FlowV4> flows, Api api) {
         return ofNullable(api.isNative() ? mapToNativeV4(flows) : mapToHttpV4(flows)).orElseGet(List::of);

@@ -27,6 +27,7 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -187,7 +188,7 @@ public interface GraviteeDefinitionAdapter {
         WorkflowState workflowState,
         Set<String> groups,
         Collection<NewApiMetadata> metadata,
-        Collection<io.gravitee.definition.model.flow.Flow> flows
+        Collection<FlowV2Impl> flows
     );
 
     NewApiMetadata mapMetadata(Metadata source);

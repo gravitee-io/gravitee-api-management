@@ -17,7 +17,7 @@ package io.gravitee.gateway.flow;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,13 +37,13 @@ public class FlowPolicyResolverFactoryTest {
     @Test
     public void shouldCreateNewFlowResolverIfNotInCache() {
         assertThat(cut.cache.size()).isZero();
-        cut.create(new Flow());
+        cut.create(new FlowV2Impl());
         assertThat(cut.cache.size()).isEqualTo(1);
     }
 
     @Test
     public void shouldNotCreateNewFlowResolverIfInCache() {
-        final Flow cachedFlow = new Flow();
+        final FlowV2Impl cachedFlow = new FlowV2Impl();
         final FlowPolicyResolver cachedFlowPolicyResolver = new FlowPolicyResolver(cachedFlow);
         cut.cache.put(cachedFlow, cachedFlowPolicyResolver);
 
