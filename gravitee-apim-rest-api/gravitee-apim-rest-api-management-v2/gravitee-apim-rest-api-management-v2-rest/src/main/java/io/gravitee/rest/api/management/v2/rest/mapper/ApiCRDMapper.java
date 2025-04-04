@@ -21,7 +21,7 @@ import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
@@ -32,7 +32,6 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
@@ -115,10 +114,10 @@ public interface ApiCRDMapper {
         };
     }
 
-    default FlowV4 mapAbstractFlow(AbstractFlow abstractFlow) {
+    default io.gravitee.rest.api.management.v2.rest.model.FlowV4 mapAbstractFlow(AbstractFlow abstractFlow) {
         return switch (abstractFlow) {
             case NativeFlow nativeFlow -> FlowMapper.INSTANCE.mapFromNativeV4(nativeFlow);
-            case Flow flow -> FlowMapper.INSTANCE.mapFromHttpV4(flow);
+            case FlowV4Impl flow -> FlowMapper.INSTANCE.mapFromHttpV4(flow);
             case null, default -> null;
         };
     }

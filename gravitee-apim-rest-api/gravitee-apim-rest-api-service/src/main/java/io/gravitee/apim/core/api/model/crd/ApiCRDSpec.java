@@ -30,7 +30,7 @@ import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
@@ -174,7 +174,7 @@ public class ApiCRDSpec {
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups(endpointGroups != null ? (List<EndpointGroup>) endpointGroups : null)
             .failover(failover)
-            .flows(flows != null ? (List<Flow>) flows : null)
+            .flows(flows != null ? (List<FlowV4Impl>) flows : null)
             .id(id)
             .listeners(listeners != null ? (List<Listener>) listeners : null)
             .name(name)
@@ -248,7 +248,7 @@ public class ApiCRDSpec {
                         plan.setSecurity(planCRD.getSecurity());
                         plan.setSelectionRule(planCRD.getSelectionRule());
                         plan.setStatus(planCRD.getStatus());
-                        plan.setFlows((List<Flow>) planCRD.getFlows());
+                        plan.setFlows((List<FlowV4Impl>) planCRD.getFlows());
 
                         return plan;
                     }

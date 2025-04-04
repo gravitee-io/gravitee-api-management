@@ -17,7 +17,7 @@ package fixtures;
 
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.StepV2;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -45,7 +45,7 @@ public class FlowModelFixtures {
         .messageCondition("{#context.attribute['messageCondition'] == true}")
         .configuration("{\n  \"nice\" : \"config\"\n}");
 
-    private static final Flow.FlowBuilder BASE_MODEL_FLOW_HTTP_V4 = Flow
+    private static final FlowV4Impl.FlowV4ImplBuilder BASE_MODEL_FLOW_HTTP_V4 = FlowV4Impl
         .builder()
         .name("Flow")
         .enabled(true)
@@ -88,7 +88,7 @@ public class FlowModelFixtures {
         .pre(List.of(BASE_MODEL_STEP_V2.name("step_pre").build()))
         .post(List.of(BASE_MODEL_STEP_V2.name("step_pot").build()));
 
-    public static Flow aModelFlowHttpV4() {
+    public static FlowV4Impl aModelFlowHttpV4() {
         return BASE_MODEL_FLOW_HTTP_V4.build();
     }
 

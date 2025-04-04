@@ -16,8 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
@@ -25,7 +24,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import java.util.stream.Collectors;
 
 /**
- * Allows resolving {@link Flow}s to execute for a given {@link Api}.
+ * Allows resolving {@link FlowV4Impl}s to execute for a given {@link Api}.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
@@ -33,24 +32,24 @@ import java.util.stream.Collectors;
 @SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 class ApiFlowResolver extends AbstractFlowResolver {
 
-    private final Flowable<Flow> flows;
+    private final Flowable<FlowV4Impl> flows;
 
-    public ApiFlowResolver(Api api, ConditionFilter<BaseExecutionContext, Flow> filter) {
+    public ApiFlowResolver(Api api, ConditionFilter<BaseExecutionContext, FlowV4Impl> filter) {
         super(filter);
         // Api flows can be determined once and then reused.
         this.flows = provideFlows(api);
     }
 
     @Override
-    public Flowable<Flow> provideFlows(BaseExecutionContext ctx) {
+    public Flowable<FlowV4Impl> provideFlows(BaseExecutionContext ctx) {
         return this.flows;
     }
 
-    private Flowable<Flow> provideFlows(Api api) {
+    private Flowable<FlowV4Impl> provideFlows(Api api) {
         if (api.getFlows() == null || api.getFlows().isEmpty()) {
             return Flowable.empty();
         }
 
-        return Flowable.fromIterable(api.getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList()));
+        return Flowable.fromIterable(api.getFlows().stream().filter(FlowV4Impl::isEnabled).collect(Collectors.toList()));
     }
 }

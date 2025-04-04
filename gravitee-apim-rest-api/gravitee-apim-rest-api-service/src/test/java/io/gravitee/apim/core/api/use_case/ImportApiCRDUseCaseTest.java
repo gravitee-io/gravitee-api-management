@@ -149,7 +149,7 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -1371,7 +1371,7 @@ class ImportApiCRDUseCaseTest {
                                     .validation(KEYLESS.getValidation())
                                     .status(KEYLESS.getPlanStatus())
                                     .type(KEYLESS.getType())
-                                    .flows(List.of((Flow) FlowFixtures.aSimpleFlowV4().toBuilder().name("keyless-flow").build()))
+                                    .flows(List.of((FlowV4Impl) FlowFixtures.aSimpleFlowV4().toBuilder().name("keyless-flow").build()))
                                     .build(),
                                 "api-key",
                                 PlanCRD

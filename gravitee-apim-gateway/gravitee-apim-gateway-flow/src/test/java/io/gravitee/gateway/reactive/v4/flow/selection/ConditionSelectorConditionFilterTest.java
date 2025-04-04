@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.v4.flow.selection;
 
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.el.TemplateEngine;
@@ -48,13 +48,13 @@ class ConditionSelectorConditionFilterTest {
     private TemplateEngine templateEngine;
 
     @Mock
-    private Flow flow;
+    private FlowV4Impl flow;
 
     @Test
     void shouldNotFilterWithNoConditionSelector() {
         when(flow.selectorByType(SelectorType.CONDITION)).thenReturn(Optional.empty());
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
 
         obs.assertResult(flow);
     }
@@ -68,7 +68,7 @@ class ConditionSelectorConditionFilterTest {
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.just(true));
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
 
         obs.assertResult(flow);
     }
@@ -78,7 +78,7 @@ class ConditionSelectorConditionFilterTest {
         ConditionSelector conditionSelector = new ConditionSelector();
         conditionSelector.setCondition("");
         when(flow.selectorByType(SelectorType.CONDITION)).thenReturn(Optional.of(conditionSelector));
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
 
         obs.assertResult(flow);
     }
@@ -87,7 +87,7 @@ class ConditionSelectorConditionFilterTest {
     void shouldNotFilterWhenNullCondition() {
         ConditionSelector conditionSelector = new ConditionSelector();
         when(flow.selectorByType(SelectorType.CONDITION)).thenReturn(Optional.of(conditionSelector));
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
 
         obs.assertResult(flow);
     }
@@ -100,7 +100,7 @@ class ConditionSelectorConditionFilterTest {
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.just(false));
 
-        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        final TestObserver<FlowV4Impl> obs = cut.filter(ctx, flow).test();
         obs.assertResult();
         obs.assertNoValues();
     }

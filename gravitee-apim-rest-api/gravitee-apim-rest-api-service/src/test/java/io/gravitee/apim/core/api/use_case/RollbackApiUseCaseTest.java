@@ -58,6 +58,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Api;
@@ -260,7 +261,7 @@ class RollbackApiUseCaseTest {
                         .build()
                 )
             )
-            .flows(List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("api-previous-flow-name").build()))
+            .flows(List.of(FlowV4Impl.builder().name("api-previous-flow-name").build()))
             .build();
 
         // Api repository contained in the Event payload
@@ -385,7 +386,7 @@ class RollbackApiUseCaseTest {
                         .id("plan-to-add")
                         .name("plan-to-add-name")
                         .status(PlanStatus.PUBLISHED)
-                        .flows(List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("flow-name").build()))
+                        .flows(List.of(FlowV4Impl.builder().name("flow-name").build()))
                         .tags(Set.of("tag"))
                         .selectionRule("selection-rule")
                         .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("KEY_LESS").build())
@@ -396,7 +397,7 @@ class RollbackApiUseCaseTest {
                         .id(existingPlanToUpdate.getId())
                         .name("plan-to-update-name-UPDATED")
                         .status(PlanStatus.PUBLISHED)
-                        .flows(List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("plan-to-update-new-flow").build()))
+                        .flows(List.of(FlowV4Impl.builder().name("plan-to-update-new-flow").build()))
                         .build(),
                     "plan-to-republish",
                     io.gravitee.definition.model.v4.plan.Plan

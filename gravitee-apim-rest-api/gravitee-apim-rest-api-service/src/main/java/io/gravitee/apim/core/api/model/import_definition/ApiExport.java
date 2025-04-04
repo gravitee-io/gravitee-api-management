@@ -27,7 +27,7 @@ import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
@@ -145,7 +145,7 @@ public class ApiExport {
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups((List<EndpointGroup>) endpointGroups)
             .failover(failover)
-            .flows((List<Flow>) flows)
+            .flows((List<FlowV4Impl>) flows)
             .listeners((List<Listener>) listeners)
             .name(name)
             .properties(properties)

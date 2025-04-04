@@ -24,6 +24,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.StepV2;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.*;
@@ -243,11 +244,11 @@ public class PlanMapperTest {
         stepDisabledLowestLimit.setConfiguration("{ \"rate\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
         stepDisabledLowestLimit.setEnabled(false);
 
-        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        var flow1 = new FlowV4Impl();
         flow1.setRequest(List.of(stepNoLimit, stepEnabledLongestDuration));
         flow1.setEnabled(true);
 
-        var disabledFlow = new io.gravitee.definition.model.v4.flow.Flow();
+        var disabledFlow = new FlowV4Impl();
         disabledFlow.setRequest(List.of(stepLowLimit, stepDisabledLowestLimit));
         disabledFlow.setEnabled(false);
 
@@ -331,11 +332,11 @@ public class PlanMapperTest {
         stepDisabledLowestLimit.setConfiguration("{ \"quota\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
         stepDisabledLowestLimit.setEnabled(false);
 
-        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        var flow1 = new FlowV4Impl();
         flow1.setRequest(List.of(stepNoLimit, stepDynamicLimit));
         flow1.setEnabled(true);
 
-        var disabledFlow = new io.gravitee.definition.model.v4.flow.Flow();
+        var disabledFlow = new FlowV4Impl();
         disabledFlow.setRequest(List.of(stepLowLimit, stepDisabledLowestLimit));
         disabledFlow.setEnabled(false);
 
@@ -375,11 +376,11 @@ public class PlanMapperTest {
         stepDisabledLowestLimit.setConfiguration("{ \"quota\": { \"limit\": 1, \"periodTime\": 8, \"periodTimeUnit\": \"DAYS\" } }");
         stepDisabledLowestLimit.setEnabled(false);
 
-        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        var flow1 = new FlowV4Impl();
         flow1.setRequest(List.of(stepNoLimit, stepDynamicLimit));
         flow1.setEnabled(true);
 
-        var disabledFlow = new io.gravitee.definition.model.v4.flow.Flow();
+        var disabledFlow = new FlowV4Impl();
         disabledFlow.setRequest(List.of(stepLowLimit, stepDisabledLowestLimit));
         disabledFlow.setEnabled(false);
 
@@ -404,7 +405,7 @@ public class PlanMapperTest {
         );
         stepNoLimit.setEnabled(true);
 
-        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        var flow1 = new FlowV4Impl();
         flow1.setRequest(List.of(stepNoLimit));
         flow1.setEnabled(true);
 
@@ -429,7 +430,7 @@ public class PlanMapperTest {
         );
         stepNoLimit.setEnabled(true);
 
-        var flow1 = new io.gravitee.definition.model.v4.flow.Flow();
+        var flow1 = new FlowV4Impl();
         flow1.setRequest(List.of(stepNoLimit));
         flow1.setEnabled(true);
 

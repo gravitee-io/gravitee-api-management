@@ -16,11 +16,10 @@
 package io.gravitee.gateway.reactive.v4.flow.selection;
 
 import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.flow.condition.evaluation.PathPatterns;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.http.HttpConditionFilter;
@@ -29,17 +28,17 @@ import java.util.regex.Pattern;
 
 /**
  * This {@link ConditionFilter} evaluates to true if the request is matching the
- * http selector declared within the {@link Flow}.
+ * http selector declared within the {@link FlowV4Impl}.
  *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpSelectorConditionFilter implements HttpConditionFilter<Flow> {
+public class HttpSelectorConditionFilter implements HttpConditionFilter<FlowV4Impl> {
 
     private final PathPatterns pathPatterns = new PathPatterns();
 
     @Override
-    public Maybe<Flow> filter(final HttpBaseExecutionContext ctx, final Flow flow) {
+    public Maybe<FlowV4Impl> filter(final HttpBaseExecutionContext ctx, final FlowV4Impl flow) {
         return flow
             .selectorByType(SelectorType.HTTP)
             .map(selector -> {
@@ -47,7 +46,7 @@ public class HttpSelectorConditionFilter implements HttpConditionFilter<Flow> {
                 if (isMethodMatches(ctx, httpSelector) && isPathMatches(ctx, httpSelector)) {
                     return Maybe.just(flow);
                 } else {
-                    return Maybe.<Flow>empty();
+                    return Maybe.<FlowV4Impl>empty();
                 }
             })
             .orElse(Maybe.just(flow));

@@ -24,7 +24,7 @@ import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
@@ -197,7 +197,7 @@ class ApiProcessorChainFactoryTest {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         HttpListener httpListener = new HttpListener();
         apiModel.setListeners(List.of(httpListener));
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         HttpSelector httpSelector = new HttpSelector();
         httpSelector.setPath("/products/:productId");
         httpSelector.setPathOperator(Operator.STARTS_WITH);

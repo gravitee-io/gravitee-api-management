@@ -18,7 +18,7 @@ package inmemory;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,8 +28,8 @@ import java.util.stream.Stream;
 
 public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlternative<AbstractFlow> {
 
-    final Map<String, List<Flow>> apiFlowsHttpV4 = new HashMap<>();
-    final Map<String, List<Flow>> planFlowsHttpV4 = new HashMap<>();
+    final Map<String, List<FlowV4Impl>> apiFlowsHttpV4 = new HashMap<>();
+    final Map<String, List<FlowV4Impl>> planFlowsHttpV4 = new HashMap<>();
 
     final Map<String, List<NativeFlow>> apiFlowsNativeV4 = new HashMap<>();
     final Map<String, List<NativeFlow>> planFlowsNativeV4 = new HashMap<>();
@@ -38,24 +38,24 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     final Map<String, List<FlowV2Impl>> planFlowsV2 = new HashMap<>();
 
     @Override
-    public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
+    public List<FlowV4Impl> savePlanFlows(String planId, List<FlowV4Impl> flows) {
         planFlowsHttpV4.put(planId, flows);
         return flows;
     }
 
     @Override
-    public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
+    public List<FlowV4Impl> saveApiFlows(String apiId, List<FlowV4Impl> flows) {
         apiFlowsHttpV4.put(apiId, flows);
         return flows;
     }
 
     @Override
-    public List<Flow> getApiV4Flows(String apiId) {
+    public List<FlowV4Impl> getApiV4Flows(String apiId) {
         return apiFlowsHttpV4.getOrDefault(apiId, new ArrayList<>());
     }
 
     @Override
-    public List<Flow> getPlanV4Flows(String planId) {
+    public List<FlowV4Impl> getPlanV4Flows(String planId) {
         return planFlowsHttpV4.getOrDefault(planId, new ArrayList<>());
     }
 

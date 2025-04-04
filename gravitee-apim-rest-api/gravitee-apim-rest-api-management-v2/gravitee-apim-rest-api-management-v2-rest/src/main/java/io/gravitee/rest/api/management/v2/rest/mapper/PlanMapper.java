@@ -23,12 +23,11 @@ import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.Plan;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanFederated;
@@ -282,14 +281,14 @@ public interface PlanMapper {
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     io.gravitee.definition.model.federation.FederatedPlan mapToPlanDefinitionFederated(UpdatePlanFederated source);
 
-    default List<FlowV4> computeFlows(PlanWithFlows source) {
+    default List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> computeFlows(PlanWithFlows source) {
         if (source.getDefinitionVersion() != DefinitionVersion.V4) {
             return null;
         }
         if (source.getApiType() == ApiType.NATIVE) {
             return FlowMapper.INSTANCE.mapFromNativeV4((List<NativeFlow>) source.getFlows());
         }
-        return FlowMapper.INSTANCE.mapFromHttpV4((List<Flow>) source.getFlows());
+        return FlowMapper.INSTANCE.mapFromHttpV4((List<FlowV4Impl>) source.getFlows());
     }
 
     @Mapping(target = "securityConfiguration", source = "security.configuration", qualifiedByName = "serializeConfiguration")

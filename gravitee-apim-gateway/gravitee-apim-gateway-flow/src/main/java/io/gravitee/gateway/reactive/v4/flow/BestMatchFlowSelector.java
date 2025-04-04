@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.v4.flow;
 
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import java.util.Optional;
@@ -25,10 +25,10 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 @SuppressWarnings("java:S6548")
-public class BestMatchFlowSelector extends AbstractBestMatchFlowSelector<Flow> {
+public class BestMatchFlowSelector extends AbstractBestMatchFlowSelector<FlowV4Impl> {
 
     @Override
-    protected Optional<String> providePath(Flow flow) {
+    protected Optional<String> providePath(FlowV4Impl flow) {
         return flow != null
             ? flow.selectorByType(SelectorType.HTTP).map(selector -> ((HttpSelector) selector).getPath())
             : Optional.empty();

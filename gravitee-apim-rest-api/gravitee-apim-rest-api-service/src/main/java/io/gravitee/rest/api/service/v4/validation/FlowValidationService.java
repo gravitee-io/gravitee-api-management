@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.v4.validation;
 
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import java.util.List;
 
 /**
@@ -26,5 +26,5 @@ import java.util.List;
  */
 @Deprecated
 public interface FlowValidationService {
-    List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows);
+    List<FlowV4Impl> validateAndSanitize(final ApiType apiType, List<FlowV4Impl> flows);
 }

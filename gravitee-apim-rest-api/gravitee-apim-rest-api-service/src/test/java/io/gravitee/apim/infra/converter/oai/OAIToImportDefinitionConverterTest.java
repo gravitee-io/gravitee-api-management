@@ -30,8 +30,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
-import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
@@ -336,8 +335,8 @@ class OAIToImportDefinitionConverterTest {
 
                 var api = result.getApiExport();
                 softly
-                    .assertThat((List<Flow>) api.getFlows())
-                    .flatExtracting(Flow::getSelectors)
+                    .assertThat((List<FlowV4Impl>) api.getFlows())
+                    .flatExtracting(FlowV4Impl::getSelectors)
                     .containsExactlyElementsOf(
                         List.of(
                             ConditionSelector.builder().condition("").build(),

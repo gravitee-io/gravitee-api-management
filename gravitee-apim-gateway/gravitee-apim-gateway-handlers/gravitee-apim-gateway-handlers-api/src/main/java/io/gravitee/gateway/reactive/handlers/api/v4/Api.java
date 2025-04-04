@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -113,7 +113,7 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
                     }
 
                     if (plan.getFlows() != null) {
-                        List<Flow> flows = plan.getFlows();
+                        List<FlowV4Impl> flows = plan.getFlows();
                         addFlowsPolicies(policies, flows);
                     }
                 });
@@ -121,17 +121,17 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
 
         // Load policies from flows
         if (definition.getFlows() != null) {
-            List<Flow> flows = definition.getFlows();
+            List<FlowV4Impl> flows = definition.getFlows();
             addFlowsPolicies(policies, flows);
         }
 
         return policies;
     }
 
-    private void addFlowsPolicies(final Set<Policy> policies, final List<Flow> flows) {
+    private void addFlowsPolicies(final Set<Policy> policies, final List<FlowV4Impl> flows) {
         flows
             .stream()
-            .filter(Flow::isEnabled)
+            .filter(FlowV4Impl::isEnabled)
             .forEach(flow -> {
                 policies.addAll(getPolicies(flow.getRequest()));
                 policies.addAll(getPolicies(flow.getResponse()));

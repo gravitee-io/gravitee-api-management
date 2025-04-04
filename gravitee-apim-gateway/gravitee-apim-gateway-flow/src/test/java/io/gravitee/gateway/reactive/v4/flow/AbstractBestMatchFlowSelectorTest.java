@@ -18,9 +18,7 @@ package io.gravitee.gateway.reactive.v4.flow;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
@@ -28,7 +26,6 @@ import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -55,8 +52,8 @@ public class AbstractBestMatchFlowSelectorTest extends BestMatchFlowBaseTest {
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
 
-        List<Flow> flows = flowResolver.resolve(executionContext).toList().blockingGet();
-        final Flow bestMatchFlow = cut.forPath(flows, requestPath);
+        List<FlowV4Impl> flows = flowResolver.resolve(executionContext).toList().blockingGet();
+        final FlowV4Impl bestMatchFlow = cut.forPath(flows, requestPath);
 
         if (expectedBestMatchResult == null) {
             assertThat(bestMatchFlow).isNull();

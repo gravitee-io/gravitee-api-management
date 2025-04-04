@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.v4.flow.selection;
 
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
@@ -25,17 +25,17 @@ import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * This {@link ConditionFilter} evaluates to true if the request is matching the
- * condition selector declared within the {@link Flow}.
+ * condition selector declared within the {@link FlowV4Impl}.
  *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ConditionSelectorConditionFilter implements ConditionFilter<BaseExecutionContext, Flow> {
+public class ConditionSelectorConditionFilter implements ConditionFilter<BaseExecutionContext, FlowV4Impl> {
 
     private final ExpressionLanguageConditionFilter<ConditionSelector> elConditionFilter = new ExpressionLanguageConditionFilter<>();
 
     @Override
-    public Maybe<Flow> filter(final BaseExecutionContext ctx, final Flow flow) {
+    public Maybe<FlowV4Impl> filter(final BaseExecutionContext ctx, final FlowV4Impl flow) {
         return flow
             .selectorByType(SelectorType.CONDITION)
             .map(conditionSelector ->

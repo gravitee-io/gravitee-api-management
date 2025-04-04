@@ -71,7 +71,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
@@ -472,7 +472,7 @@ class CreateHttpApiUseCaseTest {
     @Test
     void should_save_all_flows() {
         // Given
-        List<Flow> flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
+        List<FlowV4Impl> flows = List.of(FlowV4Impl.builder().name("flow").selectors(List.of(new HttpSelector())).build());
         var newApi = NewApiFixtures.aProxyApiV4().toBuilder().flows(flows).build();
 
         // When

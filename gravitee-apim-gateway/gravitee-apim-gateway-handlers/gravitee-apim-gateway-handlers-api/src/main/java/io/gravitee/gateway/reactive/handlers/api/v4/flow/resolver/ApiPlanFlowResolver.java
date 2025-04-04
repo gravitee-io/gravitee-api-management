@@ -16,10 +16,9 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
@@ -31,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * Allows resolving {@link Flow}s defined at plan level of a given {@link Api}.
+ * Allows resolving {@link FlowV4Impl}s defined at plan level of a given {@link Api}.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
@@ -41,15 +40,15 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
 
     private final Api api;
 
-    private final Map<String, Flowable<Flow>> flowsByPlanId = new ConcurrentHashMap<>();
+    private final Map<String, Flowable<FlowV4Impl>> flowsByPlanId = new ConcurrentHashMap<>();
 
-    public ApiPlanFlowResolver(Api api, ConditionFilter<BaseExecutionContext, Flow> filter) {
+    public ApiPlanFlowResolver(Api api, ConditionFilter<BaseExecutionContext, FlowV4Impl> filter) {
         super(filter);
         this.api = api;
     }
 
     @Override
-    public Flowable<Flow> provideFlows(BaseExecutionContext ctx) {
+    public Flowable<FlowV4Impl> provideFlows(BaseExecutionContext ctx) {
         final List<Plan> plans = api.getPlans();
         if (plans == null || plans.isEmpty()) {
             return Flowable.empty();
@@ -63,7 +62,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
         return getFlows(plans, planId);
     }
 
-    private Flowable<Flow> getFlows(List<Plan> plans, String planId) {
+    private Flowable<FlowV4Impl> getFlows(List<Plan> plans, String planId) {
         return this.flowsByPlanId.computeIfAbsent(
                 planId,
                 id ->
@@ -73,7 +72,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
                             .filter(plan -> Objects.equals(plan.getId(), id))
                             .filter(plan -> Objects.nonNull(plan.getFlows()))
                             .flatMap(plan -> plan.getFlows().stream())
-                            .filter(Flow::isEnabled)
+                            .filter(FlowV4Impl::isEnabled)
                             .collect(Collectors.toList())
                     )
             );

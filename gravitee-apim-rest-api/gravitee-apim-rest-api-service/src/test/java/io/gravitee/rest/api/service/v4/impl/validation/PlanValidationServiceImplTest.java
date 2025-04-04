@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.PlanValidationService;
@@ -66,12 +66,12 @@ class PlanValidationServiceImplTest {
         plan1.setId("plan1");
         PlanEntity plan2 = new PlanEntity();
         plan2.setId("plan2");
-        Flow flowPlan2 = new Flow();
+        FlowV4Impl flowPlan2 = new FlowV4Impl();
         plan2.setFlows(List.of(flowPlan2));
         PlanEntity plan3 = new PlanEntity();
         plan3.setId("plan3");
-        Flow flow1Plan3 = new Flow();
-        Flow flow2Plan3 = new Flow();
+        FlowV4Impl flow1Plan3 = new FlowV4Impl();
+        FlowV4Impl flow2Plan3 = new FlowV4Impl();
         plan3.setFlows(List.of(flow1Plan3, flow2Plan3));
         when(flowValidationService.validateAndSanitize(any(), anyList())).thenAnswer(invocation -> invocation.getArguments()[1]);
         final Set<PlanEntity> result = cut.validateAndSanitize(ApiType.PROXY, Set.of(plan1, plan2, plan3));

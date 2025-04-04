@@ -21,7 +21,7 @@ import static io.gravitee.rest.api.service.validator.JsonHelper.getScope;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
@@ -46,15 +46,15 @@ public class OAIToFlowsConverter {
     public static OAIToFlowsConverter INSTANCE = new OAIToFlowsConverter();
     private static final Pattern PATH_PARAMS_PATTERN = Pattern.compile("\\{(.[^/\\}]*)\\}");
 
-    List<Flow> convert(OpenAPI specification, Collection<? extends OAIOperationVisitor> visitors) {
-        List<Flow> flows = new ArrayList<>();
+    List<FlowV4Impl> convert(OpenAPI specification, Collection<? extends OAIOperationVisitor> visitors) {
+        List<FlowV4Impl> flows = new ArrayList<>();
         specification
             .getPaths()
             .forEach((key, pathItem) -> {
                 String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
                 Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
                 operations.forEach((httpMethod, operation) -> {
-                    final Flow flow = mapFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
+                    final FlowV4Impl flow = mapFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
                     if (!CollectionUtils.isEmpty(visitors)) {
                         visitors.forEach(oaiOperationVisitor -> {
                             Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(specification, operation);
@@ -76,8 +76,8 @@ public class OAIToFlowsConverter {
         return flows;
     }
 
-    private Flow mapFlow(String path, Set<HttpMethod> methods) {
-        return Flow
+    private FlowV4Impl mapFlow(String path, Set<HttpMethod> methods) {
+        return FlowV4Impl
             .builder()
             .name(Strings.EMPTY)
             .enabled(true)

@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
@@ -52,7 +52,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
     @Mock
     public ReactableApi reactableApi;
 
-    public AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector = new BestMatchFlowSelector();
+    public AbstractBestMatchFlowSelector<FlowV4Impl> bestMatchFlowSelector = new BestMatchFlowSelector();
 
     @Test
     public void should_resolve_bestMatchFlow_with_api_sync() {
@@ -64,7 +64,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         when(reactableApi.getDefinition()).thenReturn(api);
         when(executionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API)).thenReturn(reactableApi);
 
-        final TestSubscriber<Flow> obs = cut.resolve(executionContext).test();
+        final TestSubscriber<FlowV4Impl> obs = cut.resolve(executionContext).test();
         obs.assertComplete();
 
         if (expectedBestMatchResult == null) {
@@ -90,7 +90,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         when(reactableApi.getDefinition()).thenReturn(api);
         when(executionContext.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API)).thenReturn(reactableApi);
 
-        final TestSubscriber<Flow> obs = cut.resolve(executionContext).test();
+        final TestSubscriber<FlowV4Impl> obs = cut.resolve(executionContext).test();
         obs.assertComplete();
 
         if (expectedBestMatchResult == null) {

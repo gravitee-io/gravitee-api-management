@@ -40,7 +40,7 @@ import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -243,7 +243,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
             .build();
         var endpointGroup = EndpointGroup.builder().type("http-get").endpoints(List.of(endpoint)).build();
 
-        Flow flow = new Flow();
+        FlowV4Impl flow = new FlowV4Impl();
         flow.setName("flowName");
         flow.setEnabled(true);
 
@@ -356,7 +356,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         step.setEnabled(true);
         step.setMessageCondition("stepMessageCondition");
 
-        Flow planFlow = new Flow();
+        FlowV4Impl planFlow = new FlowV4Impl();
         planFlow.setEnabled(true);
         planFlow.setName("planFlowName");
         planFlow.setPublish(null);
