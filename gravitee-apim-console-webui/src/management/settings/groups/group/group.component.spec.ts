@@ -459,6 +459,45 @@ describe('GroupComponent', () => {
   });
 
   describe('Search and invite users', () => {
+    it('should initialize api and application default roles', async () => {
+      await init(GROUP.id);
+      expectGetGroup({
+        disable_membership_notifications: false,
+        email_invitation: false,
+        event_rules: [],
+        lock_api_role: false,
+        lock_application_role: false,
+        max_invitation: 10,
+        manageable: true,
+        name: 'Group 1',
+        roles: { API: 'USER', APPLICATION: 'OWNER' },
+        system_invitation: true,
+        id: '1',
+      });
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetGroupAPIs();
+      expectGetGroupApplications();
+      const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
+      await buttonHarness.click();
+      const menuHarness = await harnessLoader.getHarness(MatMenuHarness);
+      const userSearchMenuItem = await menuHarness.getHarness(
+        MatMenuItemHarness.with({ selector: '[aria-label="Click to invite user via search"]' }),
+      );
+      await userSearchMenuItem.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
+      expect(matSelectHarnesses.length).toEqual(3);
+      await matSelectHarnesses[0].open();
+      const apiRoleOptions = await matSelectHarnesses[0].getOptions();
+      expect(await apiRoleOptions[3].isSelected()).toEqual(true);
+      await matSelectHarnesses[1].open();
+      const applicationRoleOptions = await matSelectHarnesses[1].getOptions();
+      expect(await applicationRoleOptions[0].isSelected()).toEqual(true);
+    });
+
     it('should disable add users button when maximum allowed members have been added', async () => {
       await init(GROUP.id);
       expectGetGroup();
@@ -721,7 +760,14 @@ describe('GroupComponent', () => {
 
   function expectGetDefaultRoles() {
     expectGetRolesList('API');
-    expectGetRolesList('APPLICATION', [{ id: '5', name: 'OWNER', scope: 'APPLICATION' }]);
+    expectGetRolesList('APPLICATION', [
+      { id: '5', name: 'OWNER', scope: 'APPLICATION' },
+      {
+        id: '7',
+        name: 'USER',
+        scope: 'APPLICATION',
+      },
+    ]);
     expectGetRolesList('INTEGRATION', [{ id: '6', name: 'OWNER', scope: 'INTEGRATION' }]);
   }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit, signal } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -71,8 +71,8 @@ export class AddMembersDialogComponent implements OnInit {
     defaultIntegrationRole: FormControl<string>;
     searchTerm: FormControl<string>;
   }>;
-  disabledAPIRoles = signal(new Set<string>());
-  disableSubmit = signal(false);
+  disabledAPIRoles = new Set<string>();
+  disableSubmit = false;
 
   private group: Group;
   private members: Member[] = [];
@@ -103,13 +103,16 @@ export class AddMembersDialogComponent implements OnInit {
 
   private initializeForm() {
     this.addMemberForm = new FormGroup({
-      defaultAPIRole: new FormControl({ value: 'USER', disabled: false }),
-      defaultApplicationRole: new FormControl<string>({ value: 'USER', disabled: false }),
+      defaultAPIRole: new FormControl({ value: this.data.group.roles['API'] ?? 'USER', disabled: false }),
+      defaultApplicationRole: new FormControl<string>({
+        value: this.data.group.roles['APPLICATION'] ?? 'USER',
+        disabled: false,
+      }),
       defaultIntegrationRole: new FormControl<string>({ value: 'USER', disabled: false }),
       searchTerm: new FormControl<string>({ value: '', disabled: false }),
     });
     this.disableSearch();
-    this.disableSubmit.set(true);
+    this.disableSubmit = true;
   }
 
   private disableSearch() {
@@ -153,10 +156,8 @@ export class AddMembersDialogComponent implements OnInit {
   }
 
   private disableAPIRoleOptions() {
-    this.disabledAPIRoles.set(
-      new Set(
-        this.defaultAPIRoles.filter((role) => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map((role) => role.id),
-      ),
+    this.disabledAPIRoles = new Set(
+      this.defaultAPIRoles.filter((role) => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map((role) => role.id),
     );
   }
 
@@ -256,7 +257,7 @@ export class AddMembersDialogComponent implements OnInit {
         this.addMemberForm.controls.searchTerm.addValidators(Validators.required);
       }
     }
-    this.disableSubmit.set(this.memberships.length === 0);
+    this.disableSubmit = this.memberships.length === 0;
   }
 
   private filterPrimaryOwners() {

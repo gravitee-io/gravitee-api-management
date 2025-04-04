@@ -19,11 +19,10 @@ import { GroupMembership } from 'src/entities/group/groupMember';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BehaviorSubject, EMPTY, Observable, of, switchMap, tap } from 'rxjs';
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, filter, map } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
-import { isEmpty } from 'lodash';
 import {
   GIO_DIALOG_WIDTH,
   GioConfirmDialogComponent,
@@ -186,7 +185,6 @@ export class GroupComponent implements OnInit {
       size: 5,
     },
   };
-  noOfMembers: number = 0;
   noOfFilteredMembers: number = 0;
   filteredMembers: Member[] = [];
   noOfInvitations: number = 0;
@@ -197,7 +195,7 @@ export class GroupComponent implements OnInit {
   filteredApplications: any[] = [];
   canAddMembers = false;
   maxInvitationsLimitReached = false;
-  disableDelete = signal(false);
+  deleteDisabled = false;
 
   private group = new BehaviorSubject<Group>(null);
   private groupMembers = new BehaviorSubject<Member[]>([]);
@@ -260,11 +258,11 @@ export class GroupComponent implements OnInit {
   private initializeForm(group: Group) {
     this.groupForm = new FormGroup({
       name: new FormControl<string>(group.name, { validators: Validators.required }),
-      defaultAPIRole: new FormControl<string>(!isEmpty(group.roles) ? group.roles['API'] : undefined),
-      defaultApplicationRole: new FormControl<string>(!isEmpty(group.roles) ? group.roles['APPLICATION'] : undefined),
+      defaultAPIRole: new FormControl<string>(group.roles ? group.roles.API : null),
+      defaultApplicationRole: new FormControl<string>(group.roles ? group.roles.APPLICATION : null),
       maxNumberOfMembers: new FormControl<number>(group.max_invitation),
-      shouldAllowInvitationViaSearch: new FormControl<boolean>(group.system_invitation !== undefined ? group.system_invitation : false),
-      shouldAllowInvitationViaEmail: new FormControl<boolean>(group.email_invitation !== undefined ? group.email_invitation : false),
+      shouldAllowInvitationViaSearch: new FormControl<boolean>(group.system_invitation ? group.system_invitation : false),
+      shouldAllowInvitationViaEmail: new FormControl<boolean>(group.email_invitation ? group.email_invitation : false),
       canAdminChangeAPIRole: new FormControl<boolean>(!group.lock_api_role),
       canAdminChangeApplicationRole: new FormControl<boolean>(!group.lock_application_role),
       shouldNotifyWhenMemberAdded: new FormControl<boolean>(!group.disable_membership_notifications),
@@ -343,11 +341,11 @@ export class GroupComponent implements OnInit {
   private updateEventRules(): void {
     const eventRules = [];
 
-    if (this.groupForm.controls['shouldAddToNewAPIs'].value) {
+    if (this.groupForm.controls.shouldAddToNewAPIs.value) {
       eventRules.push({ event: 'API_CREATE' });
     }
 
-    if (this.groupForm.controls['shouldAddToNewApplications'].value) {
+    if (this.groupForm.controls.shouldAddToNewApplications.value) {
       eventRules.push({ event: 'APPLICATION_CREATE' });
     }
 
@@ -357,14 +355,14 @@ export class GroupComponent implements OnInit {
   private updateRoles(): void {
     const roles: any = {};
 
-    if (this.groupForm.controls['defaultAPIRole'].value) {
-      roles['API'] = this.groupForm.controls['defaultAPIRole'].value;
+    if (this.groupForm.controls.defaultAPIRole.value) {
+      roles['API'] = this.groupForm.controls.defaultAPIRole.value;
     } else {
       delete roles['API'];
     }
 
-    if (this.groupForm.controls['defaultApplicationRole'].value) {
-      roles['APPLICATION'] = this.groupForm.controls['defaultApplicationRole'].value;
+    if (this.groupForm.controls.defaultApplicationRole.value) {
+      roles['APPLICATION'] = this.groupForm.controls.defaultApplicationRole.value;
     } else {
       delete roles['APPLICATION'];
     }
@@ -376,28 +374,46 @@ export class GroupComponent implements OnInit {
     const formControls = this.groupForm.controls;
     return {
       ...this.group.value,
-      name: formControls['name'].value,
-      max_invitation: formControls['maxNumberOfMembers'].value,
-      lock_api_role: !formControls['canAdminChangeAPIRole'].value,
-      lock_application_role: !formControls['canAdminChangeApplicationRole'].value,
-      system_invitation: formControls['shouldAllowInvitationViaSearch'].value,
-      email_invitation: formControls['shouldAllowInvitationViaEmail'].value,
-      disable_membership_notifications: !formControls['shouldNotifyWhenMemberAdded'].value,
+      name: formControls.name.value,
+      max_invitation: formControls.maxNumberOfMembers.value,
+      lock_api_role: !formControls.canAdminChangeAPIRole.value,
+      lock_application_role: !formControls.canAdminChangeApplicationRole.value,
+      system_invitation: formControls.shouldAllowInvitationViaSearch.value,
+      email_invitation: formControls.shouldAllowInvitationViaEmail.value,
+      disable_membership_notifications: !formControls.shouldNotifyWhenMemberAdded.value,
     };
   }
 
   private initializeDefaultRoles(): void {
-    this.roleService.list('API').subscribe((roles: Role[]) => {
-      this.defaultAPIRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
-    });
+    this.roleService
+      .list('API')
+      .pipe(
+        tap((roles: Role[]) => {
+          this.defaultAPIRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
 
-    this.roleService.list('APPLICATION').subscribe((roles) => {
-      this.defaultApplicationRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
-    });
+    this.roleService
+      .list('APPLICATION')
+      .pipe(
+        tap((roles: Role[]) => {
+          this.defaultApplicationRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
 
-    this.roleService.list('INTEGRATION').subscribe((roles) => {
-      this.defaultIntegrationRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
-    });
+    this.roleService
+      .list('INTEGRATION')
+      .pipe(
+        tap((roles: Role[]) => {
+          this.defaultIntegrationRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   saveOrUpdate(): void {
@@ -406,9 +422,8 @@ export class GroupComponent implements OnInit {
 
     this.groupService
       .saveOrUpdate(this.mode, this.mapUpdatedGroup())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (group) => {
+      .pipe(
+        tap((group: Group) => {
           this.snackBarService.success(`Successfully saved the group.`);
 
           if (this.mode === 'new') {
@@ -416,9 +431,10 @@ export class GroupComponent implements OnInit {
           } else {
             this.initializeGroup();
           }
-        },
-        error: () => this.snackBarService.error(`Error occurred while saving the group.`),
-      });
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   openDeleteMemberDialog(member: Member): void {
@@ -710,7 +726,7 @@ export class GroupComponent implements OnInit {
 
   private disableDeleteMember(): void {
     const groupMembers = this.groupMembers.value;
-    this.disableDelete.set(groupMembers.length === 1 && groupMembers[0].roles['API'] === RoleName.PRIMARY_OWNER);
+    this.deleteDisabled = groupMembers.length === 1 && groupMembers[0].roles['API'] === RoleName.PRIMARY_OWNER;
   }
 
   private disableForm() {

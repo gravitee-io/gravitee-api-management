@@ -22,7 +22,7 @@
       <mat-label>Default API Role</mat-label>
       <mat-select formControlName="defaultAPIRole" (selectionChange)="onAPIRoleChange()">
         @for (role of defaultAPIRoles; track role.id) {
-          <mat-option [value]="role.name" [disabled]="disabledAPIRoles().has(role.id)">{{ role.name }}</mat-option>
+          <mat-option [value]="role.name" [disabled]="disabledAPIRoles.has(role.id)">{{ role.name }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
@@ -70,6 +70,6 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-raised-button color="primary" [disabled]="disableSubmit()" (click)="submit()">Add Users</button>
+  <button mat-raised-button color="primary" [disabled]="disableSubmit" (click)="submit()">Add Users</button>
   <button mat-raised-button mat-dialog-close>Cancel</button>
 </mat-dialog-actions>

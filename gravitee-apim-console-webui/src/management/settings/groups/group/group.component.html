@@ -32,8 +32,9 @@
           <mat-form-field aria-hidden="false" aria-label="Select default API role" class="group__form__card__form-field">
             <mat-label>Default API Role</mat-label>
             <mat-select formControlName="defaultAPIRole" class="group__form__card__form-select">
+              <mat-option></mat-option>
               @for (role of defaultAPIRoles; track role.id) {
-                <mat-option [value]="role.name">{{ role.name }}</mat-option>
+                <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
@@ -41,8 +42,9 @@
           <mat-form-field aria-hidden="false" aria-label="Select default application role" class="group__form__card__form-field">
             <mat-label>Default Application Role</mat-label>
             <mat-select formControlName="defaultApplicationRole" class="group__form__card__form-select">
+              <mat-option></mat-option>
               @for (role of defaultApplicationRoles; track role.id) {
-                <mat-option [value]="role.name">{{ role.name }}</mat-option>
+                <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
@@ -260,7 +262,7 @@
                       </button>
                       <button
                         mat-button
-                        [disabled]="disableDelete()"
+                        [disabled]="deleteDisabled"
                         (click)="openDeleteMemberDialog(row)"
                         matTooltip="Remove member from group"
                         aria-hidden="false"
