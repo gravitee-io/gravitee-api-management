@@ -51,6 +51,14 @@ body {
   font-family: theme.$font-family;
   overflow-y: scroll;
 
+  app-root {
+    min-width: 1040px;
+    max-width: 1280px;
+    padding: 0 24px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
   p {
     color: theme.$paragraph-color;
   }
