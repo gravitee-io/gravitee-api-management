@@ -21,6 +21,7 @@ import { ApiService, Page } from '../../../../../projects/portal-webclient-sdk/s
 @Component({
   selector: 'app-api-documentation',
   templateUrl: './api-documentation.component.html',
+  standalone: false,
 })
 export class ApiDocumentationComponent implements OnInit {
   pages: Page[];

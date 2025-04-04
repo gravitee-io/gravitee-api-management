@@ -22,6 +22,7 @@ import { Category, PortalService } from '../../../../../projects/portal-webclien
 @Component({
   selector: 'app-categories',
   templateUrl: './categories.component.html',
+  standalone: false,
 })
 export class CategoriesComponent implements OnInit {
   nbCategories: object;

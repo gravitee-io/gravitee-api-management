@@ -66,6 +66,7 @@ type ApplicationFormType = FormGroup<{
   selector: 'app-application-general',
   templateUrl: './application-general.component.html',
   styleUrls: ['./application-general.component.css'],
+  standalone: false,
 })
 export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   applicationForm: ApplicationFormType;

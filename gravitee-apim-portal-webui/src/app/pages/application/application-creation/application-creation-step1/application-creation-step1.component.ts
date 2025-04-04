@@ -27,6 +27,7 @@ export type CreationFormType = FormGroup<{
   selector: 'app-application-creation-step1',
   templateUrl: './application-creation-step1.component.html',
   styleUrls: ['../application-creation.component.css'],
+  standalone: false,
 })
 export class ApplicationCreationStep1Component implements OnInit {
   form: CreationFormType;

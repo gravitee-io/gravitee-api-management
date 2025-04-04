@@ -29,6 +29,7 @@ type RegistrationFormType = FormGroup<{
   selector: 'app-registration',
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css'],
+  standalone: false,
 })
 export class RegistrationComponent implements OnInit {
   isSubmitted: boolean;

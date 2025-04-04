@@ -20,6 +20,7 @@ import { Router } from '@angular/router';
   selector: 'app-gv-button-create-application',
   templateUrl: './gv-button-create-application.component.html',
   styleUrls: ['./gv-button-create-application.component.css'],
+  standalone: false,
 })
 export class GvButtonCreateApplicationComponent {
   constructor(private router: Router) {}

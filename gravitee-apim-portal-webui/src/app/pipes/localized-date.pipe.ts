@@ -17,6 +17,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'localizedDate',
+  standalone: false,
 })
 export class LocalizedDatePipe implements PipeTransform {
   transform(value: any, format = 'shortDate', defaultValue: string = null): string {

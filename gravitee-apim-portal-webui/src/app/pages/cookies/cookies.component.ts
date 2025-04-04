@@ -26,6 +26,7 @@ import { NotificationService } from '../../services/notification.service';
   selector: 'app-cookies',
   templateUrl: './cookies.component.html',
   styleUrls: ['./cookies.component.css'],
+  standalone: false,
 })
 export class CookiesComponent implements OnInit {
   gaCookieEnabled: boolean;

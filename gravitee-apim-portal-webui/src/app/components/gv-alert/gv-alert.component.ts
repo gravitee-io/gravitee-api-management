@@ -66,6 +66,7 @@ type AlertFormType = FormGroup<{
   selector: 'app-gv-alert',
   templateUrl: './gv-alert.component.html',
   styleUrls: ['./gv-alert.component.css'],
+  standalone: false,
 })
 export class GvAlertComponent implements OnInit, OnDestroy {
   @Input() mode: AlertMode;

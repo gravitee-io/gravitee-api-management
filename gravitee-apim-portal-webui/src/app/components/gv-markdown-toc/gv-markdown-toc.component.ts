@@ -27,6 +27,7 @@ import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.c
   selector: 'app-gv-markdown-toc',
   templateUrl: './gv-markdown-toc.component.html',
   styleUrls: ['./gv-markdown-toc.component.css'],
+  standalone: false,
 })
 export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit {
   tocList: TocModel[];

@@ -70,7 +70,10 @@ export class TranslateServiceMock {
   }
 }
 
-@Pipe({ name: 'translate' })
+@Pipe({
+  name: 'translate',
+  standalone: false,
+})
 export class TranslateMockPipe implements PipeTransform {
   transform(text: string): string {
     return !text ? TRANSLATED_STRING : `${text}-${TRANSLATED_STRING}`;
@@ -80,6 +83,7 @@ export class TranslateMockPipe implements PipeTransform {
 @Directive({
   // eslint-disable-next-line @angular-eslint/directive-selector
   selector: '[translate]',
+  standalone: false,
 })
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class TranslateMockDirective implements AfterViewChecked {

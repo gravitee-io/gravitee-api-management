@@ -65,6 +65,7 @@ type ApiSubscribeFormType = FormGroup<{
   selector: 'app-api-subscribe',
   templateUrl: './api-subscribe.component.html',
   styleUrls: ['./api-subscribe.component.css'],
+  standalone: false,
 })
 export class ApiSubscribeComponent implements OnInit {
   private _applications: Array<Application>;

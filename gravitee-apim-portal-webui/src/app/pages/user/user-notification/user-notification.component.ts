@@ -28,6 +28,7 @@ import '@gravitee/ui-components/wc/gv-table';
   selector: 'app-user-notification',
   templateUrl: './user-notification.component.html',
   styleUrls: ['./user-notification.component.css'],
+  standalone: false,
 })
 export class UserNotificationComponent implements OnInit, OnDestroy {
   static NEW = 'gv-notifications:onNew';

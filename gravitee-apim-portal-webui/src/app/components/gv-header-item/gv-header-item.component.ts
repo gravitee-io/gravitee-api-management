@@ -27,6 +27,7 @@ import { ConfigurationService } from '../../services/configuration.service';
 @Component({
   selector: 'app-gv-header-item',
   templateUrl: './gv-header-item.component.html',
+  standalone: false,
 })
 export class GvHeaderItemComponent implements OnInit, OnDestroy {
   static RELOAD_EVENT = ':gv-header-item:reload';

@@ -19,6 +19,7 @@ import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-api-contact',
   templateUrl: './api-contact.component.html',
+  standalone: false,
 })
 export class ApiContactComponent implements OnInit {
   apiId: string;

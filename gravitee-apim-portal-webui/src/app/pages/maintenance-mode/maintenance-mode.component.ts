@@ -21,6 +21,7 @@ import '@gravitee/ui-components/wc/gv-icon';
   selector: 'app-maintenance-mode',
   templateUrl: './maintenance-mode.component.html',
   styleUrls: ['./maintenance-mode.component.css'],
+  standalone: false,
 })
 export class MaintenanceModeComponent {
   constructor() {}

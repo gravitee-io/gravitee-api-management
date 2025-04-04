@@ -51,6 +51,7 @@ type ApplicationSubscriptionsFormType = FormGroup<{
   selector: 'app-application-subscriptions',
   templateUrl: './application-subscriptions.component.html',
   styleUrls: ['./application-subscriptions.component.css'],
+  standalone: false,
 })
 export class ApplicationSubscriptionsComponent implements OnInit {
   subscriptions: Array<Subscription>;

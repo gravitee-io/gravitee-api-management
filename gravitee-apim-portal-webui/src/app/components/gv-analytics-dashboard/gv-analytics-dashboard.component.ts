@@ -26,6 +26,7 @@ import '@gravitee/ui-components/wc/gv-table';
   selector: 'app-gv-analytics-dashboard',
   templateUrl: './gv-analytics-dashboard.component.html',
   styleUrls: ['./gv-analytics-dashboard.component.css'],
+  standalone: false,
 })
 export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
   @Input() dashboard: Dashboard;

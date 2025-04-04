@@ -29,6 +29,7 @@ import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-fi
   selector: 'app-application-analytics',
   templateUrl: './application-analytics.component.html',
   styleUrls: ['./application-analytics.component.css'],
+  standalone: false,
 })
 export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
   private subscription: any;

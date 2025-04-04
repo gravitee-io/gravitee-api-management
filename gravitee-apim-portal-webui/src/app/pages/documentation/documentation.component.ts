@@ -21,6 +21,7 @@ import { Page, PortalService } from '../../../../projects/portal-webclient-sdk/s
 @Component({
   selector: 'app-documentation',
   templateUrl: './documentation.component.html',
+  standalone: false,
 })
 export class DocumentationComponent implements OnInit {
   pages: Page[];

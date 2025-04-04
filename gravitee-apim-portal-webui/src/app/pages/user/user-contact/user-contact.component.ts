@@ -21,5 +21,6 @@ import '@gravitee/ui-components/wc/gv-checkbox';
 @Component({
   selector: 'app-user-contact',
   templateUrl: './user-contact.component.html',
+  standalone: false,
 })
 export class UserContactComponent {}

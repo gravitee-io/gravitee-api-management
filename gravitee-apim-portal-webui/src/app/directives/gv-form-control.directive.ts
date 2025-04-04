@@ -23,6 +23,7 @@ import { NgControl, NgControlStatus } from '@angular/forms';
     'gv-select[formControl],gv-select[formControlName],' +
     'gv-date-picker[formControl],gv-date-picker[formControlName],' +
     '[gvControl]',
+  standalone: false,
 })
 export class GvFormControlDirective extends NgControlStatus implements AfterViewInit {
   private control: NgControl;

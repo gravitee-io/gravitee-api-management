@@ -22,6 +22,7 @@ import { Page, PortalService } from '../../../../projects/portal-webclient-sdk/s
   selector: 'app-single-page',
   templateUrl: './single-page.component.html',
   styleUrls: ['./single-page.component.css'],
+  standalone: false,
 })
 export class SinglePageComponent implements OnInit {
   singlePage: Page;

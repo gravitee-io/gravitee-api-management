@@ -34,6 +34,7 @@ import { ConfigurationService } from '../../services/configuration.service';
       transition('* <=> *', [style({ height: '{{startHeight}}px', opacity: 0 }), animate('.5s ease')], { params: { startHeight: 0 } }),
     ]),
   ],
+  standalone: false,
 })
 export class GvDocumentationComponent implements OnInit, AfterViewInit {
   @Input()

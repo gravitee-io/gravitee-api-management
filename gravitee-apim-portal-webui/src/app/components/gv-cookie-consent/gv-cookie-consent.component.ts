@@ -25,6 +25,7 @@ import { GoogleAnalyticsService } from '../../services/google-analytics.service'
   selector: 'app-gv-cookie-consent',
   templateUrl: './gv-cookie-consent.component.html',
   styleUrls: ['./gv-cookie-consent.component.css'],
+  standalone: false,
 })
 export class GvCookieConsentComponent {
   constructor(

@@ -26,6 +26,7 @@ import { ConfigurationService } from '../../services/configuration.service';
   selector: 'app-homepage',
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css'],
+  standalone: false,
 })
 export class HomepageComponent implements OnInit {
   public homepage: Page;

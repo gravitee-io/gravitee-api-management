@@ -22,6 +22,7 @@ import { ConfigurationService } from '../services/configuration.service';
 
 @Pipe({
   name: 'markdownDescription',
+  standalone: false,
 })
 export class MarkdownDescriptionPipe implements PipeTransform {
   constructor(

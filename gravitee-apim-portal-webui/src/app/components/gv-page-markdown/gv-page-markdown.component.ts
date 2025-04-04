@@ -27,6 +27,7 @@ import { MarkdownService } from '../../services/markdown.service';
   selector: 'app-gv-page-markdown',
   templateUrl: './gv-page-markdown.component.html',
   styleUrls: ['./gv-page-markdown.component.css'],
+  standalone: false,
 })
 export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   @Input() withToc: boolean;

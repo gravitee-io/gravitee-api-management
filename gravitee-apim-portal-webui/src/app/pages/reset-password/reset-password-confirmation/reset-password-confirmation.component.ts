@@ -34,6 +34,7 @@ type ResetPasswordConfirmationFormType = FormGroup<{
   selector: 'app-reset-password-confirmation',
   templateUrl: './reset-password-confirmation.component.html',
   styleUrls: ['./reset-password-confirmation.component.css'],
+  standalone: false,
 })
 export class ResetPasswordConfirmationComponent implements OnInit {
   resetPasswordConfirmationForm: ResetPasswordConfirmationFormType;

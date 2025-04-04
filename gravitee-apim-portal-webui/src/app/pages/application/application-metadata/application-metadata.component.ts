@@ -40,6 +40,7 @@ type AddMetadataFormType = FormGroup<{
   selector: 'app-application-metadata',
   templateUrl: './application-metadata.component.html',
   styleUrls: ['./application-metadata.component.css'],
+  standalone: false,
 })
 export class ApplicationMetadataComponent implements OnInit {
   constructor(

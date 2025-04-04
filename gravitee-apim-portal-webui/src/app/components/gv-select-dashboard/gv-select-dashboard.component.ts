@@ -24,6 +24,7 @@ import { AnalyticsService } from '../../services/analytics.service';
 @Component({
   selector: 'app-gv-select-dashboard',
   templateUrl: './gv-select-dashboard.component.html',
+  standalone: false,
 })
 export class GvSelectDashboardComponent implements OnInit {
   dashboardsSelect: Array<any>;

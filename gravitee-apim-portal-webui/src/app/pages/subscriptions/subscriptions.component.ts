@@ -42,6 +42,7 @@ const StatusEnum = Subscription.StatusEnum;
   selector: 'app-subscriptions',
   templateUrl: './subscriptions.component.html',
   styleUrls: ['./subscriptions.component.css'],
+  standalone: false,
 })
 export class SubscriptionsComponent implements OnInit, OnDestroy {
   applications: Array<Application>;

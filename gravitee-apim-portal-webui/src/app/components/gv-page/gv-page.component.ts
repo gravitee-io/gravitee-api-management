@@ -34,6 +34,7 @@ import { PageService } from '../../services/page.service';
   selector: 'app-gv-page',
   templateUrl: './gv-page.component.html',
   styleUrls: ['./gv-page.component.css'],
+  standalone: false,
 })
 export class GvPageComponent implements OnChanges, OnDestroy {
   @ViewChild(GvPageContentSlotDirective, { static: true }) appGvPageContentSlot: GvPageContentSlotDirective;

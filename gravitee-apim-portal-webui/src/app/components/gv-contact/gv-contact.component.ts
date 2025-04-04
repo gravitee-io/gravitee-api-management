@@ -32,6 +32,7 @@ type ContactFormType = FormGroup<{
   selector: 'app-gv-contact',
   templateUrl: './gv-contact.component.html',
   styleUrls: ['./gv-contact.component.css'],
+  standalone: false,
 })
 export class GvContactComponent implements OnInit {
   @Input() apiId: string;
