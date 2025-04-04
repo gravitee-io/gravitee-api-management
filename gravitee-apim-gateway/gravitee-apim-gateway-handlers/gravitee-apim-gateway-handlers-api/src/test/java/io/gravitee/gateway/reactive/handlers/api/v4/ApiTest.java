@@ -145,12 +145,8 @@ class ApiTest {
     }
 
     private List<StepV4> aStepList(String policy) {
-        StepV4 enabledPreStep = new StepV4();
-        enabledPreStep.setPolicy(policy);
-        enabledPreStep.setEnabled(true);
-        StepV4 disabledPreStep = new StepV4();
-        disabledPreStep.setName("disabled-" + policy);
-        disabledPreStep.setEnabled(false);
+        StepV4 enabledPreStep = StepV4.builder().enabled(true).policy(policy).build();
+        StepV4 disabledPreStep = StepV4.builder().enabled(false).policy("disabled-" + policy).build();
         return List.of(enabledPreStep, disabledPreStep);
     }
 }

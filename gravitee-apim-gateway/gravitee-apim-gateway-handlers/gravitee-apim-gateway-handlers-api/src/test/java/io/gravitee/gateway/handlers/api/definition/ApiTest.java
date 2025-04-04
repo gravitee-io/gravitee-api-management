@@ -23,11 +23,11 @@ import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.StepV2;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiTest {
 
     @Test
@@ -92,7 +92,7 @@ public class ApiTest {
 
         Set<Policy> result = api.dependencies(Policy.class);
 
-        assertThat(result).hasSize(0);
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -108,12 +108,8 @@ public class ApiTest {
     }
 
     private List<StepV2> aStepList() {
-        StepV2 enabledPreStep = new StepV2();
-        enabledPreStep.setPolicy("enabledPolicy");
-        enabledPreStep.setEnabled(true);
-        StepV2 disabledPreStep = new StepV2();
-        disabledPreStep.setName("disabledPolicy");
-        disabledPreStep.setEnabled(false);
+        StepV2 enabledPreStep = StepV2.builder().enabled(true).policy("enabledPolicy").build();
+        StepV2 disabledPreStep = StepV2.builder().enabled(false).policy("disabledPolicy").build();
         return List.of(enabledPreStep, disabledPreStep);
     }
 

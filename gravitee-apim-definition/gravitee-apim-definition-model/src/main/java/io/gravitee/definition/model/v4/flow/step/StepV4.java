@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.Plugin;
+import io.gravitee.definition.model.flow.Step;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
@@ -38,7 +39,7 @@ import lombok.*;
 @ToString
 @EqualsAndHashCode
 @Schema(name = "StepV4")
-public class StepV4 implements Serializable {
+public class StepV4 implements Step, Serializable {
 
     @NotEmpty
     private String name;

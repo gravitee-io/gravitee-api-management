@@ -45,18 +45,16 @@ public class FlowPolicyResolverTest {
 
     @Before
     public void setUp() {
-        final FlowV2Impl flow = new FlowV2Impl();
-        step = new StepV2();
-        step.setEnabled(true);
-        flow.setPre(List.of(step));
+        step = StepV2.builder().enabled(true).build();
+        final FlowV2Impl flow = FlowV2Impl.builder().pre(List.of(step)).build();
         cut = new FlowPolicyResolver(flow);
     }
 
     @Test
     public void shouldCreateNewPolicyMetadataIfNotInCache() {
-        assertThat(cut.cache.size()).isEqualTo(0);
+        assertThat(cut.cache.size()).isZero();
         final List<PolicyMetadata> result = cut.resolve(StreamType.ON_REQUEST, executionContext);
-        assertThat(cut.cache.size()).isEqualTo(1);
+        assertThat(cut.cache.size()).isOne();
         assertThat(result).hasSize(1);
     }
 
@@ -65,9 +63,9 @@ public class FlowPolicyResolverTest {
         final PolicyMetadata cachedPolicyMetadata = new PolicyMetadata("policy-id", "{}");
         cut.cache.put(step, cachedPolicyMetadata);
 
-        assertThat(cut.cache.size()).isEqualTo(1);
+        assertThat(cut.cache.size()).isOne();
         final List<PolicyMetadata> result = cut.resolve(StreamType.ON_REQUEST, executionContext);
-        assertThat(cut.cache.size()).isEqualTo(1);
-        assertThat(result.get(0)).isEqualTo(cachedPolicyMetadata);
+        assertThat(cut.cache.size()).isOne();
+        assertThat(result.getFirst()).isEqualTo(cachedPolicyMetadata);
     }
 }

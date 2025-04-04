@@ -17,15 +17,18 @@ package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowChannelSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowConditionSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
@@ -35,6 +38,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,14 +72,19 @@ public interface FlowAdapter {
     Flow toRepository(FlowV2Impl source, FlowReferenceType referenceType, String referenceId, int order);
 
     FlowV4Impl toFlowV4(Flow source);
+
     List<FlowV4Impl> toFlowV4(List<Flow> source);
 
     NativeFlow toNativeFlow(Flow source);
+
     List<NativeFlow> toNativeFlow(List<Flow> source);
 
     @Mapping(target = "pathOperator.path", source = "path")
     @Mapping(target = "pathOperator.operator", source = "operator")
     FlowV2Impl toFlowV2(Flow source);
+
+    @Mapping(target = "messageCondition", ignore = true)
+    FlowStep stepV2ToFlowStep(StepV2 source);
 
     default FlowSelector toRepository(Selector source) {
         if (source instanceof HttpSelector) {

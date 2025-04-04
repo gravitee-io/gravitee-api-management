@@ -24,7 +24,7 @@ import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.StepV2;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.ReactableApi;
 import java.util.Collection;
@@ -186,14 +186,14 @@ public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
             .collect(Collectors.toSet());
     }
 
-    private Collection<Policy> getPolicies(List<StepV2> flowStep) {
+    private Collection<Policy> getPolicies(List<? extends Step> flowStep) {
         if (flowStep == null || flowStep.isEmpty()) {
             return Collections.emptyList();
         }
 
         return flowStep
             .stream()
-            .filter(StepV2::isEnabled)
+            .filter(Step::isEnabled)
             .map(step -> {
                 Policy policy = new Policy();
                 policy.setName(step.getPolicy());

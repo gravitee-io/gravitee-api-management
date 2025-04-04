@@ -22,13 +22,13 @@ import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.plugin.model.PlatformPlugin;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -168,7 +168,7 @@ public class FlowValidationDomainService {
         }
     }
 
-    private void checkPolicyConfiguration(final List<StepV4> steps) {
+    private void checkPolicyConfiguration(final List<? extends Step> steps) {
         steps
             .stream()
             .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)

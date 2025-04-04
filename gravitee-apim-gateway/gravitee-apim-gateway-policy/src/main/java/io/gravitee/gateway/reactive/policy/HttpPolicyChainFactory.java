@@ -20,7 +20,7 @@ import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
 
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.StepV2;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.hook.HttpHook;
@@ -84,11 +84,11 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
         HttpPolicyChain policyChain = policyChains.get(key);
 
         if (policyChain == null) {
-            final List<StepV2> steps = getSteps(flow, phase);
+            final List<? extends Step> steps = getSteps(flow, phase);
 
             final List<HttpPolicy> policies = steps
                 .stream()
-                .filter(StepV2::isEnabled)
+                .filter(Step::isEnabled)
                 .map(this::buildPolicyMetadata)
                 .map(policyMetadata -> (HttpPolicy) policyManager.create(phase, policyMetadata))
                 .filter(Objects::nonNull)
@@ -103,15 +103,15 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
         return policyChain;
     }
 
-    private PolicyMetadata buildPolicyMetadata(StepV2 step) {
+    private PolicyMetadata buildPolicyMetadata(Step step) {
         final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.V4_EMULATION_ENGINE);
 
         return policyMetadata;
     }
 
-    private List<StepV2> getSteps(FlowV2Impl flow, ExecutionPhase phase) {
-        List<StepV2> steps = null;
+    private List<? extends Step> getSteps(FlowV2Impl flow, ExecutionPhase phase) {
+        List<? extends Step> steps = null;
 
         if (phase == REQUEST) {
             steps = flow.getPre();

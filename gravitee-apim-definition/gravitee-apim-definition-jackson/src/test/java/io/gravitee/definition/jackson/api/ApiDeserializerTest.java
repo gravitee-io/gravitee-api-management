@@ -16,7 +16,11 @@
 package io.gravitee.definition.jackson.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -25,9 +29,31 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.jackson.AbstractTest;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.Failover;
+import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.LoadBalancerType;
+import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingContent;
+import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.LoggingScope;
+import io.gravitee.definition.model.Plan;
+import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.flow.*;
+import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.flow.Consumer;
+import io.gravitee.definition.model.flow.ConsumerType;
+import io.gravitee.definition.model.flow.FlowStage;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.Step;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -621,7 +647,7 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals(ConsumerType.TAG, consumer2.getConsumerType());
         assertEquals(FlowStage.API, flow.getStage());
 
-        StepV2 rule = flow.getPre().get(0);
+        Step rule = flow.getPre().get(0);
         assertNotNull(rule);
         assertEquals("Rate Limit", rule.getName());
         assertEquals("rate-limit", rule.getPolicy());
@@ -629,7 +655,7 @@ public class ApiDeserializerTest extends AbstractTest {
         assertTrue(rule.isEnabled());
         assertNull(rule.getCondition());
 
-        StepV2 ruleApiKey = flow.getPre().get(1);
+        Step ruleApiKey = flow.getPre().get(1);
         assertNotNull(ruleApiKey);
         assertEquals("Check API Key", ruleApiKey.getName());
         assertEquals("api-key", ruleApiKey.getPolicy());
@@ -637,7 +663,7 @@ public class ApiDeserializerTest extends AbstractTest {
         assertTrue(ruleApiKey.isEnabled());
         assertNull(ruleApiKey.getCondition());
 
-        StepV2 ruleTransformHeaders = flow.getPre().get(2);
+        Step ruleTransformHeaders = flow.getPre().get(2);
         assertNotNull(ruleTransformHeaders);
         assertEquals("Add HTTP headers", ruleTransformHeaders.getName());
         assertEquals("transform-headers", ruleTransformHeaders.getPolicy());

@@ -26,6 +26,7 @@ import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
@@ -252,7 +253,7 @@ class ApiPolicyValidatorDomainServiceTest {
                             .getFlows()
                             .stream()
                             .flatMap(flow -> Stream.concat(flow.getPre().stream(), flow.getPost().stream()))
-                            .map(StepV2::getConfiguration)
+                            .map(Step::getConfiguration)
                     )
                     .hasSize(3)
                     .allMatch(configuration -> configuration.equals("validated"));
@@ -265,7 +266,7 @@ class ApiPolicyValidatorDomainServiceTest {
                             .flatMap(plan ->
                                 plan.getFlows().stream().flatMap(flow -> Stream.concat(flow.getPre().stream(), flow.getPost().stream()))
                             )
-                            .map(StepV2::getConfiguration)
+                            .map(Step::getConfiguration)
                     )
                     .hasSize(6)
                     .allMatch(configuration -> configuration.equals("validated"));

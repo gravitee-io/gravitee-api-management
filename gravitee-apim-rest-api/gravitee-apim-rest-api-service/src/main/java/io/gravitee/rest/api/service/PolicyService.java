@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.flow.StepV2;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import java.util.Set;
@@ -30,7 +30,7 @@ public interface PolicyService extends PluginService<PolicyEntity> {
 
     String validatePolicyConfiguration(String policyName, String configuration);
 
-    void validatePolicyConfiguration(StepV2 step);
+    void validatePolicyConfiguration(Step step);
 
     Set<PolicyEntity> findAll(Boolean withResource);
 

@@ -54,10 +54,18 @@ public interface FlowMapper {
     io.gravitee.rest.api.management.v2.rest.model.FlowV4 mapFromHttpV4(FlowV4Impl flow);
 
     @Mapping(target = "selectors", qualifiedByName = "mapToSelectorEntityList")
+    @Mapping(target = "request", source = "request", qualifiedByName = "mapStepV4")
+    @Mapping(target = "response", source = "response", qualifiedByName = "mapStepV4")
+    @Mapping(target = "subscribe", source = "subscribe", qualifiedByName = "mapStepV4")
+    @Mapping(target = "publish", source = "publish", qualifiedByName = "mapStepV4")
     FlowV4Impl mapToHttpV4(io.gravitee.rest.api.management.v2.rest.model.FlowV4 flow);
 
     io.gravitee.rest.api.management.v2.rest.model.FlowV4 mapFromNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeFlow flow);
 
+    @Mapping(target = "connect", source = "connect", qualifiedByName = "mapStepV4")
+    @Mapping(target = "interact", source = "interact", qualifiedByName = "mapStepV4")
+    @Mapping(target = "subscribe", source = "subscribe", qualifiedByName = "mapStepV4")
+    @Mapping(target = "publish", source = "publish", qualifiedByName = "mapStepV4")
     io.gravitee.definition.model.v4.nativeapi.NativeFlow mapToNativeV4(io.gravitee.rest.api.management.v2.rest.model.FlowV4 flow);
 
     @Named("mapListToFlowHttpV4")
@@ -76,6 +84,7 @@ public interface FlowMapper {
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     io.gravitee.rest.api.management.v2.rest.model.StepV4 mapStep(StepV4 step);
 
+    @Named("mapStepV4")
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
     StepV4 mapStep(io.gravitee.rest.api.management.v2.rest.model.StepV4 stepV4);
 
@@ -129,9 +138,12 @@ public interface FlowMapper {
 
     FlowV2Impl map(FlowV2 flowV2);
 
+    @Named("mapStepV2")
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    StepV2 mapStep(io.gravitee.definition.model.flow.StepV2 stepV2);
+    StepV2 mapStepV2(io.gravitee.definition.model.flow.Step source);
 
+    @Mapping(target = "pre", source = "pre", qualifiedByName = "mapStepV2")
+    @Mapping(target = "post", source = "post", qualifiedByName = "mapStepV2")
     FlowV2 map(FlowV2Impl flowV2);
 
     default List<? extends AbstractFlow> map(@Valid List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> flows, Api api) {

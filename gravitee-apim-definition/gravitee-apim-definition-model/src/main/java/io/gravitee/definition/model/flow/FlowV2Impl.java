@@ -102,10 +102,10 @@ public class FlowV2Impl implements Serializable, ConditionSupplier {
     }
 
     @JsonIgnore
-    private List<Plugin> computePlugins(List<StepV2> steps) {
+    private List<Plugin> computePlugins(List<? extends Step> steps) {
         return Optional
             .ofNullable(steps)
-            .map(s -> s.stream().filter(StepV2::isEnabled).map(StepV2::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+            .map(s -> s.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
             .orElse(List.of());
     }
 }

@@ -17,8 +17,8 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -140,13 +140,13 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
             });
     }
 
-    private List<Policy> getPolicies(List<StepV4> flowStep) {
+    private List<Policy> getPolicies(List<? extends Step> flowStep) {
         if (flowStep == null || flowStep.isEmpty()) {
             return List.of();
         }
         return flowStep
             .stream()
-            .filter(StepV4::isEnabled)
+            .filter(Step::isEnabled)
             .map(step -> {
                 Policy policy = new Policy();
                 policy.setName(step.getPolicy());

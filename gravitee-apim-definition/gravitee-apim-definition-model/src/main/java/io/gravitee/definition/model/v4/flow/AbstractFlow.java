@@ -17,7 +17,7 @@ package io.gravitee.definition.model.v4.flow;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.Plugin;
-import io.gravitee.definition.model.v4.flow.step.StepV4;
+import io.gravitee.definition.model.flow.Step;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.Collection;
@@ -54,12 +54,12 @@ public abstract class AbstractFlow implements Serializable {
     public abstract List<Plugin> getPlugins();
 
     @JsonIgnore
-    protected List<Plugin> computePlugins(List<StepV4> step) {
+    protected List<Plugin> computePlugins(List<? extends Step> step) {
         return Stream
             .ofNullable(step)
             .flatMap(Collection::stream)
-            .filter(StepV4::isEnabled)
-            .map(StepV4::getPlugins)
+            .filter(Step::isEnabled)
+            .map(Step::getPlugins)
             .flatMap(List::stream)
             .toList();
     }

@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fixtures.FlowFixtures;
@@ -63,8 +62,7 @@ public class FlowMapperTest {
         var flow1 = FlowFixtures.aFlowHttpV4();
         var flow2 = FlowFixtures.aFlowHttpV4();
         var flows = flowMapper.mapToHttpV4(List.of(flow1, flow2));
-        assertThat(flows).isNotNull();
-        assertThat(flows.size()).isEqualTo(2);
+        assertThat(flows).hasSize(2);
         assertHttpFlowV4Equals(flows.get(0), flow1);
         assertHttpFlowV4Equals(flows.get(1), flow2);
     }
@@ -94,8 +92,7 @@ public class FlowMapperTest {
         var flow1 = FlowFixtures.aFlowNativeV4();
         var flow2 = FlowFixtures.aFlowNativeV4();
         var flows = flowMapper.mapToNativeV4(List.of(flow1, flow2));
-        assertThat(flows).isNotNull();
-        assertThat(flows.size()).isEqualTo(2);
+        assertThat(flows).hasSize(2);
         assertNativeFlowV4Equals(flows.get(0), flow1);
         assertNativeFlowV4Equals(flows.get(1), flow2);
     }
@@ -107,11 +104,10 @@ public class FlowMapperTest {
         final var flowSelectors = flowEntityV4.getSelectors();
         final var flowV4Selectors = flowV4.getSelectors();
 
-        assertFalse(flowSelectors.isEmpty());
-        assertEquals(flowSelectors.size(), flowV4Selectors.size());
+        assertThat(flowSelectors).hasSameSizeAs(flowV4Selectors);
 
         for (int j = 0; j < flowSelectors.size(); j++) {
-            final ChannelSelector selector = (ChannelSelector) flowSelectors.get(0);
+            final ChannelSelector selector = (ChannelSelector) flowSelectors.getFirst();
             final io.gravitee.rest.api.management.v2.rest.model.ChannelSelector selectorV4 = flowV4Selectors.get(0).getChannelSelector();
 
             assertEquals(selector.getChannel(), selectorV4.getChannel());
@@ -125,8 +121,8 @@ public class FlowMapperTest {
             );
         }
 
-        assertThat(flowV4.getConnect()).isNotNull().isEmpty();
-        assertThat(flowV4.getInteract()).isNotNull().isEmpty();
+        assertThat(flowV4.getConnect()).isEmpty();
+        assertThat(flowV4.getInteract()).isEmpty();
 
         assertStepsV4Equals(flowEntityV4.getRequest(), flowV4.getRequest());
         assertStepsV4Equals(flowEntityV4.getPublish(), flowV4.getPublish());
@@ -139,9 +135,9 @@ public class FlowMapperTest {
         assertEquals(flowEntityV4.getName(), flowV4.getName());
 
         final var flowV4Selectors = flowV4.getSelectors();
-        assertThat(flowV4Selectors).isNotNull().isEmpty();
-        assertThat(flowV4.getRequest()).isNotNull().isEmpty();
-        assertThat(flowV4.getResponse()).isNotNull().isEmpty();
+        assertThat(flowV4Selectors).isEmpty();
+        assertThat(flowV4.getRequest()).isEmpty();
+        assertThat(flowV4.getResponse()).isEmpty();
 
         assertStepsV4Equals(flowEntityV4.getPublish(), flowV4.getPublish());
         assertStepsV4Equals(flowEntityV4.getSubscribe(), flowV4.getSubscribe());
@@ -151,7 +147,7 @@ public class FlowMapperTest {
 
     private void assertStepsV4Equals(List<StepV4> steps, List<io.gravitee.rest.api.management.v2.rest.model.StepV4> stepsV4)
         throws JsonProcessingException {
-        assertEquals(steps.size(), steps.size());
+        assertThat(steps).hasSameSizeAs(stepsV4);
 
         for (int i = 0; i < steps.size(); i++) {
             final var step = steps.get(i);

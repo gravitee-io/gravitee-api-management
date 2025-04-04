@@ -38,7 +38,7 @@ import lombok.Setter;
 @EqualsAndHashCode
 @Setter
 @Getter
-public class StepV2 implements Serializable {
+public class StepV2 implements Step, Serializable {
 
     @JsonProperty("name")
     private String name;
@@ -72,5 +72,11 @@ public class StepV2 implements Serializable {
     @JsonIgnore
     public List<Plugin> getPlugins() {
         return List.of(new Plugin("policy", policy));
+    }
+
+    @Override
+    @JsonIgnore
+    public String getMessageCondition() {
+        throw new UnsupportedOperationException("messageCondition is not supported in V2");
     }
 }

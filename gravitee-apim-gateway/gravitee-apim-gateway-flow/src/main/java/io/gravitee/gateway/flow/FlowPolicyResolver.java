@@ -17,7 +17,7 @@ package io.gravitee.gateway.flow;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.flow.StepV2;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.flow.policy.PolicyResolver;
 import io.gravitee.gateway.policy.PolicyMetadata;
@@ -41,7 +41,7 @@ public class FlowPolicyResolver implements PolicyResolver {
     private final FlowV2Impl flow;
 
     @VisibleForTesting
-    final Cache<StepV2, PolicyMetadata> cache;
+    final Cache<Step, PolicyMetadata> cache;
 
     public FlowPolicyResolver(final FlowV2Impl flow) {
         this.flow = flow;
@@ -57,7 +57,7 @@ public class FlowPolicyResolver implements PolicyResolver {
     @Override
     public List<PolicyMetadata> resolve(StreamType streamType, ExecutionContext context) {
         // TODO: Before executing the flow, ensure that it should be effectively run
-        List<StepV2> steps = streamType == StreamType.ON_REQUEST ? flow.getPre() : flow.getPost();
+        List<? extends Step> steps = streamType == StreamType.ON_REQUEST ? flow.getPre() : flow.getPost();
 
         if (steps.isEmpty()) {
             return Collections.emptyList();
@@ -66,10 +66,10 @@ public class FlowPolicyResolver implements PolicyResolver {
         // TODO: Used by some policies (ie. rate-limit / quota)
         context.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, flow.getPath());
 
-        return steps.stream().filter(StepV2::isEnabled).map(this::createOrGetCachePolicyMetadata).collect(Collectors.toList());
+        return steps.stream().filter(Step::isEnabled).map(this::createOrGetCachePolicyMetadata).collect(Collectors.toList());
     }
 
-    private PolicyMetadata createOrGetCachePolicyMetadata(StepV2 step) {
+    private PolicyMetadata createOrGetCachePolicyMetadata(Step step) {
         PolicyMetadata cachedPolicyMetadata = cache.get(step);
         if (cachedPolicyMetadata == null) {
             final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
