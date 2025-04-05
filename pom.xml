@@ -48,7 +48,7 @@
         <grpc-java.version>1.65.0</grpc-java.version>
         <!-- While waiting fot the new version of lombok-plugin, we use this workaround
              https://github.com/awhitford/lombok.maven/issues/179 -->
-        <maven-lombok.version>1.18.36</maven-lombok.version>
+        <maven-lombok.version>1.18.38</maven-lombok.version>
         <!-- Gravitee dependencies version -->
         <gravitee-bom.version>8.2.22</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
