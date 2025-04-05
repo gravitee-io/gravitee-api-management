@@ -30,6 +30,7 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { MatChip, MatChipRemove, MatChipSet } from '@angular/material/chips';
 import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { RoleName } from '../membershipState';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
@@ -64,6 +65,7 @@ import { Group } from '../../../../../entities/group/group';
     MatChipRemove,
     MatChipSet,
     GioFormSlideToggleModule,
+    MatSlideToggle,
     GioBannerModule,
   ],
   templateUrl: './edit-member-dialog.component.html',
@@ -159,6 +161,7 @@ export class EditMemberDialogComponent implements OnInit {
     this.disableDefaultApplicationRole();
     this.disableDefaultIntegrationRole();
     this.disableAPIRoleOptions();
+    this.disableGroupAdmin();
   }
 
   private disableDefaultAPIRole(): void {
@@ -213,6 +216,7 @@ export class EditMemberDialogComponent implements OnInit {
             const reference = users.find((u) => u.id === ownerId).reference;
             const ownerMembership = this.mapGroupMembership(ownerId, reference, RoleName.OWNER);
             const primaryOwnerMembership = this.mapGroupMembership(this.user.id, this.user.reference, RoleName.PRIMARY_OWNER);
+            this.setGroupAdminRole(primaryOwnerMembership);
             this.memberships = [ownerMembership, primaryOwnerMembership];
             this.matDialogRef.close({ memberships: this.memberships });
           }),
@@ -221,6 +225,7 @@ export class EditMemberDialogComponent implements OnInit {
         .subscribe();
     } else if (this.isDowngradeRole()) {
       const ownerMembership = this.mapGroupMembership(this.user.id, this.user.reference, this.editMemberForm.controls.defaultAPIRole.value);
+      this.setGroupAdminRole(ownerMembership);
       this.usersService
         .search(this.selectedPrimaryOwner.displayName)
         .pipe(
@@ -235,8 +240,15 @@ export class EditMemberDialogComponent implements OnInit {
         .subscribe();
     } else {
       const groupMembership = this.mapGroupMembership(this.user.id, this.user.reference, this.editMemberForm.controls.defaultAPIRole.value);
+      this.setGroupAdminRole(groupMembership);
       this.memberships = [groupMembership];
       this.matDialogRef.close({ memberships: this.memberships });
+    }
+  }
+
+  private setGroupAdminRole(groupMembership: GroupMembership) {
+    if (this.editMemberForm.controls.groupAdmin.value) {
+      groupMembership.roles.push({ name: 'ADMIN', scope: 'GROUP' });
     }
   }
 
@@ -291,7 +303,7 @@ export class EditMemberDialogComponent implements OnInit {
     return this.members.filter((member) => member.displayName.toLowerCase().includes(filterValue) && member.id !== this.member.id);
   }
 
-  onRoleChange() {
+  onChange() {
     this.selectedPrimaryOwner = null;
     this.ownershipTransferMessage = null;
     this.memberships = [];
@@ -329,5 +341,11 @@ export class EditMemberDialogComponent implements OnInit {
       this.editMemberForm.controls.defaultAPIRole.value === RoleName.PRIMARY_OWNER &&
       this.initialValues.defaultAPIRole !== RoleName.PRIMARY_OWNER
     );
+  }
+
+  private disableGroupAdmin() {
+    if (!this.canUpdateGroup() && !(this.group.manageable && this.group.system_invitation)) {
+      this.editMemberForm.controls.groupAdmin.disable();
+    }
   }
 }

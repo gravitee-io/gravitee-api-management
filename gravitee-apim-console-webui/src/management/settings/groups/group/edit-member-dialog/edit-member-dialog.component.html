@@ -20,7 +20,7 @@
   <form [formGroup]="editMemberForm" class="edit-member__form">
     <mat-form-field aria-hidden="false" aria-label="Select default API role">
       <mat-label>Default API Role</mat-label>
-      <mat-select formControlName="defaultAPIRole" (selectionChange)="onRoleChange()">
+      <mat-select formControlName="defaultAPIRole" (selectionChange)="onChange()">
         @for (role of defaultAPIRoles; track role.id) {
           <mat-option [value]="role.name" [disabled]="disabledAPIRoles().has(role.id)">{{ role.name }} </mat-option>
         }
@@ -29,7 +29,7 @@
 
     <mat-form-field aria-hidden="false" aria-label="Select default application role">
       <mat-label>Default Application Role</mat-label>
-      <mat-select formControlName="defaultApplicationRole" (selectionChange)="onRoleChange()">
+      <mat-select formControlName="defaultApplicationRole" (selectionChange)="onChange()">
         @for (role of defaultApplicationRoles; track role.id) {
           <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
         }
@@ -38,12 +38,23 @@
 
     <mat-form-field aria-hidden="false" aria-label="Select default integration role">
       <mat-label>Default Integration Role</mat-label>
-      <mat-select formControlName="defaultIntegrationRole" (selectionChange)="onRoleChange()">
+      <mat-select formControlName="defaultIntegrationRole" (selectionChange)="onChange()">
         @for (role of defaultIntegrationRoles; track role.id) {
           <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
+
+    <gio-form-slide-toggle class="edit-member__form__actions">
+      <gio-form-label>Make user administrator of the group</gio-form-label>
+      <mat-slide-toggle
+        formControlName="groupAdmin"
+        gioFormSlideToggle
+        aria-hidden="false"
+        aria-label="Enable to make user admin of the group"
+        (toggleChange)="onChange()"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
 
     @if (downgradedMember?.id === member.id) {
       <mat-form-field appearance="outline">

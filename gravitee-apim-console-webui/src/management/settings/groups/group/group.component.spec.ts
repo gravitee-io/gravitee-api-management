@@ -32,6 +32,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { GroupComponent } from './group.component';
 
@@ -43,7 +44,7 @@ import { Invitation } from '../../../../entities/invitation/invitation';
 import { Role } from '../../../../entities/role/role';
 import { EnvironmentSettingsService } from '../../../../services-ngx/environment-settings.service';
 import { UsersService } from '../../../../services-ngx/users.service';
-import { GroupMembership } from '../../../../entities/group/groupMember';
+import { GroupMembership, GroupMembershipMemberRoleEntity } from '../../../../entities/group/groupMember';
 
 describe('GroupComponent', () => {
   let fixture: ComponentFixture<GroupComponent>;
@@ -362,9 +363,17 @@ describe('GroupComponent', () => {
       await matSelectHarnesses[2].open();
       const integrationRoleOptions = await matSelectHarnesses[2].getOptions();
       await integrationRoleOptions[0].click();
+      const groupAdminHarness = await dialogHarness.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="groupAdmin"]' }));
+      expect(await groupAdminHarness.isDisabled()).toEqual(false);
+      await groupAdminHarness.check();
       const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
       await confirmButtonHarness.click();
-      expectAddOrUpdateMembership('1', 'testmember1');
+      expectAddOrUpdateMembership('1', 'testmember1', [
+        { name: 'REVIEWER', scope: 'API' },
+        { name: 'OWNER', scope: 'APPLICATION' },
+        { name: 'OWNER', scope: 'INTEGRATION' },
+        { name: 'ADMIN', scope: 'GROUP' },
+      ]);
     });
   });
 
@@ -659,7 +668,11 @@ describe('GroupComponent', () => {
       await searchResults[0].click();
       const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Add Users' }));
       await confirmButtonHarness.click();
-      expectAddOrUpdateMembership('2', 'testmember2');
+      expectAddOrUpdateMembership('2', 'testmember2', [
+        { name: 'REVIEWER', scope: 'API' },
+        { name: 'OWNER', scope: 'APPLICATION' },
+        { name: 'OWNER', scope: 'INTEGRATION' },
+      ]);
     });
 
     it('should invite by email', async () => {
@@ -778,7 +791,7 @@ describe('GroupComponent', () => {
     });
   }
 
-  function expectAddOrUpdateMembership(id: string, reference: string) {
+  function expectAddOrUpdateMembership(id: string, reference: string, roles: GroupMembershipMemberRoleEntity[]) {
     const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
       method: 'POST',
@@ -787,11 +800,7 @@ describe('GroupComponent', () => {
       {
         id: id,
         reference: reference,
-        roles: [
-          { name: 'REVIEWER', scope: 'API' },
-          { name: 'OWNER', scope: 'APPLICATION' },
-          { name: 'OWNER', scope: 'INTEGRATION' },
-        ],
+        roles: roles,
       },
     ];
     expect(req.request.body).toEqual(memberships);
