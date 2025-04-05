@@ -35,7 +35,6 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Observable;
