@@ -66,12 +66,11 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -263,7 +262,7 @@ public class UpdateNativeApiUseCaseTest {
             .resources(List.of(Resource.builder().name("new").build()))
             .listeners(List.of(KafkaListener.builder().host("new").build()))
             .endpointGroups(List.of(NativeEndpointGroup.builder().type("new").build()))
-            .flows(List.of(NativeFlow.builder().id("new").build()))
+            .flows(List.of(NativeFlowImpl.builder().id("new").build()))
             .services(NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build())
             .properties(
                 List.of(
@@ -304,7 +303,7 @@ public class UpdateNativeApiUseCaseTest {
                     .resources(List.of(Resource.builder().name("new").build()))
                     .listeners(List.of(KafkaListener.builder().host("new").build()))
                     .endpointGroups(List.of(NativeEndpointGroup.builder().type("new").build()))
-                    .flows(List.of(NativeFlow.builder().id("new").build()))
+                    .flows(List.of(NativeFlowImpl.builder().id("new").build()))
                     .services(NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build())
                     .properties(List.of(Property.builder().key("encrypt-me").value("new").encrypted(true).dynamic(false).build()))
                     .build()
@@ -350,7 +349,7 @@ public class UpdateNativeApiUseCaseTest {
                 assertThat(definition.getResources()).containsExactly(Resource.builder().name("new").build());
                 assertThat(definition.getListeners()).containsExactly(KafkaListener.builder().host("new").build());
                 assertThat(definition.getEndpointGroups()).containsExactly(NativeEndpointGroup.builder().type("new").build());
-                assertThat(definition.getFlows()).containsExactly(NativeFlow.builder().id("new").build());
+                assertThat(definition.getFlows()).containsExactly(NativeFlowImpl.builder().id("new").build());
                 assertThat(definition.getServices())
                     .isEqualTo(NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build());
                 assertThat(definition.getProperties())
@@ -358,7 +357,7 @@ public class UpdateNativeApiUseCaseTest {
                     .containsExactly(Property.builder().key("encrypt-me").value("new").encrypted(true).dynamic(false).build());
             });
 
-        assertThat(flowCrudService.storage()).containsExactly(NativeFlow.builder().id("new").build());
+        assertThat(flowCrudService.storage()).containsExactly(NativeFlowImpl.builder().id("new").build());
         verify(categoryDomainService, times(1)).updateOrderCategoriesOfApi(eq(existingApi.getId()), eq(Set.of("new")));
         assertThat(auditCrudService.storage()).hasSize(1);
         assertThat(triggerNotificationDomainService.getApiNotifications())

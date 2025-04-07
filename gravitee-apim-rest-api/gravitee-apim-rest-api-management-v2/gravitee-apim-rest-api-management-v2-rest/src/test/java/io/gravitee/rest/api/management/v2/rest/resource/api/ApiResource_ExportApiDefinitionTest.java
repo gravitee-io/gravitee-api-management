@@ -55,7 +55,7 @@ import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListene
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -294,7 +294,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         var kafkaListener = KafkaListener.builder().host("my.fake.host").build();
         var step = StepV4.builder().enabled(true).policy("my-policy").condition("my-condition").build();
 
-        var flow = NativeFlow.builder().name("flowName").enabled(true).interact(List.of(step)).tags(Set.of("tag1", "tag2")).build();
+        var flow = NativeFlowImpl.builder().name("flowName").enabled(true).interact(List.of(step)).tags(Set.of("tag1", "tag2")).build();
 
         return ApiDescriptor.Native
             .builder()
@@ -411,7 +411,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         step.setEnabled(true);
         step.setMessageCondition("stepMessageCondition");
 
-        NativeFlow planFlow = new NativeFlow();
+        NativeFlowImpl planFlow = new NativeFlowImpl();
         planFlow.setEnabled(true);
         planFlow.setName("planFlowName");
         planFlow.setPublish(null);

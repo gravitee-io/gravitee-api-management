@@ -45,7 +45,7 @@ import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase.Input;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
@@ -266,7 +266,7 @@ class CreatePlanUseCaseTest {
     void should_create_native_plan_with_flow() {
         // Given
         var api = givenExistingApi(ApiFixtures.aNativeApi());
-        List<NativeFlow> flows = List.of(FlowFixtures.aNativeFlowV4());
+        List<NativeFlowImpl> flows = List.of(FlowFixtures.aNativeFlowV4());
         var input = new Input(
             api.getId(),
             _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),
@@ -293,7 +293,7 @@ class CreatePlanUseCaseTest {
     void should_throw_when_native_plan_has_more_then_one_flow() {
         // Given
         var api = givenExistingApi(ApiFixtures.aNativeApi());
-        List<NativeFlow> flows = List.of(FlowFixtures.aNativeFlowV4(), FlowFixtures.aNativeFlowV4());
+        List<NativeFlowImpl> flows = List.of(FlowFixtures.aNativeFlowV4(), FlowFixtures.aNativeFlowV4());
         var input = new Input(
             api.getId(),
             _api -> PlanFixtures.NativeV4.aKeyless().toBuilder().id(null).build(),

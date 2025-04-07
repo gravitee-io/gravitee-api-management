@@ -36,7 +36,7 @@ import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -148,7 +148,7 @@ public sealed interface ApiDescriptor {
         String background,
         List<NativeListener> listeners,
         List<NativeEndpointGroup> endpointGroups,
-        List<NativeFlow> flows,
+        List<NativeFlowImpl> flows,
         List<Property> properties,
         List<Resource> resources
     )

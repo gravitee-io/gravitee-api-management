@@ -26,7 +26,7 @@ import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -273,7 +273,7 @@ public class ApiMapper {
         apiEntity.setPlans(plans);
 
         if (readDatabaseFlows) {
-            List<NativeFlow> flows = flowService.findNativeFlowByReference(FlowReferenceType.API, api.getId());
+            List<NativeFlowImpl> flows = flowService.findNativeFlowByReference(FlowReferenceType.API, api.getId());
             apiEntity.setFlows(flows);
         }
 

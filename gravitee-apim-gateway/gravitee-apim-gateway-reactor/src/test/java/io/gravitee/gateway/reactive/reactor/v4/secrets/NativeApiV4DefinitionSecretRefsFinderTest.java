@@ -83,14 +83,14 @@ class NativeApiV4DefinitionSecretRefsFinderTest {
 
         NativeApi withPlanAndFlowNoStep = new NativeApi();
         NativePlan planFlowNoStep = new NativePlan();
-        planFlowNoStep.setFlows(List.of(new NativeFlow()));
+        planFlowNoStep.setFlows(List.of(new NativeFlowImpl()));
         withPlanAndFlowNoStep.setPlans(List.of(planFlowNoStep));
 
         NativeApi withEmptyFlow = new NativeApi();
         withEmptyFlow.setFlows(List.of());
 
         NativeApi withFlowNoStep = new NativeApi();
-        withFlowNoStep.setFlows(List.of(new NativeFlow()));
+        withFlowNoStep.setFlows(List.of(new NativeFlowImpl()));
 
         NativeApi withEmptyListener = new NativeApi();
         withEmptyListener.setListeners(List.of());
@@ -207,14 +207,14 @@ class NativeApiV4DefinitionSecretRefsFinderTest {
         security.setConfiguration(planSecurityConfig);
         security.setType(planSecurityType);
         plan.setSecurity(security);
-        NativeFlow planFlow = new NativeFlow();
+        NativeFlowImpl planFlow = new NativeFlowImpl();
         planFlow.setPublish(List.of(newStep(planPublishFlowConfig, planPublishFlowPolicy)));
         planFlow.setSubscribe(List.of(newStep(planSubscribeFlowConfig, planSubscribeFlowPolicy)));
         planFlow.setConnect(List.of(newStep(planConnectFlowConfig, planConnectFlowPolicy)));
         planFlow.setInteract(List.of(newStep(planInteractFlowConfig, planInteractFlowPolicy)));
         plan.setFlows(List.of(planFlow));
         api.setPlans(List.of(plan));
-        NativeFlow flow = new NativeFlow();
+        NativeFlowImpl flow = new NativeFlowImpl();
         flow.setConnect(List.of(newStep(definitionConnectFlowConfig, definitionConnectFlowPolicy)));
         flow.setInteract(List.of(newStep(definitionInteractFlowConfig, definitionInteractFlowPolicy)));
         flow.setPublish(List.of(newStep(definitionPublishFlowConfig, definitionPublishFlowPolicy)));

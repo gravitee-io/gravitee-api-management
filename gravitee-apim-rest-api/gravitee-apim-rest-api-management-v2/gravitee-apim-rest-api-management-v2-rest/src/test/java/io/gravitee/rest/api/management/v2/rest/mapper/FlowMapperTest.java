@@ -25,7 +25,7 @@ import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
 import io.gravitee.rest.api.management.v2.rest.model.StepV2;
 import java.util.List;
@@ -130,7 +130,7 @@ public class FlowMapperTest {
         assertStepsV4Equals(flowEntityV4.getSubscribe(), flowV4.getSubscribe());
     }
 
-    private void assertNativeFlowV4Equals(NativeFlow flowEntityV4, io.gravitee.rest.api.management.v2.rest.model.FlowV4 flowV4)
+    private void assertNativeFlowV4Equals(NativeFlowImpl flowEntityV4, io.gravitee.rest.api.management.v2.rest.model.FlowV4 flowV4)
         throws JsonProcessingException {
         assertEquals(flowEntityV4.getName(), flowV4.getName());
 

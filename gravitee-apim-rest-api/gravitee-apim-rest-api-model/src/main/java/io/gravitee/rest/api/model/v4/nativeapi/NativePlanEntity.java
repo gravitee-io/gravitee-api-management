@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.nativeapi;
 
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -40,5 +40,5 @@ public class NativePlanEntity extends BasePlanEntity {
 
     @DeploymentRequired
     @Builder.Default
-    private List<NativeFlow> flows = new ArrayList<>();
+    private List<NativeFlowImpl> flows = new ArrayList<>();
 }

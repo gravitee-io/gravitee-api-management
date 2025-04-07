@@ -34,7 +34,7 @@ import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -506,7 +506,7 @@ public class ApiMapperTest {
         apiDefinition.setResources(List.of(new Resource()));
         apiDefinition.setProperties(List.of(new Property("key", "value")));
         apiDefinition.setTags(Set.of("tag"));
-        apiDefinition.setFlows(List.of(new NativeFlow(), new NativeFlow()));
+        apiDefinition.setFlows(List.of(new NativeFlowImpl(), new NativeFlowImpl()));
 
         Api api = new Api();
         api.setId("id");

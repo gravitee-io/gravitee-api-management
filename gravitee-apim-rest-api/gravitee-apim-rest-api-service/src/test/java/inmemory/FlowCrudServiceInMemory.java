@@ -19,7 +19,7 @@ import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,8 +31,8 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     final Map<String, List<FlowV4Impl>> apiFlowsHttpV4 = new HashMap<>();
     final Map<String, List<FlowV4Impl>> planFlowsHttpV4 = new HashMap<>();
 
-    final Map<String, List<NativeFlow>> apiFlowsNativeV4 = new HashMap<>();
-    final Map<String, List<NativeFlow>> planFlowsNativeV4 = new HashMap<>();
+    final Map<String, List<NativeFlowImpl>> apiFlowsNativeV4 = new HashMap<>();
+    final Map<String, List<NativeFlowImpl>> planFlowsNativeV4 = new HashMap<>();
 
     final Map<String, List<FlowV2Impl>> apiFlowsV2 = new HashMap<>();
     final Map<String, List<FlowV2Impl>> planFlowsV2 = new HashMap<>();
@@ -70,24 +70,24 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     }
 
     @Override
-    public List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows) {
+    public List<NativeFlowImpl> saveNativeApiFlows(String apiId, List<NativeFlowImpl> flows) {
         apiFlowsNativeV4.put(apiId, flows);
         return flows;
     }
 
     @Override
-    public List<NativeFlow> saveNativePlanFlows(String planId, List<NativeFlow> flows) {
+    public List<NativeFlowImpl> saveNativePlanFlows(String planId, List<NativeFlowImpl> flows) {
         planFlowsNativeV4.put(planId, flows);
         return flows;
     }
 
     @Override
-    public List<NativeFlow> getNativeApiFlows(String apiId) {
+    public List<NativeFlowImpl> getNativeApiFlows(String apiId) {
         return apiFlowsNativeV4.getOrDefault(apiId, new ArrayList<>());
     }
 
     @Override
-    public List<NativeFlow> getNativePlanFlows(String planId) {
+    public List<NativeFlowImpl> getNativePlanFlows(String planId) {
         return planFlowsNativeV4.getOrDefault(planId, new ArrayList<>());
     }
 

@@ -44,7 +44,7 @@ import lombok.experimental.SuperBuilder;
 @Schema(name = "NativePlanV4")
 public class NativePlan extends AbstractPlan {
 
-    private List<NativeFlow> flows;
+    private List<NativeFlowImpl> flows;
 
     @JsonIgnore
     @Override

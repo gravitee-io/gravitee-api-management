@@ -32,7 +32,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -180,8 +180,8 @@ class FlowCrudServiceImplTest {
         @SneakyThrows
         void should_save_flows() {
             // Given
-            List<NativeFlow> flows = List.of(
-                NativeFlow.builder().name("My flow").enabled(true).publish(List.of(StepV4.builder().name("step 1").build())).build()
+            List<NativeFlowImpl> flows = List.of(
+                NativeFlowImpl.builder().name("My flow").enabled(true).publish(List.of(StepV4.builder().name("step 1").build())).build()
             );
 
             var repoFlow = io.gravitee.repository.management.model.flow.Flow
@@ -216,7 +216,7 @@ class FlowCrudServiceImplTest {
         void should_return_created_flows() {
             // Given
             when(flowRepository.create(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-            List<NativeFlow> flows = List.of(NativeFlow.builder().build());
+            List<NativeFlowImpl> flows = List.of(NativeFlowImpl.builder().build());
 
             // When
             var result = service.saveNativeApiFlows(API_ID, flows);
@@ -233,7 +233,7 @@ class FlowCrudServiceImplTest {
             when(flowRepository.create(any())).thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() -> service.saveNativeApiFlows(API_ID, List.of(NativeFlow.builder().build())));
+            Throwable throwable = catchThrowable(() -> service.saveNativeApiFlows(API_ID, List.of(NativeFlowImpl.builder().build())));
 
             // Then
             assertThat(throwable)
@@ -400,7 +400,7 @@ class FlowCrudServiceImplTest {
         @SneakyThrows
         void should_save_flows() {
             // Given
-            List<NativeFlow> flows = List.of(NativeFlow.builder().name("My flow").enabled(true).build());
+            List<NativeFlowImpl> flows = List.of(NativeFlowImpl.builder().name("My flow").enabled(true).build());
 
             // When
             service.saveNativePlanFlows(PLAN_ID, flows);
@@ -604,7 +604,7 @@ class FlowCrudServiceImplTest {
             // Then
             assertThat(result)
                 .usingRecursiveComparison()
-                .isEqualTo(List.of(NativeFlow.builder().id("flow-id").name("My flow").enabled(true).build()));
+                .isEqualTo(List.of(NativeFlowImpl.builder().id("flow-id").name("My flow").enabled(true).build()));
         }
 
         @Test
@@ -724,7 +724,7 @@ class FlowCrudServiceImplTest {
             // Then
             assertThat(result)
                 .usingRecursiveComparison()
-                .isEqualTo(List.of(NativeFlow.builder().id("flow-id").name("My flow").enabled(true).build()));
+                .isEqualTo(List.of(NativeFlowImpl.builder().id("flow-id").name("My flow").enabled(true).build()));
         }
 
         @Test

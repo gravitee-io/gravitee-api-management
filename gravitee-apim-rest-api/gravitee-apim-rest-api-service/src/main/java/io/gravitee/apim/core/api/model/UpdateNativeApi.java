@@ -18,7 +18,7 @@ package io.gravitee.apim.core.api.model;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import java.util.List;
 import lombok.Builder;
@@ -38,7 +38,7 @@ public class UpdateNativeApi extends AbstractUpdateApi {
 
     private List<NativeEndpointGroup> endpointGroups;
 
-    private List<NativeFlow> flows;
+    private List<NativeFlowImpl> flows;
 
     private NativeApiServices services;
 }

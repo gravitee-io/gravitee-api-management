@@ -30,7 +30,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -136,7 +136,7 @@ class GetApiDefinitionUseCaseTest {
         void should_return_api_definition_with_flows() {
             // Given
             //   Api flow
-            List<NativeFlow> flows = List.of(NativeFlow.builder().name("flow").build());
+            List<NativeFlowImpl> flows = List.of(NativeFlowImpl.builder().name("flow").build());
             flowCrudServiceInMemory.saveNativeApiFlows(API_ID, flows);
 
             //   Plan flow
@@ -148,7 +148,7 @@ class GetApiDefinitionUseCaseTest {
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 
-            List<NativeFlow> planFlows = List.of(NativeFlow.builder().name("plan-flow").build());
+            List<NativeFlowImpl> planFlows = List.of(NativeFlowImpl.builder().name("plan-flow").build());
             flowCrudServiceInMemory.saveNativePlanFlows(planPublished.getId(), planFlows);
             flowCrudServiceInMemory.saveNativePlanFlows(planDeprecated.getId(), planFlows);
             flowCrudServiceInMemory.saveNativePlanFlows(planStaging.getId(), planFlows);

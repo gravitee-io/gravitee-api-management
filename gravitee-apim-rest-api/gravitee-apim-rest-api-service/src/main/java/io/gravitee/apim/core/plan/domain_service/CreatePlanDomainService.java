@@ -32,7 +32,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.sql.Date;
 import java.util.Collections;
@@ -90,13 +90,13 @@ public class CreatePlanDomainService {
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
 
         if (api.isNative()) {
-            return createNativeV4ApiPlan(plan, (List<NativeFlow>) flows, api, auditInfo);
+            return createNativeV4ApiPlan(plan, (List<NativeFlowImpl>) flows, api, auditInfo);
         }
 
         return createHttpV4ApiPlan(plan, (List<FlowV4Impl>) flows, api, auditInfo);
     }
 
-    private PlanWithFlows createNativeV4ApiPlan(Plan plan, List<NativeFlow> flows, Api api, AuditInfo auditInfo) {
+    private PlanWithFlows createNativeV4ApiPlan(Plan plan, List<NativeFlowImpl> flows, Api api, AuditInfo auditInfo) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeNativeV4(flows);
         var createdPlan = planCrudService.create(
             plan

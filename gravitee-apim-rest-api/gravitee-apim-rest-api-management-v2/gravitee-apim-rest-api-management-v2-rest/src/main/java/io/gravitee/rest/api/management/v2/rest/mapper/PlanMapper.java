@@ -24,7 +24,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
@@ -286,7 +286,7 @@ public interface PlanMapper {
             return null;
         }
         if (source.getApiType() == ApiType.NATIVE) {
-            return FlowMapper.INSTANCE.mapFromNativeV4((List<NativeFlow>) source.getFlows());
+            return FlowMapper.INSTANCE.mapFromNativeV4((List<NativeFlowImpl>) source.getFlows());
         }
         return FlowMapper.INSTANCE.mapFromHttpV4((List<FlowV4Impl>) source.getFlows());
     }

@@ -21,7 +21,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -128,7 +128,7 @@ public class NativeApiEntity implements GenericApiEntity {
 
     @Schema(description = "A list of flows containing the policies configuration.")
     @DeploymentRequired
-    private List<NativeFlow> flows;
+    private List<NativeFlowImpl> flows;
 
     @DeploymentRequired
     @Schema(description = "The configuration of API services like the dynamic properties.")

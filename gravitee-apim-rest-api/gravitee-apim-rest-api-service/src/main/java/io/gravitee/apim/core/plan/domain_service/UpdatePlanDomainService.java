@@ -32,7 +32,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.Date;
 import java.util.List;
@@ -122,7 +122,7 @@ public class UpdatePlanDomainService {
         Plan updatePlan = existingPlan.update(planToUpdate);
 
         if (api.isNative()) {
-            return updateNativeV4ApiPlan(existingPlan, updatePlan, (List<NativeFlow>) flows, api, auditInfo);
+            return updateNativeV4ApiPlan(existingPlan, updatePlan, (List<NativeFlowImpl>) flows, api, auditInfo);
         }
 
         return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<FlowV4Impl>) flows, api, auditInfo);
@@ -153,7 +153,7 @@ public class UpdatePlanDomainService {
         return updated;
     }
 
-    private Plan updateNativeV4ApiPlan(Plan existingPlan, Plan updatePlan, List<NativeFlow> flows, Api api, AuditInfo auditInfo) {
+    private Plan updateNativeV4ApiPlan(Plan existingPlan, Plan updatePlan, List<NativeFlowImpl> flows, Api api, AuditInfo auditInfo) {
         var sanitizedNativeFlows = flowValidationDomainService.validateAndSanitizeNativeV4(flows);
 
         if (!planSynchronizationService.checkNativePlanSynchronized(existingPlan, List.of(), updatePlan, sanitizedNativeFlows)) {

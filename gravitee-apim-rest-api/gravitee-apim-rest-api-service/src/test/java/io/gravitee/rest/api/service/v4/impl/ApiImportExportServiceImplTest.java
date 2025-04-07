@@ -43,7 +43,7 @@ import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListene
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -637,7 +637,7 @@ public class ApiImportExportServiceImplTest {
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));
 
-        NativeFlow flow = new NativeFlow();
+        NativeFlowImpl flow = new NativeFlowImpl();
         flow.setName("flowName");
         flow.setEnabled(true);
 
@@ -791,7 +791,7 @@ public class ApiImportExportServiceImplTest {
         step.setEnabled(true);
         step.setMessageCondition("stepMessageCondition");
 
-        NativeFlow planFlow = new NativeFlow();
+        NativeFlowImpl planFlow = new NativeFlowImpl();
         planFlow.setEnabled(true);
         planFlow.setName("planFlowName");
         planFlow.setPublish(null);

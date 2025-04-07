@@ -37,7 +37,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
@@ -775,7 +775,7 @@ public class EventServiceTest {
         return flow;
     }
 
-    private NativeFlow buildNativeFlow(String name) {
-        return NativeFlow.builder().name(name).build();
+    private NativeFlowImpl buildNativeFlow(String name) {
+        return NativeFlowImpl.builder().name(name).build();
     }
 }

@@ -43,7 +43,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -323,7 +323,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 nativeApi
                     .getApiDefinitionNativeV4()
                     .toBuilder()
-                    .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-1").build()))
+                    .flows(List.of(NativeFlowImpl.builder().id("flow-1").build(), NativeFlowImpl.builder().id("flow-1").build()))
                     .build()
             );
 
@@ -480,7 +480,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 nativeApi
                     .getApiDefinitionNativeV4()
                     .toBuilder()
-                    .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-1").build()))
+                    .flows(List.of(NativeFlowImpl.builder().id("flow-1").build(), NativeFlowImpl.builder().id("flow-1").build()))
                     .build()
             );
 

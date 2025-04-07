@@ -29,7 +29,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -109,7 +109,7 @@ public class ApiModelFactory {
             .services(spec.getServices() != null ? new NativeApiServices(spec.getServices().getDynamicProperty()) : null)
             .tags(spec.getTags())
             .listeners(spec.getListeners() != null ? (List<NativeListener>) spec.getListeners() : null)
-            .flows(spec.getFlows() != null ? (List<NativeFlow>) spec.getFlows() : null)
+            .flows(spec.getFlows() != null ? (List<NativeFlowImpl>) spec.getFlows() : null)
             .properties(spec.getProperties())
             .build();
     }

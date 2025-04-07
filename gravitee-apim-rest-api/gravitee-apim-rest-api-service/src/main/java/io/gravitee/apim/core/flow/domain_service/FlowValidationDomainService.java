@@ -29,7 +29,7 @@ import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -92,7 +92,7 @@ public class FlowValidationDomainService {
         return flows;
     }
 
-    public List<NativeFlow> validateAndSanitizeNativeV4(List<NativeFlow> flows) {
+    public List<NativeFlowImpl> validateAndSanitizeNativeV4(List<NativeFlowImpl> flows) {
         if (flows != null) {
             if (flows.size() > 1) {
                 throw new NativeApiWithMultipleFlowsException();

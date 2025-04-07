@@ -61,7 +61,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -659,7 +659,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));
 
-        var flow = new NativeFlow();
+        var flow = new NativeFlowImpl();
         flow.setName("flowName");
         flow.setEnabled(true);
 

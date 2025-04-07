@@ -46,7 +46,7 @@ import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -363,7 +363,7 @@ class UpdateNativeApiDomainServiceTest {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         var apiToUpdate = ApiFixtures.aNativeApi();
-        var nativeFlow = NativeFlow.builder().id("native-flow").build();
+        var nativeFlow = NativeFlowImpl.builder().id("native-flow").build();
         apiToUpdate.setApiDefinitionNativeV4(apiToUpdate.getApiDefinitionNativeV4().toBuilder().flows(List.of(nativeFlow)).build());
         var ownerEntity = buildPrimaryOwnerEntity();
 

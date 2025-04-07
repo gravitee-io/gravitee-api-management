@@ -21,7 +21,7 @@ import io.gravitee.apim.infra.adapter.FlowAdapter;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -81,22 +81,22 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     }
 
     @Override
-    public List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows) {
+    public List<NativeFlowImpl> saveNativeApiFlows(String apiId, List<NativeFlowImpl> flows) {
         return FlowAdapter.INSTANCE.toNativeFlow(save(FlowReferenceType.API, apiId, flows));
     }
 
     @Override
-    public List<NativeFlow> saveNativePlanFlows(String planId, List<NativeFlow> flows) {
+    public List<NativeFlowImpl> saveNativePlanFlows(String planId, List<NativeFlowImpl> flows) {
         return FlowAdapter.INSTANCE.toNativeFlow(save(FlowReferenceType.PLAN, planId, flows));
     }
 
     @Override
-    public List<NativeFlow> getNativeApiFlows(String apiId) {
+    public List<NativeFlowImpl> getNativeApiFlows(String apiId) {
         return getNativeV4(FlowReferenceType.API, apiId);
     }
 
     @Override
-    public List<NativeFlow> getNativePlanFlows(String planId) {
+    public List<NativeFlowImpl> getNativePlanFlows(String planId) {
         return getNativeV4(FlowReferenceType.PLAN, planId);
     }
 
@@ -170,7 +170,7 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
         return getRepositoryV4(flowReferenceType, referenceId).map(FlowAdapter.INSTANCE::toFlowV4).collect(Collectors.toList());
     }
 
-    private List<NativeFlow> getNativeV4(FlowReferenceType flowReferenceType, String referenceId) {
+    private List<NativeFlowImpl> getNativeV4(FlowReferenceType flowReferenceType, String referenceId) {
         return getRepositoryV4(flowReferenceType, referenceId).map(FlowAdapter.INSTANCE::toNativeFlow).collect(Collectors.toList());
     }
 

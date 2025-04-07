@@ -23,7 +23,7 @@ import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowChannelSelector;
@@ -63,11 +63,11 @@ public class FlowMapper {
         return definitionFlow;
     }
 
-    public NativeFlow toNativeDefinition(io.gravitee.repository.management.model.flow.Flow repositoryFlow) {
+    public NativeFlowImpl toNativeDefinition(io.gravitee.repository.management.model.flow.Flow repositoryFlow) {
         if (repositoryFlow == null) {
             throw new IllegalArgumentException(FLOW_TO_MAP_CANNOT_BE_NULL);
         }
-        NativeFlow definitionFlow = new NativeFlow();
+        NativeFlowImpl definitionFlow = new NativeFlowImpl();
         definitionFlow.setId(repositoryFlow.getId());
         definitionFlow.setName(repositoryFlow.getName());
         definitionFlow.setEnabled(repositoryFlow.isEnabled());

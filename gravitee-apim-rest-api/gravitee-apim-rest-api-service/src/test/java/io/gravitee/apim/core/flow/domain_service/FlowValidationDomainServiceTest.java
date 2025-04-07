@@ -39,7 +39,7 @@ import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.io.IOException;
 import java.util.List;
@@ -204,7 +204,7 @@ public class FlowValidationDomainServiceTest {
 
         @Test
         void should_accept_empty_flows() {
-            NativeFlow flow = new NativeFlow();
+            NativeFlowImpl flow = new NativeFlowImpl();
 
             var result = service.validateAndSanitizeNativeV4(List.of(flow));
 
@@ -213,7 +213,7 @@ public class FlowValidationDomainServiceTest {
 
         @Test
         public void should_accept_flow_with_steps() {
-            var flow = NativeFlow
+            var flow = NativeFlowImpl
                 .builder()
                 .interact(List.of(StepV4.builder().policy("policy").configuration("configuration").build()))
                 .build();
@@ -228,7 +228,7 @@ public class FlowValidationDomainServiceTest {
             when(policyValidationDomainService.validateAndSanitizeConfiguration(eq("my-policy"), eq("incorrect-configuration")))
                 .thenThrow(InvalidDataException.class);
 
-            var flow = NativeFlow
+            var flow = NativeFlowImpl
                 .builder()
                 .name("bad_flow")
                 .interact(List.of(StepV4.builder().policy("my-policy").configuration("incorrect-configuration").build()))
@@ -241,7 +241,7 @@ public class FlowValidationDomainServiceTest {
 
         @Test
         public void should_throw_exception_with_multiple_flows() {
-            var flow = NativeFlow
+            var flow = NativeFlowImpl
                 .builder()
                 .interact(List.of(StepV4.builder().policy("policy").configuration("configuration").build()))
                 .build();

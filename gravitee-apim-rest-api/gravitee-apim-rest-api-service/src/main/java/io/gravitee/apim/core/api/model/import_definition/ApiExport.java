@@ -34,7 +34,7 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -165,7 +165,7 @@ public class ApiExport {
             .apiVersion(apiVersion)
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups((List<NativeEndpointGroup>) endpointGroups)
-            .flows((List<NativeFlow>) flows)
+            .flows((List<NativeFlowImpl>) flows)
             .listeners((List<NativeListener>) listeners)
             .name(name)
             .properties(properties)

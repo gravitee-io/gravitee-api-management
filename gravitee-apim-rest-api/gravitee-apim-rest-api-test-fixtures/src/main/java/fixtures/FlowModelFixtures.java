@@ -20,7 +20,7 @@ import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import java.util.List;
 import java.util.Set;
 
@@ -55,7 +55,7 @@ public class FlowModelFixtures {
         .response(List.of(BASE_MODEL_STEP_V4.name("step_response").build()))
         .subscribe(List.of(BASE_MODEL_STEP_V4.name("step_subscribe").build()));
 
-    private static final NativeFlow.NativeFlowBuilder BASE_MODEL_FLOW_NATIVE_V4 = NativeFlow
+    private static final NativeFlowImpl.NativeFlowBuilder BASE_MODEL_FLOW_NATIVE_V4 = NativeFlowImpl
         .builder()
         .name("Flow")
         .enabled(true)
@@ -92,7 +92,7 @@ public class FlowModelFixtures {
         return BASE_MODEL_FLOW_HTTP_V4.build();
     }
 
-    public static NativeFlow aModelFlowNativeV4() {
+    public static NativeFlowImpl aModelFlowNativeV4() {
         return BASE_MODEL_FLOW_NATIVE_V4.build();
     }
 

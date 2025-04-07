@@ -27,7 +27,7 @@ import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -37,7 +37,8 @@ public class FlowFixtures {
     private FlowFixtures() {}
 
     private static final Supplier<FlowV4Impl.FlowV4ImplBuilder<?, ?>> BASE_HTTP_V4 = () -> FlowV4Impl.builder().name("my-flow");
-    private static final Supplier<NativeFlow.NativeFlowBuilder<?, ?>> BASE_NATIVE_V4 = () -> NativeFlow.builder().name("my-flow");
+    private static final Supplier<NativeFlowImpl.NativeFlowImplBuilder<?, ?>> BASE_NATIVE_V4 = () ->
+        NativeFlowImpl.builder().name("my-flow");
     private static final Supplier<FlowV2Impl.FlowV2ImplBuilder> BASE_V2 = () ->
         FlowV2Impl
             .builder()
@@ -139,7 +140,7 @@ public class FlowFixtures {
             .build();
     }
 
-    public static NativeFlow aNativeFlowV4() {
+    public static NativeFlowImpl aNativeFlowV4() {
         return BASE_NATIVE_V4
             .get()
             .interact(
