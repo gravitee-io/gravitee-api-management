@@ -18,10 +18,16 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserGroup {
 
     @ParameterKey(Key.USER_GROUP_REQUIRED_ENABLED)
