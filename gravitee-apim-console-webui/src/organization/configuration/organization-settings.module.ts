@@ -57,6 +57,7 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -147,6 +148,9 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     GioSubmenuModule,
     GioMonacoEditorModule,
     OrgSettingsPlatformPoliciesStudioModule,
+    MatMenu,
+    MatMenuItem,
+    MatMenuTrigger,
   ],
   declarations: [
     OrgNavigationComponent,

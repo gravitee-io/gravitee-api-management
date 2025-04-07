@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.upgrade.upgrader.entrypoint;
 import static io.gravitee.repository.mongodb.management.upgrade.upgrader.subscription.SubscriptionApplicationNameUpgrader.SUBSCRIPTION_APPLICATION_NAME_UPGRADER_ORDER;
 
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
@@ -40,12 +41,7 @@ public class EntrypointInitTargetUpgrader extends MongoUpgrader {
     public boolean upgrade() {
         var entrypointTargetNullQuery = new Document("target", null);
 
-        this.getCollection("entrypoints")
-            .find(entrypointTargetNullQuery)
-            .forEach(entrypoint -> {
-                entrypoint.append("target", "HTTP");
-                this.getCollection("entrypoints").replaceOne(Filters.eq("_id", entrypoint.getString("_id")), entrypoint);
-            });
+        this.getCollection("entrypoints").updateMany(entrypointTargetNullQuery, Updates.set("target", "HTTP"));
         return true;
     }
 

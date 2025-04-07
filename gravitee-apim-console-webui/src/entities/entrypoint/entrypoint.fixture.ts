@@ -20,6 +20,7 @@ export function fakeEntrypoint(attributes?: Partial<Entrypoint>): Entrypoint {
     id: 'da98cab3-ff94-4c68-98ca-b3ff949c6896',
     value: 'https://googl.co',
     tags: ['external'],
+    target: 'HTTP',
   };
 
   return {

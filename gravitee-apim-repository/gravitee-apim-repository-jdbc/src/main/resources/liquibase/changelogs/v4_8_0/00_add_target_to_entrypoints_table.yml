@@ -14,10 +14,6 @@ databaseChangeLog:
                   type: nvarchar(64)
                   constraints:
                     nullable: true
-  - changeSet:
-      id: 4.8.0_00_add_target_to_entrypoints_table_2
-      author: GraviteeSource Team
-      changes:
         - update:
             tableName: ${gravitee_prefix}entrypoints
             columns:

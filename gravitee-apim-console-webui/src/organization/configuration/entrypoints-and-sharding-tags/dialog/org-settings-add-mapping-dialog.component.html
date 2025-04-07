@@ -20,17 +20,11 @@
 <form autocomplete="off" [formGroup]="mappingForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
     <gio-banner-info>
-      Add a mapping between an entry point url and a tag list. This mapping will be used on the portal to display different entry points
-      depending on API tags.
+      Establish a mapping between an entrypoint URL/host and a list of Sharding Tags. This mapping will be used on the portal to display
+      different entrypoints based on API tags.
     </gio-banner-info>
 
     <div class="form">
-      <mat-form-field>
-        <mat-label>Entrypoint url</mat-label>
-        <input matInput formControlName="value" type="url" placeholder="https://api.mycompany.com" required />
-        <mat-error *ngIf="mappingForm.get('value').hasError('required')">Entrypoint Url is required.</mat-error>
-      </mat-form-field>
-
       <mat-form-field>
         <mat-label>Sharding tags</mat-label>
         <mat-select formControlName="tags" aria-label="Sharding tags selection" multiple required>
@@ -40,6 +34,33 @@
         </mat-select>
         <mat-error *ngIf="mappingForm.get('tags').hasError('required')">At least one tag must be selected.</mat-error>
       </mat-form-field>
+
+      @switch (target) {
+        @case ('HTTP') {
+          <mat-form-field>
+            <mat-label>Entrypoint url</mat-label>
+            <input matInput formControlName="httpValue" type="url" placeholder="https://api.mycompany.com" required />
+            <mat-error *ngIf="mappingForm.get('httpValue').hasError('required')">Entrypoint Url is required.</mat-error>
+          </mat-form-field>
+        }
+        @case ('KAFKA') {
+          <mat-form-field class="kafka__domain">
+            <mat-label>Default Kafka domain</mat-label>
+            <input matInput formControlName="kafkaDomain" />
+            <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('maxLength')"
+              >Kafka Domain must be less than 192 characters.</mat-error
+            >
+            <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('format')">Kafka Domain is not valid.</mat-error>
+          </mat-form-field>
+          <mat-form-field class="kafka__port">
+            <mat-label>Default Kafka port</mat-label>
+            <input matInput formControlName="kafkaPort" type="number" />
+            <mat-error *ngIf="mappingForm.get('kafkaPort').hasError('invalidPort')"
+              >Port should be in range between 1025 and 65535</mat-error
+            >
+          </mat-form-field>
+        }
+      }
     </div>
   </mat-dialog-content>
 
