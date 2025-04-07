@@ -21,7 +21,11 @@ import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.logging.MessageSampling;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -31,28 +35,40 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder(toBuilder = true)
 public class Logging {
 
     @ParameterKey(Key.LOGGING_DEFAULT_MAX_DURATION)
     private Long maxDurationMillis;
 
+    @Builder.Default
     private Audit audit = new Audit();
+
+    @Builder.Default
     private User user = new User();
 
     @Valid
+    @Builder.Default
     private MessageSampling messageSampling = new MessageSampling();
 
-    @Getter
-    @Setter
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder(toBuilder = true)
     public static class Audit {
 
         @ParameterKey(Key.LOGGING_AUDIT_ENABLED)
         private Boolean enabled;
 
+        @Builder.Default
         private AuditTrail trail = new AuditTrail();
 
-        @Getter
-        @Setter
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @Builder(toBuilder = true)
         public static class AuditTrail {
 
             @ParameterKey(Key.LOGGING_AUDIT_TRAIL_ENABLED)
@@ -60,56 +76,13 @@ public class Logging {
         }
     }
 
-    @Getter
-    @Setter
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder(toBuilder = true)
     public static class User {
 
         @ParameterKey(Key.LOGGING_USER_DISPLAYED)
         private Boolean displayed;
-    }
-
-    @Getter
-    @Setter
-    public static class MessageSamplingYouhou {
-
-        private Count count = new Count();
-        private Probabilistic probabilistic = new Probabilistic();
-        private Temporal temporal = new Temporal();
-
-        @Getter
-        @Setter
-        public static class Count {
-
-            @JsonProperty("default")
-            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT)
-            private Integer defaultValue;
-
-            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT)
-            private Integer limit;
-        }
-
-        @Getter
-        @Setter
-        public static class Probabilistic {
-
-            @JsonProperty("default")
-            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT)
-            private Double defaultValue;
-
-            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT)
-            private Double limit;
-        }
-
-        @Getter
-        @Setter
-        public static class Temporal {
-
-            @JsonProperty("default")
-            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT)
-            private String defaultValue;
-
-            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT)
-            private String limit;
-        }
     }
 }
