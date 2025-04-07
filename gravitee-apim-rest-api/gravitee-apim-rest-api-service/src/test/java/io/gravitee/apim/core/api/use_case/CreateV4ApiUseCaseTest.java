@@ -28,6 +28,7 @@ import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
@@ -53,6 +54,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
+import io.gravitee.apim.core.category.domain_service.CreateCategoryApiDomainService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -117,6 +119,7 @@ class CreateV4ApiUseCaseTest {
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
     IndexerInMemory indexer = new IndexerInMemory();
+    CreateCategoryApiDomainService createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
 
     CreateV4ApiUseCase useCase;
 
@@ -168,7 +171,8 @@ class CreateV4ApiUseCaseTest {
             flowCrudService,
             notificationConfigCrudService,
             parametersQueryService,
-            workflowCrudService
+            workflowCrudService,
+            createCategoryApiDomainService
         );
         useCase = new CreateV4ApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService);
 
