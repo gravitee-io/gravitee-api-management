@@ -26,6 +26,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatMenuHarness } from '@angular/material/menu/testing';
 
 import { OrgSettingsEntrypointsAndShardingTagsComponent } from './org-settings-entrypoints-and-sharding-tags.component';
 
@@ -282,13 +283,15 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
 
       expect(headerCells).toEqual([
         {
+          target: 'Target',
           entrypoint: 'Entrypoint',
-          tags: 'Tags',
+          tags: 'Sharding Tags',
           actions: '',
         },
       ]);
       expect(rowCells).toEqual([
         {
+          target: 'HTTP',
           entrypoint: expect.stringContaining('https://googl.co'),
           tags: 'External',
           actions: 'editdelete',
@@ -433,21 +436,21 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       expectEntrypointsListRequest();
     });
 
-    it('should create a new mapping', async () => {
+    it('should create a new HTTP mapping', async () => {
       expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
 
-      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a mapping"]' }));
-      await addButton.click();
+      const addButtonMenu = await loader.getHarness(MatMenuHarness.with({ triggerText: /Add a mapping/ }));
+      await addButtonMenu.clickItem({ text: 'HTTP' });
 
       expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
 
       const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
       expect(await submitButton.isDisabled()).toBeTruthy();
 
-      const entrypointUrlInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=value]' }));
+      const entrypointUrlInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=httpValue]' }));
       await entrypointUrlInput.setValue('https://my.entry');
 
       const tagsSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=tags' }));
@@ -457,12 +460,49 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
 
       const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/` });
       expect(req.request.body).toStrictEqual({
+        target: 'HTTP',
         value: 'https://my.entry',
         tags: ['tag-1'],
       });
     });
 
-    it('should update a mapping', async () => {
+    it('should create a new KAFKA mapping', async () => {
+      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest();
+
+      const addButtonMenu = await loader.getHarness(MatMenuHarness.with({ triggerText: /Add a mapping/ }));
+      await addButtonMenu.clickItem({ text: 'Kafka' });
+
+      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+
+      const addMappingDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#addMappingDialog' }));
+
+      const submitButton = await addMappingDialog.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+      expect(await submitButton.isDisabled()).toBeTruthy();
+
+      const entrypointKafkaDomainInput = await addMappingDialog.getHarness(
+        MatInputHarness.with({ selector: '[formControlName=kafkaDomain]' }),
+      );
+      await entrypointKafkaDomainInput.setValue('entry.my');
+
+      const entrypointKafkaPortInput = await addMappingDialog.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaPort]' }));
+      await entrypointKafkaPortInput.setValue('9092');
+
+      const tagsSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=tags' }));
+      await tagsSelect.clickOptions({ text: /^Tag 1/ });
+      await submitButton.click();
+
+      const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/` });
+      expect(req.request.body).toStrictEqual({
+        target: 'KAFKA',
+        value: 'entry.my:9092',
+        tags: ['tag-1'],
+      });
+    });
+
+    it('should update a HTTP mapping', async () => {
       expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
       expectGroupListByOrganizationRequest([]);
       expectPortalSettingsGetRequest(fakePortalSettings());
@@ -481,7 +521,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
 
       const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
 
-      const entrypointUrlInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=value]' }));
+      const entrypointUrlInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=httpValue]' }));
       await entrypointUrlInput.setValue('https://my.new.entry');
 
       const tagsSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=tags' }));
@@ -493,6 +533,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/` });
       expect(req.request.body).toStrictEqual({
         id: 'entrypointIdA',
+        target: 'HTTP',
         value: 'https://my.new.entry',
         tags: ['tag-2'],
       });

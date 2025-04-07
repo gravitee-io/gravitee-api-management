@@ -79,7 +79,7 @@ public class UpdateEntryPointEntity {
             Objects.equals(id, that.id) &&
             Objects.equals(target, that.target) &&
             Objects.equals(value, that.value) &&
-            Objects.equals(tags, that.tags)
+            Objects.deepEquals(tags, that.tags)
         );
     }
 

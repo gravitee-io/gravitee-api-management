@@ -51,7 +51,7 @@
             <mat-icon *ngIf="isReadonlySetting(configForm.key, 'entrypoint')" class="org-settings-tags__configuration__icon" matPrefix
               >lock</mat-icon
             >
-            <mat-label>Default entrypoint</mat-label>
+            <mat-label>Default HTTP entrypoint</mat-label>
             <input #entrypointInput matInput formControlName="entrypoint" />
             <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointInput.value"></gio-clipboard-copy-icon>
           </mat-form-field>
@@ -216,7 +216,7 @@
       <div class="org-settings-tags__entrypoints-card__headerRightBtn">
         <button
           *gioPermission="{ anyOf: ['organization-entrypoint-c'] }"
-          (click)="onAddEntrypointClicked()"
+          [matMenuTriggerFor]="addMappingMenu"
           mat-raised-button
           color="primary"
           type="button"
@@ -224,6 +224,10 @@
         >
           <mat-icon>add</mat-icon>Add a mapping
         </button>
+        <mat-menu #addMappingMenu="matMenu">
+          <button mat-menu-item (click)="onAddEntrypointClicked('HTTP')">HTTP</button>
+          <button mat-menu-item (click)="onAddEntrypointClicked('KAFKA')">Kafka</button>
+        </mat-menu>
       </div>
     </mat-card-header>
     <gio-table-wrapper [length]="entrypointsTableUnpaginatedLength" (filtersChange)="onEntrypointsFiltersChanged($event)">
@@ -243,9 +247,15 @@
           </td>
         </ng-container>
 
+        <!-- Target Column -->
+        <ng-container matColumnDef="target">
+          <th mat-header-cell *matHeaderCellDef id="target" mat-sort-header="target">Target</th>
+          <td mat-cell *matCellDef="let entrypoint">{{ entrypoint.target }}</td>
+        </ng-container>
+
         <!-- Tags Column -->
         <ng-container matColumnDef="tags">
-          <th mat-header-cell *matHeaderCellDef id="tags" mat-sort-header="tags">Tags</th>
+          <th mat-header-cell *matHeaderCellDef id="tags" mat-sort-header="tags">Sharding Tags</th>
           <td mat-cell *matCellDef="let entrypoint">{{ entrypoint.tagsName.join(', ') }}</td>
         </ng-container>
 

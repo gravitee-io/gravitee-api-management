@@ -20,4 +20,5 @@ export interface Entrypoint {
   id: string;
   value?: string;
   tags?: string[];
+  target?: 'HTTP' | 'TCP' | 'KAFKA';
 }

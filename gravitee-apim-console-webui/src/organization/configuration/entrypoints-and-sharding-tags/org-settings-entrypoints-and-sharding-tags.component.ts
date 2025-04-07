@@ -15,7 +15,7 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -23,6 +23,7 @@ import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } fr
 
 import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './dialog/org-settings-add-tag-dialog.component';
 import { OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData } from './dialog/org-settings-add-mapping-dialog.component';
+import { kafkaDomainValidator, portValidator } from './org-settings-entrypoints-and-sharding-tags.utils';
 
 import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
@@ -37,7 +38,12 @@ import { gioTableFilterCollection } from '../../../shared/components/gio-table-w
 import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
 import { Environment } from '../../../entities/environment/environment';
-import { HOST_PATTERN_REGEX } from '../../../shared/utils';
+
+const MAPPING_TARGET_DISPLAYABLE: Record<Entrypoint['target'], string> = {
+  HTTP: 'HTTP',
+  TCP: 'TCP',
+  KAFKA: 'Kafka',
+};
 
 type TagTableDS = {
   id: string;
@@ -48,6 +54,7 @@ type TagTableDS = {
 
 type EntrypointTableDS = {
   id: string;
+  target: string;
   url: string;
   tags: string[];
   tagsName: string[];
@@ -77,7 +84,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   entrypointsTableDS: EntrypointTableDS;
   filteredEntrypointsTableDS: EntrypointTableDS;
   entrypointsTableUnpaginatedLength = 0;
-  entrypointsTableDisplayedColumns: string[] = ['entrypoint', 'tags', 'actions'];
+  entrypointsTableDisplayedColumns: string[] = ['target', 'entrypoint', 'tags', 'actions'];
   shardingTagsLicenseOptions = { feature: ApimFeature.APIM_SHARDING_TAGS };
   hasShardingTagsLock$: Observable<boolean>;
 
@@ -168,6 +175,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
         this.entrypoints = entrypoints;
         this.entrypointsTableDS = entrypoints.map((entrypoint) => ({
           id: entrypoint.id,
+          target: MAPPING_TARGET_DISPLAYABLE[entrypoint.target],
           url: entrypoint.value,
           tags: entrypoint.tags,
           tagsName: (entrypoint.tags ?? []).map((tagId) => tags.find((t) => t.id === tagId)?.name ?? tagId),
@@ -363,11 +371,13 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
     this.entrypointsTableUnpaginatedLength = filtered.unpaginatedLength;
   }
 
-  onAddEntrypointClicked() {
+  onAddEntrypointClicked(target: Entrypoint['target']) {
     this.matDialog
       .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
         width: '450px',
-        data: {},
+        data: {
+          target,
+        },
         role: 'dialog',
         id: 'addMappingDialog',
       })
@@ -388,11 +398,14 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   }
 
   onEditEntrypointClicked(entrypoint: EntrypointTableDS[number]) {
+    const entrypointToEdit = this.entrypoints.find((e) => e.id === entrypoint.id);
+
     this.matDialog
       .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
         width: '450px',
         data: {
-          entrypoint: this.entrypoints.find((e) => e.id === entrypoint.id),
+          target: entrypointToEdit.target,
+          entrypoint: entrypointToEdit,
         },
         role: 'dialog',
         id: 'editMappingDialog',
@@ -439,21 +452,3 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
       .subscribe(() => this.ngOnInit());
   }
 }
-const portValidator: ValidatorFn = (control: UntypedFormControl): ValidationErrors | null => {
-  const tcpPort = control.value;
-  return tcpPort < 1025 || tcpPort > 65535 ? { invalidPort: true } : null;
-};
-
-const kafkaDomainValidator: ValidatorFn = (control: UntypedFormControl): ValidationErrors | null => {
-  const kafkaDomain: string = control.value;
-  if (kafkaDomain?.length) {
-    // Max length of URL (255) - reserved characters for host prefix (63) - "." to separate host prefix and domain (1) = 191 max characters
-    if (kafkaDomain.length > 191) {
-      return { maxLength: true };
-    }
-    if (!HOST_PATTERN_REGEX.test(kafkaDomain)) {
-      return { format: true };
-    }
-  }
-  return null;
-};

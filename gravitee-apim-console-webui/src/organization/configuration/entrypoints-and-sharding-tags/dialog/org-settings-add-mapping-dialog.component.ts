@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 import { Component, Inject } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { shareReplay } from 'rxjs/operators';
 
 import { Entrypoint } from '../../../../entities/entrypoint/entrypoint';
 import { TagService } from '../../../../services-ngx/tag.service';
+import { kafkaDomainValidator, portValidator } from '../org-settings-entrypoints-and-sharding-tags.utils';
 
 export type OrgSettingAddMappingDialogData = {
+  target: Entrypoint['target'];
   entrypoint?: Entrypoint;
+};
+
+type MappingFormGroup = {
+  tags: FormControl<string[]>;
+  httpValue?: FormControl<string>;
+  kafkaDomain?: FormControl<string>;
+  kafkaPort?: FormControl<string>;
 };
 
 @Component({
@@ -33,8 +42,9 @@ export type OrgSettingAddMappingDialogData = {
 })
 export class OrgSettingAddMappingDialogComponent {
   entrypoint?: Entrypoint;
+  target: Entrypoint['target'];
   isUpdate = false;
-  mappingForm: UntypedFormGroup;
+  mappingForm: FormGroup<MappingFormGroup>;
   tags$? = this.tagService.list().pipe(shareReplay(1));
 
   constructor(
@@ -43,18 +53,48 @@ export class OrgSettingAddMappingDialogComponent {
     private readonly tagService: TagService,
   ) {
     this.entrypoint = confirmDialogData.entrypoint;
+    this.target = confirmDialogData.target;
     this.isUpdate = !!this.entrypoint;
 
-    this.mappingForm = new UntypedFormGroup({
-      value: new UntypedFormControl(this.entrypoint?.value, [Validators.required]),
-      tags: new UntypedFormControl(this.entrypoint?.tags ?? []),
+    this.mappingForm = new FormGroup({
+      tags: new FormControl(this.entrypoint?.tags ?? []),
     });
+
+    switch (this.target) {
+      case 'HTTP': {
+        this.mappingForm.addControl('httpValue', new FormControl(this.entrypoint?.value, [Validators.required]));
+        break;
+      }
+      case 'KAFKA': {
+        const [kafkaDomain, kafkaPort] = this.entrypoint?.value?.split(':') ?? ['', ''];
+
+        this.mappingForm.addControl('kafkaDomain', new FormControl(kafkaDomain ?? '', [Validators.required, kafkaDomainValidator]));
+        this.mappingForm.addControl('kafkaPort', new FormControl(kafkaPort ?? '9092', [Validators.required, portValidator]));
+        break;
+      }
+    }
   }
 
   onSubmit() {
+    if (this.mappingForm.invalid) {
+      return;
+    }
+    const formValue = this.mappingForm.value;
+    let value;
+    switch (this.target) {
+      case 'HTTP':
+        value = formValue.httpValue;
+        break;
+      case 'KAFKA':
+        value = formValue.kafkaDomain + ':' + formValue.kafkaPort;
+        break;
+    }
+
     const updatedEntrypoint = {
-      ...this.entrypoint,
-      ...this.mappingForm.getRawValue(),
+      ...(this.entrypoint?.id ? { id: this.entrypoint.id } : {}),
+      tags: formValue.tags,
+      value,
+      target: this.target,
     };
     this.dialogRef.close(updatedEntrypoint);
   }
