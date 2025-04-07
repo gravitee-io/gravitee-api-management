@@ -63,7 +63,11 @@ export class ApisListComponent {
 
   constructor(private readonly apiService: ApiService) {
     effect(() => {
-      if (this.categoryId() || !!this.query()) {
+      if (this.categoryId()) {
+        this.page$.next(1);
+      }
+
+      if (this.query() || this.query() === '') {
         this.page$.next(1);
       }
     });
