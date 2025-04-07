@@ -53,6 +53,7 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -100,6 +101,7 @@ import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.category.domain_service.CreateCategoryApiDomainService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
@@ -253,6 +255,7 @@ class ImportApiCRDUseCaseTest {
     TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
     CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
     DataEncryptor dataEncryptor = mock(DataEncryptor.class);
+    CreateCategoryApiDomainServiceInMemory createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
     PropertyDomainService propertyDomainService;
     UpdateNativeApiDomainService updateNativeApiDomainService;
     UpdateNativeApiUseCase updateNativeApiUseCase = null;
@@ -574,7 +577,8 @@ class ImportApiCRDUseCaseTest {
             flowCrudService,
             notificationConfigCrudService,
             parametersQueryService,
-            workflowCrudService
+            workflowCrudService,
+            createCategoryApiDomainService
         );
     }
 
@@ -1891,6 +1895,40 @@ class ImportApiCRDUseCaseTest {
         var inOrder = inOrder(apiStateDomainService);
         inOrder.verify(apiStateDomainService).deploy(argThat(api -> API_ID.equals(api.getId())), eq("Updated by GKO"), eq(AUDIT_INFO));
         inOrder.verify(apiStateDomainService).start(argThat(api -> API_ID.equals(api.getId())), eq(AUDIT_INFO));
+    }
+
+    @Test
+    void should_add_category_to_the_api() {
+        categoryQueryService.reset();
+        categoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
+
+        var categories = Set.of("existing");
+
+        useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().categories(categories).build()));
+
+        var api = apiCrudService.get(API_ID);
+
+        assertThat(api.getCategories()).isNotEmpty();
+        assertThat(api.getCategories()).doesNotContain("unknown");
+        assertThat(createCategoryApiDomainService.storage()).isNotEmpty();
+        assertThat(createCategoryApiDomainService.storage().get(0).getCategoryId()).isEqualTo("existing-id");
+    }
+
+    @Test
+    void should_add_category_to_native_api() {
+        categoryQueryService.reset();
+        categoryQueryService.initWith(List.of(Category.builder().name("existing").key("existing").id("existing-id").build()));
+
+        var categories = Set.of("existing");
+
+        useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().categories(categories).build()));
+
+        var api = apiCrudService.get(API_ID);
+
+        assertThat(api.getCategories()).isNotEmpty();
+        assertThat(api.getCategories()).doesNotContain("unknown");
+        assertThat(createCategoryApiDomainService.storage()).isNotEmpty();
+        assertThat(createCategoryApiDomainService.storage().get(0).getCategoryId()).isEqualTo("existing-id");
     }
 
     void givenExistingApi() {
