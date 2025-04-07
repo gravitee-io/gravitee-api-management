@@ -22,6 +22,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -51,6 +52,7 @@ import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ImportDefinitionCreateDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.category.domain_service.CreateCategoryApiDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
@@ -106,6 +108,7 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
     public final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     public final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     public final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    public final CreateCategoryApiDomainService createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
 
     public ImportDefinitionCreateDomainServiceTestInitializer(ApiCrudServiceInMemory apiCrudService) {
         var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
@@ -143,7 +146,8 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
                 flowCrudService,
                 notificationConfigCrudService,
                 parametersQueryService,
-                workflowCrudService
+                workflowCrudService,
+                createCategoryApiDomainService
             );
 
         var planValidatorService = new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
