@@ -37,6 +37,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -178,6 +179,7 @@ class ImportApiDefinitionUseCaseTest {
     ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    CreateCategoryApiDomainServiceInMemory createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
 
     ImportApiDefinitionUseCase useCase;
 
@@ -232,7 +234,8 @@ class ImportApiDefinitionUseCaseTest {
             flowCrudService,
             notificationConfigCrudService,
             parametersQueryService,
-            workflowCrudService
+            workflowCrudService,
+            createCategoryApiDomainService
         );
 
         var planValidatorService = new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
