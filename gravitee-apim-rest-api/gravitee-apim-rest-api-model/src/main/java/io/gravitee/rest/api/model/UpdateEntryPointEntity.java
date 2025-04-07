@@ -28,6 +28,9 @@ public class UpdateEntryPointEntity {
     private String id;
 
     @NotNull
+    private EntrypointEntity.Target target;
+
+    @NotNull
     @Size(min = 1)
     private String value;
 
@@ -41,6 +44,14 @@ public class UpdateEntryPointEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public EntrypointEntity.Target getTarget() {
+        return target;
+    }
+
+    public void setTarget(EntrypointEntity.Target target) {
+        this.target = target;
     }
 
     public String getValue() {
@@ -64,7 +75,12 @@ public class UpdateEntryPointEntity {
         if (this == o) return true;
         if (!(o instanceof UpdateEntryPointEntity)) return false;
         UpdateEntryPointEntity that = (UpdateEntryPointEntity) o;
-        return Objects.equals(id, that.id) && Objects.equals(value, that.value) && Objects.equals(tags, that.tags);
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(target, that.target) &&
+            Objects.equals(value, that.value) &&
+            Objects.equals(tags, that.tags)
+        );
     }
 
     @Override
@@ -74,6 +90,19 @@ public class UpdateEntryPointEntity {
 
     @Override
     public String toString() {
-        return "EntryPointEntity{" + "id='" + id + '\'' + ", value='" + value + '\'' + ", tags=" + tags + '}';
+        return (
+            "EntryPointEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", target=" +
+            target +
+            ", value='" +
+            value +
+            '\'' +
+            ", tags=" +
+            String.join(", ", tags) +
+            '}'
+        );
     }
 }

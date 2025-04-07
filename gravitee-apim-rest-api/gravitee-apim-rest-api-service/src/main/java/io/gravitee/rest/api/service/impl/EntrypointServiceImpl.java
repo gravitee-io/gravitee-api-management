@@ -176,6 +176,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     private Entrypoint convert(final NewEntryPointEntity entrypointEntity, ExecutionContext executionContext) {
         final Entrypoint entrypoint = new Entrypoint();
         entrypoint.setId(UuidString.generateRandom());
+        entrypoint.setTarget(entrypointEntity.getTarget().name());
         entrypoint.setValue(entrypointEntity.getValue());
         entrypoint.setTags(String.join(SEPARATOR, entrypointEntity.getTags()));
         entrypoint.setReferenceId(executionContext.getOrganizationId());
@@ -186,6 +187,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     private Entrypoint convert(final UpdateEntryPointEntity entrypointEntity) {
         final Entrypoint entrypoint = new Entrypoint();
         entrypoint.setId(entrypointEntity.getId());
+        entrypoint.setTarget(entrypointEntity.getTarget().name());
         entrypoint.setValue(entrypointEntity.getValue());
         entrypoint.setTags(String.join(SEPARATOR, entrypointEntity.getTags()));
         return entrypoint;
@@ -194,6 +196,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     private EntrypointEntity convert(final Entrypoint entrypoint) {
         final EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setId(entrypoint.getId());
+        entrypointEntity.setTarget(EntrypointEntity.Target.valueOf(entrypoint.getTarget()));
         entrypointEntity.setValue(entrypoint.getValue());
         entrypointEntity.setTags(entrypoint.getTags().split(SEPARATOR));
         return entrypointEntity;

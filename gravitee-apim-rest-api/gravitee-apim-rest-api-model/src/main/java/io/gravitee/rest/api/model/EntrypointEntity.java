@@ -26,6 +26,7 @@ public class EntrypointEntity {
     private String id;
     private String value;
     private String[] tags;
+    private Target target;
 
     public String getId() {
         return id;
@@ -51,6 +52,14 @@ public class EntrypointEntity {
         this.tags = tags;
     }
 
+    public Target getTarget() {
+        return target;
+    }
+
+    public void setTarget(Target target) {
+        this.target = target;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -67,5 +76,11 @@ public class EntrypointEntity {
     @Override
     public String toString() {
         return "EntrypointEntity{" + "id='" + id + '\'' + ", value='" + value + '\'' + ", tags=" + tags + '}';
+    }
+
+    public enum Target {
+        HTTP,
+        TCP,
+        KAFKA,
     }
 }

@@ -26,12 +26,23 @@ import java.util.Objects;
 public class NewEntryPointEntity {
 
     @NotNull
+    private EntrypointEntity.Target target;
+
+    @NotNull
     @Size(min = 1)
     private String value;
 
     @NotNull
     @Size(min = 1)
     private String[] tags;
+
+    public EntrypointEntity.Target getTarget() {
+        return target;
+    }
+
+    public void setTarget(EntrypointEntity.Target target) {
+        this.target = target;
+    }
 
     public String getValue() {
         return value;
@@ -54,7 +65,7 @@ public class NewEntryPointEntity {
         if (this == o) return true;
         if (!(o instanceof NewEntryPointEntity)) return false;
         NewEntryPointEntity that = (NewEntryPointEntity) o;
-        return Objects.equals(value, that.value) && Objects.equals(tags, that.tags);
+        return Objects.equals(target, that.target) && Objects.equals(value, that.value) && Objects.deepEquals(tags, that.tags);
     }
 
     @Override
@@ -64,6 +75,6 @@ public class NewEntryPointEntity {
 
     @Override
     public String toString() {
-        return "EntryPointEntity{" + "value='" + value + '\'' + ", tags=" + tags + '}';
+        return "EntryPointEntity{" + "target=" + target + ", value='" + value + '\'' + ", tags=" + String.join(", ", tags) + '}';
     }
 }

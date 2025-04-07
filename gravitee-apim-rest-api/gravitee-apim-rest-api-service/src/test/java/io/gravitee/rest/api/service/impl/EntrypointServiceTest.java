@@ -50,6 +50,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class EntrypointServiceTest {
 
     private static final String ID = "123";
+    private static final String HTTP = "HTTP";
     private static final String VALUE = "https://api.mycompany.com";
     private static final String TAG = "private;product";
     private static final String[] TAGS = new String[] { "private", "product" };
@@ -78,6 +79,7 @@ public class EntrypointServiceTest {
     @Before
     public void init() throws Exception {
         entrypointCreated.setId(ID);
+        entrypointCreated.setTarget(HTTP);
         entrypointCreated.setValue(VALUE);
         entrypointCreated.setTags(TAG);
         when(entrypointRepository.create(any())).thenReturn(entrypointCreated);
@@ -91,6 +93,7 @@ public class EntrypointServiceTest {
             .thenReturn(of(entrypointCreated));
 
         entrypointUpdated.setId(ID);
+        entrypointUpdated.setTarget(HTTP);
         entrypointUpdated.setValue(NEW_VALUE);
         entrypointUpdated.setTags(NEW_TAG);
         when(entrypointRepository.update(any())).thenReturn(entrypointUpdated);
@@ -99,10 +102,12 @@ public class EntrypointServiceTest {
     @Test
     public void shouldCreate() {
         final NewEntryPointEntity entrypoint = new NewEntryPointEntity();
+        entrypoint.setTarget(EntrypointEntity.Target.HTTP);
         entrypoint.setValue(VALUE);
         entrypoint.setTags(TAGS);
         final EntrypointEntity entrypointEntity = entrypointService.create(GraviteeContext.getExecutionContext(), entrypoint);
         assertEquals(ID, entrypointEntity.getId());
+        assertEquals(EntrypointEntity.Target.HTTP, entrypointEntity.getTarget());
         assertEquals(VALUE, entrypointEntity.getValue());
         assertNotNull(entrypointEntity.getTags());
         assertEquals(2, entrypointEntity.getTags().length);
@@ -112,6 +117,7 @@ public class EntrypointServiceTest {
     public void shouldUpdate() {
         final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
         entrypoint.setId(ID);
+        entrypoint.setTarget(EntrypointEntity.Target.HTTP);
         entrypoint.setValue(NEW_VALUE);
         entrypoint.setTags(NEW_TAGS);
         final EntrypointEntity entrypointEntity = entrypointService.update(GraviteeContext.getExecutionContext(), entrypoint);
@@ -125,6 +131,7 @@ public class EntrypointServiceTest {
     public void shouldUpdateWithSameTags() throws Exception {
         final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
         entrypoint.setId(ID);
+        entrypoint.setTarget(EntrypointEntity.Target.HTTP);
         entrypoint.setValue(NEW_VALUE);
         entrypoint.setTags(TAGS);
         final EntrypointEntity entrypointEntity = entrypointService.update(GraviteeContext.getExecutionContext(), entrypoint);
