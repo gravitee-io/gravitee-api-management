@@ -28,6 +28,7 @@ import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.IndexerInMemory;
@@ -45,6 +46,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.category.domain_service.CreateCategoryApiDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
@@ -112,6 +114,7 @@ public class V4ApiServiceCockpitTest {
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
     IndexerInMemory indexer = new IndexerInMemory();
+    CreateCategoryApiDomainService createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
 
     @Mock
     ValidateApiDomainService validateApiDomainService;
@@ -172,7 +175,8 @@ public class V4ApiServiceCockpitTest {
             flowCrudService,
             notificationConfigCrudService,
             parametersQueryService,
-            workflowCrudService
+            workflowCrudService,
+            createCategoryApiDomainService
         );
 
         service =
