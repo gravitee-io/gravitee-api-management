@@ -30,6 +30,7 @@ public class Entrypoint {
     }
 
     private String id;
+    private String target;
     private String value;
     private String tags;
     private String referenceId;
@@ -41,6 +42,14 @@ public class Entrypoint {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
     }
 
     public String getValue() {
@@ -94,6 +103,9 @@ public class Entrypoint {
             "Entrypoint{" +
             "id='" +
             id +
+            '\'' +
+            ", target='" +
+            target +
             '\'' +
             ", value='" +
             value +

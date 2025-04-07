@@ -38,12 +38,14 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(entrypoints);
         assertEquals(3, entrypoints.size());
+        assertEquals("HTTP", entrypoints.iterator().next().getTarget());
     }
 
     @Test
     public void shouldCreate() throws Exception {
         final Entrypoint entrypoint = new Entrypoint();
         entrypoint.setId("new-entrypoint");
+        entrypoint.setTarget("HTTP");
         entrypoint.setReferenceId("DEFAULT");
         entrypoint.setReferenceType(EntrypointReferenceType.ORGANIZATION);
         entrypoint.setValue("Entrypoint value");
@@ -58,6 +60,7 @@ public class EntrypointRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<Entrypoint> optional = entrypointRepository.findById("new-entrypoint");
         Assert.assertTrue("Entrypoint saved not found", optional.isPresent());
         assertEquals("Invalid saved entrypoint.", entrypoint, optional.get());
+        assertEquals("Invalid saved target.", "HTTP", optional.get().getTarget());
     }
 
     @Test

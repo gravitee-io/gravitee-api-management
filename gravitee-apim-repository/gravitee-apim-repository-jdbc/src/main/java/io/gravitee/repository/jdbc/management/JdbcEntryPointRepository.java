@@ -48,6 +48,7 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
         return JdbcObjectMapper
             .builder(Entrypoint.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("target", Types.NVARCHAR, String.class)
             .addColumn("value", Types.NVARCHAR, String.class)
             .addColumn("tags", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)

@@ -96,6 +96,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
 
         try {
             //Update
+            entrypointMongo.setTarget(entrypoint.getTarget());
             entrypointMongo.setValue(entrypoint.getValue());
             entrypointMongo.setReferenceId(entrypoint.getReferenceId());
             entrypointMongo.setReferenceType(entrypoint.getReferenceType());
@@ -127,6 +128,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
             .map(entrypointMongo -> {
                 final Entrypoint entrypoint = new Entrypoint();
                 entrypoint.setId(entrypointMongo.getId());
+                entrypoint.setTarget(entrypointMongo.getTarget());
                 entrypointMongo.setReferenceId(entrypoint.getReferenceId());
                 entrypointMongo.setReferenceType(entrypoint.getReferenceType());
                 entrypoint.setValue(entrypointMongo.getValue());
