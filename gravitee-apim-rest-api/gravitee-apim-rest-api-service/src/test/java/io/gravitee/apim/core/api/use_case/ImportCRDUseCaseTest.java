@@ -45,6 +45,7 @@ import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -223,6 +224,7 @@ class ImportCRDUseCaseTest {
     ApiMetadataDomainService apiMetadataDomainService = mock(ApiMetadataDomainService.class);
     ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
+    CreateCategoryApiDomainServiceInMemory createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
 
     ImportCRDUseCase useCase;
 
@@ -330,7 +332,8 @@ class ImportCRDUseCaseTest {
             flowCrudService,
             notificationConfigCrudService,
             parametersQueryService,
-            workflowCrudService
+            workflowCrudService,
+            createCategoryApiDomainService
         );
         updateApiDomainService = mock(UpdateApiDomainService.class);
 

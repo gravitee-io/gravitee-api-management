@@ -34,6 +34,7 @@ import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -154,6 +155,8 @@ class IngestIntegrationApisUseCaseTest {
     PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
 
     ValidateFederatedApiDomainService validateFederatedApiDomainService = spy(new ValidateFederatedApiDomainService(null));
+    CreateCategoryApiDomainServiceInMemory createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
+
     IngestIntegrationApisUseCase useCase;
 
     @BeforeAll
@@ -203,7 +206,8 @@ class IngestIntegrationApisUseCaseTest {
             new FlowCrudServiceInMemory(),
             notificationConfigCrudService,
             parametersQueryService,
-            workflowCrudService
+            workflowCrudService,
+            createCategoryApiDomainService
         );
 
         var planValidatorService = new PlanValidatorDomainService(
