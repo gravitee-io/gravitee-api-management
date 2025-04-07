@@ -38,6 +38,7 @@ public class EntrypointMongo {
     @Id
     private String id;
 
+    private String target;
     private String value;
     private String tags;
     private String referenceId;
