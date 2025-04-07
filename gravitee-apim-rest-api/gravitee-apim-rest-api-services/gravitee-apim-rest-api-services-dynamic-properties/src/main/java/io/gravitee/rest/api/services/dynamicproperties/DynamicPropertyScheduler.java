@@ -169,8 +169,6 @@ public class DynamicPropertyScheduler {
             }
             latestApi.setProperties(apiProperties);
 
-            boolean isSync = apiService.isSynchronized(executionContext, api.getId());
-
             // Update API
             try {
                 log.debug("[{}] Updating API", latestApi.getId());
@@ -181,16 +179,13 @@ public class DynamicPropertyScheduler {
                 throw e;
             }
 
-            // Do not deploy if there are manual changes to push
-            if (isSync) {
-                // Publish API only in case of changes
-                if (!updatedProperties.containsAll(properties) || !properties.containsAll(updatedProperties)) {
-                    log.debug("[{}] Property change detected, API is about to be deployed", api.getId());
-                    ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
-                    deployEntity.setDeploymentLabel("Dynamic properties sync");
-                    apiService.deploy(executionContext, latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API, deployEntity);
-                    log.debug("[{}] API as been deployed", api.getId());
-                }
+            // Publish API only in case of changes
+            if (!updatedProperties.containsAll(properties) || !properties.containsAll(updatedProperties)) {
+                log.debug("[{}] Property change detected, API is about to be deployed", api.getId());
+                ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
+                deployEntity.setDeploymentLabel("Dynamic properties sync");
+                apiService.deploy(executionContext, latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API, deployEntity);
+                log.debug("[{}] API as been deployed", api.getId());
             }
         }
     }
