@@ -64,7 +64,7 @@ import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
@@ -423,7 +423,7 @@ public class ApiService_UpdateTest {
     public void shouldUpdateFlows() throws TechnicalException {
         prepareUpdate();
 
-        List<FlowV2Impl> apiFlows = List.of(mock(FlowV2Impl.class), mock(FlowV2Impl.class));
+        List<FlowV2> apiFlows = List.of(mock(FlowV2.class), mock(FlowV2.class));
         updateApiEntity.setFlows(apiFlows);
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);

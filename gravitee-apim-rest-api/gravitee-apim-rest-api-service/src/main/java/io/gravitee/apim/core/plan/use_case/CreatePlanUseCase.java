@@ -26,7 +26,7 @@ import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
 import java.util.function.Function;
@@ -74,12 +74,7 @@ public class CreatePlanUseCase {
         );
     }
 
-    public record Input(
-        String apiId,
-        Function<Api, Plan> toPlan,
-        Function<Api, List<? extends AbstractFlow>> flowProvider,
-        AuditInfo auditInfo
-    ) {}
+    public record Input(String apiId, Function<Api, Plan> toPlan, Function<Api, List<? extends Flow>> flowProvider, AuditInfo auditInfo) {}
 
     public record Output(String id, PlanWithFlows plan) {}
 }

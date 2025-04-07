@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.reactor.v4.secrets;
 
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.secrets.api.discovery.Definition;
 import io.gravitee.secrets.api.discovery.DefinitionDescriptor;
 import io.gravitee.secrets.api.discovery.DefinitionMetadata;
@@ -55,7 +55,7 @@ public class NativeApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRe
         safeStream(definition.getResources()).forEach(resource -> processResource(listener, resource));
 
         // flows api and plan
-        List<NativeFlowImpl> flows = safeList(definition.getPlans())
+        List<NativeFlow> flows = safeList(definition.getPlans())
             .stream()
             .flatMap(p -> safeStream(p.getFlows()))
             .collect(Collectors.toCollection(ArrayList::new));

@@ -30,7 +30,7 @@ import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.DeploymentRequired;
@@ -136,7 +136,7 @@ public class ApiEntity implements GenericApiEntity {
     @DeploymentRequired
     @JsonProperty(value = "flows")
     @Schema(description = "a list of flows (the policies configuration)")
-    private List<FlowV2Impl> flows = new ArrayList<>();
+    private List<FlowV2> flows = new ArrayList<>();
 
     @DeploymentRequired
     @JsonProperty(value = "plans")

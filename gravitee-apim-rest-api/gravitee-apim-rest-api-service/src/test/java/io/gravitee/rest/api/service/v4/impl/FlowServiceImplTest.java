@@ -25,8 +25,9 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.infra.crud_service.flow.FlowCrudServiceImpl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.Flow;
@@ -86,7 +87,7 @@ public class FlowServiceImplTest {
         flow1.setOrder(1);
 
         when(flowRepository.findByReference(FlowReferenceType.API, "apiId")).thenReturn(List.of(flow5, flow1));
-        List<FlowV4Impl> flowServiceByReference = flowService.findByReference(FlowReferenceType.API, "apiId");
+        List<FlowV4> flowServiceByReference = flowService.findByReference(FlowReferenceType.API, "apiId");
         assertThat(flowServiceByReference).isNotNull();
         assertThat(flowServiceByReference.size()).isEqualTo(2);
         assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");
@@ -104,7 +105,7 @@ public class FlowServiceImplTest {
         flow1.setOrder(1);
 
         when(flowRepository.findByReference(FlowReferenceType.API, "apiId")).thenReturn(List.of(flow5, flow1));
-        List<NativeFlowImpl> flowServiceByReference = flowService.findNativeFlowByReference(FlowReferenceType.API, "apiId");
+        List<NativeFlow> flowServiceByReference = flowService.findNativeFlowByReference(FlowReferenceType.API, "apiId");
         assertThat(flowServiceByReference).isNotNull();
         assertThat(flowServiceByReference.size()).isEqualTo(2);
         assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");
@@ -121,7 +122,7 @@ public class FlowServiceImplTest {
 
         when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        List<FlowV4Impl> flowServiceByReference = flowCrudService.saveApiFlows("apiId", List.of(flow1, flow2));
+        List<FlowV4> flowServiceByReference = flowCrudService.saveApiFlows("apiId", List.of(flow1, flow2));
         assertThat(flowServiceByReference).isNotNull();
         assertThat(flowServiceByReference.size()).isEqualTo(2);
         assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");

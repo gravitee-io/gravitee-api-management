@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.plan;
 
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -76,7 +76,7 @@ public class UpdatePlanEntity {
 
     private String selectionRule;
 
-    private List<FlowV4Impl> flows;
+    private List<FlowV4> flows;
 
     public void setName(String name) {
         this.name = HtmlSanitizer.sanitize(name);

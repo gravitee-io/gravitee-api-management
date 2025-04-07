@@ -29,6 +29,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -132,12 +133,14 @@ public abstract class AbstractBestMatchIntegrationTest {
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isLegacyApi(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
-                definition.getFlows().forEach(flow -> flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS)));
+                definition
+                    .getFlows()
+                    .forEach(flow -> ((FlowV2Impl) flow).setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS)));
                 definition
                     .getPlans()
                     .stream()
                     .flatMap(plan -> plan.getFlows().stream())
-                    .forEach(flow -> flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS)));
+                    .forEach(flow -> ((FlowV2Impl) flow).setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS)));
             }
         }
 

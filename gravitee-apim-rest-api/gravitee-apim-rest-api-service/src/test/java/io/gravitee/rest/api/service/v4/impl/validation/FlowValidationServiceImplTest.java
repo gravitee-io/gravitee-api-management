@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -70,10 +71,8 @@ public class FlowValidationServiceImplTest {
     public void shouldReturnValidatedFlowsWithoutSelectorsNorSteps() {
         FlowV4Impl flow = new FlowV4Impl();
 
-        List<FlowV4Impl> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
-        assertThat(flows.size()).isEqualTo(1);
-        FlowV4Impl ValidatedFlows = flows.get(0);
-        assertThat(ValidatedFlows).isEqualTo(flow);
+        List<FlowV4> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
+        assertThat(flows).hasSize(1).containsExactly(flow);
     }
 
     @Test
@@ -84,10 +83,8 @@ public class FlowValidationServiceImplTest {
         httpSelector.setPathOperator(Operator.STARTS_WITH);
         flow.setSelectors(List.of(httpSelector));
 
-        List<FlowV4Impl> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
-        assertThat(flows.size()).isEqualTo(1);
-        FlowV4Impl ValidatedFlows = flows.get(0);
-        assertThat(ValidatedFlows).isEqualTo(flow);
+        List<FlowV4> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
+        assertThat(flows).hasSize(1).containsExactly(flow);
     }
 
     @Test
@@ -99,10 +96,8 @@ public class FlowValidationServiceImplTest {
         step.setConfiguration("configuration");
         flow.setRequest(List.of(step));
 
-        List<FlowV4Impl> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
-        assertThat(flows.size()).isEqualTo(1);
-        FlowV4Impl ValidatedFlows = flows.get(0);
-        assertThat(ValidatedFlows).isEqualTo(flow);
+        List<FlowV4> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
+        assertThat(flows).hasSize(1).containsExactly(flow);
         verify(policyService).validatePolicyConfiguration(eq("policy"), eq("configuration"));
     }
 
@@ -119,10 +114,8 @@ public class FlowValidationServiceImplTest {
         step.setConfiguration("configuration");
         flow.setRequest(List.of(step));
 
-        List<FlowV4Impl> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
-        assertThat(flows.size()).isEqualTo(1);
-        FlowV4Impl ValidatedFlows = flows.get(0);
-        assertThat(ValidatedFlows).isEqualTo(flow);
+        List<FlowV4> flows = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
+        assertThat(flows).hasSize(1).containsExactly(flow);
         verify(policyService).validatePolicyConfiguration(eq("policy"), eq("configuration"));
     }
 
@@ -184,9 +177,8 @@ public class FlowValidationServiceImplTest {
 
     @Test
     public void shouldIgnoreEmptyList() {
-        List<FlowV4Impl> emptyFlows = List.of();
-        List<FlowV4Impl> validatedFlows = flowValidationService.validateAndSanitize(ApiType.PROXY, emptyFlows);
+        List<FlowV4> emptyFlows = List.of();
+        List<FlowV4> validatedFlows = flowValidationService.validateAndSanitize(ApiType.PROXY, emptyFlows);
         assertThat(validatedFlows).isEmpty();
-        assertThat(validatedFlows).isEqualTo(emptyFlows);
     }
 }

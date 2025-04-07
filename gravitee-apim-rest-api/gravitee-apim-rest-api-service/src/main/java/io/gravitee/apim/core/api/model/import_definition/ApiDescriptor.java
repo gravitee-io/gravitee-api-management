@@ -26,17 +26,17 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -107,7 +107,7 @@ public sealed interface ApiDescriptor {
         List<EndpointGroup> endpointGroups,
         Analytics analytics,
         FlowExecution flowExecution,
-        List<FlowV4Impl> flows,
+        List<FlowV4> flows,
         Map<String, Map<String, ResponseTemplate>> responseTemplates,
         List<Property> properties,
         List<Resource> resources,
@@ -148,7 +148,7 @@ public sealed interface ApiDescriptor {
         String background,
         List<NativeListener> listeners,
         List<NativeEndpointGroup> endpointGroups,
-        List<NativeFlowImpl> flows,
+        List<NativeFlow> flows,
         List<Property> properties,
         List<Resource> resources
     )
@@ -217,7 +217,7 @@ public sealed interface ApiDescriptor {
         Services services,
         List<io.gravitee.definition.model.plugins.resources.Resource> resources,
         Map<String, List<Rule>> paths,
-        List<FlowV2Impl> flows,
+        List<FlowV2> flows,
         Properties properties,
         Set<String> tags,
         Map<String, Pattern> pathMappings,

@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.platform.organization.flow;
 
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
@@ -28,7 +28,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import java.util.Objects;
 
 /**
- * Allows resolving {@link FlowV2Impl}s managed at platform level.
+ * Allows resolving {@link FlowV2}s managed at platform level.
  * Api is linked to an organization and inherits from all flows defined at organization level (aka platform level).
  * The current implementation relies on the {@link OrganizationManager} to retrieve the organization of the api.
  *
@@ -39,15 +39,15 @@ public class OrganizationFlowResolver extends AbstractFlowResolver<HttpBaseExecu
 
     private final String organizationId;
     private final OrganizationManager organizationManager;
-    private final AbstractBestMatchFlowSelector<FlowV2Impl> bestMatchFlowSelector;
-    private Flowable<FlowV2Impl> flows;
+    private final AbstractBestMatchFlowSelector<FlowV2> bestMatchFlowSelector;
+    private Flowable<FlowV2> flows;
     private ReactableOrganization reactableOrganization;
 
     public OrganizationFlowResolver(
         final String organizationId,
         final OrganizationManager organizationManager,
-        final ConditionFilter<HttpBaseExecutionContext, FlowV2Impl> filter,
-        final AbstractBestMatchFlowSelector<FlowV2Impl> bestMatchFlowSelector
+        final ConditionFilter<HttpBaseExecutionContext, FlowV2> filter,
+        final AbstractBestMatchFlowSelector<FlowV2> bestMatchFlowSelector
     ) {
         super(filter);
         this.organizationId = organizationId;
@@ -57,7 +57,7 @@ public class OrganizationFlowResolver extends AbstractFlowResolver<HttpBaseExecu
     }
 
     @Override
-    public Flowable<FlowV2Impl> resolve(final HttpBaseExecutionContext ctx) {
+    public Flowable<FlowV2> resolve(final HttpBaseExecutionContext ctx) {
         return super
             .resolve(ctx)
             .compose(upstream -> {
@@ -79,7 +79,7 @@ public class OrganizationFlowResolver extends AbstractFlowResolver<HttpBaseExecu
     }
 
     @Override
-    public Flowable<FlowV2Impl> provideFlows(HttpBaseExecutionContext ctx) {
+    public Flowable<FlowV2> provideFlows(HttpBaseExecutionContext ctx) {
         initFlows();
         return this.flows;
     }
@@ -94,11 +94,11 @@ public class OrganizationFlowResolver extends AbstractFlowResolver<HttpBaseExecu
         }
     }
 
-    private Flowable<FlowV2Impl> provideFlows() {
+    private Flowable<FlowV2> provideFlows() {
         if (reactableOrganization == null || reactableOrganization.getFlows() == null || reactableOrganization.getFlows().isEmpty()) {
             return Flowable.empty();
         }
 
-        return Flowable.fromIterable(reactableOrganization.getFlows().stream().filter(FlowV2Impl::isEnabled).toList());
+        return Flowable.fromIterable(reactableOrganization.getFlows().stream().filter(FlowV2::isEnabled).toList());
     }
 }

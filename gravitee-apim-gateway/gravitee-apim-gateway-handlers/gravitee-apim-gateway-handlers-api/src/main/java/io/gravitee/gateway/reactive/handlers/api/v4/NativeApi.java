@@ -17,8 +17,9 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -106,7 +107,7 @@ public class NativeApi extends ReactableApi<io.gravitee.definition.model.v4.nati
                     }
 
                     if (plan.getFlows() != null) {
-                        List<NativeFlowImpl> flows = plan.getFlows();
+                        List<NativeFlow> flows = plan.getFlows();
                         addFlowsPolicies(policies, flows);
                     }
                 });
@@ -114,17 +115,17 @@ public class NativeApi extends ReactableApi<io.gravitee.definition.model.v4.nati
 
         // Load policies from flows
         if (definition.getFlows() != null) {
-            List<NativeFlowImpl> flows = definition.getFlows();
+            List<NativeFlow> flows = definition.getFlows();
             addFlowsPolicies(policies, flows);
         }
 
         return policies;
     }
 
-    private void addFlowsPolicies(final Set<Policy> policies, final List<NativeFlowImpl> flows) {
+    private void addFlowsPolicies(final Set<Policy> policies, final List<NativeFlow> flows) {
         flows
             .stream()
-            .filter(NativeFlowImpl::isEnabled)
+            .filter(Flow::isEnabled)
             .forEach(flow -> {
                 policies.addAll(getPolicies(flow.getConnect()));
                 policies.addAll(getPolicies(flow.getInteract()));

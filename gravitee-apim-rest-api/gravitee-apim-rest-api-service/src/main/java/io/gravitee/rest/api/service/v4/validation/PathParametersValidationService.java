@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.v4.validation;
 
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import java.util.stream.Stream;
 
 /**
@@ -26,5 +26,5 @@ import java.util.stream.Stream;
  */
 @Deprecated
 public interface PathParametersValidationService {
-    void validate(ApiType apiType, Stream<FlowV4Impl> apiFlows, Stream<FlowV4Impl> planFlows);
+    void validate(ApiType apiType, Stream<FlowV4> apiFlows, Stream<FlowV4> planFlows);
 }

@@ -20,7 +20,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -185,7 +185,7 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
         return this;
     }
 
-    public ApiEntityAssert hasOnlyFlows(List<FlowV4Impl> flows) {
+    public ApiEntityAssert hasOnlyFlows(List<FlowV4> flows) {
         isNotNull();
         var assertjErrorMessage = "Expecting api to have flows:  <%s> but was: <%s>";
 

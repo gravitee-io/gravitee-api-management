@@ -17,7 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.organi
 
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import java.util.List;
@@ -46,7 +46,7 @@ public class FlowAppender {
     }
 
     private void filterFlows(final ReactableOrganization reactableOrganization) {
-        List<FlowV2Impl> filteredFlows = reactableOrganization
+        List<FlowV2> filteredFlows = reactableOrganization
             .getFlows()
             .stream()
             .filter(flow -> {

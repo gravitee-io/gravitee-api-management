@@ -1,4 +1,10 @@
 {
+  "id": "api-overlap-reverse-wildcard",
+  "name": "api-overlap-reverse-wildcard",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/api-overlap-reverse-wildcard"
+  },
   "plans": [
     {
       "id": "keyless",

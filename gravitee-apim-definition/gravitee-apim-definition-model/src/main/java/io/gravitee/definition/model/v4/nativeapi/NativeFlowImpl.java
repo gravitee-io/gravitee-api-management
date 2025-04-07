@@ -44,7 +44,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "NativeFlowV4")
 @SuperBuilder(toBuilder = true)
-public class NativeFlowImpl extends AbstractFlow {
+public class NativeFlowImpl extends AbstractFlow implements NativeFlow {
 
     @Valid
     private List<StepV4> connect;

@@ -1,4 +1,10 @@
 {
+  "id": "api-flows-equals-operator",
+  "name": "api-flows-equals-operator",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/api-flows-equals-operator"
+  },
   "plans": [
     {
       "id": "keyless",

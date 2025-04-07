@@ -26,6 +26,7 @@ import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.integration.tests.fake.ForceClientIdentifierPolicy;
 import io.gravitee.apim.integration.tests.messages.AbstractKafkaEndpointIntegrationTest;
 import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.qos.Qos;
@@ -163,9 +164,9 @@ class WebhookEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
 
         // Reconfigure the api to add a special policy that forces the client identifier since it is not possible to set it when using webhook.
         final ReactableApi<?> api = reactableApis.get(apiId);
-        ((Api) api.getDefinition()).getFlows()
-            .get(0)
-            .setRequest(List.of(StepV4.builder().name("Force client identifier").policy("force-client-identifier").enabled(true).build()));
+        ((FlowV4Impl) ((Api) api.getDefinition()).getFlows().getFirst()).setRequest(
+                List.of(StepV4.builder().name("Force client identifier").policy("force-client-identifier").enabled(true).build())
+            );
 
         redeploy(api);
 

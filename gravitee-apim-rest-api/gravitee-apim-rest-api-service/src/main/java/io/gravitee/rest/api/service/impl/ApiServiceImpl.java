@@ -58,6 +58,7 @@ import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
@@ -1511,7 +1512,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         checkPolicyConfigurations(updateApiEntity.getPaths(), updateApiEntity.getFlows(), updateApiEntity.getPlans());
     }
 
-    public void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<FlowV2Impl> flows, Set<PlanEntity> plans) {
+    public void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<FlowV2> flows, Set<PlanEntity> plans) {
         checkPathsPolicyConfiguration(paths);
         checkFlowsPolicyConfiguration(flows);
 
@@ -1537,7 +1538,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private void checkFlowsPolicyConfiguration(List<FlowV2Impl> flows) {
+    private void checkFlowsPolicyConfiguration(List<FlowV2> flows) {
         if (flows != null) {
             flows
                 .stream()
@@ -1816,8 +1817,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void removeIdsFromFlows(ApiEntity api) {
-        api.getFlows().forEach(flow -> flow.setId(null));
-        api.getPlans().forEach(plan -> plan.getFlows().forEach(flow -> flow.setId(null)));
+        api.getFlows().forEach(flow -> ((FlowV2Impl) flow).setId(null));
+        api.getPlans().forEach(plan -> plan.getFlows().forEach(flow -> ((FlowV2Impl) flow).setId(null)));
     }
 
     private void removeDescriptionFromPolicies(final ApiEntity api) {

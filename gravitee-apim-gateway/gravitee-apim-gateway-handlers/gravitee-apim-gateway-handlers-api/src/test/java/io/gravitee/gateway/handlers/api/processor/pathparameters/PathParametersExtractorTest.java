@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
@@ -161,7 +162,7 @@ class PathParametersExtractorTest {
     }
 
     private static Api readApi(String name) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new GraviteeMapper();
         return mapper.readValue(
             PathParametersExtractorTest.class.getClassLoader().getResourceAsStream("apis/pathparams/" + name + ".json"),
             io.gravitee.definition.model.Api.class

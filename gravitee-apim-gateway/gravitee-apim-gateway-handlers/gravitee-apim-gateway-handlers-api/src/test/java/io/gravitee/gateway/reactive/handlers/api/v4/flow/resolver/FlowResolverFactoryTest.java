@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
@@ -40,10 +40,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class FlowResolverFactoryTest {
 
     @Mock
-    private ConditionFilter<BaseExecutionContext, FlowV4Impl> conditionFilter;
+    private ConditionFilter<BaseExecutionContext, FlowV4> conditionFilter;
 
     @Mock
-    private AbstractBestMatchFlowSelector<FlowV4Impl> bestMatchFlowSelector;
+    private AbstractBestMatchFlowSelector<FlowV4> bestMatchFlowSelector;
 
     private FlowResolverFactory cut;
     private Api api;

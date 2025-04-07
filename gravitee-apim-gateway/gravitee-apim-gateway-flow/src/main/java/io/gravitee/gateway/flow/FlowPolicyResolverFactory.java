@@ -16,7 +16,7 @@
 package io.gravitee.gateway.flow;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
 import io.gravitee.node.plugin.cache.common.InMemoryCache;
@@ -31,7 +31,7 @@ public class FlowPolicyResolverFactory {
     public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;
 
     @VisibleForTesting
-    final Cache<FlowV2Impl, FlowPolicyResolver> cache;
+    final Cache<FlowV2, FlowPolicyResolver> cache;
 
     public FlowPolicyResolverFactory() {
         final CacheConfiguration cacheConfiguration = CacheConfiguration
@@ -43,7 +43,7 @@ public class FlowPolicyResolverFactory {
         cache = new InMemoryCache<>("flowPolicyResolverFactoryCache", cacheConfiguration);
     }
 
-    public FlowPolicyResolver create(FlowV2Impl flow) {
+    public FlowPolicyResolver create(FlowV2 flow) {
         FlowPolicyResolver cachedFlow = cache.get(flow);
         if (cachedFlow == null) {
             final FlowPolicyResolver flowPolicyResolver = new FlowPolicyResolver(flow);

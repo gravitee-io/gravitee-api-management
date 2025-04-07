@@ -48,7 +48,7 @@ import lombok.experimental.SuperBuilder;
 @Schema(name = "FlowV4")
 @SuperBuilder(toBuilder = true)
 @With
-public class FlowV4Impl extends AbstractFlow {
+public class FlowV4Impl extends AbstractFlow implements FlowV4 {
 
     @Valid
     private List<StepV4> request;
@@ -75,6 +75,7 @@ public class FlowV4Impl extends AbstractFlow {
     }
 
     @JsonIgnore
+    @Override
     public Optional<Selector> selectorByType(SelectorType type) {
         if (selectors != null) {
             return selectors.stream().filter(selector -> selector.getType() == type).findFirst();

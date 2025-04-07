@@ -17,7 +17,7 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
@@ -76,7 +76,7 @@ public class UpdatePlanEntity {
     private String selectionRule;
 
     @JsonProperty(value = "flows")
-    private List<FlowV2Impl> flows;
+    private List<FlowV2> flows;
 
     public String getName() {
         return name;
@@ -190,11 +190,11 @@ public class UpdatePlanEntity {
         this.generalConditions = generalConditions;
     }
 
-    public List<FlowV2Impl> getFlows() {
+    public List<FlowV2> getFlows() {
         return flows;
     }
 
-    public void setFlows(List<FlowV2Impl> flows) {
+    public void setFlows(List<FlowV2> flows) {
         this.flows = flows;
     }
 

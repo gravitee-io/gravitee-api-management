@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.service.v4.mapper;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -48,11 +48,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PlanMapper {
 
-    public PlanEntity toEntity(Plan plan, List<FlowV4Impl> flows) {
+    public PlanEntity toEntity(Plan plan, List<FlowV4> flows) {
         return toEntity(plan, new PlanEntity(flows));
     }
 
-    public NativePlanEntity toNativeEntity(Plan plan, List<NativeFlowImpl> flows) {
+    public NativePlanEntity toNativeEntity(Plan plan, List<NativeFlow> flows) {
         return toEntity(plan, new NativePlanEntity(flows));
     }
 

@@ -29,10 +29,10 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.sql.Date;
 import java.util.Collections;
@@ -63,7 +63,7 @@ public class CreatePlanDomainService {
         this.auditService = auditDomainService;
     }
 
-    public PlanWithFlows create(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
+    public PlanWithFlows create(Plan plan, List<? extends Flow> flows, Api api, AuditInfo auditInfo) {
         return switch (api.getDefinitionVersion()) {
             case V4 -> createV4ApiPlan(plan, flows, api, auditInfo);
             case FEDERATED -> createFederatedApiPlan(plan, auditInfo);
@@ -71,7 +71,7 @@ public class CreatePlanDomainService {
         };
     }
 
-    private PlanWithFlows createV4ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
+    private PlanWithFlows createV4ApiPlan(Plan plan, List<? extends Flow> flows, Api api, AuditInfo auditInfo) {
         if (api.isDeprecated()) {
             throw new ApiDeprecatedException(plan.getApiId());
         }
@@ -90,13 +90,13 @@ public class CreatePlanDomainService {
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
 
         if (api.isNative()) {
-            return createNativeV4ApiPlan(plan, (List<NativeFlowImpl>) flows, api, auditInfo);
+            return createNativeV4ApiPlan(plan, (List<NativeFlow>) flows, api, auditInfo);
         }
 
-        return createHttpV4ApiPlan(plan, (List<FlowV4Impl>) flows, api, auditInfo);
+        return createHttpV4ApiPlan(plan, (List<FlowV4>) flows, api, auditInfo);
     }
 
-    private PlanWithFlows createNativeV4ApiPlan(Plan plan, List<NativeFlowImpl> flows, Api api, AuditInfo auditInfo) {
+    private PlanWithFlows createNativeV4ApiPlan(Plan plan, List<NativeFlow> flows, Api api, AuditInfo auditInfo) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeNativeV4(flows);
         var createdPlan = planCrudService.create(
             plan
@@ -118,7 +118,7 @@ public class CreatePlanDomainService {
         return new PlanWithFlows(createdPlan, createdFlows);
     }
 
-    private PlanWithFlows createHttpV4ApiPlan(Plan plan, List<FlowV4Impl> flows, Api api, AuditInfo auditInfo) {
+    private PlanWithFlows createHttpV4ApiPlan(Plan plan, List<FlowV4> flows, Api api, AuditInfo auditInfo) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),

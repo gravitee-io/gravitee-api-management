@@ -19,15 +19,29 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.*;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.ReviewEntity;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.api.NewApiEntity;
+import io.gravitee.rest.api.model.api.RollbackApiEntity;
+import io.gravitee.rest.api.model.api.SwaggerApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -140,7 +154,7 @@ public interface ApiService {
 
     boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
 
-    void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<FlowV2Impl> flows, Set<PlanEntity> plans);
+    void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<FlowV2> flows, Set<PlanEntity> plans);
 
     long countByCategoryForUser(ExecutionContext executionContext, String categoryId, String userId);
 

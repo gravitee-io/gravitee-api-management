@@ -17,7 +17,7 @@ package io.gravitee.gateway.handlers.api.flow.plan;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
@@ -31,13 +31,13 @@ public class PlanFlowResolver extends ConditionalFlowResolver {
 
     private final Api api;
 
-    public PlanFlowResolver(Api api, ConditionEvaluator<FlowV2Impl> evaluator) {
+    public PlanFlowResolver(Api api, ConditionEvaluator<FlowV2> evaluator) {
         super(evaluator);
         this.api = api;
     }
 
     @Override
-    public List<FlowV2Impl> resolve0(ExecutionContext context) {
+    public List<FlowV2> resolve0(ExecutionContext context) {
         Plan plan = api.getPlan(context.request().metrics().getPlan());
 
         return (plan != null) ? plan.getFlows() : null;

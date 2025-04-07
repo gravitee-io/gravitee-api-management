@@ -17,8 +17,8 @@ package io.gravitee.definition.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.Plugin;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Optional;
@@ -39,14 +39,14 @@ import lombok.experimental.SuperBuilder;
 @Schema(name = "PlanV4")
 public class Plan extends AbstractPlan {
 
-    private List<FlowV4Impl> flows;
+    private List<FlowV4> flows;
 
     @JsonIgnore
     @Override
     public List<Plugin> getPlugins() {
         return Optional
             .ofNullable(this.flows)
-            .map(f -> f.stream().filter(AbstractFlow::isEnabled).map(AbstractFlow::getPlugins).flatMap(List::stream).toList())
+            .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
             .orElse(List.of());
     }
 }

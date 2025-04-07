@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
@@ -69,7 +69,7 @@ public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest
         List<HttpMethod> firstRuleMethods,
         String firstRuleDescription
     ) {
-        List<FlowV2Impl> flows = api.getFlows().stream().filter(flow1 -> flow1.getPath().equals(path)).collect(Collectors.toList());
+        List<FlowV2> flows = api.getFlows().stream().filter(flow1 -> flow1.getPath().equals(path)).collect(Collectors.toList());
         //        assertEquals(1, flows.size());
         assertEquals(expectedRuleSize, flows.get(0).getPre().size());
         assertTrue(flows.get(0).getMethods().containsAll(firstRuleMethods));

@@ -18,6 +18,7 @@ package io.gravitee.gateway.flow.benchmark;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.util.MultiValueMap;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
@@ -87,7 +88,7 @@ public class BestMatchFlowResolverBenchmark {
         new BestMatchFlowResolver(flowResolver, new BestMatchFlowSelector()).resolve(executionContext);
     }
 
-    private List<FlowV2Impl> buildFlows() {
+    private List<FlowV2> buildFlows() {
         return List
             .of(
                 "/book",
@@ -121,15 +122,15 @@ public class BestMatchFlowResolverBenchmark {
 
     private static class TestFlowResolver extends ConditionalFlowResolver {
 
-        private List<FlowV2Impl> flows;
+        private List<FlowV2> flows;
 
-        public TestFlowResolver(ConditionEvaluator evaluator, List<FlowV2Impl> flows) {
+        public TestFlowResolver(ConditionEvaluator evaluator, List<FlowV2> flows) {
             super(evaluator);
             this.flows = flows;
         }
 
         @Override
-        protected List<FlowV2Impl> resolve0(ExecutionContext context) {
+        protected List<FlowV2> resolve0(ExecutionContext context) {
             return flows;
         }
     }

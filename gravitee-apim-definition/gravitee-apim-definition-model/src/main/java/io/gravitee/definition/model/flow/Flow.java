@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4.validation;
+package io.gravitee.definition.model.flow;
 
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.Plugin;
 import java.util.List;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- * @deprecated Use {@link io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService} instead
+ * Common interface for all Flow implementations.
  */
-@Deprecated
-public interface FlowValidationService {
-    List<FlowV4> validateAndSanitize(final ApiType apiType, List<FlowV4> flows);
+public interface Flow {
+    String getId();
+
+    String getName();
+
+    boolean isEnabled();
+
+    List<Plugin> getPlugins();
 }

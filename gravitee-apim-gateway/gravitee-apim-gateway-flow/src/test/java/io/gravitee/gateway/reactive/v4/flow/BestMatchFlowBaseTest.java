@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.v4.flow;
 
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -44,7 +45,7 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
         flowResolver = new TestFlowResolver(conditionFilter, buildFlows());
     }
 
-    private List<FlowV4Impl> buildFlows() {
+    private List<FlowV4> buildFlows() {
         return flowPaths
             .stream()
             .map(path -> {
@@ -70,20 +71,20 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
 
     protected static class TestFlowResolver extends AbstractFlowResolver {
 
-        private final List<FlowV4Impl> flows;
+        private final List<FlowV4> flows;
 
-        public TestFlowResolver(ConditionFilter<BaseExecutionContext, FlowV4Impl> conditionFilter, List<FlowV4Impl> flows) {
+        public TestFlowResolver(ConditionFilter<BaseExecutionContext, FlowV4> conditionFilter, List<FlowV4> flows) {
             super(conditionFilter);
             this.flows = flows;
         }
 
         @Override
-        public Flowable<FlowV4Impl> provideFlows(BaseExecutionContext ctx) {
+        public Flowable<FlowV4> provideFlows(BaseExecutionContext ctx) {
             return Flowable.fromIterable(flows);
         }
 
         @Override
-        public Flowable<FlowV4Impl> resolve(BaseExecutionContext ctx) {
+        public Flowable<FlowV4> resolve(BaseExecutionContext ctx) {
             return super.resolve(ctx);
         }
     }

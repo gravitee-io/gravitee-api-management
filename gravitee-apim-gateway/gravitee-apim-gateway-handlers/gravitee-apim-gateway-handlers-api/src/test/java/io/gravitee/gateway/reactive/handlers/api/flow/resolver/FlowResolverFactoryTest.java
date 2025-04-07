@@ -21,7 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -47,7 +47,7 @@ class FlowResolverFactoryTest {
     protected static final String ORGANIZATION_ID = "ORGANIZATION_ID";
 
     @Mock
-    private ConditionFilter<HttpBaseExecutionContext, FlowV2Impl> filter;
+    private ConditionFilter<HttpBaseExecutionContext, FlowV2> filter;
 
     @Mock
     private AbstractBestMatchFlowSelector bestMatchFlowSelector;

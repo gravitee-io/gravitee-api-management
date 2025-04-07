@@ -25,7 +25,6 @@ import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
@@ -52,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper
+@Mapper(uses = FlowAdapter.class)
 public interface ApiCRDAdapter {
     ApiCRDAdapter INSTANCE = Mappers.getMapper(ApiCRDAdapter.class);
     Logger logger = LoggerFactory.getLogger(ApiCRDAdapter.class);
@@ -64,6 +63,7 @@ public interface ApiCRDAdapter {
     @Mapping(target = "pages", expression = "java(mapPages(exportEntity))")
     @Mapping(target = "members", expression = "java(mapMembers(exportEntity))")
     @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
+    @Mapping(target = "flows", expression = "java(apiEntity.getFlows())")
     ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, ApiEntity apiEntity);
 
     @Mapping(target = "version", source = "apiEntity.apiVersion")
@@ -73,6 +73,7 @@ public interface ApiCRDAdapter {
     @Mapping(target = "pages", expression = "java(mapPages(exportEntity))")
     @Mapping(target = "members", expression = "java(mapMembers(exportEntity))")
     @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
+    @Mapping(target = "flows", expression = "java(apiEntity.getFlows())")
     ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, NativeApiEntity apiEntity);
 
     default ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, GenericApiEntity apiEntity) {
@@ -84,8 +85,11 @@ public interface ApiCRDAdapter {
         return null;
     }
 
-    PlanCRD toCRDPlan(PlanEntity planEntity);
-    PlanCRD toCRDPlan(NativePlanEntity planEntity);
+    @Mapping(target = "flows", expression = "java(source.getFlows())")
+    PlanCRD toCRDPlan(PlanEntity source);
+
+    @Mapping(target = "flows", expression = "java(source.getFlows())")
+    PlanCRD toCRDPlan(NativePlanEntity source);
 
     default PlanCRD toCRDPlan(GenericPlanEntity genericPlanEntity) {
         if (genericPlanEntity instanceof PlanEntity planEntity) {

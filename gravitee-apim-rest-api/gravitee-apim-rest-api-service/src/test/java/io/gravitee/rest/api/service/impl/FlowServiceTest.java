@@ -18,10 +18,14 @@ package io.gravitee.rest.api.service.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
@@ -162,7 +166,7 @@ public class FlowServiceTest {
 
         when(flowRepository.findByReference(FlowReferenceType.API, "api-id")).thenReturn(flows);
 
-        List<FlowV2Impl> byReference = flowService.findByReference(FlowReferenceType.API, "api-id");
+        List<FlowV2> byReference = flowService.findByReference(FlowReferenceType.API, "api-id");
 
         assertNotNull(byReference);
         assertEquals(byReference.stream().map(f -> f.getId()).collect(Collectors.joining(", ", "[", "]")), "[flow-0, flow-1, flow-2]");
@@ -182,12 +186,12 @@ public class FlowServiceTest {
         io.gravitee.repository.management.model.flow.Flow createdFlow5 = createRepoFlow(5);
         when(flowRepository.createAll(any())).thenReturn(List.of(createdFlow4, createdFlow5));
 
-        List<FlowV2Impl> savedFlows = new ArrayList<>();
+        List<FlowV2> savedFlows = new ArrayList<>();
         savedFlows.add(createFlow("flow-1"));
         savedFlows.add(createFlow("ignore"));
         savedFlows.add(createFlow(null));
 
-        List<FlowV2Impl> byReference = flowService.save(FlowReferenceType.API, "api-id", savedFlows);
+        List<FlowV2> byReference = flowService.save(FlowReferenceType.API, "api-id", savedFlows);
 
         verify(flowRepository, times(1)).delete("flow-0");
         verify(flowRepository, times(1)).delete("flow-2");
@@ -205,11 +209,11 @@ public class FlowServiceTest {
         io.gravitee.repository.management.model.flow.Flow createdFlow2 = createRepoFlow(2);
         when(flowRepository.createAll(any())).thenReturn(List.of(createdFlow1, createdFlow2));
 
-        List<FlowV2Impl> savedFlows = new ArrayList<>();
+        List<FlowV2> savedFlows = new ArrayList<>();
         savedFlows.add(createFlow("flow-1"));
         savedFlows.add(createFlow(null));
 
-        List<FlowV2Impl> byReference = flowService.save(FlowReferenceType.API, "api-id", savedFlows);
+        List<FlowV2> byReference = flowService.save(FlowReferenceType.API, "api-id", savedFlows);
 
         verify(flowRepository, never()).delete(any());
         verify(flowRepository, never()).updateAll(any());

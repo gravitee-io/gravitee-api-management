@@ -1,4 +1,10 @@
 {
+  "id": "simple-api",
+  "name": "simple-api",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/simple-api"
+  },
   "plans": [
     {
       "id": "keyless",

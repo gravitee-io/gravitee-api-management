@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl.validation;
 
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
@@ -52,7 +52,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
     private final EntrypointConnectorPluginService entrypointConnectorPluginService;
 
     @Override
-    public List<FlowV4Impl> validateAndSanitize(final ApiType apiType, List<FlowV4Impl> flows) {
+    public List<FlowV4> validateAndSanitize(final ApiType apiType, List<FlowV4> flows) {
         if (flows != null) {
             flows.forEach(flow -> {
                 // Check duplicated selectors
@@ -68,7 +68,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
         return flows;
     }
 
-    private void checkSelectorsForType(final ApiType apiType, final FlowV4Impl flow) {
+    private void checkSelectorsForType(final ApiType apiType, final FlowV4 flow) {
         if (flow.getSelectors() != null) {
             if (ApiType.PROXY == apiType) {
                 Set<String> invalidSelectors = flow
@@ -96,7 +96,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
         }
     }
 
-    private void checkChannelAsyncEntrypoint(final FlowV4Impl flow) {
+    private void checkChannelAsyncEntrypoint(final FlowV4 flow) {
         Optional<ChannelSelector> channelSelectorOpt = flow
             .getSelectors()
             .stream()
@@ -124,7 +124,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
         }
     }
 
-    private void checkPolicyConfiguration(final FlowV4Impl flow) {
+    private void checkPolicyConfiguration(final FlowV4 flow) {
         Stream
             .of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish())
             .filter(Objects::nonNull)
@@ -133,7 +133,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
             .forEach(step -> step.setConfiguration(policyService.validatePolicyConfiguration(step.getPolicy(), step.getConfiguration())));
     }
 
-    private void checkDuplicatedSelectors(final FlowV4Impl flow) {
+    private void checkDuplicatedSelectors(final FlowV4 flow) {
         if (flow.getSelectors() != null) {
             Set<Selector> seenSelectors = new HashSet<>();
             Set<String> duplicatedSelectors = flow

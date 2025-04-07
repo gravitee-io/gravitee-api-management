@@ -24,10 +24,10 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.service.AbstractApiServices;
@@ -330,7 +330,7 @@ public interface ApiMapper {
             .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    default List<? extends AbstractFlow> mapApiCRDFlows(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec) {
+    default List<? extends Flow> mapApiCRDFlows(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec) {
         if (CollectionUtils.isEmpty(spec.getFlows())) {
             return List.of();
         }
@@ -370,7 +370,7 @@ public interface ApiMapper {
         }
     }
 
-    default List<? extends AbstractFlow> mapApiV4Flows(ApiV4 apiV4) {
+    default List<? extends Flow> mapApiV4Flows(ApiV4 apiV4) {
         if (CollectionUtils.isEmpty(apiV4.getFlows())) {
             return List.of();
         }

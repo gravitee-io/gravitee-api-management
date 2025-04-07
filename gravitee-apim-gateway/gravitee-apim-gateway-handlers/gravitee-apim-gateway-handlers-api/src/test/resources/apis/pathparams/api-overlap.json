@@ -1,4 +1,10 @@
 {
+  "id": "api-overlap",
+  "name": "api-overlap",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/api-overlap"
+  },
   "plans": [
     {
       "id": "keyless",

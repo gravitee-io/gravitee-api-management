@@ -20,21 +20,21 @@ import io.gravitee.apim.core.api.model.Api.ApiBuilder;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -85,7 +85,7 @@ public class ApiExport {
     private List<Resource> resources = new ArrayList<>();
 
     private FlowExecution flowExecution;
-    private List<? extends AbstractFlow> flows;
+    private List<? extends Flow> flows;
 
     @Builder.Default
     private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
@@ -145,7 +145,7 @@ public class ApiExport {
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups((List<EndpointGroup>) endpointGroups)
             .failover(failover)
-            .flows((List<FlowV4Impl>) flows)
+            .flows((List<FlowV4>) flows)
             .listeners((List<Listener>) listeners)
             .name(name)
             .properties(properties)
@@ -165,7 +165,7 @@ public class ApiExport {
             .apiVersion(apiVersion)
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups((List<NativeEndpointGroup>) endpointGroups)
-            .flows((List<NativeFlowImpl>) flows)
+            .flows((List<NativeFlow>) flows)
             .listeners((List<NativeListener>) listeners)
             .name(name)
             .properties(properties)

@@ -16,83 +16,83 @@
 package inmemory;
 
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
-import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlternative<AbstractFlow> {
+public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlternative<Flow> {
 
-    final Map<String, List<FlowV4Impl>> apiFlowsHttpV4 = new HashMap<>();
-    final Map<String, List<FlowV4Impl>> planFlowsHttpV4 = new HashMap<>();
+    final Map<String, List<FlowV4>> apiFlowsHttpV4 = new HashMap<>();
+    final Map<String, List<FlowV4>> planFlowsHttpV4 = new HashMap<>();
 
-    final Map<String, List<NativeFlowImpl>> apiFlowsNativeV4 = new HashMap<>();
-    final Map<String, List<NativeFlowImpl>> planFlowsNativeV4 = new HashMap<>();
+    final Map<String, List<NativeFlow>> apiFlowsNativeV4 = new HashMap<>();
+    final Map<String, List<NativeFlow>> planFlowsNativeV4 = new HashMap<>();
 
-    final Map<String, List<FlowV2Impl>> apiFlowsV2 = new HashMap<>();
-    final Map<String, List<FlowV2Impl>> planFlowsV2 = new HashMap<>();
+    final Map<String, List<FlowV2>> apiFlowsV2 = new HashMap<>();
+    final Map<String, List<FlowV2>> planFlowsV2 = new HashMap<>();
 
     @Override
-    public List<FlowV4Impl> savePlanFlows(String planId, List<FlowV4Impl> flows) {
+    public List<FlowV4> savePlanFlows(String planId, List<FlowV4> flows) {
         planFlowsHttpV4.put(planId, flows);
         return flows;
     }
 
     @Override
-    public List<FlowV4Impl> saveApiFlows(String apiId, List<FlowV4Impl> flows) {
+    public List<FlowV4> saveApiFlows(String apiId, List<FlowV4> flows) {
         apiFlowsHttpV4.put(apiId, flows);
         return flows;
     }
 
     @Override
-    public List<FlowV4Impl> getApiV4Flows(String apiId) {
+    public List<FlowV4> getApiV4Flows(String apiId) {
         return apiFlowsHttpV4.getOrDefault(apiId, new ArrayList<>());
     }
 
     @Override
-    public List<FlowV4Impl> getPlanV4Flows(String planId) {
+    public List<FlowV4> getPlanV4Flows(String planId) {
         return planFlowsHttpV4.getOrDefault(planId, new ArrayList<>());
     }
 
     @Override
-    public List<FlowV2Impl> getApiV2Flows(String apiId) {
+    public List<FlowV2> getApiV2Flows(String apiId) {
         return apiFlowsV2.getOrDefault(apiId, new ArrayList<>());
     }
 
     @Override
-    public List<FlowV2Impl> getPlanV2Flows(String planId) {
+    public List<FlowV2> getPlanV2Flows(String planId) {
         return planFlowsV2.getOrDefault(planId, new ArrayList<>());
     }
 
     @Override
-    public List<NativeFlowImpl> saveNativeApiFlows(String apiId, List<NativeFlowImpl> flows) {
+    public List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows) {
         apiFlowsNativeV4.put(apiId, flows);
         return flows;
     }
 
     @Override
-    public List<NativeFlowImpl> saveNativePlanFlows(String planId, List<NativeFlowImpl> flows) {
+    public List<NativeFlow> saveNativePlanFlows(String planId, List<NativeFlow> flows) {
         planFlowsNativeV4.put(planId, flows);
         return flows;
     }
 
     @Override
-    public List<NativeFlowImpl> getNativeApiFlows(String apiId) {
+    public List<NativeFlow> getNativeApiFlows(String apiId) {
         return apiFlowsNativeV4.getOrDefault(apiId, new ArrayList<>());
     }
 
     @Override
-    public List<NativeFlowImpl> getNativePlanFlows(String planId) {
+    public List<NativeFlow> getNativePlanFlows(String planId) {
         return planFlowsNativeV4.getOrDefault(planId, new ArrayList<>());
     }
 
     @Override
-    public void initWith(List<AbstractFlow> items) {
+    public void initWith(List<Flow> items) {
         throw new UnsupportedOperationException();
     }
 
@@ -102,7 +102,7 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     }
 
     @Override
-    public List<AbstractFlow> storage() {
+    public List<Flow> storage() {
         var v4Flows = Stream
             .concat(planFlowsHttpV4.values().stream(), apiFlowsHttpV4.values().stream())
             .reduce(
@@ -122,18 +122,18 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
                 }
             );
 
-        var flows = new ArrayList<AbstractFlow>();
+        var flows = new ArrayList<Flow>();
         flows.addAll(v4Flows);
         flows.addAll(nativeFlows);
         return flows;
     }
 
-    public List<FlowV2Impl> savePlanFlowsV2(String planId, List<FlowV2Impl> flows) {
+    public List<FlowV2> savePlanFlowsV2(String planId, List<FlowV2> flows) {
         planFlowsV2.put(planId, flows);
         return flows;
     }
 
-    public List<FlowV2Impl> saveApiFlowsV2(String apiId, List<FlowV2Impl> flows) {
+    public List<FlowV2> saveApiFlowsV2(String apiId, List<FlowV2> flows) {
         apiFlowsV2.put(apiId, flows);
         return flows;
     }

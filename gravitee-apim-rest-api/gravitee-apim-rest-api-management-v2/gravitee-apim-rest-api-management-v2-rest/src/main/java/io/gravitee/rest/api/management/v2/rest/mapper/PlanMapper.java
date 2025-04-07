@@ -21,8 +21,8 @@ import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
@@ -294,7 +294,7 @@ public interface PlanMapper {
     @Mapping(target = "securityConfiguration", source = "security.configuration", qualifiedByName = "serializeConfiguration")
     PlanUpdates mapToPlanUpdates(UpdatePlanV4 updatePlanV4);
 
-    default List<? extends AbstractFlow> mapApiCRDPlanFlows(PlanCRD plan, String apiType) {
+    default List<? extends Flow> mapApiCRDPlanFlows(PlanCRD plan, String apiType) {
         if (CollectionUtils.isEmpty(plan.getFlows())) {
             return List.of();
         }

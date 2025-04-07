@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl.validation;
 
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
@@ -48,7 +48,7 @@ public class PathParametersValidationServiceImpl implements PathParametersValida
     private static final Pattern SEPARATOR_SPLITTER = Pattern.compile(PATH_SEPARATOR);
     private static final Pattern PARAM_PATTERN = Pattern.compile(":\\w*");
 
-    private static final Map<ApiType, Function<FlowV4Impl, Optional<String>>> PATH_EXTRACTOR = Map.of(
+    private static final Map<ApiType, Function<FlowV4, Optional<String>>> PATH_EXTRACTOR = Map.of(
         ApiType.PROXY,
         flow -> flow.selectorByType(SelectorType.HTTP).stream().map(selector -> ((HttpSelector) selector).getPath()).findFirst(),
         ApiType.MESSAGE,
@@ -56,20 +56,20 @@ public class PathParametersValidationServiceImpl implements PathParametersValida
     );
 
     @Override
-    public void validate(ApiType apiType, Stream<FlowV4Impl> apiFlows, Stream<FlowV4Impl> planFlows) {
+    public void validate(ApiType apiType, Stream<FlowV4> apiFlows, Stream<FlowV4> planFlows) {
         apiFlows = apiFlows == null ? Stream.empty() : apiFlows;
         planFlows = planFlows == null ? Stream.empty() : planFlows;
         // group all flows in one stream
-        final Stream<FlowV4Impl> flowsWithPathParam = filterFlowsWithPathParam(apiType, apiFlows, planFlows);
+        final Stream<FlowV4> flowsWithPathParam = filterFlowsWithPathParam(apiType, apiFlows, planFlows);
         // foreach flow, reprendre PathParameters.extractPathParamsAndPAttern
         validatePathParamOverlapping(apiType, flowsWithPathParam);
     }
 
-    private Stream<FlowV4Impl> filterFlowsWithPathParam(ApiType apiType, Stream<FlowV4Impl> apiFlows, Stream<FlowV4Impl> planFlows) {
-        return Stream.concat(apiFlows, planFlows).filter(FlowV4Impl::isEnabled).filter(flow -> containsPathParam(apiType, flow));
+    private Stream<FlowV4> filterFlowsWithPathParam(ApiType apiType, Stream<FlowV4> apiFlows, Stream<FlowV4> planFlows) {
+        return Stream.concat(apiFlows, planFlows).filter(FlowV4::isEnabled).filter(flow -> containsPathParam(apiType, flow));
     }
 
-    private void validatePathParamOverlapping(ApiType apiType, Stream<FlowV4Impl> flows) {
+    private void validatePathParamOverlapping(ApiType apiType, Stream<FlowV4> flows) {
         Map<String, Integer> paramWithPosition = new HashMap<>();
         Map<String, List<String>> pathsByParam = new HashMap<>();
         final AtomicBoolean hasOverlap = new AtomicBoolean(false);
@@ -124,12 +124,12 @@ public class PathParametersValidationServiceImpl implements PathParametersValida
         return paramWithPosition.containsKey(param) && !paramWithPosition.get(param).equals(i);
     }
 
-    private static Boolean containsPathParam(ApiType apiType, FlowV4Impl flow) {
+    private static Boolean containsPathParam(ApiType apiType, FlowV4 flow) {
         final String path = extractPath(apiType, flow);
         return PARAM_PATTERN.asPredicate().test(path);
     }
 
-    private static String extractPath(ApiType apiType, FlowV4Impl flow) {
+    private static String extractPath(ApiType apiType, FlowV4 flow) {
         return PATH_EXTRACTOR.get(apiType).apply(flow).orElse("");
     }
 }

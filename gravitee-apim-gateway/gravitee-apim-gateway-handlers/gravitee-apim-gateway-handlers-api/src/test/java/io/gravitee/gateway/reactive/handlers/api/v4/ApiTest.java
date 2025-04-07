@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.plan.Plan;
@@ -120,7 +121,7 @@ class ApiTest {
         return plan;
     }
 
-    private List<FlowV4Impl> aFlowList(String name) {
+    private List<FlowV4> aFlowList(String name) {
         FlowV4Impl enabledFlow = new FlowV4Impl();
         enabledFlow.setName(name);
         enabledFlow.setEnabled(true);

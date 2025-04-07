@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
@@ -34,12 +34,12 @@ import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 @SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 public class FlowResolverFactory {
 
-    private final ConditionFilter<BaseExecutionContext, FlowV4Impl> apiFlowFilter;
-    private final AbstractBestMatchFlowSelector<FlowV4Impl> bestMatchFlowSelector;
+    private final ConditionFilter<BaseExecutionContext, FlowV4> apiFlowFilter;
+    private final AbstractBestMatchFlowSelector<FlowV4> bestMatchFlowSelector;
 
     public FlowResolverFactory(
-        final ConditionFilter<BaseExecutionContext, FlowV4Impl> apiFlowFilter,
-        final AbstractBestMatchFlowSelector<FlowV4Impl> bestMatchFlowSelector
+        final ConditionFilter<BaseExecutionContext, FlowV4> apiFlowFilter,
+        final AbstractBestMatchFlowSelector<FlowV4> bestMatchFlowSelector
     ) {
         this.apiFlowFilter = apiFlowFilter;
         this.bestMatchFlowSelector = bestMatchFlowSelector;

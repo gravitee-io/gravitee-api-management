@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -45,7 +45,7 @@ public class PlanEntity extends BasePlanEntity {
     @DeploymentRequired
     @JsonProperty(value = "flows", required = true)
     @Builder.Default
-    private List<FlowV2Impl> flows = new ArrayList<>();
+    private List<FlowV2> flows = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {

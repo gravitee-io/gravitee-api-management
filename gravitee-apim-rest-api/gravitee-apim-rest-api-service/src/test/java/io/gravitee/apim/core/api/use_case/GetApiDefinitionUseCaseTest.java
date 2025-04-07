@@ -27,9 +27,12 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
@@ -78,7 +81,7 @@ class GetApiDefinitionUseCaseTest {
         void should_return_api_definition_with_flows() {
             // Given
             //   Api flow
-            List<FlowV4Impl> flows = List.of(FlowV4Impl.builder().name("flow").selectors(List.of(new HttpSelector())).build());
+            List<FlowV4> flows = List.of(FlowV4Impl.builder().name("flow").selectors(List.of(new HttpSelector())).build());
             flowCrudServiceInMemory.saveApiFlows(API_ID, flows);
 
             //   Plan flow
@@ -90,7 +93,7 @@ class GetApiDefinitionUseCaseTest {
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 
-            List<FlowV4Impl> planFlows = List.of(FlowV4Impl.builder().name("plan-flow").selectors(List.of(new HttpSelector())).build());
+            List<FlowV4> planFlows = List.of(FlowV4Impl.builder().name("plan-flow").selectors(List.of(new HttpSelector())).build());
             flowCrudServiceInMemory.savePlanFlows(planPublished.getId(), planFlows);
             flowCrudServiceInMemory.savePlanFlows(planDeprecated.getId(), planFlows);
             flowCrudServiceInMemory.savePlanFlows(planStaging.getId(), planFlows);
@@ -136,7 +139,7 @@ class GetApiDefinitionUseCaseTest {
         void should_return_api_definition_with_flows() {
             // Given
             //   Api flow
-            List<NativeFlowImpl> flows = List.of(NativeFlowImpl.builder().name("flow").build());
+            List<NativeFlow> flows = List.of(NativeFlowImpl.builder().name("flow").build());
             flowCrudServiceInMemory.saveNativeApiFlows(API_ID, flows);
 
             //   Plan flow
@@ -148,7 +151,7 @@ class GetApiDefinitionUseCaseTest {
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 
-            List<NativeFlowImpl> planFlows = List.of(NativeFlowImpl.builder().name("plan-flow").build());
+            List<NativeFlow> planFlows = List.of(NativeFlowImpl.builder().name("plan-flow").build());
             flowCrudServiceInMemory.saveNativePlanFlows(planPublished.getId(), planFlows);
             flowCrudServiceInMemory.saveNativePlanFlows(planDeprecated.getId(), planFlows);
             flowCrudServiceInMemory.saveNativePlanFlows(planStaging.getId(), planFlows);
@@ -193,7 +196,7 @@ class GetApiDefinitionUseCaseTest {
         void should_return_api_definition_with_flows() {
             // Given
             //   Api flow
-            var flows = List.of(FlowV2Impl.builder().name("flow").build());
+            List<FlowV2> flows = List.of(FlowV2Impl.builder().name("flow").build());
             flowCrudServiceInMemory.saveApiFlowsV2(API_ID, flows);
 
             //   Plan flow
@@ -205,7 +208,7 @@ class GetApiDefinitionUseCaseTest {
             planStaging.setPlanStatus(PlanStatus.STAGING);
             planQueryServiceInMemory.initWith(List.of(planPublished, planDeprecated, planStaging));
 
-            var planFlows = List.of(FlowV2Impl.builder().name("plan-flow").build());
+            List<FlowV2> planFlows = List.of(FlowV2Impl.builder().name("plan-flow").build());
             flowCrudServiceInMemory.savePlanFlowsV2(planPublished.getId(), planFlows);
             flowCrudServiceInMemory.savePlanFlowsV2(planDeprecated.getId(), planFlows);
             flowCrudServiceInMemory.savePlanFlowsV2(planStaging.getId(), planFlows);

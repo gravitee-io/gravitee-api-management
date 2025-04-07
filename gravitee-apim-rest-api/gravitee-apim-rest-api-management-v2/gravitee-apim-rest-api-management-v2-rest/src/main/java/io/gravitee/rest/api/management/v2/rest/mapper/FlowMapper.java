@@ -20,8 +20,8 @@ import static java.util.Optional.ofNullable;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
@@ -142,11 +142,11 @@ public interface FlowMapper {
     @Mapping(target = "post", source = "post", qualifiedByName = "mapStepV2")
     FlowV2 map(FlowV2Impl flowV2);
 
-    default List<? extends AbstractFlow> map(@Valid List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> flows, Api api) {
+    default List<? extends Flow> map(@Valid List<io.gravitee.rest.api.management.v2.rest.model.FlowV4> flows, Api api) {
         return ofNullable(api.isNative() ? mapToNativeV4(flows) : mapToHttpV4(flows)).orElseGet(List::of);
     }
 
-    default <T extends AbstractFlow> io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(T src) {
+    default <T extends Flow> io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(T src) {
         return switch (src) {
             case FlowV4Impl flow -> map(flow);
             case NativeFlowImpl nativeFlow -> map(nativeFlow);

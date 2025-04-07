@@ -28,7 +28,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -253,11 +253,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         }
     }
 
-    private void validatePathParameters(Api api, List<FlowV4Impl> newPlanFlows) throws TechnicalException {
+    private void validatePathParameters(Api api, List<FlowV4> newPlanFlows) throws TechnicalException {
         final Set<Plan> plans = planRepository.findByApi(api.getId());
-        final Stream<FlowV4Impl> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
+        final Stream<FlowV4> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
 
-        Stream<FlowV4Impl> planFlows = plans
+        Stream<FlowV4> planFlows = plans
             .stream()
             .map(plan -> flowService.findByReference(FlowReferenceType.PLAN, plan.getId()))
             .flatMap(Collection::stream);
@@ -418,9 +418,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private void validatePathParameters(Api api, UpdatePlanEntity updatePlan) throws TechnicalException {
         final Set<Plan> plans = planRepository.findByApi(api.getId());
-        final Stream<FlowV4Impl> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
+        final Stream<FlowV4> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
 
-        Stream<FlowV4Impl> planFlows = plans
+        Stream<FlowV4> planFlows = plans
             .stream()
             .map(plan -> {
                 if (plan.getId().equals(updatePlan.getId())) {
@@ -752,7 +752,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private PlanEntity mapToEntity(final Plan plan) {
-        List<FlowV4Impl> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
+        List<FlowV4> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
         return planMapper.toEntity(plan, flows);
     }
 

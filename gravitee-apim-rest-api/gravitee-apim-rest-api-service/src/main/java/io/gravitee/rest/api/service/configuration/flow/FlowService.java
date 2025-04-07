@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.configuration.flow;
 
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -24,6 +24,6 @@ public interface FlowService {
     String getConfigurationSchemaForm();
     String getApiFlowSchemaForm();
     String getPlatformFlowSchemaForm(ExecutionContext executionContext);
-    List<FlowV2Impl> findByReference(FlowReferenceType flowReferenceType, String referenceId);
-    List<FlowV2Impl> save(FlowReferenceType flowReferenceType, String referenceId, List<FlowV2Impl> flows);
+    List<FlowV2> findByReference(FlowReferenceType flowReferenceType, String referenceId);
+    List<FlowV2> save(FlowReferenceType flowReferenceType, String referenceId, List<FlowV2> flows);
 }

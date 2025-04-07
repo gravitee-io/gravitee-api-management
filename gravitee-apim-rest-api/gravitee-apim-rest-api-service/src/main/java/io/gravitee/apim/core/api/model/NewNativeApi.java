@@ -17,7 +17,7 @@ package io.gravitee.apim.core.api.model;
 
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import java.util.List;
 import lombok.Builder;
@@ -39,7 +39,7 @@ public class NewNativeApi extends AbstractNewApi {
     private List<NativeEndpointGroup> endpointGroups;
 
     @Builder.Default
-    private List<NativeFlowImpl> flows = List.of();
+    private List<NativeFlow> flows = List.of();
 
     /**
      * @return An instance of {@link NativeApi.NativeApiBuilder} based on the current state of this NewNativeApi.

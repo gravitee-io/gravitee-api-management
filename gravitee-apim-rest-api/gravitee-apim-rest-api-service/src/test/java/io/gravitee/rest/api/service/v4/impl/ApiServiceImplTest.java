@@ -44,7 +44,6 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -64,6 +63,7 @@ import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
@@ -735,7 +735,7 @@ public class ApiServiceImplTest {
     public void shouldUpdateFlows() throws TechnicalException {
         prepareUpdate();
 
-        List<FlowV4Impl> apiFlows = List.of(mock(FlowV4Impl.class), mock(FlowV4Impl.class));
+        List<FlowV4> apiFlows = List.of(new FlowV4Impl(), new FlowV4Impl());
         updateApiEntity.setFlows(apiFlows);
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);

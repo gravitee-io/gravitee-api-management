@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
@@ -41,7 +41,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class HttpMethodConditionEvaluatorTest {
 
-    private final ConditionEvaluator<FlowV2Impl> evaluator = new HttpMethodConditionEvaluator();
+    private final ConditionEvaluator<FlowV2> evaluator = new HttpMethodConditionEvaluator();
 
     @Mock
     private ExecutionContext context;
@@ -50,7 +50,7 @@ public class HttpMethodConditionEvaluatorTest {
     private Request request;
 
     @Mock
-    private FlowV2Impl flow;
+    private FlowV2 flow;
 
     @Before
     public void setUp() {

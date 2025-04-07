@@ -16,11 +16,11 @@
 package io.gravitee.apim.core.plan.domain_service;
 
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.List;
 
 public interface PlanSynchronizationService {
-    boolean checkSynchronized(Plan oldPlan, List<FlowV4Impl> oldFlows, Plan newPlan, List<FlowV4Impl> newFlows);
-    boolean checkNativePlanSynchronized(Plan oldPlan, List<NativeFlowImpl> oldFlows, Plan newPlan, List<NativeFlowImpl> newFlows);
+    boolean checkSynchronized(Plan oldPlan, List<FlowV4> oldFlows, Plan newPlan, List<FlowV4> newFlows);
+    boolean checkNativePlanSynchronized(Plan oldPlan, List<NativeFlow> oldFlows, Plan newPlan, List<NativeFlow> newFlows);
 }

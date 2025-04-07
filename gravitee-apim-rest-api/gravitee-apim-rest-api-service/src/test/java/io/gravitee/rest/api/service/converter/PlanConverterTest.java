@@ -15,11 +15,19 @@
  */
 package io.gravitee.rest.api.service.converter;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.repository.management.model.Plan;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.NewPlanEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.PlanType;
+import io.gravitee.rest.api.model.PlanValidationType;
+import io.gravitee.rest.api.model.UpdatePlanEntity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,7 +56,7 @@ public class PlanConverterTest {
         plan.setGeneralConditions("general_conditions");
         plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
 
-        List<FlowV2Impl> flows = new ArrayList<>();
+        List<FlowV2> flows = new ArrayList<>();
 
         PlanEntity planEntity = planConverter.toPlanEntity(plan, flows);
 

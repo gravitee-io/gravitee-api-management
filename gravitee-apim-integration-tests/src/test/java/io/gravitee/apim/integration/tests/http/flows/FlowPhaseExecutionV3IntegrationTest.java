@@ -27,10 +27,10 @@ import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -128,7 +128,7 @@ class FlowPhaseExecutionV3IntegrationTest {
                 definition
                     .getFlows()
                     .forEach(flow -> {
-                        flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS));
+                        ((FlowV2Impl) flow).setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS));
                     });
             }
         }

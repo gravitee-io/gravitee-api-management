@@ -19,11 +19,13 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.StepV2;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -71,11 +73,36 @@ public interface FlowAdapter {
 
     FlowV4Impl toFlowV4(Flow source);
 
-    List<FlowV4Impl> toFlowV4(List<Flow> source);
+    default List<FlowV4> anyFlowtoFlowV4(List<? extends io.gravitee.definition.model.flow.Flow> source) {
+        if (source == null) {
+            return null;
+        }
+        return source.stream().filter(f -> f instanceof FlowV4).map(FlowV4.class::cast).toList();
+    }
+
+    default List<NativeFlow> anyFlowtoNative(List<? extends io.gravitee.definition.model.flow.Flow> source) {
+        if (source == null) {
+            return null;
+        }
+        return source.stream().filter(f -> f instanceof NativeFlow).map(NativeFlow.class::cast).toList();
+    }
+
+    //
+    default List<FlowV4> toFlowV4(List<Flow> source) {
+        if (source == null) {
+            return null;
+        }
+        return source.stream().map(this::toFlowV4).map(FlowV4.class::cast).toList();
+    }
 
     NativeFlowImpl toNativeFlow(Flow source);
 
-    List<NativeFlowImpl> toNativeFlow(List<Flow> source);
+    default List<NativeFlow> toNativeFlow(List<Flow> source) {
+        if (source == null) {
+            return null;
+        }
+        return source.stream().map(this::toNativeFlow).map(NativeFlow.class::cast).toList();
+    }
 
     @Mapping(target = "pathOperator.path", source = "path")
     @Mapping(target = "pathOperator.operator", source = "operator")
@@ -120,16 +147,21 @@ public interface FlowAdapter {
 
     ConditionSelector toModel(FlowConditionSelector source);
 
-    default Flow toRepositoryFromAbstract(AbstractFlow flow, FlowReferenceType referenceType, String referenceId, int order) {
-        if (flow instanceof FlowV4Impl) {
-            return this.toRepository((FlowV4Impl) flow, referenceType, referenceId, order);
-        } else if (flow instanceof NativeFlowImpl) {
-            return this.toRepository((NativeFlowImpl) flow, referenceType, referenceId, order);
+    default Flow toRepositoryFromAbstract(
+        io.gravitee.definition.model.flow.Flow flow,
+        FlowReferenceType referenceType,
+        String referenceId,
+        int order
+    ) {
+        if (flow instanceof FlowV4 flowv4) {
+            return this.toRepository((FlowV4Impl) flowv4, referenceType, referenceId, order);
+        } else if (flow instanceof NativeFlow nativeflow) {
+            return this.toRepository((NativeFlowImpl) nativeflow, referenceType, referenceId, order);
         }
         throw new IllegalArgumentException("Unknown flow: " + flow.getClass());
     }
 
-    default Flow toRepositoryUpdateFromAbstract(Flow repository, AbstractFlow source, int order) {
+    default Flow toRepositoryUpdateFromAbstract(Flow repository, io.gravitee.definition.model.flow.Flow source, int order) {
         if (source instanceof FlowV4Impl) {
             return this.toRepositoryUpdate(repository, (FlowV4Impl) source, order);
         } else if (source instanceof NativeFlowImpl) {

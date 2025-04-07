@@ -22,6 +22,7 @@ import static java.util.Comparator.comparing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -514,7 +515,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     private void removeFlowsIdsFromApiV2(io.gravitee.rest.api.model.api.ApiEntity api) {
-        api.getFlows().forEach(flow -> flow.setId(null));
-        api.getPlans().forEach(plan -> plan.getFlows().forEach(flow -> flow.setId(null)));
+        api.getFlows().forEach(flow -> ((FlowV2Impl) flow).setId(null));
+        api.getPlans().forEach(plan -> plan.getFlows().forEach(flow -> ((FlowV2Impl) flow).setId(null)));
     }
 }

@@ -23,14 +23,14 @@ import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
@@ -38,7 +38,7 @@ import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.Plan;
@@ -97,7 +97,7 @@ public class ApiCRDSpec {
 
     private Map<String, PlanCRD> plans;
 
-    private List<? extends AbstractFlow> flows;
+    private List<? extends Flow> flows;
 
     private List<EncryptableProperty> properties;
 
@@ -174,7 +174,7 @@ public class ApiCRDSpec {
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups(endpointGroups != null ? (List<EndpointGroup>) endpointGroups : null)
             .failover(failover)
-            .flows(flows != null ? (List<FlowV4Impl>) flows : null)
+            .flows(flows != null ? (List<FlowV4>) flows : null)
             .id(id)
             .listeners(listeners != null ? (List<Listener>) listeners : null)
             .name(name)
@@ -197,7 +197,7 @@ public class ApiCRDSpec {
             .apiVersion(version)
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups(endpointGroups != null ? (List<NativeEndpointGroup>) endpointGroups : null)
-            .flows(flows != null ? (List<NativeFlowImpl>) flows : null)
+            .flows(flows != null ? (List<NativeFlow>) flows : null)
             .id(id)
             .listeners(listeners != null ? (List<NativeListener>) listeners : null)
             .name(name)
@@ -248,7 +248,7 @@ public class ApiCRDSpec {
                         plan.setSecurity(planCRD.getSecurity());
                         plan.setSelectionRule(planCRD.getSelectionRule());
                         plan.setStatus(planCRD.getStatus());
-                        plan.setFlows((List<FlowV4Impl>) planCRD.getFlows());
+                        plan.setFlows((List<FlowV4>) planCRD.getFlows());
 
                         return plan;
                     }
@@ -272,7 +272,7 @@ public class ApiCRDSpec {
                         nativePlan.setSecurity(planCRD.getSecurity());
                         nativePlan.setSelectionRule(planCRD.getSelectionRule());
                         nativePlan.setStatus(planCRD.getStatus());
-                        nativePlan.setFlows((List<NativeFlowImpl>) planCRD.getFlows());
+                        nativePlan.setFlows((List<NativeFlow>) planCRD.getFlows());
 
                         return nativePlan;
                     }

@@ -22,7 +22,7 @@ import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
@@ -32,7 +32,11 @@ import io.gravitee.definition.model.v4.service.ApiServices;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -77,7 +81,7 @@ public class Api extends AbstractApi {
     @Builder.Default
     private FlowExecution flowExecution = new FlowExecution();
 
-    private List<FlowV4Impl> flows;
+    private List<FlowV4> flows;
 
     private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
@@ -113,7 +117,7 @@ public class Api extends AbstractApi {
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getFlows())
-                    .map(f -> f.stream().filter(FlowV4Impl::isEnabled).map(FlowV4Impl::getPlugins).flatMap(List::stream).toList())
+                    .map(f -> f.stream().filter(FlowV4::isEnabled).map(FlowV4::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getPlans())

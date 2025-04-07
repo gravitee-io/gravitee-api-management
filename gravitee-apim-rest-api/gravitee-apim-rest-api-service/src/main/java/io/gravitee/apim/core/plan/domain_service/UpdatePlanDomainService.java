@@ -30,9 +30,9 @@ import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.Date;
 import java.util.List;
@@ -73,7 +73,7 @@ public class UpdatePlanDomainService {
 
     public Plan update(
         Plan planToUpdate,
-        List<? extends AbstractFlow> flows,
+        List<? extends Flow> flows,
         Map<String, PlanStatus> existingPlanStatuses,
         Api api,
         AuditInfo auditInfo
@@ -101,7 +101,7 @@ public class UpdatePlanDomainService {
      */
     private Plan updateV4ApiPlan(
         Plan planToUpdate,
-        List<? extends AbstractFlow> flows,
+        List<? extends Flow> flows,
         Map<String, PlanStatus> existingPlanStatuses,
         Api api,
         AuditInfo auditInfo
@@ -122,13 +122,13 @@ public class UpdatePlanDomainService {
         Plan updatePlan = existingPlan.update(planToUpdate);
 
         if (api.isNative()) {
-            return updateNativeV4ApiPlan(existingPlan, updatePlan, (List<NativeFlowImpl>) flows, api, auditInfo);
+            return updateNativeV4ApiPlan(existingPlan, updatePlan, (List<NativeFlow>) flows, api, auditInfo);
         }
 
-        return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<FlowV4Impl>) flows, api, auditInfo);
+        return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<FlowV4>) flows, api, auditInfo);
     }
 
-    private Plan updateHttpV4ApiPlan(Plan existingPlan, Plan updatePlan, List<FlowV4Impl> flows, Api api, AuditInfo auditInfo) {
+    private Plan updateHttpV4ApiPlan(Plan existingPlan, Plan updatePlan, List<FlowV4> flows, Api api, AuditInfo auditInfo) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),
@@ -153,7 +153,7 @@ public class UpdatePlanDomainService {
         return updated;
     }
 
-    private Plan updateNativeV4ApiPlan(Plan existingPlan, Plan updatePlan, List<NativeFlowImpl> flows, Api api, AuditInfo auditInfo) {
+    private Plan updateNativeV4ApiPlan(Plan existingPlan, Plan updatePlan, List<NativeFlow> flows, Api api, AuditInfo auditInfo) {
         var sanitizedNativeFlows = flowValidationDomainService.validateAndSanitizeNativeV4(flows);
 
         if (!planSynchronizationService.checkNativePlanSynchronized(existingPlan, List.of(), updatePlan, sanitizedNativeFlows)) {

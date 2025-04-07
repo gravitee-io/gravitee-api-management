@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4;
 
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -28,6 +28,6 @@ public interface FlowService {
 
     String getPlatformFlowSchemaForm(final ExecutionContext executionContext);
 
-    List<FlowV4Impl> findByReference(final FlowReferenceType flowReferenceType, final String referenceId);
-    List<NativeFlowImpl> findNativeFlowByReference(final FlowReferenceType flowReferenceType, final String referenceId);
+    List<FlowV4> findByReference(final FlowReferenceType flowReferenceType, final String referenceId);
+    List<NativeFlow> findNativeFlowByReference(final FlowReferenceType flowReferenceType, final String referenceId);
 }

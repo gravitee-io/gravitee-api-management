@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.*;
@@ -121,7 +121,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     }
 
     @Override
-    public List<FlowV2Impl> findByReference(FlowReferenceType flowReferenceType, String referenceId) {
+    public List<FlowV2> findByReference(FlowReferenceType flowReferenceType, String referenceId) {
         try {
             LOGGER.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
             return flowRepository
@@ -138,7 +138,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     }
 
     @Override
-    public List<FlowV2Impl> save(FlowReferenceType flowReferenceType, String referenceId, List<FlowV2Impl> flows) {
+    public List<FlowV2> save(FlowReferenceType flowReferenceType, String referenceId, List<FlowV2> flows) {
         try {
             LOGGER.debug("Save flows for reference {},{}", flowReferenceType, referenceId);
             if (flows == null || flows.isEmpty()) {
@@ -150,7 +150,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 .stream()
                 .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
 
-            Set<String> flowIdsToSave = flows.stream().map(FlowV2Impl::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+            Set<String> flowIdsToSave = flows.stream().map(FlowV2::getId).filter(Objects::nonNull).collect(Collectors.toSet());
 
             for (String dbFlowId : dbFlowsById.keySet()) {
                 if (!flowIdsToSave.contains(dbFlowId)) {

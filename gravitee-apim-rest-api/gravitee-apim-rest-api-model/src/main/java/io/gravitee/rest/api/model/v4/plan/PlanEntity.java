@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.plan;
 
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
@@ -45,5 +45,5 @@ public class PlanEntity extends BasePlanEntity {
 
     @DeploymentRequired
     @Builder.Default
-    private List<FlowV4Impl> flows = new ArrayList<>();
+    private List<FlowV4> flows = new ArrayList<>();
 }

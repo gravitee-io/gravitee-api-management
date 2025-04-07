@@ -29,9 +29,11 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.FlowAdapter;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.StepV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
@@ -101,9 +103,7 @@ class FlowCrudServiceImplTest {
         @SneakyThrows
         void should_save_flows() {
             // Given
-            List<FlowV4Impl> flows = List.of(
-                FlowV4Impl.builder().name("My flow").enabled(true).selectors(List.of(new HttpSelector())).build()
-            );
+            List<FlowV4> flows = List.of(FlowV4Impl.builder().name("My flow").enabled(true).selectors(List.of(new HttpSelector())).build());
 
             // When
             service.saveApiFlows(API_ID, flows);
@@ -135,14 +135,14 @@ class FlowCrudServiceImplTest {
         void should_return_created_flows() {
             // Given
             when(flowRepository.create(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-            List<FlowV4Impl> flows = List.of(FlowV4Impl.builder().build());
+            List<FlowV4> flows = List.of(FlowV4Impl.builder().build());
 
             // When
             var result = service.saveApiFlows(API_ID, flows);
 
             // Then
-            flows.get(0).setId(result.get(0).getId());
-            assertThat(result).isEqualTo(flows);
+            assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").isEqualTo(flows);
+            assertThat(result).extracting("id").contains("generated-id");
         }
 
         @Test
@@ -180,7 +180,7 @@ class FlowCrudServiceImplTest {
         @SneakyThrows
         void should_save_flows() {
             // Given
-            List<NativeFlowImpl> flows = List.of(
+            List<NativeFlow> flows = List.of(
                 NativeFlowImpl.builder().name("My flow").enabled(true).publish(List.of(StepV4.builder().name("step 1").build())).build()
             );
 
@@ -208,7 +208,8 @@ class FlowCrudServiceImplTest {
 
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(repoFlow);
 
-            assertThat(savedFlows.get(0)).usingRecursiveComparison().isEqualTo(flows.get(0).toBuilder().id("generated-id").build());
+            assertThat(savedFlows).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").isEqualTo(flows);
+            assertThat(savedFlows).extracting("id").contains("generated-id");
         }
 
         @Test
@@ -216,14 +217,14 @@ class FlowCrudServiceImplTest {
         void should_return_created_flows() {
             // Given
             when(flowRepository.create(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-            List<NativeFlowImpl> flows = List.of(NativeFlowImpl.builder().build());
+            List<NativeFlow> flows = List.of(NativeFlowImpl.builder().build());
 
             // When
             var result = service.saveNativeApiFlows(API_ID, flows);
 
             // Then
-            flows.get(0).setId(result.get(0).getId());
-            assertThat(result).isEqualTo(flows);
+            assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").isEqualTo(flows);
+            assertThat(result).extracting("id").contains("generated-id");
         }
 
         @Test
@@ -263,7 +264,7 @@ class FlowCrudServiceImplTest {
         @SneakyThrows
         void should_save_flows() {
             // Given
-            List<FlowV4Impl> flows = List.of(FlowV4Impl.builder().name("My flow").enabled(true).build());
+            List<FlowV4> flows = List.of(FlowV4Impl.builder().name("My flow").enabled(true).build());
 
             // When
             service.savePlanFlows(PLAN_ID, flows);
@@ -294,14 +295,15 @@ class FlowCrudServiceImplTest {
         void should_return_created_flows() {
             // Given
             when(flowRepository.create(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-            List<FlowV4Impl> flows = List.of(FlowV4Impl.builder().build());
+            List<FlowV4> flows = List.of(FlowV4Impl.builder().build());
 
             // When
             var result = service.savePlanFlows(PLAN_ID, flows);
-            flows.get(0).setId(result.get(0).getId());
+            //            flows.get(0).setId(result.get(0).getId());
 
             // Then
-            assertThat(result).isEqualTo(flows);
+            assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("id").isEqualTo(flows);
+            assertThat(result).extracting("id").contains("generated-id");
         }
 
         @Test
@@ -337,7 +339,7 @@ class FlowCrudServiceImplTest {
             when(flowRepository.findByReference(any(), eq(API_ID))).thenAnswer(invocation -> List.of(repoFlow1));
             when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            List<FlowV4Impl> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow2));
+            List<FlowV4> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow2));
             assertThat(flowServiceByReference).isNotNull();
             assertThat(flowServiceByReference.size()).isEqualTo(1);
             assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow2");
@@ -366,7 +368,7 @@ class FlowCrudServiceImplTest {
             when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
             when(flowRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            List<FlowV4Impl> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow1, flow2));
+            List<FlowV4> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow1, flow2));
             assertThat(flowServiceByReference).isNotNull();
             assertThat(flowServiceByReference.size()).isEqualTo(2);
             assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");
@@ -400,7 +402,7 @@ class FlowCrudServiceImplTest {
         @SneakyThrows
         void should_save_flows() {
             // Given
-            List<NativeFlowImpl> flows = List.of(NativeFlowImpl.builder().name("My flow").enabled(true).build());
+            List<NativeFlow> flows = List.of(NativeFlowImpl.builder().name("My flow").enabled(true).build());
 
             // When
             service.saveNativePlanFlows(PLAN_ID, flows);
@@ -431,11 +433,11 @@ class FlowCrudServiceImplTest {
         void should_return_created_flows() {
             // Given
             when(flowRepository.create(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-            List<FlowV4Impl> flows = List.of(FlowV4Impl.builder().build());
+            List<FlowV4> flows = List.of(FlowV4Impl.builder().build());
 
             // When
             var result = service.savePlanFlows(PLAN_ID, flows);
-            flows.get(0).setId(result.get(0).getId());
+            ((FlowV4Impl) flows.getFirst()).setId(result.get(0).getId());
 
             // Then
             assertThat(result).isEqualTo(flows);
@@ -474,7 +476,7 @@ class FlowCrudServiceImplTest {
             when(flowRepository.findByReference(any(), eq(API_ID))).thenAnswer(invocation -> List.of(repoFlow1));
             when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            List<FlowV4Impl> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow2));
+            List<FlowV4> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow2));
             assertThat(flowServiceByReference).isNotNull();
             assertThat(flowServiceByReference.size()).isEqualTo(1);
             assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow2");
@@ -503,7 +505,7 @@ class FlowCrudServiceImplTest {
             when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
             when(flowRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            List<FlowV4Impl> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow1, flow2));
+            List<FlowV4> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow1, flow2));
             assertThat(flowServiceByReference).isNotNull();
             assertThat(flowServiceByReference.size()).isEqualTo(2);
             assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");

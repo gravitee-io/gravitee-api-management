@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
@@ -113,12 +113,12 @@ public class ReactableOrganization implements Reactable, Serializable {
     }
 
     @JsonIgnore
-    public List<FlowV2Impl> getFlows() {
+    public List<FlowV2> getFlows() {
         return definition.getFlows();
     }
 
     @JsonIgnore
-    public void setFlows(final List<FlowV2Impl> flows) {
+    public void setFlows(final List<FlowV2> flows) {
         definition.setFlows(flows);
     }
 

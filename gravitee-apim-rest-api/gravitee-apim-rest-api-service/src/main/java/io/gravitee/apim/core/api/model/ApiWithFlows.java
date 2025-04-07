@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.api.model;
 
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.flow.Flow;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,9 +32,9 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class ApiWithFlows extends Api {
 
-    private List<? extends AbstractFlow> flows;
+    private List<? extends Flow> flows;
 
-    public ApiWithFlows(Api api, List<? extends AbstractFlow> flows) {
+    public ApiWithFlows(Api api, List<? extends Flow> flows) {
         super(
             api.getId(),
             api.getEnvironmentId(),

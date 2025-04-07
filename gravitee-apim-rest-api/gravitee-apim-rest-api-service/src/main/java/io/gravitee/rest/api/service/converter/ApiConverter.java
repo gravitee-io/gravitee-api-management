@@ -21,7 +21,7 @@ import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -176,7 +176,7 @@ public class ApiConverter {
         apiEntity.setPlans(plans);
 
         if (readDatabaseFlows) {
-            List<FlowV2Impl> flows = flowService.findByReference(FlowReferenceType.API, api.getId());
+            List<FlowV2> flows = flowService.findByReference(FlowReferenceType.API, api.getId());
             apiEntity.setFlows(flows);
         }
 

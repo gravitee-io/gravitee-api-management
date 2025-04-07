@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.reactive.v4.flow;
 
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 
 /**
- * This flow resolver resolves only the {@link FlowV4Impl} which best matches according to the incoming request.
+ * This flow resolver resolves only the {@link FlowV4} which best matches according to the incoming request.
  * This flow resolver relies on the result of a previous {@link FlowResolver} used to build this instance.
  * This means that the flows list patterns to filter for Best Match mode already matched the request.
  *
@@ -31,15 +31,15 @@ import io.reactivex.rxjava3.core.Maybe;
 public class BestMatchFlowResolver implements FlowResolver<HttpBaseExecutionContext> {
 
     private final FlowResolver flowResolver;
-    private AbstractBestMatchFlowSelector<FlowV4Impl> bestMatchFlowSelector;
+    private AbstractBestMatchFlowSelector<FlowV4> bestMatchFlowSelector;
 
-    public BestMatchFlowResolver(final FlowResolver flowResolver, AbstractBestMatchFlowSelector<FlowV4Impl> bestMatchFlowSelector) {
+    public BestMatchFlowResolver(final FlowResolver flowResolver, AbstractBestMatchFlowSelector<FlowV4> bestMatchFlowSelector) {
         this.flowResolver = flowResolver;
         this.bestMatchFlowSelector = bestMatchFlowSelector;
     }
 
     @Override
-    public Flowable<FlowV4Impl> resolve(final HttpBaseExecutionContext ctx) {
+    public Flowable<FlowV4> resolve(final HttpBaseExecutionContext ctx) {
         return provideFlows(ctx)
             .toList()
             .flatMapMaybe(flows -> Maybe.fromCallable(() -> bestMatchFlowSelector.forPath(flows, ctx.request().pathInfo())))
@@ -47,7 +47,7 @@ public class BestMatchFlowResolver implements FlowResolver<HttpBaseExecutionCont
     }
 
     @Override
-    public Flowable<FlowV4Impl> provideFlows(final HttpBaseExecutionContext ctx) {
+    public Flowable<FlowV4> provideFlows(final HttpBaseExecutionContext ctx) {
         return flowResolver.resolve(ctx);
     }
 }

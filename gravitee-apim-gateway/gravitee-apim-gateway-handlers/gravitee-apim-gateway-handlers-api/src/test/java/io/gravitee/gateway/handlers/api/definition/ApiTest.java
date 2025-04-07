@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.StepV2;
 import java.util.List;
@@ -113,7 +114,7 @@ public class ApiTest {
         return List.of(enabledPreStep, disabledPreStep);
     }
 
-    private Plan aPlan(List<FlowV2Impl> flowList) {
+    private Plan aPlan(List<FlowV2> flowList) {
         Plan plan = new Plan();
         plan.setPaths(null);
         plan.setSecurity("KEY_LESS");
@@ -121,7 +122,7 @@ public class ApiTest {
         return plan;
     }
 
-    private List<FlowV2Impl> aFlowList() {
+    private List<FlowV2> aFlowList() {
         FlowV2Impl enabledFlow = new FlowV2Impl();
         enabledFlow.setEnabled(true);
         FlowV2Impl disabledFlow = new FlowV2Impl();

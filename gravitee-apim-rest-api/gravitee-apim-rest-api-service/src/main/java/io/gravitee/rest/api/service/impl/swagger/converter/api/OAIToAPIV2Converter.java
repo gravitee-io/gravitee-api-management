@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.service.validator.JsonHelper.getScope;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
@@ -56,7 +57,7 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
     protected SwaggerApiEntity fill(SwaggerApiEntity apiEntity, OpenAPI oai) {
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
 
-        List<FlowV2Impl> allFlows = new ArrayList();
+        List<FlowV2> allFlows = new ArrayList();
         Set<String> pathMappings = new HashSet();
 
         if (swaggerDescriptor.isWithPolicyPaths() || swaggerDescriptor.isWithPathMapping()) {

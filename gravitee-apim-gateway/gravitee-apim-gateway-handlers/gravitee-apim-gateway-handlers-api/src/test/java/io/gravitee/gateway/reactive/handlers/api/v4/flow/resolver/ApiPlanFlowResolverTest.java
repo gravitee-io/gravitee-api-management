@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
@@ -52,7 +52,7 @@ class ApiPlanFlowResolverTest {
     private Api api;
 
     @Mock
-    private ConditionFilter<BaseExecutionContext, FlowV4Impl> filter;
+    private ConditionFilter<BaseExecutionContext, FlowV4> filter;
 
     @Mock
     private HttpPlainExecutionContext ctx;
@@ -61,18 +61,18 @@ class ApiPlanFlowResolverTest {
     public void shouldProvideApiPlanFlowsOrdered() {
         final Plan plan1 = mock(Plan.class);
         when(plan1.getId()).thenReturn(PLAN_1);
-        final List<FlowV4Impl> planFlows1 = new ArrayList<>();
-        final FlowV4Impl flow1 = mock(FlowV4Impl.class);
-        final FlowV4Impl flow2 = mock(FlowV4Impl.class);
+        final List<FlowV4> planFlows1 = new ArrayList<>();
+        final FlowV4 flow1 = mock(FlowV4.class);
+        final FlowV4 flow2 = mock(FlowV4.class);
 
         planFlows1.add(flow1);
         planFlows1.add(flow2);
 
         final Plan plan2 = mock(Plan.class);
         when(plan2.getId()).thenReturn(PLAN_2);
-        final List<FlowV4Impl> planFlows2 = new ArrayList<>();
-        final FlowV4Impl flow3 = mock(FlowV4Impl.class);
-        final FlowV4Impl flow4 = mock(FlowV4Impl.class);
+        final List<FlowV4> planFlows2 = new ArrayList<>();
+        final FlowV4 flow3 = mock(FlowV4.class);
+        final FlowV4 flow4 = mock(FlowV4.class);
 
         planFlows2.add(flow3);
         planFlows2.add(flow4);
@@ -88,7 +88,7 @@ class ApiPlanFlowResolverTest {
         when(ctx.getAttribute(ContextAttributes.ATTR_PLAN)).thenReturn(PLAN_1);
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<FlowV4Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV4> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow1, flow2);
     }
@@ -97,18 +97,18 @@ class ApiPlanFlowResolverTest {
     public void shouldProvideEnabledApiPlanFlowsOnly() {
         final Plan plan1 = mock(Plan.class);
         when(plan1.getId()).thenReturn(PLAN_1);
-        final List<FlowV4Impl> planFlows1 = new ArrayList<>();
-        final FlowV4Impl flow1 = mock(FlowV4Impl.class);
-        final FlowV4Impl flow2 = mock(FlowV4Impl.class);
+        final List<FlowV4> planFlows1 = new ArrayList<>();
+        final FlowV4 flow1 = mock(FlowV4.class);
+        final FlowV4 flow2 = mock(FlowV4.class);
 
         planFlows1.add(flow1);
         planFlows1.add(flow2);
 
         final Plan plan2 = mock(Plan.class);
         when(plan2.getId()).thenReturn(PLAN_2);
-        final List<FlowV4Impl> planFlows2 = new ArrayList<>();
-        final FlowV4Impl flow3 = mock(FlowV4Impl.class);
-        final FlowV4Impl flow4 = mock(FlowV4Impl.class);
+        final List<FlowV4> planFlows2 = new ArrayList<>();
+        final FlowV4 flow3 = mock(FlowV4.class);
+        final FlowV4 flow4 = mock(FlowV4.class);
 
         planFlows2.add(flow3);
         planFlows2.add(flow4);
@@ -123,7 +123,7 @@ class ApiPlanFlowResolverTest {
 
         when(ctx.getAttribute(ContextAttributes.ATTR_PLAN)).thenReturn(PLAN_2);
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<FlowV4Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV4> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow4);
     }
@@ -133,7 +133,7 @@ class ApiPlanFlowResolverTest {
         when(api.getPlans()).thenReturn(null);
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<FlowV4Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV4> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -143,7 +143,7 @@ class ApiPlanFlowResolverTest {
         when(api.getPlans()).thenReturn(emptyList());
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<FlowV4Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV4> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -153,7 +153,7 @@ class ApiPlanFlowResolverTest {
         when(api.getPlans()).thenReturn(List.of(new Plan()));
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<FlowV4Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV4> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -165,7 +165,7 @@ class ApiPlanFlowResolverTest {
         when(api.getPlans()).thenReturn(List.of(plan));
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<FlowV4Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV4> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -174,18 +174,18 @@ class ApiPlanFlowResolverTest {
     public void shouldResolve() {
         final Plan plan1 = mock(Plan.class);
         when(plan1.getId()).thenReturn(PLAN_1);
-        final List<FlowV4Impl> planFlows1 = new ArrayList<>();
-        final FlowV4Impl flow1 = mock(FlowV4Impl.class);
-        final FlowV4Impl flow2 = mock(FlowV4Impl.class);
+        final List<FlowV4> planFlows1 = new ArrayList<>();
+        final FlowV4 flow1 = mock(FlowV4.class);
+        final FlowV4 flow2 = mock(FlowV4.class);
 
         planFlows1.add(flow1);
         planFlows1.add(flow2);
 
         final Plan plan2 = mock(Plan.class);
         when(plan2.getId()).thenReturn(PLAN_2);
-        final List<FlowV4Impl> planFlows2 = new ArrayList<>();
-        final FlowV4Impl flow3 = mock(FlowV4Impl.class);
-        final FlowV4Impl flow4 = mock(FlowV4Impl.class);
+        final List<FlowV4> planFlows2 = new ArrayList<>();
+        final FlowV4 flow3 = mock(FlowV4.class);
+        final FlowV4 flow4 = mock(FlowV4.class);
 
         planFlows2.add(flow3);
         planFlows2.add(flow4);
@@ -201,7 +201,7 @@ class ApiPlanFlowResolverTest {
 
         when(ctx.getAttribute(ContextAttributes.ATTR_PLAN)).thenReturn(PLAN_1);
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<FlowV4Impl> obs = cut.resolve(ctx).test();
+        final TestSubscriber<FlowV4> obs = cut.resolve(ctx).test();
 
         obs.assertResult(flow1, flow2);
     }
@@ -210,18 +210,18 @@ class ApiPlanFlowResolverTest {
     public void shouldResolveEmptyFlowsWhenAllFlowFiltered() {
         final Plan plan1 = mock(Plan.class);
         when(plan1.getId()).thenReturn(PLAN_1);
-        final List<FlowV4Impl> planFlows1 = new ArrayList<>();
-        final FlowV4Impl flow1 = mock(FlowV4Impl.class);
-        final FlowV4Impl flow2 = mock(FlowV4Impl.class);
+        final List<FlowV4> planFlows1 = new ArrayList<>();
+        final FlowV4 flow1 = mock(FlowV4.class);
+        final FlowV4 flow2 = mock(FlowV4.class);
 
         planFlows1.add(flow1);
         planFlows1.add(flow2);
 
         final Plan plan2 = mock(Plan.class);
         when(plan2.getId()).thenReturn(PLAN_2);
-        final List<FlowV4Impl> planFlows2 = new ArrayList<>();
-        final FlowV4Impl flow3 = mock(FlowV4Impl.class);
-        final FlowV4Impl flow4 = mock(FlowV4Impl.class);
+        final List<FlowV4> planFlows2 = new ArrayList<>();
+        final FlowV4 flow3 = mock(FlowV4.class);
+        final FlowV4 flow4 = mock(FlowV4.class);
 
         planFlows2.add(flow3);
         planFlows2.add(flow4);
@@ -237,7 +237,7 @@ class ApiPlanFlowResolverTest {
         when(ctx.getAttribute(ContextAttributes.ATTR_PLAN)).thenReturn(PLAN_2);
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<FlowV4Impl> obs = cut.resolve(ctx).test();
+        final TestSubscriber<FlowV4> obs = cut.resolve(ctx).test();
 
         obs.assertResult();
     }

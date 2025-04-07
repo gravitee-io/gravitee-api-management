@@ -19,7 +19,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -38,7 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class PathBasedConditionEvaluatorTest {
 
-    private final ConditionEvaluator<FlowV2Impl> evaluator = new PathBasedConditionEvaluator();
+    private final ConditionEvaluator<FlowV2> evaluator = new PathBasedConditionEvaluator();
 
     @Mock
     private ExecutionContext context;
@@ -47,7 +47,7 @@ public class PathBasedConditionEvaluatorTest {
     private Request request;
 
     @Mock
-    private FlowV2Impl flow;
+    private FlowV2 flow;
 
     @Before
     public void setUp() {

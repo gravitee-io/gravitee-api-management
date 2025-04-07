@@ -39,7 +39,7 @@ import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mapper(uses = { PlanAdapter.class })
+@Mapper(uses = { FlowAdapter.class, PlanAdapter.class })
 @DecoratedWith(ApiAdapterDecorator.class)
 public interface ApiAdapter {
     Logger LOGGER = LoggerFactory.getLogger(ApiAdapter.class);
@@ -73,7 +73,7 @@ public interface ApiAdapter {
     @Mapping(target = "disableMembershipNotifications", expression = "java(!spec.isNotifyMembers())")
     @Mapping(target = "listeners", expression = "java((List<Listener>) spec.getListeners())")
     @Mapping(target = "endpointGroups", expression = "java((List<EndpointGroup>) spec.getEndpointGroups())")
-    @Mapping(target = "flows", expression = "java((List<FlowV4Impl>) spec.getFlows())")
+    @Mapping(target = "flows", expression = "java((List<FlowV4>) spec.getFlows())")
     UpdateApiEntity toUpdateApiEntity(ApiCRDSpec spec);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)

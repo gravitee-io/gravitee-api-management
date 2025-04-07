@@ -23,7 +23,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.Service;
@@ -296,7 +296,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         return resourcesValidationService.validateAndSanitize(resources);
     }
 
-    private Stream<FlowV4Impl> getPlansFlows(Set<PlanEntity> plans) {
+    private Stream<FlowV4> getPlansFlows(Set<PlanEntity> plans) {
         if (plans == null) {
             return Stream.empty();
         }

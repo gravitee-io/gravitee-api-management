@@ -145,10 +145,10 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -673,7 +673,7 @@ class ImportApiCRDUseCaseTest {
                 .hasSize(1)
                 .extracting(Plan::getId, Plan::getName, Plan::getPublishedAt)
                 .containsExactly(tuple("keyless-id", "Keyless", INSTANT_NOW.atZone(ZoneId.systemDefault())));
-            assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).containsExactly("plan-flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("plan-flow");
         }
 
         @Test
@@ -1396,7 +1396,7 @@ class ImportApiCRDUseCaseTest {
                 .extracting(Plan::getId, Plan::getName)
                 .containsExactly(tuple("keyless", "Keyless"), tuple("generated-id", "API Key"));
 
-            assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).contains("apikey-flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).contains("apikey-flow");
         }
 
         @Test
@@ -1447,7 +1447,7 @@ class ImportApiCRDUseCaseTest {
                 .extracting(Plan::getId, Plan::getName)
                 .containsExactly(tuple("keyless", "Keyless"), tuple("generated-id", "API Key"));
 
-            assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).contains("apikey-flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).contains("apikey-flow");
         }
 
         @Test
@@ -1482,7 +1482,7 @@ class ImportApiCRDUseCaseTest {
                 .hasSize(1)
                 .extracting(Plan::getId, Plan::getName, Plan::getDescription)
                 .containsExactly(tuple("keyless", "Updated Keyless", "Updated description"));
-            assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).containsExactly("updated flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("updated flow");
         }
 
         @Test
@@ -1519,7 +1519,7 @@ class ImportApiCRDUseCaseTest {
                 .hasSize(1)
                 .extracting(Plan::getId, Plan::getName, Plan::getDescription)
                 .containsExactly(tuple("keyless", "Updated Keyless", "Updated description"));
-            assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).containsExactly("updated flow");
+            assertThat(flowCrudService.storage()).extracting(Flow::getName).containsExactly("updated flow");
         }
 
         @Test

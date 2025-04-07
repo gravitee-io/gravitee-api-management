@@ -34,6 +34,7 @@ import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.v4.ApiType;
@@ -652,14 +653,24 @@ public class EventServiceTest {
     @Test
     public void createApiEvent_shouldReadDatabaseApiFlows_thenCreateEvent_withPayloadContainingFlows()
         throws TechnicalException, JsonProcessingException {
-        ObjectMapper realObjectMapper = new ObjectMapper();
+        ObjectMapper realObjectMapper = new GraviteeMapper();
         ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
         ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter(objectMapper));
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         Api api = new Api();
         api.setId(API_ID);
-        api.setDefinition("{}");
+        api.setDefinition(
+            """
+                { 
+                    "id": "id-api",
+                    "name": "Api1",
+                    "gravitee": "2.0.0",
+                    "proxy": {
+                        "context_path": "/api1"
+                    }
+                }"""
+        );
 
         when(flowService.findByReference(FlowReferenceType.API, API_ID)).thenReturn(List.of(buildFlow("flow1"), buildFlow("flow2")));
 

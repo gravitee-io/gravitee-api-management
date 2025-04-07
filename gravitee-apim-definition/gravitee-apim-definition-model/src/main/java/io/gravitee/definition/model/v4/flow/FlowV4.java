@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.v4.flow;
+package io.gravitee.definition.model.v4.flow;
 
-import io.gravitee.definition.model.v4.flow.FlowV4;
-import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
+import java.util.List;
 import java.util.Optional;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-@SuppressWarnings("java:S6548")
-public class BestMatchFlowSelector extends AbstractBestMatchFlowSelector<FlowV4> {
+@JsonDeserialize(as = FlowV4Impl.class)
+public interface FlowV4 extends Flow {
+    List<Selector> getSelectors();
+    Optional<Selector> selectorByType(SelectorType type);
 
-    @Override
-    protected Optional<String> providePath(FlowV4 flow) {
-        return flow != null
-            ? flow.selectorByType(SelectorType.HTTP).map(selector -> ((HttpSelector) selector).getPath())
-            : Optional.empty();
-    }
+    List<StepV4> getRequest();
+    List<StepV4> getResponse();
+    List<StepV4> getSubscribe();
+    List<StepV4> getPublish();
 }

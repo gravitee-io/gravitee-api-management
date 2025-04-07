@@ -17,11 +17,18 @@ package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
@@ -77,7 +84,7 @@ public class Api implements Serializable {
     private Map<String, List<Rule>> paths;
 
     @JsonProperty("flows")
-    private List<FlowV2Impl> flows;
+    private List<FlowV2> flows;
 
     @JsonProperty("properties")
     private Properties properties;
@@ -131,7 +138,7 @@ public class Api implements Serializable {
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getFlows())
-                    .map(f -> f.stream().filter(FlowV2Impl::isEnabled).map(FlowV2Impl::getPlugins).flatMap(List::stream).toList())
+                    .map(f -> f.stream().filter(FlowV2::isEnabled).map(FlowV2::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getPlans())

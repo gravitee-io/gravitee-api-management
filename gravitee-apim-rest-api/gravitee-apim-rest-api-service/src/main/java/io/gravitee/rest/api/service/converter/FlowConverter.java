@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
@@ -72,7 +73,7 @@ public class FlowConverter {
     }
 
     public io.gravitee.repository.management.model.flow.Flow toRepository(
-        FlowV2Impl flowDefinition,
+        FlowV2 flowDefinition,
         FlowReferenceType referenceType,
         String referenceId,
         int order
@@ -150,7 +151,7 @@ public class FlowConverter {
 
     public io.gravitee.repository.management.model.flow.Flow toRepositoryUpdate(
         io.gravitee.repository.management.model.flow.Flow dbFlow,
-        FlowV2Impl flowDefinition,
+        FlowV2 flowDefinition,
         int order
     ) {
         io.gravitee.repository.management.model.flow.Flow flow = toRepository(

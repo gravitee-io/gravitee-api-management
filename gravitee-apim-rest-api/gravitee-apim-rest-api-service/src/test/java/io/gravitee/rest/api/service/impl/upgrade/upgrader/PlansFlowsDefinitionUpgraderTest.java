@@ -16,10 +16,18 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -118,7 +126,7 @@ public class PlansFlowsDefinitionUpgraderTest {
         apiDefinition.setPlans(List.of(definitionPlan1, definitionPlan3, definitionPlan4, definitionPlan5));
 
         // API has 2 api flows in definition : flow5 and flow6
-        List<FlowV2Impl> apiFlows = List.of(buildFlow("flow5"), buildFlow("flow6"));
+        List<FlowV2> apiFlows = List.of(buildFlow("flow5"), buildFlow("flow6"));
         apiDefinition.setFlows(apiFlows);
 
         upgrader.migrateApiFlows(API_ID, apiDefinition);
@@ -154,7 +162,7 @@ public class PlansFlowsDefinitionUpgraderTest {
         return plan;
     }
 
-    private io.gravitee.definition.model.Plan buildDefinitionPlan(String id, List<FlowV2Impl> flows) {
+    private io.gravitee.definition.model.Plan buildDefinitionPlan(String id, List<FlowV2> flows) {
         io.gravitee.definition.model.Plan plan = new io.gravitee.definition.model.Plan();
         plan.setId(id);
         plan.setFlows(flows);

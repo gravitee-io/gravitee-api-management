@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.flow.condition.evaluation;
 
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
@@ -23,21 +23,21 @@ import java.util.regex.Pattern;
 
 /**
  * This {@link ConditionEvaluator} evaluates to true if the path of the request is matching the
- * path declared within the {@link FlowV2Impl} depending on the {@link Operator}
+ * path declared within the {@link FlowV2} depending on the {@link Operator}
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PathBasedConditionEvaluator implements ConditionEvaluator<FlowV2Impl> {
+public class PathBasedConditionEvaluator implements ConditionEvaluator<FlowV2> {
 
     private final PathPatterns pathPatterns = new PathPatterns();
 
     @Override
-    public boolean evaluate(ExecutionContext context, FlowV2Impl flow) {
+    public boolean evaluate(ExecutionContext context, FlowV2 flow) {
         return evaluate(context.request().pathInfo(), flow);
     }
 
-    protected boolean evaluate(String pathInfo, FlowV2Impl flow) {
+    protected boolean evaluate(String pathInfo, FlowV2 flow) {
         Pattern pattern = pathPatterns.getOrCreate(flow.getPath());
 
         return (flow.getOperator() == Operator.EQUALS) ? pattern.matcher(pathInfo).matches() : pattern.matcher(pathInfo).lookingAt();

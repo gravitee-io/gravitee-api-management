@@ -18,7 +18,6 @@ package io.gravitee.definition.model.flow;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.definition.model.Plugin;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -44,7 +43,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class FlowV2Impl implements Serializable, ConditionSupplier {
+public class FlowV2Impl implements Serializable, FlowV2 {
 
     @JsonProperty("id")
     private String id;
@@ -87,16 +86,19 @@ public class FlowV2Impl implements Serializable, ConditionSupplier {
     private FlowStage stage;
 
     @JsonIgnore
+    @Override
     public String getPath() {
         return pathOperator != null ? pathOperator.getPath() : null;
     }
 
     @JsonIgnore
+    @Override
     public Operator getOperator() {
         return pathOperator != null ? pathOperator.getOperator() : null;
     }
 
     @JsonIgnore
+    @Override
     public List<Plugin> getPlugins() {
         return Stream.of(computePlugins(this.post), computePlugins(this.pre)).flatMap(List::stream).collect(Collectors.toList());
     }

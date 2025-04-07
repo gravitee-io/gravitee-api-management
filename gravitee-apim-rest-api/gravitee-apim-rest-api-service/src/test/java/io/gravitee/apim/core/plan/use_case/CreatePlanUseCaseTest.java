@@ -44,7 +44,7 @@ import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase.Input;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.management.model.Parameter;
@@ -73,7 +73,7 @@ class CreatePlanUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private static final String GENERATED_ID = "generated-id";
 
-    private static final Function<Api, List<? extends AbstractFlow>> EMPTY_FLOW_PROVIDER = _api -> Collections.emptyList();
+    private static final Function<Api, List<? extends Flow>> EMPTY_FLOW_PROVIDER = _api -> Collections.emptyList();
 
     PolicyValidationDomainService policyValidationDomainService = mock(PolicyValidationDomainService.class);
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();

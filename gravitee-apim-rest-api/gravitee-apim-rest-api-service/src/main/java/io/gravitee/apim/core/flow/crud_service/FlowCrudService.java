@@ -15,30 +15,30 @@
  */
 package io.gravitee.apim.core.flow.crud_service;
 
-import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.flow.FlowV2;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.List;
 
 public interface FlowCrudService {
-    List<FlowV4Impl> savePlanFlows(String planId, List<FlowV4Impl> flows);
+    List<FlowV4> savePlanFlows(String planId, List<FlowV4> flows);
 
-    List<FlowV4Impl> saveApiFlows(String apiId, List<FlowV4Impl> flows);
+    List<FlowV4> saveApiFlows(String apiId, List<FlowV4> flows);
 
-    List<FlowV4Impl> getApiV4Flows(String apiId);
+    List<FlowV4> getApiV4Flows(String apiId);
 
-    List<FlowV4Impl> getPlanV4Flows(String planId);
+    List<FlowV4> getPlanV4Flows(String planId);
 
-    List<FlowV2Impl> getApiV2Flows(String apiId);
+    List<FlowV2> getApiV2Flows(String apiId);
 
-    List<FlowV2Impl> getPlanV2Flows(String planId);
+    List<FlowV2> getPlanV2Flows(String planId);
 
     //    Native APIs
-    List<NativeFlowImpl> saveNativeApiFlows(String apiId, List<NativeFlowImpl> flows);
+    List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows);
 
-    List<NativeFlowImpl> saveNativePlanFlows(String planId, List<NativeFlowImpl> flows);
+    List<NativeFlow> saveNativePlanFlows(String planId, List<NativeFlow> flows);
 
-    List<NativeFlowImpl> getNativeApiFlows(String apiId);
+    List<NativeFlow> getNativeApiFlows(String apiId);
 
-    List<NativeFlowImpl> getNativePlanFlows(String planId);
+    List<NativeFlow> getNativePlanFlows(String planId);
 }

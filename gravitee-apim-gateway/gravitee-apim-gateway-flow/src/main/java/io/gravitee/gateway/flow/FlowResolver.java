@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.flow;
 
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.gateway.api.ExecutionContext;
 import java.util.List;
 
@@ -24,5 +24,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface FlowResolver {
-    List<FlowV2Impl> resolve(ExecutionContext context);
+    List<FlowV2> resolve(ExecutionContext context);
 }

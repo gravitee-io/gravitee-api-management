@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Allows resolving {@link FlowV2Impl}s defined at plan level of a given {@link Api}.
+ * Allows resolving {@link FlowV2}s defined at plan level of a given {@link Api}.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
@@ -35,14 +35,14 @@ class ApiPlanFlowResolver extends AbstractFlowResolver<HttpBaseExecutionContext>
 
     private final Api api;
 
-    public ApiPlanFlowResolver(Api api, ConditionFilter<HttpBaseExecutionContext, FlowV2Impl> filter) {
+    public ApiPlanFlowResolver(Api api, ConditionFilter<HttpBaseExecutionContext, FlowV2> filter) {
         super(filter);
         this.api = api;
         api.getPlans();
     }
 
     @Override
-    public Flowable<FlowV2Impl> provideFlows(HttpBaseExecutionContext ctx) {
+    public Flowable<FlowV2> provideFlows(HttpBaseExecutionContext ctx) {
         if (api.getPlans() == null || api.getPlans().isEmpty()) {
             return Flowable.empty();
         }
@@ -56,7 +56,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver<HttpBaseExecutionContext>
                 .filter(plan -> Objects.equals(plan.getId(), planId))
                 .filter(plan -> Objects.nonNull(plan.getFlows()))
                 .flatMap(plan -> plan.getFlows().stream())
-                .filter(FlowV2Impl::isEnabled)
+                .filter(FlowV2::isEnabled)
                 .collect(Collectors.toList())
         );
     }

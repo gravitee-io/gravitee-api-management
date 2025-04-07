@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
@@ -57,7 +58,7 @@ class OrganizationFlowResolverTest {
     private ReactableOrganization reactableOrganization;
 
     @Mock
-    private ConditionFilter<HttpBaseExecutionContext, FlowV2Impl> filter;
+    private ConditionFilter<HttpBaseExecutionContext, FlowV2> filter;
 
     @Mock
     private HttpPlainExecutionContext ctx;
@@ -67,7 +68,7 @@ class OrganizationFlowResolverTest {
 
     @Test
     public void shouldProvidePlatformFlows() {
-        final List<FlowV2Impl> flows = new ArrayList<>();
+        final List<FlowV2> flows = new ArrayList<>();
         final FlowV2Impl flow1 = mock(FlowV2Impl.class);
         final FlowV2Impl flow2 = mock(FlowV2Impl.class);
 
@@ -86,14 +87,14 @@ class OrganizationFlowResolverTest {
             filter,
             new BestMatchFlowSelector()
         );
-        final TestSubscriber<FlowV2Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV2> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow1, flow2);
     }
 
     @Test
     public void shouldProvideEnabledPlatformFlowsOnly() {
-        final List<FlowV2Impl> flows = new ArrayList<>();
+        final List<FlowV2> flows = new ArrayList<>();
         final FlowV2Impl flow1 = mock(FlowV2Impl.class);
         final FlowV2Impl flow2 = mock(FlowV2Impl.class);
 
@@ -112,7 +113,7 @@ class OrganizationFlowResolverTest {
             filter,
             new BestMatchFlowSelector()
         );
-        final TestSubscriber<FlowV2Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV2> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow2);
     }
@@ -128,7 +129,7 @@ class OrganizationFlowResolverTest {
             filter,
             new BestMatchFlowSelector()
         );
-        final TestSubscriber<FlowV2Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV2> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -144,7 +145,7 @@ class OrganizationFlowResolverTest {
             filter,
             new BestMatchFlowSelector()
         );
-        final TestSubscriber<FlowV2Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV2> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -159,14 +160,14 @@ class OrganizationFlowResolverTest {
             filter,
             new BestMatchFlowSelector()
         );
-        final TestSubscriber<FlowV2Impl> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowV2> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
 
     @Test
     public void shouldResolve() {
-        final List<FlowV2Impl> flows = new ArrayList<>();
+        final List<FlowV2> flows = new ArrayList<>();
         final FlowV2Impl flow1 = mock(FlowV2Impl.class);
         final FlowV2Impl flow2 = mock(FlowV2Impl.class);
 
@@ -186,14 +187,14 @@ class OrganizationFlowResolverTest {
             filter,
             new BestMatchFlowSelector()
         );
-        final TestSubscriber<FlowV2Impl> obs = cut.resolve(ctx).test();
+        final TestSubscriber<FlowV2> obs = cut.resolve(ctx).test();
 
         obs.assertResult(flow1, flow2);
     }
 
     @Test
     public void shouldResolveEmptyFlowsWhenAllFlowFiltered() {
-        final List<FlowV2Impl> flows = new ArrayList<>();
+        final List<FlowV2> flows = new ArrayList<>();
         final FlowV2Impl flow1 = mock(FlowV2Impl.class);
         final FlowV2Impl flow2 = mock(FlowV2Impl.class);
 
@@ -213,14 +214,14 @@ class OrganizationFlowResolverTest {
             filter,
             new BestMatchFlowSelector()
         );
-        final TestSubscriber<FlowV2Impl> obs = cut.resolve(ctx).test();
+        final TestSubscriber<FlowV2> obs = cut.resolve(ctx).test();
 
         obs.assertResult();
     }
 
     @Test
     public void shouldResolveFlowsFromBestMatchResolver() {
-        final List<FlowV2Impl> flows = new ArrayList<>();
+        final List<FlowV2> flows = new ArrayList<>();
         final FlowV2Impl flow1 = mock(FlowV2Impl.class);
         final FlowV2Impl flow2 = mock(FlowV2Impl.class);
 
@@ -246,7 +247,7 @@ class OrganizationFlowResolverTest {
             filter,
             bestMatchFlowSelector
         );
-        final TestSubscriber<FlowV2Impl> obs = cut.resolve(ctx).test();
+        final TestSubscriber<FlowV2> obs = cut.resolve(ctx).test();
 
         obs.assertResult(flow1);
         verify(bestMatchFlowSelector).forPath(any(), any());

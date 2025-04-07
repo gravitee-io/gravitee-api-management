@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.rest.api.service.v4.exception.PathParameterOverlapValidationException;
 import io.gravitee.rest.api.service.v4.validation.PathParametersValidationService;
 import java.io.IOException;
@@ -110,7 +110,7 @@ class PathParametersValidationServiceImplTest {
     }
 
     @NotNull
-    private static Stream<FlowV4Impl> getPlanFlows(Api api) {
+    private static Stream<FlowV4> getPlanFlows(Api api) {
         return api.getPlans().stream().flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
     }
 }

@@ -67,7 +67,7 @@ public class NativeApi extends AbstractApi {
     @NotNull
     private Map<@NotEmpty String, @NotNull NativePlan> plans;
 
-    private List<NativeFlowImpl> flows;
+    private List<NativeFlow> flows;
 
     private NativeApiServices services;
 
@@ -105,7 +105,7 @@ public class NativeApi extends AbstractApi {
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getFlows())
-                    .map(f -> f.stream().filter(NativeFlowImpl::isEnabled).map(NativeFlowImpl::getPlugins).flatMap(List::stream).toList())
+                    .map(f -> f.stream().filter(NativeFlow::isEnabled).map(NativeFlow::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getPlans())

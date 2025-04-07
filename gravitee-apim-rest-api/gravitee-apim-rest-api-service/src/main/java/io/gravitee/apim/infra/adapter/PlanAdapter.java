@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper
+@Mapper(uses = FlowAdapter.class)
 public interface PlanAdapter {
     Logger LOGGER = LoggerFactory.getLogger(PlanAdapter.class);
     PlanAdapter INSTANCE = Mappers.getMapper(PlanAdapter.class);
@@ -290,6 +290,9 @@ public interface PlanAdapter {
         };
     }
 
+    @Mapping(target = "flows", ignore = true)
     io.gravitee.rest.api.model.PlanEntity map(io.gravitee.rest.api.model.v4.plan.PlanEntity v4);
+
+    @Mapping(target = "flows", ignore = true)
     io.gravitee.rest.api.model.PlanEntity map(NativePlanEntity v4);
 }

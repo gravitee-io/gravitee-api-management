@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.flow.FlowV2;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -76,7 +76,7 @@ public sealed interface PlanDescriptor {
         String commentMessage,
         String generalConditions,
 
-        Collection<FlowV4Impl> flows
+        Collection<FlowV4> flows
     )
         implements PlanDescriptor {
         @JsonProperty("tags")
@@ -84,7 +84,7 @@ public sealed interface PlanDescriptor {
             return tags != null ? tags : Set.of();
         }
 
-        public PlanDescriptor.V4 withFlow(Collection<FlowV4Impl> newFlow) {
+        public PlanDescriptor.V4 withFlow(Collection<FlowV4> newFlow) {
             return new PlanDescriptor.V4(
                 id,
                 crossId,
@@ -183,7 +183,7 @@ public sealed interface PlanDescriptor {
 
         String securityDefinition,
         Map<String, List<Rule>> paths,
-        Collection<FlowV2Impl> flows
+        Collection<FlowV2> flows
     )
         implements PlanDescriptor {
         @JsonProperty("tags")
@@ -191,7 +191,7 @@ public sealed interface PlanDescriptor {
             return tags != null ? tags : Set.of();
         }
 
-        public PlanDescriptor.V2 withFlow(Collection<FlowV2Impl> newFlow) {
+        public PlanDescriptor.V2 withFlow(Collection<FlowV2> newFlow) {
             return new PlanDescriptor.V2(
                 id,
                 crossId,
@@ -256,7 +256,7 @@ public sealed interface PlanDescriptor {
         String commentMessage,
         String generalConditions,
 
-        Collection<NativeFlowImpl> flows
+        Collection<NativeFlow> flows
     )
         implements PlanDescriptor {
         @JsonProperty("tags")
@@ -264,7 +264,7 @@ public sealed interface PlanDescriptor {
             return tags != null ? tags : Set.of();
         }
 
-        public PlanDescriptor.Native withFlow(Collection<NativeFlowImpl> newFlow) {
+        public PlanDescriptor.Native withFlow(Collection<NativeFlow> newFlow) {
             return new PlanDescriptor.Native(
                 id,
                 crossId,

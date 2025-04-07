@@ -70,6 +70,7 @@ import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
@@ -476,7 +477,7 @@ class CreateNativeApiUseCaseTest {
     @Test
     void should_save_all_flows() {
         // Given
-        List<NativeFlowImpl> flows = List.of(NativeFlowImpl.builder().name("flow").build());
+        List<NativeFlow> flows = List.of(NativeFlowImpl.builder().name("flow").build());
         var newApi = NewApiFixtures.aNativeApiV4().toBuilder().flows(flows).build();
 
         // When

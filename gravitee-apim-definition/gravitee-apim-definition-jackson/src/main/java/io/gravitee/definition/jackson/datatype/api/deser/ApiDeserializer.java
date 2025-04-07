@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.FlowStage;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
@@ -158,7 +159,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
 
             JsonNode flowsNode = node.get("flows");
             if (flowsNode != null) {
-                final List<FlowV2Impl> flows = new ArrayList<>();
+                final List<FlowV2> flows = new ArrayList<>();
                 flowsNode
                     .elements()
                     .forEachRemaining(jsonNode -> {
@@ -181,7 +182,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                     .forEachRemaining(jsonNode -> {
                         try {
                             Plan plan = jsonNode.traverse(jp.getCodec()).readValueAs(Plan.class);
-                            plan.getFlows().forEach(flow -> flow.setStage(FlowStage.PLAN));
+                            plan.getFlows().forEach(flow -> ((FlowV2Impl) flow).setStage(FlowStage.PLAN));
                             if (plan.getApi() == null) {
                                 plan.setApi(api.getId());
                             }

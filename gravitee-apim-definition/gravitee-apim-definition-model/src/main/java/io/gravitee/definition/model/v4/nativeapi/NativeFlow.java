@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4.validation;
+package io.gravitee.definition.model.v4.nativeapi;
 
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.FlowV4;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.StepV4;
 import java.util.List;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- * @deprecated Use {@link io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService} instead
- */
-@Deprecated
-public interface FlowValidationService {
-    List<FlowV4> validateAndSanitize(final ApiType apiType, List<FlowV4> flows);
+@JsonDeserialize(as = NativeFlowImpl.class)
+public interface NativeFlow extends Flow {
+    List<StepV4> getConnect();
+    List<StepV4> getInteract();
+    List<StepV4> getSubscribe();
+    List<StepV4> getPublish();
 }

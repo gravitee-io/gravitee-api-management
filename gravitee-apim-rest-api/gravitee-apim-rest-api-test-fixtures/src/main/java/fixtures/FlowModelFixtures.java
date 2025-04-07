@@ -55,7 +55,7 @@ public class FlowModelFixtures {
         .response(List.of(BASE_MODEL_STEP_V4.name("step_response").build()))
         .subscribe(List.of(BASE_MODEL_STEP_V4.name("step_subscribe").build()));
 
-    private static final NativeFlowImpl.NativeFlowBuilder BASE_MODEL_FLOW_NATIVE_V4 = NativeFlowImpl
+    private static final NativeFlowImpl.NativeFlowImplBuilder BASE_MODEL_FLOW_NATIVE = NativeFlowImpl
         .builder()
         .name("Flow")
         .enabled(true)
@@ -93,7 +93,7 @@ public class FlowModelFixtures {
     }
 
     public static NativeFlowImpl aModelFlowNativeV4() {
-        return BASE_MODEL_FLOW_NATIVE_V4.build();
+        return BASE_MODEL_FLOW_NATIVE.build();
     }
 
     public static FlowV2Impl aModelFlowV2() {

@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -119,7 +119,7 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
     }
 
     @Override
-    public List<FlowV4Impl> findByReference(final FlowReferenceType flowReferenceType, final String referenceId) {
+    public List<FlowV4> findByReference(final FlowReferenceType flowReferenceType, final String referenceId) {
         try {
             log.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
             return flowRepository
@@ -136,7 +136,7 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
     }
 
     @Override
-    public List<NativeFlowImpl> findNativeFlowByReference(FlowReferenceType flowReferenceType, String referenceId) {
+    public List<NativeFlow> findNativeFlowByReference(FlowReferenceType flowReferenceType, String referenceId) {
         try {
             log.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
             return flowRepository

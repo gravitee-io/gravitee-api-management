@@ -27,9 +27,9 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.flow.FlowV2;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -112,7 +112,7 @@ public interface GraviteeDefinitionAdapter {
         WorkflowState workflowState,
         Set<String> groups,
         Collection<NewApiMetadata> metadata,
-        List<FlowV4Impl> flows
+        List<FlowV4> flows
     );
 
     @Mapping(target = "id", source = "apiEntity.id")
@@ -134,7 +134,7 @@ public interface GraviteeDefinitionAdapter {
         WorkflowState workflowState,
         Set<String> groups,
         Collection<NewApiMetadata> metadata,
-        List<NativeFlowImpl> flows
+        List<NativeFlow> flows
     );
 
     @Mapping(target = "id", source = "apiEntity.id")
@@ -188,7 +188,7 @@ public interface GraviteeDefinitionAdapter {
         WorkflowState workflowState,
         Set<String> groups,
         Collection<NewApiMetadata> metadata,
-        Collection<FlowV2Impl> flows
+        Collection<FlowV2> flows
     );
 
     NewApiMetadata mapMetadata(Metadata source);

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.flow;
 
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -46,7 +47,7 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
         flowResolver = new TestFlowResolver(evaluator, buildFlows());
     }
 
-    private List<FlowV2Impl> buildFlows() {
+    private List<FlowV2> buildFlows() {
         return flowPaths
             .stream()
             .map(path -> {
@@ -64,25 +65,25 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
 
     protected static class TestFlowResolver extends ConditionalFlowResolver implements FlowResolver<BaseExecutionContext> {
 
-        private final List<FlowV2Impl> flows;
+        private final List<FlowV2> flows;
 
-        public TestFlowResolver(ConditionEvaluator<FlowV2Impl> evaluator, List<FlowV2Impl> flows) {
+        public TestFlowResolver(ConditionEvaluator<FlowV2> evaluator, List<FlowV2> flows) {
             super(evaluator);
             this.flows = flows;
         }
 
         @Override
-        protected List<FlowV2Impl> resolve0(ExecutionContext context) {
+        protected List<FlowV2> resolve0(ExecutionContext context) {
             return flows;
         }
 
         @Override
-        public Flowable<FlowV2Impl> provideFlows(BaseExecutionContext ctx) {
+        public Flowable<FlowV2> provideFlows(BaseExecutionContext ctx) {
             return Flowable.fromIterable(flows);
         }
 
         @Override
-        public Flowable<FlowV2Impl> resolve(BaseExecutionContext ctx) {
+        public Flowable<FlowV2> resolve(BaseExecutionContext ctx) {
             return Flowable.fromIterable(super.resolve(ExecutionContextAdapter.create((HttpPlainExecutionContext) ctx)));
         }
     }

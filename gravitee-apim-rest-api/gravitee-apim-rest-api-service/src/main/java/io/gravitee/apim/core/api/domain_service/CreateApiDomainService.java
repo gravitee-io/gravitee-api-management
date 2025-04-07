@@ -35,7 +35,7 @@ import io.gravitee.apim.core.notification.model.config.NotificationConfig;
 import io.gravitee.apim.core.parameters.model.ParameterContext;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import java.util.Collections;
@@ -159,7 +159,7 @@ public class CreateApiDomainService {
         }
     }
 
-    private List<? extends AbstractFlow> saveApiFlows(Api api) {
+    private List<? extends Flow> saveApiFlows(Api api) {
         return switch (api.getDefinitionVersion()) {
             case V4 -> switch (api.getType()) {
                 case PROXY, MESSAGE -> flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionHttpV4().getFlows());

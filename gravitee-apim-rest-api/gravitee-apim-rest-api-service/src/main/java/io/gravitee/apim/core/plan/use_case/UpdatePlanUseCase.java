@@ -24,7 +24,7 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanUpdates;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class UpdatePlanUseCase {
         var updatedEntity = input.planToUpdate.applyTo(planEntity);
 
         var api = apiCrudService.get(input.apiId);
-        List<? extends AbstractFlow> flows = input.flowProvider.apply(api);
+        List<? extends Flow> flows = input.flowProvider.apply(api);
 
         var updated = updatePlanDomainService.update(updatedEntity, flows, Map.of(), api, input.auditInfo);
 
@@ -60,12 +60,7 @@ public class UpdatePlanUseCase {
     }
 
     @Builder
-    public record Input(
-        PlanUpdates planToUpdate,
-        Function<Api, List<? extends AbstractFlow>> flowProvider,
-        String apiId,
-        AuditInfo auditInfo
-    ) {}
+    public record Input(PlanUpdates planToUpdate, Function<Api, List<? extends Flow>> flowProvider, String apiId, AuditInfo auditInfo) {}
 
     public record Output(PlanWithFlows updated) {}
 }

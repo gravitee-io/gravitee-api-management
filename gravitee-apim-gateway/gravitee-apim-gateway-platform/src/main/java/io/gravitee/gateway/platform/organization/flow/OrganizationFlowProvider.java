@@ -16,6 +16,7 @@
 package io.gravitee.gateway.platform.organization.flow;
 
 import io.gravitee.definition.model.flow.FlowStage;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.definition.model.flow.FlowV2Impl;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -49,7 +50,7 @@ public class OrganizationFlowProvider implements FlowProvider {
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> provide(final ExecutionContext context) {
-        List<FlowV2Impl> flows = flowResolver.resolve(context);
+        List<FlowV2> flows = flowResolver.resolve(context);
 
         if (flows != null && !flows.isEmpty()) {
             final List<StreamableProcessor<ExecutionContext, Buffer>> chain = new ArrayList<>(flows.size());
@@ -57,8 +58,8 @@ public class OrganizationFlowProvider implements FlowProvider {
             String organizationId = (String) context.getAttribute(ExecutionContext.ATTR_ORGANIZATION);
             PolicyChainFactory policyChainFactory = organizationPolicyChainFactoryManager.get(organizationId);
             if (policyChainFactory != null) {
-                for (FlowV2Impl flow : flows) {
-                    flow.setStage(FlowStage.PLATFORM);
+                for (FlowV2 flow : flows) {
+                    ((FlowV2Impl) flow).setStage(FlowStage.PLATFORM);
                     chain.add(
                         policyChainFactory.create(
                             flowPolicyResolverFactory.create(flow).resolve(streamType, context),

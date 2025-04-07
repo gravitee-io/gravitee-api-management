@@ -17,7 +17,12 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,8 +33,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
@@ -38,21 +43,35 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiStateService;
+import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -301,7 +320,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, null, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         // Add Flows to make API not synchronized
-        List<FlowV4Impl> apiFlows = List.of(mock(FlowV4Impl.class), mock(FlowV4Impl.class));
+        List<FlowV4> apiFlows = List.of(mock(FlowV4.class), mock(FlowV4.class));
         apiEntity.setFlows(apiFlows);
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
@@ -427,7 +446,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         var apiEntity = apiMapper.toNativeEntity(GraviteeContext.getExecutionContext(), api, null, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         // Add Flows to make API not synchronized
-        var apiFlows = List.of(mock(NativeFlowImpl.class), mock(NativeFlowImpl.class));
+        var apiFlows = List.of(mock(NativeFlow.class), mock(NativeFlow.class));
         apiEntity.setFlows(apiFlows);
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);

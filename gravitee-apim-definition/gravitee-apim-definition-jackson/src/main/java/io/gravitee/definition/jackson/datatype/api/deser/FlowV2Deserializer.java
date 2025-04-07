@@ -20,7 +20,11 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.flow.*;
+import io.gravitee.definition.model.flow.Consumer;
+import io.gravitee.definition.model.flow.FlowV2;
+import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.PathOperator;
+import io.gravitee.definition.model.flow.StepV2;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -30,14 +34,14 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FlowV2Deserializer extends StdScalarDeserializer<FlowV2Impl> {
+public class FlowV2Deserializer extends StdScalarDeserializer<FlowV2> {
 
-    public FlowV2Deserializer(Class<FlowV2Impl> vc) {
+    public FlowV2Deserializer(Class<FlowV2> vc) {
         super(vc);
     }
 
     @Override
-    public FlowV2Impl deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public FlowV2 deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
         FlowV2Impl flow = new FlowV2Impl();

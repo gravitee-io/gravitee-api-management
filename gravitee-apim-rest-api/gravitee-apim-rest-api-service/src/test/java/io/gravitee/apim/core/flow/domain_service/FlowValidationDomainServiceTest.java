@@ -35,6 +35,7 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.FlowV4;
 import io.gravitee.definition.model.v4.flow.FlowV4Impl;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -321,7 +322,7 @@ public class FlowValidationDomainServiceTest {
         }
 
         @NotNull
-        private static Stream<FlowV4Impl> getPlanFlows(Api api) {
+        private static Stream<FlowV4> getPlanFlows(Api api) {
             return api.getPlans().stream().flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
         }
     }

@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.plan.model;
 
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.flow.Flow;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -30,9 +30,9 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class PlanWithFlows extends Plan {
 
-    List<? extends AbstractFlow> flows;
+    List<? extends Flow> flows;
 
-    public PlanWithFlows(Plan plan, List<? extends AbstractFlow> flows) {
+    public PlanWithFlows(Plan plan, List<? extends Flow> flows) {
         super(
             plan.getId(),
             plan.getDefinitionVersion(),

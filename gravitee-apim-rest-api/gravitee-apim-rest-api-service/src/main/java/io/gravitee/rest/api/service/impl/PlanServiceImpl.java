@@ -30,10 +30,9 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
@@ -632,7 +631,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     }
 
     private PlanEntity convert(Plan plan) {
-        List<FlowV2Impl> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
+        List<FlowV2> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
         return planConverter.toPlanEntity(plan, flows);
     }
 

@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
@@ -149,7 +149,7 @@ public class ApiService_FindByIdTest {
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        List<FlowV2Impl> apiFlows = List.of(mock(FlowV2Impl.class), mock(FlowV2Impl.class));
+        List<FlowV2> apiFlows = List.of(mock(FlowV2.class), mock(FlowV2.class));
         when(flowService.findByReference(FlowReferenceType.API, API_ID)).thenReturn(apiFlows);
 
         MembershipEntity po = new MembershipEntity();

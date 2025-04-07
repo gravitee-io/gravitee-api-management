@@ -18,10 +18,10 @@ package io.gravitee.apim.infra.crud_service.flow;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.infra.adapter.FlowAdapter;
-import io.gravitee.definition.model.flow.FlowV2Impl;
-import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.FlowV4Impl;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlowImpl;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowV2;
+import io.gravitee.definition.model.v4.flow.FlowV4;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -51,59 +51,59 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     }
 
     @Override
-    public List<FlowV4Impl> savePlanFlows(String planId, List<FlowV4Impl> flows) {
+    public List<FlowV4> savePlanFlows(String planId, List<FlowV4> flows) {
         return FlowAdapter.INSTANCE.toFlowV4(save(FlowReferenceType.PLAN, planId, flows));
     }
 
     @Override
-    public List<FlowV4Impl> saveApiFlows(String apiId, List<FlowV4Impl> flows) {
+    public List<FlowV4> saveApiFlows(String apiId, List<FlowV4> flows) {
         return FlowAdapter.INSTANCE.toFlowV4(save(FlowReferenceType.API, apiId, flows));
     }
 
     @Override
-    public List<FlowV4Impl> getApiV4Flows(String apiId) {
+    public List<FlowV4> getApiV4Flows(String apiId) {
         return getHttpV4(FlowReferenceType.API, apiId);
     }
 
     @Override
-    public List<FlowV4Impl> getPlanV4Flows(String planId) {
+    public List<FlowV4> getPlanV4Flows(String planId) {
         return getHttpV4(FlowReferenceType.PLAN, planId);
     }
 
     @Override
-    public List<FlowV2Impl> getApiV2Flows(String apiId) {
+    public List<FlowV2> getApiV2Flows(String apiId) {
         return getV2(FlowReferenceType.API, apiId);
     }
 
     @Override
-    public List<FlowV2Impl> getPlanV2Flows(String planId) {
+    public List<FlowV2> getPlanV2Flows(String planId) {
         return getV2(FlowReferenceType.PLAN, planId);
     }
 
     @Override
-    public List<NativeFlowImpl> saveNativeApiFlows(String apiId, List<NativeFlowImpl> flows) {
+    public List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows) {
         return FlowAdapter.INSTANCE.toNativeFlow(save(FlowReferenceType.API, apiId, flows));
     }
 
     @Override
-    public List<NativeFlowImpl> saveNativePlanFlows(String planId, List<NativeFlowImpl> flows) {
+    public List<NativeFlow> saveNativePlanFlows(String planId, List<NativeFlow> flows) {
         return FlowAdapter.INSTANCE.toNativeFlow(save(FlowReferenceType.PLAN, planId, flows));
     }
 
     @Override
-    public List<NativeFlowImpl> getNativeApiFlows(String apiId) {
+    public List<NativeFlow> getNativeApiFlows(String apiId) {
         return getNativeV4(FlowReferenceType.API, apiId);
     }
 
     @Override
-    public List<NativeFlowImpl> getNativePlanFlows(String planId) {
+    public List<NativeFlow> getNativePlanFlows(String planId) {
         return getNativeV4(FlowReferenceType.PLAN, planId);
     }
 
     private List<io.gravitee.repository.management.model.flow.Flow> save(
         FlowReferenceType flowReferenceType,
         String referenceId,
-        List<? extends AbstractFlow> flows
+        List<? extends Flow> flows
     ) {
         try {
             log.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
@@ -116,7 +116,7 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
                 .stream()
                 .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
 
-            Set<String> flowIdsToSave = flows.stream().map(AbstractFlow::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+            Set<String> flowIdsToSave = flows.stream().map(Flow::getId).filter(Objects::nonNull).collect(Collectors.toSet());
 
             Set<String> flowIdsToDelete = dbFlowsById
                 .keySet()
@@ -150,7 +150,7 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
         }
     }
 
-    private List<FlowV2Impl> getV2(FlowReferenceType flowReferenceType, String referenceId) {
+    private List<FlowV2> getV2(FlowReferenceType flowReferenceType, String referenceId) {
         try {
             log.debug("Get flows for reference {},{}", flowReferenceType, flowReferenceType);
             return flowRepository
@@ -166,11 +166,11 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
         }
     }
 
-    private List<FlowV4Impl> getHttpV4(FlowReferenceType flowReferenceType, String referenceId) {
+    private List<FlowV4> getHttpV4(FlowReferenceType flowReferenceType, String referenceId) {
         return getRepositoryV4(flowReferenceType, referenceId).map(FlowAdapter.INSTANCE::toFlowV4).collect(Collectors.toList());
     }
 
-    private List<NativeFlowImpl> getNativeV4(FlowReferenceType flowReferenceType, String referenceId) {
+    private List<NativeFlow> getNativeV4(FlowReferenceType flowReferenceType, String referenceId) {
         return getRepositoryV4(flowReferenceType, referenceId).map(FlowAdapter.INSTANCE::toNativeFlow).collect(Collectors.toList());
     }
 

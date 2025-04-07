@@ -19,7 +19,15 @@ import static io.gravitee.rest.api.service.V4EmulationEngineService.DefaultMode.
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -27,7 +35,7 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
@@ -400,7 +408,7 @@ public class ApiService_CreateTest {
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
 
-        List<FlowV2Impl> apiFlows = List.of(mock(FlowV2Impl.class), mock(FlowV2Impl.class));
+        List<FlowV2> apiFlows = List.of(mock(FlowV2.class), mock(FlowV2.class));
         when(newApi.getFlows()).thenReturn(apiFlows);
 
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);

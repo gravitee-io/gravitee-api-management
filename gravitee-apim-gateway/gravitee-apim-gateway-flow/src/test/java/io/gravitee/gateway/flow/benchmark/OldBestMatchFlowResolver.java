@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.flow.benchmark;
 
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
@@ -48,11 +48,11 @@ public class OldBestMatchFlowResolver extends BestMatchFlowResolver {
     }
 
     @Override
-    public List<FlowV2Impl> resolve(ExecutionContext context) {
+    public List<FlowV2> resolve(ExecutionContext context) {
         return filter(flowResolver.resolve(context), context);
     }
 
-    private List<FlowV2Impl> filter(List<FlowV2Impl> flows, ExecutionContext context) {
+    private List<FlowV2> filter(List<FlowV2> flows, ExecutionContext context) {
         // Do not process empty flows
         if (flows == null || flows.isEmpty()) {
             return null;
@@ -63,9 +63,9 @@ public class OldBestMatchFlowResolver extends BestMatchFlowResolver {
 
         int pieces = -1;
 
-        List<FlowV2Impl> filteredFlows = new ArrayList<>();
+        List<FlowV2> filteredFlows = new ArrayList<>();
 
-        for (FlowV2Impl flow : flows) {
+        for (FlowV2 flow : flows) {
             Pattern pattern = cache.computeIfAbsent(flow.getPath(), this::transform);
             if (pattern.matcher(path).lookingAt()) {
                 int split = flow.getPath().split(PATH_SEPARATOR).length;

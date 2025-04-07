@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.FlowV2Impl;
+import io.gravitee.definition.model.flow.FlowV2;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
@@ -34,12 +34,12 @@ import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
  */
 public class FlowResolverFactory {
 
-    private final ConditionFilter<HttpBaseExecutionContext, FlowV2Impl> flowFilter;
-    private final AbstractBestMatchFlowSelector<FlowV2Impl> bestMatchFlowSelector;
+    private final ConditionFilter<HttpBaseExecutionContext, FlowV2> flowFilter;
+    private final AbstractBestMatchFlowSelector<FlowV2> bestMatchFlowSelector;
 
     public FlowResolverFactory(
-        ConditionFilter<HttpBaseExecutionContext, FlowV2Impl> flowFilter,
-        AbstractBestMatchFlowSelector<FlowV2Impl> bestMatchFlowSelector
+        ConditionFilter<HttpBaseExecutionContext, FlowV2> flowFilter,
+        AbstractBestMatchFlowSelector<FlowV2> bestMatchFlowSelector
     ) {
         this.flowFilter = flowFilter;
         this.bestMatchFlowSelector = bestMatchFlowSelector;
