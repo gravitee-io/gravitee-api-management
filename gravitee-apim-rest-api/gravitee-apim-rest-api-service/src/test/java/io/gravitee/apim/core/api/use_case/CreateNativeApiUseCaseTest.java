@@ -46,9 +46,10 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.exception.NativeApiWithMultipleFlowsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
-import io.gravitee.apim.core.api.use_case.CreateV4ApiUseCase.Input;
+import io.gravitee.apim.core.api.use_case.CreateNativeApiUseCase.Input;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -71,6 +72,7 @@ import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -94,7 +96,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class CreateV4ApiUseCaseTest {
+class CreateNativeApiUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String ORGANIZATION_ID = "organization-id";
@@ -121,7 +123,7 @@ class CreateV4ApiUseCaseTest {
     IndexerInMemory indexer = new IndexerInMemory();
     CreateCategoryApiDomainService createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
 
-    CreateV4ApiUseCase useCase;
+    CreateNativeApiUseCase useCase;
 
     @BeforeAll
     static void beforeAll() {
@@ -174,7 +176,7 @@ class CreateV4ApiUseCaseTest {
             workflowCrudService,
             createCategoryApiDomainService
         );
-        useCase = new CreateV4ApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService);
+        useCase = new CreateNativeApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService);
 
         when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
             .thenAnswer(invocation -> invocation.getArgument(0));
@@ -209,7 +211,7 @@ class CreateV4ApiUseCaseTest {
         // Given
         when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
             .thenThrow(new ValidationDomainException("Definition version is unsupported, should be V4 or higher"));
-        var newApi = NewApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aNativeApiV4();
 
         // When
         var throwable = catchThrowable(() -> useCase.execute(new Input(newApi, AUDIT_INFO)));
@@ -219,9 +221,27 @@ class CreateV4ApiUseCaseTest {
     }
 
     @Test
+    void should_throw_when_multiple_api_flows() {
+        // Given
+        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+            .thenThrow(new NativeApiWithMultipleFlowsException());
+        var newApi = NewApiFixtures
+            .aNativeApiV4()
+            .toBuilder()
+            .flows(List.of(NativeFlow.builder().id("flow-1").build(), NativeFlow.builder().id("flow-2").build()))
+            .build();
+
+        // When
+        var throwable = catchThrowable(() -> useCase.execute(new Input(newApi, AUDIT_INFO)));
+
+        // Then
+        assertThat(throwable).isInstanceOf(NativeApiWithMultipleFlowsException.class);
+    }
+
+    @Test
     void should_create_and_index_a_new_api() {
         // Given
-        var newApi = NewApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aNativeApiV4();
 
         // When
         var output = useCase.execute(new Input(newApi, AUDIT_INFO));
@@ -236,7 +256,7 @@ class CreateV4ApiUseCaseTest {
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .lifecycleState(Api.LifecycleState.STOPPED)
             .visibility(Api.Visibility.PRIVATE)
-            .apiDefinitionV4(newApi.toApiDefinitionBuilder().id("generated-id").build())
+            .apiDefinitionNativeV4(newApi.toNativeApiDefinitionBuilder().id("generated-id").build())
             .build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));
@@ -257,7 +277,7 @@ class CreateV4ApiUseCaseTest {
     @Test
     void should_create_an_audit() {
         // Given
-        var newApi = NewApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aNativeApiV4();
 
         // When
         useCase.execute(new Input(newApi, AUDIT_INFO));
@@ -313,7 +333,7 @@ class CreateV4ApiUseCaseTest {
     void should_create_primary_owner_membership_when_user_or_hybrid_mode_is_enabled(ApiPrimaryOwnerMode mode) {
         // Given
         enableApiPrimaryOwnerMode(mode);
-        var newApi = NewApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aNativeApiV4();
 
         // When
         useCase.execute(new Input(newApi, AUDIT_INFO));
@@ -353,7 +373,7 @@ class CreateV4ApiUseCaseTest {
                     .build()
             )
         );
-        var newApi = NewApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aNativeApiV4();
 
         // When
         useCase.execute(new Input(newApi, AUDIT_INFO));
@@ -379,7 +399,7 @@ class CreateV4ApiUseCaseTest {
     @Test
     void should_create_default_email_notification_configuration() {
         // Given
-        var newApi = NewApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aNativeApiV4();
 
         // When
         useCase.execute(new Input(newApi, AUDIT_INFO));
@@ -408,11 +428,13 @@ class CreateV4ApiUseCaseTest {
                             "MESSAGE",
                             "NEW_RATING",
                             "NEW_RATING_ANSWER",
+                            "NEW_SPEC_GENERATED",
                             "NEW_SUPPORT_TICKET",
                             "REQUEST_FOR_CHANGES",
                             "REVIEW_OK",
                             "SUBSCRIPTION_ACCEPTED",
                             "SUBSCRIPTION_CLOSED",
+                            "SUBSCRIPTION_FAILED",
                             "SUBSCRIPTION_NEW",
                             "SUBSCRIPTION_PAUSED",
                             "SUBSCRIPTION_REJECTED",
@@ -431,7 +453,7 @@ class CreateV4ApiUseCaseTest {
     @Test
     void should_create_default_api_metadata() {
         // Given
-        var newApi = NewApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aNativeApiV4();
 
         // When
         useCase.execute(new Input(newApi, AUDIT_INFO));
@@ -456,8 +478,8 @@ class CreateV4ApiUseCaseTest {
     @Test
     void should_save_all_flows() {
         // Given
-        var flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
-        var newApi = NewApiFixtures.aProxyApiV4().toBuilder().flows(flows).build();
+        List<NativeFlow> flows = List.of(NativeFlow.builder().name("flow").build());
+        var newApi = NewApiFixtures.aNativeApiV4().toBuilder().flows(flows).build();
 
         // When
         useCase.execute(new Input(newApi, AUDIT_INFO));
@@ -470,7 +492,7 @@ class CreateV4ApiUseCaseTest {
     void should_create_an_api_review_workflow_when_api_review_is_enabled() {
         // Given
         enableApiReview();
-        var newApi = NewApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aNativeApiV4();
 
         // When
         useCase.execute(new Input(newApi, AUDIT_INFO));

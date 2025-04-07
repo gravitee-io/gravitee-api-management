@@ -25,6 +25,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
+import io.gravitee.apim.core.category.domain_service.CreateCategoryApiDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -53,6 +54,7 @@ public class CreateApiDomainService {
     private final NotificationConfigCrudService notificationConfigCrudService;
     private final ParametersQueryService parametersQueryService;
     private final WorkflowCrudService workflowCrudService;
+    private final CreateCategoryApiDomainService createCategoryApiDomainService;
 
     public CreateApiDomainService(
         ApiCrudService apiCrudService,
@@ -105,6 +107,9 @@ public class CreateApiDomainService {
         createDefaultMetadata(created, auditInfo);
 
         var createdFlows = saveApiFlows(api);
+
+        // create Api Category Order entries
+        createCategoryApiDomainService.addApiToCategories(api.getId(), api.getCategories());
 
         if (isApiReviewEnabled(created, auditInfo.organizationId(), auditInfo.environmentId())) {
             workflowCrudService.create(newApiReviewWorkflow(api.getId(), auditInfo.actor().userId()));
