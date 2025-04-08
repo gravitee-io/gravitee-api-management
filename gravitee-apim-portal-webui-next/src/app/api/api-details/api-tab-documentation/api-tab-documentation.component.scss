@@ -21,6 +21,7 @@
 .api-tab-documentation {
   &__side-bar {
     min-width: 276px;
+    max-width: 300px;
     transition: margin-left 350ms ease-in-out;
 
     &--hidden {
@@ -29,17 +30,6 @@
 
     &__tree {
       position: sticky;
-      top: 96px;
-    }
-  }
-
-  &__page-content {
-    width: 100%;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-
-    &__container {
-      min-width: 0;
     }
   }
 }
