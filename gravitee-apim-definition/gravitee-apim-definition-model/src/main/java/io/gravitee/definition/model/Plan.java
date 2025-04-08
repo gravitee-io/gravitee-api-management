@@ -85,4 +85,9 @@ public class Plan implements Serializable {
             this.getSecurity() != null && ("API_KEY".equalsIgnoreCase(this.getSecurity()) || "api-key".equalsIgnoreCase(this.getSecurity()))
         );
     }
+
+    public Plan flows(List<Flow> flows) {
+        this.flows = flows;
+        return this;
+    }
 }

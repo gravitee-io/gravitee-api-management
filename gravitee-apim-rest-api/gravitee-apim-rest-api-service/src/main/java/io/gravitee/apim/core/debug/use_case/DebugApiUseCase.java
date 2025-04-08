@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.debug.use_case;
 
-import static java.util.Map.entry;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 
@@ -31,21 +30,29 @@ import io.gravitee.apim.core.debug.exceptions.DebugApiNoValidPlanException;
 import io.gravitee.apim.core.debug.model.ApiDebugStatus;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.gateway.model.Instance;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
+import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.LoggingContent;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.LoggingScope;
 import io.gravitee.definition.model.debug.DebugApiProxy;
 import io.gravitee.definition.model.debug.DebugApiV2;
+import io.gravitee.definition.model.debug.DebugApiV4;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PlanStatus;
 import java.util.Comparator;
-import java.util.Map;
+import java.util.EnumMap;
+import java.util.List;
 import java.util.Set;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,65 +64,123 @@ public class DebugApiUseCase {
     private final ApiPolicyValidatorDomainService apiPolicyValidatorDomainService;
     private final ApiCrudService apiCrudService;
     private final InstanceQueryService instanceQueryService;
+    private final PlanQueryService planQueryService;
+    private final FlowCrudService flowCrudService;
     private final EventCrudService eventCrudService;
 
     public DebugApiUseCase.Output execute(DebugApiUseCase.Input input) throws InvalidPathsException {
         log.debug("Debugging API {}", input.apiId);
 
-        validateDefinitionVersion(input.apiId, input.debugApi.getDefinitionVersion());
-        validateApiExists(input);
+        if (input.debugApiV2 != null) {
+            return new DebugApiUseCase.Output(handleEmbeddedDebugApiDefinition(input.debugApiV2, input.auditInfo));
+        }
 
-        // Check policy configuration
-        apiPolicyValidatorDomainService.checkPolicyConfigurations(input.debugApi);
+        if (input.debugApiRequest != null) {
+            return new DebugApiUseCase.Output(handleDebugApi(input.apiId, input.debugApiRequest, input.auditInfo));
+        }
 
-        final Instance selectedGateway = selectTargetGateway(
-            input.auditInfo.organizationId(),
-            input.auditInfo.environmentId(),
-            input.debugApi
-        );
-
-        // prepare and validate debugApi
-        validatePlan(input.debugApi);
-        disableLoggingForDebug(input.debugApi);
-        disableHealthCheckForDebug(input.debugApi);
-
-        final Event debugApiEvent = createDebugApiEvent(input.auditInfo, input.debugApi, selectedGateway);
-
-        return new DebugApiUseCase.Output(debugApiEvent);
+        throw new IllegalArgumentException("Invalid input: either debugApiV2 or debugApiRequest must be provided");
     }
 
-    private void validateApiExists(Input input) {
-        if (!apiCrudService.existsById(input.apiId)) {
-            throw new ApiNotFoundException(input.apiId);
+    private Event handleEmbeddedDebugApiDefinition(DebugApiV2 debugApiV2, AuditInfo auditInfo) {
+        if (debugApiV2.getDefinitionVersion() != DefinitionVersion.V2) {
+            throw new DebugApiInvalidDefinitionVersionException(debugApiV2.getId());
         }
+
+        if (!apiCrudService.existsById(debugApiV2.getId())) {
+            throw new ApiNotFoundException(debugApiV2.getId());
+        }
+
+        // Check policy configuration
+        apiPolicyValidatorDomainService.checkPolicyConfigurations(debugApiV2);
+
+        final Instance selectedGateway = selectTargetGateway(auditInfo.organizationId(), auditInfo.environmentId(), debugApiV2);
+
+        // prepare and validate debugApiV2
+        validatePlans(debugApiV2.getId(), debugApiV2.getPlans(), null);
+        disableLoggingForDebug(debugApiV2);
+        disableHealthCheckForDebug(debugApiV2);
+
+        return createDebugApiEvent(auditInfo, debugApiV2, selectedGateway);
+    }
+
+    private Event handleDebugApi(String apiId, HttpRequest debugRequest, AuditInfo auditInfo) {
+        var debugApi = validateApiExists(apiId, debugRequest);
+
+        // Check policy configuration
+        apiPolicyValidatorDomainService.checkPolicyConfigurations(debugApi);
+
+        final Instance selectedGateway = selectTargetGateway(auditInfo.organizationId(), auditInfo.environmentId(), debugApi);
+
+        // prepare and validate debugApi
+        disableLoggingForDebug(debugApi);
+        disableHealthCheckForDebug(debugApi);
+
+        return createDebugApiEvent(auditInfo, debugApi, selectedGateway);
+    }
+
+    private DebugApiProxy validateApiExists(String apiId, HttpRequest debugApiRequest) {
+        var api = apiCrudService.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+
+        return switch (api.getDefinitionVersion()) {
+            case V4:
+                {
+                    if (api.getType() != ApiType.PROXY) {
+                        throw new DebugApiInvalidDefinitionVersionException(apiId);
+                    }
+                    var plans = planQueryService
+                        .findAllByApiId(apiId)
+                        .stream()
+                        .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
+                        .map(plan -> plan.flows(flowCrudService.getPlanV4Flows(plan.getId())))
+                        .toList();
+
+                    validatePlans(apiId, null, plans);
+                    yield new DebugApiV4(
+                        api.getApiDefinitionHttpV4().plans(plans).flow(flowCrudService.getApiV4Flows(apiId)),
+                        debugApiRequest
+                    );
+                }
+            case V2:
+                {
+                    var plans = planQueryService
+                        .findAllByApiId(apiId)
+                        .stream()
+                        .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionV2)
+                        .map(plan -> plan.flows(flowCrudService.getPlanV2Flows(plan.getId())))
+                        .toList();
+                    validatePlans(apiId, plans, null);
+                    yield new DebugApiV2(api.getApiDefinition().plans(plans).flows(flowCrudService.getApiV2Flows(apiId)), debugApiRequest);
+                }
+            default:
+                throw new DebugApiInvalidDefinitionVersionException(apiId);
+        };
     }
 
     private Event createDebugApiEvent(AuditInfo auditInfo, DebugApiProxy debugApi, Instance selectedInstance) {
+        var eventProperties = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
+        eventProperties.put(Event.EventProperties.USER, auditInfo.actor().userId());
+        eventProperties.put(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name());
+        eventProperties.put(Event.EventProperties.GATEWAY_ID, selectedInstance.getId());
+        eventProperties.put(Event.EventProperties.API_ID, debugApi.getId());
+
+        if (debugApi.getDefinitionVersion() == DefinitionVersion.V4) {
+            eventProperties.put(Event.EventProperties.API_DEFINITION_VERSION, DefinitionVersion.V4.name());
+        }
+
         return eventCrudService.createEvent(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
             Set.of(auditInfo.environmentId()),
             EventType.DEBUG_API,
             debugApi,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
-                entry(Event.EventProperties.GATEWAY_ID, selectedInstance.getId()),
-                entry(Event.EventProperties.API_ID, debugApi.getId())
-            )
+            eventProperties
         );
     }
 
-    private static void validateDefinitionVersion(String apiId, DefinitionVersion debugApiDefinitionVersion) {
-        if (!debugApiDefinitionVersion.equals(DefinitionVersion.V2)) {
-            throw new DebugApiInvalidDefinitionVersionException(apiId);
-        }
-    }
-
-    private static void validatePlan(DebugApiProxy debugApi) {
-        if (debugApi instanceof DebugApiV2 debugApiV2) {
-            boolean hasValidPlan = debugApiV2
-                .getPlans()
+    private static void validatePlans(String apiId, List<io.gravitee.definition.model.Plan> plansV2, List<Plan> plansV4) {
+        if (plansV2 != null) {
+            boolean hasValidPlan = plansV2
                 .stream()
                 .anyMatch(plan ->
                     PlanStatus.STAGING.name().equalsIgnoreCase(plan.getStatus()) ||
@@ -123,25 +188,35 @@ public class DebugApiUseCase {
                 );
 
             if (!hasValidPlan) {
-                throw new DebugApiNoValidPlanException(debugApiV2.getId());
+                throw new DebugApiNoValidPlanException(apiId);
+            }
+        }
+
+        if (plansV4 != null) {
+            boolean hasValidPlan = plansV4
+                .stream()
+                .map(Plan::getStatus)
+                .anyMatch(status ->
+                    status == io.gravitee.definition.model.v4.plan.PlanStatus.STAGING ||
+                    status == io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED
+                );
+
+            if (!hasValidPlan) {
+                throw new DebugApiNoValidPlanException(apiId);
             }
         }
     }
 
     private Instance selectTargetGateway(String organizationId, String environmentId, DebugApiProxy debugApi) {
-        if (debugApi instanceof DebugApiV2 debugApiV2) {
-            return instanceQueryService
-                .findAllStarted(organizationId, environmentId)
-                .stream()
-                .filter(Instance::isClusterPrimaryNode)
-                .filter(instance -> instance.isRunningForEnvironment(environmentId))
-                .filter(Instance::hasDebugPluginInstalled)
-                .filter(instance -> EnvironmentUtils.hasMatchingTags(ofNullable(instance.getTags()), debugApiV2.getTags()))
-                .max(Comparator.comparing(Instance::getStartedAt))
-                .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(debugApiV2.getId()));
-        }
-
-        throw new DebugApiNoCompatibleInstanceException(debugApi.getId());
+        return instanceQueryService
+            .findAllStarted(organizationId, environmentId)
+            .stream()
+            .filter(Instance::isClusterPrimaryNode)
+            .filter(instance -> instance.isRunningForEnvironment(environmentId))
+            .filter(Instance::hasDebugPluginInstalled)
+            .filter(instance -> EnvironmentUtils.hasMatchingTags(ofNullable(instance.getTags()), debugApi.getTags()))
+            .max(Comparator.comparing(Instance::getStartedAt))
+            .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(debugApi.getId()));
     }
 
     private static void disableLoggingForDebug(DebugApiProxy debugApi) {
@@ -152,6 +227,13 @@ public class DebugApiUseCase {
                 debugApiV2.getProxy().getLogging().setScope(LoggingScope.NONE);
             }
         }
+
+        if (debugApi instanceof DebugApiV4 debugApiV4) {
+            var apiDefinition = debugApiV4.getApiDefinition();
+            if (apiDefinition.getAnalytics() != null) {
+                apiDefinition.getAnalytics().setLogging(null);
+            }
+        }
     }
 
     private static void disableHealthCheckForDebug(DebugApiProxy debugApi) {
@@ -160,14 +242,44 @@ public class DebugApiUseCase {
                 debugApiV2.getServices().getHealthCheckService().setEnabled(false);
             }
         }
+        if (debugApi instanceof DebugApiV4 debugApiV4) {
+            var apiDefinition = debugApiV4.getApiDefinition();
+            apiDefinition
+                .getEndpointGroups()
+                .stream()
+                .map(EndpointGroup::getServices)
+                .forEach(endpointGroupServices -> endpointGroupServices.setHealthCheck(null));
+            apiDefinition
+                .getEndpointGroups()
+                .stream()
+                .flatMap(group -> group.getEndpoints().stream())
+                .map(Endpoint::getServices)
+                .forEach(endpointServices -> endpointServices.setHealthCheck(null));
+        }
     }
 
-    @Builder
-    public record Input(String apiId, DebugApiProxy debugApi, AuditInfo auditInfo) {
+    /**
+     * Input for the DebugApiUseCase.
+     *
+     * @param apiId           The API id
+     * @param debugApiV2      In case of debugging an API V2, the REST endpoint is called with the entire API definition because the debug UI is included in the Policy Studio.
+     * @param debugApiRequest In case of debugging an API V4, the REST endpoint is called without API Definition because the debug UI has been moved outside the Policy Studio.
+     * @param auditInfo
+     */
+    public record Input(String apiId, DebugApiV2 debugApiV2, HttpRequest debugApiRequest, AuditInfo auditInfo) {
         public Input {
             requireNonNull(apiId);
-            requireNonNull(debugApi);
             requireNonNull(auditInfo);
+        }
+
+        public Input(String apiId, HttpRequest debugApiRequest, AuditInfo auditInfo) {
+            this(apiId, null, debugApiRequest, auditInfo);
+            requireNonNull(debugApiRequest);
+        }
+
+        public Input(String apiId, DebugApiV2 debugApiV2, AuditInfo auditInfo) {
+            this(apiId, debugApiV2, null, auditInfo);
+            requireNonNull(debugApiV2);
         }
     }
 

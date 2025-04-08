@@ -104,6 +104,48 @@ public class ApiDefinitionFixtures {
             .build();
     }
 
+    public static Api aMessageApiV4(String apiId) {
+        return BASE_V4
+            .get()
+            .id(apiId)
+            .analytics(Analytics.builder().enabled(false).build())
+            .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.MESSAGE)
+            .listeners(
+                List.of(
+                    HttpListener
+                        .builder()
+                        .paths(List.of(Path.builder().path("/sse").build()))
+                        .entrypoints(List.of(Entrypoint.builder().type("sse").configuration("{}").build()))
+                        .build()
+                )
+            )
+            .endpointGroups(
+                List.of(
+                    EndpointGroup
+                        .builder()
+                        .name("default-group")
+                        .type("mock")
+                        .sharedConfiguration("{}")
+                        .endpoints(
+                            List.of(
+                                Endpoint
+                                    .builder()
+                                    .name("default-endpoint")
+                                    .type("mock")
+                                    .inheritConfiguration(true)
+                                    .configuration("{}")
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+            )
+            .flows(List.of())
+            .flowExecution(new FlowExecution())
+            .build();
+    }
+
     public static NativeApi aNativeApiV4() {
         return BASE_NATIVE.get().build();
     }

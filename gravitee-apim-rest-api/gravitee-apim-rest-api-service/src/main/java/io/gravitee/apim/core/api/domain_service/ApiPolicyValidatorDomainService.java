@@ -21,10 +21,12 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.debug.DebugApiProxy;
+import io.gravitee.definition.model.debug.DebugApiV4;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +49,10 @@ public class ApiPolicyValidatorDomainService {
                 case V2 -> validateFlowConfigurations(api, plans);
                 case V4 -> throw new IllegalStateException("Cannot validate V4 api");
             }
+        }
+
+        if (debugApiProxy instanceof DebugApiV4 debugApiV4) {
+            validateFlowV4Configurations(debugApiV4.getApiDefinition());
         }
     }
 
@@ -125,5 +131,34 @@ public class ApiPolicyValidatorDomainService {
                 flow.getPost() != null ? flow.getPost().stream() : Stream.empty()
             )
         );
+    }
+
+    private void validateFlowV4Configurations(io.gravitee.definition.model.v4.Api api) {
+        var flowsStream = flowSteps(api);
+
+        flowsStream
+            .filter(io.gravitee.definition.model.v4.flow.step.Step::isEnabled)
+            .forEach(step ->
+                step.setConfiguration(
+                    policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
+                )
+            );
+    }
+
+    private static Stream<io.gravitee.definition.model.v4.flow.step.Step> flowSteps(io.gravitee.definition.model.v4.Api api) {
+        var apiFlows = Optional.ofNullable(api.getFlows()).stream().flatMap(Collection::stream);
+        var plansFlows = Optional
+            .ofNullable(api.getPlans())
+            .stream()
+            .flatMap(plans -> plans.stream().flatMap(plan -> Optional.ofNullable(plan.getFlows()).stream().flatMap(Collection::stream)));
+
+        return Stream
+            .concat(apiFlows, plansFlows)
+            .flatMap(flow ->
+                Stream.concat(
+                    Optional.ofNullable(flow.getRequest()).stream().flatMap(Collection::stream),
+                    Optional.ofNullable(flow.getResponse()).stream().flatMap(Collection::stream)
+                )
+            );
     }
 }

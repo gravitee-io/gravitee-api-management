@@ -318,7 +318,7 @@ class ApiAdapterTest {
                 soft
                     .assertThat(api.getDefinition())
                     .isEqualTo(
-                        "{\"id\":\"my-api\",\"name\":\"api-name\",\"version\":\"1.0.0\",\"gravitee\":\"2.0.0\",\"execution_mode\":\"v3\",\"flow_mode\":\"DEFAULT\",\"proxy\":{\"strip_context_path\":false,\"preserve_host\":false,\"groups\":[{\"name\":\"default-group\",\"endpoints\":[{\"name\":\"default\",\"target\":\"https://api.gravitee.io/echo\",\"weight\":1,\"backup\":false,\"type\":\"http1\"}],\"load_balancing\":{\"type\":\"ROUND_ROBIN\"},\"http\":{\"connectTimeout\":5000,\"idleTimeout\":60000,\"keepAliveTimeout\":30000,\"keepAlive\":true,\"readTimeout\":10000,\"pipelining\":false,\"maxConcurrentConnections\":100,\"useCompression\":true,\"followRedirects\":false}}]},\"properties\":[],\"tags\":[\"tag1\"]}"
+                        "{\"id\":\"my-api\",\"name\":\"api-name\",\"version\":\"1.0.0\",\"gravitee\":\"2.0.0\",\"execution_mode\":\"v3\",\"flow_mode\":\"DEFAULT\",\"proxy\":{\"virtual_hosts\":[{\"path\":\"/path\"}],\"strip_context_path\":false,\"preserve_host\":false,\"groups\":[{\"name\":\"default-group\",\"endpoints\":[{\"name\":\"default\",\"target\":\"https://api.gravitee.io/echo\",\"weight\":1,\"backup\":false,\"type\":\"http1\"}],\"load_balancing\":{\"type\":\"ROUND_ROBIN\"},\"http\":{\"connectTimeout\":5000,\"idleTimeout\":60000,\"keepAliveTimeout\":30000,\"keepAlive\":true,\"readTimeout\":10000,\"pipelining\":false,\"maxConcurrentConnections\":100,\"useCompression\":true,\"followRedirects\":false}}]},\"properties\":[],\"tags\":[\"tag1\"]}"
                     );
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 soft.assertThat(api.getDeployedAt()).isEqualTo(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
@@ -393,10 +393,12 @@ class ApiAdapterTest {
                 soft.assertThat(updateApiEntity.getBackground()).isEqualTo("api-background");
                 soft.assertThat(updateApiEntity.getEndpointGroups()).hasSize(1);
                 soft
-                    .assertThat(updateApiEntity.getEndpointGroups().get(0))
-                    .isEqualTo(model.getApiDefinitionHttpV4().getEndpointGroups().get(0));
+                    .assertThat(updateApiEntity.getEndpointGroups().getFirst())
+                    .isEqualTo(model.getApiDefinitionHttpV4().getEndpointGroups().getFirst());
                 soft.assertThat(updateApiEntity.getListeners()).hasSize(1);
-                soft.assertThat(updateApiEntity.getListeners().get(0)).isEqualTo(model.getApiDefinitionHttpV4().getListeners().get(0));
+                soft
+                    .assertThat(updateApiEntity.getListeners().getFirst())
+                    .isEqualTo(model.getApiDefinitionHttpV4().getListeners().getFirst());
             });
         }
     }

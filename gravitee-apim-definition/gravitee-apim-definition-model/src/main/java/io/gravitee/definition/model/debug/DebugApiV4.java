@@ -15,49 +15,57 @@
  */
 package io.gravitee.definition.model.debug;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
+import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Setter
 @Getter
+@NoArgsConstructor
 @SuperBuilder
-public class DebugApiV2 extends Api implements DebugApiProxy, Serializable {
+public class DebugApiV4 implements DebugApiProxy, Serializable {
 
-    @JsonProperty("request")
+    private Api apiDefinition;
     private HttpRequest request;
-
-    @JsonProperty("response")
     private HttpResponse response;
-
-    @JsonProperty("debugSteps")
-    private List<DebugStep> debugSteps;
-
-    @JsonProperty("preprocessorStep")
-    private PreprocessorStep preprocessorStep;
-
-    @JsonProperty("backendResponse")
     private HttpResponse backendResponse;
 
-    @JsonProperty("metrics")
+    private List<DebugStep> debugSteps;
+    private PreprocessorStep preprocessorStep;
+
     private DebugMetrics metrics;
 
-    public DebugApiV2() {}
-
-    public DebugApiV2(Api other, HttpRequest request) {
-        super(other);
+    public DebugApiV4(Api apiDefinition, HttpRequest request) {
+        this.apiDefinition = apiDefinition;
         this.request = request;
     }
 
     @Override
+    public String getId() {
+        return apiDefinition.getId();
+    }
+
+    @Override
+    public DefinitionVersion getDefinitionVersion() {
+        return apiDefinition.getDefinitionVersion();
+    }
+
+    @Override
     public ApiType getType() {
-        return ApiType.PROXY;
+        return apiDefinition.getType();
+    }
+
+    @Override
+    public Set<String> getTags() {
+        return apiDefinition.getTags();
     }
 }

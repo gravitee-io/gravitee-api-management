@@ -20,6 +20,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -145,6 +146,7 @@ public class ApiFixtures {
                     .proxy(
                         Proxy
                             .builder()
+                            .virtualHosts(List.of(new VirtualHost("/path")))
                             .groups(
                                 Set.of(
                                     io.gravitee.definition.model.EndpointGroup

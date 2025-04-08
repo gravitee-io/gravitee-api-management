@@ -49,4 +49,9 @@ public class Plan extends AbstractPlan {
             .map(f -> f.stream().filter(AbstractFlow::isEnabled).map(AbstractFlow::getPlugins).flatMap(List::stream).toList())
             .orElse(List.of());
     }
+
+    public Plan flows(List<Flow> flows) {
+        this.flows = flows;
+        return this;
+    }
 }

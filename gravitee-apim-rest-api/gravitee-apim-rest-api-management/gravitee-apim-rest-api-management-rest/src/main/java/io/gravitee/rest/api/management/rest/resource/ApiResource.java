@@ -416,14 +416,7 @@ public class ApiResource extends AbstractResource {
         return Response
             .ok(
                 debugApiUseCase
-                    .execute(
-                        DebugApiUseCase.Input
-                            .builder()
-                            .apiId(api)
-                            .debugApi(DebugApiMapper.INSTANCE.fromEntity(debugApiEntity))
-                            .auditInfo(getAuditInfo())
-                            .build()
-                    )
+                    .execute(new DebugApiUseCase.Input(api, DebugApiMapper.INSTANCE.fromEntity(debugApiEntity), getAuditInfo()))
                     .debugApiEvent()
             )
             .build();

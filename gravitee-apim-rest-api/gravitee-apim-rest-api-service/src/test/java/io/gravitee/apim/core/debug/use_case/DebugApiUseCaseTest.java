@@ -16,18 +16,23 @@
 package io.gravitee.apim.core.debug.use_case;
 
 import static io.gravitee.apim.core.gateway.model.Instance.DEBUG_PLUGIN_ID;
+import static io.gravitee.definition.model.ExecutionMode.V4_EMULATION_ENGINE;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import fakes.FakePolicyValidationDomainService;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
+import fixtures.definition.ApiDefinitionFixtures;
+import fixtures.definition.FlowFixtures;
+import fixtures.definition.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.InstanceQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -36,38 +41,49 @@ import io.gravitee.apim.core.debug.exceptions.DebugApiNoCompatibleInstanceExcept
 import io.gravitee.apim.core.debug.exceptions.DebugApiNoValidPlanException;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.gateway.model.Instance;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingContent;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.LoggingScope;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.debug.DebugApiV2;
+import io.gravitee.definition.model.debug.DebugApiV4;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
+import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingPhase;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PluginEntity;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
+import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.data.Index;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -88,147 +104,394 @@ class DebugApiUseCaseTest {
     private final ApiPolicyValidatorDomainService apiPolicyValidatorDomainService = new ApiPolicyValidatorDomainService(
         new FakePolicyValidationDomainService()
     );
+
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     private final InstanceQueryServiceInMemory instanceQueryService = new InstanceQueryServiceInMemory();
     private final EventCrudInMemory eventCrudService = new EventCrudInMemory();
 
     @BeforeEach
     void setUp() {
-        cut = new DebugApiUseCase(apiPolicyValidatorDomainService, apiCrudServiceInMemory, instanceQueryService, eventCrudService);
+        cut =
+            new DebugApiUseCase(
+                apiPolicyValidatorDomainService,
+                apiCrudServiceInMemory,
+                instanceQueryService,
+                planQueryService,
+                flowCrudService,
+                eventCrudService
+            );
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiCrudServiceInMemory, instanceQueryService, eventCrudService).forEach(InMemoryAlternative::reset);
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, names = "V2", mode = EnumSource.Mode.EXCLUDE)
-    void should_throw_when_debugging_non_v2_api(DefinitionVersion definitionVersion) {
-        final DebugApiV2 debugApi = new DebugApiV2();
-        debugApi.setDefinitionVersion(definitionVersion);
-        assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
-            )
-            .isInstanceOf(DebugApiInvalidDefinitionVersionException.class)
-            .hasMessage("Only API with V2 definition can be debugged.");
+        Stream
+            .of(apiCrudServiceInMemory, eventCrudService, flowCrudService, instanceQueryService, planQueryService)
+            .forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_throw_when_debugging_non_existing_api() {
-        final DebugApiV2 debugApi = debugApiV2Definition();
-        assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
-            )
+        assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, aDebugApiV2(ApiDefinitionFixtures.anApiV2()), AUDIT_INFO)))
+            .isInstanceOf(ApiNotFoundException.class)
+            .hasMessage("Api not found.");
+
+        assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
             .isInstanceOf(ApiNotFoundException.class)
             .hasMessage("Api not found.");
     }
 
-    @ParameterizedTest
-    @MethodSource("provideNonEligibleGateways")
-    @SneakyThrows
-    void should_throw_when_no_gateway_available(List<Instance> instances) {
-        instanceQueryService.initWith(instances);
-        final DebugApiV2 debugApi = debugApiV2Definition();
+    @Nested
+    class ApiV2WithEmbeddedDefinition {
 
-        apiCrudServiceInMemory.initWith(List.of(originalApi(debugApi)));
-        debugApi.setDefinitionVersion(DefinitionVersion.V2);
-        debugApi.setTags(Set.of("valid-tag"));
-        assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
-            )
-            .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
-            .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
-    }
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.debug.use_case.DebugApiUseCaseTest#provideNonEligibleGateways")
+        @SneakyThrows
+        void should_throw_when_no_gateway_available(List<Instance> instances) {
+            instanceQueryService.initWith(instances);
+            var api = givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
-    @ParameterizedTest
-    @EnumSource(value = PlanStatus.class, names = { "STAGING", "PUBLISHED" }, mode = EnumSource.Mode.EXCLUDE)
-    @SneakyThrows
-    void should_throw_when_no_active_plan(PlanStatus planStatus) {
-        instanceQueryService.initWith(List.of(validInstance()));
-        apiCrudServiceInMemory.initWith(List.of(originalApi(debugApiV2Definition())));
-        final DebugApiV2 debugApi = debugApiV2Definition();
-        debugApi.getPlan(PLAN_ID).setStatus(planStatus.name());
-        debugApi.setTags(Set.of("valid-tag"));
-        assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
-            )
-            .isInstanceOf(DebugApiNoValidPlanException.class)
-            .hasMessage("There is no staging or published plan for this API [my-api].");
-    }
-
-    @Test
-    @SneakyThrows
-    void should_create_debug_event() {
-        instanceQueryService.initWith(List.of(validInstance()));
-        final DebugApiV2 debugApi = debugApiV2Definition();
-        apiCrudServiceInMemory.initWith(List.of(originalApi(debugApi)));
-        debugApi.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        debugApi.setPlans(List.of(keylessPlan()));
-        debugApi.setProxy(proxyWithLogging(true));
-        debugApi.setServices(healthcheckService(true));
-        debugApi.setRequest(new HttpRequest("/", "GET"));
-        final DebugApiUseCase.Output output = cut.execute(
-            DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build()
-        );
-        assertThat(output.debugApiEvent()).isNotNull();
-        assertThat(eventCrudService.storage()).hasSize(1).first().isEqualTo(output.debugApiEvent());
-        assertThat(output.debugApiEvent())
-            .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
-            .contains(EventType.DEBUG_API, Index.atIndex(0))
-            .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
-            .contains(
-                Map.ofEntries(
-                    entry(Event.EventProperties.API_ID, API_ID),
-                    entry(Event.EventProperties.USER, USER_ID),
-                    entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
-                    entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID)
-                ),
-                Index.atIndex(2)
-            );
-        final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper
-            .getInstance()
-            .readValue(output.debugApiEvent().getPayload(), DebugApiV2.class);
-        assertThat(debugApiFromEvent)
-            .extracting(DebugApiV2::getExecutionMode, DebugApiV2::getProxy, DebugApiV2::getServices)
-            // Compare field by field because instance of Proxy and Services have changed due to ser/deser
-            .usingRecursiveFieldByFieldElementComparator()
-            .containsExactly(ExecutionMode.V4_EMULATION_ENGINE, proxyWithLogging(false), healthcheckService(false));
-    }
-
-    private static Plan keylessPlan() {
-        return Plan.builder().id(PLAN_ID).security(PlanSecurityType.KEY_LESS.name()).status(PlanStatus.PUBLISHED.name()).build();
-    }
-
-    private Services healthcheckService(boolean enabled) {
-        final Services services = new Services();
-        services.setHealthCheckService(new HealthCheckService());
-        services.getHealthCheckService().setEnabled(enabled);
-        return services;
-    }
-
-    private Proxy proxyWithLogging(boolean enabled) {
-        final Proxy proxy = new Proxy();
-        final VirtualHost virtualHost = new VirtualHost();
-        virtualHost.setPath("/path");
-        proxy.setVirtualHosts(List.of(virtualHost));
-        proxy.setLogging(new Logging());
-        if (enabled) {
-            proxy.getLogging().setMode(LoggingMode.PROXY);
-            proxy.getLogging().setContent(LoggingContent.HEADERS);
-            proxy.getLogging().setScope(LoggingScope.REQUEST);
-        } else {
-            proxy.getLogging().setMode(LoggingMode.NONE);
-            proxy.getLogging().setContent(LoggingContent.NONE);
-            proxy.getLogging().setScope(LoggingScope.NONE);
+            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, aDebugApiV2(api.getApiDefinition()), AUDIT_INFO)))
+                .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
+                .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
         }
-        return proxy;
+
+        @ParameterizedTest
+        @EnumSource(value = PlanStatus.class, names = { "STAGING", "PUBLISHED" }, mode = EnumSource.Mode.EXCLUDE)
+        @SneakyThrows
+        void should_throw_when_no_active_plan(PlanStatus planStatus) {
+            instanceQueryService.initWith(List.of(validInstance()));
+            var api = givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
+            api.getApiDefinition().setPlans(List.of(PlanFixtures.aKeylessV2().toBuilder().status(planStatus.name()).build()));
+
+            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, aDebugApiV2(api.getApiDefinition()), AUDIT_INFO)))
+                .isInstanceOf(DebugApiNoValidPlanException.class)
+                .hasMessage("There is no staging or published plan for this API [my-api].");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_create_debug_event() {
+            instanceQueryService.initWith(List.of(validInstance()));
+            var api = givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
+            api.getApiDefinition().setPlans(List.of(PlanFixtures.aKeylessV2()));
+            api.getApiDefinition().setExecutionMode(V4_EMULATION_ENGINE);
+            api
+                .getApiDefinition()
+                .getProxy()
+                .setLogging(new Logging(LoggingMode.PROXY, LoggingScope.REQUEST, LoggingContent.HEADERS, null));
+            api.getApiDefinition().setServices(healthcheckService(true));
+
+            final DebugApiUseCase.Output output = cut.execute(
+                new DebugApiUseCase.Input(API_ID, aDebugApiV2(api.getApiDefinition(), new HttpRequest("/", "GET")), AUDIT_INFO)
+            );
+
+            assertThat(eventCrudService.storage()).hasSize(1).first().isEqualTo(output.debugApiEvent());
+            assertThat(output.debugApiEvent())
+                .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
+                .contains(EventType.DEBUG_API, Index.atIndex(0))
+                .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
+                .contains(
+                    Map.ofEntries(
+                        entry(Event.EventProperties.API_ID, API_ID),
+                        entry(Event.EventProperties.USER, USER_ID),
+                        entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
+                        entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID)
+                    ),
+                    Index.atIndex(2)
+                );
+            final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper
+                .getInstance()
+                .readValue(output.debugApiEvent().getPayload(), DebugApiV2.class);
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(debugApiFromEvent.getExecutionMode()).isEqualTo(V4_EMULATION_ENGINE);
+                softly
+                    .assertThat(debugApiFromEvent.getProxy())
+                    .extracting(Proxy::getLogging)
+                    .isEqualTo(new Logging(LoggingMode.NONE, LoggingScope.NONE, LoggingContent.NONE, null));
+                softly.assertThat(debugApiFromEvent.getServices()).usingRecursiveComparison().isEqualTo(healthcheckService(false));
+            });
+        }
     }
 
-    private static io.gravitee.apim.core.api.model.Api originalApi(Api apiDefinition) throws JsonProcessingException {
-        return ApiFixtures
-            .aProxyApiV2()
-            .toBuilder()
-            .definitionVersion(DefinitionVersion.V2)
-            .apiDefinition(apiDefinition)
-            .environmentId(ENVIRONMENT_ID)
-            .build();
+    @Nested
+    class ApiV2 {
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.debug.use_case.DebugApiUseCaseTest#provideNonEligibleGateways")
+        @SneakyThrows
+        void should_throw_when_no_gateway_available(List<Instance> instances) {
+            instanceQueryService.initWith(instances);
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
+            givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
+
+            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
+                .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = io.gravitee.definition.model.v4.plan.PlanStatus.class,
+            names = { "STAGING", "PUBLISHED" },
+            mode = EnumSource.Mode.EXCLUDE
+        )
+        @SneakyThrows
+        void should_throw_when_no_active_plan(io.gravitee.definition.model.v4.plan.PlanStatus planStatus) {
+            instanceQueryService.initWith(List.of(validInstance()));
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID).setPlanStatus(planStatus));
+            givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
+
+            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                .isInstanceOf(DebugApiNoValidPlanException.class)
+                .hasMessage("There is no staging or published plan for this API [my-api].");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_plan_flows_invalid() {
+            instanceQueryService.initWith(List.of(validInstance()));
+            var plan = givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
+            givenExistingPlanV2Flows(
+                plan.getId(),
+                FlowFixtures
+                    .aFlowV2()
+                    .toBuilder()
+                    .pre(
+                        List.of(
+                            io.gravitee.definition.model.flow.Step
+                                .builder()
+                                .name("my-step-name-1")
+                                .policy("a-policy_throw_invalid_data_exception")
+                                .configuration("{}")
+                                .build()
+                        )
+                    )
+                    .build()
+            );
+            givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
+
+            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Invalid configuration for policy a-policy_throw_invalid_data_exception");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_create_debug_event() {
+            instanceQueryService.initWith(List.of(validInstance()));
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
+            var api = givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
+            api.getApiDefinition().setPlans(List.of(PlanFixtures.aKeylessV2()));
+            api.getApiDefinition().setExecutionMode(V4_EMULATION_ENGINE);
+            api
+                .getApiDefinition()
+                .getProxy()
+                .setLogging(new Logging(LoggingMode.PROXY, LoggingScope.REQUEST, LoggingContent.HEADERS, null));
+            api.getApiDefinition().setServices(healthcheckService(true));
+
+            final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
+
+            assertThat(eventCrudService.storage()).hasSize(1).first().isEqualTo(output.debugApiEvent());
+            assertThat(output.debugApiEvent())
+                .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
+                .contains(EventType.DEBUG_API, Index.atIndex(0))
+                .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
+                .contains(
+                    Map.ofEntries(
+                        entry(Event.EventProperties.API_ID, API_ID),
+                        entry(Event.EventProperties.USER, USER_ID),
+                        entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
+                        entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID)
+                    ),
+                    Index.atIndex(2)
+                );
+            final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper
+                .getInstance()
+                .readValue(output.debugApiEvent().getPayload(), DebugApiV2.class);
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(debugApiFromEvent.getExecutionMode()).isEqualTo(V4_EMULATION_ENGINE);
+                softly
+                    .assertThat(debugApiFromEvent.getProxy())
+                    .extracting(Proxy::getLogging)
+                    .isEqualTo(new Logging(LoggingMode.NONE, LoggingScope.NONE, LoggingContent.NONE, null));
+                softly.assertThat(debugApiFromEvent.getServices()).usingRecursiveComparison().isEqualTo(healthcheckService(false));
+            });
+        }
+    }
+
+    @Nested
+    class ProxyV4 {
+
+        @Test
+        void should_throw_when_debugging_v4_message_api() {
+            givenExistingApi(ApiFixtures.aMessageApiV4().setId(API_ID));
+
+            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                .isInstanceOf(DebugApiInvalidDefinitionVersionException.class)
+                .hasMessage("Only API V2 or V4 PROXY can be debugged.")
+                .extracting("parameters")
+                .isEqualTo(Map.of("apiId", API_ID));
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.debug.use_case.DebugApiUseCaseTest#provideNonEligibleGateways")
+        @SneakyThrows
+        void should_throw_when_no_gateway_available(List<Instance> instances) {
+            instanceQueryService.initWith(instances);
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID));
+            givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
+
+            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
+                .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = io.gravitee.definition.model.v4.plan.PlanStatus.class,
+            names = { "STAGING", "PUBLISHED" },
+            mode = EnumSource.Mode.EXCLUDE
+        )
+        @SneakyThrows
+        void should_throw_when_no_active_plan(io.gravitee.definition.model.v4.plan.PlanStatus planStatus) {
+            instanceQueryService.initWith(List.of(validInstance()));
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID).setPlanStatus(planStatus));
+            givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
+
+            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                .isInstanceOf(DebugApiNoValidPlanException.class)
+                .hasMessage("There is no staging or published plan for this API [my-api].");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_plan_flows_invalid() {
+            instanceQueryService.initWith(List.of(validInstance()));
+            var plan = givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID));
+            givenExistingPlanV4Flows(
+                plan.getId(),
+                FlowFixtures
+                    .aProxyFlowV4()
+                    .toBuilder()
+                    .request(
+                        List.of(
+                            Step
+                                .builder()
+                                .name("my-step-name-1")
+                                .policy("a-policy_throw_invalid_data_exception")
+                                .configuration("{}")
+                                .build()
+                        )
+                    )
+                    .build()
+            );
+            givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
+
+            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Invalid configuration for policy a-policy_throw_invalid_data_exception");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_api_flows_invalid() {
+            instanceQueryService.initWith(List.of(validInstance()));
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID));
+            var api = givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
+            givenExistingApiV4Flows(
+                api.getId(),
+                FlowFixtures
+                    .aProxyFlowV4()
+                    .toBuilder()
+                    .request(
+                        List.of(
+                            Step
+                                .builder()
+                                .name("my-step-name-1")
+                                .policy("a-policy_throw_invalid_data_exception")
+                                .configuration("{}")
+                                .build()
+                        )
+                    )
+                    .build()
+            );
+
+            assertThatThrownBy(() -> cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)))
+                .isInstanceOf(InvalidDataException.class)
+                .hasMessage("Invalid configuration for policy a-policy_throw_invalid_data_exception");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_create_debug_event() {
+            instanceQueryService.initWith(List.of(validInstance()));
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID));
+            var api = givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
+            api
+                .getApiDefinitionHttpV4()
+                .getAnalytics()
+                .setLogging(
+                    new io.gravitee.definition.model.v4.analytics.logging.Logging(
+                        new io.gravitee.definition.model.v4.analytics.logging.LoggingMode(true, true),
+                        new LoggingPhase(true, true),
+                        new io.gravitee.definition.model.v4.analytics.logging.LoggingContent(true, false, false, false, false),
+                        null,
+                        null
+                    )
+                );
+            api
+                .getApiDefinitionHttpV4()
+                .getEndpointGroups()
+                .forEach(endpointGroup -> {
+                    endpointGroup.setServices(new EndpointGroupServices(null, new Service(false, true, "healthcheck", null)));
+                    endpointGroup
+                        .getEndpoints()
+                        .forEach(endpoint -> endpoint.setServices(new EndpointServices(new Service(false, true, "healthcheck", null))));
+                });
+
+            final DebugApiUseCase.Output output = cut.execute(
+                new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)
+            );
+
+            assertThat(eventCrudService.storage()).hasSize(1).first().isEqualTo(output.debugApiEvent());
+
+            assertThat(output.debugApiEvent())
+                .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
+                .contains(EventType.DEBUG_API, Index.atIndex(0))
+                .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
+                .contains(
+                    Map.ofEntries(
+                        entry(Event.EventProperties.API_ID, API_ID),
+                        entry(Event.EventProperties.USER, USER_ID),
+                        entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
+                        entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID),
+                        entry(Event.EventProperties.API_DEFINITION_VERSION, DefinitionVersion.V4.name())
+                    ),
+                    Index.atIndex(2)
+                );
+            var debugApiFromEvent = GraviteeJacksonMapper.getInstance().readValue(output.debugApiEvent().getPayload(), DebugApiV4.class);
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(debugApiFromEvent.getApiDefinition().getAnalytics()).extracting(Analytics::getLogging).isNull();
+
+                softly
+                    .assertThat(debugApiFromEvent.getApiDefinition().getEndpointGroups())
+                    .extracting(EndpointGroup::getServices)
+                    .containsExactly(new EndpointGroupServices(null, null));
+                softly
+                    .assertThat(
+                        debugApiFromEvent
+                            .getApiDefinition()
+                            .getEndpointGroups()
+                            .stream()
+                            .map(EndpointGroup::getEndpoints)
+                            .flatMap(List::stream)
+                    )
+                    .extracting(Endpoint::getServices)
+                    .containsExactly(new EndpointServices(null));
+            });
+        }
     }
 
     private static Instance validInstance() {
@@ -240,18 +503,6 @@ class DebugApiUseCaseTest {
             .environments(Set.of(ENVIRONMENT_ID))
             .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
             .build();
-    }
-
-    @NotNull
-    private static DebugApiV2 debugApiV2Definition() {
-        final DebugApiV2 apiDefinition = new DebugApiV2();
-        apiDefinition.setId(API_ID);
-        apiDefinition.setDefinitionVersion(DefinitionVersion.V2);
-        final Proxy proxy = new Proxy();
-        proxy.setVirtualHosts(List.of(new VirtualHost()));
-        apiDefinition.setProxy(proxy);
-        apiDefinition.setPlans(List.of(keylessPlan()));
-        return apiDefinition;
     }
 
     private static Stream<Arguments> provideNonEligibleGateways() {
@@ -304,5 +555,44 @@ class DebugApiUseCaseTest {
                 )
             )
         );
+    }
+
+    @NotNull
+    private static DebugApiV2 aDebugApiV2(Api api) {
+        return new DebugApiV2(api, new HttpRequest("/", "GET"));
+    }
+
+    @NotNull
+    private static DebugApiV2 aDebugApiV2(Api api, HttpRequest httpRequest) {
+        return new DebugApiV2(api, httpRequest);
+    }
+
+    private Services healthcheckService(boolean enabled) {
+        final Services services = new Services();
+        services.setHealthCheckService(new HealthCheckService());
+        services.getHealthCheckService().setEnabled(enabled);
+        return services;
+    }
+
+    public io.gravitee.apim.core.api.model.Api givenExistingApi(io.gravitee.apim.core.api.model.Api api) {
+        apiCrudServiceInMemory.initWith(List.of(api));
+        return api;
+    }
+
+    public Plan givenExistingPlan(Plan plan) {
+        planQueryService.initWith(List.of(plan));
+        return plan;
+    }
+
+    public void givenExistingPlanV4Flows(String planId, Flow... flows) {
+        flowCrudService.savePlanFlows(planId, Arrays.asList(flows));
+    }
+
+    public void givenExistingPlanV2Flows(String planId, io.gravitee.definition.model.flow.Flow... flows) {
+        flowCrudService.savePlanFlowsV2(planId, Arrays.asList(flows));
+    }
+
+    public void givenExistingApiV4Flows(String apiId, Flow... flows) {
+        flowCrudService.saveApiFlows(apiId, Arrays.asList(flows));
     }
 }

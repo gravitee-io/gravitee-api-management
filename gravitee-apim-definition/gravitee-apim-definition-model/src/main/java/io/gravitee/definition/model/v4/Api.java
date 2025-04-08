@@ -83,6 +83,19 @@ public class Api extends AbstractApi {
 
     private ApiServices services;
 
+    public Api(Api other) {
+        super(other.id, other.name, other.type, other.apiVersion, other.definitionVersion, other.tags, other.properties, other.resources);
+        this.listeners = other.listeners;
+        this.endpointGroups = other.endpointGroups;
+        this.analytics = other.analytics;
+        this.failover = other.failover;
+        this.plans = other.plans;
+        this.flowExecution = other.flowExecution;
+        this.flows = other.flows;
+        this.responseTemplates = other.responseTemplates;
+        this.services = other.services;
+    }
+
     public Plan getPlan(final String plan) {
         return plans.get(plan);
     }
@@ -93,6 +106,16 @@ public class Api extends AbstractApi {
             return new ArrayList<>(this.plans.values());
         }
         return null;
+    }
+
+    public Api plans(List<Plan> plans) {
+        setPlans(plans);
+        return this;
+    }
+
+    public Api flow(List<Flow> flows) {
+        this.flows = flows;
+        return this;
     }
 
     public void setPlans(List<Plan> plans) {

@@ -55,6 +55,7 @@ public class Event {
     @Getter
     public enum EventProperties {
         ID("id"),
+        API_DEFINITION_VERSION("definition_version"),
         API_ID("api_id"),
         DICTIONARY_ID("dictionary_id"),
         ORIGIN("origin"),

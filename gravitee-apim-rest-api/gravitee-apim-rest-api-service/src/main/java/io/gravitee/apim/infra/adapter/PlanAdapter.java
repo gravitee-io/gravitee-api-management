@@ -249,7 +249,7 @@ public interface PlanAdapter {
     @Named("serializeV2PlanSecurityType")
     default String serializeV2PlanSecurityType(io.gravitee.repository.management.model.Plan.PlanSecurityType planSecurityType) {
         if (planSecurityType != null) {
-            return PlanSecurityType.valueOfLabel(planSecurityType.name()).getLabel();
+            return PlanSecurityType.valueOfLabel(planSecurityType.name()).name();
         }
         return null;
     }

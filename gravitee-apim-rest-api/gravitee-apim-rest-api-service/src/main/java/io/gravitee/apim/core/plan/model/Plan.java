@@ -193,6 +193,11 @@ public class Plan implements GenericPlanEntity {
         return this;
     }
 
+    public Plan setApiId(String apiId) {
+        this.apiId = apiId;
+        return this;
+    }
+
     public Set<String> getPlanTags() {
         return switch (definitionVersion) {
             case V4 -> getPlanDefinitionV4().getTags();

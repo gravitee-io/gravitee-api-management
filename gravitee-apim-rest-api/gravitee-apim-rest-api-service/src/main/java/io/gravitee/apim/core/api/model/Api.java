@@ -20,8 +20,11 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
@@ -234,6 +237,21 @@ public class Api {
             case FEDERATED -> {
                 // do nothing
             }
+        }
+        return this;
+    }
+
+    public Api setV4Flows(List<? extends AbstractFlow> flows) {
+        switch (definitionVersion) {
+            case V4 -> {
+                if (this.type == ApiType.NATIVE) {
+                    apiDefinitionNativeV4.setFlows(flows.stream().map(NativeFlow.class::cast).toList());
+                } else {
+                    apiDefinitionHttpV4.setFlows(flows.stream().map(Flow.class::cast).toList());
+                }
+            }
+            case V1, V2 -> throw new IllegalArgumentException("Cannot set V4 flows on a V1 or V2 API");
+            case FEDERATED -> throw new IllegalArgumentException("Cannot set V4 flows on a Federated API");
         }
         return this;
     }

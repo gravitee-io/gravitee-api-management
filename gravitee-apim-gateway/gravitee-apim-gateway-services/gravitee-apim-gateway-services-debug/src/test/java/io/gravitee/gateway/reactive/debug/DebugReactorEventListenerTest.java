@@ -147,10 +147,7 @@ class DebugReactorEventListenerTest {
         debugApiModel.setProperties(properties);
         when(dataEncryptor.decrypt(any())).thenReturn("decrypted");
 
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
         debugApiModel.setRequest(httpRequest);
         when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
@@ -190,10 +187,7 @@ class DebugReactorEventListenerTest {
     @Test
     void should_debug_api_successfully_null_body() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody(null);
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET");
         debugApiModel.setRequest(httpRequest);
         when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
@@ -231,10 +225,7 @@ class DebugReactorEventListenerTest {
     @Test
     void should_remove_reactor_handler_if_body_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
         debugApiModel.setRequest(httpRequest);
         when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
@@ -271,10 +262,7 @@ class DebugReactorEventListenerTest {
     @Test
     void should_remove_reactor_handler_if_response_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
         debugApiModel.setRequest(httpRequest);
         when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
@@ -306,10 +294,7 @@ class DebugReactorEventListenerTest {
     @Test
     void should_remove_reactor_handler_if_request_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
         debugApiModel.setRequest(httpRequest);
         when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
@@ -341,10 +326,7 @@ class DebugReactorEventListenerTest {
     @Test
     void should_remove_reactor_handler_if_technical_exception_during_event_updating() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
         debugApiModel.setRequest(httpRequest);
         when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
@@ -370,10 +352,7 @@ class DebugReactorEventListenerTest {
     @Test
     void should_do_nothing_when_reactable_already_debugging() throws JsonProcessingException, TechnicalException {
         io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
         debugApiModel.setRequest(httpRequest);
         when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
@@ -422,10 +401,7 @@ class DebugReactorEventListenerTest {
     void should_enforce_host_headers_from_virtual_host() {
         io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         debugApiModel.getProxy().getVirtualHosts().get(0).setHost("custom_host");
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
         debugApiModel.setRequest(httpRequest);
         final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApiV2("eventId", debugApiModel), httpRequest);
         assertThat(result.get("host")).contains("custom_host");
@@ -435,10 +411,7 @@ class DebugReactorEventListenerTest {
     void should_enforce_host_headers_from_access_points() {
         io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         when(accessPointManager.getByEnvironmentId(any())).thenReturn(List.of(ReactableAccessPoint.builder().host("custom_host").build()));
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
         debugApiModel.setRequest(httpRequest);
         final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApiV2("eventId", debugApiModel), httpRequest);
         assertThat(result.get("host")).contains("custom_host");
@@ -448,10 +421,7 @@ class DebugReactorEventListenerTest {
     void should_not_enforce_host_headers_from_neither_empty_virtual_host_or_empty_access_points() {
         io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
         when(accessPointManager.getByEnvironmentId(any())).thenReturn(List.of());
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
         debugApiModel.setRequest(httpRequest);
         final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApiV2("eventId", debugApiModel), httpRequest);
         assertThat(result.get("host")).isNull();
@@ -465,10 +435,7 @@ class DebugReactorEventListenerTest {
         keylessPlan.setSecurity("KEY_LESS");
         keylessPlan.setStatus("CLOSED");
 
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
+        final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
         debugApiModel.setRequest(httpRequest);
         when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenReturn(debugApiModel);
 
