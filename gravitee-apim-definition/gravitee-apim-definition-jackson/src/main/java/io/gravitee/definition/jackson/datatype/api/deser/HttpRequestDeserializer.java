@@ -38,10 +38,11 @@ public class HttpRequestDeserializer extends StdScalarDeserializer<HttpRequest> 
     @Override
     public HttpRequest deserialize(JsonParser jp, DeserializationContext ctx) throws IOException, JsonProcessingException {
         JsonNode node = jp.getCodec().readTree(jp);
-        HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setPath(readStringValue(node, "path"));
-        httpRequest.setMethod(readStringValue(node, "method"));
-        httpRequest.setBody(readStringValue(node, "body"));
+        HttpRequest httpRequest = new HttpRequest(
+            readStringValue(node, "path"),
+            readStringValue(node, "method"),
+            readStringValue(node, "body")
+        );
 
         JsonNode headersNode = node.get("headers");
         if (headersNode != null && !headersNode.isEmpty(null)) {

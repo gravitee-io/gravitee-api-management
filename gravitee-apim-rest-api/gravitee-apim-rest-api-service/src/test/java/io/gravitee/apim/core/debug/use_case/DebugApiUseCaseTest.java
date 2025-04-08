@@ -163,7 +163,7 @@ class DebugApiUseCaseTest {
         debugApi.setPlans(List.of(keylessPlan()));
         debugApi.setProxy(proxyWithLogging(true));
         debugApi.setServices(healthcheckService(true));
-        debugApi.setRequest(new HttpRequest());
+        debugApi.setRequest(new HttpRequest("/", "GET"));
         final DebugApiUseCase.Output output = cut.execute(
             DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build()
         );
