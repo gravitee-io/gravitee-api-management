@@ -185,7 +185,7 @@
                 [matTooltip]="apiKey.isValid ? 'Valid' : 'Revoked or Expired'"
                 [ngClass]="{
                   activeIcon: apiKey.isValid,
-                  revokedIcon: !apiKey.isValid
+                  revokedIcon: !apiKey.isValid,
                 }"
                 [svgIcon]="apiKey.isValid ? 'gio:check-circled-outline' : 'gio:x-circle'"
               ></mat-icon>

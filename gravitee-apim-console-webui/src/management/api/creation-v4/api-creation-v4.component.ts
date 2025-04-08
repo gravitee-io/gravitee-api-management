@@ -95,7 +95,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         const stepsGroup = steps.filter((step) => step.group.groupNumber === group.groupNumber);
         const lastValidStep = stepsGroup.reverse().find((step) => step.state === 'valid');
         const hasInvalidStep = stepsGroup.find((step) => step.state === 'invalid');
-        const groupState = hasInvalidStep ? 'invalid' : lastValidStep?.state ?? 'initial';
+        const groupState = hasInvalidStep ? 'invalid' : (lastValidStep?.state ?? 'initial');
 
         return {
           ...group,
