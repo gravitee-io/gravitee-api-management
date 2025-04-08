@@ -194,3 +194,18 @@ tests:
       - equal:
           path: metadata.annotations["loadbalancer.openstack.org/proxy-protocol"]
           value: "true"
+
+
+  - it: Should set loadBalancerSourceRanges
+    template: gateway/gateway-service.yaml
+    set:
+      gateway:
+        service:
+          type: LoadBalancer
+          loadBalancerSourceRanges:
+            - 35.191.0.0/16
+    asserts:
+      - equal:
+          path: spec.loadBalancerSourceRanges
+          value:
+            - "35.191.0.0/16"
