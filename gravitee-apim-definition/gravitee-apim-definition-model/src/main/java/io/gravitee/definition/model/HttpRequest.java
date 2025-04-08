@@ -34,6 +34,25 @@ public class HttpRequest implements Serializable {
     @JsonProperty("headers")
     private Map<String, List<String>> headers;
 
+    public HttpRequest(String path, String method) {
+        this(path, method, null, null);
+    }
+
+    public HttpRequest(String path, String method, Map<String, List<String>> headers) {
+        this(path, method, null, headers);
+    }
+
+    public HttpRequest(String path, String method, String body) {
+        this(path, method, body, null);
+    }
+
+    public HttpRequest(String path, String method, String body, Map<String, List<String>> headers) {
+        this.path = path;
+        this.method = method;
+        this.body = body;
+        this.headers = headers;
+    }
+
     public String getPath() {
         return path;
     }
@@ -64,5 +83,25 @@ public class HttpRequest implements Serializable {
 
     public void setHeaders(Map<String, List<String>> headers) {
         this.headers = headers;
+    }
+
+    public HttpRequest headers(Map<String, List<String>> headers) {
+        this.headers = headers;
+        return this;
+    }
+
+    public HttpRequest body(String body) {
+        this.body = body;
+        return this;
+    }
+
+    public HttpRequest method(String method) {
+        this.method = method;
+        return this;
+    }
+
+    public HttpRequest path(String path) {
+        this.path = path;
+        return this;
     }
 }
