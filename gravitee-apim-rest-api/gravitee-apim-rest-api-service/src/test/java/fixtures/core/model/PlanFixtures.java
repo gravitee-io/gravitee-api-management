@@ -45,7 +45,7 @@ public class PlanFixtures {
             .get()
             .definitionVersion(DefinitionVersion.V4)
             .apiType(ApiType.PROXY)
-            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aKeylessV4())
+            .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aKeylessV4().toBuilder().id("my-plan").build())
             .build();
     }
 
@@ -54,12 +54,16 @@ public class PlanFixtures {
             .get()
             .definitionVersion(DefinitionVersion.V4)
             .apiType(ApiType.NATIVE)
-            .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.aKeylessV4())
+            .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.aKeylessV4().toBuilder().id("my-plan").build())
             .build();
     }
 
     public static Plan aPlanV2() {
-        return BASE.get().definitionVersion(DefinitionVersion.V2).planDefinitionV2(fixtures.definition.PlanFixtures.aKeylessV2()).build();
+        return BASE
+            .get()
+            .definitionVersion(DefinitionVersion.V2)
+            .planDefinitionV2(fixtures.definition.PlanFixtures.aKeylessV2().toBuilder().id("my-plan").build())
+            .build();
     }
 
     public static class HttpV4 {

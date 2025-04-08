@@ -253,7 +253,7 @@ public class ApiCrudServiceImplTest {
                         .definitionVersion(DefinitionVersion.V2)
                         .definition(
                             """
-                                              {"id":"my-api","name":"api-name","version":"1.0.0","gravitee":"2.0.0","execution_mode":"v3","flow_mode":"DEFAULT","proxy":{"strip_context_path":false,"preserve_host":false,"groups":[{"name":"default-group","endpoints":[{"name":"default","target":"https://api.gravitee.io/echo","weight":1,"backup":false,"type":"http1"}],"load_balancing":{"type":"ROUND_ROBIN"},"http":{"connectTimeout":5000,"idleTimeout":60000,"keepAliveTimeout":30000,"keepAlive":true,"readTimeout":10000,"pipelining":false,"maxConcurrentConnections":100,"useCompression":true,"followRedirects":false}}]},"properties":[],"tags":["tag1"]}"""
+                                              {"id":"my-api","name":"api-name","version":"1.0.0","gravitee":"2.0.0","execution_mode":"v3","flow_mode":"DEFAULT","proxy":{"virtual_hosts":[{"path":"/path"}],"strip_context_path":false,"preserve_host":false,"groups":[{"name":"default-group","endpoints":[{"name":"default","target":"https://api.gravitee.io/echo","weight":1,"backup":false,"type":"http1"}],"load_balancing":{"type":"ROUND_ROBIN"},"http":{"connectTimeout":5000,"idleTimeout":60000,"keepAliveTimeout":30000,"keepAlive":true,"readTimeout":10000,"pipelining":false,"maxConcurrentConnections":100,"useCompression":true,"followRedirects":false}}]},"properties":[],"tags":["tag1"]}"""
                         )
                         .build()
                 );
@@ -420,7 +420,7 @@ public class ApiCrudServiceImplTest {
                         .definitionVersion(DefinitionVersion.V2)
                         .definition(
                             """
-                              {"id":"my-api","name":"api-name","version":"1.0.0","gravitee":"2.0.0","execution_mode":"v3","flow_mode":"DEFAULT","proxy":{"strip_context_path":false,"preserve_host":false,"groups":[{"name":"default-group","endpoints":[{"name":"default","target":"https://api.gravitee.io/echo","weight":1,"backup":false,"type":"http1"}],"load_balancing":{"type":"ROUND_ROBIN"},"http":{"connectTimeout":5000,"idleTimeout":60000,"keepAliveTimeout":30000,"keepAlive":true,"readTimeout":10000,"pipelining":false,"maxConcurrentConnections":100,"useCompression":true,"followRedirects":false}}]},"properties":[],"tags":["tag1"]}"""
+                              {"id":"my-api","name":"api-name","version":"1.0.0","gravitee":"2.0.0","execution_mode":"v3","flow_mode":"DEFAULT","proxy":{"virtual_hosts":[{"path":"/path"}],"strip_context_path":false,"preserve_host":false,"groups":[{"name":"default-group","endpoints":[{"name":"default","target":"https://api.gravitee.io/echo","weight":1,"backup":false,"type":"http1"}],"load_balancing":{"type":"ROUND_ROBIN"},"http":{"connectTimeout":5000,"idleTimeout":60000,"keepAliveTimeout":30000,"keepAlive":true,"readTimeout":10000,"pipelining":false,"maxConcurrentConnections":100,"useCompression":true,"followRedirects":false}}]},"properties":[],"tags":["tag1"]}"""
                         )
                         .build()
                 );

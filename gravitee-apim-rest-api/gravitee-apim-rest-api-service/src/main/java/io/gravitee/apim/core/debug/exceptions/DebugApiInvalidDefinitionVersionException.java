@@ -25,6 +25,6 @@ import java.util.Map;
 public class DebugApiInvalidDefinitionVersionException extends ValidationDomainException {
 
     public DebugApiInvalidDefinitionVersionException(String apiId) {
-        super("Only API with V2 definition can be debugged.", Map.of("apiId", apiId));
+        super("Only API V2 or V4 PROXY can be debugged.", Map.of("apiId", apiId));
     }
 }

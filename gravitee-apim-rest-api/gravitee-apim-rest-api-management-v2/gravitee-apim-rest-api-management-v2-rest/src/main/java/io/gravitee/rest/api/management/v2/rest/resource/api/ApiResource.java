@@ -65,6 +65,7 @@ import io.gravitee.rest.api.management.v2.rest.provider.YamlWriter;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.analytics.ApiAnalyticsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.audit.ApiAuditsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.debug.ApiDebugResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.event.ApiEventsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.health.ApiHealthResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
@@ -276,6 +277,11 @@ public class ApiResource extends AbstractResource {
     @Path("/metadata")
     public ApiMetadataResource getApiMetadataResource() {
         return resourceContext.getResource(ApiMetadataResource.class);
+    }
+
+    @Path("/debug")
+    public ApiDebugResource getApiDebugResource() {
+        return resourceContext.getResource(ApiDebugResource.class);
     }
 
     @GET

@@ -97,6 +97,26 @@ public class Api implements Serializable {
     @JsonProperty("execution_mode")
     private ExecutionMode executionMode;
 
+    public Api(Api other) {
+        this.id = other.id;
+        this.name = other.name;
+        this.version = other.version;
+        this.flowMode = other.flowMode;
+        this.definitionVersion = other.definitionVersion;
+        this.definitionContext = other.definitionContext;
+        this.proxy = other.proxy;
+        this.services = other.services;
+        this.resources = other.resources;
+        this.paths = other.paths;
+        this.flows = other.flows;
+        this.properties = other.properties;
+        this.tags = other.tags;
+        this.pathMappings = other.pathMappings;
+        this.responseTemplates = other.responseTemplates;
+        this.plans = other.plans;
+        this.executionMode = other.executionMode;
+    }
+
     public <T extends Service> T getService(Class<T> serviceClass) {
         return this.services.get(serviceClass);
     }
@@ -119,6 +139,16 @@ public class Api implements Serializable {
                 this.plans.put(plan.getId(), plan);
             }
         }
+    }
+
+    public Api plans(List<Plan> plans) {
+        setPlans(plans);
+        return this;
+    }
+
+    public Api flows(List<Flow> flows) {
+        this.flows = flows;
+        return this;
     }
 
     @JsonIgnore

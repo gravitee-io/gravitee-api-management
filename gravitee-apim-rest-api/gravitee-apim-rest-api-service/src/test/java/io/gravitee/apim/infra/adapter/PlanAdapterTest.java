@@ -183,7 +183,7 @@ class PlanAdapterTest {
                 soft.assertThat(plan.getPlanMode()).isEqualTo(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
                 soft
                     .assertThat(plan.getPlanSecurity())
-                    .isEqualTo(PlanSecurity.builder().type("api-key").configuration("security-definition").build());
+                    .isEqualTo(PlanSecurity.builder().type("API_KEY").configuration("security-definition").build());
                 soft.assertThat(plan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getType()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
                 soft.assertThat(plan.getValidation()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.AUTO);

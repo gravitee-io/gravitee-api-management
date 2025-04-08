@@ -18,27 +18,28 @@ package io.gravitee.apim.core.api.domain_service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import fixtures.definition.ApiDefinitionFixtures;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.domain_service.policy.PolicyValidationDomainServiceLegacyWrapper;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.debug.DebugApiProxy;
 import io.gravitee.definition.model.debug.DebugApiV2;
+import io.gravitee.definition.model.debug.DebugApiV4;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.plugin.core.api.PluginMoreInformation;
-import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
-import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
@@ -54,6 +55,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiPolicyValidatorDomainServiceTest {
 
+    private static final String API_ID = "api-id";
     private ApiPolicyValidatorDomainService cut;
     private final PolicyValidationDomainService policyValidationDomainService = new PolicyValidationDomainServiceLegacyWrapper(
         new SimpleValidationOnlyPolicyService()
@@ -287,12 +289,194 @@ class ApiPolicyValidatorDomainServiceTest {
     class ApiV4 {
 
         @Test
-        void should_not_validate_v4_api() {
-            var api = new DebugApiV2();
-            api.setDefinitionVersion(DefinitionVersion.V4);
-            assertThatThrownBy(() -> cut.checkPolicyConfigurations(api))
+        void should_not_validate_null_v4_api() {
+            assertThatThrownBy(() -> cut.checkPolicyConfigurations(null))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Cannot validate V4 api");
+                .hasMessage("Api should not be null");
+        }
+
+        @ParameterizedTest
+        @MethodSource("provideV4EmptyCasesForFlows")
+        void should_validate_v4_api_without_any_flow(DebugApiV4 api) {
+            assertDoesNotThrow(() -> cut.checkPolicyConfigurations(api));
+        }
+
+        @Test
+        void should_validate_flows() {
+            var api = new DebugApiV4(
+                ApiDefinitionFixtures
+                    .aHttpProxyApiV4(API_ID)
+                    .toBuilder()
+                    .flows(
+                        List.of(
+                            io.gravitee.definition.model.v4.flow.Flow
+                                .builder()
+                                .id("flow1")
+                                .request(
+                                    List.of(
+                                        io.gravitee.definition.model.v4.flow.step.Step
+                                            .builder()
+                                            .policy("policy1")
+                                            .configuration("config1")
+                                            .build(),
+                                        io.gravitee.definition.model.v4.flow.step.Step
+                                            .builder()
+                                            .policy("policy2")
+                                            .configuration("config2")
+                                            .build()
+                                    )
+                                )
+                                .response(
+                                    List.of(
+                                        io.gravitee.definition.model.v4.flow.step.Step
+                                            .builder()
+                                            .policy("policy3")
+                                            .configuration("config3")
+                                            .build()
+                                    )
+                                )
+                                .build(),
+                            io.gravitee.definition.model.v4.flow.Flow.builder().build()
+                        )
+                    )
+                    .plans(
+                        Map.ofEntries(
+                            Map.entry(
+                                "plan1",
+                                io.gravitee.definition.model.v4.plan.Plan
+                                    .builder()
+                                    .id("plan1")
+                                    .flows(
+                                        List.of(
+                                            io.gravitee.definition.model.v4.flow.Flow
+                                                .builder()
+                                                .id("flow1")
+                                                .request(
+                                                    List.of(
+                                                        io.gravitee.definition.model.v4.flow.step.Step
+                                                            .builder()
+                                                            .policy("policy1")
+                                                            .configuration("config1")
+                                                            .build(),
+                                                        io.gravitee.definition.model.v4.flow.step.Step
+                                                            .builder()
+                                                            .policy("policy2")
+                                                            .configuration("config2")
+                                                            .build()
+                                                    )
+                                                )
+                                                .response(
+                                                    List.of(
+                                                        io.gravitee.definition.model.v4.flow.step.Step
+                                                            .builder()
+                                                            .policy("policy3")
+                                                            .configuration("config3")
+                                                            .build()
+                                                    )
+                                                )
+                                                .build()
+                                        )
+                                    )
+                                    .build()
+                            ),
+                            Map.entry(
+                                "plan2",
+                                io.gravitee.definition.model.v4.plan.Plan
+                                    .builder()
+                                    .id("plan2")
+                                    .flows(
+                                        List.of(
+                                            io.gravitee.definition.model.v4.flow.Flow
+                                                .builder()
+                                                .id("flow1")
+                                                .request(
+                                                    List.of(
+                                                        io.gravitee.definition.model.v4.flow.step.Step
+                                                            .builder()
+                                                            .policy("policy1")
+                                                            .configuration("config1")
+                                                            .build(),
+                                                        io.gravitee.definition.model.v4.flow.step.Step
+                                                            .builder()
+                                                            .policy("policy2")
+                                                            .configuration("config2")
+                                                            .build()
+                                                    )
+                                                )
+                                                .response(
+                                                    List.of(
+                                                        io.gravitee.definition.model.v4.flow.step.Step
+                                                            .builder()
+                                                            .policy("policy3")
+                                                            .configuration("config3")
+                                                            .build()
+                                                    )
+                                                )
+                                                .build()
+                                        )
+                                    )
+                                    .build()
+                            )
+                        )
+                    )
+                    .build(),
+                new HttpRequest("/", "GET")
+            );
+
+            cut.checkPolicyConfigurations(api);
+
+            SoftAssertions.assertSoftly(softly -> {
+                // Verify flows at api level
+                softly
+                    .assertThat(
+                        api
+                            .getApiDefinition()
+                            .getFlows()
+                            .stream()
+                            .flatMap(flow ->
+                                Stream.concat(
+                                    Optional.ofNullable(flow.getRequest()).stream().flatMap(Collection::stream),
+                                    Optional.ofNullable(flow.getResponse()).stream().flatMap(Collection::stream)
+                                )
+                            )
+                            .map(io.gravitee.definition.model.v4.flow.step.Step::getConfiguration)
+                    )
+                    .hasSize(3)
+                    .allMatch(configuration -> configuration.equals("validated"));
+                // verify paths for plans
+                softly
+                    .assertThat(
+                        Objects
+                            .requireNonNull(api.getApiDefinition().getPlans())
+                            .stream()
+                            .flatMap(plan ->
+                                plan
+                                    .getFlows()
+                                    .stream()
+                                    .flatMap(flow -> Stream.concat(flow.getRequest().stream(), flow.getResponse().stream()))
+                            )
+                            .map(io.gravitee.definition.model.v4.flow.step.Step::getConfiguration)
+                    )
+                    .hasSize(6)
+                    .allMatch(configuration -> configuration.equals("validated"));
+            });
+        }
+
+        private static Stream<Arguments> provideV4EmptyCasesForFlows() {
+            return Stream.of(
+                Arguments.of(
+                    new DebugApiV4(
+                        ApiDefinitionFixtures.aHttpProxyApiV4(API_ID).toBuilder().flows(List.of()).build(),
+                        new HttpRequest("/", "GET")
+                    )
+                ),
+                Arguments.of(
+                    new DebugApiV4(
+                        ApiDefinitionFixtures.aHttpProxyApiV4(API_ID).toBuilder().flows(null).build(),
+                        new HttpRequest("/", "GET")
+                    )
+                )
+            );
         }
     }
 
