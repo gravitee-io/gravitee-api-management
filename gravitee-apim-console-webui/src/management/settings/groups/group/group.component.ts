@@ -26,6 +26,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
 import {
   GIO_DIALOG_WIDTH,
+  GioBannerModule,
   GioConfirmDialogComponent,
   GioConfirmDialogData,
   GioFormSlideToggleModule,
@@ -127,6 +128,7 @@ interface DeleteMemberDialogResult {
     MatTabsModule,
     MatMenuModule,
     GioTableWrapperModule,
+    GioBannerModule,
   ],
 })
 export class GroupComponent implements OnInit {
