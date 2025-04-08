@@ -32,6 +32,12 @@ spec:
   {{- if .Values.gateway.service.loadBalancerIP }}
   loadBalancerIP: "{{ .Values.gateway.service.loadBalancerIP }}"
   {{- end }}
+  {{- if eq .Values.gateway.service.type "LoadBalancer" }}
+  {{- if .Values.gateway.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges: 
+  {{ toYaml .Values.gateway.service.loadBalancerSourceRanges | nindent 4 }}
+  {{- end }}
+  {{- end }}
   type: "{{ .Values.gateway.service.type }}"
   {{- if eq .Values.gateway.service.type "NodePort" "LoadBalancer" }}
   externalTrafficPolicy: {{ .Values.gateway.service.externalTrafficPolicy }}
