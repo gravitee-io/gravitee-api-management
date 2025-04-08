@@ -198,11 +198,10 @@
       </mat-card-header>
       <mat-card-content>
         @if (maxInvitationsLimitReached) {
-          <mat-icon svgIcon="gio:info"></mat-icon
-          ><span
+          <gio-banner-info
             >The number of members in this group has reached maximum allowed. Adding users via search and email invitation have been
-            disabled.</span
-          >
+            disabled.
+          </gio-banner-info>
         }
         <mat-tab-group (selectedIndexChange)="onTabChange($event)">
           <mat-tab label="Members">
