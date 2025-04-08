@@ -216,7 +216,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         (step) =>
           ({
             ...step,
-            selection: isPolicySkippedStep(step) ? 'none' : modeSelectionResolver[step.mode] ?? 'none',
+            selection: isPolicySkippedStep(step) ? 'none' : (modeSelectionResolver[step.mode] ?? 'none'),
           }) as TimelineStep,
       ),
     };
@@ -240,7 +240,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
         (step) =>
           ({
             ...step,
-            selection: isPolicySkippedStep(step) ? 'none' : modeSelectionResolver[step.mode] ?? 'content',
+            selection: isPolicySkippedStep(step) ? 'none' : (modeSelectionResolver[step.mode] ?? 'content'),
           }) as TimelineStep,
       ),
     };

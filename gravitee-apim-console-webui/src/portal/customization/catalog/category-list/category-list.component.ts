@@ -44,7 +44,6 @@ import { AsyncPipe } from '@angular/common';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatTooltip } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
@@ -53,7 +52,6 @@ import { GioPermissionService } from '../../../../shared/components/gio-permissi
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { CategoryService } from '../../../../services-ngx/category.service';
 import { Category } from '../../../../entities/category/Category';
-import { PortalHeaderComponent } from '../../../components/header/portal-header.component';
 import { BothPortalsBadgeComponent } from '../../../components/portal-badge/both-portals-badge/both-portals-badge.component';
 
 @Component({
@@ -77,13 +75,11 @@ import { BothPortalsBadgeComponent } from '../../../components/portal-badge/both
     MatIcon,
     MatRow,
     MatRowDef,
-    MatSlideToggle,
     MatTable,
     MatTooltip,
     ReactiveFormsModule,
     RouterLink,
     MatHeaderCellDef,
-    PortalHeaderComponent,
     MatNoDataRow,
     CdkDropList,
     CdkDrag,
