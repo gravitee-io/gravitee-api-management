@@ -26,7 +26,7 @@ RUN addgroup -g 1000 graviteeio \
     && adduser -D -H -u 1001 graviteeio --ingroup graviteeio
 
 RUN apk update \
-	&& apk add --update --no-cache zip unzip netcat-openbsd libc6-compat \
+	&& apk add --update --no-cache zip unzip netcat-openbsd libc6-compat jemalloc \
     && wget ${GRAVITEEIO_DOWNLOAD_URL}/${GRAVITEEIO_PACKAGE_NAME}-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp \
     && unzip /tmp/${GRAVITEEIO_PACKAGE_NAME}-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
     && apk del zip unzip netcat-openbsd \
