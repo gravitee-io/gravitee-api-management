@@ -58,7 +58,8 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
         final ExecutionContext executionContext,
         final String apiId,
         final Set<String> groups,
-        final PrimaryOwnerEntity primaryOwnerEntity
+        final PrimaryOwnerEntity primaryOwnerEntity,
+        final boolean addDefaultGroups
     ) {
         Set<String> sanitizedGroups = new HashSet<>();
         if (groups != null && !groups.isEmpty()) {
@@ -70,13 +71,15 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
             }
         }
 
-        // Add default group
-        Set<String> defaultGroups = groupService
-            .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
-            .stream()
-            .map(GroupEntity::getId)
-            .collect(toSet());
-        sanitizedGroups.addAll(defaultGroups);
+        if (addDefaultGroups) {
+            // Add default groups on
+            Set<String> defaultGroups = groupService
+                .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
+                .stream()
+                .map(GroupEntity::getId)
+                .collect(toSet());
+            sanitizedGroups.addAll(defaultGroups);
+        }
 
         // if primary owner is a group, add it as a member of the API
         if (primaryOwnerEntity != null && ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerEntity.getType())) {
