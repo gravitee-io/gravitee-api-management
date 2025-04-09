@@ -22,7 +22,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.reactor.AbstractReactableApi;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
+public class Api extends AbstractReactableApi<io.gravitee.definition.model.v4.Api> {
 
     public Api() {
         super();

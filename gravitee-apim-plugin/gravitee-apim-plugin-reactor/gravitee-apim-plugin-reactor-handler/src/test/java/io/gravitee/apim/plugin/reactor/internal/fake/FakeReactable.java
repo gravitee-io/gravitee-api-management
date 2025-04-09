@@ -16,15 +16,14 @@
 package io.gravitee.apim.plugin.reactor.internal.fake;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.reactor.AbstractReactableApi;
 import java.util.Set;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FakeReactable extends ReactableApi<Object> {
+public class FakeReactable extends AbstractReactableApi<Object> {
 
     protected FakeReactable(Object definition) {
         super(definition);

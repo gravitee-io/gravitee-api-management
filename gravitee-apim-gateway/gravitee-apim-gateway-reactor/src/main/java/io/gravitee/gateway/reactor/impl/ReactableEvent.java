@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactor.impl;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.reactor.AbstractReactableApi;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -31,7 +31,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @EqualsAndHashCode(callSuper = true)
-public class ReactableEvent<T> extends ReactableApi<T> {
+public class ReactableEvent<T> extends AbstractReactableApi<T> {
 
     private String id;
 

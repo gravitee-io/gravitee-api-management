@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
+import io.gravitee.gateway.reactor.AbstractReactableApi;
 import io.gravitee.gateway.reactor.ReactableApi;
 import java.util.List;
 import java.util.Set;
@@ -193,7 +194,7 @@ class ApiTemplateVariableProviderTest {
     private static TemplateEngine buildTemplateEngine(AbstractApi apiDefinition) {
         var engine = TemplateEngine.templateEngine();
         var apiContextProvider = new ApiTemplateVariableProvider(
-            new ReactableApi<>() {
+            new AbstractReactableApi<>() {
                 @Override
                 public String getApiVersion() {
                     return apiDefinition.getApiVersion();
