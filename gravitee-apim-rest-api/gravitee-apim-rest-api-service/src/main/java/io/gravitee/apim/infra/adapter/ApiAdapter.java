@@ -95,6 +95,7 @@ public interface ApiAdapter {
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "metadata", ignore = true)
+    @Mapping(target = "listeners", expression = "java((List<Listener>) api.getApiListeners())")
     ApiEntity toApiEntity(Api api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)

@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
+import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
@@ -220,6 +221,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     UpdateNativeApiUseCase updateNativeApiUseCase;
+
+    @Inject
+    GetExposedEntrypointsUseCase getExposedEntrypointsUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -861,6 +865,23 @@ public class ApiResource extends AbstractResource {
             );
 
         return Response.noContent().build();
+    }
+
+    @GET
+    @Path("/exposedEntrypoints")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    public Response exposedEntrypoints(@PathParam("apiId") String apiId) {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var input = new GetExposedEntrypointsUseCase.Input(
+            executionContext.getOrganizationId(),
+            executionContext.getEnvironmentId(),
+            apiId
+        );
+        var output = getExposedEntrypointsUseCase.execute(input);
+
+        return Response.ok().entity(ApiMapper.INSTANCE.map(output.exposedEntrypoints())).build();
     }
 
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {

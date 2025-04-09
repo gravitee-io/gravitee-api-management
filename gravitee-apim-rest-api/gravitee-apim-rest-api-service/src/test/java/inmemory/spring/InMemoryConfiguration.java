@@ -21,6 +21,7 @@ import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.ApiCategoryOrderQueryServiceInMemory;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiExposedEntrypointDomainServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
@@ -532,5 +533,10 @@ public class InMemoryConfiguration {
     @Bean
     public ApplicationQueryServiceInMemory applicationQueryService(ApplicationCrudServiceInMemory applicationCrudService) {
         return new ApplicationQueryServiceInMemory(applicationCrudService);
+    }
+
+    @Bean
+    public ApiExposedEntrypointDomainServiceInMemory apiExposedEntrypointDomainServiceInMemory() {
+        return new ApiExposedEntrypointDomainServiceInMemory();
     }
 }

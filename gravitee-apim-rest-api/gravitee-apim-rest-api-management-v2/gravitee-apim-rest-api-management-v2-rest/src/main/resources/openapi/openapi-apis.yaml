@@ -709,6 +709,26 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/exposedEntrypoints:
+        parameters:
+          - $ref: "#/components/parameters/envIdParam"
+          - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+              - APIs
+            summary: Get Exposed API Entrypoints
+            description: |-
+              Get the list of exposed API entry points. This list represents the API's usable entrypoints that can be used 
+              by a client. It takes into account tags associated with the API or configured AccessPoint.
+              
+              User must have the API_DEFINITION[READ] permission.
+            operationId: exposedEntrypoints
+            responses:
+                "200":
+                    $ref: "#/components/responses/ExposedEntrypointResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API Reviews
     /environments/{envId}/apis/{apiId}/reviews/_ask:
         parameters:
@@ -7465,6 +7485,14 @@ components:
               additionalProperties:
                 type: string
 
+        # API ExposedEntrypoints
+        ExposedEntrypoint:
+            type: object
+            properties:
+                value:
+                    type: string
+                    description: The url or host of the entrypoint depending on the API type
+                    example: https://my-api.domain.com/echo
 
 
     parameters:
@@ -8019,6 +8047,16 @@ components:
                             reason:
                                 type: string
                                 description: An optional reason giving details about the result.
+
+        ExposedEntrypointResponse:
+            description: List of exposed entrypoints
+            content:
+                application/json:
+                    schema:
+                        title: "ExposedEntrypointResponse"
+                        type: array
+                        items:
+                            $ref: "#/components/schemas/ExposedEntrypoint"
 
         # Analytics
         ApiAnalyticsRequestsCountResponse:
