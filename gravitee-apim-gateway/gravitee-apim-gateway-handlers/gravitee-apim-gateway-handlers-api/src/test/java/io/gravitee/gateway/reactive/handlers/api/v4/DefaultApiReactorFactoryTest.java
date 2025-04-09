@@ -360,7 +360,7 @@ class DefaultApiReactorFactoryTest {
 
     private Api anApi() {
         Api api = mock(Api.class);
-        lenient().when(api.isEnabled()).thenReturn(true);
+        lenient().when(api.enabled()).thenReturn(true);
         lenient().when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
         lenient().when(api.getDefinition()).thenReturn(definition);
         return api;
@@ -368,7 +368,7 @@ class DefaultApiReactorFactoryTest {
 
     private Api aDisabledApi() {
         Api api = mock(Api.class);
-        lenient().when(api.isEnabled()).thenReturn(false);
+        lenient().when(api.enabled()).thenReturn(false);
         lenient().when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
         lenient().when(api.getDefinition()).thenReturn(definition);
         return api;
@@ -376,7 +376,7 @@ class DefaultApiReactorFactoryTest {
 
     private Api anApiV2() {
         Api api = mock(Api.class);
-        lenient().when(api.isEnabled()).thenReturn(true);
+        lenient().when(api.enabled()).thenReturn(true);
         lenient().when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
         lenient().when(api.getDefinition()).thenReturn(definition);
         return api;

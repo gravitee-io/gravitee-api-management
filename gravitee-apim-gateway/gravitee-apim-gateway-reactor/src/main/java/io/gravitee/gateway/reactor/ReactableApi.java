@@ -15,129 +15,35 @@
  */
 package io.gravitee.gateway.reactor;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
-import java.io.Serializable;
 import java.util.Date;
-import java.util.Objects;
 import java.util.Set;
-import lombok.Setter;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public abstract class ReactableApi<T> implements Reactable, Serializable {
+public interface ReactableApi<T> extends Reactable {
+    T getDefinition();
+    String getId();
+    DefinitionVersion getDefinitionVersion();
+    String getApiVersion();
+    String getName();
+    Date getDeployedAt();
+    String getRevision();
+    Set<String> getTags();
+    Set<String> getSubscribablePlans();
+    Set<String> getApiKeyPlans();
 
-    protected T definition;
+    String getEnvironmentId();
+    String getEnvironmentHrid();
 
-    @Setter
-    private boolean enabled = true;
+    String getOrganizationId();
+    String getOrganizationHrid();
 
-    @Setter
-    private Date deployedAt;
+    void setEnabled(boolean enabled);
+    void setDeployedAt(Date deployedAt);
+    void setRevision(String revision);
 
-    @Setter
-    private String environmentId;
+    void setEnvironmentId(String environmentId);
+    void setEnvironmentHrid(String environmentHrid);
 
-    @Setter
-    private String environmentHrid;
-
-    @Setter
-    private String organizationId;
-
-    @Setter
-    private String organizationHrid;
-
-    @Setter
-    private String revision;
-
-    private DefinitionContext definitionContext = new DefinitionContext();
-
-    protected ReactableApi() {}
-
-    protected ReactableApi(T definition) {
-        this.definition = definition;
-    }
-
-    @JsonIgnore
-    public abstract String getApiVersion();
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    @Override
-    public boolean enabled() {
-        return isEnabled();
-    }
-
-    public Date getDeployedAt() {
-        return deployedAt;
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public String getEnvironmentHrid() {
-        return environmentHrid;
-    }
-
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    public String getOrganizationHrid() {
-        return organizationHrid;
-    }
-
-    public DefinitionContext getDefinitionContext() {
-        return definitionContext;
-    }
-
-    public String getRevision() {
-        return revision;
-    }
-
-    public T getDefinition() {
-        return this.definition;
-    }
-
-    @JsonIgnore
-    public abstract DefinitionVersion getDefinitionVersion();
-
-    @JsonIgnore
-    public abstract Set<String> getTags();
-
-    @JsonIgnore
-    public abstract String getId();
-
-    @JsonIgnore
-    public abstract String getName();
-
-    @JsonIgnore
-    public abstract Set<String> getSubscribablePlans();
-
-    @JsonIgnore
-    public abstract Set<String> getApiKeyPlans();
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ReactableApi<?> that = (ReactableApi<?>) o;
-        return getId().equals(that.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
-    }
-
-    @Override
-    public String toString() {
-        return "API " + "id[" + this.getId() + "] name[" + this.getName() + "] version[" + this.getApiVersion() + ']';
-    }
+    void setOrganizationId(String organizationId);
+    void setOrganizationHrid(String organizationHrid);
 }

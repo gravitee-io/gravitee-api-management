@@ -98,7 +98,7 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
     @Override
     public ApiReactor<T> create(final T reactableApi) {
         try {
-            if (reactableApi.isEnabled()) {
+            if (reactableApi.enabled()) {
                 log.info("Creating Reactor Handler for api {}", reactableApi.getId());
 
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);

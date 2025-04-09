@@ -134,7 +134,7 @@ public class ApiReactorHandlerFactoryTest {
 
     @Test
     public void shouldNotCreateContext() {
-        when(api.isEnabled()).thenReturn(false);
+        when(api.enabled()).thenReturn(false);
         ReactorHandler handler = apiContextHandlerFactory.create(api);
         assertThat(handler).isNull();
     }
@@ -143,7 +143,7 @@ public class ApiReactorHandlerFactoryTest {
     public void shouldDefaultToV4ExecutionMode() {
         io.gravitee.definition.model.Api definition = mock(io.gravitee.definition.model.Api.class);
         when(definition.getProxy()).thenReturn(mock(io.gravitee.definition.model.Proxy.class));
-        when(api.isEnabled()).thenReturn(true);
+        when(api.enabled()).thenReturn(true);
         when(api.getDefinition()).thenReturn(definition);
         ReactorHandler handler = apiContextHandlerFactory.create(api);
         assertThat(handler).isInstanceOf(SyncApiReactor.class);
@@ -151,7 +151,7 @@ public class ApiReactorHandlerFactoryTest {
 
     @Test
     public void shouldUseV3ExecutionMode() {
-        when(api.isEnabled()).thenReturn(true);
+        when(api.enabled()).thenReturn(true);
         io.gravitee.definition.model.Api definition = mock(io.gravitee.definition.model.Api.class);
         when(api.getDeployedAt()).thenReturn(new Date());
         when(definition.getProxy()).thenReturn(mock(io.gravitee.definition.model.Proxy.class));

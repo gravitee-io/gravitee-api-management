@@ -117,7 +117,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
     }
 
     private void lookupForServiceDiscovery(Api api) {
-        if (api.isEnabled()) {
+        if (api.enabled()) {
             for (EndpointGroup group : api.getDefinition().getProxy().getGroups()) {
                 EndpointDiscoveryService discoveryService = group.getServices().get(EndpointDiscoveryService.class);
                 if (discoveryService != null && discoveryService.isEnabled()) {

@@ -206,7 +206,7 @@ public class ApiManagerImpl implements ApiManager {
         MDC.put("api", api.getId());
         log.debug("Deployment of {}", api);
 
-        if (api.isEnabled()) {
+        if (api.enabled()) {
             Deployer deployer = deployers.get(api.getClass());
             List<String> plans = deployer.getPlans(api);
 
@@ -254,7 +254,7 @@ public class ApiManagerImpl implements ApiManager {
         Deployer deployer = deployers.get(api.getClass());
         List<String> plans = deployer.getPlans(api);
 
-        if (api.isEnabled() && !plans.isEmpty()) {
+        if (api.enabled() && !plans.isEmpty()) {
             log.debug("Deploying {} plan(s) for {}:", plans.size(), api);
             for (String plan : plans) {
                 log.debug("\t- {}", plan);

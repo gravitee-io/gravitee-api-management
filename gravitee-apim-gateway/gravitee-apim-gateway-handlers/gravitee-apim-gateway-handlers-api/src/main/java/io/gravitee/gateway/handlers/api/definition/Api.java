@@ -26,7 +26,7 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
-import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.reactor.AbstractReactableApi;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
+public class Api extends AbstractReactableApi<io.gravitee.definition.model.Api> {
 
     public Api() {
         super();

@@ -188,7 +188,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     @Override
     public ReactorHandler create(Api api) {
         try {
-            if (api.isEnabled()) {
+            if (api.enabled()) {
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);
                 final CustomComponentProvider customComponentProvider = new CustomComponentProvider();
 
