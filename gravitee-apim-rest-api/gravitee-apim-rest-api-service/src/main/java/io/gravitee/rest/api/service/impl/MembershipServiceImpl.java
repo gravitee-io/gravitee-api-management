@@ -111,7 +111,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private static final Logger LOGGER = LoggerFactory.getLogger(MembershipServiceImpl.class);
 
     private static final String DEFAULT_SOURCE = "system";
-    private final Cache<String, Set<RoleEntity>> roles = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
+    private final Cache<String, Set<RoleEntity>> cachedRoles = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
 
     private final UserService userService;
 
@@ -365,7 +365,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
             }
 
-            roles.invalidate(reference.getType().name() + reference.getId() + member.getMemberType() + member.getMemberId());
+            invalidateRoleCache(reference.getType().name(), reference.getId(), member.getMemberType().name(), member.getMemberId());
 
             return userMember;
         } catch (TechnicalException ex) {
@@ -618,11 +618,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     @Override
     public void deleteMembership(ExecutionContext executionContext, String membershipId) {
         try {
-            Optional<io.gravitee.repository.management.model.Membership> membership = membershipRepository.findById(membershipId);
-            if (membership.isPresent()) {
-                LOGGER.debug("Delete membership {}", membership.get());
+            Optional<io.gravitee.repository.management.model.Membership> optionalMembership = membershipRepository.findById(membershipId);
+            if (optionalMembership.isPresent()) {
+                io.gravitee.repository.management.model.Membership membership = optionalMembership.get();
+                LOGGER.debug("Delete membership {}", membership);
                 membershipRepository.delete(membershipId);
-                createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership.get(), null);
+                createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
+
+                invalidateRoleCache(
+                    membership.getReferenceType().name(),
+                    membership.getReferenceId(),
+                    membership.getMemberType().name(),
+                    membership.getMemberId()
+                );
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete membership {}", membershipId, ex);
@@ -643,6 +651,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     LOGGER.debug("Delete membership {}", membership.getId());
                     membershipRepository.delete(membership.getId());
                     createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
+                    invalidateRoleCache(
+                        membership.getReferenceType().name(),
+                        membership.getReferenceId(),
+                        membership.getMemberType().name(),
+                        membership.getMemberId()
+                    );
                 }
             }
         } catch (TechnicalException ex) {
@@ -707,6 +721,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     LOGGER.debug("Delete membership {}", membership.getId());
                     membershipRepository.delete(membership.getId());
                     createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
+                    invalidateRoleCache(
+                        membership.getReferenceType().name(),
+                        membership.getReferenceId(),
+                        membership.getMemberType().name(),
+                        membership.getMemberId()
+                    );
                 }
 
                 if (MembershipReferenceType.APPLICATION.equals(referenceType) && MembershipMemberType.USER.equals(memberType)) {
@@ -1314,8 +1334,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         try {
             LOGGER.debug("Get role for {} {} and member {} {}", referenceType, referenceId, memberType, memberId);
 
-            return roles.get(
-                referenceType.name() + referenceId + memberType + memberId,
+            String cachedRoleKey = computeCachedRoleKey(referenceType.name(), referenceId, memberType.name(), memberId);
+            return cachedRoles.get(
+                cachedRoleKey,
                 () ->
                     membershipRepository
                         .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -1533,6 +1554,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 );
             for (io.gravitee.repository.management.model.Membership m : membershipsToDelete) {
                 membershipRepository.delete(m.getId());
+                invalidateRoleCache(referenceType.name(), referenceId, memberType.name(), memberId);
             }
         } catch (TechnicalException ex) {
             LOGGER.error(
@@ -1581,6 +1603,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membershipRepository.create(membership);
                 }
                 membershipRepository.delete(oldMembershipId);
+                invalidateRoleCache(
+                    membership.getReferenceType().name(),
+                    membership.getReferenceId(),
+                    membership.getMemberType().name(),
+                    membership.getMemberId()
+                );
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to remove role {}", oldRoleId, ex);
@@ -1604,6 +1632,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     groupIds.add(membership.getReferenceId());
                 }
                 membershipRepository.delete(membership.getId());
+
+                invalidateRoleCache(
+                    membership.getReferenceType().name(),
+                    membership.getReferenceId(),
+                    membership.getMemberType().name(),
+                    membership.getMemberId()
+                );
             }
 
             eventManager.publishEvent(
@@ -1930,5 +1965,21 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         return this.getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId)
             .stream()
             .anyMatch(member -> member.getRoles().stream().anyMatch(RoleEntity::isApiPrimaryOwner));
+    }
+
+    private void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId) {
+        String cachedRoleKey = computeCachedRoleKey(referenceType, referenceId, memberType, memberId);
+        cachedRoles.invalidate(cachedRoleKey);
+    }
+
+    private static String computeCachedRoleKey(String referenceType, String referenceId, String memberType, String memberId) {
+        String cachedRoleKey;
+        if (memberType.equals("USER")) {
+            cachedRoleKey = referenceType + referenceId + memberType + memberId;
+        } else {
+            // In case of GROUP, referenceId is null
+            cachedRoleKey = referenceType + memberType + memberId;
+        }
+        return cachedRoleKey;
     }
 }
