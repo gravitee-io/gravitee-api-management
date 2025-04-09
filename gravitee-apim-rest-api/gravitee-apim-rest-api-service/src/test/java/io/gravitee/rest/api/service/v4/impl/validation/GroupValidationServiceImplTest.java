@@ -66,7 +66,7 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnValidatedGroupsWithNoApiAndExistingGroupWithoutApiPrimaryOwnerAndCurrentUserPrimaryOwner() {
+    public void shouldReturnValidatedGroupsWithNoApiAndDefaultGroupWithoutApiPrimaryOwnerAndCurrentUserPrimaryOwner() {
         // Given
         String groupId = "group";
         Set<String> groups = Set.of(groupId);
@@ -84,7 +84,8 @@ public class GroupValidationServiceImplTest {
             executionContext,
             null,
             groups,
-            new PrimaryOwnerEntity(new UserEntity())
+            new PrimaryOwnerEntity(new UserEntity()),
+            true
         );
 
         // Then
@@ -94,7 +95,33 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnValidatedGroupsWithNoApiAndExistingGroupWithoutApiPrimaryOwnerAndCurrentGroupPrimaryOwner() {
+    public void shouldReturnValidatedGroupsWithNoApiWithoutDefaultGroupWithoutApiPrimaryOwnerAndCurrentUserPrimaryOwner() {
+        // Given
+        String groupId = "group";
+        Set<String> groups = Set.of(groupId);
+        GroupEntity groupEntity = new GroupEntity();
+        groupEntity.setId(groupId);
+        when(groupService.findByIds(groups)).thenReturn(Set.of(groupEntity));
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        GroupEntity defaultGroupEntity = new GroupEntity();
+
+        // When
+        Set<String> validatedGroups = groupValidationService.validateAndSanitize(
+            executionContext,
+            null,
+            groups,
+            new PrimaryOwnerEntity(new UserEntity()),
+            false
+        );
+
+        // Then
+        assertThat(validatedGroups).isNotNull();
+        assertThat(validatedGroups.size()).isEqualTo(1);
+        assertThat(validatedGroups.contains(groupId)).isTrue();
+    }
+
+    @Test
+    public void shouldReturnValidatedGroupsWithNoApiAndDefaultGroupWithoutApiPrimaryOwnerAndCurrentGroupPrimaryOwner() {
         // Given
         String groupId = "group";
         Set<String> groups = Set.of(groupId);
@@ -115,7 +142,8 @@ public class GroupValidationServiceImplTest {
             executionContext,
             null,
             groups,
-            new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL)
+            new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL),
+            true
         );
 
         // Then
@@ -125,7 +153,7 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnFilteredGroupsWithNoApiAndExistingGroupWithApiPrimaryOwner() {
+    public void shouldReturnFilteredGroupsWithNoApiAndDefaultGroupWithApiPrimaryOwner() {
         // Given
         String groupId = "group";
         Set<String> groups = Set.of(groupId);
@@ -144,7 +172,8 @@ public class GroupValidationServiceImplTest {
             executionContext,
             null,
             groups,
-            new PrimaryOwnerEntity(new UserEntity())
+            new PrimaryOwnerEntity(new UserEntity()),
+            true
         );
 
         // Then
@@ -154,7 +183,7 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnValidatedGroupsWithApiAndExistingGroupsWithoutApiPrimaryOwnerAndGroupPrimaryOwner() {
+    public void shouldReturnValidatedGroupsWithApiAndDefaultGroupsWithoutApiPrimaryOwnerAndGroupPrimaryOwner() {
         // Given
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String apiId = "apiId";
@@ -180,7 +209,8 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
-            new PrimaryOwnerEntity(new UserEntity())
+            new PrimaryOwnerEntity(new UserEntity()),
+            true
         );
 
         // Then
@@ -190,7 +220,7 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnValidatedGroupsWithApiAndExistingGroupsWithApiPrimaryOwnerAndGroupPrimaryOwner() {
+    public void shouldReturnValidatedGroupsWithApiAndDefaultGroupsWithApiPrimaryOwnerAndGroupPrimaryOwner() {
         // Given
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String apiId = "apiId";
@@ -217,7 +247,8 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
-            new PrimaryOwnerEntity(new UserEntity())
+            new PrimaryOwnerEntity(new UserEntity()),
+            true
         );
 
         // Then
@@ -227,7 +258,7 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnValidatedGroupsWithApiAndExistingGroupsWithoutApiPrimaryOwnerAndUserPrimaryOwner() {
+    public void shouldReturnValidatedGroupsWithApiAndDefaultGroupsWithoutApiPrimaryOwnerAndUserPrimaryOwner() {
         // Given
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String apiId = "apiId";
@@ -253,7 +284,8 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
-            new PrimaryOwnerEntity(new UserEntity())
+            new PrimaryOwnerEntity(new UserEntity()),
+            true
         );
 
         // Then
@@ -263,7 +295,7 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnFilteredGroupsWithApiAndExistingGroupsWithApiPrimaryOwnerAndUserPrimaryOwner() {
+    public void shouldReturnFilteredGroupsWithApiAndDefaultGroupsWithApiPrimaryOwnerAndUserPrimaryOwner() {
         // Given
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String apiId = "apiId";
@@ -290,7 +322,8 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
-            new PrimaryOwnerEntity(new UserEntity())
+            new PrimaryOwnerEntity(new UserEntity()),
+            true
         );
 
         // Then
@@ -300,7 +333,7 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnFilteredGroupsWithApiAndExistingGroupsWithApiPrimaryOwnerAndGroupPrimaryOwner() {
+    public void shouldReturnFilteredGroupsWithApiAndDefaultGroupsWithApiPrimaryOwnerAndGroupPrimaryOwner() {
         // Given
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String apiId = "apiId";
@@ -330,7 +363,8 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
-            new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL)
+            new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL),
+            true
         );
 
         // Then
@@ -353,7 +387,8 @@ public class GroupValidationServiceImplTest {
                     GraviteeContext.getExecutionContext(),
                     null,
                     groups,
-                    new PrimaryOwnerEntity(new UserEntity())
+                    new PrimaryOwnerEntity(new UserEntity()),
+                    true
                 )
             );
     }
@@ -365,7 +400,8 @@ public class GroupValidationServiceImplTest {
             GraviteeContext.getExecutionContext(),
             null,
             emptyGroups,
-            null
+            null,
+            true
         );
         Assertions.assertThat(validatedGroups).isEmpty();
         Assertions.assertThat(validatedGroups).isEqualTo(emptyGroups);
