@@ -66,10 +66,10 @@ export class OrgSettingAddMappingDialogComponent {
         break;
       }
       case 'KAFKA': {
-        const [kafkaDomain, kafkaPort] = this.entrypoint?.value?.split(':') ?? ['', ''];
+        const [kafkaDomain, kafkaPort] = this.entrypoint?.value?.split(':') ?? ['', '9092'];
 
-        this.mappingForm.addControl('kafkaDomain', new FormControl(kafkaDomain ?? '', [Validators.required, kafkaDomainValidator]));
-        this.mappingForm.addControl('kafkaPort', new FormControl(kafkaPort ?? '9092', [Validators.required, portValidator]));
+        this.mappingForm.addControl('kafkaDomain', new FormControl(kafkaDomain, [Validators.required, kafkaDomainValidator]));
+        this.mappingForm.addControl('kafkaPort', new FormControl(kafkaPort, [Validators.required, portValidator]));
         break;
       }
     }
