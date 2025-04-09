@@ -67,25 +67,31 @@
               </gio-form-selection-inline-card>
             </gio-form-selection-inline>
 
-            <div class="badges">
-              <span class="gio-badge-neutral">Coming soon</span>
-            </div>
+            @if (integrationProviders.comingSoon?.length) {
+              <div class="badges">
+                <span class="gio-badge-neutral">Coming soon</span>
+              </div>
 
-            <gio-form-selection-inline class="list">
-              <gio-form-selection-inline-card
-                *ngFor="let provider of integrationProviders.comingSoon"
-                [value]="provider.value"
-                class="gio-radio-button"
-                [disabled]="true"
-              >
-                <img class="gio-radio-button__logo" [src]="'assets/logos/' + provider.value + '_gray.svg'" alt="provider.value + ' logo'" />
-                <gio-form-selection-inline-card-content>
-                  <gio-card-content-title>
-                    {{ provider.value | mapProviderName }}
-                  </gio-card-content-title>
-                </gio-form-selection-inline-card-content>
-              </gio-form-selection-inline-card>
-            </gio-form-selection-inline>
+              <gio-form-selection-inline class="list">
+                <gio-form-selection-inline-card
+                  *ngFor="let provider of integrationProviders.comingSoon"
+                  [value]="provider.value"
+                  class="gio-radio-button"
+                  [disabled]="true"
+                >
+                  <img
+                    class="gio-radio-button__logo"
+                    [src]="'assets/logos/' + provider.value + '_gray.svg'"
+                    alt="provider.value + ' logo'"
+                  />
+                  <gio-form-selection-inline-card-content>
+                    <gio-card-content-title>
+                      {{ provider.value | mapProviderName }}
+                    </gio-card-content-title>
+                  </gio-form-selection-inline-card-content>
+                </gio-form-selection-inline-card>
+              </gio-form-selection-inline>
+            }
           </div>
           <div class="providers__actions">
             <button
