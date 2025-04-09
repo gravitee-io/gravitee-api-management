@@ -19,7 +19,7 @@ FROM graviteeio/java:21 AS base
 ENV GRAVITEEIO_HOME=/opt/graviteeio-gateway
 
 RUN apk update  \
-    && apk add --no-cache libc6-compat  \
+    && apk add --no-cache libc6-compat jemalloc \
     && if [ $(apk --print-arch) = "aarch64" ]; then ln -s /lib/libc.musl-aarch64.so.1 /lib/ld-linux-aarch64.so.2; fi
 
 
