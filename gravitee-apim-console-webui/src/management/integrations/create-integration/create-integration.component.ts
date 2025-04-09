@@ -43,10 +43,7 @@ export class CreateIntegrationComponent {
       { icon: 'confluent', value: 'confluent-platform' },
       { icon: 'mulesoft', value: 'mulesoft' },
     ],
-    comingSoon: [
-      { icon: 'kong', value: 'kong' },
-      { icon: 'dell-boomi', value: 'dell-boomi' },
-    ],
+    comingSoon: [],
   };
   public chooseProviderForm = this.formBuilder.group({
     provider: ['', Validators.required],
