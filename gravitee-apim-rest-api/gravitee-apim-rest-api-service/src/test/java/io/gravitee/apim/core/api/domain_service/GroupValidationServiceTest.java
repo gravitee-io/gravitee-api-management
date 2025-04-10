@@ -56,7 +56,9 @@ public class GroupValidationServiceTest {
 
     @Test
     public void should_throw_when_groups_provided_do_not_exist() {
-        var throwable = catchThrowable(() -> groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER));
+        var throwable = catchThrowable(() ->
+            groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER, false)
+        );
 
         assertThat(throwable).isInstanceOf(InvalidDataException.class);
     }
@@ -81,7 +83,7 @@ public class GroupValidationServiceTest {
         );
 
         // When
-        var sanitized = groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER);
+        var sanitized = groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER, true);
 
         // Then
         assertThat(sanitized).containsExactlyInAnyOrder(GROUP_1, "default-group-1", "default-group-2");
@@ -103,7 +105,7 @@ public class GroupValidationServiceTest {
         );
 
         // When
-        var sanitized = groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER);
+        var sanitized = groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, PRIMARY_OWNER, false);
 
         // Then
         assertThat(sanitized).containsExactlyInAnyOrder(GROUP_1);
@@ -111,7 +113,7 @@ public class GroupValidationServiceTest {
 
     @Test
     public void should_do_nothing_when_no_groups() {
-        Set<String> validatedGroups = groupValidationService.validateAndSanitize(Set.of(), ENVIRONMENT_ID, null);
+        Set<String> validatedGroups = groupValidationService.validateAndSanitize(Set.of(), ENVIRONMENT_ID, null, false);
         assertThat(validatedGroups).isEmpty();
     }
 
@@ -122,7 +124,7 @@ public class GroupValidationServiceTest {
         var primaryOwner = PRIMARY_OWNER.toBuilder().id("group-id").type(PrimaryOwnerEntity.Type.GROUP).build();
 
         // When
-        var sanitized = groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, primaryOwner);
+        var sanitized = groupValidationService.validateAndSanitize(Set.of(GROUP_1), ENVIRONMENT_ID, primaryOwner, false);
 
         // Then
         assertThat(sanitized).containsExactlyInAnyOrder(GROUP_1, "group-id");
