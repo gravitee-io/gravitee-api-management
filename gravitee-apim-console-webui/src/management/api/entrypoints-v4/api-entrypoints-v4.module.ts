@@ -39,6 +39,7 @@ import { RouterModule } from '@angular/router';
 import { ApiEntrypointsV4GeneralComponent } from './api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4EditComponent } from './edit/api-entrypoints-v4-edit.component';
 import { ApiEntrypointsV4AddDialogComponent } from './edit/api-entrypoints-v4-add-dialog.component';
+import { ExposedEntrypointsComponent } from './exposed-entrypoints/exposed-entrypoints.component';
 
 import { GioFormListenersContextPathModule } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
 import { GioFormListenersVirtualHostModule } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
@@ -82,6 +83,7 @@ import { GioFormListenersKafkaHostComponent } from '../component/gio-form-listen
     GioFormListenersTcpHostsModule,
     GioPermissionModule,
     GioFormListenersKafkaHostComponent,
+    ExposedEntrypointsComponent,
   ],
   declarations: [ApiEntrypointsV4GeneralComponent, ApiEntrypointsV4EditComponent, ApiEntrypointsV4AddDialogComponent],
 })
