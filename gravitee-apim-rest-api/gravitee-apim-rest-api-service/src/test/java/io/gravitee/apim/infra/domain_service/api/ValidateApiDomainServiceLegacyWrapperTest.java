@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.domain_service.api;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -244,7 +245,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
             doAnswer(invocation -> Set.of("sanitized")).when(tagsValidationService).validateAndSanitize(any(), any(), any());
 
-            doAnswer(invocation -> Set.of("sanitized")).when(groupValidationService).validateAndSanitize(any(), any(), any());
+            doAnswer(invocation -> Set.of("sanitized")).when(groupValidationService).validateAndSanitize(any(), any(), any(), anyBoolean());
 
             doAnswer(invocationOnMock -> Set.of("sanitized")).when(categoryDomainService).toCategoryId(any(), any());
 
@@ -396,7 +397,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
             doAnswer(invocation -> Set.of("sanitized")).when(tagsValidationService).validateAndSanitize(any(), any(), any());
 
-            doAnswer(invocation -> Set.of("sanitized")).when(groupValidationService).validateAndSanitize(any(), any(), any());
+            doAnswer(invocation -> Set.of("sanitized")).when(groupValidationService).validateAndSanitize(any(), any(), any(), anyBoolean());
 
             doAnswer(invocation ->
                     List.of(KafkaListener.builder().entrypoints(List.of(NativeEntrypoint.builder().type("sanitized").build())).build())
