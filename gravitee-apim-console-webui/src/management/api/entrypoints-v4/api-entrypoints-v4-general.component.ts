@@ -45,6 +45,7 @@ import {
   TcpListener,
   KafkaHost,
   KafkaListener,
+  ExposedEntrypoint,
 } from '../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../services-ngx/icon.service';
@@ -55,6 +56,7 @@ import { RestrictedDomainService } from '../../../services-ngx/restricted-domain
 import { TcpHost } from '../../../entities/management-api-v2/api/v4/tcpHost';
 import { PortalConfigurationService } from '../../../services-ngx/portal-configuration.service';
 import { PortalSettingsPortal } from '../../../entities/portal/portalSettings';
+import { ApiExposedEntrypointV2Service } from '../../../services-ngx/api-exposed-entrypoints-v2.service';
 
 type EntrypointVM = {
   id: string;
@@ -91,6 +93,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public isOEM$: Observable<boolean>;
   public isReadOnly = false;
   public portalSettings$: Observable<PortalSettingsPortal>;
+  public exposedEntrypoints$: Observable<ExposedEntrypoint[]>;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -105,6 +108,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     private readonly changeDetector: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
     private readonly portalConfigurationService: PortalConfigurationService,
+    private readonly apiExposedEntrypointV2Service: ApiExposedEntrypointV2Service,
   ) {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
   }
@@ -194,6 +198,9 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
         }
       })
       .sort((a, b) => a.id.localeCompare(b.id));
+
+    this.exposedEntrypoints$ = this.apiExposedEntrypointV2Service.get(this.apiId).pipe(catchError(() => of([])));
+
     this.changeDetector.detectChanges();
   }
 

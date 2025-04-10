@@ -43,6 +43,7 @@ import { GioFormListenersTcpHostsHarness } from '../component/gio-form-listeners
 import { GioLicenseBannerHarness } from '../../../shared/components/gio-license-banner/gio-license-banner.harness';
 import { License } from '../../../entities/license/License';
 import { GioFormListenersKafkaHostHarness } from '../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host.harness';
+import { expectGetExposedEntrypoints } from '../../../services-ngx/api-exposed-entrypoints-v2.service.spec';
 
 const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
   { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET', deployed: true },
@@ -73,6 +74,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     expectGetRestrictedDomain(restrictedDomains);
     expectGetEntrypoints();
     expectGetApi(api);
+    expectGetExposedEntrypoints(httpTestingController, API_ID, []);
 
     if (getPortalSettings) {
       expectGetPortalSettings();
@@ -222,6 +224,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       await resetButton.click();
 
       expect(await hostInput.getValue()).toEqual('host');
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
 
     it('should save host form', async () => {
@@ -250,6 +253,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
   });
 
@@ -322,6 +326,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
 
     it('should reset context-paths', async () => {
@@ -339,6 +344,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       await resetButton.click();
 
       expect(await harness.getLastListenerRow().then((row) => row.pathInput.getValue())).toEqual('/context-path');
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
 
     it('should switch to virtual host mode', async () => {
@@ -402,6 +408,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
 
     it('should reset hosts', async () => {
@@ -418,6 +425,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       await resetButton.click();
 
       expect(await harness.getLastListenerRow().then((row) => row.hostInput.getValue())).toEqual('host2');
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
   });
 
@@ -476,6 +484,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
   });
   describe('API with virtual host but no domain restrictions', () => {
@@ -580,6 +589,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
         ],
       };
       saveReq.flush(updatedApi);
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
 
     it('should not remove entrypoint on cancel', async () => {
@@ -660,6 +670,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const expectedUpdateApi: UpdateApiV4 = { ...updatedApi };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(updatedApi);
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
   });
 
@@ -709,6 +720,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
   });
 
@@ -753,6 +765,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
   });
 
@@ -822,6 +835,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
+      expectGetExposedEntrypoints(httpTestingController, API_ID, []);
     });
   });
 
