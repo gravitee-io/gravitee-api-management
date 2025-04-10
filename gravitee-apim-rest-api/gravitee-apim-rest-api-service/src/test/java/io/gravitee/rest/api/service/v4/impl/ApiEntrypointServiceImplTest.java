@@ -135,6 +135,7 @@ class ApiEntrypointServiceImplTest {
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
+        entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -179,6 +180,7 @@ class ApiEntrypointServiceImplTest {
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
+        entrypointEntity.setTarget(EntrypointEntity.Target.TCP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -252,6 +254,7 @@ class ApiEntrypointServiceImplTest {
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
+        entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -324,6 +327,7 @@ class ApiEntrypointServiceImplTest {
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
         entrypointEntity.setValue("https://tag-entrypoint");
+        entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
@@ -350,6 +354,7 @@ class ApiEntrypointServiceImplTest {
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
+        entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
@@ -378,6 +383,7 @@ class ApiEntrypointServiceImplTest {
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
         entrypointEntity.setValue("https://tag-entrypoint");
+        entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
@@ -407,6 +413,7 @@ class ApiEntrypointServiceImplTest {
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
+        entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
@@ -443,6 +450,7 @@ class ApiEntrypointServiceImplTest {
         when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("kafka.domain");
         when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("6666");
 
         var apiEntity = new NativeApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
@@ -455,16 +463,15 @@ class ApiEntrypointServiceImplTest {
 
         var entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(new String[] { "tag" });
-        entrypointEntity.setValue("kafka-entrypoint");
+        entrypointEntity.setValue("kafka-entrypoint:9042");
+        entrypointEntity.setTarget(EntrypointEntity.Target.KAFKA);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
-
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
 
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host.kafka.domain:9092");
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host.kafka-entrypoint:9042");
     }
 
     @Test
@@ -481,6 +488,7 @@ class ApiEntrypointServiceImplTest {
         var entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(new String[] { "unmatched-tag" });
         entrypointEntity.setValue("kafka-entrypoint");
+        entrypointEntity.setTarget(EntrypointEntity.Target.KAFKA);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
 
         when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
@@ -557,6 +565,7 @@ class ApiEntrypointServiceImplTest {
         when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("kafka.domain");
         when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("6666");
 
         var apiEntity = new NativeApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
@@ -569,17 +578,16 @@ class ApiEntrypointServiceImplTest {
 
         var entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(new String[] { "tag1", "tag2" });
-        entrypointEntity.setValue("kafka-entrypoint");
+        entrypointEntity.setValue("kafka-entrypoint:9042");
+        entrypointEntity.setTarget(EntrypointEntity.Target.KAFKA);
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
-
-        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
 
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
         var entrypoint = apiEntrypoints.get(0);
         assertThat(entrypoint.getHost()).isEqualTo("kafka-host");
-        assertThat(entrypoint.getTarget()).isEqualTo("kafka-host.kafka.domain:9092");
+        assertThat(entrypoint.getTarget()).isEqualTo("kafka-host.kafka-entrypoint:9042");
         assertThat(entrypoint.getTags()).containsExactlyInAnyOrder("tag1", "tag2");
     }
 
