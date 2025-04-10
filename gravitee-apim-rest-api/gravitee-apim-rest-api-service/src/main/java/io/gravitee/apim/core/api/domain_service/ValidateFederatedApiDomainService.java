@@ -34,7 +34,7 @@ public class ValidateFederatedApiDomainService {
         if (newApi.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
             throw new ValidationDomainException("Definition version is unsupported, should be FEDERATED");
         }
-        newApi.setGroups(groupValidationService.validateAndSanitize(Set.of(), newApi.getEnvironmentId(), primaryOwner));
+        newApi.setGroups(groupValidationService.validateAndSanitize(Set.of(), newApi.getEnvironmentId(), primaryOwner, true));
 
         // Reset lifecycle state as Federated API are not deployed on Gateway
         newApi.setLifecycleState(null);
@@ -46,7 +46,8 @@ public class ValidateFederatedApiDomainService {
         var groupIds = groupValidationService.validateAndSanitize(
             updateApi.getGroups(),
             existingApi.getEnvironmentId(),
-            primaryOwnerEntity
+            primaryOwnerEntity,
+            false
         );
         updateApi.setGroups(groupIds);
 

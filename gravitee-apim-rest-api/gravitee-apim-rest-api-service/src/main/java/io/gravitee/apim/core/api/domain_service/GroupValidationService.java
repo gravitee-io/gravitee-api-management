@@ -38,7 +38,12 @@ public class GroupValidationService {
 
     private final GroupQueryService groupQueryService;
 
-    public Set<String> validateAndSanitize(final Set<String> groupIds, final String environmentId, final PrimaryOwnerEntity primaryOwner) {
+    public Set<String> validateAndSanitize(
+        final Set<String> groupIds,
+        final String environmentId,
+        final PrimaryOwnerEntity primaryOwner,
+        boolean addDefaultGroups
+    ) {
         var found = !isEmpty(groupIds) ? new HashSet<>(groupQueryService.findByIds(groupIds)) : new HashSet<Group>();
         if (found.size() != size(groupIds)) {
             var foundIds = found.stream().map(Group::getId).collect(Collectors.toSet());
@@ -46,7 +51,9 @@ public class GroupValidationService {
             throw new InvalidDataException("These groupIds [" + groupsNotFound + "] do not exist");
         }
 
-        found.addAll(groupQueryService.findByEvent(environmentId, Group.GroupEvent.API_CREATE));
+        if (addDefaultGroups) {
+            found.addAll(groupQueryService.findByEvent(environmentId, Group.GroupEvent.API_CREATE));
+        }
 
         var sanitized = found.stream().filter(group -> group.getApiPrimaryOwner() == null).map(Group::getId).collect(Collectors.toSet());
         if (primaryOwner != null && PrimaryOwnerEntity.Type.GROUP.equals(primaryOwner.type())) {
