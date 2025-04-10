@@ -5,6 +5,14 @@
   mat-form-field {
     flex: 1 1 auto;
   }
+  .kafka {
+    display: flex;
+    gap: 8px;
+
+    &__port {
+      flex: 1;
+    }
+  }
 }
 
 .actions {

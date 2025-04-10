@@ -44,20 +44,29 @@
           </mat-form-field>
         }
         @case ('KAFKA') {
-          <mat-form-field class="kafka__domain">
-            <mat-label>Default Kafka domain</mat-label>
-            <input matInput formControlName="kafkaDomain" />
-            <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('maxLength')"
-              >Kafka Domain must be less than 192 characters.</mat-error
-            >
-            <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('format')">Kafka Domain is not valid.</mat-error>
-          </mat-form-field>
-          <mat-form-field class="kafka__port">
-            <mat-label>Default Kafka port</mat-label>
-            <input matInput formControlName="kafkaPort" type="number" />
-            <mat-error *ngIf="mappingForm.get('kafkaPort').hasError('invalidPort')"
-              >Port should be in range between 1025 and 65535</mat-error
-            >
+          <div class="kafka">
+            <mat-form-field class="kafka__domain">
+              <mat-label>Default Kafka domain</mat-label>
+              <input matInput formControlName="kafkaDomain" />
+              <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('maxLength')"
+                >Kafka Domain must be less than 192 characters.</mat-error
+              >
+              <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('format')">Kafka Domain is not valid.</mat-error>
+            </mat-form-field>
+            <mat-form-field class="kafka__port">
+              <mat-label>Default Kafka port</mat-label>
+              <input matInput formControlName="kafkaPort" type="number" />
+              <mat-error *ngIf="mappingForm.get('kafkaPort').hasError('invalidPort')"
+                >Port should be in range between 1025 and 65535</mat-error
+              >
+            </mat-form-field>
+          </div>
+        }
+        @case ('TCP') {
+          <mat-form-field class="tcp__port">
+            <mat-label>Default TCP port</mat-label>
+            <input matInput formControlName="tcpPort" type="number" />
+            <mat-error *ngIf="mappingForm.get('tcpPort').hasError('invalidPort')">Port should be in range between 1025 and 65535</mat-error>
           </mat-form-field>
         }
       }
