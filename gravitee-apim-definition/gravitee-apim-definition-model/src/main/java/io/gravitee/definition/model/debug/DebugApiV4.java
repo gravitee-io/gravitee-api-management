@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.debug;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
@@ -49,22 +50,32 @@ public class DebugApiV4 implements DebugApiProxy, Serializable {
         this.request = request;
     }
 
+    public DebugApiV4(Api apiDefinition, HttpRequest request, HttpResponse response) {
+        this.apiDefinition = apiDefinition;
+        this.request = request;
+        this.response = response;
+    }
+
     @Override
+    @JsonIgnore
     public String getId() {
         return apiDefinition.getId();
     }
 
     @Override
+    @JsonIgnore
     public DefinitionVersion getDefinitionVersion() {
         return apiDefinition.getDefinitionVersion();
     }
 
     @Override
+    @JsonIgnore
     public ApiType getType() {
         return apiDefinition.getType();
     }
 
     @Override
+    @JsonIgnore
     public Set<String> getTags() {
         return apiDefinition.getTags();
     }

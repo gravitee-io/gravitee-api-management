@@ -24,7 +24,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DebugApiV2 extends Api {
+public class DebugApiV2 extends Api implements ReactableDebugApi<io.gravitee.definition.model.Api> {
 
     private HttpRequest request;
     private HttpResponse response;
@@ -54,5 +54,15 @@ public class DebugApiV2 extends Api {
                 .getVirtualHosts()
                 .forEach(virtualHost -> virtualHost.setPath(PathTransformer.computePathWithEventId(this.eventId, virtualHost.getPath())));
         }
+    }
+
+    @Override
+    public String extractHost() {
+        return definition.getProxy().getVirtualHosts().getFirst().getHost();
+    }
+
+    @Override
+    public String extractUri() {
+        return definition.getProxy().getVirtualHosts().getFirst().getPath() + request.getPath();
     }
 }

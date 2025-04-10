@@ -23,6 +23,8 @@ import io.gravitee.definition.model.debug.PreprocessorStep;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.debug.definition.DebugApiV2;
+import io.gravitee.gateway.debug.definition.DebugApiV4;
+import io.gravitee.gateway.debug.definition.ReactableDebugApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
@@ -45,6 +47,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -71,7 +74,7 @@ public class DebugCompletionProcessor implements Processor {
         return Completable
             .defer(() -> {
                 final DebugExecutionContext debugContext = (DebugExecutionContext) ctx;
-                final DebugApiV2 debugApi = (DebugApiV2) debugContext.getComponent(Api.class);
+                ReactableDebugApi<?> debugApi = getDebugApi(debugContext);
 
                 return Maybe
                     .fromCallable(() -> eventRepository.findById(debugApi.getEventId()))
@@ -96,12 +99,12 @@ public class DebugCompletionProcessor implements Processor {
             .subscribeOn(Schedulers.io());
     }
 
-    private Single<io.gravitee.definition.model.debug.DebugApiV2> computeDebugApiEventPayload(
+    private Single<io.gravitee.definition.model.debug.DebugApiProxy> computeDebugApiEventPayload(
         DebugExecutionContext debugContext,
-        DebugApiV2 debugApi
+        ReactableDebugApi<?> debugApi
     ) {
         return Single.defer(() -> {
-            final io.gravitee.definition.model.debug.DebugApiV2 definitionDebugApi = convert(debugApi);
+            var definitionDebugApi = convert(debugApi);
             PreprocessorStep preprocessorStep = createPreprocessorStep(debugContext);
             definitionDebugApi.setPreprocessorStep(preprocessorStep);
             definitionDebugApi.setDebugSteps(convert(debugContext.getDebugSteps()));
@@ -121,6 +124,17 @@ public class DebugCompletionProcessor implements Processor {
                     return definitionDebugApi;
                 });
         });
+    }
+
+    private ReactableDebugApi<?> getDebugApi(HttpExecutionContextInternal ctx) {
+        ReactableDebugApi<?> debugApi;
+        try {
+            debugApi = (ReactableDebugApi<?>) ctx.getComponent(Api.class);
+        } catch (NoSuchBeanDefinitionException e) {
+            debugApi = (ReactableDebugApi<?>) ctx.getComponent(io.gravitee.gateway.reactive.handlers.api.v4.Api.class);
+        }
+
+        return debugApi;
     }
 
     private DebugMetrics createMetrics(Metrics metrics) {
@@ -165,26 +179,36 @@ public class DebugCompletionProcessor implements Processor {
         eventRepository.update(debugEvent);
     }
 
-    private io.gravitee.definition.model.debug.DebugApiV2 convert(DebugApiV2 content) {
-        io.gravitee.definition.model.debug.DebugApiV2 debugAPI = new io.gravitee.definition.model.debug.DebugApiV2();
-        debugAPI.setName(content.getName());
-        debugAPI.setId(content.getId());
-        debugAPI.setDefinitionVersion(content.getDefinitionVersion());
-        debugAPI.setResponse(content.getResponse());
-        debugAPI.setRequest(content.getRequest());
-        debugAPI.setFlowMode(content.getDefinition().getFlowMode());
-        debugAPI.setFlows(content.getDefinition().getFlows());
-        debugAPI.setPathMappings(content.getDefinition().getPathMappings());
-        debugAPI.setPlans(content.getDefinition().getPlans());
-        debugAPI.setPaths(content.getDefinition().getPaths());
-        debugAPI.setServices(content.getDefinition().getServices());
-        debugAPI.setProxy(content.getDefinition().getProxy());
-        debugAPI.setProperties(content.getDefinition().getProperties());
-        debugAPI.setResources(content.getDefinition().getResources());
-        debugAPI.setServices(content.getDefinition().getServices());
-        debugAPI.setResponseTemplates(content.getDefinition().getResponseTemplates());
-        debugAPI.setExecutionMode(content.getDefinition().getExecutionMode());
-        return debugAPI;
+    private io.gravitee.definition.model.debug.DebugApiProxy convert(ReactableDebugApi<?> content) {
+        if (content instanceof DebugApiV2 debugApiV2) {
+            io.gravitee.definition.model.debug.DebugApiV2 debugAPI = new io.gravitee.definition.model.debug.DebugApiV2();
+            debugAPI.setName(debugApiV2.getName());
+            debugAPI.setId(debugApiV2.getId());
+            debugAPI.setDefinitionVersion(debugApiV2.getDefinitionVersion());
+            debugAPI.setResponse(debugApiV2.getResponse());
+            debugAPI.setRequest(debugApiV2.getRequest());
+            debugAPI.setFlowMode(debugApiV2.getDefinition().getFlowMode());
+            debugAPI.setFlows(debugApiV2.getDefinition().getFlows());
+            debugAPI.setPathMappings(debugApiV2.getDefinition().getPathMappings());
+            debugAPI.setPlans(debugApiV2.getDefinition().getPlans());
+            debugAPI.setPaths(debugApiV2.getDefinition().getPaths());
+            debugAPI.setServices(debugApiV2.getDefinition().getServices());
+            debugAPI.setProxy(debugApiV2.getDefinition().getProxy());
+            debugAPI.setProperties(debugApiV2.getDefinition().getProperties());
+            debugAPI.setResources(debugApiV2.getDefinition().getResources());
+            debugAPI.setServices(debugApiV2.getDefinition().getServices());
+            debugAPI.setResponseTemplates(debugApiV2.getDefinition().getResponseTemplates());
+            debugAPI.setExecutionMode(debugApiV2.getDefinition().getExecutionMode());
+            return debugAPI;
+        } else if (content instanceof DebugApiV4 debugApiV4) {
+            return new io.gravitee.definition.model.debug.DebugApiV4(
+                debugApiV4.getDefinition(),
+                debugApiV4.getRequest(),
+                debugApiV4.getResponse()
+            );
+        }
+
+        throw new IllegalArgumentException("Unsupported debug API: " + content.getClass().getSimpleName());
     }
 
     private List<io.gravitee.definition.model.debug.DebugStep> convert(List<PolicyStep<?>> policySteps) {

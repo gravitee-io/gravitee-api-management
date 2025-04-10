@@ -22,12 +22,17 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
+import io.gravitee.definition.model.debug.DebugApiV2;
+import io.gravitee.definition.model.debug.DebugApiV4;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.debug.definition.DebugApiV2;
+import io.gravitee.gateway.debug.definition.ReactableDebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
@@ -91,7 +96,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
             ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent =
                 (ReactableEvent<io.gravitee.repository.management.model.Event>) reactorEvent.content();
             io.gravitee.repository.management.model.Event debugEvent = reactableEvent.getContent();
-            DebugApiV2 debugApi = toDebugApi(reactableEvent);
+            ReactableDebugApi<?> debugApi = toDebugApi(reactableEvent);
             if (debugApi != null) {
                 if (reactorHandlerRegistry.contains(debugApi)) {
                     logger.info("Api for debug already deployed. No need to do it again.");
@@ -112,8 +117,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
                             new RequestOptions()
                                 .setMethod(HttpMethod.valueOf(debugApiRequest.getMethod()))
                                 .setHeaders(buildHeaders(debugApi, debugApiRequest))
-                                // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
-                                .setURI(debugApi.getDefinition().getProxy().getVirtualHosts().get(0).getPath() + debugApiRequest.getPath())
+                                .setURI(debugApi.extractUri())
                                 .setTimeout(debugHttpClientConfiguration.getRequestTimeout())
                         )
                         .map(httpClientRequest ->
@@ -149,9 +153,12 @@ public class DebugReactorEventListener extends ReactorEventListener {
         }
     }
 
-    private DebugApiV2 toDebugApi(final ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent) {
+    private ReactableDebugApi<?> toDebugApi(final ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent) {
         io.gravitee.repository.management.model.Event event = reactableEvent.getContent();
         try {
+            if (event.getProperties().getOrDefault("definition_version", "V2").equals("V4")) {
+                return toDebugApiV4(reactableEvent);
+            }
             // Read API definition from event
             io.gravitee.definition.model.debug.DebugApiV2 eventDebugApi = objectMapper.readValue(
                 event.getPayload(),
@@ -166,7 +173,44 @@ public class DebugReactorEventListener extends ReactorEventListener {
                 eventDebugApi.getPlans().stream().filter(plan -> !PlanStatus.CLOSED.name().equalsIgnoreCase(plan.getStatus())).toList()
             );
 
-            DebugApiV2 debugApi = new DebugApiV2(reactableEvent.getId(), eventDebugApi);
+            var debugApi = new io.gravitee.gateway.debug.definition.DebugApiV2(reactableEvent.getId(), eventDebugApi);
+            debugApi.setDeployedAt(reactableEvent.getDeployedAt());
+            debugApi.setEnvironmentHrid(reactableEvent.getEnvironmentHrid());
+            debugApi.setEnvironmentId(reactableEvent.getEnvironmentId());
+            debugApi.setOrganizationHrid(reactableEvent.getOrganizationHrid());
+            debugApi.setOrganizationId(reactableEvent.getOrganizationId());
+
+            return debugApi;
+        } catch (Exception e) {
+            // Log the error and ignore this event.
+            logger.error("Unable to extract api definition from event [{}].", reactableEvent.getId(), e);
+            failEvent(event);
+            return null;
+        }
+    }
+
+    private ReactableDebugApi<?> toDebugApiV4(final ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent) {
+        io.gravitee.repository.management.model.Event event = reactableEvent.getContent();
+        try {
+            // Read API definition from event
+            DebugApiV4 eventDebugApi = objectMapper.readValue(event.getPayload(), DebugApiV4.class);
+
+            if (null != eventDebugApi.getApiDefinition().getProperties()) {
+                decryptProperties(eventDebugApi.getApiDefinition().getProperties());
+            }
+
+            eventDebugApi
+                .getApiDefinition()
+                .setPlans(
+                    eventDebugApi
+                        .getApiDefinition()
+                        .getPlans()
+                        .stream()
+                        .filter(plan -> !PlanStatus.CLOSED.equals(plan.getStatus()))
+                        .toList()
+                );
+
+            var debugApi = new io.gravitee.gateway.debug.definition.DebugApiV4(reactableEvent.getId(), eventDebugApi);
             debugApi.setDeployedAt(reactableEvent.getDeployedAt());
             debugApi.setEnvironmentHrid(reactableEvent.getEnvironmentHrid());
             debugApi.setEnvironmentId(reactableEvent.getEnvironmentId());
@@ -187,7 +231,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
         options.setDefaultHost(debugHttpClientConfiguration.getHost());
         options.setDefaultPort(debugHttpClientConfiguration.getPort());
         options.setConnectTimeout(debugHttpClientConfiguration.getConnectTimeout());
-        options.setTryUseCompression(debugHttpClientConfiguration.isCompressionSupported());
+        options.setDecompressionSupported(debugHttpClientConfiguration.isCompressionSupported());
         options.setUseAlpn(debugHttpClientConfiguration.isAlpn());
         options.setVerifyHost(false);
         if (debugHttpClientConfiguration.isSecured()) {
@@ -201,24 +245,21 @@ public class DebugReactorEventListener extends ReactorEventListener {
         return options;
     }
 
-    MultiMap buildHeaders(DebugApiV2 debugApi, HttpRequest req) {
+    MultiMap buildHeaders(ReactableDebugApi<?> debugApi, HttpRequest req) {
         final HeadersMultiMap headers = new HeadersMultiMap();
         headers.addAll(convertHeaders(req.getHeaders()));
 
-        String host = null;
         // If API is configured in virtual hosts mode, we force the Host header
-        if (!debugApi.getDefinition().getProxy().getVirtualHosts().isEmpty()) {
-            host = debugApi.getDefinition().getProxy().getVirtualHosts().get(0).getHost();
-        }
+        String host = debugApi.extractHost();
+
         // If gateway is multi tenant, we need to apply access point host
         if (host == null) {
             List<ReactableAccessPoint> accessPoints = accessPointManager.getByEnvironmentId(debugApi.getEnvironmentId());
             if (accessPoints != null && !accessPoints.isEmpty()) {
-                host = accessPoints.get(0).getHost();
+                host = accessPoints.getFirst().getHost();
             }
         }
         if (host != null) {
-            // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
             headers.add(HttpHeaderNames.HOST, host);
         }
         return headers;
@@ -262,5 +303,18 @@ public class DebugReactorEventListener extends ReactorEventListener {
                 }
             }
         }
+    }
+
+    private void decryptProperties(List<io.gravitee.definition.model.v4.property.Property> properties) {
+        properties.forEach(property -> {
+            if (property.isEncrypted()) {
+                try {
+                    property.setValue(dataEncryptor.decrypt(property.getValue()));
+                    property.setEncrypted(false);
+                } catch (GeneralSecurityException e) {
+                    logger.error("Error decrypting API property value for key {}", property.getKey(), e);
+                }
+            }
+        });
     }
 }
