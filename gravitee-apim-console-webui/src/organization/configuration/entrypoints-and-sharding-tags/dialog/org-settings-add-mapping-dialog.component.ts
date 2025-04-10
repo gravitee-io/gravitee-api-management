@@ -32,6 +32,7 @@ type MappingFormGroup = {
   httpValue?: FormControl<string>;
   kafkaDomain?: FormControl<string>;
   kafkaPort?: FormControl<string>;
+  tcpPort?: FormControl<string>;
 };
 
 @Component({
@@ -72,6 +73,10 @@ export class OrgSettingAddMappingDialogComponent {
         this.mappingForm.addControl('kafkaPort', new FormControl(kafkaPort, [Validators.required, portValidator]));
         break;
       }
+      case 'TCP': {
+        this.mappingForm.addControl('tcpPort', new FormControl(this.entrypoint?.value, [Validators.required]));
+        break;
+      }
     }
   }
 
@@ -87,6 +92,9 @@ export class OrgSettingAddMappingDialogComponent {
         break;
       case 'KAFKA':
         value = formValue.kafkaDomain + ':' + formValue.kafkaPort;
+        break;
+      case 'TCP':
+        value = formValue.tcpPort;
         break;
     }
 
