@@ -134,7 +134,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected AnalyticsContext analyticsContext;
     private List<ApiService> services;
     private final boolean validateSubscriptionEnabled;
-    private List<Acceptor<?>> acceptors;
+    protected List<Acceptor<?>> acceptors;
 
     public DefaultApiReactor(
         final Api api,

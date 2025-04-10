@@ -38,4 +38,10 @@ public interface DebugApiProxy {
     DefinitionVersion getDefinitionVersion();
     ApiType getType();
     Set<String> getTags();
+
+    void setPreprocessorStep(PreprocessorStep preprocessorStep);
+    void setDebugSteps(List<DebugStep> debugSteps);
+    void setBackendResponse(HttpResponse backendResponse);
+    void setMetrics(DebugMetrics metrics);
+    void setResponse(HttpResponse response);
 }

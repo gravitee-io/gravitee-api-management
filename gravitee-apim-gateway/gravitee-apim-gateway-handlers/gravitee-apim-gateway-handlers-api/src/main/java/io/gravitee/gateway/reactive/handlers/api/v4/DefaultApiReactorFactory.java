@@ -248,7 +248,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         DefaultDeploymentContext deploymentContext,
         ResourceLifecycleManager resourceLifecycleManager
     ) {
-        final HttpPolicyChainFactory policyChainFactory = new HttpPolicyChainFactory(api.getId(), policyManager, isApiTracingEnabled(api));
+        final HttpPolicyChainFactory policyChainFactory = createPolicyChainFactory(api, policyManager);
 
         final io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory v4PolicyChainFactory = policyChainFactory(api, policyManager);
 
@@ -278,6 +278,10 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
             flowChainFactory,
             v4FlowChainFactory
         );
+    }
+
+    protected HttpPolicyChainFactory createPolicyChainFactory(Api api, PolicyManager policyManager) {
+        return new HttpPolicyChainFactory(api.getId(), policyManager, isApiTracingEnabled(api));
     }
 
     protected ApiReactor<Api> buildApiReactor(

@@ -49,6 +49,7 @@ import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.reactive.debug.DebugReactorEventListener;
+import io.gravitee.gateway.reactive.debug.handlers.api.v4.DebugV4ApiReactorHandlerFactory;
 import io.gravitee.gateway.reactive.debug.policy.condition.DebugExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.debug.reactor.DebugHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.debug.reactor.processor.DebugPlatformProcessorChainFactory;
@@ -77,10 +78,11 @@ import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
-import io.gravitee.node.api.opentelemetry.Tracer;
-import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import io.gravitee.plugin.apiservice.ApiServicePluginManager;
+import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.repository.management.api.EventRepository;
@@ -409,9 +411,10 @@ public class DebugConfiguration {
 
     @Bean
     public ReactorFactoryManager debugReactorHandlerFactoryManager(
-        @Qualifier("debugReactorHandlerFactory") List<ReactorFactory> reactorFactories
+        @Qualifier("debugReactorHandlerFactory") ReactorFactory<?> debugReactorHandlerFactory,
+        @Qualifier("debugV4ReactorHandlerFactory") ReactorFactory<?> debugV4ReactorHandlerFactory
     ) {
-        return new ReactorFactoryManager(reactorFactories);
+        return new ReactorFactoryManager(List.of(debugReactorHandlerFactory, debugV4ReactorHandlerFactory));
     }
 
     @Bean
@@ -419,5 +422,41 @@ public class DebugConfiguration {
         @Qualifier("debugReactorHandlerFactoryManager") ReactorFactoryManager reactorFactoryManager
     ) {
         return new DefaultReactorHandlerRegistry(reactorFactoryManager);
+    }
+
+    @Bean
+    public DebugV4ApiReactorHandlerFactory debugV4ReactorHandlerFactory(
+        @Qualifier("debugPolicyFactoryManager") PolicyFactoryManager policyFactoryManager,
+        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+        EndpointConnectorPluginManager endpointConnectorPluginManager,
+        ApiServicePluginManager apiServicePluginManager,
+        @Qualifier(
+            "debugOrganizationPolicyChainFactoryManager"
+        ) io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager debugOrganizationPolicyChainFactoryManager,
+        OrganizationManager organizationManager,
+        io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
+        ReporterService reporterService,
+        AccessPointManager accessPointManager,
+        EventManager eventManager,
+        GatewayConfiguration gatewayConfiguration
+    ) {
+        return new DebugV4ApiReactorHandlerFactory(
+            applicationContext.getParent(),
+            configuration,
+            node,
+            policyFactoryManager,
+            entrypointConnectorPluginManager,
+            endpointConnectorPluginManager,
+            apiServicePluginManager,
+            debugOrganizationPolicyChainFactoryManager,
+            organizationManager,
+            flowResolverFactory,
+            requestTimeoutConfiguration,
+            reporterService,
+            accessPointManager,
+            eventManager,
+            gatewayConfiguration
+        );
     }
 }
