@@ -2460,23 +2460,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cfaester/enzyme-adapter-react-18@npm:^0.8.0":
-  version: 0.8.0
-  resolution: "@cfaester/enzyme-adapter-react-18@npm:0.8.0"
-  dependencies:
-    enzyme-shallow-equal: "npm:^1.0.0"
-    function.prototype.name: "npm:^1.1.6"
-    has: "npm:^1.0.4"
-    react-is: "npm:^18.2.0"
-    react-shallow-renderer: "npm:^16.15.0"
-  peerDependencies:
-    enzyme: ^3.11.0
-    react: ">=18"
-    react-dom: ">=18"
-  checksum: 10c0/06b2c8d741cfb36179fbc15b7403a56c95f0ff2c884556a9f6858594e5a11f70bf4e100b07ef78049435da6614a7e016558938674d9abe3fb2db776e9e7430a6
-  languageName: node
-  linkType: hard
-
 "@codemirror/autocomplete@npm:^0.19.0":
   version: 0.19.15
   resolution: "@codemirror/autocomplete@npm:0.19.15"
@@ -3773,7 +3756,7 @@ __metadata:
     ngx-translate-messageformat-compiler: "npm:6.5.0"
     path: "npm:0.12.7"
     prettier: "npm:2.8.4"
-    redoc: "npm:2.1.5"
+    redoc: "npm:2.4.0"
     resize-observer-polyfill: "npm:1.5.1"
     rxjs: "npm:6.5.5"
     swagger-ui: "npm:5.17.9"
@@ -9423,16 +9406,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"enzyme-shallow-equal@npm:^1.0.0":
-  version: 1.0.7
-  resolution: "enzyme-shallow-equal@npm:1.0.7"
-  dependencies:
-    hasown: "npm:^2.0.0"
-    object-is: "npm:^1.1.5"
-  checksum: 10c0/50bd80c62da4086a20f4c56c2333ab104f162f0d20db3a335406b5b6aa2b92a61eda67bed2248b52aecfc7992abfb368cf40fe5e35a66913b914668665b418c1
-  languageName: node
-  linkType: hard
-
 "err-code@npm:^2.0.2":
   version: 2.0.3
   resolution: "err-code@npm:2.0.3"
@@ -11206,13 +11179,6 @@ __metadata:
   dependencies:
     has-symbols: "npm:^1.0.3"
   checksum: 10c0/a8b166462192bafe3d9b6e420a1d581d93dd867adb61be223a17a8d6dad147aa77a8be32c961bb2f27b3ef893cae8d36f564ab651f5e9b7938ae86f74027c48c
-  languageName: node
-  linkType: hard
-
-"has@npm:^1.0.4":
-  version: 1.0.4
-  resolution: "has@npm:1.0.4"
-  checksum: 10c0/82c1220573dc1f0a014a5d6189ae52a1f820f99dfdc00323c3a725b5002dcb7f04e44f460fea7af068474b2dd7c88cbe1846925c84017be9e31e1708936d305b
   languageName: node
   linkType: hard
 
@@ -16180,13 +16146,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is@npm:^16.12.0 || ^17.0.0 || ^18.0.0, react-is@npm:^18.2.0":
-  version: 18.3.1
-  resolution: "react-is@npm:18.3.1"
-  checksum: 10c0/f2f1e60010c683479e74c63f96b09fb41603527cd131a9959e2aee1e5a8b0caf270b365e5ca77d4a6b18aae659b60a86150bb3979073528877029b35aecd2072
-  languageName: node
-  linkType: hard
-
 "react-is@npm:^16.13.1":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
@@ -16224,18 +16183,6 @@ __metadata:
     redux:
       optional: true
   checksum: 10c0/56ac98228e011b26e0202346af9c8dd408ad5ea8235d8761c8e05ea0953b8ca801cdf9d1f481fdec7b285d7f30ceef7238b46b3df7636ef77dd5c2ea8c5be5b2
-  languageName: node
-  linkType: hard
-
-"react-shallow-renderer@npm:^16.15.0":
-  version: 16.15.0
-  resolution: "react-shallow-renderer@npm:16.15.0"
-  dependencies:
-    object-assign: "npm:^4.1.1"
-    react-is: "npm:^16.12.0 || ^17.0.0 || ^18.0.0"
-  peerDependencies:
-    react: ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 10c0/c194d741792e86043a4ae272f7353c1cb9412bc649945c4220c6a101a6ea5410cceb3d65d5a4d750f11a24f7426e8eec7977e8a4e3ad5d3ee235ca2b18166fa8
   languageName: node
   linkType: hard
 
@@ -16343,11 +16290,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redoc@npm:2.1.5":
-  version: 2.1.5
-  resolution: "redoc@npm:2.1.5"
+"redoc@npm:2.4.0":
+  version: 2.4.0
+  resolution: "redoc@npm:2.4.0"
   dependencies:
-    "@cfaester/enzyme-adapter-react-18": "npm:^0.8.0"
     "@redocly/openapi-core": "npm:^1.4.0"
     classnames: "npm:^2.3.2"
     decko: "npm:^1.2.0"
@@ -16372,10 +16318,10 @@ __metadata:
   peerDependencies:
     core-js: ^3.1.4
     mobx: ^6.0.4
-    react: ^16.8.4 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.4 || ^17.0.0 || ^18.0.0
+    react: ^16.8.4 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^16.8.4 || ^17.0.0 || ^18.0.0 || ^19.0.0
     styled-components: ^4.1.1 || ^5.1.1 || ^6.0.5
-  checksum: 10c0/cd67dbb3b4544cda2fe27c1c0845f7f674ceb044dd93222bb400f223355771037a98570d5bea059e03d5c1cf72707d8945de02a338194a7b8b32aab79273bc2c
+  checksum: 10c0/94a8c02e4f4962a808a58775036d99c1d09553f8ed31b2780efe43f639a5a7d9affe7a0a77513eed78143a1247cf2b2c79055c06b956d14767e203177f7fb5ae
   languageName: node
   linkType: hard
 
