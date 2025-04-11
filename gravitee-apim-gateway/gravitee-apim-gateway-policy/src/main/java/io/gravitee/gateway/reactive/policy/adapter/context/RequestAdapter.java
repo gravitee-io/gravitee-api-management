@@ -53,6 +53,7 @@ public class RequestAdapter implements io.gravitee.gateway.api.Request {
     }
 
     public void onResume(Runnable onResume) {
+        this.hasBeenResumed.set(false);
         this.onResumeHandler = onResume;
     }
 
