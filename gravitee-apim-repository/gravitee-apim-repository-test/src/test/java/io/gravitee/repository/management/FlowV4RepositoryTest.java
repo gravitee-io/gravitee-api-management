@@ -123,27 +123,27 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         requestStep.setName("request-step");
         requestStep.setPolicy("policy");
         requestStep.setCondition("request-condition");
-        requestStep.setOrder(1);
+        requestStep.setOrder(0);
         flow.setRequest(List.of(requestStep));
 
         FlowStep publishStep = new FlowStep();
         publishStep.setName("publish-step");
         publishStep.setPolicy("policy");
         publishStep.setCondition("publish-condition");
-        publishStep.setOrder(1);
+        publishStep.setOrder(0);
         flow.setPublish(List.of(publishStep));
 
         FlowStep subscribeStep = new FlowStep();
         subscribeStep.setName("subscribe-step");
         subscribeStep.setPolicy("policy");
         subscribeStep.setCondition("subscribe-condition");
-        subscribeStep.setOrder(1);
+        subscribeStep.setOrder(0);
         flow.setSubscribe(List.of(subscribeStep));
 
         flow.setReferenceId("my-orga");
         flow.setReferenceType(FlowReferenceType.ORGANIZATION);
         flow.setUpdatedAt(new Date(1470157767000L));
-        flow.setOrder(2);
+        flow.setOrder(0);
         flow.setTags(Set.of("tag-1"));
 
         Flow flowCreated = flowRepository.create(flow);
