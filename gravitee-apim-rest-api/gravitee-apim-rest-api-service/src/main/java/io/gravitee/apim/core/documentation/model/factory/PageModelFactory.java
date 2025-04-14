@@ -19,7 +19,6 @@ import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 

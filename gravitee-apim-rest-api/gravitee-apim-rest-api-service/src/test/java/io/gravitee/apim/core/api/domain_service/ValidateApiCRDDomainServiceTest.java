@@ -24,6 +24,7 @@ import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainSer
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.Set;
@@ -57,6 +58,8 @@ class ValidateApiCRDDomainServiceTest {
 
     ValidatePagesDomainService pagesValidator = mock(ValidatePagesDomainService.class);
 
+    ValidatePlanDomainService planValidator = mock(ValidatePlanDomainService.class);
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -64,7 +67,8 @@ class ValidateApiCRDDomainServiceTest {
         membersValidator,
         groupsValidator,
         resourceValidator,
-        pagesValidator
+        pagesValidator,
+        planValidator
     );
 
     @BeforeEach
@@ -95,6 +99,9 @@ class ValidateApiCRDDomainServiceTest {
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().categories(Set.of("id-1", "id-2")).build();
@@ -131,6 +138,9 @@ class ValidateApiCRDDomainServiceTest {
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().build();
