@@ -16,10 +16,15 @@
 package io.gravitee.apim.core.plan.model.factory;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedPlan;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -28,6 +33,53 @@ import io.gravitee.rest.api.service.common.UuidString;
 public class PlanModelFactory {
 
     private PlanModelFactory() {}
+
+    public static Plan fromCRDSpec(PlanCRD planCRD, ApiCRDSpec api) {
+        Plan plan = Plan
+            .builder()
+            .id(planCRD.getId())
+            .name(planCRD.getName())
+            .description(planCRD.getDescription())
+            .characteristics(planCRD.getCharacteristics())
+            .definitionVersion(DefinitionVersion.valueOf(api.getDefinitionVersion()))
+            .crossId(planCRD.getCrossId())
+            .excludedGroups(planCRD.getExcludedGroups())
+            .generalConditions(planCRD.getGeneralConditions())
+            .order(planCRD.getOrder())
+            .type(planCRD.getType())
+            .validation(planCRD.getValidation())
+            .apiType(ApiType.valueOf(api.getType()))
+            .apiId(api.getId())
+            .build();
+
+        if (ApiType.NATIVE.getLabel().equalsIgnoreCase(api.getType())) {
+            plan.setPlanDefinitionNativeV4(
+                NativePlan
+                    .builder()
+                    .security(planCRD.getSecurity())
+                    .selectionRule(planCRD.getSelectionRule())
+                    .status(planCRD.getStatus())
+                    .tags(planCRD.getTags())
+                    .mode(planCRD.getMode())
+                    .name(planCRD.getName())
+                    .build()
+            );
+        } else {
+            plan.setPlanDefinitionHttpV4(
+                io.gravitee.definition.model.v4.plan.Plan
+                    .builder()
+                    .security(planCRD.getSecurity())
+                    .selectionRule(planCRD.getSelectionRule())
+                    .status(planCRD.getStatus())
+                    .tags(planCRD.getTags())
+                    .mode(planCRD.getMode())
+                    .name(planCRD.getName())
+                    .build()
+            );
+        }
+
+        return plan;
+    }
 
     public static Plan fromIntegration(IntegrationApi.Plan plan, Api federatedApi) {
         var id = generateFederatedPlanId(plan, federatedApi);

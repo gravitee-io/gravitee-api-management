@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fakes.FakePolicyValidationDomainService;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
@@ -27,7 +28,9 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
@@ -57,6 +60,7 @@ import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
@@ -70,10 +74,13 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
+import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -336,6 +343,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ValidatePlanDomainService validatePlanDomainService() {
+        return mock(ValidatePlanDomainService.class);
+    }
+
+    @Bean
     public LicenseManager licenseManager() {
         return mock(LicenseManager.class);
     }
@@ -461,6 +473,16 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ParametersQueryService parametersQueryService() {
+        return new ParametersQueryServiceInMemory();
+    }
+
+    @Bean
+    public PageCrudService pageCrudService() {
+        return new PageCrudServiceInMemory();
+    }
+
+    @Bean
     public CRDMembersDomainServiceInMemory crdMembersDomainService() {
         return new CRDMembersDomainServiceInMemory();
     }
@@ -476,7 +498,10 @@ public class ResourceContextConfiguration {
         ValidatePageAccessControlsDomainService validatePageAccessControlsDomainService,
         DocumentationValidationDomainService validationDomainService,
         RoleQueryServiceInMemory roleQueryService,
-        ApiQueryServiceInMemory apiQueryService
+        ApiQueryServiceInMemory apiQueryService,
+        ParametersQueryService parametersQueryService,
+        PolicyValidationDomainService policyValidationDomainService,
+        PageCrudService pageCrudService
     ) {
         return new ValidateApiCRDUseCase(
             new ValidateApiCRDDomainService(
@@ -490,6 +515,9 @@ public class ResourceContextConfiguration {
                     validatePageSourceDomainService,
                     validatePageAccessControlsDomainService,
                     validationDomainService
+                ),
+                new ValidatePlanDomainService(
+                    new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService)
                 )
             )
         );
