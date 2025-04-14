@@ -644,6 +644,9 @@ class ApisResourceTest extends AbstractResourceTest {
             categoryQueryService.initWith(
                 List.of(Category.builder().id("category-id").build(), Category.builder().id("category-key").build())
             );
+            parametersQueryService.define(
+                new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), "fake-env", ParameterReferenceType.ENVIRONMENT, "true")
+            );
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
             roleQueryService.initWith(
                 List.of(
