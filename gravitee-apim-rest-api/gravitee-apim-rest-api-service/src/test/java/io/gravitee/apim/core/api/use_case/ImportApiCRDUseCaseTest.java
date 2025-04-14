@@ -100,7 +100,6 @@ import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.category.domain_service.CreateCategoryApiDomainService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
@@ -129,6 +128,7 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
@@ -237,6 +237,7 @@ class ImportApiCRDUseCaseTest {
     CategoryQueryServiceInMemory categoryQueryService = new CategoryQueryServiceInMemory();
 
     ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
+    PlanValidatorDomainService planValidatorDomainService = mock(PlanValidatorDomainService.class);
     PlanSynchronizationService planSynchronizationService = mock(PlanSynchronizationService.class);
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
     IndexerInMemory indexer = new IndexerInMemory();
@@ -386,7 +387,8 @@ class ImportApiCRDUseCaseTest {
             new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
-            new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService)
+            new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
+            new ValidatePlanDomainService(planValidatorDomainService)
         );
 
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
