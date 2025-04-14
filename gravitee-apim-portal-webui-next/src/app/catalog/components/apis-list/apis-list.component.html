@@ -37,16 +37,23 @@
     <div class="api-list__container" infiniteScroll (scrolled)="loadMoreApis(apis)">
       @for (api of apis.data; track api.id) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
         <app-api-card
           [id]="api.id"
           [title]="api.title"
           [version]="api.version"
           [content]="api.content"
           [picture]="api.picture"
+<<<<<<< HEAD
           [isEnabledMcpServer]="api.isEnabledMcpServer" />
 =======
         <app-api-card [id]="api.id" [title]="api.title" [version]="api.version" [content]="api.content" [picture]="api.picture" [mcpEnabled]="api.mcpEnabled" />
 >>>>>>> 5559b8d249 (--wip-- [skip ci])
+=======
+          [mcpEnabled]="api.mcpEnabled" />
+>>>>>>> 47db69a114 (style: apply prettier)
       }
     </div>
   } @else if (!loadingPage) {

@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 /*
  * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
@@ -14,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+<<<<<<< HEAD
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
@@ -85,6 +89,8 @@ describe('McpToolComponent', () => {
     expect(content).toContain('"foo": "bar",');
     expect(content).toContain('"bar": "foo"');
 =======
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { McpToolComponent } from './mcp-tool.component';
@@ -95,9 +101,8 @@ describe('McpToolComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [McpToolComponent]
-    })
-    .compileComponents();
+      imports: [McpToolComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(McpToolComponent);
     component = fixture.componentInstance;

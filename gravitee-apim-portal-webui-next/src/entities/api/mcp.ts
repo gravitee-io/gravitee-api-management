@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 /*
  * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
@@ -14,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+<<<<<<< HEAD
 export interface Mcp {
   /**
    * Whether the API is a Mcp server.
@@ -40,9 +44,11 @@ export interface Mcp {
 export interface McpTool extends Record<string, unknown> {
   name?: string;
 =======
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 export interface MCP {
   enabled: boolean;
-  tools?: MCPTool[]
+  tools?: MCPTool[];
 }
 
 export interface MCPTool {
@@ -51,7 +57,6 @@ export interface MCPTool {
   description?: boolean;
   inputSchema: MCPInputSchema;
 }
-
 
 export interface MCPInputSchema {
   type: string;

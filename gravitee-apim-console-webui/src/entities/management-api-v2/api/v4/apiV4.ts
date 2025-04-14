@@ -22,9 +22,9 @@ import { FlowV4 } from './flowV4';
 import { EndpointGroupV4 } from './endpointGroupV4';
 import { FlowExecution } from './flowExecution';
 import { Failover } from './failover';
+import { MCP } from './mcp';
 
 import { GenericApi } from '../baseApi';
-import {MCP} from "./mcp";
 
 export interface ApiV4 extends GenericApi {
   definitionVersion: 'V4';

@@ -1,10 +1,26 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { Injectable } from '@angular/core';
-import {OpenAPIV3} from "openapi-types";
-import {MCPTool} from "../../../../entities/management-api-v2";
-import * as yaml from "js-yaml";
+import { OpenAPIV3 } from 'openapi-types';
+import * as yaml from 'js-yaml';
+
+import { MCPTool } from '../../../../entities/management-api-v2';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class OpenAPIToMCPService {
   private yamlSchema = yaml.DEFAULT_SCHEMA.extend([]);
@@ -13,7 +29,7 @@ export class OpenAPIToMCPService {
     if (!openAPIString) {
       return [];
     }
-    const loaded = yaml.load(openAPIString, {schema: this.yamlSchema});
+    const loaded = yaml.load(openAPIString, { schema: this.yamlSchema });
     const spec = loaded as OpenAPIV3.Document;
     const tools: MCPTool[] = [];
     // Convert each OpenAPI path to an MCP tool
@@ -21,24 +37,17 @@ export class OpenAPIToMCPService {
       if (!pathItem) continue;
 
       for (const [method, operation] of Object.entries(pathItem)) {
-        if (method === "parameters" || method === "servers" || !operation) continue;
+        if (method === 'parameters' || method === 'servers' || !operation) continue;
 
         const op = operation as OpenAPIV3.OperationObject;
         // Create a clean tool ID by removing the leading slash and replacing special chars
-        const cleanPath = path.replace(/^\//, "");
-        const toolId = `${method.toUpperCase()}-${cleanPath}`.replace(
-          /[^a-zA-Z0-9-]/g,
-          "-",
-        );
-        console.error(`Registering tool: ${toolId}`); // Debug logging
+        const cleanPath = path.replace(/^\//, '');
+        const toolId = `${method.toUpperCase()}-${cleanPath}`.replace(/[^a-zA-Z0-9-]/g, '-');
         const tool: MCPTool = {
-          name:
-            op.operationId || `${method.toUpperCase()}_${path}`,
-          description:
-            op.description ||
-            `Make a ${method.toUpperCase()} request to ${path}`,
+          name: toolId || op.operationId || `${method.toUpperCase()}_${path}`,
+          description: op.description || `Make a ${method.toUpperCase()} request to ${path}`,
           inputSchema: {
-            type: "object",
+            type: 'object',
             properties: {},
             // Add any additional properties from OpenAPI spec
           },
@@ -50,10 +59,10 @@ export class OpenAPIToMCPService {
         // Add parameters from operation
         if (op.parameters) {
           for (const param of op.parameters) {
-            if ("name" in param && "in" in param) {
+            if ('name' in param && 'in' in param) {
               const paramSchema = param.schema as OpenAPIV3.SchemaObject;
               tool.inputSchema.properties[param.name] = {
-                type: paramSchema.type || "string",
+                type: paramSchema.type || 'string',
                 description: param.description || `${param.name} parameter`,
               };
               if (param.required) {

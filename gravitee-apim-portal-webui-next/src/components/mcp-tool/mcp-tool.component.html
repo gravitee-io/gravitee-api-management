@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 <!--
 
     Copyright (C) 2025 The Gravitee team (http://gravitee.io)
@@ -16,6 +19,7 @@
     limitations under the License.
 
 -->
+<<<<<<< HEAD
 <mat-expansion-panel class="mat-elevation-z0" expanded="false">
   <mat-expansion-panel-header>
     <mat-panel-title>
@@ -41,30 +45,31 @@
     </div>
   </div>
 =======
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 <mat-expansion-panel expanded="true">
   <mat-expansion-panel-header>
     <div class="m3-title-large">{{ tool().name }}</div>
   </mat-expansion-panel-header>
   <div class="mcp-tool">
-
     @if (tool().description) {
-      <div class="m3-body-medium">{{ tool().description}}</div>
+      <div class="m3-body-medium">{{ tool().description }}</div>
     }
     <div class="mcp-tool__container">
-          <form [formGroup]="form">
-          <div class="m3-body-large">Arguments</div>
-          @for (property of toolToPropertyVMs(); track $index) {
-            <mat-form-field>
-              <mat-label i18n="@@applicationNameApplicationSettings">{{property.name}}</mat-label>
-              <input matInput [formControlName]="property.name" />
-              @if (property.description) {
-                <mat-hint>{{ property.description }}</mat-hint>
-              }
-            </mat-form-field>
-          } @empty {
-            No arguments available for this tool.
-          }
-          </form>
+      <form [formGroup]="form">
+        <div class="m3-body-large">Arguments</div>
+        @for (property of toolToPropertyVMs(); track $index) {
+          <mat-form-field>
+            <mat-label i18n="@@applicationNameApplicationSettings">{{ property.name }}</mat-label>
+            <input matInput [formControlName]="property.name" />
+            @if (property.description) {
+              <mat-hint>{{ property.description }}</mat-hint>
+            }
+          </mat-form-field>
+        } @empty {
+          No arguments available for this tool.
+        }
+      </form>
 
       <div class="mcp-tool__display">
         <div class="m3-body-large">Tool Request</div>
@@ -75,6 +80,9 @@
       </div>
     </div>
   </div>
+<<<<<<< HEAD
 
 >>>>>>> 5559b8d249 (--wip-- [skip ci])
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 </mat-expansion-panel>

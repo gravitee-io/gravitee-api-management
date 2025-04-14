@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 /*
  * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
@@ -14,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+<<<<<<< HEAD
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -93,6 +97,8 @@ describe('ApiTabToolsComponent', () => {
     expect(await tools[0].getTitleContent()).toBe('Cats rule tool');
     expect(await tools[1].getTitleContent()).toBe('MCP Tool');
 =======
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApiTabToolsComponent } from './api-tab-tools.component';
@@ -103,9 +109,8 @@ describe('ApiTabToolsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiTabToolsComponent]
-    })
-    .compileComponents();
+      imports: [ApiTabToolsComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ApiTabToolsComponent);
     component = fixture.componentInstance;

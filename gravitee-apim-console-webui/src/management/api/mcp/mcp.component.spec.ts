@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -14,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+<<<<<<< HEAD
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -104,6 +108,8 @@ describe('McpComponent', () => {
     fixture.detectChanges();
   }
 =======
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { McpComponent } from './mcp.component';
@@ -114,9 +120,8 @@ describe('McpComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [McpComponent]
-    })
-    .compileComponents();
+      imports: [McpComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(McpComponent);
     component = fixture.componentInstance;

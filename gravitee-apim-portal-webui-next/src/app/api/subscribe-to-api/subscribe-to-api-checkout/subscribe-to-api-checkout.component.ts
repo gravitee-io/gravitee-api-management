@@ -19,13 +19,13 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 
 import { ApiAccessComponent } from '../../../../components/api-access/api-access.component';
+import { McpUseWithClaudeComponent } from '../../../../components/mcp-use-with-claude/mcp-use-with-claude.component';
 import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
 import { SubscriptionInfoComponent } from '../../../../components/subscription-info/subscription-info.component';
 import { Api } from '../../../../entities/api/api';
 import { Application } from '../../../../entities/application/application';
 import { Plan } from '../../../../entities/plan/plan';
 import { Subscription } from '../../../../entities/subscription/subscription';
-import {McpUseWithClaudeComponent} from "../../../../components/mcp-use-with-claude/mcp-use-with-claude.component";
 
 @Component({
   selector: 'app-subscribe-to-api-checkout',

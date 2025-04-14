@@ -1,5 +1,8 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 47db69a114 (style: apply prettier)
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -15,6 +18,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+<<<<<<< HEAD
 import { AsyncPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -90,16 +94,34 @@ import {MatIcon, MatIconModule} from "@angular/material/icon";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {GioConfirmDialogComponent, GioConfirmDialogData} from "@gravitee/ui-particles-angular";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
+=======
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
+import { AsyncPipe } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { McpToolDisplayComponent } from './mcp-tool-display/mcp-tool-display.component';
+
+import { MCP } from '../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+>>>>>>> 47db69a114 (style: apply prettier)
 
 @Component({
   selector: 'mcp',
   standalone: true,
   imports: [MatCardModule, MatExpansionModule, AsyncPipe, McpToolDisplayComponent, MatButtonModule, MatIconModule],
   templateUrl: './mcp.component.html',
-  styleUrl: './mcp.component.scss'
+  styleUrl: './mcp.component.scss',
 })
 export class McpComponent implements OnInit {
-
   mcp$: Observable<MCP>;
 
   private apiId = this.activatedRoute.snapshot.params.apiId;
@@ -108,25 +130,32 @@ export class McpComponent implements OnInit {
 
   constructor(
     private readonly apiServiceV2: ApiV2Service,
-              private readonly activatedRoute: ActivatedRoute,
-              private readonly router: Router,
-              private readonly matDialog: MatDialog
-  ) {
-  }
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
+    private readonly matDialog: MatDialog,
+  ) {}
 
   ngOnInit() {
     this.mcp$ = this.refreshApi.pipe(
-      switchMap(() =>  this.apiServiceV2.get(this.apiId)),
+      switchMap(() => this.apiServiceV2.get(this.apiId)),
       map((api) => {
+<<<<<<< HEAD
       if (api.definitionVersion === "V4" && api.mcp?.enabled) {
         return api.mcp;
       }
     }));
 >>>>>>> 4fd3c69d69 (feat(console): manage mcp tools)
+=======
+        if (api.definitionVersion === 'V4' && api.mcp?.enabled) {
+          return api.mcp;
+        }
+      }),
+    );
+>>>>>>> 47db69a114 (style: apply prettier)
   }
 
   importViaOpenAPI() {
-    this.router.navigate(['.', 'import'], {relativeTo: this.activatedRoute});
+    this.router.navigate(['.', 'import'], { relativeTo: this.activatedRoute });
   }
 
   deleteTools() {
@@ -146,21 +175,21 @@ export class McpComponent implements OnInit {
         filter((confirm) => confirm === true),
         switchMap(() => this.apiServiceV2.get(this.apiId)),
         switchMap((response) => {
-          if (response.definitionVersion === "V4" && response.type === "PROXY") {
-            const mcp: MCP = response.mcp ? {...response.mcp, tools: []} : {enabled: true, tools: []};
+          if (response.definitionVersion === 'V4' && response.type === 'PROXY') {
+            const mcp: MCP = response.mcp ? { ...response.mcp, tools: [] } : { enabled: true, tools: [] };
 
-            return this.apiServiceV2.update(this.apiId, {...response, mcp })
+            return this.apiServiceV2.update(this.apiId, { ...response, mcp });
           }
-          throw Error("An API must be a v4 Proxy API in order to include MCP configuration.")
+          throw Error('An API must be a v4 Proxy API in order to include MCP configuration.');
         }),
         tap(() => {
           this.refreshApi.next(1);
         }),
-        catchError((error) => {
-          console.error(error);
+        catchError(() => {
           return EMPTY;
         }),
-        takeUntilDestroyed(this.destroyRef)
-      ).subscribe();
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 }
