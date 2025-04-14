@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { McpImportViaOpenApiComponent } from './mcp-import-via-open-api.component';
+
+import { GioTestingModule } from '../../../../shared/testing';
 
 describe('McpImportViaOpenapiComponent', () => {
   let component: McpImportViaOpenApiComponent;
@@ -23,7 +26,7 @@ describe('McpImportViaOpenapiComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [McpImportViaOpenApiComponent],
+      imports: [McpImportViaOpenApiComponent, NoopAnimationsModule, GioTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(McpImportViaOpenApiComponent);

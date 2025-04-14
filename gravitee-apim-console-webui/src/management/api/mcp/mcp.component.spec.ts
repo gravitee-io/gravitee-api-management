@@ -111,8 +111,11 @@ describe('McpComponent', () => {
 =======
 >>>>>>> 47db69a114 (style: apply prettier)
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { McpComponent } from './mcp.component';
+
+import { GioTestingModule } from '../../../shared/testing';
 
 describe('McpComponent', () => {
   let component: McpComponent;
@@ -120,7 +123,7 @@ describe('McpComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [McpComponent],
+      imports: [McpComponent, NoopAnimationsModule, GioTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(McpComponent);
