@@ -736,7 +736,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                         ps.setString(4, flowStep.getDescription());
                         ps.setString(5, flowStep.getConfiguration());
                         ps.setBoolean(6, flowStep.isEnabled());
-                        ps.setInt(7, flowStep.getOrder());
+                        ps.setInt(7, i); //setOrder
                         ps.setString(8, flowStep.getCondition());
                         ps.setString(9, phase.name());
                         ps.setString(10, flowStep.getMessageCondition());
