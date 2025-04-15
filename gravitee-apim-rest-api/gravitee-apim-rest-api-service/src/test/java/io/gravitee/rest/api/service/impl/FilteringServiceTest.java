@@ -394,6 +394,20 @@ public class FilteringServiceTest {
     }
 
     @Test
+    public void should_not_search_apis_if_no_apis_are_authorized() throws TechnicalException {
+        String aQuery = "a Query";
+
+        doReturn(Set.of())
+            .when(apiAuthorizationService)
+            .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"), nullable(ApiQuery.class));
+
+        Collection<String> searchItems = filteringService.searchApis(GraviteeContext.getExecutionContext(), "user-#1", aQuery);
+
+        assertThat(searchItems).isEmpty();
+        verify(apiSearchService, never()).searchIds(any(), any(), any(), any());
+    }
+
+    @Test
     public void shouldSearchApisWithCategory() throws TechnicalException {
         String aQuery = "a Query";
         String category = "category-key";
@@ -427,6 +441,31 @@ public class FilteringServiceTest {
         );
 
         assertThat(searchItems).containsExactly("api-#1", "api-#3", "api-#2");
+    }
+
+    @Test
+    public void should_return_empty_list_if_no_published_apis_in_category() throws TechnicalException {
+        String aQuery = "a Query";
+        String category = "category-key";
+
+        var apiQuery = new ApiQuery();
+        apiQuery.setCategory(category);
+
+        doReturn(new GetCategoryApisUseCase.Output(List.of()))
+            .when(getCategoryApisUseCase)
+            .execute(
+                argThat(input -> input.categoryIdOrKey().equals(category) && input.onlyPublishedApiLifecycleState() && !input.isAdmin())
+            );
+
+        Collection<String> searchItems = filteringService.searchApisWithCategory(
+            GraviteeContext.getExecutionContext(),
+            "user-#1",
+            aQuery,
+            category
+        );
+
+        assertThat(searchItems).isEmpty();
+        verify(apiSearchService, never()).searchIds(any(), any(), any(), any());
     }
 
     private static GetCategoryApisUseCase.@NotNull Result resultForApi(String apiId, int order, String category) {
