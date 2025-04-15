@@ -15,17 +15,17 @@
     limitations under the License.
 
 -->
-@if (!!text) {
+@if (!!text()) {
   <div class="copy-code__copy-block">
-    @if (title) {
-      <div class="m3-body-medium">{{ title }}</div>
+    @if (title().length) {
+      <div class="m3-body-medium">{{ title() }}</div>
     }
     <div class="copy-code__command-line">
       <div class="copy-code__command-line__container">
         <pre class="copy-code__command-line__container__code">{{ passwordContent() }}</pre>
       </div>
 
-      @if (mode === 'PASSWORD') {
+      @if (mode() === 'PASSWORD') {
         <button
           mat-icon-button
           matSuffix
@@ -35,7 +35,7 @@
           <mat-icon> {{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
       }
-      <app-copy-code-icon [contentToCopy]="text" [label]="title ?? ''" />
+      <app-copy-code-icon [contentToCopy]="text()" [label]="title()" />
     </div>
   </div>
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { CopyCodeHarness } from '../copy-code/copy-code.harness';
 
@@ -28,8 +29,12 @@ export class ApiAccessHarness extends ComponentHarness {
     return await this.locateCopyCodeByTitle('Base URL').then(res => res.getText());
   }
 
+  public async getBaseURLSelect(): Promise<string | undefined> {
+    return await this.locatorForOptional(MatSelectHarness.with({ selector: '#base-urls' }))().then(res => res?.getValueText());
+  }
+
   public async getCommandLine(): Promise<string> {
-    return await this.locateCopyCodeByTitle('Command Line').then(res => res.getText());
+    return await this.locateCopyCodeById('command-line').then(res => res.getText());
   }
 
   public async getClientId(): Promise<string> {

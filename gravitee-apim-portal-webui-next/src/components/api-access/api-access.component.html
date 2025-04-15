@@ -31,17 +31,38 @@
 
       @if (apiType === 'NATIVE') {
         <app-native-kafka-api-access
-          [entrypointUrl]="entrypointUrl ?? ''"
+          [entrypointUrls]="entrypointUrls ?? []"
           [planSecurity]="planSecurity"
           [apiKey]="apiKey ?? ''"
           [apiKeyConfigUsername]="apiKeyConfigUsername ?? ''"
           [clientId]="clientId ?? ''" />
-      } @else if (planSecurity === 'KEY_LESS' || planSecurity === 'API_KEY') {
+      } @else {
         @if (planSecurity === 'API_KEY') {
           <app-copy-code id="api-key" class="test-1" title="API Key" [text]="apiKey ?? ''" />
         }
-        <app-copy-code id="base-url" title="Base URL" [text]="entrypointUrl ?? ''" />
-        <app-copy-code id="command-line" title="Command Line" [text]="curlCmd" />
+
+        <div class="api-access__copy-code-content__calling-api">
+          <div class="m3-title-medium" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Calling the API</div>
+          @if (entrypointUrls?.length === 1) {
+            <app-copy-code id="base-url" title="Base URL" [text]="(entrypointUrls ?? [''])[0]" />
+          } @else if (entrypointUrls && entrypointUrls.length > 1) {
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label i18n="@@subscriptionDetailsApiAccessBaseUrls">Base URLs</mat-label>
+              <mat-select [(value)]="selectedEntrypointUrl" id="select-entrypoints">
+                @for (entrypointUrl of entrypointUrls ?? []; track entrypointUrl) {
+                  <mat-option [value]="entrypointUrl">{{ entrypointUrl }}</mat-option>
+                }
+              </mat-select>
+              <app-copy-code-icon
+                matSuffix
+                (click)="$event.stopPropagation()"
+                [contentToCopy]="selectedEntrypointUrl()"
+                [label]="selectedEntrypointUrl()" />
+            </mat-form-field>
+          }
+
+          <app-copy-code id="command-line" [text]="curlCmd()" />
+        </div>
       }
     </mat-card-content>
   } @else {

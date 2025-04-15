@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, Input, Signal, signal } from '@angular/core';
+import { Component, computed, input, Signal, signal } from '@angular/core';
 import { MatIconButton } from '@angular/material/button';
 import { MatSuffix } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -27,18 +27,15 @@ import { CopyCodeIconComponent } from './copy-code-icon/copy-code-icon/copy-code
   styleUrl: './copy-code.component.scss',
 })
 export class CopyCodeComponent {
-  @Input()
-  text: string = '';
+  text = input<string>('');
 
-  @Input()
-  mode: 'TEXT' | 'PASSWORD' = 'TEXT';
+  mode = input<'TEXT' | 'PASSWORD'>('TEXT');
 
-  @Input()
-  title?: string;
+  title = input<string>('');
 
   hidePassword = signal(true);
 
   passwordContent: Signal<string> = computed(() =>
-    this.hidePassword() && this.mode === 'PASSWORD' ? this.text.replaceAll(/./g, '*') : this.text,
+    this.hidePassword() && this.mode() === 'PASSWORD' ? this.text().replaceAll(/./g, '*') : this.text(),
   );
 }

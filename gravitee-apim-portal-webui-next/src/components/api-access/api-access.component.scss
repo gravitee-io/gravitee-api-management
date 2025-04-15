@@ -36,5 +36,11 @@
     display: flex;
     flex-flow: column;
     gap: 32px;
+
+    &__calling-api {
+      display: flex;
+      flex-flow: column;
+      gap: 8px;
+    }
   }
 }
