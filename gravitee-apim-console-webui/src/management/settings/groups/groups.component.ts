@@ -138,8 +138,6 @@ export class GroupsComponent implements OnInit {
     this.resetFilters();
     this.initializeSettingsForm();
     this.initializeGroups();
-    this.disableCreateGroup();
-    this.disableDeleteGroup();
   }
 
   private initializeGroups() {
@@ -161,9 +159,11 @@ export class GroupsComponent implements OnInit {
             }))
             .sort((a, b) => a.name.localeCompare(b.name)),
         ),
-        tap((groups) => {
+        map((groups) => {
           this.groups.next(groups);
           this.filterData(this.defaultFilters);
+          this.disableCreateGroup();
+          this.disableDeleteGroup();
         }),
         finalize(() => {
           this.isLoading = false;
