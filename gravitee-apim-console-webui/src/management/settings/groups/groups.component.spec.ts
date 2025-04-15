@@ -42,7 +42,7 @@ describe('GroupsComponent', () => {
       providers: [
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['environment-group-u', 'environment-group-d', 'environment-group-c'],
+          useValue: ['environment-group-u', 'environment-group-d', 'environment-group-c', 'environment-settings-r'],
         },
       ],
       imports: [GroupsComponent, GioTestingModule, NoopAnimationsModule],

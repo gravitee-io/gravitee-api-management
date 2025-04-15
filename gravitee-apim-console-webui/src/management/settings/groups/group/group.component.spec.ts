@@ -69,7 +69,7 @@ describe('GroupComponent', () => {
     max_invitation: 2,
     name: 'Group 1',
     roles: {},
-    system_invitation: false,
+    system_invitation: true,
     id: '1',
   };
 
