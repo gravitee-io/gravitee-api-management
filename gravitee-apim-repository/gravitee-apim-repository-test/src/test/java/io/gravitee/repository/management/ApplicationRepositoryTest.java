@@ -318,22 +318,32 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void shouldSearchByName() throws Exception {
+        final Page<Application> appsPage = applicationRepository.search(new ApplicationCriteria.Builder().name("dElETed-a").build(), null);
+        final List<Application> apps = appsPage.getContent();
+
+        assertEquals(1, apps.size());
+        assertTrue(apps.stream().map(Application::getId).toList().contains("deleted-app"));
+    }
+
+    @Test
+    public void shouldSearchByNameAndIds() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
             new ApplicationCriteria.Builder()
-                .name("SeArched-app")
+                .name("deleted-app")
                 .ids(Set.of("searched-app1", "app-with-long-client-id", "app-with-long-name"))
-                .status(ApplicationStatus.ACTIVE)
-                .environmentIds("DEV")
                 .build(),
             null
         );
-
         final List<Application> apps = appsPage.getContent();
 
-        assertNotNull(apps);
-        assertFalse(apps.isEmpty());
-        assertEquals(1, apps.size());
-        assertTrue(apps.stream().map(Application::getId).collect(Collectors.toList()).contains("searched-app1"));
+        assertEquals(4, apps.size());
+        assertTrue(
+            apps
+                .stream()
+                .map(Application::getId)
+                .toList()
+                .containsAll(List.of("deleted-app", "searched-app1", "app-with-long-client-id", "app-with-long-name"))
+        );
     }
 
     @Test
