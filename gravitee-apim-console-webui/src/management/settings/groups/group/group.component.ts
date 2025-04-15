@@ -198,6 +198,8 @@ export class GroupComponent implements OnInit {
   canAddMembers = false;
   maxInvitationsLimitReached = false;
   deleteDisabled = false;
+  disableAddGroupToExistingApplications = false;
+  disableAddGroupToExistingAPIs = false;
 
   private group = new BehaviorSubject<Group>(null);
   private groupMembers = new BehaviorSubject<Member[]>([]);
@@ -496,7 +498,7 @@ export class GroupComponent implements OnInit {
       .open<EditMemberDialogComponent, EditMemberDialogData, AddOrUpdateMemberDialogResult>(EditMemberDialogComponent, {
         data: {
           group: this.group.value,
-          member,
+          member: member,
           members: this.groupMembers.value,
           defaultAPIRoles: this.defaultAPIRoles,
           defaultApplicationRoles: this.defaultApplicationRoles,
@@ -734,6 +736,8 @@ export class GroupComponent implements OnInit {
   private disableForm() {
     if (!this.canUpdateGroup()) {
       this.groupForm.disable();
+      this.disableAddGroupToExistingAPIs = true;
+      this.disableAddGroupToExistingApplications = true;
     }
   }
 
