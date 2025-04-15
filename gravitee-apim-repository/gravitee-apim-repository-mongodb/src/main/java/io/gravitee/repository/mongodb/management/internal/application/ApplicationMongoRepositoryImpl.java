@@ -82,18 +82,25 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
         return mongoTemplate.findDistinct(query, "id", ApplicationMongo.class, String.class).parallelStream();
     }
 
-    private Query buildSearchCriteria(ApplicationCriteria criteria) {
+    Query buildSearchCriteria(ApplicationCriteria criteria) {
         Query query = new Query();
 
         if (criteria != null) {
-            if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
-                query.addCriteria(where("id").in(criteria.getIds()));
+            if (criteria.getIds() != null && !criteria.getIds().isEmpty() && criteria.getName() != null && !criteria.getName().isEmpty()) {
+                query.addCriteria(
+                    new Criteria().orOperator(where("id").in(criteria.getIds()), where("name").regex(criteria.getName(), "i"))
+                );
+            } else {
+                if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
+                    query.addCriteria(where("id").in(criteria.getIds()));
+                }
+                if (criteria.getName() != null && !criteria.getName().isEmpty()) {
+                    query.addCriteria(where("name").regex(criteria.getName(), "i"));
+                }
             }
+
             if (criteria.getEnvironmentIds() != null) {
                 query.addCriteria(where("environmentId").in(criteria.getEnvironmentIds()));
-            }
-            if (criteria.getName() != null && !criteria.getName().isEmpty()) {
-                query.addCriteria(where("name").regex(criteria.getName(), "i"));
             }
             if (criteria.getStatus() != null) {
                 query.addCriteria(where("status").is(criteria.getStatus()));
