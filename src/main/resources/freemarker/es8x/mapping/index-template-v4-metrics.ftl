@@ -142,6 +142,12 @@
                 "gateway-response-time-ms": {
                     "type": "integer"
                 },
+                "ai-input-token": {
+                    "type": "integer"
+                },
+                "ai-output-token": {
+                    "type": "integer"
+                },
                 "geoip" : {
                     "properties": {
                         "continent_name":{
