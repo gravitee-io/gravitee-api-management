@@ -106,6 +106,7 @@ describe('McpToolComponent', () => {
 
     fixture = TestBed.createComponent(McpToolComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('tool', { inputSchema: { properties: {} } });
     fixture.detectChanges();
   });
 

@@ -102,6 +102,7 @@ describe('ApiTabToolsComponent', () => {
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApiTabToolsComponent } from './api-tab-tools.component';
+import { fakeApi } from '../../../../entities/api/api.fixtures';
 
 describe('ApiTabToolsComponent', () => {
   let component: ApiTabToolsComponent;
@@ -114,6 +115,7 @@ describe('ApiTabToolsComponent', () => {
 
     fixture = TestBed.createComponent(ApiTabToolsComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('api', fakeApi());
     fixture.detectChanges();
   });
 
