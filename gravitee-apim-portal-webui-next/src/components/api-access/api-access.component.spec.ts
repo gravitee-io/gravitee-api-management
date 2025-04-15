@@ -17,6 +17,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Injectable } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { By } from '@angular/platform-browser';
 
@@ -64,8 +65,21 @@ describe('ApiAccessComponent', () => {
   describe('Keyless', () => {
     it('should show base url and command line', async () => {
       component.planSecurity = 'KEY_LESS';
+      component.entrypointUrls = ['my-entrypoint-url'];
       fixture.detectChanges();
       expect(await baseUrlShown()).toBeTruthy();
+      expect(await commandLineShown()).toBeTruthy();
+    });
+
+    it('should show base url and command line with multiple urls', async () => {
+      component.planSecurity = 'KEY_LESS';
+      component.entrypointUrls = ['my-entrypoint-url', 'my-entrypoint-url-2'];
+      fixture.detectChanges();
+      expect(await baseUrlShown()).toBeFalsy();
+
+      const selectEntrypoints = await getSelectEntrypoints();
+      expect(selectEntrypoints).toBeTruthy();
+      expect(await selectEntrypoints?.getValueText()).toContain('my-entrypoint-url');
       expect(await commandLineShown()).toBeTruthy();
     });
   });
@@ -76,7 +90,7 @@ describe('ApiAccessComponent', () => {
         it('should show api key, base url and command line', async () => {
           component.planSecurity = 'API_KEY';
           component.subscriptionStatus = 'ACCEPTED';
-          component.entrypointUrl = 'my-entrypoint-url';
+          component.entrypointUrls = ['my-entrypoint-url'];
           component.apiKey = 'api-key';
 
           fixture.detectChanges();
@@ -115,7 +129,7 @@ describe('ApiAccessComponent', () => {
     describe('Native API', () => {
       beforeEach(() => {
         component.apiType = 'NATIVE';
-        component.entrypointUrl = 'my-entrypoint-url';
+        component.entrypointUrls = ['my-entrypoint-url'];
         component.subscriptionStatus = 'ACCEPTED';
       });
       describe('API Key', () => {
@@ -163,6 +177,29 @@ describe('ApiAccessComponent', () => {
           expect(await producerCommandShown()).toBeFalsy();
           expect(await consumerCommandShown()).toBeTruthy();
         });
+
+        describe('Multiple Entrypoint URLs', () => {
+          it('should show api key, config, producer and consumer calls', async () => {
+            component.planSecurity = 'API_KEY';
+            component.apiKey = 'api-key';
+            component.apiKeyConfigUsername = 'hash-username';
+            component.entrypointUrls = ['my-entrypoint-url-1', 'my-entrypoint-url-2'];
+
+            fixture.detectChanges();
+
+            const selectEntrypoints = await getSelectEntrypoints();
+            expect(selectEntrypoints).toBeTruthy();
+
+            const commandExamples = await getCommandExamples();
+            expect(await (await getCopyCodeHarnessOrNullById('native-kafka-producer'))?.getText()).toContain('my-entrypoint-url-1');
+
+            await selectEntrypoints?.clickOptions({ text: 'my-entrypoint-url-2' });
+            fixture.detectChanges();
+
+            await commandExamples.selectTab({ label: 'Consumer' });
+            expect(await (await getCopyCodeHarnessOrNullById('native-kafka-consumer'))?.getText()).toContain('my-entrypoint-url-2');
+          });
+        });
       });
       describe('OAuth2', () => {
         it('should show client id and secret', async () => {
@@ -203,7 +240,7 @@ describe('ApiAccessComponent', () => {
     it('should show message', async () => {
       component.planSecurity = 'API_KEY';
       component.subscriptionStatus = 'PENDING';
-      component.entrypointUrl = 'my-entrypoint-url';
+      component.entrypointUrls = ['my-entrypoint-url'];
       component.apiKey = 'api-key';
       fixture.detectChanges();
       await expectMessageTextContains('Subscription in progress');
@@ -214,7 +251,7 @@ describe('ApiAccessComponent', () => {
     it('should show message', async () => {
       component.planSecurity = 'API_KEY';
       component.subscriptionStatus = 'REJECTED';
-      component.entrypointUrl = 'my-entrypoint-url';
+      component.entrypointUrls = ['my-entrypoint-url'];
       component.apiKey = 'api-key';
 
       fixture.detectChanges();
@@ -225,7 +262,7 @@ describe('ApiAccessComponent', () => {
     it('should show message', async () => {
       component.planSecurity = 'API_KEY';
       component.subscriptionStatus = 'PAUSED';
-      component.entrypointUrl = 'my-entrypoint-url';
+      component.entrypointUrls = ['my-entrypoint-url'];
       component.apiKey = 'api-key';
 
       fixture.detectChanges();
@@ -236,7 +273,7 @@ describe('ApiAccessComponent', () => {
     it('should show message', async () => {
       component.planSecurity = 'API_KEY';
       component.subscriptionStatus = 'CLOSED';
-      component.entrypointUrl = 'my-entrypoint-url';
+      component.entrypointUrls = ['my-entrypoint-url'];
       component.apiKey = 'api-key';
 
       fixture.detectChanges();
@@ -254,10 +291,14 @@ describe('ApiAccessComponent', () => {
     return !!(await getCopyCodeHarnessOrNullByTitle('Password'));
   }
   async function baseUrlShown() {
-    return !!(await getCopyCodeHarnessOrNullByTitle('Base URL'));
+    return !!(await getCopyCodeHarnessOrNullById('base-url'));
   }
+  async function getSelectEntrypoints() {
+    return await harnessLoader.getHarnessOrNull(MatSelectHarness.with({ selector: '#select-entrypoints' }));
+  }
+
   async function commandLineShown() {
-    return !!(await getCopyCodeHarnessOrNullByTitle('Command Line'));
+    return !!(await getCopyCodeHarnessOrNullById('command-line'));
   }
   async function clientIdShown() {
     return !!(await getCopyCodeHarnessOrNullByTitle('Client ID'));

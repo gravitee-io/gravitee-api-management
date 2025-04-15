@@ -13,23 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, computed, effect, Input, model } from '@angular/core';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 
 import { NativeKafkaApiAccessComponent } from './native-kafka-api-access/native-kafka-api-access.component';
 import { ApiType } from '../../entities/api/api';
 import { PlanSecurityEnum } from '../../entities/plan/plan';
 import { SubscriptionStatusEnum } from '../../entities/subscription/subscription';
 import { ConfigService } from '../../services/config.service';
+import { CopyCodeIconComponent } from '../copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component';
 import { CopyCodeComponent } from '../copy-code/copy-code.component';
 
 @Component({
   selector: 'app-api-access',
-  imports: [MatCard, MatCardContent, MatCardHeader, CopyCodeComponent, NativeKafkaApiAccessComponent],
+  imports: [
+    MatCard,
+    MatCardContent,
+    MatCardHeader,
+    CopyCodeComponent,
+    NativeKafkaApiAccessComponent,
+    MatFormFieldModule,
+    MatSelectModule,
+    CopyCodeIconComponent,
+  ],
   templateUrl: './api-access.component.html',
   styleUrl: './api-access.component.scss',
 })
-export class ApiAccessComponent implements OnInit {
+export class ApiAccessComponent {
   @Input()
   planSecurity!: PlanSecurityEnum;
 
@@ -46,7 +58,7 @@ export class ApiAccessComponent implements OnInit {
   apiType?: ApiType;
 
   @Input()
-  entrypointUrl?: string;
+  entrypointUrls?: string[];
 
   @Input()
   clientId?: string;
@@ -54,24 +66,33 @@ export class ApiAccessComponent implements OnInit {
   @Input()
   clientSecret?: string;
 
-  curlCmd: string = '';
+  selectedEntrypointUrl = model<string>('');
 
-  constructor(private configService: ConfigService) {}
+  curlCmd = computed(() => this.formatCurlCommandLine(this.selectedEntrypointUrl(), this.planSecurity, this.apiKey));
 
-  ngOnInit(): void {
-    if (this.entrypointUrl && this.apiKey) {
-      this.curlCmd = this.formatCurlCommandLine(this.entrypointUrl, this.apiKey);
-    }
+  constructor(private configService: ConfigService) {
+    effect(() => {
+      this.selectedEntrypointUrl.set(this.entrypointUrls?.length ? this.entrypointUrls[0] : this.selectedEntrypointUrl());
+    });
   }
 
-  private formatCurlCommandLine(entrypointUrl: string, apiKey?: string): string {
+  private formatCurlCommandLine(entrypointUrl: string, planSecurity: PlanSecurityEnum, apiKey?: string): string {
     if (!entrypointUrl) {
       return '';
     }
-    const apiKeyHeader =
-      apiKey && this.configService.configuration.portal?.apikeyHeader
-        ? `--header "${this.configService.configuration.portal.apikeyHeader}: ${apiKey}" `
-        : '';
-    return `curl ${apiKeyHeader}${entrypointUrl}`;
+    let curlHeader = '';
+    switch (planSecurity) {
+      case 'JWT':
+      case 'OAUTH2':
+        curlHeader = '--header "Authorization: Bearer {{ ACCESS_TOKEN }}" ';
+        break;
+      case 'API_KEY':
+        if (this.configService.configuration.portal?.apikeyHeader) {
+          curlHeader = `--header "${this.configService.configuration.portal.apikeyHeader}: ${apiKey ?? '{{ API_KEY }}'}" `;
+        }
+        break;
+    }
+
+    return `curl ${curlHeader}${entrypointUrl}`;
   }
 }

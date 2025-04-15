@@ -13,22 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 
 import { PlanSecurityEnum } from '../../../entities/plan/plan';
+import { CopyCodeIconComponent } from '../../copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component';
 import { CopyCodeComponent } from '../../copy-code/copy-code.component';
 
 @Component({
   selector: 'app-native-kafka-api-access',
-  imports: [CopyCodeComponent, MatIcon, MatTabGroup, MatTab],
+  imports: [CopyCodeComponent, MatIcon, MatTabGroup, MatTab, MatFormFieldModule, MatSelectModule, CopyCodeIconComponent],
   templateUrl: './native-kafka-api-access.component.html',
   styleUrl: './native-kafka-api-access.component.scss',
 })
 export class NativeKafkaApiAccessComponent {
   planSecurity = input.required<PlanSecurityEnum>();
-  entrypointUrl = input.required<string>();
+
+  entrypointUrls = input.required<string[]>();
+
+  selectedEntrypointHost = signal<string>('localhost:9092');
+
   apiKey = input('');
   apiKeyConfigUsername = input('');
   clientId = input('');
@@ -81,7 +88,7 @@ ${this.trustStoreConfig}`,
   consumerCommand = computed(
     () =>
       `./bin/kafka-console-consumer.sh \\\n` +
-      `  --bootstrap-server ${this.computedEntrypointUrl()} \\\n` +
+      `  --bootstrap-server ${this.selectedEntrypointHost()} \\\n` +
       `  --topic test-topic \\\n` +
       `  --from-beginning \\\n` +
       `  --consumer.config ${this.configurationFileName}`,
@@ -90,12 +97,11 @@ ${this.trustStoreConfig}`,
   producerCommand = computed(
     () =>
       `./bin/kafka-console-producer.sh \\\n` +
-      `  --bootstrap-server ${this.computedEntrypointUrl()} \\\n` +
+      `  --bootstrap-server ${this.selectedEntrypointHost()} \\\n` +
       `  --topic test-topic \\\n` +
       `  --producer.config ${this.configurationFileName}`,
   );
 
-  private computedEntrypointUrl = computed(() => (this.entrypointUrl().length ? this.entrypointUrl() : 'localhost:9092'));
   private computedClientId = computed(() => (this.clientId().length ? this.clientId() : '{{ CLIENT_ID }}'));
 
   private trustStoreConfig =
@@ -104,4 +110,10 @@ ${this.trustStoreConfig}`,
     '# not automatically trusted by your installation\n' +
     '# ssl.truststore.location={{ PATH_TO_TRUSTSTORE_JKS }}\n' +
     '# ssl.truststore.password={{ TRUSTSTORE_PASSWORD }}';
+
+  constructor() {
+    effect(() => {
+      this.selectedEntrypointHost.set(this.entrypointUrls().length ? this.entrypointUrls()[0] : this.selectedEntrypointHost());
+    });
+  }
 }

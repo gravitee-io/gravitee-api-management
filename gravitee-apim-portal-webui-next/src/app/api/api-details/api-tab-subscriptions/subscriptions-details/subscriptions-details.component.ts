@@ -54,7 +54,7 @@ interface SubscriptionDetailsData {
   subscriptionStatus: SubscriptionStatusEnum;
   apiKey?: string;
   apiKeyConfigUsername?: string;
-  entrypointUrl?: string;
+  entrypointUrls?: string[];
   clientId?: string;
   clientSecret?: string;
   apiType?: ApiType;
@@ -126,7 +126,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
           planUsageConfiguration: plan.usageConfiguration,
           subscriptionStatus: subscription.status,
           apiType: api.type,
-          entrypointUrl: api?.entrypoints?.[0],
+          entrypointUrls: api?.entrypoints,
         };
 
         if (subscription.status === 'ACCEPTED') {
