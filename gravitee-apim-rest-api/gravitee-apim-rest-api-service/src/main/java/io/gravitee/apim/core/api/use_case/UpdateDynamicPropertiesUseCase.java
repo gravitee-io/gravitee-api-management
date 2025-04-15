@@ -108,7 +108,7 @@ public class UpdateDynamicPropertiesUseCase {
         // Deploy only if
         // - API is not synchronized: no manual changes
         // - properties have changed
-        if (!isApiSynchronized && needRedployment(api.getApiDefinitionV4().getProperties(), previousProperties)) {
+        if (isApiSynchronized && needRedployment(api.getApiDefinitionV4().getProperties(), previousProperties)) {
             // Get the api from latest deployment event of the api to deploy the api with the same dynamic properties configuration
             // It avoids to deploy changes on the configuration that has not been explicitly deployed by the user
             apiEventQueryService
