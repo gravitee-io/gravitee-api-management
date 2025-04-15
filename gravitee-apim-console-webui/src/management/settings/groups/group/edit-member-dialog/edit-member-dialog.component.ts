@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, Inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -90,9 +90,8 @@ export class EditMemberDialogComponent implements OnInit {
   selectedPrimaryOwner: Member = null;
   memberships: GroupMembership[] = [];
   downgradedMember: Member = null;
-  disableSubmit = signal(true);
-  disabledAPIRoles = signal(new Set<string>());
-  disableRemovePrimaryOwner = signal(false);
+  disableSubmit = true;
+  disabledAPIRoles = new Set<string>();
 
   private user: SearchableUser = null;
   private initialValues: any = null;
@@ -183,10 +182,8 @@ export class EditMemberDialogComponent implements OnInit {
   }
 
   private disableAPIRoleOptions() {
-    this.disabledAPIRoles.set(
-      new Set(
-        this.defaultAPIRoles.filter((role) => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map((role) => role.id),
-      ),
+    this.disabledAPIRoles = new Set(
+      this.defaultAPIRoles.filter((role) => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map((role) => role.id),
     );
   }
 
@@ -280,7 +277,7 @@ export class EditMemberDialogComponent implements OnInit {
       this.editMemberForm.controls.searchTerm.disable();
       this.editMemberForm.controls.searchTerm.setValue('');
       this.editMemberForm.controls.searchTerm.removeValidators(Validators.required);
-      this.disableSubmit.set(false);
+      this.disableSubmit = false;
     }
   }
 
@@ -290,7 +287,7 @@ export class EditMemberDialogComponent implements OnInit {
       this.ownershipTransferMessage = null;
       this.editMemberForm.controls.searchTerm.enable();
       this.editMemberForm.controls.searchTerm.addValidators(Validators.required);
-      this.disableSubmit.set(true);
+      this.disableSubmit = true;
     }
   }
 
@@ -314,14 +311,16 @@ export class EditMemberDialogComponent implements OnInit {
       this.downgradedMember = this.members.find((member) => member.roles['API'] === RoleName.PRIMARY_OWNER);
       this.selectedPrimaryOwner = this.member;
       this.ownershipTransferMessage = `${this.downgradedMember.displayName} is the API primary owner. The primary ownership will be transferred to ${this.member.displayName} and ${this.downgradedMember.displayName} will be updated as owner.`;
-      this.disableRemovePrimaryOwner.set(true);
-      this.disableSubmit.set(false);
+      this.disableSubmit = false;
     } else if (this.isDowngradeRole()) {
       this.editMemberForm.controls.searchTerm.enable();
       this.editMemberForm.controls.searchTerm.addValidators(Validators.required);
       this.downgradedMember = this.member;
+      this.disableSubmit = !this.selectedPrimaryOwner;
     } else {
-      this.disableSubmit.set(false);
+      this.editMemberForm.controls.searchTerm.disable();
+      this.editMemberForm.controls.searchTerm.removeValidators(Validators.required);
+      this.disableSubmit = false;
     }
   }
 

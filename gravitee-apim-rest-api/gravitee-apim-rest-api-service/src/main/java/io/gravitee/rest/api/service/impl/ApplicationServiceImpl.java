@@ -879,7 +879,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (consoleConfig.getUserGroup().getRequired().isEnabled()) {
             if (CollectionUtils.isEmpty(groups)) {
                 throw new BadRequestException(
-                    "Updating an application with no groups when setting to add at least one group to the application enabled is not allowed."
+                    "Updating an application is not allowed as at least one group is required on the application."
                 );
             }
         }

@@ -22,7 +22,7 @@
       <mat-label>Default API Role</mat-label>
       <mat-select formControlName="defaultAPIRole" (selectionChange)="onChange()">
         @for (role of defaultAPIRoles; track role.id) {
-          <mat-option [value]="role.name" [disabled]="disabledAPIRoles().has(role.id)">{{ role.name }} </mat-option>
+          <mat-option [value]="role.name" [disabled]="disabledAPIRoles.has(role.id)">{{ role.name }} </mat-option>
         }
       </mat-select>
     </mat-form-field>
@@ -72,7 +72,7 @@
 
       @if (selectedPrimaryOwner) {
         <mat-chip-set>
-          <mat-chip [removable]="true" (removed)="deselectPrimaryOwner()" [disabled]="disableRemovePrimaryOwner()">
+          <mat-chip [removable]="true" (removed)="deselectPrimaryOwner()">
             {{ selectedPrimaryOwner.displayName }}
             <mat-icon matChipRemove>cancel</mat-icon>
           </mat-chip>
@@ -87,6 +87,6 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-raised-button color="primary" [disabled]="disableSubmit()" (click)="submit()">Save</button>
+  <button mat-raised-button color="primary" [disabled]="disableSubmit" (click)="submit()">Save</button>
   <button mat-raised-button mat-dialog-close>Cancel</button>
 </mat-dialog-actions>
