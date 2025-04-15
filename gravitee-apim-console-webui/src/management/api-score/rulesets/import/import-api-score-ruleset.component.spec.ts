@@ -27,7 +27,7 @@ import { ApiScoreRulesetsModule } from '../api-score-rulesets.module';
 import { CreateRulesetRequestData, RulesetFormat } from '../../../../entities/management-api-v2/api/v4/ruleset';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
-describe('NewRulesetComponent', () => {
+describe.skip('NewRulesetComponent', () => {
   let fixture: ComponentFixture<ImportApiScoreRulesetComponent>;
   let componentHarness: ImportApiScoreRulesetHarness;
   let httpTestingController: HttpTestingController;

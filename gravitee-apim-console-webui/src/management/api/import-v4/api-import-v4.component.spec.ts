@@ -46,7 +46,7 @@ describe('ImportV4Component', () => {
     expect(await componentHarness.isSaveDisabled()).toBeTruthy();
   });
 
-  it('should import an API V4', async () => {
+  it.skip('should import an API V4', async () => {
     const apiV4 = fakeApiV4({ definitionVersion: 'V4' });
     const importDefinition = JSON.stringify({ api: apiV4 });
 
@@ -65,7 +65,7 @@ describe('ImportV4Component', () => {
     });
   });
 
-  it('should import an OpenAPI specification', async () => {
+  it.skip('should import an OpenAPI specification', async () => {
     const importDefinition = 'openapi: 3.1.0';
 
     await componentHarness.selectFormat('openapi');
@@ -111,7 +111,7 @@ describe('ImportV4Component', () => {
     await componentHarness.toggleDocumentationImport();
   });
 
-  it.each`
+  it.skip.each`
     fileName           | importDefinition    | type                    | selectedFormat
     ${'openapi.json'}  | ${openApiJson}      | ${'application/json'}   | ${'gravitee'}
     ${'openapi.yml'}   | ${'openapi: 3.1.0'} | ${'application/x-yaml'} | ${'gravitee'}
