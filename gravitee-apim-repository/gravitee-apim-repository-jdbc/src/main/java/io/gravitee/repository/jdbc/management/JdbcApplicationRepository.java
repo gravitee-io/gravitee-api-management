@@ -436,14 +436,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         return getResultAsPage(pageable, apps);
     }
 
-    private List<Application> search(ApplicationCriteria applicationCriteria, Sortable sortable) {
-        LOGGER.debug("JdbcApplicationRepository.search({})", applicationCriteria);
-        final JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-            getOrm().getRowMapper(),
-            CHILD_ADDER,
-            "id"
-        );
-
+    String searchQuery(ApplicationCriteria applicationCriteria, Sortable sortable) {
         final StringBuilder sbQuery = new StringBuilder(
             "select " +
             PROJECTION_WITHOUT_PICTURES +
@@ -460,11 +453,17 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             }
 
             sbQuery.append("where 1 = 1 ");
-            if (!isEmpty(applicationCriteria.getIds())) {
-                sbQuery.append("and a.id in (").append(getOrm().buildInClause(applicationCriteria.getIds())).append(") ");
-            }
-            if (hasText(applicationCriteria.getName())) {
-                sbQuery.append("and lower(a.name) like ? ");
+
+            if (!isEmpty(applicationCriteria.getIds()) && hasText(applicationCriteria.getName())) {
+                sbQuery.append("and (a.id in (").append(getOrm().buildInClause(applicationCriteria.getIds())).append(") ");
+                sbQuery.append("or lower(a.name) like ?) ");
+            } else {
+                if (!isEmpty(applicationCriteria.getIds())) {
+                    sbQuery.append("and a.id in (").append(getOrm().buildInClause(applicationCriteria.getIds())).append(") ");
+                }
+                if (hasText(applicationCriteria.getName())) {
+                    sbQuery.append("and lower(a.name) like ? ");
+                }
             }
             if (applicationCriteria.getStatus() != null) {
                 sbQuery.append("and a.status = ? ");
@@ -488,8 +487,21 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
         sbQuery.append(String.format("order by a.%s %s", field, direction));
 
+        return sbQuery.toString();
+    }
+
+    private List<Application> search(ApplicationCriteria applicationCriteria, Sortable sortable) {
+        LOGGER.debug("JdbcApplicationRepository.search({})", applicationCriteria);
+        final JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+            getOrm().getRowMapper(),
+            CHILD_ADDER,
+            "id"
+        );
+
+        String query = searchQuery(applicationCriteria, sortable);
+
         jdbcTemplate.query(
-            sbQuery.toString(),
+            query,
             (PreparedStatement ps) -> {
                 int lastIndex = 1;
                 if (applicationCriteria != null) {
