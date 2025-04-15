@@ -52,7 +52,7 @@ class ApiAnalyticsLogsControllerAjs {
   $onInit() {
     this.$q
       .all({
-        plans: this.ApiService.getApiPlans(this.activatedRoute.snapshot.params.apiId),
+        plans: this.ApiService.getApiPlans(this.activatedRoute.snapshot.params.apiId, 'published,closed,deprecated'),
         applications: this.ApiService.getSubscribers(this.activatedRoute.snapshot.params.apiId, null, null, null, ['owner']),
         tenants: this.TenantService.list(),
         resolvedApi: this.ApiService.get(this.activatedRoute.snapshot.params.apiId),
