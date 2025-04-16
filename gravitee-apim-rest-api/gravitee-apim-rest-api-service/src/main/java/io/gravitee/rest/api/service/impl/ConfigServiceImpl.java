@@ -24,11 +24,14 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.AbstractCommonSettingsEntity;
+import io.gravitee.rest.api.model.settings.AccessPoints;
 import io.gravitee.rest.api.model.settings.CommonAuthentication;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleReCaptcha;
@@ -81,6 +84,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     @Autowired
     private InstallationAccessQueryService installationAccessQueryService;
 
+    @Autowired
+    private AccessPointQueryService accessPointQueryService;
+
     private static final String SENSITIVE_VALUE = "********";
 
     @Override
@@ -95,7 +101,19 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Override
     public PortalConfigEntity getPortalConfig(ExecutionContext executionContext) {
-        return MAPPER.convertValue(getPortalSettings(executionContext), PortalConfigEntity.class);
+        PortalConfigEntity portalConfigEntity = MAPPER.convertValue(getPortalSettings(executionContext), PortalConfigEntity.class);
+
+        AccessPoints accessPoints = new AccessPoints();
+        accessPoints.setKafkaDomains(
+            accessPointQueryService
+                .getKafkaGatewayAccessPoints(executionContext.getEnvironmentId())
+                .stream()
+                .map(AccessPoint::getHost)
+                .toList()
+        );
+        portalConfigEntity.setAccessPoints(accessPoints);
+
+        return portalConfigEntity;
     }
 
     @Override

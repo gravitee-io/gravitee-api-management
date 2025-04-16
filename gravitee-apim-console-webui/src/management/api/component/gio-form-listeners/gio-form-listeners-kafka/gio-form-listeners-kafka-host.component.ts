@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, DestroyRef, ElementRef, forwardRef, inject, Input, OnInit, Signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, forwardRef, inject, Input, OnInit, Signal } from '@angular/core';
 import {
   AsyncValidator,
   ControlValueAccessor,
@@ -74,13 +74,10 @@ export type KafkaHostData = KafkaHost;
 })
 export class GioFormListenersKafkaHostComponent implements OnInit, ControlValueAccessor, AsyncValidator {
   @Input()
-  public kafkaPort: number;
-
-  @Input()
   public apiId?: string;
 
   @Input()
-  public kafkaDomain?: string;
+  public kafkaDomains?: string[];
 
   public host: KafkaHost;
 
@@ -88,9 +85,6 @@ export class GioFormListenersKafkaHostComponent implements OnInit, ControlValueA
 
   public mainForm: FormGroup<{ host: FormControl<string> }>;
   public isDisabled = false;
-
-  public entrypointDomainAndHost: string;
-  public entrypointCopyValue$ = computed(() => `${this.hostValue$()}${this.entrypointDomainAndHost}`);
 
   private destroyRef = inject(DestroyRef);
   private readonly hostValue$: Signal<string>;
@@ -110,10 +104,14 @@ export class GioFormListenersKafkaHostComponent implements OnInit, ControlValueA
   }
 
   ngOnInit(): void {
-    this.hostFormControl.addValidators(kafkaHostPrefixSyncValidator(this.kafkaDomain));
-    this.hostFormControl.addAsyncValidators(hostAsyncValidator(this.apiV2Service, this.apiId, 'KAFKA'));
+    // Get the longest domain from kafkaDomains to validate the full host
+    const domainForValidator = this.kafkaDomains?.reduce((longest, current) => {
+      const currentDomain = current.split(':')[0];
+      return currentDomain.length > longest.length ? currentDomain : longest;
+    }, '');
 
-    this.entrypointDomainAndHost = `${this.kafkaDomain?.length ? '.' + this.kafkaDomain : ''}:${this.kafkaPort}`;
+    this.hostFormControl.addValidators(kafkaHostPrefixSyncValidator(domainForValidator));
+    this.hostFormControl.addAsyncValidators(hostAsyncValidator(this.apiV2Service, this.apiId, 'KAFKA'));
 
     this.mainForm = this.fb.group({
       host: this.hostFormControl,

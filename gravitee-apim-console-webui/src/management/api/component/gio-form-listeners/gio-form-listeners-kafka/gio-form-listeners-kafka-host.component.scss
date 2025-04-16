@@ -11,10 +11,11 @@
 
   &__domain {
     display: flex;
-    gap: 8px;
-    align-items: center;
+    flex-direction: column;
+    gap: 4px;
     flex: 1;
     justify-content: space-between;
+    padding-top: 8px;
 
     gio-clipboard-copy-icon {
       padding-right: 6px;

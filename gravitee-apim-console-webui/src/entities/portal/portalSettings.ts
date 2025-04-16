@@ -37,6 +37,7 @@ export interface PortalConfiguration {
   openAPIDocViewer?: PortalSettingsOpenAPIDocViewer;
   email?: PortalSettingsEmail;
   portalNext?: PortalSettingsPortalNext;
+  accessPoints?: PortalAccessPoints;
 }
 
 export type PortalSettingsMetadata = Record<string, string[]>;
@@ -257,4 +258,8 @@ export interface BannerButton {
   target?: string;
   type?: 'EXTERNAL';
   visibility?: 'PUBLIC' | 'PRIVATE';
+}
+
+export interface PortalAccessPoints {
+  kafkaDomains?: string[];
 }

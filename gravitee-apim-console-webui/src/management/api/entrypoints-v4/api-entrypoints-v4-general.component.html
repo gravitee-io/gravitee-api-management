@@ -83,12 +83,7 @@
               <span class="mat-body-strong">Entrypoint host</span>
             </div>
             @if (portalSettings$ | async; as portalSettings) {
-              <gio-form-listeners-kafka-host
-                [formControl]="hostFormControl"
-                [apiId]="apiId"
-                [kafkaPort]="portalSettings.kafkaPort"
-                [kafkaDomain]="portalSettings.kafkaDomain"
-              />
+              <gio-form-listeners-kafka-host [formControl]="hostFormControl" [apiId]="apiId" />
             }
           </div>
           <div class="entrypoints__footer" *ngIf="!isReadOnly">

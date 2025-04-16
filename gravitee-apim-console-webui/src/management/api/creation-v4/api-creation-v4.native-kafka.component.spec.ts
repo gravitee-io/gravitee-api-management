@@ -198,6 +198,44 @@ describe('ApiCreationV4Component - Native Kafka', () => {
       httpExpects.expectCallsForApiAndPlanCreation('api-id', 'plan-id');
       flush();
     }));
+
+    it('should create the API With AccessPoints', fakeAsync(async () => {
+      await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
+      await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');
+      await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(nativeKafkaEntrypoint);
+      await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(nativeKafkaEndpoint);
+      await stepperHelper.validateStep4_1_SecurityPlansList();
+
+      discardPeriodicTasks();
+
+      httpExpects.expectApiGetPortalConfiguration({
+        accessPoints: {
+          kafkaDomains: ['access.point:1234'],
+        },
+      });
+
+      const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
+      const step1Summary = await step5Harness.getStepSummaryTextContent(1);
+      expect(step1Summary).toContain('API name:' + 'API');
+      expect(step1Summary).toContain('Version:' + '1.0');
+      expect(step1Summary).toContain('Description:' + ' Description');
+
+      const step2Summary = await step5Harness.getStepSummaryTextContent(2);
+      expect(step2Summary).toContain('Host:' + 'kafka-host.access.point:1234');
+      expect(step2Summary).toContain('Type:' + 'KAFKA');
+      expect(step2Summary).toContain('Entrypoints:' + ' Native Kafka Entrypoint');
+
+      const step3Summary = await step5Harness.getStepSummaryTextContent(3);
+      expect(step3Summary).toContain('Endpoints' + 'Endpoints: ' + 'Native Kafka Endpoint');
+
+      const step4Summary = await step5Harness.getStepSummaryTextContent(4);
+      expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');
+
+      await step5Harness.clickCreateMyApiButton();
+      httpExpects.expectCallsForApiAndPlanCreation('api-id', 'plan-id');
+      flush();
+    }));
+
     it('should create the API with conflicting plans', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('KAFKA');

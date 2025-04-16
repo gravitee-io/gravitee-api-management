@@ -33,13 +33,14 @@ import { RestrictedDomain } from '../../../entities/restricted-domain/restricted
 export class ApiCreationV4SpecHttpExpects {
   constructor(private httpTestingController: HttpTestingController) {}
 
-  expectApiGetPortalConfiguration() {
+  expectApiGetPortalConfiguration(portalConfiguration?: PortalConfiguration) {
     const portalConfig: PortalConfiguration = {
       portal: {
         entrypoint: 'entrypoint',
         kafkaDomain: 'kafka.domain',
         kafkaPort: 9092,
       },
+      ...portalConfiguration,
     };
     this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/portal`, method: 'GET' }).flush(portalConfig);
   }

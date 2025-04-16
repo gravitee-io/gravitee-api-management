@@ -33,7 +33,6 @@ import { RestrictedDomainService } from '../../../../../services-ngx/restricted-
 import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
 import { KafkaHostData } from '../../../component/gio-form-listeners/gio-form-listeners-kafka/gio-form-listeners-kafka-host.component';
 import { PortalConfigurationService } from '../../../../../services-ngx/portal-configuration.service';
-import { PortalSettingsPortal } from '../../../../../entities/portal/portalSettings';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -56,7 +55,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public shouldUpgrade = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
-  public portalSettings$: Observable<PortalSettingsPortal>;
+  public kafkaDomains$: Observable<string[]>;
 
   private apiType: ApiCreationPayload['type'];
 
@@ -74,7 +73,14 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
     this.apiType = currentStepPayload.type;
-    this.portalSettings$ = this.portalConfigurationService.get().pipe(map(({ portal }) => portal));
+    this.kafkaDomains$ = this.portalConfigurationService.get().pipe(
+      map(({ portal, accessPoints }) => {
+        if (accessPoints?.kafkaDomains?.length) {
+          return accessPoints.kafkaDomains.map((domain) => `.${domain}`);
+        }
+        return [`${portal.kafkaDomain?.length ? '.' + portal.kafkaDomain : ''}:${portal.kafkaPort}`];
+      }),
+    );
 
     const paths = currentStepPayload.paths ?? [];
     const tcpHosts = currentStepPayload.hosts ?? [];

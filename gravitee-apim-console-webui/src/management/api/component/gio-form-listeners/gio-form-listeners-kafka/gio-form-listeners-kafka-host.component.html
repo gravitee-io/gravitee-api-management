@@ -55,10 +55,15 @@
             }
           </mat-form-field>
         </div>
-        <div class="kafka-configuration__domain">
-          <div class="mat-subtitle-2">{{ entrypointDomainAndHost }}</div>
-          <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointCopyValue$()" />
-        </div>
+        @if (kafkaDomains) {
+          <div class="kafka-configuration__domain mat-subtitle-2">
+            @for (kafkaDomain of kafkaDomains; track kafkaDomain) {
+              <div class="kafka-configuration__domain__item">
+                {{ kafkaDomain }}
+              </div>
+            }
+          </div>
+        }
       </div>
     </tr>
   </tbody>
