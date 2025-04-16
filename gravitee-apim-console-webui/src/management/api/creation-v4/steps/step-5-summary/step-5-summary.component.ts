@@ -61,7 +61,13 @@ export class Step5SummaryComponent implements OnInit {
     this.currentStepPayload = this.stepService.payload;
 
     this.kafkaDomainAndPort$ = this.portalConfigurationService.get().pipe(
-      map(({ portal }) => {
+      map(({ portal, accessPoints }) => {
+        if (accessPoints?.kafkaDomains?.length === 1) {
+          return `.${accessPoints.kafkaDomains[0]}`;
+        } else if (accessPoints?.kafkaDomains?.length > 1) {
+          return '';
+        }
+
         const kafkaDomain = portal.kafkaDomain?.length ? `.${portal.kafkaDomain}` : '';
         return `${kafkaDomain}:${portal.kafkaPort}`;
       }),

@@ -58,6 +58,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import inmemory.AccessPointQueryServiceInMemory;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -66,6 +69,7 @@ import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.model.settings.Email;
 import io.gravitee.rest.api.model.settings.Enabled;
 import io.gravitee.rest.api.model.settings.Logging;
+import io.gravitee.rest.api.model.settings.PortalConfigEntity;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.model.settings.UserGroup;
 import io.gravitee.rest.api.model.settings.logging.MessageSampling;
@@ -115,6 +119,9 @@ class ConfigServiceTest {
 
     @Mock
     private InstallationAccessQueryService installationAccessQueryService;
+
+    @Mock
+    private AccessPointQueryService accessPointQueryService;
 
     @BeforeEach
     public void setup() {
@@ -296,6 +303,28 @@ class ConfigServiceTest {
         assertThat(consoleConfig.getLicenseExpirationNotification().getEnabled())
             .as("license expiration notification enabled")
             .isEqualTo(Boolean.TRUE);
+    }
+
+    @Test
+    void shouldGetPortalConfig() {
+        Map<String, List<String>> params = new HashMap<>();
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        )
+            .thenReturn(params);
+        when(accessPointQueryService.getKafkaGatewayAccessPoints(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
+            .thenReturn(List.of(AccessPoint.builder().host("kafka.local").build()));
+
+        PortalConfigEntity portalConfig = configService.getPortalConfig(GraviteeContext.getExecutionContext());
+
+        assertThat(portalConfig).isNotNull();
+        assertThat(portalConfig.getAccessPoints().getKafkaDomains()).containsExactly("kafka.local");
     }
 
     @Test
