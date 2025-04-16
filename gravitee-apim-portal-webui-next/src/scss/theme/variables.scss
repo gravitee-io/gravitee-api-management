@@ -38,7 +38,9 @@ $error-main-color: var(--gio-app-error-main-color);
 Component variables
  */
 $banner-background-color: var(--mdc-list-list-item-leading-avatar-color);
+$banner-error-background-color: color-mix(in srgb, $error-main-color 16%, $card-background-color);
 $banner-text-color: var(--mdc-outlined-text-field-focus-label-text-color);
+$banner-error-text-color: $error-main-color;
 $chip-background: var(--gio-app-chip-container-color, $card-background-color);
 $table-border-color: color-mix(in srgb, $secondary-main-color 35%, transparent);
 $table-header-background-color: var(--gio-app-table-header-container-color, $secondary-main-color);

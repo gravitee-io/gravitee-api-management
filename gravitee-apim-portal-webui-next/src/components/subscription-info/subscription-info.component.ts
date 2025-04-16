@@ -13,17 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
 
 import { ApiType } from '../../entities/api/api';
 import { getPlanSecurityTypeLabel, PlanSecurityEnum, PlanUsageConfiguration, PlanValidationEnum } from '../../entities/plan/plan';
+import { SubscriptionConsumerStatusEnum } from '../../entities/subscription';
 import { CapitalizeFirstPipe } from '../../pipe/capitalize-first.pipe';
 import { ToPeriodTimeUnitLabelPipe } from '../../pipe/time-unit.pipe';
+import { BannerComponent } from '../banner/banner.component';
+import { LoaderComponent } from '../loader/loader.component';
 
 @Component({
   selector: 'app-subscription-info',
-  imports: [CapitalizeFirstPipe, MatCard, MatCardContent, MatCardHeader, ToPeriodTimeUnitLabelPipe],
+  imports: [
+    CapitalizeFirstPipe,
+    MatCard,
+    MatCardContent,
+    MatCardHeader,
+    ToPeriodTimeUnitLabelPipe,
+    BannerComponent,
+    MatIcon,
+    MatButton,
+    LoaderComponent,
+  ],
   templateUrl: './subscription-info.component.html',
   styleUrl: './subscription-info.component.scss',
 })
@@ -49,7 +64,18 @@ export class SubscriptionInfoComponent implements OnInit {
   @Input()
   subscriptionStatus: string = '';
 
-  authentication: string = '';
+  @Input()
+  isLoadingStatus: boolean = false;
+
+  @Input()
+  consumerStatus: SubscriptionConsumerStatusEnum = SubscriptionConsumerStatusEnum.STARTED;
+
+  @Output()
+  resumeConsumerStatus = new EventEmitter<void>();
+
+  public authentication: string = '';
+
+  protected readonly SubscriptionConsumerStatusEnum = SubscriptionConsumerStatusEnum;
 
   ngOnInit() {
     this.authentication = getPlanSecurityTypeLabel(this.planSecurity);

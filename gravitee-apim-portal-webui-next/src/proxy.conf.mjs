@@ -15,7 +15,7 @@
  */
 
 const env = process.env.BACKEND_ENV;
-const target = `${env ? `https://${env}` : 'http://localhost:8083'}`
+const target = `${env ? `https://${env}` : 'http://localhost:8083'}`;
 export default [
   {
     context: ['/portal/ui/bootstrap'],
@@ -29,18 +29,18 @@ export default [
       //   because the origin (localhost:4101) will match the backend
       proxy.on('proxyRes', (proxyRes, req, res) => {
         let body = Buffer.from('');
-        proxyRes.on('data', function(data) {
+        proxyRes.on('data', function (data) {
           body = Buffer.concat([body, data]);
         });
-        proxyRes.on('end', function() {
+        proxyRes.on('end', function () {
           body = body.toString();
           res.writeHead(proxyRes.statusCode);
-          res.end(body.replace(`${target}/`, ""));
+          res.end(body.replace(`${target}/`, ''));
         });
-      })
+      });
     },
     selfHandleResponse: true,
-    logLevel: 'debug'
+    logLevel: 'debug',
   },
   {
     // Whenever there is a request starting with "portal", then replace target
@@ -50,9 +50,9 @@ export default [
     changeOrigin: true,
     configure: function (proxy) {
       proxy.on('proxyReq', (proxyReq, req, res) => {
-        proxyReq.setHeader('origin', target.replace("-api", "-portal"));
-      })
+        proxyReq.setHeader('origin', target.replace('-api', '-portal'));
+      });
     },
     logLevel: 'debug',
-  }
-]
+  },
+];

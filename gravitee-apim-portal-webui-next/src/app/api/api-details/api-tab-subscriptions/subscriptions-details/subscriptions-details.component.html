@@ -34,7 +34,10 @@
         [planSecurity]="detailsVM.result.planSecurity"
         [subscriptionStatus]="detailsVM.result.subscriptionStatus"
         [planUsageConfiguration]="detailsVM.result.planUsageConfiguration"
-        [apiType]="detailsVM.result.apiType" />
+        [apiType]="detailsVM.result.apiType"
+        [consumerStatus]="detailsVM.result.consumerStatus"
+        [isLoadingStatus]="isLoadingStatus"
+        (resumeConsumerStatus)="resumeConsumerStatus()" />
       <app-api-access
         [planSecurity]="detailsVM.result.planSecurity"
         [subscriptionStatus]="detailsVM.result.subscriptionStatus"

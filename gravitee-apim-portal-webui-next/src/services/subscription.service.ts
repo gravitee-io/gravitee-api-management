@@ -60,4 +60,11 @@ export class SubscriptionService {
   update(subscriptionId: string, updatedSubscription: UpdateSubscription) {
     return this.http.put<Subscription>(`${this.configService.baseURL}/subscriptions/${subscriptionId}`, updatedSubscription);
   }
+
+  resumeConsumerStatus(subscriptionId: string): Observable<Subscription> {
+    return this.http.post<Subscription>(
+      `${this.configService.baseURL}/subscriptions/${subscriptionId}/_changeConsumerStatus?status=STARTED`,
+      null,
+    );
+  }
 }
