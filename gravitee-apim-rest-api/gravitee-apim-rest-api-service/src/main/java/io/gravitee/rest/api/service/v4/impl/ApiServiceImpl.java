@@ -26,7 +26,6 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
-import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.Origin;
@@ -475,10 +474,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setPicture(apiToUpdate.getPicture());
             api.setBackground(apiToUpdate.getBackground());
 
-            if (CollectionUtils.isEmpty(updateApiEntity.getGroups())) {
+            if (updateApiEntity.getGroups() == null) {
                 api.setGroups(apiToUpdate.getGroups());
             }
-
             if (updateApiEntity.getLabels() == null && apiToUpdate.getLabels() != null) {
                 api.setLabels(new ArrayList<>(new HashSet<>(apiToUpdate.getLabels())));
             }

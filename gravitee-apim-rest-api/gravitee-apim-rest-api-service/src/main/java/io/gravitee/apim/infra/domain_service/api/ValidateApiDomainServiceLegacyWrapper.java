@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
+import static io.gravitee.rest.api.model.context.OriginContext.Origin.KUBERNETES;
+
 import io.gravitee.apim.core.api.domain_service.ApiLifecycleStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.GroupValidationService;
@@ -31,14 +33,12 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Objects;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -150,7 +150,10 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         newApi.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApi.getTags()));
 
         // Validate groups
-        newApi.setGroups(groupValidationService.validateAndSanitize(newApi.getGroups(), newApi.getEnvironmentId(), primaryOwner, true));
+        boolean addDefaultGroups = !KUBERNETES.name().equalsIgnoreCase(newApi.getOriginContext().name()) || newApi.getGroups() == null;
+        newApi.setGroups(
+            groupValidationService.validateAndSanitize(newApi.getGroups(), newApi.getEnvironmentId(), primaryOwner, addDefaultGroups)
+        );
 
         // Validate and clean definition
         newApi.setApiDefinitionNativeV4(validateAndSanitizeNativeV4Definition(newApi.getApiDefinitionNativeV4(), executionContext));

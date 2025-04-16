@@ -19,8 +19,10 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
+import static io.gravitee.rest.api.model.context.OriginContext.Origin.KUBERNETES;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -118,9 +120,18 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.validateApiType(null, newApiEntity.getType());
         // Validate and clean tags
         newApiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApiEntity.getTags()));
+
         // Validate and clean groups
+        boolean addDefaultGroups =
+            !KUBERNETES.name().equalsIgnoreCase(newApiEntity.getOriginContext().name()) || newApiEntity.getGroups() == null;
         newApiEntity.setGroups(
-            groupValidationService.validateAndSanitize(executionContext, null, newApiEntity.getGroups(), primaryOwnerEntity, true)
+            groupValidationService.validateAndSanitize(
+                executionContext,
+                null,
+                newApiEntity.getGroups(),
+                primaryOwnerEntity,
+                addDefaultGroups
+            )
         );
         // Validate and clean listeners
         newApiEntity.setListeners(
@@ -169,15 +180,19 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             tagsValidationService.validateAndSanitize(executionContext, existingApiEntity.getTags(), updateApiEntity.getTags())
         );
         // Validate and clean groups
+        boolean addDefaultGroups =
+            KUBERNETES.name().equalsIgnoreCase(existingApiEntity.getOriginContext().origin().name()) &&
+            CollectionUtils.isEmpty(updateApiEntity.getGroups());
         updateApiEntity.setGroups(
             groupValidationService.validateAndSanitize(
                 executionContext,
                 updateApiEntity.getId(),
                 updateApiEntity.getGroups(),
                 primaryOwnerEntity,
-                false
+                addDefaultGroups
             )
         );
+
         // Validate and clean listeners
         updateApiEntity.setListeners(
             listenerValidationService.validateAndSanitizeHttpV4(

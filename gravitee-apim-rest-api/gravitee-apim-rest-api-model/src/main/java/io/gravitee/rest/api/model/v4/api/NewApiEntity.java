@@ -22,8 +22,8 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -60,6 +60,9 @@ public class NewApiEntity {
     @NotNull
     @Schema(description = "API's gravitee definition version")
     private DefinitionVersion definitionVersion = DefinitionVersion.V4;
+
+    @Schema(description = "API's origin context")
+    private OriginContext originContext = new OriginContext.Management();
 
     @NotNull
     @Schema(description = "API's type", example = "async")

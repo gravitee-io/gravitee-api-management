@@ -86,7 +86,7 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
             sanitizedGroups.add(primaryOwnerEntity.getId());
         }
 
-        return sanitizedGroups;
+        return !sanitizedGroups.isEmpty() ? sanitizedGroups : groups;
     }
 
     private Set<String> removePrimaryOwnerGroups(
