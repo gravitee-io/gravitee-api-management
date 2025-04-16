@@ -1604,6 +1604,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -1618,7 +1620,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // According to page size, we know that we have only one element in the list
                 Event lastEvent = events.get(0);
                 boolean sync = false;
-                if (io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType())) {
+                if (
+                    io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType()) ||
+                    io.gravitee.repository.management.model.EventType.STOP_API.equals(lastEvent.getType()) ||
+                    io.gravitee.repository.management.model.EventType.START_API.equals(lastEvent.getType())
+                ) {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
 
                     final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
@@ -2472,11 +2478,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return convert(executionContext, api, true);
     }
 
-    private ApiEntity convert(ExecutionContext executionContext, Api api, boolean readDatabaseFlows) {
+    public ApiEntity convert(ExecutionContext executionContext, Api api, boolean readDatabaseFlows) {
         return apiConverter.toApiEntity(executionContext, api, null, readDatabaseFlows);
     }
 
-    private ApiEntity convert(ExecutionContext executionContext, Api api, PrimaryOwnerEntity primaryOwner) {
+    public ApiEntity convert(ExecutionContext executionContext, Api api, PrimaryOwnerEntity primaryOwner) {
         return apiConverter.toApiEntity(executionContext, api, primaryOwner, true);
     }
 

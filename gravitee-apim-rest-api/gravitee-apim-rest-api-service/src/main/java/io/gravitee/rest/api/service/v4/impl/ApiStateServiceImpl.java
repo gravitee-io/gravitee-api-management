@@ -418,6 +418,8 @@ public class ApiStateServiceImpl implements ApiStateService {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -432,7 +434,11 @@ public class ApiStateServiceImpl implements ApiStateService {
                 // According to page size, we know that we have only one element in the list
                 Event lastEvent = events.get(0);
                 boolean sync = false;
-                if (io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType())) {
+                if (
+                    io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType()) ||
+                    io.gravitee.repository.management.model.EventType.START_API.equals(lastEvent.getType()) ||
+                    io.gravitee.repository.management.model.EventType.STOP_API.equals(lastEvent.getType())
+                ) {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
 
                     if (
