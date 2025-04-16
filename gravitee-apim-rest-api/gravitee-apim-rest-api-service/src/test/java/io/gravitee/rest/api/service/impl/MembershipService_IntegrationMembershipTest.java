@@ -65,7 +65,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class MembershipService_IntegrationMembership {
+public class MembershipService_IntegrationMembershipTest {
 
     private static final String INTEGRATION_ID = "integration-id";
     private static final String INTEGRATION_OWNER = "OWNER";
@@ -289,6 +289,8 @@ public class MembershipService_IntegrationMembership {
                 .thenReturn(Optional.of(new RoleEntity()));
             when(roleService.findByScopeAndName(RoleScope.INTEGRATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
                 .thenReturn(Optional.of(new RoleEntity()));
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                .thenReturn(Optional.of(new RoleEntity()));
             when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity updatedMember = membershipService.updateMembershipForIntegration(
@@ -368,6 +370,7 @@ public class MembershipService_IntegrationMembership {
             membership.setRoleId(INTEGRATION_PRIMARY_OWNER);
             membership.setReferenceType(MembershipReferenceType.INTEGRATION);
             membership.setReferenceId(INTEGRATION_ID);
+            membership.setMemberType(MembershipMemberType.USER);
 
             when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
                 .thenReturn(Optional.of(new RoleEntity()));
