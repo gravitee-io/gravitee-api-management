@@ -475,7 +475,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setPicture(apiToUpdate.getPicture());
             api.setBackground(apiToUpdate.getBackground());
 
-            if (CollectionUtils.isEmpty(updateApiEntity.getGroups())) {
+            if (updateApiEntity.getGroups() == null) {
                 api.setGroups(apiToUpdate.getGroups());
             }
 
