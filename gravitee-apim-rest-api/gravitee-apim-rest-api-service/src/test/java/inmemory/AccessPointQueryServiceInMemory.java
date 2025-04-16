@@ -72,4 +72,9 @@ public class AccessPointQueryServiceInMemory implements AccessPointQueryService 
     public List<AccessPoint> getGatewayAccessPoints(final String environmentId) {
         return List.of();
     }
+
+    @Override
+    public List<AccessPoint> getKafkaGatewayAccessPoints(String environmentId) {
+        return List.of();
+    }
 }

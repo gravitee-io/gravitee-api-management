@@ -616,4 +616,34 @@ class ApiEntrypointServiceImplTest {
         assertThat(entrypoint.getTarget()).isEqualTo("kafka-host.kafka.domain:9092");
         assertThat(entrypoint.getTags()).isNull();
     }
+
+    @Test
+    void shouldReturnAccessPointEntrypointsForNativeV4Api() {
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("6666");
+
+        var apiEntity = new NativeApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
+        var kafkaListener = new KafkaListener();
+        kafkaListener.setHost("kafka-host");
+        kafkaListener.setPort(9092);
+        apiEntity.setListeners(List.of(kafkaListener));
+
+        when(accessPointQueryService.getKafkaGatewayAccessPoints(any()))
+            .thenReturn(
+                List.of(
+                    AccessPoint.builder().host("domain1:1234").target(AccessPoint.Target.KAFKA_GATEWAY).build(),
+                    AccessPoint.builder().host("domain2").target(AccessPoint.Target.KAFKA_GATEWAY).build()
+                )
+            );
+
+        var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(2);
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host.domain1:1234");
+        assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("kafka-host.domain2:9092");
+    }
 }
