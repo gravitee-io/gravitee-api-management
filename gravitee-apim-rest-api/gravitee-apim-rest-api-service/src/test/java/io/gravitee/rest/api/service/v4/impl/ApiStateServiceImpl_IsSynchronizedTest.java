@@ -227,6 +227,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -252,6 +254,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -288,6 +292,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -317,6 +323,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -353,6 +361,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -378,6 +388,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -414,6 +426,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -443,6 +457,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -483,6 +499,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -513,6 +531,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -553,6 +573,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -587,6 +609,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -627,6 +651,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -666,6 +692,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -707,6 +735,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
@@ -741,6 +771,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                            io.gravitee.repository.management.model.EventType.STOP_API,
+                            io.gravitee.repository.management.model.EventType.START_API,
                             io.gravitee.repository.management.model.EventType.UNPUBLISH_API
                         )
                     )
