@@ -25,12 +25,19 @@ export interface Subscription {
   reason?: string;
   request?: string;
   status: SubscriptionStatusEnum;
+  consumerStatus: SubscriptionConsumerStatusEnum;
   subscribed_by?: string;
   keys?: SubscriptionDataKeys[];
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
 
 export type SubscriptionStatusEnum = 'PENDING' | 'ACCEPTED' | 'CLOSED' | 'REJECTED' | 'PAUSED';
+
+export enum SubscriptionConsumerStatusEnum {
+  STARTED = 'STARTED',
+  STOPPED = 'STOPPED',
+  FAILURE = 'FAILURE',
+}
 
 export const SubscriptionStatusEnum = {
   PENDING: 'PENDING',

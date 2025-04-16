@@ -20,68 +20,105 @@
     <div class="m3-title-medium subscription-info__header" i18n="@@subscriptionDetailsHeader">Subscription</div>
   </mat-card-header>
   <mat-card-content class="subscription-info__content on-surface-variant">
-    @if (!!applicationName) {
+    @if (isLoadingStatus) {
       <div class="subscription-info__content-row">
-        <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderApp">App:</span>
-        <span class="m3-body-medium">{{ applicationName }}</span>
+        <app-loader>
+          <div class="m3-body-medium" i18n="@@retryingTheSubscriptionLoading">Retrying the subscription...</div>
+        </app-loader>
       </div>
-    }
+    } @else {
+      @if (!!applicationName) {
+        <div class="subscription-info__content-row">
+          <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderApp">App:</span>
+          <span class="m3-body-medium">{{ applicationName }}</span>
+        </div>
+      }
 
-    <div>
-      <div class="subscription-info__content-row">
-        <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderPlan">Plan:</span>
-        <span class="m3-body-medium">{{ planName }}</span>
-      </div>
-      <div class="subscription-info__content-row">
-        <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderAuthentication">Authentication:</span>
-        @if (apiType === 'NATIVE') {
-          @if (planSecurity === 'API_KEY') {
-            <span class="m3-body-medium" i18n="@@subscriptionDetailsAuthenticationSaslApiKey"
-              >SASL/SSL with SASL mechanisms PLAIN, SCRAM-256, and SCRAM-512</span
-            >
-          } @else if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
-            <span class="m3-body-medium" i18n="@@subscriptionDetailsAuthenticationSaslOauthbearer"
-              >SASL/SSL with SASL mechanism OAUTHBEARER</span
-            >
-          } @else if (planSecurity === 'KEY_LESS') {
-            <span class="m3-body-medium" i18n="@@subscriptionDetailsAuthenticationKeyless">SSL</span>
+      <div>
+        <div class="subscription-info__content-row">
+          <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderPlan">Plan:</span>
+          <span class="m3-body-medium">{{ planName }}</span>
+        </div>
+        <div class="subscription-info__content-row">
+          <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderAuthentication">Authentication:</span>
+          @if (apiType === 'NATIVE') {
+            @if (planSecurity === 'API_KEY') {
+              <span class="m3-body-medium" i18n="@@subscriptionDetailsAuthenticationSaslApiKey"
+                >SASL/SSL with SASL mechanisms PLAIN, SCRAM-256, and SCRAM-512</span
+              >
+            } @else if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
+              <span class="m3-body-medium" i18n="@@subscriptionDetailsAuthenticationSaslOauthbearer"
+                >SASL/SSL with SASL mechanism OAUTHBEARER</span
+              >
+            } @else if (planSecurity === 'KEY_LESS') {
+              <span class="m3-body-medium" i18n="@@subscriptionDetailsAuthenticationKeyless">SSL</span>
+            }
+          } @else {
+            <span class="m3-body-medium">{{ authentication }}</span>
           }
-        } @else {
-          <span class="m3-body-medium">{{ authentication }}</span>
+        </div>
+
+        @if (!!planUsageConfiguration?.quota?.limit) {
+          <div class="subscription-info__content-row">
+            <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderQuota">Quota:</span>
+            <span class="m3-body-medium">
+              up to {{ planUsageConfiguration?.quota?.limit ?? 0 }} hits /
+              {{ planUsageConfiguration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
+            </span>
+          </div>
+        }
+        @if (!!planUsageConfiguration?.rate_limit?.limit) {
+          <div class="subscription-info__content-row">
+            <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderRateLimit">Rate-limit:</span>
+            <span class="m3-body-medium">
+              up to {{ planUsageConfiguration?.rate_limit?.limit ?? 0 }} hits /
+              {{ planUsageConfiguration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
+            </span>
+          </div>
         }
       </div>
 
-      @if (!!planUsageConfiguration?.quota?.limit) {
+      @if (planSecurity !== 'KEY_LESS') {
         <div class="subscription-info__content-row">
-          <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderQuota">Quota:</span>
-          <span class="m3-body-medium">
-            up to {{ planUsageConfiguration?.quota?.limit ?? 0 }} hits /
-            {{ planUsageConfiguration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
-          </span>
+          <span class="m3-title-small" i18n="@@subscriptionDetailsSubscription">Subscription:</span>
+          @if (!!subscriptionStatus) {
+            <span class="m3-body-medium">{{ subscriptionStatus | capitalizeFirst }}</span>
+          } @else if (planValidation === 'MANUAL') {
+            <span class="m3-body-medium" i18n="@@subscriptionDetailsReviewRequired">Under admin review</span>
+          } @else if (planValidation === 'AUTO') {
+            <span class="m3-body-medium" i18n="@@subscriptionDetailsAutomatic">Automatic</span>
+          }
         </div>
       }
-      @if (!!planUsageConfiguration?.rate_limit?.limit) {
-        <div class="subscription-info__content-row">
-          <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderRateLimit">Rate-limit:</span>
-          <span class="m3-body-medium">
-            up to {{ planUsageConfiguration?.rate_limit?.limit ?? 0 }} hits /
-            {{ planUsageConfiguration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
-          </span>
-        </div>
-      }
-    </div>
 
-    @if (planSecurity !== 'KEY_LESS') {
-      <div class="subscription-info__content-row">
-        <span class="m3-title-small" i18n="@@subscriptionDetailsSubscription">Subscription:</span>
-        @if (!!subscriptionStatus) {
-          <span class="m3-body-medium">{{ subscriptionStatus | capitalizeFirst }}</span>
-        } @else if (planValidation === 'MANUAL') {
-          <span class="m3-body-medium" i18n="@@subscriptionDetailsReviewRequired">Under admin review</span>
-        } @else if (planValidation === 'AUTO') {
-          <span class="m3-body-medium" i18n="@@subscriptionDetailsAutomatic">Automatic</span>
-        }
-      </div>
+      @if (consumerStatus === SubscriptionConsumerStatusEnum.FAILURE) {
+        <div class="subscription-info__content-row consumer-status-failure-banner">
+          <app-banner type="error">
+            <div class="banner-body">
+              <div class="banner-body__icon">
+                <mat-icon aria-hidden="false" aria-label="Warning icon">warning_border</mat-icon>
+              </div>
+              <div class="banner-body__description">
+                <div class="m3-title-medium" i18n="@@subscriptionDetailsConsumerFailedTitle">Subscription consumer failed</div>
+                <div class="m3-body-medium" i18n="@@subscriptionDetailsConsumerFailedDescription">
+                  There is a problem with the API endpoint. Details of the error are available from the API publisher.
+                </div>
+              </div>
+            </div>
+          </app-banner>
+        </div>
+
+        <div class="subscription-info__content-row">
+          <button
+            class="retry-subscription-button"
+            mat-stroked-button
+            color="primary"
+            (click)="resumeConsumerStatus.emit()"
+            i18n="@@subscriptionDetailsRetryFailedSubscription">
+            Retry Subscription
+          </button>
+        </div>
+      }
     }
   </mat-card-content>
 </mat-card>

@@ -21,3 +21,9 @@
 
   color: theme.$banner-text-color;
 }
+
+.banner-error {
+  --mdc-elevated-card-container-color: #{theme.$banner-error-background-color};
+
+  color: theme.$banner-error-text-color;
+}

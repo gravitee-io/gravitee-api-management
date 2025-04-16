@@ -15,7 +15,8 @@
  */
 
 import { AsyncPipe } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -23,7 +24,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
-import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, forkJoin, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { SubscriptionConsumerConfigurationComponent } from './subscription-consumer-configuration';
@@ -33,7 +34,12 @@ import { SubscriptionInfoComponent } from '../../../../../components/subscriptio
 import { ApiType } from '../../../../../entities/api/api';
 import { UserApiPermissions } from '../../../../../entities/permission/permission';
 import { PlanMode, PlanSecurityEnum, PlanUsageConfiguration } from '../../../../../entities/plan/plan';
-import { SubscriptionConsumerConfiguration, SubscriptionsResponse, SubscriptionStatusEnum } from '../../../../../entities/subscription';
+import {
+  SubscriptionConsumerStatusEnum,
+  SubscriptionConsumerConfiguration,
+  SubscriptionsResponse,
+  SubscriptionStatusEnum,
+} from '../../../../../entities/subscription';
 import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
 import { ApiService } from '../../../../../services/api.service';
 import { ApplicationService } from '../../../../../services/application.service';
@@ -52,6 +58,7 @@ interface SubscriptionDetailsData {
   planSecurity: PlanSecurityEnum;
   planUsageConfiguration: PlanUsageConfiguration;
   subscriptionStatus: SubscriptionStatusEnum;
+  consumerStatus: SubscriptionConsumerStatusEnum;
   apiKey?: string;
   apiKeyConfigUsername?: string;
   entrypointUrls?: string[];
@@ -89,14 +96,18 @@ export class SubscriptionsDetailsComponent implements OnInit {
   @Input()
   subscriptionId!: string;
 
+  _subscriptionDetails = new BehaviorSubject<boolean>(true);
+
   subscriptionDetails$: Observable<SubscriptionDetailsVM> = of();
+
+  isLoadingStatus: boolean = true;
 
   constructor(
     private subscriptionService: SubscriptionService,
     private apiService: ApiService,
     private applicationService: ApplicationService,
     private permissionsService: PermissionsService,
-
+    private destroyRef: DestroyRef,
     private planService: PlanService,
     public dialog: MatDialog,
   ) {}
@@ -105,11 +116,30 @@ export class SubscriptionsDetailsComponent implements OnInit {
     this.subscriptionDetails$ = this.loadDetails();
   }
 
-  private loadDetails(): Observable<SubscriptionDetailsVM> {
-    return forkJoin({
-      subscription: this.subscriptionService.get(this.subscriptionId),
-      permissions: this.permissionsService.getApiPermissions(this.apiId),
-    }).pipe(
+  resumeConsumerStatus() {
+    this.isLoadingStatus = true;
+    this.subscriptionService
+      .resumeConsumerStatus(this.subscriptionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: _ => {
+          this._subscriptionDetails.next(true);
+        },
+        error: err => {
+          this.isLoadingStatus = false;
+          console.error(err);
+        },
+      });
+  }
+
+  private loadDetails() {
+    return this._subscriptionDetails.pipe(
+      switchMap(() =>
+        forkJoin({
+          subscription: this.subscriptionService.get(this.subscriptionId),
+          permissions: this.permissionsService.getApiPermissions(this.apiId),
+        }),
+      ),
       switchMap(({ subscription, permissions }) =>
         forkJoin({
           subscription: of(subscription),
@@ -125,6 +155,7 @@ export class SubscriptionsDetailsComponent implements OnInit {
           planSecurity: plan.securityType,
           planUsageConfiguration: plan.usageConfiguration,
           subscriptionStatus: subscription.status,
+          consumerStatus: subscription.consumerStatus,
           apiType: api.type,
           entrypointUrls: api?.entrypoints,
         };
@@ -170,10 +201,10 @@ export class SubscriptionsDetailsComponent implements OnInit {
             },
           };
         }
-
         return { result: subscriptionDetails };
       }),
       catchError(_ => of({ error: true })),
+      tap(() => (this.isLoadingStatus = false)),
     );
   }
 

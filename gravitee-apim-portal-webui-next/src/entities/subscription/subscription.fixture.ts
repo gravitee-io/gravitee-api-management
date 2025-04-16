@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
-import { Subscription } from './subscription';
+import { Subscription, SubscriptionConsumerStatusEnum } from './subscription';
 import { SubscriptionsResponse } from './subscriptions-response';
 
 export function fakeSubscription(modifier?: Partial<Subscription> | ((baseSubscription: Subscription) => Subscription)): Subscription {
@@ -29,6 +29,7 @@ export function fakeSubscription(modifier?: Partial<Subscription> | ((baseSubscr
     closed_at: '2024-04-17T10:34:05.598Z',
     subscribed_by: '4015f9f2-c0a4-4c0c-95f9-f2c0a4fc0c4c',
     status: 'REJECTED',
+    consumerStatus: SubscriptionConsumerStatusEnum.STARTED,
     api: 'api-id',
     keys: [
       {
