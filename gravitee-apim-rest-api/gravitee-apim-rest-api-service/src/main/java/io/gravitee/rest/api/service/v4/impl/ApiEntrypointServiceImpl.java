@@ -288,14 +288,21 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         final String environmentId
     ) {
         List<ApiEntrypointEntity> entrypoints = new ArrayList<>();
-        List<AccessPoint> accessPoints = this.accessPointQueryService.getGatewayAccessPoints(environmentId);
+        List<AccessPoint> accessPoints = this.accessPointQueryService.getKafkaGatewayAccessPoints(environmentId);
 
         if (accessPoints.isEmpty() || (tags != null && !tags.isEmpty())) {
             entrypoints.add(createKafkaNativeApiEntrypointEntity(host, domain, port, tags));
         } else {
             for (AccessPoint accessPoint : accessPoints) {
-                String targetHost = accessPoint.getHost();
-                entrypoints.add(createKafkaNativeApiEntrypointEntity(targetHost, domain, port, tags));
+                String accessPointDomain = accessPoint.getHost();
+                String targetDomain = accessPointDomain.contains(":")
+                    ? accessPointDomain.substring(0, accessPointDomain.indexOf(":"))
+                    : accessPointDomain;
+                String targetPort = accessPointDomain.contains(":")
+                    ? accessPointDomain.substring(accessPointDomain.indexOf(":") + 1)
+                    : port;
+
+                entrypoints.add(createKafkaNativeApiEntrypointEntity(host, targetDomain, targetPort, tags));
             }
         }
         return entrypoints;

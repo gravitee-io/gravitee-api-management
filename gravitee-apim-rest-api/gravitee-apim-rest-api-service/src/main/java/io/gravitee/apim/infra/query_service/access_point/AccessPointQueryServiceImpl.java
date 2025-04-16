@@ -172,6 +172,18 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
         }
     }
 
+    @Override
+    public List<AccessPoint> getKafkaGatewayAccessPoints(String environmentId) {
+        try {
+            return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.KAFKA_GATEWAY, false).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while getting gateway restricted domain from environment '%s'", environmentId),
+                e
+            );
+        }
+    }
+
     private List<AccessPoint> findAccessPoints(final AccessPoint.Target target) throws TechnicalException {
         return accessPointRepository
             .findByTarget(AccessPointAdapter.INSTANCE.fromEntity(target))
