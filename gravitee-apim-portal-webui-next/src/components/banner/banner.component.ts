@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
+
+export type BannerType = 'default' | 'error';
 
 @Component({
   selector: 'app-banner',
   imports: [MatCard, MatCardContent],
   template: `
-    <mat-card class="banner">
+    <mat-card [class]="bannerStyles[type]">
       <mat-card-content>
         <ng-content />
       </mat-card-content>
@@ -28,4 +30,10 @@ import { MatCard, MatCardContent } from '@angular/material/card';
   `,
   styleUrl: './banner.component.scss',
 })
-export class BannerComponent {}
+export class BannerComponent {
+  @Input() type: BannerType = 'default';
+  public bannerStyles = {
+    default: 'banner',
+    error: 'banner-error',
+  };
+}
