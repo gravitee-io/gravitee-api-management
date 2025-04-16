@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
@@ -175,7 +176,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
                 updateApiEntity.getId(),
                 updateApiEntity.getGroups(),
                 primaryOwnerEntity,
-                false
+                existingApiEntity.getOriginContext().origin().equals(OriginContext.Origin.KUBERNETES)
             )
         );
         // Validate and clean listeners
