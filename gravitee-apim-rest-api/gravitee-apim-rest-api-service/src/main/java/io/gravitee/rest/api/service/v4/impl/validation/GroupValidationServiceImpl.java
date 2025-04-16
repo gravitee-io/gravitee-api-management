@@ -94,6 +94,7 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
         final Set<GroupEntity> groundGroupEntities,
         final String apiId
     ) {
+
         Stream<GroupEntity> groupEntityStream = groundGroupEntities.stream();
         if (apiId != null) {
             final MembershipEntity primaryOwner = membershipService.getPrimaryOwner(
