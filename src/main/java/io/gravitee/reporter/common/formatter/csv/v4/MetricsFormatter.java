@@ -74,6 +74,8 @@ public class MetricsFormatter extends SingleValueFormatter<Metrics> {
       metrics.getSecurityToken() != null ? metrics.getApiId() : null,
       customMetrics.isEmpty()
     );
+    metrics.aiInputTokens().ifPresent(value -> appendLong(buffer, value));
+    metrics.aiOutputTokens().ifPresent(value -> appendLong(buffer, value));
 
     for (Iterator<String> i = customMetrics.keySet().iterator(); i.hasNext();) {
       appendString(buffer, customMetrics.get(i.next()), true, !i.hasNext());

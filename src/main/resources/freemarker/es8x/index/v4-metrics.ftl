@@ -8,6 +8,8 @@
 <#-- @ftlvariable name="gatewayLatencyMs" type="java.lang.Long" -->
 <#-- @ftlvariable name="requestContentLength" type="java.lang.Long" -->
 <#-- @ftlvariable name="responseContentLength" type="java.lang.Long" -->
+<#-- @ftlvariable name="aiInputTokens" type="java.lang.Long" -->
+<#-- @ftlvariable name="aiOutputTokens" type="java.lang.Long" -->
 <#if index??>
 { "index" : { "_index" : "${index}", "_id" : "${metrics.getRequestId()}"<#if pipeline??>, "pipeline" : "${pipeline}"</#if>} }
 </#if>
@@ -94,6 +96,12 @@
   </#if>
   <#if gatewayLatencyMs??>
   ,"gateway-latency-ms":${gatewayLatencyMs}
+  </#if>
+  <#if aiInputTokens??>
+    ,"ai-input-token":${aiInputTokens}
+  </#if>
+  <#if aiOutputTokens??>
+    ,"ai-output-token":${aiOutputTokens}
   </#if>
   <#if metrics.getUser()??>
   ,"user":"${metrics.getUser()}"

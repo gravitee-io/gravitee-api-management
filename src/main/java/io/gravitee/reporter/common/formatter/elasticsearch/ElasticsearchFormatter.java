@@ -354,6 +354,12 @@ public class ElasticsearchFormatter<T extends Reportable>
         ? metrics.getResponseContentLength()
         : null
     );
+    metrics
+      .aiInputTokens()
+      .ifPresent(value -> data.put("aiInputTokens", value));
+    metrics
+      .aiOutputTokens()
+      .ifPresent(value -> data.put("aiOutputTokens", value));
 
     return generateData("v4-metrics.ftl", data);
   }
