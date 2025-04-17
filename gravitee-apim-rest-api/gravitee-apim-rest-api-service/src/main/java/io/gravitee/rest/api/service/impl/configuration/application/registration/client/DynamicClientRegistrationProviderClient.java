@@ -76,7 +76,15 @@ public abstract class DynamicClientRegistrationProviderClient {
                         HttpEntity entity = response.getEntity();
 
                         if (entity != null) {
-                            return mapper.readValue(EntityUtils.toString(entity), ClientRegistrationResponse.class);
+                            ClientRegistrationResponse clientRegistrationResponse = mapper.readValue(
+                                EntityUtils.toString(entity),
+                                ClientRegistrationResponse.class
+                            );
+                            // Some IdPs do not support the optional application_type parameter. However, the DCR implementation expects this parameter to never be empty
+                            if (clientRegistrationResponse.getApplicationType() == null) {
+                                clientRegistrationResponse.setApplicationType(request.getApplicationType());
+                            }
+                            return clientRegistrationResponse;
                         } else {
                             throw new DynamicClientRegistrationException("Client registration response does not contain any body");
                         }
@@ -166,7 +174,15 @@ public abstract class DynamicClientRegistrationProviderClient {
                         HttpEntity entity = response.getEntity();
 
                         if (entity != null) {
-                            return mapper.readValue(EntityUtils.toString(entity), ClientRegistrationResponse.class);
+                            ClientRegistrationResponse clientRegistrationResponse = mapper.readValue(
+                                EntityUtils.toString(entity),
+                                ClientRegistrationResponse.class
+                            );
+                            // Some IdPs do not support the optional application_type parameter. However, the DCR implementation expects this parameter to never be empty
+                            if (clientRegistrationResponse.getApplicationType() == null) {
+                                clientRegistrationResponse.setApplicationType(request.getApplicationType());
+                            }
+                            return clientRegistrationResponse;
                         } else {
                             throw new DynamicClientRegistrationException("Client registration response does not contain any body");
                         }
@@ -218,7 +234,12 @@ public abstract class DynamicClientRegistrationProviderClient {
         }
     }
 
-    public ClientRegistrationResponse renewClientSecret(String method, String endpoint, String registrationAccessToken) {
+    public ClientRegistrationResponse renewClientSecret(
+        String method,
+        String endpoint,
+        String registrationAccessToken,
+        String applicationType
+    ) {
         HttpRequestBase renewRequest;
 
         if (method.equalsIgnoreCase(HttpMethod.POST.name())) {
@@ -243,7 +264,15 @@ public abstract class DynamicClientRegistrationProviderClient {
                         HttpEntity entity = response.getEntity();
 
                         if (entity != null) {
-                            return mapper.readValue(EntityUtils.toString(entity), ClientRegistrationResponse.class);
+                            ClientRegistrationResponse clientRegistrationResponse = mapper.readValue(
+                                EntityUtils.toString(entity),
+                                ClientRegistrationResponse.class
+                            );
+                            // Some IdPs do not support the optional application_type parameter. However, the DCR implementation expects this parameter to never be empty
+                            if (clientRegistrationResponse.getApplicationType() == null) {
+                                clientRegistrationResponse.setApplicationType(applicationType);
+                            }
+                            return clientRegistrationResponse;
                         } else {
                             throw new DynamicClientRegistrationException("Renew client secret response does not contain any body");
                         }
