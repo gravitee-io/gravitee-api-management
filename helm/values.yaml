@@ -468,40 +468,26 @@ api:
   enabled: true
   upgrader: false
   name: api
-  configuration:
-    # This files section aim to overwrite configuration file computed by helm chart rules by theses provided here.
-    files:
-      ############################################################################################################
-      # This file is the general configuration of Gravitee.IO Management API:
-      # You can have the official full example here:
-      # https://github.com/gravitee-io/gravitee-api-management/blob/master/gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/src/main/resources/config/gravitee.yml
-      #
-      # Please have a look to https://documentation.gravitee.io/ for more options and fine-grained granularity
-      #
-      # INFO:
-      # * By default it is empty for backward compatibility - if you define the configuration file it will
-      #   overwrite the computed one by helm chart regarding other values.
-      # * Defining environment variable still overwrite definition on configuration files.
-      ############################################################################################################
-      gravitee_yml:
-      # Hazelcast config is used related to federation feature.
-      hazelcast_cluster_xml:
-      hazelcast_cache_xml:
-      # this will be applied only if `api.logging.debug` is true
-      logback_xml:
-
-    # configuration reflects the parameters keys
-    logging: {}
-  #      messageSampling:
-  #        count:
-  #          default: 500
-  #          limit: 100
-  #        probabilistic:
-  #          default: 0.01
-  #          limit: 0.5
-  #        temporal:
-  #          default: PT1S
-  #          limit: PT1S
+  # This config section aim to overwrite configuration file computed by helm chart rules by theses provided here.
+  config:
+    ############################################################################################################
+    # This file is the general configuration of Gravitee.IO Management API:
+    # You can have the official full example here:
+    # https://github.com/gravitee-io/gravitee-api-management/blob/master/gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/src/main/resources/config/gravitee.yml
+    #
+    # Please have a look to https://documentation.gravitee.io/ for more options and fine-grained granularity
+    #
+    # INFO:
+    # * By default it is empty for backward compatibility - if you define the configuration file it will
+    #   overwrite the computed one by helm chart regarding other values.
+    # * Defining environment variable still overwrite definition on configuration files.
+    ############################################################################################################
+    graviteeYml:
+    # Hazelcast config is used related to federation feature.
+    hazelcastClusterXml:
+    hazelcastCacheXml:
+    # this will be applied only if `api.logging.debug` is true
+    logbackXml:
 
   logging:
     debug: false
@@ -591,6 +577,20 @@ api:
       periodSeconds: 10
 
     customStartupProbe: {}
+  # configuration reflects the parameters keys
+  configuration:
+    logging: {}
+#      messageSampling:
+#        count:
+#          default: 500
+#          limit: 100
+#        probabilistic:
+#          default: 0.01
+#          limit: 0.5
+#        temporal:
+#          default: PT1S
+#          limit: PT1S
+
   pdb:
     enabled: false
     minAvailable: ""
@@ -906,23 +906,22 @@ api:
 
 gateway:
   enabled: true
-  configuration:
-    # This files section aim to overwrite configuration file computed by helm chart rules by theses provided here.
-    files:
-      ############################################################################################################
-      # This file is the general configuration of Gravitee.IO Gateway:
-      # You can have the official full example here:
-      # https://github.com/gravitee-io/gravitee-api-management/blob/master/gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/src/main/resources/config/gravitee.yml
-      #
-      # Please have a look to https://documentation.gravitee.io/ for more options and fine-grained granularity
-      #
-      # INFO:
-      # * By default it is empty for backward compatibility - if you define the configuration file it will
-      #   overwrite the computed one by helm chart regarding other values.
-      # * Defining environment variable still overwrite definition on configuration files.
-      ############################################################################################################
-      gravitee_yml:
-      logback_xml:
+  # This config section aim to overwrite configuration file computed by helm chart rules by theses provided here.
+  config:
+    ############################################################################################################
+    # This file is the general configuration of Gravitee.IO Gateway:
+    # You can have the official full example here:
+    # https://github.com/gravitee-io/gravitee-api-management/blob/master/gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/src/main/resources/config/gravitee.yml
+    #
+    # Please have a look to https://documentation.gravitee.io/ for more options and fine-grained granularity
+    #
+    # INFO:
+    # * By default it is empty for backward compatibility - if you define the configuration file it will
+    #   overwrite the computed one by helm chart regarding other values.
+    # * Defining environment variable still overwrite definition on configuration files.
+    ############################################################################################################
+    graviteeYml:
+    logbackXml:
   # if enabled, required annotation will be added to allow the gateway to act as a runtime for the GKO
   # ingress controller (service should be set to type LoadBalancer in order to get the full feature set)
   ingressController:
