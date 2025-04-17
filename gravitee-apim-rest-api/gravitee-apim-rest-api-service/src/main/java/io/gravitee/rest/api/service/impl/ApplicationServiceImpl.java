@@ -762,6 +762,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             } else {
                 // Check that client registration is enabled
                 checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
+                // Some IdPs do not support the optional application_type parameter. However, the DCR implementation expects this parameter to never be empty
+                if (updateApplicationEntity.getSettings().getOauth().getApplicationType() == null) {
+                    updateApplicationEntity.getSettings().getOauth().setApplicationType(applicationToUpdate.getType().name());
+                }
                 checkAndSanitizeOAuthClientSettings(updateApplicationEntity.getSettings().getOauth());
 
                 // Update an OAuth client
