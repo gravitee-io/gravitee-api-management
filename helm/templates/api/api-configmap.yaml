@@ -1,4 +1,15 @@
-{{- if and (and (.Values.api.enabled) (not .Values.apim.dbLess)) (or (not (include "api.externalConfig" .)) (.Values.api.logging.debug) (.Values.api.configuration.files.gravitee_yml) (.Values.api.configuration.files.logback_xml)) -}}
+{{- if and
+        (and
+          (.Values.api.enabled)
+          (not .Values.apim.dbLess)
+        )
+        (or
+          (not (include "api.externalConfig" .))
+          (.Values.api.logging.debug)
+          (.Values.api.config.graviteeYml)
+          (.Values.api.config.logbackXml)
+        )
+-}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -22,9 +33,9 @@ metadata:
     {{- end }}
     {{- end }}
 data:
-{{- if .Values.api.configuration.files.gravitee_yml }}
+{{- if .Values.api.config.graviteeYml }}
   gravitee.yml: |-
-    {{- toYaml .Values.api.configuration.files.gravitee_yml | nindent 4 }}
+    {{- toYaml .Values.api.config.graviteeYml | nindent 4 }}
 {{- else if not (include "api.externalConfig" .) }}
   gravitee.yml: |
     {{- if .Values.api.ssl.enabled }}
@@ -578,9 +589,9 @@ data:
     {{- end }}
 
     {{- if .Values.api.federation.enabled }}
-      {{- if .Values.api.configuration.files.hazelcast_cluster_xml }}
+      {{- if .Values.api.config.hazelcastClusterXml }}
   hazelcast-cluster.xml: |-
-        {{- .Values.api.configuration.files.hazelcast_cluster_xml | nindent 4 }}
+        {{- .Values.api.config.hazelcastClusterXml | nindent 4 }}
       {{- else }}
   hazelcast-cluster.xml: |-
     <?xml version="1.0" encoding="UTF-8"?>
@@ -621,9 +632,9 @@ data:
         </network>
     </hazelcast>
     {{- end }}
-    {{- if .Values.api.configuration.files.hazelcast_cache_xml }}
+    {{- if .Values.api.config.hazelcastCacheXml }}
   hazelcast-cache.xml: |-
-        {{- .Values.api.configuration.files.hazelcast_cache_xml | nindent 4 }}
+        {{- .Values.api.config.hazelcastCacheXml | nindent 4 }}
     {{- else }}
   hazelcast-cache.xml: |-
     <?xml version="1.0" encoding="UTF-8"?>
@@ -665,9 +676,9 @@ data:
     {{- end }}
     {{- end }}
 
-  {{- if .Values.api.configuration.files.logback_xml }}
+  {{- if .Values.api.config.logbackXml }}
   logback.xml: |-
-      {{- .Values.api.configuration.files.logback_xml | nindent 4 }}
+      {{- .Values.api.config.logbackXml | nindent 4 }}
   {{- else if .Values.api.logging.debug }}
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
