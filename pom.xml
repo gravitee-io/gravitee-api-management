@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<version>22.2.2</version>
+		<version>22.3.0</version>
 	</parent>
 
 	<groupId>io.gravitee.reporter</groupId>
@@ -33,11 +33,10 @@
 	<name>Gravitee.io APIM - Reporter - File</name>
 
 	<properties>
-		<gravitee-bom.version>6.0.60</gravitee-bom.version>
-		<gravitee-gateway-api.version>3.8.1</gravitee-gateway-api.version>
+		<gravitee-bom.version>8.2.22</gravitee-bom.version>
+		<gravitee-apim.version>4.6.8</gravitee-apim.version>
 		<gravitee-reporter-api.version>1.31.2</gravitee-reporter-api.version>
 		<gravitee-reporter-common.version>1.4.1</gravitee-reporter-common.version>
-		<gravitee-common.version>3.4.1</gravitee-common.version>
 		<gravitee-node.version>4.8.7</gravitee-node.version>
 
 		<maven-plugin-assembly.version>3.7.1</maven-plugin-assembly.version>
@@ -52,6 +51,13 @@
 				<groupId>io.gravitee</groupId>
 				<artifactId>gravitee-bom</artifactId>
 				<version>${gravitee-bom.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>io.gravitee.apim</groupId>
+				<artifactId>gravitee-apim-bom</artifactId>
+				<version>${gravitee-apim.version}</version>
 				<scope>import</scope>
 				<type>pom</type>
 			</dependency>
@@ -74,37 +80,6 @@
 				</excludes>
 			</resource>
 		</resources>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<includes>
-						<include>**/*IT.java</include>
-						<include>**/*Test.java</include>
-					</includes>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>${maven-plugin-assembly.version}</version>
-				<configuration>
-					<appendAssemblyId>false</appendAssemblyId>
-					<descriptors>
-						<descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
-					</descriptors>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-policy-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
 	</build>
 
 	<dependencies>
@@ -112,14 +87,14 @@
 		<dependency>
 			<groupId>io.gravitee.gateway</groupId>
 			<artifactId>gravitee-gateway-api</artifactId>
-			<version>${gravitee-gateway-api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>io.gravitee.reporter</groupId>
 			<artifactId>gravitee-reporter-api</artifactId>
-			<version>${gravitee-reporter-api.version}</version>
+			<!-- TODO remove before merge -->
+			<version>1.32.0-apim-9340-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -131,7 +106,6 @@
 		<dependency>
 			<groupId>io.gravitee.common</groupId>
 			<artifactId>gravitee-common</artifactId>
-			<version>${gravitee-common.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -178,13 +152,8 @@
 
 		<!-- Unit Tests -->
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -195,6 +164,11 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

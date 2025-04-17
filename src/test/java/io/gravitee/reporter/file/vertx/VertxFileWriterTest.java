@@ -17,8 +17,7 @@ package io.gravitee.reporter.file.vertx;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.reporter.api.Reportable;
@@ -29,14 +28,17 @@ import io.vertx.core.Vertx;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
-public class VertxFileWriterTest {
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
+class VertxFileWriterTest {
 
     private static final ZoneOffset ZONE = ZoneOffset.UTC;
     private static final LocalDateTime NOW = LocalDateTime.now(ZONE);
@@ -49,39 +51,39 @@ public class VertxFileWriterTest {
     @Mock
     private File file;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         when(configuration.getFilename()).thenReturn("/metrics/%s-yyyy_mm_dd");
         vertxFileWriter = new VertxFileWriter<>(mock(Vertx.class), MetricsType.REQUEST, mock(Formatter.class), "filename", configuration);
     }
 
     @Test
-    public void shouldDeleteFile_should_return_true_if_retainDays_configuration_exceeds_file_lastModified_time() {
+    void shouldDeleteFile_should_return_true_if_retainDays_configuration_exceeds_file_lastModified_time() {
         when(configuration.getRetainDays()).thenReturn(10L);
 
         long currentTimeMs = NOW.toInstant(ZONE).toEpochMilli();
         when(file.lastModified()).thenReturn(NOW.toInstant(ZONE).minus(10, DAYS).minus(1, SECONDS).toEpochMilli());
 
-        assertTrue(vertxFileWriter.shouldDeleteFile(file, currentTimeMs));
+        assertThat(vertxFileWriter.shouldDeleteFile(file, currentTimeMs)).isTrue();
     }
 
     @Test
-    public void shouldDeleteFile_should_return_false_if_retainDays_configuration_doesnt_exceed_file_lastModified_time() {
+    void shouldDeleteFile_should_return_false_if_retainDays_configuration_doesnt_exceed_file_lastModified_time() {
         when(configuration.getRetainDays()).thenReturn(10L);
 
         long currentTimeMs = NOW.toInstant(ZONE).toEpochMilli();
         when(file.lastModified()).thenReturn(NOW.toInstant(ZONE).minus(10, DAYS).plus(1, SECONDS).toEpochMilli());
 
-        assertFalse(vertxFileWriter.shouldDeleteFile(file, currentTimeMs));
+        assertThat(vertxFileWriter.shouldDeleteFile(file, currentTimeMs)).isFalse();
     }
 
     @Test
-    public void shouldDeleteFile_should_return_false_if_retainDays_configuration_is_0() {
+    void shouldDeleteFile_should_return_false_if_retainDays_configuration_is_0() {
         when(configuration.getRetainDays()).thenReturn(0L);
 
         long currentTimeMs = NOW.toInstant(ZONE).toEpochMilli();
 
-        assertFalse(vertxFileWriter.shouldDeleteFile(file, currentTimeMs));
+        assertThat(vertxFileWriter.shouldDeleteFile(file, currentTimeMs)).isFalse();
         verify(file, never()).lastModified();
     }
 }
