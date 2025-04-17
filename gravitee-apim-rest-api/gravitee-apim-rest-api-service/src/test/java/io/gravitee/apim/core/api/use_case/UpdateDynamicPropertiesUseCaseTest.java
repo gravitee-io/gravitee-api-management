@@ -151,11 +151,11 @@ class UpdateDynamicPropertiesUseCaseTest {
     }
 
     @Nested
-    class WhenApiIsSynchronized {
+    class WhenApiIsNotSynchronized {
 
         @BeforeEach
         void setUp() {
-            when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(true);
+            when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(false);
         }
 
         @Test
@@ -219,14 +219,14 @@ class UpdateDynamicPropertiesUseCaseTest {
     }
 
     @Nested
-    class WhenApiIsNotSynchronized {
+    class WhenApiIsSynchronized {
 
         private final ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
         private final ArgumentCaptor<AuditInfo> auditInfoCaptor = ArgumentCaptor.forClass(AuditInfo.class);
 
         @BeforeEach
         void setUp() {
-            when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(false);
+            when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(true);
         }
 
         @Test
