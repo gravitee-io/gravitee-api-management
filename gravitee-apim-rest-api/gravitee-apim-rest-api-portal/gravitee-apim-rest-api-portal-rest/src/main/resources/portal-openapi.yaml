@@ -4080,6 +4080,8 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/Plan"
+                mcp:
+                  $ref: "#/components/schemas/MCP"
 
         DefinitionVersion:
             type: string
@@ -4107,6 +4109,45 @@ components:
                 - PROXY
                 - MESSAGE
                 - NATIVE
+
+        MCP:
+          title: "MCP"
+          properties:
+            enabled:
+              type: boolean
+            tools:
+              type: array
+              items:
+                $ref: "#/components/schemas/MCPTool"
+
+        MCPTool:
+          title: "MCPTool"
+          properties:
+            name:
+              type: string
+              description: Name of the tool. The name must be unique across the Gravitee installation.
+            description:
+              type: string
+              description: Description of the tool
+            inputSchema:
+              $ref: "#/components/schemas/MCPInputSchema"
+
+        MCPInputSchema:
+          title: "MCPInputSchema"
+          properties:
+            type:
+              type: string
+              default: object
+            properties:
+              type: object
+              additionalProperties:
+                type: object
+            required:
+              type: array
+              description: Properties by name that are required in the schema
+              items:
+                type: string
+
         ApiInformation:
             properties:
                 name:

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 :host {
+  --mdc-chip-outline-color: transparent;
+
   display: flex;
   min-height: 256px;
   flex-flow: column;
@@ -32,6 +34,7 @@
 
     &__content {
       display: flex;
+      flex: 1;
       flex-flow: column;
       gap: 4px;
     }
@@ -46,6 +49,11 @@
     flex: 1 1 100%;
     flex-direction: column;
     gap: 28px;
+
+    mat-chip {
+      width: fit-content;
+      align-self: flex-start;
+    }
   }
 
   &__description {

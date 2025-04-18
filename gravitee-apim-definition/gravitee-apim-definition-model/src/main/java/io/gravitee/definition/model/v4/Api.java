@@ -26,6 +26,8 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.mcp.MCP;
+import io.gravitee.definition.model.v4.mcp.Tool;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -99,6 +101,8 @@ public class Api extends AbstractApi {
     public Plan getPlan(final String plan) {
         return plans.get(plan);
     }
+
+    private MCP mcp;
 
     @Nullable
     public List<Plan> getPlans() {

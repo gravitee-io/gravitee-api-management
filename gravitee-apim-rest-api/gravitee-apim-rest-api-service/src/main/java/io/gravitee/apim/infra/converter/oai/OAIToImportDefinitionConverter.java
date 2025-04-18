@@ -93,7 +93,9 @@ public class OAIToImportDefinitionConverter {
                         : new HashSet<>(xGraviteeIODefinition.getTags())
                 );
 
-            importDefinitionBuilder.metadata(OAIToMetadataConverter.INSTANCE.convert(xGraviteeIODefinition.getMetadata()));
+            importDefinitionBuilder
+                .metadata(OAIToMetadataConverter.INSTANCE.convert(xGraviteeIODefinition.getMetadata()))
+                .plans(OAIToPlanConverter.INSTANCE.convert(xGraviteeIODefinition.getPlans()));
         }
 
         return importDefinitionBuilder.apiExport(apiBuilder.build()).build();

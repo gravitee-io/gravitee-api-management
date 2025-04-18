@@ -17,6 +17,8 @@
   margin-top: 34px;
 
   &__header {
+    --mdc-chip-outline-color: transparent;
+
     display: flex;
     align-items: center;
     gap: 16px;
@@ -53,4 +55,8 @@
   &__content {
     padding-top: 32px;
   }
+}
+
+mat-chip {
+  align-self: flex-start;
 }
