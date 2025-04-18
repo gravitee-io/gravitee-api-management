@@ -51,3 +51,28 @@ npm run generate
 ```
 
 It creates a local file `dynamicConfig.yml` that you can check if it looks like as expected.
+
+Example to trigger `build_rpm` on current branch with latest tag:
+
+```bash
+export APIM_VERSION_PATH="${PWD%gravitee-api-management/*}/gravitee-api-management/pom.xml"     
+export CIRCLE_BRANCH="$(git branch --show-current)"                                          
+export CI_ACTION="build_rpm"
+export CIRCLE_SHA1="$(git rev-parse --short HEAD)"
+export CI_DRY_RUN=true 
+export CI_DOCKER_TAG_AS_LATEST=false
+export CI_GRAVITEEIO_VERSION="$(git tag -l | sed '/-/!{s/$/_/;}; s/-patch/_patch/' | sort -V | sed 's/_$//; s/_patch/-patch/' | tail -n 1)"
+
+npm run generate
+```
+
+Then, if you are satisfied by the yaml output, you can add a temporary commit to force CI to trigger a specific build by updating the `config.yml` file:
+
+```yaml
+        environment:
+            CI_ACTION: "build_rpm"
+            CI_DRY_RUN: "true"
+            CI_GRAVITEEIO_VERSION: "4.7.2"
+            CI_DOCKER_TAG_AS_LATEST: "false"
+```
+/!\ Be sure to use dry-run and control what will be run as it will be executed for real.
