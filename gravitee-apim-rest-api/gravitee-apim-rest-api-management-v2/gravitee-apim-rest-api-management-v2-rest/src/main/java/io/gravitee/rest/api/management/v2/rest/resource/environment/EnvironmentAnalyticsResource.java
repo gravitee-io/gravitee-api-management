@@ -120,7 +120,6 @@ public class EnvironmentAnalyticsResource {
     @Path("/response-time-over-time")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
     public EnvironmentAnalyticsOverPeriodResponse getResponseTimeOverTime(@QueryParam("from") Long from, @QueryParam("to") Long to) {
         Instant end = to != null ? Instant.ofEpochMilli(to) : Instant.now();
         Instant start = from != null ? Instant.ofEpochMilli(from) : end.minus(Duration.ofDays(1));
@@ -144,7 +143,6 @@ public class EnvironmentAnalyticsResource {
     @Path("/response-status-overtime")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
     public EnvironmentAnalyticsResponseStatusOvertimeResponse getResponseStatusOvertime(
         @QueryParam("from") Long from,
         @QueryParam("to") Long to
@@ -167,7 +165,6 @@ public class EnvironmentAnalyticsResource {
     @Path("/top-apps-by-request-count")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
     public EnvironmentAnalyticsTopAppsByRequestCountResponse getTopAppsByRequestCount(@BeanParam @Valid TimeRangeParam timeRangeParam) {
         var params = AnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
         var input = new SearchEnvironmentTopAppsByRequestCountUseCase.Input(GraviteeContext.getExecutionContext(), params);
@@ -184,7 +181,6 @@ public class EnvironmentAnalyticsResource {
     @Path("/top-failed-apis")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
     public EnvironmentAnalyticsTopFailedApisResponse getTopFailedApis(@BeanParam @Valid TimeRangeParam timeRangeParam) {
         var params = AnalyticsQueryParameters.builder().from(timeRangeParam.getFrom()).to(timeRangeParam.getTo()).build();
         var input = new SearchEnvironmentTopFailedApisUseCase.Input(GraviteeContext.getExecutionContext(), params);
