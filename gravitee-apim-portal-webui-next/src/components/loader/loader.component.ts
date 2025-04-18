@@ -18,9 +18,16 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-loader',
   imports: [],
-  template: `<div class="loader-container">
-    <div class="loader"><div></div></div>
-  </div>`,
+  template: `
+    <div class="content-container">
+      <div class="loader-container">
+        <div class="loader">
+          <div></div>
+        </div>
+      </div>
+      <ng-content />
+    </div>
+  `,
   styleUrl: './loader.component.scss',
 })
 export class LoaderComponent {}

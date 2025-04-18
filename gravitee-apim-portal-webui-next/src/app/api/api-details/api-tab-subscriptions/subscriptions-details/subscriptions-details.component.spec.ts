@@ -34,6 +34,7 @@ import {
   fakeSubscription,
   fakeSubscriptionResponse,
   Subscription,
+  SubscriptionConsumerStatusEnum,
   SubscriptionsResponse,
   SubscriptionStatusEnum,
 } from '../../../../../entities/subscription';
@@ -262,6 +263,63 @@ describe('SubscriptionsDetailsComponent', () => {
     });
   });
 
+  describe('consumer status started', () => {
+    beforeEach(() => {
+      expectSubscriptionWithKeys(fakeSubscription({ consumerStatus: SubscriptionConsumerStatusEnum.STARTED }));
+      expectGetApiPermissions();
+      expectPlansList(fakePlansResponse());
+      expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
+    });
+
+    it('should hide retry subscription button', async () => {
+      const button = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '.retry-subscription-button' }));
+      expect(button).toBeNull();
+    });
+  });
+
+  describe('retry-subscription-button click', () => {
+    beforeEach(() => {
+      expectSubscriptionWithKeys(fakeSubscription({ consumerStatus: SubscriptionConsumerStatusEnum.FAILURE }));
+      expectGetApiPermissions();
+      expectPlansList(fakePlansResponse());
+      expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
+    });
+
+    afterEach(() => {
+      expectPostChangeConsumerStatus();
+      expectSubscriptionWithKeys(fakeSubscription());
+      expectGetApiPermissions();
+      expectPlansList(fakePlansResponse());
+      expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
+    });
+
+    it('should call correct endpoints', async () => {
+      const button = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '.retry-subscription-button' }));
+
+      expect(button).not.toBeNull();
+
+      await button?.click();
+    });
+  });
+
+  describe('consumer status stopped', () => {
+    beforeEach(() => {
+      expectSubscriptionWithKeys(fakeSubscription({ consumerStatus: SubscriptionConsumerStatusEnum.STOPPED }));
+      expectGetApiPermissions();
+      expectPlansList(fakePlansResponse());
+      expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID }));
+    });
+
+    it('should hide retry subscription button', async () => {
+      const button = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '.retry-subscription-button' }));
+      expect(button).toBeNull();
+    });
+  });
+
   function expectSubscriptionWithKeys(subscriptionResponse: Subscription = fakeSubscription()) {
     httpTestingController
       .expectOne(`${TESTING_BASE_URL}/subscriptions/testSubscriptionId?include=keys&include=consumerConfiguration`)
@@ -285,5 +343,10 @@ describe('SubscriptionsDetailsComponent', () => {
 
   function expectGetApiPermissions(permissions = fakeUserApiPermissions({ PLAN: ['R'] })) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/permissions?apiId=${API_ID}`).flush(permissions);
+  }
+
+  function expectPostChangeConsumerStatus() {
+    const url = `${TESTING_BASE_URL}/subscriptions/testSubscriptionId/_changeConsumerStatus?status=STARTED`;
+    httpTestingController.expectOne(url).flush(fakeSubscription());
   }
 });
