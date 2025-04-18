@@ -198,6 +198,8 @@ export class GroupComponent implements OnInit {
   canAddMembers = false;
   maxInvitationsLimitReached = false;
   deleteDisabled = false;
+  disableAddGroupToExistingApplications = false;
+  disableAddGroupToExistingAPIs = false;
 
   private group = new BehaviorSubject<Group>(null);
   private groupMembers = new BehaviorSubject<Member[]>([]);
@@ -219,7 +221,6 @@ export class GroupComponent implements OnInit {
   ngOnInit(): void {
     this.initializeDefaultRoles();
     this.initializeGroup();
-    this.disableForm();
   }
 
   private initializeGroup() {
@@ -230,6 +231,7 @@ export class GroupComponent implements OnInit {
         this.initialFormValues = this.groupForm.getRawValue();
         this.hideActionsForReadOnlyUser();
         this.initializeDependents();
+        this.disableForm();
       }),
       takeUntilDestroyed(this.destroyRef),
     );
@@ -496,7 +498,7 @@ export class GroupComponent implements OnInit {
       .open<EditMemberDialogComponent, EditMemberDialogData, AddOrUpdateMemberDialogResult>(EditMemberDialogComponent, {
         data: {
           group: this.group.value,
-          member,
+          member: member,
           members: this.groupMembers.value,
           defaultAPIRoles: this.defaultAPIRoles,
           defaultApplicationRoles: this.defaultApplicationRoles,
@@ -510,9 +512,9 @@ export class GroupComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((dialogResult: AddOrUpdateMemberDialogResult) => dialogResult.memberships?.length > 0),
+        filter((dialogResult: AddOrUpdateMemberDialogResult) => dialogResult?.memberships?.length > 0),
         switchMap((dialogResult) =>
-          this.groupService.addOrUpdateMemberships(this.groupId, dialogResult.memberships).pipe(
+          this.groupService.addOrUpdateMemberships(this.groupId, dialogResult?.memberships).pipe(
             tap(() => {
               this.snackBarService.success('Successfully saved edited member(s) of the group.');
               this.initializeGroupMembers();
@@ -734,6 +736,8 @@ export class GroupComponent implements OnInit {
   private disableForm() {
     if (!this.canUpdateGroup()) {
       this.groupForm.disable();
+      this.disableAddGroupToExistingAPIs = true;
+      this.disableAddGroupToExistingApplications = true;
     }
   }
 

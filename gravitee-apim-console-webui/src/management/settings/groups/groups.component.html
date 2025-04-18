@@ -21,7 +21,7 @@
     <button
       mat-raised-button
       [routerLink]="['.', 'new']"
-      [disabled]="disableAddGroup()"
+      [disabled]="addGroupDisabled"
       color="primary"
       aria-hidden="false"
       aria-label="Click to create group"
@@ -36,7 +36,7 @@
         <gio-form-slide-toggle>
           <gio-form-label>Requires an application to have at least one group added in order to create or update it.</gio-form-label>
           <mat-slide-toggle
-            formControlName="enabled"
+            formControlName="userGroupRequired"
             gioFormSlideToggle
             aria-label="Enable to enforce adding at least one group when creating new applications"
           ></mat-slide-toggle>
@@ -77,7 +77,7 @@
               <button
                 mat-button
                 (click)="deleteGroup(row)"
-                [disabled]="disableDelete()"
+                [disabled]="deleteGroupDisabled()"
                 matTooltip="Delete group"
                 aria-hidden="false"
                 aria-label="Click to delete group"

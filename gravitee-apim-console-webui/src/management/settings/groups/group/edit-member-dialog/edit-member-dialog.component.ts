@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, Inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -30,6 +30,7 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { MatChip, MatChipRemove, MatChipSet } from '@angular/material/chips';
 import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { RoleName } from '../membershipState';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
@@ -63,6 +64,7 @@ import { Group } from '../../../../../entities/group/group';
     MatChipRemove,
     MatChipSet,
     GioFormSlideToggleModule,
+    MatSlideToggle,
     GioBannerModule,
   ],
   templateUrl: './edit-member-dialog.component.html',
@@ -88,9 +90,8 @@ export class EditMemberDialogComponent implements OnInit {
   selectedPrimaryOwner: Member = null;
   memberships: GroupMembership[] = [];
   downgradedMember: Member = null;
-  disableSubmit = signal(true);
-  disabledAPIRoles = signal(new Set<string>());
-  disableRemovePrimaryOwner = signal(false);
+  disableSubmit = true;
+  disabledAPIRoles = new Set<string>();
 
   private user: SearchableUser = null;
   private initialValues: any = null;
@@ -123,12 +124,16 @@ export class EditMemberDialogComponent implements OnInit {
   }
 
   private initializeForm() {
+    const groupRole = this.member.roles.find((member) => member.scope === 'GROUP');
     this.editMemberForm = new FormGroup({
       displayName: new FormControl<string>(this.member.displayName),
-      groupAdmin: new FormControl<boolean>(this.member.roles['GROUP'] === 'ADMIN'),
-      defaultAPIRole: new FormControl<string>(this.member.roles['API']),
-      defaultApplicationRole: new FormControl<string>(this.member.roles['APPLICATION']),
-      defaultIntegrationRole: new FormControl<string>(this.member.roles['INTEGRATION']),
+      groupAdmin: new FormControl<boolean>({
+        value: !!groupRole && groupRole.name === 'ADMIN',
+        disabled: !this.group.system_invitation,
+      }),
+      defaultAPIRole: new FormControl<string>(this.member.roles.find((member) => member.scope === 'API').name),
+      defaultApplicationRole: new FormControl<string>(this.member.roles.find((member) => member.scope === 'APPLICATION').name),
+      defaultIntegrationRole: new FormControl<string>(this.member.roles.find((member) => member.scope === 'INTEGRATION').name),
       searchTerm: new FormControl<string>({ value: '', disabled: true }),
     });
   }
@@ -178,10 +183,8 @@ export class EditMemberDialogComponent implements OnInit {
   }
 
   private disableAPIRoleOptions() {
-    this.disabledAPIRoles.set(
-      new Set(
-        this.defaultAPIRoles.filter((role) => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map((role) => role.id),
-      ),
+    this.disabledAPIRoles = new Set(
+      this.defaultAPIRoles.filter((role) => this.isPrimaryOwnerDisabled(role) || this.isSystemRoleDisabled(role)).map((role) => role.id),
     );
   }
 
@@ -211,6 +214,7 @@ export class EditMemberDialogComponent implements OnInit {
             const reference = users.find((u) => u.id === ownerId).reference;
             const ownerMembership = this.mapGroupMembership(ownerId, reference, RoleName.OWNER);
             const primaryOwnerMembership = this.mapGroupMembership(this.user.id, this.user.reference, RoleName.PRIMARY_OWNER);
+            this.setGroupAdminRole(primaryOwnerMembership);
             this.memberships = [ownerMembership, primaryOwnerMembership];
             this.matDialogRef.close({ memberships: this.memberships });
           }),
@@ -219,6 +223,7 @@ export class EditMemberDialogComponent implements OnInit {
         .subscribe();
     } else if (this.isDowngradeRole()) {
       const ownerMembership = this.mapGroupMembership(this.user.id, this.user.reference, this.editMemberForm.controls.defaultAPIRole.value);
+      this.setGroupAdminRole(ownerMembership);
       this.usersService
         .search(this.selectedPrimaryOwner.displayName)
         .pipe(
@@ -233,8 +238,15 @@ export class EditMemberDialogComponent implements OnInit {
         .subscribe();
     } else {
       const groupMembership = this.mapGroupMembership(this.user.id, this.user.reference, this.editMemberForm.controls.defaultAPIRole.value);
+      this.setGroupAdminRole(groupMembership);
       this.memberships = [groupMembership];
       this.matDialogRef.close({ memberships: this.memberships });
+    }
+  }
+
+  private setGroupAdminRole(groupMembership: GroupMembership) {
+    if (this.editMemberForm.controls.groupAdmin.value) {
+      groupMembership.roles.push({ name: 'ADMIN', scope: 'GROUP' });
     }
   }
 
@@ -266,7 +278,7 @@ export class EditMemberDialogComponent implements OnInit {
       this.editMemberForm.controls.searchTerm.disable();
       this.editMemberForm.controls.searchTerm.setValue('');
       this.editMemberForm.controls.searchTerm.removeValidators(Validators.required);
-      this.disableSubmit.set(false);
+      this.disableSubmit = false;
     }
   }
 
@@ -276,7 +288,7 @@ export class EditMemberDialogComponent implements OnInit {
       this.ownershipTransferMessage = null;
       this.editMemberForm.controls.searchTerm.enable();
       this.editMemberForm.controls.searchTerm.addValidators(Validators.required);
-      this.disableSubmit.set(true);
+      this.disableSubmit = true;
     }
   }
 
@@ -289,7 +301,7 @@ export class EditMemberDialogComponent implements OnInit {
     return this.members.filter((member) => member.displayName.toLowerCase().includes(filterValue) && member.id !== this.member.id);
   }
 
-  onRoleChange() {
+  onChange() {
     this.selectedPrimaryOwner = null;
     this.ownershipTransferMessage = null;
     this.memberships = [];
@@ -300,14 +312,16 @@ export class EditMemberDialogComponent implements OnInit {
       this.downgradedMember = this.members.find((member) => member.roles['API'] === RoleName.PRIMARY_OWNER);
       this.selectedPrimaryOwner = this.member;
       this.ownershipTransferMessage = `${this.downgradedMember.displayName} is the API primary owner. The primary ownership will be transferred to ${this.member.displayName} and ${this.downgradedMember.displayName} will be updated as owner.`;
-      this.disableRemovePrimaryOwner.set(true);
-      this.disableSubmit.set(false);
+      this.disableSubmit = false;
     } else if (this.isDowngradeRole()) {
       this.editMemberForm.controls.searchTerm.enable();
       this.editMemberForm.controls.searchTerm.addValidators(Validators.required);
       this.downgradedMember = this.member;
+      this.disableSubmit = !this.selectedPrimaryOwner;
     } else {
-      this.disableSubmit.set(false);
+      this.editMemberForm.controls.searchTerm.disable();
+      this.editMemberForm.controls.searchTerm.removeValidators(Validators.required);
+      this.disableSubmit = false;
     }
   }
 

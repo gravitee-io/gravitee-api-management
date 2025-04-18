@@ -54,13 +54,7 @@
           <mat-label>Max Number Of Members</mat-label>
           <input matInput type="number" formControlName="maxNumberOfMembers" />
         </mat-form-field>
-      </form>
-    </mat-card-content>
-  </mat-card>
 
-  <mat-card class="group__form__card">
-    <mat-card-content>
-      <form [formGroup]="groupForm">
         <gio-form-slide-toggle class="group__form__card__actions">
           <gio-form-label>Allow adding members via user search</gio-form-label>
           <mat-slide-toggle
@@ -115,6 +109,7 @@
             <button
               mat-raised-button
               color="primary"
+              [disabled]="disableAddGroupToExistingAPIs"
               (click)="addToExistingAPIs(group)"
               matTooltip="Click to add this group to all existing APIs"
             >
@@ -139,6 +134,7 @@
               mat-raised-button
               color="primary"
               (click)="addToExistingApplications(group)"
+              [disabled]="disableAddGroupToExistingApplications"
               matTooltip="Click to add this group to all existing applications"
             >
               <mat-icon svgIcon="gio:plus"></mat-icon>

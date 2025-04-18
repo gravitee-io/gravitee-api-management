@@ -229,7 +229,7 @@ public class ApplicationService_UpdateTest {
         );
 
         assertEquals(
-            "Updating an application with no groups when setting to add at least one group to the application enabled is not allowed.",
+            "Updating an application is not allowed as at least one group is required on the application.",
             exception.getMessage()
         );
     }
