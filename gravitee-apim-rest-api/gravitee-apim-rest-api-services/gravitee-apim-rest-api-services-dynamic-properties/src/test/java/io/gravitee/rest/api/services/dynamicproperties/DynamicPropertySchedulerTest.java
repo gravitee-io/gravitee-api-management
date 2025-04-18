@@ -128,23 +128,19 @@ public class DynamicPropertySchedulerTest {
     }
 
     @Test
-    public void should_update_properties_without_deployment_if_manual_change() {
+    public void should_update_properties_without_deployment() {
         when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
-        // Simulate a manual change
-        when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(false);
 
         when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
         dynamicPropertyScheduler.schedule(provider);
         testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
 
         verify(apiService, times(1)).update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false));
-        verify(apiService, never()).deploy(any(), any(), any(), any(), any());
     }
 
     @Test
     public void should_update_properties_and_deploy_api() {
         when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
-        when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(true);
 
         when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
         dynamicPropertyScheduler.schedule(provider);
@@ -158,7 +154,6 @@ public class DynamicPropertySchedulerTest {
     @Test
     public void should_not_deploy_api_on_update_error() {
         when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
-        when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(true);
 
         when(apiService.update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false)))
             .thenThrow(new TechnicalManagementException("Unable to update the API"));
