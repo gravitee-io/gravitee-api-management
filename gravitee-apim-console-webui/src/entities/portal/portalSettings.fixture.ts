@@ -218,6 +218,32 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
         },
       },
     },
+    logging: {
+      maxDurationMillis: 1000,
+      audit: {
+        enabled: true,
+        trail: {
+          enabled: true,
+        },
+      },
+      user: {
+        displayed: true,
+      },
+      messageSampling: {
+        probabilistic: {
+          default: 0.01,
+          limit: 0.5,
+        },
+        count: {
+          default: 10,
+          limit: 100,
+        },
+        temporal: {
+          default: 'PT1S',
+          limit: 'PT1S',
+        },
+      },
+    },
   };
 
   return {
