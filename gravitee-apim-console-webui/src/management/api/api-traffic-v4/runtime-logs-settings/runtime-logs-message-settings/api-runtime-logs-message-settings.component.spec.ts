@@ -480,7 +480,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
   }
 
   function expectConsoleSettingsGetRequest(consoleSettingsResponse: ConsoleSettings) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/portal`);
     req.flush(consoleSettingsResponse);
     expect(req.request.method).toEqual('GET');
   }
