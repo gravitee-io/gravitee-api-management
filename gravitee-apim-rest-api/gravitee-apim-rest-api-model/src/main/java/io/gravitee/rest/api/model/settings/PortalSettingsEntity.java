@@ -43,6 +43,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     private Documentation documentation;
     private OpenAPIDocViewer openAPIDocViewer;
     private PlanSettings plan;
+    private Logging logging;
 
     @Valid
     private Portal portal;
@@ -73,6 +74,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         reCaptcha = new PortalReCaptcha();
         scheduler = new PortalScheduler();
         dashboards = new Dashboards();
+        logging = new Logging();
     }
 
     // Classes
