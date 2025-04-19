@@ -41,6 +41,7 @@ public class PortalConfigEntity {
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
     private Dashboards dashboards;
+    private Logging logging;
 
     public PortalConfigEntity() {
         super();
@@ -59,5 +60,6 @@ public class PortalConfigEntity {
         reCaptcha = new PortalReCaptcha();
         scheduler = new PortalScheduler();
         dashboards = new Dashboards();
+        logging = new Logging();
     }
 }
