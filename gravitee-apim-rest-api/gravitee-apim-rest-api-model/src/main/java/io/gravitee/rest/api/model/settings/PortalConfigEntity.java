@@ -43,6 +43,7 @@ public class PortalConfigEntity {
     private PortalScheduler scheduler;
     private Dashboards dashboards;
     private AccessPoints accessPoints;
+    private Logging logging;
 
     public PortalConfigEntity() {
         super();
@@ -63,5 +64,6 @@ public class PortalConfigEntity {
         scheduler = new PortalScheduler();
         dashboards = new Dashboards();
         accessPoints = new AccessPoints();
+        logging = new Logging();
     }
 }
