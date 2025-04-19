@@ -25,8 +25,8 @@ import { isIso8601DateValid } from './iso-8601-date.validator';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { Analytics, ApiV4, SamplingTypeEnum } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ConsoleSettings } from '../../../../../entities/consoleSettings';
-import { ConsoleSettingsService } from '../../../../../services-ngx/console-settings.service';
+import { PortalConfiguration } from '../../../../../entities/portal/portalSettings';
+import { PortalConfigurationService } from '../../../../../services-ngx/portal-configuration.service';
 
 @Component({
   selector: 'api-runtime-logs-message-settings',
@@ -37,18 +37,18 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   @Input() public api: ApiV4;
   form: UntypedFormGroup;
   initialFormValue: unknown;
-  settings: ConsoleSettings;
+  settings: PortalConfiguration;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
-    private readonly consoleSettingsService: ConsoleSettingsService,
+    private readonly portalConfigService: PortalConfigurationService,
   ) {}
 
   public ngOnInit(): void {
-    this.consoleSettingsService
+    this.portalConfigService
       .get()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((settings) => {

@@ -36,6 +36,7 @@ export interface PortalConfiguration {
   openAPIDocViewer?: PortalSettingsOpenAPIDocViewer;
   email?: PortalSettingsEmail;
   portalNext?: PortalSettingsPortalNext;
+  logging?: PortalSettingsLogging;
 }
 
 export type PortalSettingsMetadata = Record<string, string[]>;
@@ -229,5 +230,32 @@ export interface PortalSettingsPortalNext {
     title?: string;
     subtitle?: string;
     enabled?: boolean;
+  };
+}
+
+export interface PortalSettingsLogging {
+  maxDurationMillis?: number;
+  audit?: {
+    enabled?: boolean;
+    trail?: {
+      enabled: boolean;
+    };
+  };
+  user?: {
+    displayed?: boolean;
+  };
+  messageSampling?: {
+    probabilistic?: {
+      default: number;
+      limit: number;
+    };
+    count?: {
+      default: number;
+      limit: number;
+    };
+    temporal?: {
+      default: string;
+      limit: string;
+    };
   };
 }
