@@ -50,6 +50,7 @@ import static io.gravitee.rest.api.model.parameters.Key.USER_GROUP_REQUIRED_ENAB
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
@@ -142,6 +143,11 @@ class ConfigServiceTest {
         params.put(Key.PORTAL_ANALYTICS_ENABLED.key(), singletonList("true"));
         params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
         params.put(Key.API_LABELS_DICTIONARY.key(), Arrays.asList("label1", "label2"));
+        params.put(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.key(), singletonList("100"));
+        params.put(LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.key(), singletonList("10"));
+        params.put(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), singletonList("0.5"));
+        params.put(LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), singletonList("0.01"));
+        params.put(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), singletonList("PT1S"));
 
         when(
             mockParameterService.findAll(
@@ -173,6 +179,17 @@ class ConfigServiceTest {
             .isEqualTo("Swagger");
         assertThat(portalSettings.getApi().getLabelsDictionary().size()).as("api labels").isEqualTo(2);
         assertThat(portalSettings.getCors().getExposedHeaders().size()).as("cors exposed headers").isEqualTo(2);
+        assertThat(portalSettings.getApi().getLabelsDictionary()).as("api labels").hasSize(2);
+        assertThat(portalSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(2);
+        assertThat(portalSettings.getLogging().getMessageSampling().getCount().getLimit()).as("sampling count").isEqualTo(100);
+        assertThat(portalSettings.getLogging().getMessageSampling().getCount().getDefaultValue()).as("sampling count").isEqualTo(10);
+        assertThat(portalSettings.getLogging().getMessageSampling().getProbabilistic().getLimit())
+            .as("sampling probabilistic")
+            .isEqualTo(0.5);
+        assertThat(portalSettings.getLogging().getMessageSampling().getProbabilistic().getDefaultValue())
+            .as("sampling probabilistic")
+            .isEqualTo(0.01);
+        assertThat(portalSettings.getLogging().getMessageSampling().getTemporal().getLimit()).as("sampling temporal").isEqualTo("PT1S");
     }
 
     @Test
@@ -184,6 +201,11 @@ class ConfigServiceTest {
         params.put(Key.PORTAL_ANALYTICS_ENABLED.key(), singletonList("true"));
         params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
         params.put(Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
+        params.put(LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.key(), singletonList("100"));
+        params.put(LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.key(), singletonList("10"));
+        params.put(LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), singletonList("0.5"));
+        params.put(LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), singletonList("0.01"));
+        params.put(LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), singletonList("PT1S"));
 
         when(
             mockParameterService.findAll(
@@ -223,6 +245,19 @@ class ConfigServiceTest {
                 PORTAL_ANALYTICS_ENABLED.key(),
                 OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key()
             );
+        assertThat(portalSettings.getLogging().getMessageSampling().getCount().getLimit()).as("sampling count limit").isEqualTo(100);
+        assertThat(portalSettings.getLogging().getMessageSampling().getCount().getDefaultValue())
+            .as("sampling count default")
+            .isEqualTo(10);
+        assertThat(portalSettings.getLogging().getMessageSampling().getProbabilistic().getLimit())
+            .as("sampling probabilistic limit")
+            .isEqualTo(0.5);
+        assertThat(portalSettings.getLogging().getMessageSampling().getProbabilistic().getDefaultValue())
+            .as("sampling probabilistic default")
+            .isEqualTo(0.01);
+        assertThat(portalSettings.getLogging().getMessageSampling().getTemporal().getLimit())
+            .as("sampling temporal limit")
+            .isEqualTo("PT1S");
     }
 
     @Test

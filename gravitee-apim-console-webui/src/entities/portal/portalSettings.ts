@@ -38,6 +38,7 @@ export interface PortalConfiguration {
   email?: PortalSettingsEmail;
   portalNext?: PortalSettingsPortalNext;
   accessPoints?: PortalAccessPoints;
+  logging?: PortalSettingsLogging;
 }
 
 export type PortalSettingsMetadata = Record<string, string[]>;
@@ -262,4 +263,31 @@ export interface BannerButton {
 
 export interface PortalAccessPoints {
   kafkaDomains?: string[];
+}
+
+export interface PortalSettingsLogging {
+  maxDurationMillis?: number;
+  audit?: {
+    enabled?: boolean;
+    trail?: {
+      enabled: boolean;
+    };
+  };
+  user?: {
+    displayed?: boolean;
+  };
+  messageSampling?: {
+    probabilistic?: {
+      default: number;
+      limit: number;
+    };
+    count?: {
+      default: number;
+      limit: number;
+    };
+    temporal?: {
+      default: string;
+      limit: string;
+    };
+  };
 }
