@@ -175,6 +175,10 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
             .stream()
             .toList();
 
+        if (apiIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apiIds);
         return apiSearchService.searchIds(executionContext, query, filters, null);
@@ -188,6 +192,10 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         );
 
         List<String> apiIds = categoryApisOutput.results().stream().map(result -> result.api().getId()).collect(Collectors.toList());
+
+        if (apiIds.isEmpty()) {
+            return Collections.emptyList();
+        }
 
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apiIds);

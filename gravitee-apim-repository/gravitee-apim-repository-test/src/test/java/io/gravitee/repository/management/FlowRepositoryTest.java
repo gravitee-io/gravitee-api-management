@@ -92,12 +92,12 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
         preStep.setName("pre-step");
         preStep.setPolicy("policy");
         preStep.setCondition("pre-condition");
-        preStep.setOrder(1);
+        preStep.setOrder(0);
         flow.setPre(List.of(preStep));
         flow.setReferenceId("my-orga");
         flow.setReferenceType(FlowReferenceType.ORGANIZATION);
         flow.setUpdatedAt(new Date(1470157767000L));
-        flow.setOrder(2);
+        flow.setOrder(0);
         List<FlowConsumer> consumers = new ArrayList<>();
         consumers.add(new FlowConsumer(FlowConsumerType.TAG, "tag-1"));
         flow.setConsumers(consumers);
