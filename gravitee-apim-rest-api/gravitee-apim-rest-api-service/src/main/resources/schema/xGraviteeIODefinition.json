@@ -75,6 +75,24 @@
         }
       }
     },
+    "plans": {
+      "type": "array",
+      "description": "plans to create",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Plan type",
+            "enum": ["key-less"]
+          },
+          "name": {
+            "type": "string",
+            "description": "name of the plan"
+          }
+        }
+      }
+    },
     "picture": {
       "type": "string",
       "description": "A picture in data-URI format."

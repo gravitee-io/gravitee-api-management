@@ -18,6 +18,7 @@ import { Component, inject, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatChip } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
@@ -43,6 +44,7 @@ import { PlanService } from '../../../services/plan.service';
     AsyncPipe,
     RouterModule,
     FormsModule,
+    MatChip,
   ],
   templateUrl: './api-details.component.html',
   styleUrl: './api-details.component.scss',

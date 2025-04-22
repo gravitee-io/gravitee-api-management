@@ -89,6 +89,8 @@ import { DocumentationEditCustomPageComponent } from './documentation-v4/documen
 import { DocumentationEditHomepageComponent } from './documentation-v4/main-pages-tab/documentation-edit-homepage/documentation-edit-homepage.component';
 import { ApiDocumentationChooseExistingPageComponent } from './documentation-v4/components/api-documentation-choose-existing-page/api-documentation-choose-existing-page.component';
 import { ApiHealthCheckDashboardV4Component } from './health-check-dashboard-v4/api-health-check-dashboard-v4.component';
+import { McpComponent } from './mcp/mcp.component';
+import { McpImportViaOpenApiComponent } from './mcp/mcp-import-via-openapi/mcp-import-via-open-api.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -302,6 +304,24 @@ const apisRoutes: Routes = [
         path: 'api-score',
         component: ApiScoringComponent,
         canActivate: [ApiScoringGuard],
+      },
+      {
+        path: 'mcp',
+        component: McpComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'mcp/import',
+        component: McpImportViaOpenApiComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-u'],
+          },
+        },
       },
       {
         path: 'metadata',

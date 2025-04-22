@@ -42,6 +42,7 @@ export class ApiV4MenuService implements ApiMenuService {
 
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
+      ...(api.mcp?.enabled ? [this.addMCPMenuEntry()] : []),
       ...(this.environmentSettingsService.getSnapshot().apiScore.enabled ? [this.addApiScoreMenuEntry()] : []),
       this.addEntrypointsMenuEntry(hasTcpListeners, api),
       this.addEndpointsMenuEntry(api, hasTcpListeners),
@@ -417,6 +418,18 @@ export class ApiV4MenuService implements ApiMenuService {
         subtitle: 'Gain actionable insights into API performance with real-time metrics and connection logs',
       },
       tabs,
+    };
+  }
+
+  private addMCPMenuEntry(): MenuItem {
+    return {
+      displayName: 'MCP',
+      icon: 'mcp',
+      routerLink: 'mcp',
+      // header: {
+      //   title: 'MCP',
+      //   subtitle: 'Manage the API for the MCP Gateway and Developer Portal',
+      // },
     };
   }
 }

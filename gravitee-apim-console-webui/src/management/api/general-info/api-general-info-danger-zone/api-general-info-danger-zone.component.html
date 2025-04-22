@@ -20,6 +20,11 @@
     <h3 class="danger-card__title">Danger Zone</h3>
     <div class="danger-card__actions">
       <ng-container *gioPermission="{ anyOf: ['api-definition-u'] }">
+        <div *ngIf="dangerActions.canActivateMcp" class="danger-card__actions__action">
+          <span>Enable MCP for this API.</span>
+          <button mat-button color="warn" [disabled]="isReadOnly" (click)="enableMCP()">Enable MCP</button>
+        </div>
+
         <div *ngIf="dangerActions.canAskForReview" class="danger-card__actions__action">
           <span>Ask for a review before to be able to publish / start your API.</span>
           <button mat-button color="warn" [disabled]="isReadOnly" (click)="askForReview()">Ask for a review</button>

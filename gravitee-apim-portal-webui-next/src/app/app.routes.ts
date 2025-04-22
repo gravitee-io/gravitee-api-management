@@ -50,6 +50,7 @@ import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { categoriesResolver } from '../resolvers/categories.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
+import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
 
 const apiRoutes: Routes = [
   {
@@ -104,6 +105,11 @@ const apiRoutes: Routes = [
                 ],
               },
             ],
+          },
+          {
+            path: 'tools',
+            component: ApiTabToolsComponent,
+            data: { breadcrumb: { label: 'Tools' } },
           },
         ],
       },

@@ -127,6 +127,8 @@ public class ApiMapper {
                 apiEntity.setFlows(apiDefinition.getFlows());
 
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
+
+                apiEntity.setMcp(apiDefinition.getMcp());
             } catch (IOException ioe) {
                 log.error("Unexpected error while generating API definition", ioe);
             }
@@ -430,6 +432,7 @@ public class ApiMapper {
             apiDefinition.setFlows(updateApiEntity.getFlows());
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
             apiDefinition.setServices(updateApiEntity.getServices());
+            apiDefinition.setMcp(updateApiEntity.getMcp());
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {

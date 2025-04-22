@@ -1,0 +1,55 @@
+@use '../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+
+  display: flex;
+  flex-flow: column;
+  gap: 22px;
+}
+.title {
+  display: flex;
+  flex-flow: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+form {
+  display: flex;
+  flex-flow: column;
+  gap: 16px;
+}
+
+mat-card-header {
+  padding-bottom: 24px;
+}
+
+mat-card-content {
+  display: flex;
+  flex-flow: column;
+  gap: 16px;
+}
+
+.mcp-import {
+  &__content {
+    display: flex;
+    gio-monaco-editor {
+      flex: 1;
+      height: auto;
+    }
+    &__preview {
+      flex: 1;
+      display: flex;
+      flex-flow: column;
+      gap: 20px;
+    }
+  }
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+.error-message {
+  padding-left: 34px;
+  color: red;
+}
