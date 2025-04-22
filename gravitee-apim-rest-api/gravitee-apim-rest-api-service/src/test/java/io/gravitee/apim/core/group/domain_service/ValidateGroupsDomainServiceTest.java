@@ -15,8 +15,13 @@
  */
 package io.gravitee.apim.core.group.domain_service;
 
+import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
+import static io.gravitee.apim.core.group.model.Group.GroupEvent.APPLICATION_CREATE;
+import static org.mockito.ArgumentMatchers.any;
+
 import inmemory.GroupQueryServiceInMemory;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.group.model.Group.GroupEventRule;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
 import java.util.List;
@@ -45,7 +50,14 @@ class ValidateGroupsDomainServiceTest {
         groupQueryService.initWith(
             List.of(
                 Group.builder().environmentId(ENVIRONMENT).id("group-with-po-id").name("group-with-po").apiPrimaryOwner("some-po").build(),
-                Group.builder().environmentId(ENVIRONMENT).id("group-without-po-id").name("group-without-po").build()
+                Group.builder().environmentId(ENVIRONMENT).id("group-without-po-id").name("group-without-po").build(),
+                Group
+                    .builder()
+                    .environmentId(ENVIRONMENT)
+                    .id("default-group")
+                    .name("default-group")
+                    .eventRules(List.of(new GroupEventRule(API_CREATE), new GroupEventRule(APPLICATION_CREATE)))
+                    .build()
             )
         );
         validateGroupsDomainService = new ValidateGroupsDomainService(groupQueryService);
@@ -55,13 +67,13 @@ class ValidateGroupsDomainServiceTest {
     void should_return_warnings_with_group_with_primary_owner_and_sanitize_v2() {
         var givenGroups = Set.of("group-with-po-id", "group-without-po");
 
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V2.getLabel());
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V2.getLabel(), API_CREATE, true);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.value()).isNotEmpty();
-            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po")));
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po", "default-group")));
             soft.assertThat(result.errors()).isNotEmpty();
             soft
                 .assertThat(result.errors())
@@ -76,16 +88,31 @@ class ValidateGroupsDomainServiceTest {
     }
 
     @Test
-    void should_return_warnings_with_group_with_primary_owner_and_sanitize_v4() {
-        var givenGroups = Set.of("group-with-po", "group-without-po-id");
+    void should_return_groups_without_default_groups_v2() {
+        var givenGroups = Set.of("group-without-po");
 
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel());
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V2.getLabel(), API_CREATE, false);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.value()).isNotEmpty();
-            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po-id")));
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po")));
+            soft.assertThat(result.errors()).isEmpty();
+        });
+    }
+
+    @Test
+    void should_return_warnings_with_group_with_primary_owner_and_sanitize_v4() {
+        var givenGroups = Set.of("group-with-po", "group-without-po-id");
+
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), API_CREATE, true);
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).isNotEmpty();
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po-id", "default-group")));
             soft.assertThat(result.errors()).isNotEmpty();
             soft
                 .assertThat(result.errors())
@@ -96,6 +123,21 @@ class ValidateGroupsDomainServiceTest {
                         )
                     )
                 );
+        });
+    }
+
+    @Test
+    void should_return_groups_without_default_groups_v4() {
+        var givenGroups = Set.of("group-without-po-id");
+
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), API_CREATE, false);
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).isNotEmpty();
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po-id")));
+            soft.assertThat(result.errors()).isEmpty();
         });
     }
 }

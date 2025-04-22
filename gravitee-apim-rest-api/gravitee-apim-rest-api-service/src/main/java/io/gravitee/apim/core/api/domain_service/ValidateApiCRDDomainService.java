@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
@@ -86,7 +87,9 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
                 new ValidateGroupsDomainService.Input(
                     input.auditInfo.environmentId(),
                     input.spec().getGroups(),
-                    input.spec().getDefinitionVersion()
+                    input.spec().getDefinitionVersion(),
+                    Group.GroupEvent.API_CREATE,
+                    true
                 )
             )
             .peek(sanitized -> sanitizedBuilder.groups(sanitized.groups()), errors::addAll);

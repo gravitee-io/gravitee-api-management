@@ -19,7 +19,6 @@ import static io.gravitee.apim.core.exception.NotAllowedDomainException.noLicens
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
@@ -66,7 +65,13 @@ public class UpdateIntegrationUseCase {
 
     private Set<String> validateGroups(Input input) {
         var validationResult = validateGroupsDomainService.validateAndSanitize(
-            new ValidateGroupsDomainService.Input(input.auditInfo.environmentId(), input.integration.getGroups(), null)
+            new ValidateGroupsDomainService.Input(
+                input.auditInfo.environmentId(),
+                input.integration.getGroups(),
+                null,
+                Group.GroupEvent.API_CREATE,
+                false
+            )
         );
 
         if (validationResult.errors().isPresent() && !validationResult.errors().get().isEmpty()) {
