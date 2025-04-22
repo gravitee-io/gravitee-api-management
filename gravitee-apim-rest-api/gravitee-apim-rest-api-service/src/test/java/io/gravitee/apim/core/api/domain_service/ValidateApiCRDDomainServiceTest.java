@@ -15,7 +15,11 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
-import static org.mockito.Mockito.*;
+import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiCRDFixtures;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -92,7 +96,7 @@ class ValidateApiCRDDomainServiceTest {
         )
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null)))
+        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null, API_CREATE, true)))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
@@ -131,7 +135,7 @@ class ValidateApiCRDDomainServiceTest {
         )
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null)))
+        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null, API_CREATE, true)))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
