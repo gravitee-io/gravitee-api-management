@@ -204,6 +204,7 @@ class ImportApiCRDUseCaseTest {
     private static final String TAG = "tag1";
     private static final String GROUP_ID_1 = UuidString.generateRandom();
     private static final String GROUP_ID_2 = UuidString.generateRandom();
+    private static final String DEFAULT_GROUP = "default-group";
     private static final String GROUP_NAME = "developers";
     private static final String USER_ENTITY_SOURCE = "gravitee";
     private static final String USER_ENTITY_SOURCE_ID = "jane.doe@gravitee.io";
@@ -411,7 +412,7 @@ class ImportApiCRDUseCaseTest {
             List.of(
                 Group
                     .builder()
-                    .id("group-1")
+                    .id(DEFAULT_GROUP)
                     .environmentId("environment-id")
                     .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
                     .build()
@@ -648,7 +649,7 @@ class ImportApiCRDUseCaseTest {
         void should_create_and_index_a_new_native_api() {
             planQueryService.reset();
             apiCrudService.reset();
-            var expected = expectedNativeApi().toBuilder().groups(Set.of()).build();
+            var expected = expectedNativeApi().toBuilder().groups(Set.of(DEFAULT_GROUP)).build();
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().groups(Set.of()).build()));
 
@@ -2109,7 +2110,6 @@ class ImportApiCRDUseCaseTest {
             .categories(Set.of())
             .picture(null)
             .background(null)
-            .groups(null)
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .apiDefinitionHttpV4(
                 ApiDefinitionFixtures
@@ -2137,7 +2137,7 @@ class ImportApiCRDUseCaseTest {
                     .tags(Set.of(TAG))
                     .build()
             )
-            .groups(Set.of(GROUP_ID_1, GROUP_ID_2))
+            .groups(Set.of(GROUP_ID_1, GROUP_ID_2, DEFAULT_GROUP))
             .build();
     }
 
@@ -2158,7 +2158,6 @@ class ImportApiCRDUseCaseTest {
             .categories(Set.of())
             .picture(null)
             .background(null)
-            .groups(null)
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .apiDefinitionNativeV4(
                 ApiDefinitionFixtures
@@ -2218,7 +2217,7 @@ class ImportApiCRDUseCaseTest {
                     .tags(Set.of(TAG))
                     .build()
             )
-            .groups(Set.of(GROUP_ID_1, GROUP_ID_2))
+            .groups(Set.of(GROUP_ID_1, GROUP_ID_2, DEFAULT_GROUP))
             .build();
     }
 

@@ -41,9 +41,16 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ValidateGroupsDomainService implements Validator<ValidateGroupsDomainService.Input> {
 
-    public record Input(String environmentId, Set<String> groups, String definitionVersion) implements Validator.Input {
+    public record Input(
+        String environmentId,
+        Set<String> groups,
+        String definitionVersion,
+        Group.GroupEvent groupEvent,
+        boolean addDefaultGroups
+    )
+        implements Validator.Input {
         Input sanitized(Set<String> sanitizedGroups) {
-            return new Input(environmentId, sanitizedGroups, definitionVersion);
+            return new Input(environmentId, sanitizedGroups, definitionVersion, groupEvent, addDefaultGroups);
         }
     }
 
@@ -51,14 +58,28 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
+        var sanitizedGroups = new HashSet<String>();
+
+        if (input.addDefaultGroups) {
+            log.debug("find default groups");
+            Set<String> defaultGroups = groupQueryService
+                .findByEvent(input.environmentId, input.groupEvent)
+                .stream()
+                .map(Group::getId)
+                .collect(toSet());
+            sanitizedGroups.addAll(defaultGroups);
+        }
+
         if (isEmpty(input.groups())) {
             log.debug("no group to resolve");
-            return Result.ofValue(input);
+
+            // just to be backward compatible with Integration team
+            var value = isEmpty(sanitizedGroups) ? input : input.sanitized(sanitizedGroups);
+            return Result.ofBoth(value, null);
         }
         log.debug("resolving groups");
 
         var givenGroups = new HashSet<>(input.groups());
-        var sanitizedGroups = new HashSet<String>();
 
         var groupsFromIds = groupQueryService.findByIds(givenGroups).stream().toList();
         var groupsFromNames = groupQueryService.findByNames(input.environmentId(), givenGroups).stream().toList();
