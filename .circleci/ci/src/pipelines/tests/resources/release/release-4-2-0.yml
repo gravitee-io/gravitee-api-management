@@ -208,7 +208,7 @@ jobs:
           apim-ui-project: gravitee-apim-console-webui
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-SNAPSHOT\"/' gravitee-apim-console-webui/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
       - run:
           name: Build
           command: yarn build:prod
@@ -238,7 +238,7 @@ jobs:
           apim-ui-project: gravitee-apim-portal-webui
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-SNAPSHOT\"/' gravitee-apim-portal-webui/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
       - run:
           name: Build
           command: yarn build:prod
@@ -249,7 +249,7 @@ jobs:
           apim-ui-project: gravitee-apim-portal-webui-next
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-SNAPSHOT\"/' gravitee-apim-portal-webui-next/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
       - run:
           name: Build
           command: yarn build:prod
