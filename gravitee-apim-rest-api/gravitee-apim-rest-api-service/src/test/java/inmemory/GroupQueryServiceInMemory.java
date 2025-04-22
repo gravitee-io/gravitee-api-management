@@ -48,7 +48,7 @@ public class GroupQueryServiceInMemory implements GroupQueryService, InMemoryAlt
         return storage
             .stream()
             .filter(group -> environmentId.equals(group.getEnvironmentId()))
-            .filter(group -> group.getEventRules().stream().anyMatch(rule -> rule.event() == event))
+            .filter(group -> group.getEventRules() != null && group.getEventRules().stream().anyMatch(rule -> rule.event() == event))
             .collect(toSet());
     }
 
