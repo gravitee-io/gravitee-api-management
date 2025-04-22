@@ -18,11 +18,11 @@ import { generateFullReleaseConfig } from '../pipeline-full-release';
 
 describe('Full release tests', () => {
   it.each`
-    baseBranch | branch     | isDryRun | dockerTagAsLatest | graviteeioVersion  | apimVersionPath                                           | expectedResult
-    ${'4.2.x'} | ${'4.2.x'} | ${true}  | ${false}          | ${'4.2.0'}         | ${'./src/pipelines/tests/resources/common/pom.xml'}       | ${'release-4-2-0-dry-run.yml'}
-    ${'4.2.x'} | ${'4.2.x'} | ${false} | ${false}          | ${'4.2.0'}         | ${'./src/pipelines/tests/resources/common/pom.xml'}       | ${'release-4-2-0-no-dry-run.yml'}
-    ${'4.2.x'} | ${'4.2.x'} | ${false} | ${true}           | ${'4.2.0'}         | ${'./src/pipelines/tests/resources/common/pom.xml'}       | ${'release-4-2-0-latest.yml'}
-    ${'4.2.x'} | ${'4.2.x'} | ${false} | ${false}          | ${'4.2.0-alpha.1'} | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'} | ${'release-4-2-0-alpha.yml'}
+    baseBranch | branch     | isDryRun | dockerTagAsLatest | graviteeioVersion  | apimVersionPath                                              | expectedResult
+    ${'4.2.x'} | ${'4.2.x'} | ${true}  | ${false}          | ${'4.2.0'}         | ${'./src/pipelines/tests/resources/common/pom-snapshot.xml'} | ${'release-4-2-0-dry-run.yml'}
+    ${'4.2.x'} | ${'4.2.x'} | ${false} | ${false}          | ${'4.2.0'}         | ${'./src/pipelines/tests/resources/common/pom-snapshot.xml'} | ${'release-4-2-0-no-dry-run.yml'}
+    ${'4.2.x'} | ${'4.2.x'} | ${false} | ${true}           | ${'4.2.0'}         | ${'./src/pipelines/tests/resources/common/pom-snapshot.xml'} | ${'release-4-2-0-latest.yml'}
+    ${'4.2.x'} | ${'4.2.x'} | ${false} | ${false}          | ${'4.2.0-alpha.1'} | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'}    | ${'release-4-2-0-alpha.yml'}
   `(
     'should build full release config on $branch with dry run $isDryRun, is latest $dockerTagAsLatest and version $graviteeioVersion',
     ({ baseBranch, branch, isDryRun, dockerTagAsLatest, graviteeioVersion, apimVersionPath, expectedResult }) => {
