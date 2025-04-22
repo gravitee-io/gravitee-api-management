@@ -48,6 +48,6 @@
         <!-- Version properties -->
         <revision>4.2.0</revision>
         <sha1>-alpha.1</sha1>
-        <changelist/>
+        <changelist>-SNAPSHOT</changelist>
     </properties>
 </project>
