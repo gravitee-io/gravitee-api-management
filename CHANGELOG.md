@@ -1,3 +1,10 @@
+# [3.3.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.2.3...3.3.0) (2025-04-23)
+
+
+### Features
+
+* update deps to handle AI APIs ([95f3df4](https://github.com/gravitee-io/gravitee-reporter-file/commit/95f3df45b91f2136b4d5061aa75113feb1f0ab77))
+
 ## [3.2.3](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.2.2...3.2.3) (2025-01-23)
 
 
