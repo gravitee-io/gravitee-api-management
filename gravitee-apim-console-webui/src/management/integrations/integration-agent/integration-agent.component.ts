@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, Inject, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { configurationCode } from './integration-agent.configuration';
-
 import { AgentStatus, Integration } from '../integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { Constants } from '../../../entities/Constants';
+import { IntegrationProviderService } from '../integration-provider.service';
 
 @Component({
   selector: 'app-integration-agent',
@@ -36,13 +36,15 @@ export class IntegrationAgentComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   public isLoading: boolean = true;
   public integration: Integration;
-  public codeForEditor: string = '';
+  public documentationUrl: string = '';
 
   constructor(
     public readonly integrationsService: IntegrationsService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly snackBarService: SnackBarService,
+    @Inject(Constants) private readonly constants: Constants,
+    private readonly integrationProviderService: IntegrationProviderService,
   ) {}
 
   ngOnInit(): void {
@@ -66,14 +68,31 @@ export class IntegrationAgentComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((integration: Integration): void => {
-        this.codeForEditor = configurationCode[integration.provider] || '';
         this.integration = integration;
         this.isLoading = false;
+        this.documentationUrl = this.getDocumentationUrl(integration.provider);
       });
   }
 
   public refreshStatus(): void {
     this.getIntegration();
+  }
+
+  private getDocumentationUrl(providerName: string): string {
+    const buildVersion = this.constants.build.version;
+    const majorMinorVersion = this.extractMajorMinor(buildVersion);
+    const apimDocs3rdPartyProviderName = this.integrationProviderService.getApimDocsNameByValue(providerName);
+
+    if (!majorMinorVersion || !apimDocs3rdPartyProviderName) {
+      return '';
+    }
+
+    return `https://documentation.gravitee.io/apim/${majorMinorVersion}/governance/federation/3rd-party-providers/${apimDocs3rdPartyProviderName}`;
+  }
+
+  private extractMajorMinor(version: string): string {
+    const match = version.match(/^(\d+)\.(\d+)/);
+    return match ? `${match[1]}.${match[2]}` : '';
   }
 
   protected readonly AgentStatus = AgentStatus;

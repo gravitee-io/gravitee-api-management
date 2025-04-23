@@ -31,6 +31,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { CreateIntegrationPayload } from '../integrations.model';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { IntegrationProviderService } from '../integration-provider.service';
 
 describe('CreateIntegrationComponent', () => {
   let fixture: ComponentFixture<CreateIntegrationComponent>;
@@ -42,6 +43,11 @@ describe('CreateIntegrationComponent', () => {
     success: jest.fn(),
   };
 
+  const fakeIntegrationProviderService = {
+    getActiveProviders: jest.fn(),
+    getComingSoonProviders: jest.fn(),
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [CreateIntegrationComponent],
@@ -50,6 +56,10 @@ describe('CreateIntegrationComponent', () => {
         {
           provide: SnackBarService,
           useValue: fakeSnackBarService,
+        },
+        {
+          provide: IntegrationProviderService,
+          useValue: fakeIntegrationProviderService,
         },
         {
           provide: GioTestingPermissionProvider,
@@ -79,12 +89,10 @@ describe('CreateIntegrationComponent', () => {
 
   describe('choose provider', () => {
     it('should set solace value', async (): Promise<void> => {
-      fixture.componentInstance.integrationProviders = {
-        active: [
-          { icon: 'aws-api-gateway', value: 'aws-api-gateway' },
-          { icon: 'solace', value: 'solace' },
-        ],
-      };
+      fakeIntegrationProviderService.getActiveProviders.mockReturnValue([
+        { icon: 'aws-api-gateway', value: 'aws-api-gateway' },
+        { icon: 'solace', value: 'solace' },
+      ]);
 
       const radioButtonsGroup: GioFormSelectionInlineHarness = await componentHarness.getRadioButtonsGroup();
       expect(await radioButtonsGroup.getSelectedValue()).toBeUndefined();
@@ -95,9 +103,7 @@ describe('CreateIntegrationComponent', () => {
     });
 
     it('should set correct value', async (): Promise<void> => {
-      fixture.componentInstance.integrationProviders = {
-        active: [{ icon: 'aws.svg', value: 'test_my_value' }],
-      };
+      fakeIntegrationProviderService.getActiveProviders.mockReturnValue([{ icon: 'aws.svg', value: 'test_my_value' }]);
 
       const radioButtonsGroup: GioFormSelectionInlineHarness = await componentHarness.getRadioButtonsGroup();
       expect(await radioButtonsGroup.getSelectedValue()).toBeUndefined();
@@ -107,16 +113,14 @@ describe('CreateIntegrationComponent', () => {
     });
 
     it('should have correct numbers of radio buttons', async (): Promise<void> => {
-      fixture.componentInstance.integrationProviders = {
-        active: [
-          { icon: 'aws.svg', value: 'aws-api-gateway' },
-          { icon: 'solace.svg', value: 'solace' },
-          { icon: 'apigee.svg', value: 'apigee' },
-          { icon: 'azure.svg', value: 'azure-api-management' },
-          { icon: 'confluent.svg', value: 'confluent-platform' },
-        ],
-        comingSoon: [{ icon: 'kong.svg', value: 'kong' }],
-      };
+      fakeIntegrationProviderService.getActiveProviders.mockReturnValue([
+        { icon: 'aws.svg', value: 'aws-api-gateway' },
+        { icon: 'solace.svg', value: 'solace' },
+        { icon: 'apigee.svg', value: 'apigee' },
+        { icon: 'azure.svg', value: 'azure-api-management' },
+        { icon: 'confluent.svg', value: 'confluent-platform' },
+      ]);
+      fakeIntegrationProviderService.getComingSoonProviders.mockReturnValue([{ icon: 'kong.svg', value: 'kong' }]);
       const radioCards: GioFormSelectionInlineCardHarness[] = await componentHarness.getRadioCards();
       expect(radioCards.length).toEqual(6);
     });

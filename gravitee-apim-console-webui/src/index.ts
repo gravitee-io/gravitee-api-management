@@ -23,7 +23,7 @@ import { computeStyles, LicenseConfiguration } from '@gravitee/ui-particles-angu
 import { toLower, toUpper } from 'lodash';
 
 import { AppModule } from './app.module';
-import { Constants, DefaultPortal } from './entities/Constants';
+import { Build, Constants, DefaultPortal } from './entities/Constants';
 import { getFeatureInfoData } from './shared/components/gio-license/gio-license-data';
 import { ConsoleCustomization } from './entities/management-api-v2/consoleCustomization';
 import { environment } from './environments/environment';
@@ -74,7 +74,7 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
         }));
     })
     .then(({ bootstrapResponse, build, production, defaultPortal }) => {
-      const constants = prepareConstants(bootstrapResponse, defaultPortal);
+      const constants = prepareConstants(bootstrapResponse, defaultPortal, build);
 
       constants.production = production ?? true;
 
@@ -118,7 +118,14 @@ function sanitizeBaseURLs(baseURLToSanitize: string): string {
   return baseURL;
 }
 
-function prepareConstants(bootstrap: { baseURL: string; organizationId: string }, defaultPortal: DefaultPortal): Constants {
+function prepareConstants(
+  bootstrap: {
+    baseURL: string;
+    organizationId: string;
+  },
+  defaultPortal: DefaultPortal,
+  build: Build,
+): Constants {
   if (bootstrap.baseURL.endsWith('/')) {
     bootstrap.baseURL = bootstrap.baseURL.slice(0, -1);
   }
@@ -140,6 +147,7 @@ function prepareConstants(bootstrap: { baseURL: string; organizationId: string }
     },
     isOEM: false,
     defaultPortal,
+    build: build,
   };
 }
 

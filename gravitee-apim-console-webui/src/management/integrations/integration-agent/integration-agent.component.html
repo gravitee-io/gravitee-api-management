@@ -52,51 +52,18 @@
         >
           Refresh Status
         </button>
-
-        <div class="separator"></div>
-
-        <cdk-accordion class="accordion">
-          <cdk-accordion-item class="accordion__item" #accordionItem="cdkAccordionItem" [attr.aria-expanded]="accordionItem.closed">
-            <div
-              class="header"
-              (click)="accordionItem.toggle()"
-              (keydown.enter)="accordionItem.toggle()"
-              tabindex="0"
-              data-testid="accordion-header"
-            >
-              <h5 class="title">{{ accordionItem.expanded ? 'Close' : 'Open' }} the agent connection wizard</h5>
-              <mat-icon [svgIcon]="accordionItem.expanded ? 'gio:nav-arrow-up' : 'gio:nav-arrow-down'"></mat-icon>
-            </div>
-            <div *ngIf="accordionItem.expanded" class="wizard">
-              <div class="wizard__item">
-                <div class="order">1</div>
-                <div class="content">
-                  <h5 class="content__title">Agent Configuration</h5>
-                  <p class="content__desc">Copy the configuration files and place them in the same folder.</p>
-
-                  <file-preview [payload]="codeForEditor"></file-preview>
-                </div>
-              </div>
-
-              <div class="wizard__item">
-                <div class="order">2</div>
-                <div class="content">
-                  <h5 class="content__title">Agent Deployment</h5>
-                  <p class="content__desc">
-                    Replace placeholders in the configuration file with providers data. Execute the following commands in the same directory
-                    as the previously downloaded files.
-                  </p>
-                  <code>
-                    <span gioClipboardCopyWrapper [alwaysVisible]="true" contentToCopy="docker compose up -d" class="command code-area">
-                      <span class="command__text">docker compose up -d</span>
-                    </span>
-                  </code>
-                </div>
-              </div>
-            </div>
-          </cdk-accordion-item>
-        </cdk-accordion>
       </mat-card-content>
+    </mat-card>
+    <mat-card>
+      <div class="documentation">
+        <div class="documentation__header">
+          <div class="documentation__header__title">
+            <h3>Connect to the Agent</h3>
+          </div>
+          <div class="documentation__header__subtitle">Follow the documentation to learn how to configure and deploy this agent.</div>
+        </div>
+        <a mat-raised-button [disabled]="!documentationUrl" [href]="documentationUrl" target="_blank" color="link"> View documentation </a>
+      </div>
     </mat-card>
   </div>
 </div>

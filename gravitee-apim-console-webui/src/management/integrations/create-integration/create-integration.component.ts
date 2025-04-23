@@ -20,9 +20,10 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
 
-import { CreateIntegrationPayload, Integration, IntegrationProvider } from '../integrations.model';
+import { CreateIntegrationPayload, Integration } from '../integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { IntegrationProviderService } from '../integration-provider.service';
 
 @Component({
   selector: 'app-create-integration',
@@ -33,18 +34,6 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 export class CreateIntegrationComponent {
   private destroyRef: DestroyRef = inject(DestroyRef);
   public isLoading: boolean = false;
-  public integrationProviders: { active?: IntegrationProvider[]; comingSoon?: IntegrationProvider[] } = {
-    active: [
-      { icon: 'aws-api-gateway', value: 'aws-api-gateway' },
-      { icon: 'solace', value: 'solace' },
-      { icon: 'apigee', value: 'apigee' },
-      { icon: 'azure', value: 'azure-api-management' },
-      { icon: 'ibm-api-connect', value: 'ibm-api-connect' },
-      { icon: 'confluent', value: 'confluent-platform' },
-      { icon: 'mulesoft', value: 'mulesoft' },
-    ],
-    comingSoon: [],
-  };
   public chooseProviderForm = this.formBuilder.group({
     provider: ['', Validators.required],
   });
@@ -59,6 +48,7 @@ export class CreateIntegrationComponent {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly snackBarService: SnackBarService,
+    protected readonly integrationProviderService: IntegrationProviderService,
   ) {}
 
   public onSubmit(): void {
