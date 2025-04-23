@@ -57,6 +57,15 @@
     </mat-card-content>
   } @else if (currentStep() === 3) {
     <mat-card-header class="subscribe-to-api__header">
+      <div class="m3-title-large" i18n="@@subscribeConfigureConsumer">Configure Consumer</div>
+    </mat-card-header>
+    <mat-card-content>
+      <app-consumer-configuration
+        (consumerConfigurationFormDataChange)="consumerConfigurationFormChanges($event)"
+        [consumerConfigurationFormValues]="consumerConfigurationFormData().value" />
+    </mat-card-content>
+  } @else if (currentStep() === 4) {
+    <mat-card-header class="subscribe-to-api__header">
       <div class="m3-title-large" i18n="@@subscribeCheckout">Checkout</div>
       @if (currentPlan()?.security === 'KEY_LESS') {
         <div class="m3-body-medium" i18n="@@subscribeChooseApplicationDescription">
@@ -102,7 +111,7 @@
       }
     </div>
     <div>
-      @if (currentStep() < 3) {
+      @if (currentStep() < 4) {
         <div class="subscribe-to-api__actions__next">
           @if (currentApplication()) {
             <div class="m3-body-medium subscribe-to-api__actions__selected-application">
@@ -124,8 +133,13 @@
             Next
           </button>
         </div>
-      } @else if (currentStep() === 3 && currentPlan()?.security !== 'KEY_LESS') {
-        <button (click)="subscribe()" mat-flat-button class="secondary-button" [disabled]="stepIsInvalid() || subscriptionInProgress()">
+      } @else if (currentStep() === 4 && currentPlan()?.security !== 'KEY_LESS') {
+        <!--  toDo: remove currentPlan()?.mode === 'PUSH' in APIM-9449 -->
+        <button
+          (click)="subscribe()"
+          mat-flat-button
+          class="secondary-button"
+          [disabled]="stepIsInvalid() || subscriptionInProgress() || currentPlan()?.mode === 'PUSH'">
           @if (subscriptionInProgress()) {
             <span i18n="@@subscribeToApiSubscribingInProgress">Subscribing...</span>
           } @else {

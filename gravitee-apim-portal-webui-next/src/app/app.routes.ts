@@ -15,7 +15,6 @@
  */
 import { Routes } from '@angular/router';
 
-import { ConsumerConfigurationComponent } from '../components';
 import { ApiDetailsComponent } from './api/api-details/api-details.component';
 import { ApiTabDetailsComponent } from './api/api-details/api-tab-details/api-tab-details.component';
 import { ApiTabDocumentationComponent } from './api/api-details/api-tab-documentation/api-tab-documentation.component';
@@ -41,6 +40,7 @@ import { ResetPasswordComponent } from './log-in/reset-password/reset-password.c
 import { LogOutComponent } from './log-out/log-out.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
+import { ConfigureConsumerComponent } from '../components/subscription/webhook/configure-consumer/configure-consumer.component';
 import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
 import { catalogCategoriesViewGuard } from '../guards/catalog-categories-view.guard';
@@ -100,7 +100,7 @@ const apiRoutes: Routes = [
                 data: { breadcrumb: { skip: true } },
                 children: [
                   { path: '', component: SubscriptionsDetailsComponent },
-                  { path: 'configure', component: ConsumerConfigurationComponent },
+                  { path: 'configure', component: ConfigureConsumerComponent },
                 ],
               },
             ],

@@ -38,3 +38,8 @@ export type ConsumerConfigurationValues = {
     auth: WebhookSubscriptionConfigurationAuth;
   };
 };
+
+export interface ConsumerConfigurationFormData {
+  value: ConsumerConfigurationValues | null;
+  isValid: boolean;
+}
