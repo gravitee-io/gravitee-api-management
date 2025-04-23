@@ -45,7 +45,7 @@
             <ng-template matStepLabel>Choose Provider</ng-template>
             <gio-form-selection-inline formControlName="provider" class="list">
               <gio-form-selection-inline-card
-                *ngFor="let provider of integrationProviders.active"
+                *ngFor="let provider of integrationProviderService.getActiveProviders()"
                 [value]="provider.value"
                 class="gio-radio-button"
               >
@@ -67,14 +67,14 @@
               </gio-form-selection-inline-card>
             </gio-form-selection-inline>
 
-            @if (integrationProviders.comingSoon?.length) {
+            @if (this.integrationProviderService.getComingSoonProviders()?.length) {
               <div class="badges">
                 <span class="gio-badge-neutral">Coming soon</span>
               </div>
 
               <gio-form-selection-inline class="list">
                 <gio-form-selection-inline-card
-                  *ngFor="let provider of integrationProviders.comingSoon"
+                  *ngFor="let provider of this.integrationProviderService.getComingSoonProviders()"
                   [value]="provider.value"
                   class="gio-radio-button"
                   [disabled]="true"

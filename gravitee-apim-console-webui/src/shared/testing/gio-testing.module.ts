@@ -53,6 +53,7 @@ export const CONSTANTS_TESTING: Constants = {
     v2BaseURL: 'https://url.test:3000/management/v2/environments/DEFAULT',
   },
   v2BaseURL: 'https://url.test:3000/management/v2',
+  build: { version: '4.7.1-alpha.1' },
 };
 
 @NgModule({

@@ -82,6 +82,7 @@ export interface UpdateIntegrationPayload {
 export interface IntegrationProvider {
   icon: string;
   value: string;
+  apimDocsName: string;
 }
 
 export interface FederatedAPI {

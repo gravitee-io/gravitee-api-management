@@ -20,6 +20,7 @@ import { ActivatedRoute } from '@angular/router';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
+import { By } from '@angular/platform-browser';
 
 import { IntegrationAgentComponent } from './integration-agent.component';
 import { IntegrationAgentHarness } from './integration-agent.harness';
@@ -29,12 +30,18 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Integration } from '../integrations.model';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../entities/Constants';
+import { IntegrationProviderService } from '../integration-provider.service';
 
 describe('IntegrationAgentComponent', () => {
   let fixture: ComponentFixture<IntegrationAgentComponent>;
   let componentHarness: IntegrationAgentHarness;
   let httpTestingController: HttpTestingController;
   const integrationId: string = 'TestTestTest123';
+
+  const fakeIntegrationProviderService = {
+    getApimDocsNameByValue: jest.fn(),
+  };
 
   const init = async (
     permissions: GioTestingPermission = [
@@ -43,7 +50,10 @@ describe('IntegrationAgentComponent', () => {
       'environment-integration-c',
       'environment-integration-r',
     ],
+    constantsOverride: Partial<Constants> = {},
   ): Promise<void> => {
+    const constants = { ...CONSTANTS_TESTING, ...constantsOverride };
+
     await TestBed.configureTestingModule({
       declarations: [IntegrationAgentComponent],
       imports: [GioTestingModule, IntegrationsModule, BrowserAnimationsModule, NoopAnimationsModule],
@@ -51,6 +61,14 @@ describe('IntegrationAgentComponent', () => {
         {
           provide: GioTestingPermissionProvider,
           useValue: permissions,
+        },
+        {
+          provide: Constants,
+          useValue: constants,
+        },
+        {
+          provide: IntegrationProviderService,
+          useValue: fakeIntegrationProviderService,
         },
         {
           provide: ActivatedRoute,
@@ -96,4 +114,49 @@ describe('IntegrationAgentComponent', () => {
     req.flush(integrationMock);
     expect(req.request.method).toEqual('GET');
   }
+
+  describe('view documentation button', () => {
+    it('generate proper apim docs link', async () => {
+      fakeIntegrationProviderService.getApimDocsNameByValue.mockReturnValue('test-provider');
+
+      await init();
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+
+      fixture.detectChanges();
+
+      const anchorEl = fixture.debugElement.query(By.css('a[mat-raised-button]')).nativeElement;
+      expect(anchorEl.getAttribute('href')).toBe(
+        'https://documentation.gravitee.io/apim/4.7/governance/federation/3rd-party-providers/test-provider',
+      );
+    });
+
+    it('disable button if unknown provider', async () => {
+      fakeIntegrationProviderService.getApimDocsNameByValue.mockReturnValue(undefined);
+
+      await init();
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+
+      fixture.detectChanges();
+
+      const anchorEl = fixture.debugElement.query(By.css('a[mat-raised-button]')).nativeElement;
+      expect(anchorEl.getAttribute('disabled')).toBe('true');
+    });
+
+    it('disable button if incorrect build version', async () => {
+      fakeIntegrationProviderService.getApimDocsNameByValue.mockReturnValue('test-provider');
+
+      await init(undefined, {
+        build: {
+          ...CONSTANTS_TESTING.build,
+          version: 'an-incorrect-version',
+        },
+      });
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+
+      fixture.detectChanges();
+
+      const anchorEl = fixture.debugElement.query(By.css('a[mat-raised-button]')).nativeElement;
+      expect(anchorEl.getAttribute('disabled')).toBe('true');
+    });
+  });
 });
