@@ -71,6 +71,27 @@ $typography: map.get(gio.$mat-theme, typography);
   gap: 4px;
 }
 
+.documentation {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+
+    &__title {
+      @include mat.m2-typography-level($typography, subtitle-1);
+      margin: 0;
+    }
+
+    &__subtitle {
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    }
+  }
+}
+
 gio-banner-error {
   margin: 0;
   width: 100%;

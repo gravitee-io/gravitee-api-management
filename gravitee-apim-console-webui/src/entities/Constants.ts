@@ -44,6 +44,7 @@ export interface Constants {
   isOEM: boolean;
   customization?: ConsoleCustomization;
   defaultPortal: DefaultPortal;
+  build: Build;
 }
 
 // eslint-disable-next-line no-redeclare
@@ -216,3 +217,7 @@ export interface EnvSettings {
 }
 
 export type DefaultPortal = 'classic' | 'next' | null;
+
+export interface Build {
+  version: string;
+}
