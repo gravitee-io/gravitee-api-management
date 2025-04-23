@@ -47,6 +47,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 /**
  *
@@ -454,17 +455,19 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
             sbQuery.append("where 1 = 1 ");
 
-            if (!isEmpty(applicationCriteria.getIds()) && hasText(applicationCriteria.getName())) {
-                sbQuery.append("and (a.id in (").append(getOrm().buildInClause(applicationCriteria.getIds())).append(") ");
+            if (StringUtils.hasText(applicationCriteria.getQuery())) {
+                sbQuery.append("and (a.id = ? ");
                 sbQuery.append("or lower(a.name) like ?) ");
-            } else {
-                if (!isEmpty(applicationCriteria.getIds())) {
-                    sbQuery.append("and a.id in (").append(getOrm().buildInClause(applicationCriteria.getIds())).append(") ");
-                }
-                if (hasText(applicationCriteria.getName())) {
-                    sbQuery.append("and lower(a.name) like ? ");
-                }
             }
+
+            if (!isEmpty(applicationCriteria.getRestrictedToIds())) {
+                sbQuery.append("and a.id in (").append(getOrm().buildInClause(applicationCriteria.getRestrictedToIds())).append(") ");
+            }
+
+            if (hasText(applicationCriteria.getName())) {
+                sbQuery.append("and lower(a.name) like ? ");
+            }
+
             if (applicationCriteria.getStatus() != null) {
                 sbQuery.append("and a.status = ? ");
             }
@@ -505,10 +508,14 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             (PreparedStatement ps) -> {
                 int lastIndex = 1;
                 if (applicationCriteria != null) {
-                    if (!isEmpty(applicationCriteria.getIds())) {
-                        lastIndex = getOrm().setArguments(ps, applicationCriteria.getIds(), lastIndex);
+                    if (StringUtils.hasText(applicationCriteria.getQuery())) {
+                        ps.setString(lastIndex++, applicationCriteria.getQuery());
+                        ps.setString(lastIndex++, "%" + applicationCriteria.getQuery().toLowerCase() + "%");
                     }
-                    if (hasText(applicationCriteria.getName())) {
+                    if (!isEmpty(applicationCriteria.getRestrictedToIds())) {
+                        lastIndex = getOrm().setArguments(ps, applicationCriteria.getRestrictedToIds(), lastIndex);
+                    }
+                    if (StringUtils.hasText(applicationCriteria.getName())) {
                         ps.setString(lastIndex++, "%" + applicationCriteria.getName().toLowerCase() + "%");
                     }
                     if (applicationCriteria.getStatus() != null) {

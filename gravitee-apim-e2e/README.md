@@ -11,6 +11,7 @@ First you need to install the dependencies & build test:
 
 ```shell
 yarn install
+yarn update:sdk
 yarn build
 ```
 

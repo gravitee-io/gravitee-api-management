@@ -18,7 +18,12 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.emptyList;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -56,7 +61,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Set<Application> applications = applicationRepository.findAll();
 
         assertNotNull(applications);
-        assertEquals("Fail to resolve application in findAll", 10, applications.size());
+        assertEquals("Fail to resolve application in findAll", 12, applications.size());
     }
 
     @Test
@@ -317,7 +322,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void shouldSearchByName() throws Exception {
-        final Page<Application> appsPage = applicationRepository.search(new ApplicationCriteria.Builder().name("dElETed-a").build(), null);
+        final Page<Application> appsPage = applicationRepository.search(ApplicationCriteria.builder().name("dElETed-a").build(), null);
         final List<Application> apps = appsPage.getContent();
 
         assertEquals(1, apps.size());
@@ -325,47 +330,67 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void shouldSearchByNameAndIds() throws Exception {
+    public void shouldSearchByQuery_matchesName() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
-            new ApplicationCriteria.Builder()
-                .name("deleted-app")
-                .ids(Set.of("searched-app1", "app-with-long-client-id", "app-with-long-name"))
-                .build(),
+            ApplicationCriteria.builder().query("Application test query").build(),
             null
         );
         final List<Application> apps = appsPage.getContent();
 
-        assertEquals(4, apps.size());
+        assertEquals(2, apps.size());
         assertTrue(
             apps
                 .stream()
                 .map(Application::getId)
                 .toList()
-                .containsAll(List.of("deleted-app", "searched-app1", "app-with-long-client-id", "app-with-long-name"))
+                .containsAll(List.of("dbc12b15-e975-4fa1-812b-15e975bfa13c", "74e34cc3-000f-492e-a34c-c3000f192e32"))
         );
+    }
+
+    @Test
+    public void shouldSearchByQueryAndNameAndRestrictedIds() throws Exception {
+        final Page<Application> appsPage = applicationRepository.search(
+            ApplicationCriteria
+                .builder()
+                .query("app")
+                .name("Application test")
+                .restrictedToIds(Set.of("app-with-long-name", "dbc12b15-e975-4fa1-812b-15e975bfa13c"))
+                .build(),
+            null
+        );
+        final List<Application> apps = appsPage.getContent();
+
+        assertEquals(1, apps.size());
+        assertTrue(apps.stream().map(Application::getId).toList().contains("dbc12b15-e975-4fa1-812b-15e975bfa13c"));
     }
 
     @Test
     public void shouldSearchByEnvironmentIds() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
-            new ApplicationCriteria.Builder().environmentIds("DEV", "TEST", "PROD").build(),
+            ApplicationCriteria.builder().environmentIds(Set.of("DEV", "TEST", "PROD")).build(),
             null
         );
 
         final List<Application> apps = appsPage.getContent();
 
-        assertNotNull(apps);
-        assertFalse(apps.isEmpty());
-        assertEquals(5, apps.size());
-        List<String> names = apps.stream().map(Application::getName).collect(Collectors.toList());
-        assertEquals(List.of(APP_WITH_LONG_NAME, "app-with-client-id", "app-with-long-client-id", "searched-app1", "searched-app2"), names);
+        assertThat(apps)
+            .map(Application::getName)
+            .containsExactlyInAnyOrder(
+                APP_WITH_LONG_NAME,
+                "Application test query 1",
+                "Application test query 2",
+                "app-with-client-id",
+                "app-with-long-client-id",
+                "searched-app1",
+                "searched-app2"
+            );
     }
 
     @Test
     public void shouldSearchByEnvironmentIdsWithSort() throws Exception {
         Sortable sortable = new SortableBuilder().field("updated_at").order(Order.ASC).build();
         final Page<Application> appsPage = applicationRepository.search(
-            new ApplicationCriteria.Builder().environmentIds("DEV", "TEST", "PROD").build(),
+            ApplicationCriteria.builder().environmentIds(Set.of("DEV", "TEST", "PROD")).build(),
             null,
             sortable
         );
@@ -374,17 +399,28 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
 
         assertNotNull(apps);
         assertFalse(apps.isEmpty());
-        assertEquals(5, apps.size());
+        assertEquals(7, apps.size());
         List<String> names = apps.stream().map(Application::getName).collect(Collectors.toList());
 
-        assertEquals(List.of("searched-app1", "searched-app2", "app-with-client-id", "app-with-long-client-id", APP_WITH_LONG_NAME), names);
+        assertEquals(
+            List.of(
+                "searched-app1",
+                "searched-app2",
+                "app-with-client-id",
+                "app-with-long-client-id",
+                APP_WITH_LONG_NAME,
+                "Application test query 1",
+                "Application test query 2"
+            ),
+            names
+        );
     }
 
     @Test
     public void shouldSearchWithPagination() throws Exception {
         Pageable pageable = new PageableBuilder().pageSize(1).pageNumber(2).build();
         final Page<Application> appsPage = applicationRepository.search(
-            new ApplicationCriteria.Builder().environmentIds("DEV", "TEST", "PROD").build(),
+            ApplicationCriteria.builder().environmentIds(Set.of("DEV", "TEST", "PROD")).build(),
             pageable
         );
 
@@ -395,13 +431,13 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals(1, apps.size());
         assertEquals(2, appsPage.getPageNumber());
         assertEquals(1, appsPage.getPageElements());
-        assertEquals(5, appsPage.getTotalElements());
+        assertEquals(7, appsPage.getTotalElements());
     }
 
     @Test
     public void shouldSearchByGroups() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
-            new ApplicationCriteria.Builder().groups(Set.of("application-group")).build(),
+            ApplicationCriteria.builder().groups(Set.of("application-group")).build(),
             null
         );
 
