@@ -132,7 +132,7 @@ class NotFoundProcessorChainFactoryTest {
         verify(reporterService).report(any(Reportable.class));
         Metrics metrics = notFoundRequestContext.metrics();
         assertTrue(metrics.getGatewayResponseTimeMs() > 0);
-        assertThat(metrics.getGatewayLatencyMs()).isEqualTo(-1L);
+        assertTrue(metrics.getGatewayLatencyMs() > 0);
         assertThat(metrics.getApiId()).isEqualTo("1");
         assertThat(metrics.getApplicationId()).isEqualTo("1");
         assertThat(metrics.getTenant()).isEqualTo("TENANT");
