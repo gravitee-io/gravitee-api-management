@@ -1,3 +1,10 @@
+# [5.7.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.6.0...5.7.0) (2025-04-23)
+
+
+### Features
+
+* add new AI metrics ([a2a7f12](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/a2a7f12b26c52f051524f12682f331c4ff77b361))
+
 # [5.6.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.5.1...5.6.0) (2024-12-05)
 
 
