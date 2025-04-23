@@ -16,6 +16,7 @@
 .consumer-configuration {
   display: flex;
   flex-flow: column;
+  margin-top: 30px;
   gap: 32px;
 
   &__navigate-back {

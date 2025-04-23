@@ -14,29 +14,19 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, EventEmitter, input, Input, InputSignal, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
-import { catchError, combineLatest, map, Observable, startWith, switchMap, tap } from 'rxjs';
+import { map, Observable, startWith } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
-import { ConsumerConfigurationForm, ConsumerConfigurationValues } from './consumer-configuration.models';
-import { Plan } from '../../../../entities/plan/plan';
-import { Subscription, SubscriptionConsumerConfiguration, UpdateSubscription } from '../../../../entities/subscription';
-import { PlanService } from '../../../../services/plan.service';
-import { SubscriptionService } from '../../../../services/subscription.service';
+import { ConsumerConfigurationForm, ConsumerConfigurationFormData, ConsumerConfigurationValues } from './consumer-configuration.models';
 import { deepEqualIgnoreOrder } from '../../../../utils/deep-equal-ignore-order';
-import {
-  SubscriptionCommentDialogComponent,
-  SubscriptionCommentDialogData,
-} from '../../subscription-comment-dialog/subscription-comment-dialog.component';
 import { ConsumerConfigurationAuthenticationComponent } from '../consumer-configuration-authentification';
 import { ConsumerConfigurationHeadersComponent } from '../consumer-configuration-headers';
 import { ConsumerConfigurationRetryComponent } from '../consumer-configuration-retry';
@@ -67,68 +57,43 @@ import { ConsumerConfigurationSslComponent } from '../consumer-configuration-ssl
 })
 export class ConsumerConfigurationComponent implements OnInit {
   @Input()
-  subscriptionId!: string;
+  isUpdate = false;
 
-  consumerConfigurationForm!: ConsumerConfigurationForm;
+  @Output()
+  save = new EventEmitter();
+
+  @Input()
+  consumerConfigurationFormValues!: ConsumerConfigurationValues | null;
+
+  @Output()
+  consumerConfigurationFormDataChange = new EventEmitter<ConsumerConfigurationFormData>();
+
+  error: InputSignal<boolean> = input<boolean>(false);
+
+  consumerConfigurationForm: ConsumerConfigurationForm = new FormGroup({
+    channel: new FormControl(),
+    consumerConfiguration: new FormGroup({
+      callbackUrl: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.pattern(/^(http|https):/)],
+      }),
+      headers: new FormControl(),
+      retry: new FormControl(),
+      ssl: new FormControl(),
+      auth: new FormControl(),
+    }),
+  });
+
   initialValues!: ConsumerConfigurationValues;
   formUnchanged$: Observable<boolean> = of(true);
-  subscription!: Subscription;
-  error: boolean = false;
-  destroyRef = inject(DestroyRef);
-  plan: Plan | undefined;
-
-  constructor(
-    private readonly subscriptionService: SubscriptionService,
-    private readonly planService: PlanService,
-    private readonly dialog: MatDialog,
-  ) {}
 
   ngOnInit(): void {
-    this.subscriptionService
-      .get(this.subscriptionId)
-      .pipe(
-        switchMap(subscription => combineLatest([this.planService.list(subscription.api), of(subscription)])),
-        tap(([plans, subscription]) => {
-          this.subscription = subscription;
-          this.plan = plans.data?.find(p => p.id === subscription.plan);
-          this.initForm(subscription.consumerConfiguration);
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    this.initForm();
   }
 
   submit() {
-    const updatedSubscription = this.toUpdateSubscription(this.consumerConfigurationForm.getRawValue());
-
-    const dialogRef = this.dialog.open<SubscriptionCommentDialogComponent, SubscriptionCommentDialogData, string>(
-      SubscriptionCommentDialogComponent,
-      { data: { plan: this.plan } as SubscriptionCommentDialogData, width: '500px' },
-    );
-
-    dialogRef
-      .afterClosed()
-      .pipe(
-        switchMap(message => {
-          // message may be null but not undefined. If message is undefined it means that the user as clicked outside of the dialog
-          if ((!this.plan?.comment_required || (this.plan.comment_required && message)) && message !== undefined) {
-            updatedSubscription.reason = message;
-            return this.subscriptionService.update(this.subscriptionId, updatedSubscription).pipe(
-              tap(() => {
-                this.initialValues = this.consumerConfigurationForm.getRawValue();
-                this.reset();
-              }),
-            );
-          }
-          return of(null);
-        }),
-        catchError(() => {
-          this.error = true;
-          return of(null);
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    // Used only in Update mode.
+    this.save.emit(this.consumerConfigurationForm.getRawValue());
   }
 
   reset() {
@@ -137,52 +102,36 @@ export class ConsumerConfigurationComponent implements OnInit {
     }
   }
 
-  private initForm(consumerConfiguration: SubscriptionConsumerConfiguration | undefined): void {
-    if (consumerConfiguration) {
-      const entrypointConfiguration = consumerConfiguration.entrypointConfiguration;
-      this.consumerConfigurationForm = new FormGroup({
-        channel: new FormControl(consumerConfiguration.channel),
-        consumerConfiguration: new FormGroup({
-          callbackUrl: new FormControl(entrypointConfiguration?.callbackUrl, {
-            nonNullable: true,
-            validators: [Validators.required, Validators.pattern(/^(http|https):/)],
-          }),
-          headers: new FormControl(entrypointConfiguration?.headers),
-          retry: new FormControl(entrypointConfiguration?.retry, { nonNullable: true }),
-          ssl: new FormControl(entrypointConfiguration?.ssl, { nonNullable: true }),
-          auth: new FormControl(entrypointConfiguration?.auth, { nonNullable: true }),
-        }),
+  private initForm(): void {
+    if (this.consumerConfigurationFormValues) {
+      this.consumerConfigurationForm.patchValue({
+        channel: this.consumerConfigurationFormValues.channel,
+        consumerConfiguration: {
+          callbackUrl: this.consumerConfigurationFormValues.consumerConfiguration.callbackUrl,
+          headers: this.consumerConfigurationFormValues.consumerConfiguration.headers,
+          retry: this.consumerConfigurationFormValues.consumerConfiguration.retry,
+          ssl: this.consumerConfigurationFormValues.consumerConfiguration.ssl,
+          auth: this.consumerConfigurationFormValues.consumerConfiguration.auth,
+        },
       });
+    }
+    this.afterFormInit();
+  }
+
+  private afterFormInit() {
+    if (this.isUpdate) {
       this.initialValues = this.consumerConfigurationForm.getRawValue();
       this.formUnchanged$ = this.consumerConfigurationForm.valueChanges.pipe(
         startWith(this.initialValues),
         map(value => deepEqualIgnoreOrder(this.initialValues, value)),
       );
+    } else {
+      this.consumerConfigurationForm.valueChanges.subscribe(_ => {
+        this.consumerConfigurationFormDataChange.emit({
+          value: this.consumerConfigurationForm.getRawValue(),
+          isValid: this.consumerConfigurationForm.valid,
+        });
+      });
     }
-  }
-
-  private toUpdateSubscription(updatedValues: ConsumerConfigurationValues): UpdateSubscription {
-    const { consumerConfiguration } = this.subscription;
-    if (!consumerConfiguration) {
-      const error = 'Consumer configuration is missing in subscription';
-      this.error = true;
-      throw new Error(error);
-    }
-
-    return {
-      ...this.subscription,
-      configuration: {
-        entrypointId: consumerConfiguration.entrypointId,
-        channel: updatedValues.channel,
-        entrypointConfiguration: {
-          ...consumerConfiguration.entrypointConfiguration,
-          callbackUrl: updatedValues.consumerConfiguration.callbackUrl,
-          headers: updatedValues.consumerConfiguration.headers ?? [],
-          retry: updatedValues.consumerConfiguration.retry,
-          ssl: updatedValues.consumerConfiguration.ssl,
-          auth: updatedValues.consumerConfiguration.auth,
-        },
-      },
-    };
   }
 }

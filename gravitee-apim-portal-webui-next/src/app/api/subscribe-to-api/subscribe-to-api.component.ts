@@ -35,14 +35,15 @@ import {
   SubscribeToApiChooseApplicationComponent,
 } from './subscribe-to-api-choose-application/subscribe-to-api-choose-application.component';
 import { SubscribeToApiChoosePlanComponent } from './subscribe-to-api-choose-plan/subscribe-to-api-choose-plan.component';
+import { ConsumerConfigurationComponent } from '../../../components';
 import { LoaderComponent } from '../../../components/loader/loader.component';
+import { ConsumerConfigurationFormData } from '../../../components/subscription/webhook/consumer-configuration/consumer-configuration.models';
 import { Api } from '../../../entities/api/api';
 import { Application, ApplicationsResponse } from '../../../entities/application/application';
 import { Page } from '../../../entities/page/page';
 import { Plan } from '../../../entities/plan/plan';
 import { CreateSubscription, Subscription } from '../../../entities/subscription/subscription';
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
-import { ApiService } from '../../../services/api.service';
 import { ApplicationService } from '../../../services/application.service';
 import { ConfigService } from '../../../services/config.service';
 import { PageService } from '../../../services/page.service';
@@ -78,6 +79,7 @@ interface CheckoutData {
     LoaderComponent,
     MatChipsModule,
     MatIcon,
+    ConsumerConfigurationComponent,
   ],
   templateUrl: './subscribe-to-api.component.html',
   styleUrl: './subscribe-to-api.component.scss',
@@ -100,6 +102,8 @@ export class SubscribeToApiComponent implements OnInit {
     } else if (this.currentStep() === 2) {
       return this.currentApplication() === undefined;
     } else if (this.currentStep() === 3) {
+      return !this.consumerConfigurationFormData().isValid;
+    } else if (this.currentStep() === 4) {
       return (
         (this.currentPlan()?.comment_required === true && !this.message()) ||
         (this.showApiKeyModeSelection() && !this.applicationApiKeyMode())
@@ -114,6 +118,7 @@ export class SubscribeToApiComponent implements OnInit {
   currentApplication$ = toObservable(this.currentApplication);
 
   hasSubscriptionError: boolean = false;
+  consumerConfigurationFormData = signal<ConsumerConfigurationFormData>({ value: null, isValid: false });
 
   private currentApplicationsPage: BehaviorSubject<number> = new BehaviorSubject(1);
   private destroyRef = inject(DestroyRef);
@@ -121,7 +126,6 @@ export class SubscribeToApiComponent implements OnInit {
 
   constructor(
     private planService: PlanService,
-    private apiService: ApiService,
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
     private pageService: PageService,
@@ -153,16 +157,24 @@ export class SubscribeToApiComponent implements OnInit {
     );
   }
 
+  consumerConfigurationFormChanges(data: ConsumerConfigurationFormData) {
+    this.consumerConfigurationFormData.set(data);
+  }
+
   goToNextStep(): void {
-    if (this.currentPlan()?.security === 'KEY_LESS' && this.currentStep() === 1) {
-      this.currentStep.set(3);
-    } else if (this.currentStep() < 3) {
+    if (this.currentPlan()?.mode !== 'PUSH' && this.currentStep() === 2) {
+      this.currentStep.set(4);
+    } else if (this.currentPlan()?.security === 'KEY_LESS' && this.currentStep() === 1) {
+      this.currentStep.set(4);
+    } else if (this.currentStep() < 4) {
       this.currentStep.update(currentStep => currentStep + 1);
     }
   }
 
   goToPreviousStep(): void {
-    if (this.currentPlan()?.security === 'KEY_LESS' && this.currentStep() === 3) {
+    if (this.currentPlan()?.mode !== 'PUSH' && this.currentPlan()?.security !== 'KEY_LESS' && this.currentStep() === 4) {
+      this.currentStep.set(2);
+    } else if (this.currentPlan()?.security === 'KEY_LESS' && this.currentStep() === 4) {
       this.currentStep.set(1);
     } else if (this.currentStep() > 1) {
       this.currentStep.update(currentStep => currentStep - 1);
