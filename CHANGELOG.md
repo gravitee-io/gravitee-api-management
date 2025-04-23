@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.4.1...1.5.0) (2025-04-23)
+
+
+### Features
+
+* handle new AI metrics ([114f585](https://github.com/gravitee-io/gravitee-reporter-common/commit/114f58504025f192397b14027b25fd9b2d67dab6))
+
 ## [1.4.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.4.0...1.4.1) (2025-01-23)
 
 
