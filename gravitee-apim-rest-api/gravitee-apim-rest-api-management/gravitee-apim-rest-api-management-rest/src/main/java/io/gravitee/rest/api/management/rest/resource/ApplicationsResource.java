@@ -139,7 +139,8 @@ public class ApplicationsResource extends AbstractResource {
         if (group != null) {
             applicationQuery.setGroups(Set.of(group));
         }
-        applicationQuery.setName(query);
+
+        applicationQuery.setQuery(query);
 
         if (ids != null && !ids.isEmpty()) {
             applicationQuery.setIds(new HashSet<>(ids));
