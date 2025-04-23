@@ -17,8 +17,6 @@ package io.gravitee.repository.mongodb.management.internal.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import java.util.Set;
@@ -28,20 +26,41 @@ import org.springframework.data.mongodb.core.query.Query;
 public class ApplicationMongoRepositoryImplTest {
 
     @Test
-    public void buildSearchCriteria_withIdsAndNameAndEnvironmentIdsAndStatus() throws JsonProcessingException {
+    public void searchQuery_queryAndEnvironmentIdsAndStatus() {
         ApplicationMongoRepositoryImpl repository = new ApplicationMongoRepositoryImpl();
-        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
-            .ids(Set.of("id1"))
-            .name("name1")
-            .environmentIds("DEFAULT")
+        ApplicationCriteria criteria = ApplicationCriteria
+            .builder()
+            .query("id1")
+            .environmentIds(Set.of("env1"))
             .status(ApplicationStatus.ACTIVE)
             .build();
         Query query = repository.buildSearchCriteria(criteria);
-        var queryJson = new ObjectMapper().writeValueAsString(query.getQueryObject());
-        assertThat(queryJson)
+        assertThat(query.toString())
             .isEqualTo(
-                "{\"$or\":[{\"id\":{\"$in\":[\"id1\"]}},{\"name\":\"name1\"}]," +
-                "\"environmentId\":{\"$in\":[\"DEFAULT\"]},\"status\":\"ACTIVE\"}"
+                "Query: { \"$or\" : [{ \"id\" : \"id1\"}, { \"name\" : { \"$regularExpression\" : { \"pattern\" : \"id1\", " +
+                "\"options\" : \"i\"}}}], \"environmentId\" : { \"$in\" : [\"env1\"]}, \"status\" : { \"$java\" : ACTIVE } }, " +
+                "Fields: {}, Sort: {}"
+            );
+    }
+
+    @Test
+    public void searchQuery_queryAndRestrictedIdsAndNameAndEnvironmentIdsAndStatus() {
+        ApplicationMongoRepositoryImpl repository = new ApplicationMongoRepositoryImpl();
+        ApplicationCriteria criteria = ApplicationCriteria
+            .builder()
+            .query("name1")
+            .restrictedToIds(Set.of("id1"))
+            .name("name1")
+            .environmentIds(Set.of("env1"))
+            .status(ApplicationStatus.ACTIVE)
+            .build();
+        Query query = repository.buildSearchCriteria(criteria);
+        assertThat(query.toString())
+            .isEqualTo(
+                "Query: { \"$or\" : [{ \"id\" : \"name1\"}, { \"name\" : { \"$regularExpression\" : { \"pattern\" : \"name1\", " +
+                "\"options\" : \"i\"}}}], \"id\" : { \"$in\" : [\"id1\"]}, \"name\" : { \"$regularExpression\" : " +
+                "{ \"pattern\" : \"name1\", \"options\" : \"i\"}}, \"environmentId\" : { \"$in\" : [\"env1\"]}, \"status\" : " +
+                "{ \"$java\" : ACTIVE } }, Fields: {}, Sort: {}"
             );
     }
 }

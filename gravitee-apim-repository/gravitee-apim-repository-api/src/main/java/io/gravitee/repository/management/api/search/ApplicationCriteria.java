@@ -17,104 +17,25 @@ package io.gravitee.repository.management.api.search;
 
 import io.gravitee.repository.management.model.ApplicationStatus;
 import java.util.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@AllArgsConstructor
+@EqualsAndHashCode
+@Builder
 public class ApplicationCriteria {
 
-    private Set<String> ids;
+    private Set<String> restrictedToIds;
     private String name;
     private Set<String> environmentIds;
     private ApplicationStatus status;
     private Set<String> groups;
-
-    ApplicationCriteria(ApplicationCriteria.Builder builder) {
-        this.ids = builder.ids;
-        this.name = builder.name;
-        this.environmentIds = builder.environmentIds;
-        this.status = builder.status;
-        this.groups = builder.groups;
-    }
-
-    public Set<String> getIds() {
-        return ids;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Set<String> getEnvironmentIds() {
-        return environmentIds;
-    }
-
-    public ApplicationStatus getStatus() {
-        return status;
-    }
-
-    public Set<String> getGroups() {
-        return groups;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ApplicationCriteria)) return false;
-        ApplicationCriteria that = (ApplicationCriteria) o;
-        return (
-            Objects.equals(ids, that.ids) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(environmentIds, that.environmentIds) &&
-            Objects.equals(status, that.status)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(ids, name, environmentIds, status);
-    }
-
-    public static class Builder {
-
-        private Set<String> ids;
-        private String name;
-        private Set<String> environmentIds;
-        private ApplicationStatus status;
-        private Set<String> groups;
-
-        public ApplicationCriteria.Builder ids(final Set<String> ids) {
-            this.ids = ids;
-            return this;
-        }
-
-        public ApplicationCriteria.Builder name(final String name) {
-            this.name = name;
-            return this;
-        }
-
-        public ApplicationCriteria.Builder environmentIds(final String... environmentIds) {
-            return environmentIds(Set.of(environmentIds));
-        }
-
-        public ApplicationCriteria.Builder environmentIds(final Set<String> environmentIds) {
-            this.environmentIds = environmentIds;
-            return this;
-        }
-
-        public ApplicationCriteria.Builder status(final ApplicationStatus status) {
-            this.status = status;
-            return this;
-        }
-
-        public ApplicationCriteria.Builder groups(final Set<String> groups) {
-            this.groups = groups;
-            return this;
-        }
-
-        public ApplicationCriteria build() {
-            return new ApplicationCriteria(this);
-        }
-    }
+    private String query;
 }

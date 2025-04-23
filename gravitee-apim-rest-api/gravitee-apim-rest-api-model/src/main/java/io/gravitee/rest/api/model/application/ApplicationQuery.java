@@ -35,14 +35,11 @@ import lombok.ToString;
 public class ApplicationQuery {
 
     private Set<String> ids;
-
     private String user;
-
     private Set<String> groups;
-
     private String status;
-
     private String name;
+    private String query;
 
     private List<ApplicationExcludeFilter> excludeFilters;
 

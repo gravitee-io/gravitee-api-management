@@ -65,20 +65,12 @@ export class ApplicationService {
   }
 
   list(status?: string, query?: string, order?: string, page = 1, size = 10): Observable<PagedResult<Application>> {
-    let applicationIds = undefined;
-    // Search by application id when query is a valid id
-    const idRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-    if (idRegex.exec(query)) {
-      applicationIds = [query];
-    }
-
     return this.http.get<PagedResult<Application>>(`${this.constants.env.baseURL}/applications/_paged`, {
       params: {
         page,
         size,
         ...(status ? { status } : {}),
         ...(query ? { query } : {}),
-        ...(applicationIds ? { ids: applicationIds } : {}),
         ...(order ? { order } : {}),
       },
     });
