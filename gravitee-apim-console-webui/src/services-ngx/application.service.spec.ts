@@ -104,9 +104,7 @@ describe('ApplicationService', () => {
 
       const req = httpTestingController.expectOne({
         method: 'GET',
-        url:
-          `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10` +
-          `&query=0d93fd04-e834-447f-93fd-04e834047f9d&ids=0d93fd04-e834-447f-93fd-04e834047f9d`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10&query=0d93fd04-e834-447f-93fd-04e834047f9d`,
       });
 
       req.flush(mockApplications);

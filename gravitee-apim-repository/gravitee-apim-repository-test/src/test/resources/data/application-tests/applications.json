@@ -149,5 +149,35 @@
     },
     "disableMembershipNotifications": false,
     "origin": "KUBERNETES"
+  },
+  {
+    "id": "dbc12b15-e975-4fa1-812b-15e975bfa13c",
+    "environmentId": "DEV",
+    "name": "Application test query 1",
+    "description": "Application for testing the query (1)",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010884",
+    "updatedAt": "1439022011000",
+    "metadata": {
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false,
+    "origin": "KUBERNETES"
+  },
+  {
+    "id": "74e34cc3-000f-492e-a34c-c3000f192e32",
+    "environmentId": "DEV",
+    "name": "Application test query 2",
+    "description": "Application for testing the query (1)",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010885",
+    "updatedAt": "1439022011001",
+    "metadata": {
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false,
+    "origin": "KUBERNETES"
   }
 ]
