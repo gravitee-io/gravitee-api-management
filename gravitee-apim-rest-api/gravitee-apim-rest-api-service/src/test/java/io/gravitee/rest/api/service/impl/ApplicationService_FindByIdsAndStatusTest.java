@@ -116,10 +116,11 @@ public class ApplicationService_FindByIdsAndStatusTest {
     @Test
     public void shouldFindByIdsAndStatus() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
-            .ids(Sets.newHashSet(APPLICATION_IDS))
+        ApplicationCriteria criteria = ApplicationCriteria
+            .builder()
+            .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .status(ApplicationStatus.ACTIVE)
-            .environmentIds(executionContext.getEnvironmentId())
+            .environmentIds(Set.of(executionContext.getEnvironmentId()))
             .build();
         doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
         doReturn(2).when(primaryOwners).size();
@@ -137,10 +138,11 @@ public class ApplicationService_FindByIdsAndStatusTest {
     @Test
     public void shouldFindByIdsAndStatusWithDuplicatedIdsAndStatus() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
-            .ids(Sets.newHashSet(APPLICATION_IDS))
+        ApplicationCriteria criteria = ApplicationCriteria
+            .builder()
+            .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .status(ApplicationStatus.ACTIVE)
-            .environmentIds(executionContext.getEnvironmentId())
+            .environmentIds(Set.of(executionContext.getEnvironmentId()))
             .build();
 
         doReturn(new Page<>(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
@@ -159,8 +161,9 @@ public class ApplicationService_FindByIdsAndStatusTest {
     @Test
     public void shouldFindByIdsAndStatusWithNoEnvironmentCriteria() throws TechnicalException {
         ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
-        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
-            .ids(Sets.newHashSet(APPLICATION_IDS))
+        ApplicationCriteria criteria = ApplicationCriteria
+            .builder()
+            .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .status(ApplicationStatus.ACTIVE)
             .build();
         doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
@@ -194,10 +197,11 @@ public class ApplicationService_FindByIdsAndStatusTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowsIfNoPrimaryOwner() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = new ApplicationCriteria.Builder()
-            .ids(Sets.newHashSet(APPLICATION_IDS))
+        ApplicationCriteria criteria = ApplicationCriteria
+            .builder()
+            .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .status(ApplicationStatus.ACTIVE)
-            .environmentIds(executionContext.getEnvironmentId())
+            .environmentIds(Set.of(executionContext.getEnvironmentId()))
             .build();
         doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
 
