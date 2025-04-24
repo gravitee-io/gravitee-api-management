@@ -68,6 +68,10 @@ public class RollbackApiUseCase {
 
         // Rollback API from API definition without plans
         var rollbackedApi = toRollback.rollbackTo(apiDefinition);
+
+        //update the description since the description is not stored in the definition
+        rollbackedApi.setDescription(api.getDescription());
+
         var apiUpdated = updateApiDomainService.updateV4(rollbackedApi, input.auditInfo);
 
         // Rollback plans from API definition plans
