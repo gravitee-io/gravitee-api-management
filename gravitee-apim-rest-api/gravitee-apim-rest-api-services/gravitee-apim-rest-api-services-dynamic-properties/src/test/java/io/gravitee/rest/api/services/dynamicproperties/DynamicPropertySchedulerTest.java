@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;

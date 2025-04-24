@@ -25,11 +25,17 @@ import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PluginEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.EmailRecipientsService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PortalNotificationService;
@@ -48,13 +54,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -93,6 +102,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     private final WebhookNotifierService webhookNotifierService;
     private final EmailRecipientsService emailRecipientsService;
     private final ParameterService parameterService;
+    private final MembershipService membershipService;
 
     public NotifierServiceImpl(
         ConfigurablePluginManager<NotifierPlugin> notifierManager,
@@ -102,7 +112,8 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         @Lazy EmailNotifierService emailNotifierService,
         @Lazy WebhookNotifierService webhookNotifierService,
         @Lazy EmailRecipientsService emailRecipientsService,
-        @Lazy ParameterService parameterService
+        @Lazy ParameterService parameterService,
+        @Lazy MembershipService membershipService
     ) {
         this.notifierManager = notifierManager;
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
@@ -112,6 +123,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         this.webhookNotifierService = webhookNotifierService;
         this.emailRecipientsService = emailRecipientsService;
         this.parameterService = parameterService;
+        this.membershipService = membershipService;
     }
 
     @Override
@@ -173,17 +185,35 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         final Map<String, Object> params
     ) {
         try {
-            List<String> userIds = portalNotificationConfigRepository
+            Set<String> userIds = portalNotificationConfigRepository
                 .findByReferenceAndHook(hook.name(), refType, refId)
                 .stream()
-                .map(PortalNotificationConfig::getUser)
-                .collect(Collectors.toList());
+                .flatMap(n -> users(executionContext, n))
+                .collect(Collectors.toCollection(HashSet::new));
             if (!userIds.isEmpty()) {
-                portalNotificationService.create(executionContext, hook, userIds, params);
+                portalNotificationService.create(executionContext, hook, new ArrayList<>(userIds), params);
             }
         } catch (TechnicalException e) {
             LOGGER.error("Error looking for PortalNotificationConfig with {}/{}/{}", hook, refType, refId, e);
         }
+    }
+
+    private Stream<String> users(final ExecutionContext executionContext, final PortalNotificationConfig portalNotificationConfig) {
+        List<String> userIds = new ArrayList<>();
+        userIds.add(portalNotificationConfig.getUser());
+        if (portalNotificationConfig.getGroups() != null) {
+            membershipService
+                .getMembersByReferencesAndRole(
+                    executionContext,
+                    MembershipReferenceType.GROUP,
+                    List.copyOf(portalNotificationConfig.getGroups()),
+                    null
+                )
+                .stream()
+                .map(MemberEntity::getId)
+                .forEach(userIds::add);
+        }
+        return userIds.stream();
     }
 
     private void triggerGenericNotifications(

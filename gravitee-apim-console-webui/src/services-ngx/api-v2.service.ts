@@ -33,6 +33,7 @@ import {
   ApiTransferOwnership,
   VerifyApiDeployResponse,
   ListenerType,
+  Member,
 } from '../entities/management-api-v2';
 import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
@@ -207,6 +208,10 @@ export class ApiV2Service {
 
   transferOwnership(api: string, ownership: ApiTransferOwnership): Observable<any> {
     return this.http.post(`${this.constants.env.v2BaseURL}/apis/${api}/_transfer-ownership`, ownership);
+  }
+
+  getPrimaryOwner(api: string): Observable<Member> {
+    return this.http.get<Member>(`${this.constants.env.v2BaseURL}/apis/${api}/primaryowner`);
   }
 
   verifyPath(apiId: string, paths: PathToVerify[]): Observable<VerifyApiPathResponse> {

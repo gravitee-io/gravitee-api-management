@@ -732,6 +732,32 @@ public class ApiServiceImplTest {
     }
 
     @Test
+    public void shouldUpdateAndRemovedGroupsAreNotPartOfNotificationAnymore() throws TechnicalException {
+        prepareUpdate();
+
+        api.setGroups(Set.of("group1", "group2"));
+        updateApiEntity.setGroups(Set.of("group1"));
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        assertNotNull(apiEntity);
+        verify(portalNotificationConfigService, times(1)).removeGroupIds(any(), eq(Set.of("group2")));
+    }
+
+    @Test
+    public void shouldUpdateAndAddGroup() throws TechnicalException {
+        prepareUpdate();
+
+        api.setGroups(null);
+        updateApiEntity.setGroups(Set.of("group1"));
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        assertNotNull(apiEntity);
+        verify(portalNotificationConfigService, never()).removeGroupIds(any(), any());
+    }
+
+    @Test
     public void shouldUpdateFlows() throws TechnicalException {
         prepareUpdate();
 

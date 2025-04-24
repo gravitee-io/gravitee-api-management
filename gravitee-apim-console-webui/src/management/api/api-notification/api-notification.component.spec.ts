@@ -35,6 +35,9 @@ import { fakeNotificationSettings, fakePortalNotificationSettings } from '../../
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { fakeHooks } from '../../../entities/notification/hooks.fixture';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { fakeGroup } from '../../../entities/group/group.fixture';
+import { ApiV4, fakePagedResult } from '../../../entities/management-api-v2';
+import { fakeUser } from '../../../entities/user/user.fixture';
 
 describe('ApiNotificationComponent', () => {
   const API_ID = 'an-api-id';
@@ -93,7 +96,7 @@ describe('ApiNotificationComponent', () => {
     initComponent();
   });
 
-  function initComponent(permissions = ['api-notification-c', 'api-notification-d', 'api-notification-u']) {
+  function initComponent(permissions = ['api-notification-c', 'api-notification-d', 'api-notification-u'], checkUser = true) {
     permissionsService._setPermissions(permissions);
     fixture = TestBed.createComponent(ApiNotificationComponent);
     fixture.detectChanges();
@@ -102,8 +105,7 @@ describe('ApiNotificationComponent', () => {
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
 
-    expectNotificationSettingsRequest();
-    expectNotifiersRequest();
+    expectAllRequest(checkUser);
   }
 
   afterEach(() => {
@@ -208,7 +210,7 @@ describe('ApiNotificationComponent', () => {
     });
 
     it('should not show Add button if the user is not allowed', async () => {
-      initComponent([]);
+      initComponent([], false);
 
       const addButton = await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid=add-notification]' }));
       expect(addButton).toBeNull();
@@ -265,7 +267,7 @@ describe('ApiNotificationComponent', () => {
     });
 
     it('should not show Delete button if the user is not allowed', async () => {
-      initComponent([]);
+      initComponent([], false);
 
       const table = await loader.getHarness(NotificationListHarness);
       const addButton = await table.getDeleteButton(1);
@@ -329,7 +331,7 @@ describe('ApiNotificationComponent', () => {
       });
 
       it('should not show Edit button if the user is not allowed', async () => {
-        initComponent([]);
+        initComponent([], false);
 
         const table = await loader.getHarness(NotificationListHarness);
 
@@ -505,6 +507,17 @@ describe('ApiNotificationComponent', () => {
     });
   });
 
+  function expectAllRequest(checkUser: boolean) {
+    expectNotificationSettingsRequest();
+    expectPrimaryOwnerRequest();
+    expectApiRequest();
+    expectGroupsRequest();
+    expectNotifiersRequest();
+    if (checkUser) {
+      expectUserRequest();
+    }
+  }
+
   function expectHooksRequest(
     response = [
       fakeHooks({ id: 'APIKEY_EXPIRED', label: 'API-Key expired', category: 'API KEY' }),
@@ -523,11 +536,40 @@ describe('ApiNotificationComponent', () => {
     if (!req.cancelled) req.flush(response);
   }
 
+  function expectGroupsRequest(response = fakeGroup()) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`);
+    if (!req.cancelled) req.flush(fakePagedResult([response]));
+  }
+  function expectApiRequest(response = fakeGroup()) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`);
+    const api: ApiV4 = {
+      apiVersion: '1.0',
+      definitionVersion: 'V4',
+      name: 'fake API',
+      originContext: { origin: 'MANAGEMENT' },
+      type: 'PROXY',
+      id: `${API_ID}`,
+      groups: [response.id],
+    };
+
+    if (!req.cancelled) req.flush(api);
+  }
+
+  function expectPrimaryOwnerRequest(response = `${API_ID}-po`) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/primaryowner`);
+    if (!req.cancelled) req.flush(response);
+  }
+
   function expectNotifiersRequest() {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/notifiers`);
     req.flush([
       fakeNotifier({ id: NOTIFIER_EMAIL_ID, type: 'EMAIL', name: NOTIFIER_EMAIL_NAME }),
       fakeNotifier({ id: NOTIFIER_WEBHOOK_ID, type: 'WEBHOOK', name: NOTIFIER_WEBHOOK_NAME }),
     ]);
+  }
+
+  function expectUserRequest(response = `${API_ID}-po`) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/user`);
+    req.flush(fakeUser({ id: response }));
   }
 });

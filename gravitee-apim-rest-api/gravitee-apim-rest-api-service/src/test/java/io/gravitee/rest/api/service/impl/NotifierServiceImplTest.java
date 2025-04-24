@@ -32,6 +32,7 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.EmailRecipientsService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -84,6 +85,9 @@ class NotifierServiceImplTest {
     @Mock
     private ParameterService parameterService;
 
+    @Mock
+    private MembershipService membershipService;
+
     @BeforeEach
     void setUp() {
         cut =
@@ -95,7 +99,8 @@ class NotifierServiceImplTest {
                 emailNotifierService,
                 webhookNotifierService,
                 emailRecipientsService,
-                parameterService
+                parameterService,
+                membershipService
             );
     }
 

@@ -23,4 +23,5 @@ export interface NotificationSettings {
   useSystemProxy?: boolean;
   config_type: string;
   config?: string;
+  groups?: string[];
 }
