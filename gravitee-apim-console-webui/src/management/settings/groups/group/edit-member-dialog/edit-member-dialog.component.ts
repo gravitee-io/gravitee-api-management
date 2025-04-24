@@ -124,16 +124,16 @@ export class EditMemberDialogComponent implements OnInit {
   }
 
   private initializeForm() {
-    const groupRole = this.member.roles.find((member) => member.scope === 'GROUP');
+    const groupRole = this.member.roles['GROUP'];
     this.editMemberForm = new FormGroup({
       displayName: new FormControl<string>(this.member.displayName),
       groupAdmin: new FormControl<boolean>({
         value: !!groupRole && groupRole.name === 'ADMIN',
         disabled: !this.group.system_invitation,
       }),
-      defaultAPIRole: new FormControl<string>(this.member.roles.find((member) => member.scope === 'API').name),
-      defaultApplicationRole: new FormControl<string>(this.member.roles.find((member) => member.scope === 'APPLICATION').name),
-      defaultIntegrationRole: new FormControl<string>(this.member.roles.find((member) => member.scope === 'INTEGRATION').name),
+      defaultAPIRole: new FormControl<string>(this.member.roles['API']),
+      defaultApplicationRole: new FormControl<string>(this.member.roles['APPLICATION']),
+      defaultIntegrationRole: new FormControl<string>(this.member.roles['INTEGRATION']),
       searchTerm: new FormControl<string>({ value: '', disabled: true }),
     });
   }
