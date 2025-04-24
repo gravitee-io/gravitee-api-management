@@ -133,6 +133,11 @@ public class RollbackApiEntity {
     )
     private Set<String> pathMappings;
 
+    @Schema(description = "API's execution mode. Define if the execution mode should use v3 or v4-emulation-engine.", example = "v3")
+    @DeploymentRequired
+    @JsonProperty(value = "execution_mode")
+    private ExecutionMode executionMode;
+
     @JsonProperty(value = "response_templates")
     @Schema(
         description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
