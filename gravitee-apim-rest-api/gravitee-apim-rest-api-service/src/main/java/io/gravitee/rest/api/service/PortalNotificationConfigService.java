@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -27,4 +28,5 @@ public interface PortalNotificationConfigService {
     PortalNotificationConfigEntity findById(String user, NotificationReferenceType referenceType, String referenceId);
     void deleteByUser(String user);
     void deleteReference(NotificationReferenceType referenceType, String referenceId);
+    void removeGroupIds(String apiId, Set<String> groupIds);
 }

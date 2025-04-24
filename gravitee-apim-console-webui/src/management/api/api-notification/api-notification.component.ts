@@ -36,6 +36,10 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { NotificationSettings } from '../../../entities/notification/notificationSettings';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Hooks } from '../../../entities/notification/hooks';
+import { GroupV2Service } from '../../../services-ngx/group-v2.service';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { GroupData } from '../user-group-access/members/api-general-members.component';
+import { CurrentUserService } from '../../../services-ngx/current-user.service';
 
 @Component({
   selector: 'api-notification',
@@ -54,6 +58,9 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
   protected canDelete = this.permissionService.hasAnyMatching(['api-notification-d']);
   protected canUpdate = this.permissionService.hasAnyMatching(['api-notification-u']);
   protected notifiers: Notifier[];
+  private groupData: GroupData[];
+  private apiPrimaryOwner: string;
+  private isApiPrimaryOwner: boolean;
   protected notificationsSummary$: Observable<NotificationSummary[]> = this.notifications$.asObservable().pipe(
     map((notifications) => {
       return notifications?.map((notification) => {
@@ -81,14 +88,31 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
+    private readonly groupService: GroupV2Service,
+    private readonly apiService: ApiV2Service,
+    private readonly currentUserService: CurrentUserService,
   ) {}
 
   public ngOnInit(): void {
-    combineLatest([this.notificationService.getNotifiers(this.apiId), this.notificationService.getAll(this.apiId)])
+    combineLatest([
+      this.notificationService.getNotifiers(this.apiId),
+      this.notificationService.getAll(this.apiId),
+      this.apiService.get(this.apiId),
+      this.groupService.list(1, 9999),
+      this.apiService.getPrimaryOwner(this.apiId),
+      this.currentUserService.current(),
+    ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([notifiers, notifications]) => {
+      .subscribe(([notifiers, notifications, api, groups, primaryOwner, currentUser]) => {
         this.notifiers = notifiers;
         this.notifications$.next(notifications);
+        this.groupData = api.groups?.map((id) => ({
+          id,
+          name: groups.data.find((g) => g.id === id)?.name,
+          isVisible: true,
+        }));
+        this.apiPrimaryOwner = primaryOwner.id;
+        this.isApiPrimaryOwner = primaryOwner.id === currentUser.id;
       });
   }
 
@@ -194,6 +218,10 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
           hooks,
           notifier: this.notifiers.find((n) => n.id === notification.notifier),
           notification,
+          primaryOwner: this.apiPrimaryOwner,
+          isPrimaryOwner: this.isApiPrimaryOwner,
+          groupData: this.withPrimaryOwner(),
+          isPortalNotification: notification.config_type === 'PORTAL',
         },
         role: 'dialog',
         id: 'editNotificationDialog',
@@ -217,5 +245,12 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
       .subscribe((notifications) => {
         this.notifications$.next(notifications);
       });
+  }
+
+  private withPrimaryOwner() {
+    if (this.groupData.filter((g) => g.id === this.apiPrimaryOwner).flat().length === 0) {
+      this.groupData.unshift({ id: this.apiPrimaryOwner, name: 'Primary Owner' });
+    }
+    return this.groupData;
   }
 }

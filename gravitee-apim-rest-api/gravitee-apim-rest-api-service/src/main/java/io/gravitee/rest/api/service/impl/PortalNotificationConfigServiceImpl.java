@@ -19,14 +19,19 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +51,9 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
     @Autowired
     private PortalNotificationConfigRepository portalNotificationConfigRepository;
 
+    @Autowired
+    private MembershipService membershipService;
+
     @Override
     public PortalNotificationConfigEntity save(PortalNotificationConfigEntity notificationEntity) {
         try {
@@ -62,13 +70,16 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
                     NotificationReferenceType.valueOf(notificationEntity.getReferenceType()),
                     notificationEntity.getReferenceId()
                 );
+
                 PortalNotificationConfig notificationConfig = convert(notificationEntity);
 
                 if (optionalConfig.isPresent()) {
+                    notificationConfig.setUser(notificationConfig.getUser());
                     notificationConfig.setCreatedAt(optionalConfig.get().getCreatedAt());
                     notificationConfig.setUpdatedAt(new Date());
                     return convert(portalNotificationConfigRepository.update(notificationConfig));
                 } else {
+                    notificationConfig.setUser(notificationConfig.getUser());
                     notificationConfig.setCreatedAt(new Date());
                     notificationConfig.setUpdatedAt(notificationConfig.getCreatedAt());
                     return convert(portalNotificationConfigRepository.create(notificationConfig));
@@ -132,6 +143,33 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         }
     }
 
+    @Override
+    public void removeGroupIds(String apiId, Set<String> groupIds) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String primaryOwnerUserId = membershipService.getPrimaryOwnerUserId(
+            executionContext.getOrganizationId(),
+            MembershipReferenceType.API,
+            apiId
+        );
+        try {
+            Optional<PortalNotificationConfig> notification = portalNotificationConfigRepository.findById(
+                primaryOwnerUserId,
+                NotificationReferenceType.API,
+                apiId
+            );
+            if (notification.isPresent() && notification.get().getGroups() != null) {
+                PortalNotificationConfig portalNotificationConfig = notification.get();
+                portalNotificationConfig.getGroups().removeAll(groupIds);
+                portalNotificationConfigRepository.update(portalNotificationConfig);
+            }
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to get the notification settings " + primaryOwnerUserId + "/API/" + apiId,
+                e
+            );
+        }
+    }
+
     private PortalNotificationConfigEntity getDefaultEmpty(String user, NotificationReferenceType referenceType, String referenceId) {
         PortalNotificationConfigEntity portalNotificationConfigEntity = new PortalNotificationConfigEntity();
         portalNotificationConfigEntity.setConfigType(NotificationConfigType.PORTAL);
@@ -149,6 +187,7 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             .referenceId(entity.getReferenceId())
             .user(entity.getUser())
             .hooks(entity.getHooks())
+            .groups(Set.copyOf(entity.getGroups()))
             .build();
     }
 
@@ -159,6 +198,7 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         entity.setReferenceId(portalNotificationConfig.getReferenceId());
         entity.setUser(portalNotificationConfig.getUser());
         entity.setHooks(portalNotificationConfig.getHooks());
+        entity.setGroups(List.copyOf(portalNotificationConfig.getGroups()));
         return entity;
     }
 }

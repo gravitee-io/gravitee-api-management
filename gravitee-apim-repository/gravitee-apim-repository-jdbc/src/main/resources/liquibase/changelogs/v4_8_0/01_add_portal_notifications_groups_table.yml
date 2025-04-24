@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.8.0_01_add_portal_notifications_groups_table_1
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}portal_notification_config_groups
+            columns:
+              - column:
+                  name: user
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_${gravitee_prefix}portal_notification_config_groups
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: reference_type
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: group
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false
+                    primaryKey: true

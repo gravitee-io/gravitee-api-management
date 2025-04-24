@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,6 +41,7 @@ public class PortalNotificationConfigMongo {
     private PortalNotificationConfigPkMongo id;
 
     private List<String> hooks;
+    private Set<String> groups;
     private Date createdAt;
     private Date updatedAt;
 }

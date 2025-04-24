@@ -110,6 +110,9 @@ public class GroupService_DeleteTest {
     @Mock
     private IdentityProviderRepository identityProviderRepository;
 
+    @Mock
+    private PortalNotificationConfigService portalNotificationConfigService;
+
     @Test(expected = GroupNotFoundException.class)
     public void throwGroupNotFoundException() throws Exception {
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.empty());
@@ -191,7 +194,9 @@ public class GroupService_DeleteTest {
                 ApiFieldFilter.allFields()
             )
         )
-            .thenReturn(Stream.empty());
+            .thenReturn(Stream.of(Api.builder().groups(new HashSet<>(Set.of(GROUP_ID))).build()));
+
+        when(userService.findById(any(), any())).thenReturn(UserEntity.builder().sourceId("test").build());
 
         when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
 
@@ -235,6 +240,8 @@ public class GroupService_DeleteTest {
 
         verify(auditService, times(1))
             .createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), eq(GROUP_DELETED), any(), any(), eq(null));
+
+        verify(portalNotificationConfigService, times(1)).removeGroupIds(any(), eq(Set.of(GROUP_ID)));
     }
 
     @Test

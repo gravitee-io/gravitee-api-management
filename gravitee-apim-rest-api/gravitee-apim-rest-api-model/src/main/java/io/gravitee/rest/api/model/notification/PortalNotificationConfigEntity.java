@@ -17,102 +17,33 @@ package io.gravitee.rest.api.model.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
 public class PortalNotificationConfigEntity {
 
     @JsonProperty("config_type")
     private NotificationConfigType configType;
 
     @JsonProperty("name")
-    private String name = "Portal Notification";
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private String name = "Console Notification";
 
     private String referenceType;
+
     private String referenceId;
+
     private String user;
+
     private List<String> hooks;
 
-    public NotificationConfigType getConfigType() {
-        return configType;
-    }
-
-    public void setConfigType(NotificationConfigType configType) {
-        this.configType = configType;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public List<String> getHooks() {
-        return hooks;
-    }
-
-    public void setHooks(List<String> hooks) {
-        this.hooks = hooks;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PortalNotificationConfigEntity)) return false;
-        PortalNotificationConfigEntity that = (PortalNotificationConfigEntity) o;
-        return (
-            Objects.equals(referenceType, that.referenceType) &&
-            Objects.equals(referenceId, that.referenceId) &&
-            Objects.equals(user, that.user)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(user);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "PortalNotificationConfigEntity{" +
-            "user='" +
-            user +
-            '\'' +
-            ", configType='" +
-            configType +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", hooks='" +
-            hooks +
-            '\'' +
-            '}'
-        );
-    }
+    private List<String> groups;
 }

@@ -87,21 +87,51 @@ import io.gravitee.rest.api.model.ReviewEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.WorkflowState;
-import io.gravitee.rest.api.model.api.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
+import io.gravitee.rest.api.model.api.SwaggerApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.ConnectorService;
+import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.ResourceService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
+import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
+import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -145,65 +175,67 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ApiService_UpdateTest {
 
     public static final String API_DEFINITION =
-        "{\n" +
-        "  \"id\" : \"id-api\",\n" +
-        "  \"name\" : \"myAPI\",\n" +
-        "  \"description\" : \"Gravitee.io\",\n" +
-        "  \"paths\" : { },\n" +
-        "  \"path_mappings\":[],\n" +
-        "  \"proxy\": {\n" +
-        "    \"virtual_hosts\": [{\n" +
-        "      \"path\": \"/test\"\n" +
-        "    }],\n" +
-        "    \"strip_context_path\": false,\n" +
-        "    \"preserve_host\":false,\n" +
-        "    \"logging\": {\n" +
-        "      \"mode\":\"CLIENT_PROXY\",\n" +
-        "      \"condition\":\"condition\"\n" +
-        "    },\n" +
-        "    \"groups\": [\n" +
-        "      {\n" +
-        "        \"name\": \"default-group\",\n" +
-        "        \"endpoints\": [\n" +
-        "          {\n" +
-        "            \"name\": \"default\",\n" +
-        "            \"target\": \"http://test\",\n" +
-        "            \"weight\": 1,\n" +
-        "            \"backup\": false,\n" +
-        "            \"type\": \"HTTP\",\n" +
-        "            \"http\": {\n" +
-        "              \"connectTimeout\": 5000,\n" +
-        "              \"idleTimeout\": 60000,\n" +
-        "              \"keepAliveTimeout\": 30000,\n" +
-        "              \"keepAlive\": true,\n" +
-        "              \"readTimeout\": 10000,\n" +
-        "              \"pipelining\": false,\n" +
-        "              \"maxConcurrentConnections\": 100,\n" +
-        "              \"useCompression\": true,\n" +
-        "              \"followRedirects\": false,\n" +
-        "              \"encodeURI\":false\n" +
-        "            }\n" +
-        "          }\n" +
-        "        ],\n" +
-        "        \"load_balancing\": {\n" +
-        "          \"type\": \"ROUND_ROBIN\"\n" +
-        "        },\n" +
-        "        \"http\": {\n" +
-        "          \"connectTimeout\": 5000,\n" +
-        "          \"idleTimeout\": 60000,\n" +
-        "          \"keepAliveTimeout\": 30000,\n" +
-        "          \"keepAlive\": true,\n" +
-        "          \"readTimeout\": 10000,\n" +
-        "          \"pipelining\": false,\n" +
-        "          \"maxConcurrentConnections\": 100,\n" +
-        "          \"useCompression\": true,\n" +
-        "          \"followRedirects\": false,\n" +
-        "          \"encodeURI\":false\n" +
-        "        }\n" +
-        "      }\n" +
-        "    ]\n" +
-        "  }\n" +
-        "}\n";
+        """
+        {
+          "id" : "id-api",
+          "name" : "myAPI",
+          "description" : "Gravitee.io",
+          "paths" : { },
+          "path_mappings":[],
+          "proxy": {
+            "virtual_hosts": [{
+              "path": "/test"
+            }],
+            "strip_context_path": false,
+            "preserve_host":false,
+            "logging": {
+              "mode":"CLIENT_PROXY",
+              "condition":"condition"
+            },
+            "groups": [
+              {
+                "name": "default-group",
+                "endpoints": [
+                  {
+                    "name": "default",
+                    "target": "http://test",
+                    "weight": 1,
+                    "backup": false,
+                    "type": "HTTP",
+                    "http": {
+                      "connectTimeout": 5000,
+                      "idleTimeout": 60000,
+                      "keepAliveTimeout": 30000,
+                      "keepAlive": true,
+                      "readTimeout": 10000,
+                      "pipelining": false,
+                      "maxConcurrentConnections": 100,
+                      "useCompression": true,
+                      "followRedirects": false,
+                      "encodeURI":false
+                    }
+                  }
+                ],
+                "load_balancing": {
+                  "type": "ROUND_ROBIN"
+                },
+                "http": {
+                  "connectTimeout": 5000,
+                  "idleTimeout": 60000,
+                  "keepAliveTimeout": 30000,
+                  "keepAlive": true,
+                  "readTimeout": 10000,
+                  "pipelining": false,
+                  "maxConcurrentConnections": 100,
+                  "useCompression": true,
+                  "followRedirects": false,
+                  "encodeURI":false
+                }
+              }
+            ]
+          }
+        }
+        """;
     private static final String API_ID = "id-api";
     private static final String DEFAULT_ENVIRONMENT_ID = "DEFAULT";
     private static final String API_NAME = "myAPI";
@@ -309,6 +341,9 @@ public class ApiService_UpdateTest {
 
     @Mock
     private PageService pageService;
+
+    @Mock
+    PortalNotificationConfigService portalNotificationConfigService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -417,6 +452,23 @@ public class ApiService_UpdateTest {
 
         verify(planService, times(1)).createOrUpdatePlan(any(), same(plan1));
         verify(planService, times(1)).createOrUpdatePlan(any(), same(plan2));
+    }
+
+    @Test
+    public void shouldUpdateAndRemovedGroupsAreNotPartOfNotificationAnymore() throws TechnicalException {
+        prepareUpdate();
+
+        api.setGroups(Set.of("group1", "group2"));
+        updateApiEntity.setGroups(Set.of("group1"));
+
+        when(groupService.findByIds(Set.of("group1"))).thenReturn(Set.of(GroupEntity.builder().id("group1").build()));
+        when(membershipService.getPrimaryOwner(any(), eq(MembershipReferenceType.API), eq(api.getId())))
+            .thenReturn(MembershipEntity.builder().memberType(MembershipMemberType.GROUP).build());
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        assertNotNull(apiEntity);
+        verify(portalNotificationConfigService, times(1)).removeGroupIds(any(), eq(Set.of("group2")));
     }
 
     @Test

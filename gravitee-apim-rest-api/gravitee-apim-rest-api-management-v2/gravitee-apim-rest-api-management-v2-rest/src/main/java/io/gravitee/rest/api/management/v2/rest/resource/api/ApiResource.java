@@ -53,6 +53,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
@@ -242,6 +243,11 @@ public class ApiResource extends AbstractResource {
     @Path("/members")
     public ApiMembersResource getApiMembersResource() {
         return resourceContext.getResource(ApiMembersResource.class);
+    }
+
+    @Path("/primaryowner")
+    public PrimaryOwnerResource getApiPrimaryOwner() {
+        return resourceContext.getResource(PrimaryOwnerResource.class);
     }
 
     @Path("/logs")

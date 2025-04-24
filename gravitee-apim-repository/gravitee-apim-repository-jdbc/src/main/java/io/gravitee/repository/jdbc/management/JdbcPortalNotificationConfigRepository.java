@@ -44,10 +44,12 @@ public class JdbcPortalNotificationConfigRepository
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalNotificationConfigRepository.class);
     private final String PORTAL_NOTIFICATION_CONFIG_HOOKS;
+    private final String PORTAL_NOTIFICATION_CONFIG_GROUPS;
 
     JdbcPortalNotificationConfigRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_notification_configs");
         PORTAL_NOTIFICATION_CONFIG_HOOKS = getTableNameFor("portal_notification_config_hooks");
+        PORTAL_NOTIFICATION_CONFIG_GROUPS = getTableNameFor("portal_notification_config_groups");
     }
 
     @Override
@@ -84,6 +86,7 @@ public class JdbcPortalNotificationConfigRepository
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(portalNotificationConfig));
             storeHooks(portalNotificationConfig, false);
+            storeGroups(portalNotificationConfig, false);
             return findById(
                 portalNotificationConfig.getUser(),
                 portalNotificationConfig.getReferenceType(),
@@ -156,6 +159,7 @@ public class JdbcPortalNotificationConfigRepository
                     )
             );
             storeHooks(portalNotificationConfig, true);
+            storeGroups(portalNotificationConfig, true);
             return findById(
                 portalNotificationConfig.getUser(),
                 portalNotificationConfig.getReferenceType(),
@@ -202,6 +206,7 @@ public class JdbcPortalNotificationConfigRepository
             );
             if (!items.isEmpty()) {
                 addHooks(items.get(0));
+                addGroups(items.get(0));
             }
             return items.stream().findFirst();
         } catch (final Exception ex) {
@@ -228,6 +233,7 @@ public class JdbcPortalNotificationConfigRepository
             );
             portalNotificationConfig.setHooks(Collections.emptyList());
             storeHooks(portalNotificationConfig, true);
+            storeGroups(portalNotificationConfig, true);
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete PortalNotificationConfig", ex);
             throw new TechnicalException("Failed to delete PortalNotificationConfig", ex);
@@ -327,6 +333,71 @@ public class JdbcPortalNotificationConfigRepository
                     @Override
                     public int getBatchSize() {
                         return parent.getHooks().size();
+                    }
+                }
+            );
+        }
+    }
+
+    private void addGroups(PortalNotificationConfig parent) {
+        Set<String> groups = new HashSet<>();
+        jdbcTemplate.query(
+            "select " +
+            escapeReservedWord("group") +
+            " from " +
+            PORTAL_NOTIFICATION_CONFIG_GROUPS +
+            " where " +
+            escapeReservedWord("user") +
+            " = ?" +
+            " and reference_id = ?" +
+            " and reference_type = ?",
+            rs -> {
+                groups.add(rs.getString(1));
+            },
+            parent.getUser(),
+            parent.getReferenceId(),
+            parent.getReferenceType().name()
+        );
+        parent.setGroups(groups);
+    }
+
+    private void storeGroups(PortalNotificationConfig parent, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update(
+                "delete from " +
+                PORTAL_NOTIFICATION_CONFIG_GROUPS +
+                " where " +
+                escapeReservedWord("user") +
+                " = ?" +
+                " and reference_id = ?" +
+                " and reference_type = ?",
+                parent.getUser(),
+                parent.getReferenceId(),
+                parent.getReferenceType().name()
+            );
+        }
+        if (parent.getGroups() != null && !parent.getGroups().isEmpty()) {
+            List<String> groups = List.copyOf(parent.getGroups());
+            jdbcTemplate.batchUpdate(
+                "insert into " +
+                PORTAL_NOTIFICATION_CONFIG_GROUPS +
+                " ( " +
+                escapeReservedWord("user") +
+                ", reference_id, reference_type, " +
+                escapeReservedWord("group") +
+                "  ) values ( ?, ?, ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, parent.getUser());
+                        ps.setString(2, parent.getReferenceId());
+                        ps.setString(3, parent.getReferenceType().name());
+                        ps.setString(4, groups.get(i));
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return groups.size();
                     }
                 }
             );

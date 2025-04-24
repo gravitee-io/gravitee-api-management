@@ -16,7 +16,15 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserMembership;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -164,6 +172,7 @@ public interface MembershipService {
     Set<MembershipEntity> getMembershipsByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, String role);
     Set<MembershipEntity> getMembershipsByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, String role);
     MembershipEntity getPrimaryOwner(final String organizationId, MembershipReferenceType referenceType, String referenceId);
+    String getPrimaryOwnerUserId(final String organizationId, MembershipReferenceType referenceType, String referenceId);
     Set<RoleEntity> getRoles(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
     MemberEntity getUserMember(ExecutionContext executionContext, MembershipReferenceType referenceType, String referenceId, String userId);
     Map<String, char[]> getUserMemberPermissions(
