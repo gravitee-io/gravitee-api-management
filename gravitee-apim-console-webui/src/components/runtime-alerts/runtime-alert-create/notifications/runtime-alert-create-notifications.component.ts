@@ -30,11 +30,10 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { NgForOf, NgIf, NgOptimizedImage } from '@angular/common';
+import { NgForOf, NgIf } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { take } from 'rxjs/operators';
-import { RouterLink } from '@angular/router';
 import { MatInput } from '@angular/material/input';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 
@@ -54,10 +53,8 @@ import { DampeningMode, DampeningModesNames, DurationTimeUnit } from '../../../.
     MatSelect,
     MatCardModule,
     MatButton,
-    RouterLink,
     MatMenu,
     MatMenuItem,
-    NgOptimizedImage,
     MatMenuTrigger,
     MatInput,
     NgIf,
