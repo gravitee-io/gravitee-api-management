@@ -112,6 +112,12 @@
             <artifactId>jcl-over-slf4j</artifactId>
         </dependency>
 
+        <!-- To bridge log4j-api to slf4j -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-to-slf4j</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>

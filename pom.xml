@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>23.1.0</version>
+        <version>23.2.1</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
@@ -50,7 +50,7 @@
              https://github.com/awhitford/lombok.maven/issues/179 -->
         <maven-lombok.version>1.18.36</maven-lombok.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>8.2.22</gravitee-bom.version>
+        <gravitee-bom.version>8.3.0</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.8.2</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.1.1</gravitee-cloud-initializer.version>
@@ -63,7 +63,7 @@
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <gravitee-kubernetes.version>3.5.1</gravitee-kubernetes.version>
-        <gravitee-node.version>7.2.0</gravitee-node.version>
+        <gravitee-node.version>7.3.0</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>4.7.0</gravitee-plugin.version>
