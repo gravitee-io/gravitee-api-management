@@ -8,8 +8,6 @@
 <#-- @ftlvariable name="gatewayLatencyMs" type="java.lang.Long" -->
 <#-- @ftlvariable name="requestContentLength" type="java.lang.Long" -->
 <#-- @ftlvariable name="responseContentLength" type="java.lang.Long" -->
-<#-- @ftlvariable name="aiInputTokens" type="java.lang.Long" -->
-<#-- @ftlvariable name="aiOutputTokens" type="java.lang.Long" -->
 <#if index??>
 { "index" : { "_index" : "${index}", "_id" : "${metrics.getRequestId()}"<#if pipeline??>, "pipeline" : "${pipeline}"</#if>} }
 </#if>
@@ -94,12 +92,6 @@
   <#if gatewayResponseTimeMs??>
   ,"gateway-response-time-ms":${gatewayResponseTimeMs}
   </#if>
-  <#if aiInputTokens??>
-    ,"ai-input-token":${aiInputTokens}
-  </#if>
-  <#if aiOutputTokens??>
-    ,"ai-output-token":${aiOutputTokens}
-  </#if>
   <#if gatewayLatencyMs??>
   ,"gateway-latency-ms":${gatewayLatencyMs}
   </#if>
@@ -125,4 +117,18 @@
   </#list>
   }
   </#if>
-}</@compress>
+  <#if metrics.longAdditionalMetrics()?? || metrics.keywordAdditionalMetrics()?? || metrics.boolAdditionalMetrics()??>
+    ,"additional-metrics": {
+    <#list metrics.longAdditionalMetrics() as propKey, propValue>
+      "${propKey}":${propValue}<#sep>,
+    </#list>
+    <#list metrics.keywordAdditionalMetrics() as propKey, propValue>
+      "${propKey}":"${propValue}"<#sep>,
+    </#list>
+    <#list metrics.boolAdditionalMetrics() as propKey, propValue>
+      "${propKey}":"${propValue}"<#sep>,
+    </#list>
+    }
+  </#if>
+}
+</@compress>

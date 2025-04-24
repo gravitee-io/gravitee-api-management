@@ -25,5 +25,6 @@
   "status": 200,
   "responseContentLength": 274,
   "gatewayResponseTimeMs": 144,
-  "gatewayLatencyMs": 7
+  "gatewayLatencyMs": 7,
+  "additionalMetrics": {}
 }
