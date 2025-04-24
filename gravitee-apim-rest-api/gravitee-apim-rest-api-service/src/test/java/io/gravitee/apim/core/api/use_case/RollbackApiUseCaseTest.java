@@ -330,7 +330,7 @@ class RollbackApiUseCaseTest {
                     assertThat(updateApiEntity.getFlows().get(0).getName()).isEqualTo("api-previous-flow-name");
 
                     // Not rollbacked
-                    assertThat(updateApiEntity.getDescription()).isEqualTo(existingApi.getDescription());
+                    assertThat(updateApiEntity.getDescription()).isEqualTo("api-previous-api-description");
                     assertThat(updateApiEntity.getVisibility().name()).isEqualTo(existingApi.getVisibility().name());
                     return true;
                 }),
