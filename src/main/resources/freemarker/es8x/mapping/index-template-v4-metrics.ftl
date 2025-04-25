@@ -200,6 +200,23 @@
                             "type": "keyword"
                         }
                     }
+                },
+                {
+                    "policies_long_metrics": {
+                        "path_match": "policy-metrics.long_*",
+                        "match_mapping_type": "long",
+                        "mapping": {
+                            "type": "long"
+                        }
+                    }
+                },
+                {
+                    "policies_boolean_metrics": {
+                        "path_match": "policy-metrics.bool_*",
+                        "mapping": {
+                            "type": "boolean"
+                        }
+                    }
                 }
             ]
         }
