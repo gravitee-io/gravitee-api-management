@@ -41,7 +41,14 @@ class PortalThemeController {
     private $sce,
   ) {
     $scope.themeForm = {};
-    $scope.targetURL = Constants.env.settings.portal.url;
+
+    const targetURL: string = Constants.env.settings.portal.url;
+    if (Constants.defaultPortal !== 'classic') {
+      $scope.targetURL = `${targetURL}${targetURL.endsWith('/') ? '' : '/'}classic`;
+    } else {
+      $scope.targetURL = targetURL;
+    }
+
     $scope.maxSize = Constants.env.settings.portal.uploadMedia.maxSizeInOctet;
 
     $scope.trustSrc = function (src) {
