@@ -734,7 +734,7 @@ export class GroupComponent implements OnInit {
   }
 
   private disableForm() {
-    if (!this.canUpdateGroup()) {
+    if (this.mode === 'edit' && !this.canUpdateGroup()) {
       this.groupForm.disable();
       this.disableAddGroupToExistingAPIs = true;
       this.disableAddGroupToExistingApplications = true;
