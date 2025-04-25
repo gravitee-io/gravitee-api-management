@@ -124,11 +124,10 @@ export class EditMemberDialogComponent implements OnInit {
   }
 
   private initializeForm() {
-    const groupRole = this.member.roles['GROUP'];
     this.editMemberForm = new FormGroup({
       displayName: new FormControl<string>(this.member.displayName),
       groupAdmin: new FormControl<boolean>({
-        value: !!groupRole && groupRole.name === 'ADMIN',
+        value: this.member.roles['GROUP'] === 'ADMIN',
         disabled: !this.group.system_invitation,
       }),
       defaultAPIRole: new FormControl<string>(this.member.roles['API']),
