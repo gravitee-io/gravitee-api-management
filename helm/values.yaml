@@ -362,7 +362,7 @@ elasticsearch:
     repository: "bitnami/elasticsearch"
     tag: "8.17.4"
   master:
-    replicas: 2
+    replicaCount: 2
     persistence:
       size: 4Gi
     resources:
@@ -373,7 +373,7 @@ elasticsearch:
         cpu: 25m
         memory: 256Mi
   coordinating:
-    replicas: 2
+    replicaCount: 2
     resources:
       limits:
         cpu: 500m
@@ -382,7 +382,7 @@ elasticsearch:
         cpu: 25m
         memory: 256Mi
   data:
-    replicas: 2
+    replicaCount: 2
     heapSize: 512m
     resources:
       limits:
