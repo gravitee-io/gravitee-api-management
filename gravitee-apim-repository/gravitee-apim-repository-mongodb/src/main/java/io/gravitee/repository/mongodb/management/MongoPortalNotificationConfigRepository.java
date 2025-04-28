@@ -115,6 +115,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
         mongo.setGroups(portalNotificationConfig.getGroups());
         mongo.setCreatedAt(portalNotificationConfig.getCreatedAt());
         mongo.setUpdatedAt(portalNotificationConfig.getUpdatedAt());
+        mongo.setOrgId(portalNotificationConfig.getOrgId());
 
         return mongo;
     }
@@ -129,6 +130,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
             .groups(mongo.getGroups())
             .createdAt(mongo.getCreatedAt())
             .updatedAt(mongo.getUpdatedAt())
+            .orgId(mongo.getOrgId())
             .build();
     }
 

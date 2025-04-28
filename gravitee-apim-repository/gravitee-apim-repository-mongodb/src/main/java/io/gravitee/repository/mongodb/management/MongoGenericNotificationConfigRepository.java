@@ -143,6 +143,7 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
         mongo.setHooks(genericNotificationConfig.getHooks());
         mongo.setCreatedAt(genericNotificationConfig.getCreatedAt());
         mongo.setUpdatedAt(genericNotificationConfig.getUpdatedAt());
+        mongo.setOrgId(genericNotificationConfig.getOrgId());
 
         return mongo;
     }
@@ -159,6 +160,7 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
         cfg.setHooks(mongo.getHooks());
         cfg.setCreatedAt(mongo.getCreatedAt());
         cfg.setUpdatedAt(mongo.getUpdatedAt());
+        cfg.setOrgId(mongo.getOrgId());
 
         return cfg;
     }

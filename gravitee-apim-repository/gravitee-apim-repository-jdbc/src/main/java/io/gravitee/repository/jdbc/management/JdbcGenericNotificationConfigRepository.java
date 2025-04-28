@@ -63,6 +63,7 @@ public class JdbcGenericNotificationConfigRepository
             .addColumn("reference_type", Types.NVARCHAR, NotificationReferenceType.class)
             .addColumn("use_system_proxy", Types.BOOLEAN, boolean.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("org_id", Types.NVARCHAR, String.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
     }
