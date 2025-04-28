@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { catchError, filter, finalize, map, switchMap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import {
@@ -119,7 +119,7 @@ export class GroupsComponent implements OnInit {
   filteredData: GroupsResponse[] = [];
   noOfRecords: number = 0;
   isLoading: boolean = false;
-  deleteGroupDisabled = signal(false);
+  deleteGroupDisabled = false;
   addGroupDisabled = false;
 
   private groups = new BehaviorSubject<Group[]>([]);
@@ -278,9 +278,9 @@ export class GroupsComponent implements OnInit {
     const canDeleteGroup = this.permissionService.hasAnyMatching(['environment-group-d']);
 
     if (isOnlyGroupWithAPIRolePrimaryOwner) {
-      this.deleteGroupDisabled.set(true);
+      this.deleteGroupDisabled = true;
     } else if (!canDeleteGroup) {
-      this.deleteGroupDisabled.set(true);
+      this.deleteGroupDisabled = true;
     }
   }
 
