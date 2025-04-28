@@ -98,7 +98,7 @@ public class EnvironmentConfigurationResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_NOTIFICATION, acls = RolePermissionAction.READ) })
     public List<NotifierEntity> getPortalNotifiers() {
-        return notifierService.list(NotificationReferenceType.PORTAL, GraviteeContext.getCurrentEnvironment());
+        return notifierService.list();
     }
 
     @Path("categories")
