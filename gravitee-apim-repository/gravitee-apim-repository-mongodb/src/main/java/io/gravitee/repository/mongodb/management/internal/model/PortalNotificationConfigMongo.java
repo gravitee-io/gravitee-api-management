@@ -44,4 +44,5 @@ public class PortalNotificationConfigMongo {
     private Set<String> groups;
     private Date createdAt;
     private Date updatedAt;
+    private String orgId;
 }

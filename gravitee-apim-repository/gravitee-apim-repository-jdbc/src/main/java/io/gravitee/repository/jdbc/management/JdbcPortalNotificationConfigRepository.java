@@ -77,6 +77,7 @@ public class JdbcPortalNotificationConfigRepository
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("org_id", Types.NVARCHAR, String.class)
             .build();
     }
 
