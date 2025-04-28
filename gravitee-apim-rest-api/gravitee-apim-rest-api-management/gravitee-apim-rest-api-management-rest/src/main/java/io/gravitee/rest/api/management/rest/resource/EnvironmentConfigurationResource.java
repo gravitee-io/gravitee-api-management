@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.management.rest.resource.configuration.application.registration.ClientRegistrationProvidersResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.dictionary.DictionariesResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.identity.IdentityProvidersResource;
@@ -135,8 +134,8 @@ public class EnvironmentConfigurationResource {
     }
 
     @Path("notificationsettings")
-    public PortalNotificationSettingsResource getNotificationSettingsResource() {
-        return resourceContext.getResource(PortalNotificationSettingsResource.class);
+    public NotificationConfigsResource getNotificationSettingsResource() {
+        return resourceContext.getResource(NotificationConfigsResource.class);
     }
 
     @Path("top-apis")
