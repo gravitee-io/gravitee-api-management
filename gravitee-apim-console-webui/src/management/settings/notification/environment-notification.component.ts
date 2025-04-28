@@ -115,7 +115,7 @@ export class EnvironmentNotificationComponent implements OnInit, OnDestroy {
           this.notificationService.create({
             name: newNotification.name,
             notifier: newNotification.notifierId,
-            referenceType: 'PORTAL',
+            referenceType: 'ENVIRONMENT',
             referenceId: this.envId,
             config_type: 'GENERIC',
             hooks: [],
