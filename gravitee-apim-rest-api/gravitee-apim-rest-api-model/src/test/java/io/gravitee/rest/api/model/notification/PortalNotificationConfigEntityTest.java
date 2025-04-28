@@ -35,13 +35,18 @@ class PortalNotificationConfigEntityTest {
     @ParameterizedTest
     @CsvSource(value = { "foo,'',''", "'',foo,''", "'',foo,''", "null,'',''", "'',null,''", "'',null,''" }, nullValues = "null")
     void should_fail_to_create_default_notification_settings(String user, String referenceType, String referenceId) {
-        assertThatThrownBy(() -> PortalNotificationConfigEntity.newDefaultEmpty(user, referenceType, referenceId))
+        assertThatThrownBy(() -> PortalNotificationConfigEntity.newDefaultEmpty(user, referenceType, referenceId, null))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void should_create_empty_default_config() {
-        PortalNotificationConfigEntity portalNotificationConfigEntity = PortalNotificationConfigEntity.newDefaultEmpty("foo", "API", "bar");
+        PortalNotificationConfigEntity portalNotificationConfigEntity = PortalNotificationConfigEntity.newDefaultEmpty(
+            "foo",
+            "API",
+            "bar",
+            null
+        );
         assertThat(portalNotificationConfigEntity.isDefaultEmpty()).isTrue();
     }
 

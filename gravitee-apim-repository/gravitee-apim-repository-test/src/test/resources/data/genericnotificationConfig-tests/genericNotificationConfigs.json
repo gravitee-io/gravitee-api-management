@@ -8,7 +8,8 @@
     "config": "my config",
     "hooks": ["A", "B"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "orgId": "org1"
   },
   {
     "id": "notif-to-update",
@@ -19,7 +20,8 @@
     "config": "my config",
     "hooks": ["A", "B"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "orgId": "org1"
   },
   {
     "id": "notif-to-find",
@@ -31,7 +33,8 @@
     "useSystemProxy": true,
     "hooks": ["A", "B"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "orgId": "org2"
   },
   {
     "id": "notif-to-find-a",
@@ -42,7 +45,8 @@
     "config": "my config",
     "hooks": ["A", "B"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "orgId": "org3"
   },
   {
     "id": "notif-to-find-b",
@@ -53,7 +57,8 @@
     "config": "my config",
     "hooks": ["B", "C"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "orgId": "org1"
   },
   {
     "id": "notif-to-find-c",
@@ -64,7 +69,8 @@
     "config": "my config",
     "hooks": ["A", "C"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "orgId": "org2"
   },
   {
     "id": "config-to-delete",
@@ -75,7 +81,8 @@
     "config": "test@gravitee.io",
     "hooks": ["A", "C"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "orgId": "org3"
   },
   {
     "id": "to-be-deleted-1",
@@ -86,7 +93,8 @@
     "config": "test@gravitee.io",
     "hooks": ["A", "C"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "orgId": "org1"
   },
   {
     "id": "to-be-deleted-2",
@@ -97,6 +105,7 @@
     "config": "test@gravitee.io",
     "hooks": ["A", "C"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "orgId": "org2"
   }
 ]

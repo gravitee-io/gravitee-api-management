@@ -25,16 +25,13 @@ import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
-import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PluginEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.EmailRecipientsService;
-import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -58,12 +55,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -126,11 +124,35 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         this.membershipService = membershipService;
     }
 
+    @AllArgsConstructor
+    @Builder
+    static class TriggerNotificationsData {
+
+        public Hook hook;
+        public NotificationReferenceType referenceType;
+        public String referenceId;
+        public String orgId;
+        public Map<String, Object> params;
+        public List<Recipient> recipients;
+
+        @Override
+        public String toString() {
+            return "{ hook=" + hook + ", referenceType=" + referenceType + ", referenceId=" + referenceId + ", orgId=" + orgId + " }";
+        }
+    }
+
     @Override
     @Async
     public void trigger(final ExecutionContext executionContext, final ApiHook hook, final String apiId, Map<String, Object> params) {
-        triggerPortalNotifications(executionContext, hook, NotificationReferenceType.API, apiId, params);
-        triggerGenericNotifications(executionContext, hook, NotificationReferenceType.API, apiId, params);
+        var triggerNotificationsData = TriggerNotificationsData
+            .builder()
+            .hook(hook)
+            .referenceType(NotificationReferenceType.API)
+            .referenceId(apiId)
+            .params(params)
+            .build();
+        triggerPortalNotifications(executionContext, triggerNotificationsData);
+        triggerGenericNotifications(executionContext, triggerNotificationsData);
     }
 
     @Override
@@ -141,8 +163,15 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         final String applicationId,
         Map<String, Object> params
     ) {
-        triggerPortalNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params);
-        triggerGenericNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params);
+        var data = TriggerNotificationsData
+            .builder()
+            .hook(hook)
+            .referenceType(NotificationReferenceType.APPLICATION)
+            .referenceId(applicationId)
+            .params(params)
+            .build();
+        triggerPortalNotifications(executionContext, data);
+        triggerGenericNotifications(executionContext, data);
     }
 
     @Override
@@ -154,47 +183,46 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         Map<String, Object> params,
         List<Recipient> recipients
     ) {
-        triggerPortalNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params);
-        triggerGenericNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params, recipients);
+        var data = TriggerNotificationsData
+            .builder()
+            .hook(hook)
+            .referenceType(NotificationReferenceType.APPLICATION)
+            .referenceId(applicationId)
+            .params(params)
+            .build();
+        triggerPortalNotifications(executionContext, data);
+        triggerGenericNotifications(executionContext, data);
     }
 
     @Override
     @Async
     public void trigger(final ExecutionContext executionContext, final PortalHook hook, Map<String, Object> params) {
-        triggerPortalNotifications(
-            executionContext,
-            hook,
-            NotificationReferenceType.ENVIRONMENT,
-            executionContext.getEnvironmentId(),
-            params
-        );
-        triggerGenericNotifications(
-            executionContext,
-            hook,
-            NotificationReferenceType.ENVIRONMENT,
-            executionContext.getEnvironmentId(),
-            params
-        );
+        var dataBuilder = TriggerNotificationsData.builder().hook(hook).params(params);
+        if (executionContext.hasEnvironmentId()) {
+            dataBuilder.referenceType(NotificationReferenceType.ENVIRONMENT).referenceId(executionContext.getEnvironmentId());
+        } else {
+            dataBuilder.orgId(executionContext.getOrganizationId());
+        }
+        var data = dataBuilder.build();
+        triggerPortalNotifications(executionContext, data);
+        triggerGenericNotifications(executionContext, data);
     }
 
-    private void triggerPortalNotifications(
-        final ExecutionContext executionContext,
-        final Hook hook,
-        final NotificationReferenceType refType,
-        final String refId,
-        final Map<String, Object> params
-    ) {
+    private void triggerPortalNotifications(final ExecutionContext executionContext, final TriggerNotificationsData data) {
         try {
-            Set<String> userIds = portalNotificationConfigRepository
-                .findByReferenceAndHook(hook.name(), refType, refId)
-                .stream()
-                .flatMap(n -> users(executionContext, n))
-                .collect(Collectors.toCollection(HashSet::new));
+            List<PortalNotificationConfig> portalNotificationConfigs;
+            if (data.referenceId != null) {
+                portalNotificationConfigs =
+                    portalNotificationConfigRepository.findByReferenceAndHook(data.hook.name(), data.referenceType, data.referenceId);
+            } else {
+                portalNotificationConfigs = portalNotificationConfigRepository.findByHookAndOrgId(data.hook.name(), data.orgId);
+            }
+            List<String> userIds = portalNotificationConfigs.stream().flatMap(n -> users(executionContext, n)).distinct().toList();
             if (!userIds.isEmpty()) {
-                portalNotificationService.create(executionContext, hook, new ArrayList<>(userIds), params);
+                portalNotificationService.create(executionContext, data.hook, userIds, data.params);
             }
         } catch (TechnicalException e) {
-            LOGGER.error("Error looking for PortalNotificationConfig with {}/{}/{}", hook, refType, refId, e);
+            LOGGER.error("Error looking for PortalNotificationConfig with {}", data, e);
         }
     }
 
@@ -216,36 +244,25 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         return userIds.stream();
     }
 
-    private void triggerGenericNotifications(
-        ExecutionContext executionContext,
-        final Hook hook,
-        final NotificationReferenceType refType,
-        final String refId,
-        final Map<String, Object> params
-    ) {
-        triggerGenericNotifications(executionContext, hook, refType, refId, params, Collections.emptyList());
-    }
-
     @VisibleForTesting
-    void triggerGenericNotifications(
-        ExecutionContext executionContext,
-        final Hook hook,
-        final NotificationReferenceType refType,
-        final String refId,
-        final Map<String, Object> params,
-        List<Recipient> additionalRecipients
-    ) {
+    void triggerGenericNotifications(ExecutionContext executionContext, TriggerNotificationsData data) {
         try {
-            var notificationConfigs = genericNotificationConfigRepository
-                .findByReferenceAndHook(hook.name(), refType, refId)
+            List<GenericNotificationConfig> genericNotificationConfigs;
+            if (data.orgId != null) {
+                genericNotificationConfigs = genericNotificationConfigRepository.findByHookAndOrgId(data.hook.name(), data.orgId);
+            } else {
+                genericNotificationConfigs =
+                    genericNotificationConfigRepository.findByReferenceAndHook(data.hook.name(), data.referenceType, data.referenceId);
+            }
+            var notificationConfigs = genericNotificationConfigs
                 .stream()
                 .collect(Collectors.groupingBy(GenericNotificationConfig::getNotifier));
             if (!notificationConfigs.isEmpty()) {
-                list(refType, refId)
+                list()
                     .forEach(notifier -> {
                         switch (notifier.type()) {
                             case EMAIL -> {
-                                var emailAdditionalRecipients = additionalRecipients
+                                var emailAdditionalRecipients = data.recipients
                                     .stream()
                                     .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
                                     .map(Recipient::value)
@@ -259,7 +276,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                                 recipients.addAll(emailAdditionalRecipients);
 
                                 // extract emails from templated string (eg: ${api.primaryOwner.email})
-                                var processedRecipients = emailRecipientsService.processTemplatedRecipients(recipients, params);
+                                var processedRecipients = emailRecipientsService.processTemplatedRecipients(recipients, data.params);
                                 // extract emails of opted-in users if trial instance
                                 var validRecipients = parameterService.findAsBoolean(
                                         executionContext,
@@ -269,24 +286,24 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                                     ? emailRecipientsService.filterRegisteredUser(executionContext, processedRecipients)
                                     : processedRecipients;
 
-                                emailNotifierService.trigger(executionContext, hook, params, validRecipients);
+                                emailNotifierService.trigger(executionContext, data.hook, data.params, validRecipients);
                             }
                             case WEBHOOK -> {
                                 notificationConfigs
                                     .getOrDefault(notifier.getId(), Collections.emptyList())
-                                    .forEach(config -> webhookNotifierService.trigger(hook, config, params));
+                                    .forEach(config -> webhookNotifierService.trigger(data.hook, config, data.params));
                             }
                             default -> LOGGER.error("Unknown notifier {}", notifier.getType());
                         }
                     });
             }
         } catch (TechnicalException e) {
-            LOGGER.error("Error looking for GenericNotificationConfig with {}/{}/{}", hook, refType, refId, e);
+            LOGGER.error("Error looking for GenericNotificationConfig with {}", data, e);
         }
     }
 
     @Override
-    public List<NotifierEntity> list(NotificationReferenceType referenceType, String referenceId) {
+    public List<NotifierEntity> list() {
         return Arrays.asList(
             new NotifierEntity(DEFAULT_EMAIL_NOTIFIER_ID, NotifierEntity.Type.EMAIL, "Default Email Notifier"),
             new NotifierEntity(DEFAULT_WEBHOOK_NOTIFIER_ID, NotifierEntity.Type.WEBHOOK, "Default Webhook Notifier")

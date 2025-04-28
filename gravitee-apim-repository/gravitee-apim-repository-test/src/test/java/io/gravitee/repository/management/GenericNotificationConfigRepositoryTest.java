@@ -17,6 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -142,6 +143,20 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         List<String> userIds = configs.stream().map(GenericNotificationConfig::getNotifier).toList();
         assertTrue("notifierA", userIds.contains("notifierA"));
         assertTrue("notifierB", userIds.contains("notifierB"));
+    }
+
+    @Test
+    public void shouldFindByHookAndOrgId() throws Exception {
+        List<GenericNotificationConfig> configs = genericNotificationConfigRepository.findByHookAndOrgId("B", "org1");
+        List<String> userIds = configs.stream().map(GenericNotificationConfig::getId).toList();
+        assertEquals("size", 3, configs.size());
+        assertTrue(userIds.containsAll(List.of("notif-to-delete", "notif-to-update", "notif-to-find-b")));
+    }
+
+    @Test
+    public void shouldNotFindByHookAndOrgId() throws Exception {
+        List<GenericNotificationConfig> configs = genericNotificationConfigRepository.findByHookAndOrgId("A", "org4");
+        assertTrue(configs.isEmpty());
     }
 
     @Test
