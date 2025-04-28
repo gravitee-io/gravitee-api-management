@@ -160,7 +160,7 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
         }
     }
 
-    private GenericNotificationConfig convert(GenericNotificationConfigEntity entity) {
+    GenericNotificationConfig convert(GenericNotificationConfigEntity entity) {
         GenericNotificationConfig model = new GenericNotificationConfig();
         model.setId(entity.getId());
         model.setName(entity.getName());
@@ -174,7 +174,7 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
         return model;
     }
 
-    private GenericNotificationConfigEntity convert(GenericNotificationConfig genericNotificationConfig) {
+    GenericNotificationConfigEntity convert(GenericNotificationConfig genericNotificationConfig) {
         GenericNotificationConfigEntity entity = new GenericNotificationConfigEntity();
         entity.setConfigType(NotificationConfigType.GENERIC);
         entity.setId(genericNotificationConfig.getId());

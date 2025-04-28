@@ -70,6 +70,7 @@ public class JdbcPortalNotificationConfigRepository
                 " , created_at = ? " +
                 " , updated_at = ? " +
                 " , origin = ? " +
+                " , org_id = ? " +
                 " where " +
                 escapeReservedWord("user") +
                 " = ? " +
@@ -240,7 +241,7 @@ public class JdbcPortalNotificationConfigRepository
             final List<PortalNotificationConfig> items = jdbcTemplate.query(
                 "select " +
                 escapeReservedWord("user") +
-                ", reference_type, reference_id, created_at, updated_at, origin " +
+                ", reference_type, reference_id, created_at, updated_at, origin, org_id " +
                 " from " +
                 this.tableName +
                 " where " +

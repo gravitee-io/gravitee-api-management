@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.8.0_02_add_org_id_to_portal_and_generic_notification_configs
+      id: 4.9.0_01_add_org_id_to_portal_and_generic_notification_configs
       author: GraviteeSource Team
       changes:
         - addColumn:
@@ -10,7 +10,7 @@ databaseChangeLog:
                   name: org_id
                   type: nvarchar(64)
                   constraints:
-                    nullable: false
+                    nullable: true
         - addColumn:
             tableName: ${gravitee_prefix}generic_notification_configs
             columns:
@@ -18,4 +18,4 @@ databaseChangeLog:
                   name: org_id
                   type: nvarchar(64)
                   constraints:
-                    nullable: false
+                    nullable: true

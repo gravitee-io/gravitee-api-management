@@ -46,22 +46,26 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         cfg.setConfig("my new configuration");
         cfg.setUseSystemProxy(true);
         cfg.setHooks(Arrays.asList("A", "B", "C"));
+        cfg.setOrgId("org1");
         cfg.setUpdatedAt(new Date(1439022010883L));
         cfg.setCreatedAt(new Date(1439022010883L));
 
         GenericNotificationConfig notificationCreated = genericNotificationConfigRepository.create(cfg);
 
-        assertEquals(cfg.getId(), notificationCreated.getId());
-        assertEquals(cfg.getName(), notificationCreated.getName());
-        assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType());
-        assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId());
-        assertEquals(cfg.getNotifier(), notificationCreated.getNotifier());
-        assertEquals(cfg.getConfig(), notificationCreated.getConfig());
-        assertEquals(cfg.getHooks(), notificationCreated.getHooks());
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt()));
-        assertTrue(cfg.isUseSystemProxy());
+        assertAll(
+            () -> assertEquals(cfg.getId(), notificationCreated.getId()),
+            () -> assertEquals(cfg.getName(), notificationCreated.getName()),
+            () -> assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType()),
+            () -> assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType()),
+            () -> assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId()),
+            () -> assertEquals(cfg.getNotifier(), notificationCreated.getNotifier()),
+            () -> assertEquals(cfg.getConfig(), notificationCreated.getConfig()),
+            () -> assertEquals(cfg.getHooks(), notificationCreated.getHooks()),
+            () -> assertEquals(cfg.getOrgId(), notificationCreated.getOrgId()),
+            () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt())),
+            () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt())),
+            () -> assertTrue(cfg.isUseSystemProxy())
+        );
     }
 
     @Test
@@ -82,19 +86,23 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         cfg.setConfig("updated configuration");
         cfg.setUseSystemProxy(true);
         cfg.setHooks(Arrays.asList("D", "B", "C"));
+        cfg.setOrgId("org1");
         cfg.setUpdatedAt(new Date(1479022010883L));
         cfg.setCreatedAt(new Date(1469022010883L));
 
         GenericNotificationConfig notificationUpdated = genericNotificationConfigRepository.update(cfg);
 
-        assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId());
-        assertEquals(cfg.getNotifier(), notificationUpdated.getNotifier());
-        assertEquals(cfg.getConfig(), notificationUpdated.getConfig());
-        assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks()));
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt()));
-        assertTrue(cfg.isUseSystemProxy());
+        assertAll(
+            () -> assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType()),
+            () -> assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId()),
+            () -> assertEquals(cfg.getNotifier(), notificationUpdated.getNotifier()),
+            () -> assertEquals(cfg.getConfig(), notificationUpdated.getConfig()),
+            () -> assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks())),
+            () -> assertEquals(cfg.getOrgId(), notificationUpdated.getOrgId()),
+            () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt())),
+            () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt())),
+            () -> assertTrue(cfg.isUseSystemProxy())
+        );
     }
 
     @Test

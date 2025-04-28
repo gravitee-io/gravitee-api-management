@@ -47,6 +47,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .user("userid")
             .hooks(Arrays.asList("A", "B", "C"))
             .groups(Set.of("1", "2", "3"))
+            .orgId("org1")
             .updatedAt(new Date(1439022010883L))
             .createdAt(new Date(1439022010883L))
             .origin(Origin.MANAGEMENT)
@@ -81,6 +82,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .user("userE")
             .hooks(Arrays.asList("D", "B", "C"))
             .groups(Set.of("7", "8", "9"))
+            .orgId("org1")
             .updatedAt(new Date(1479022010883L))
             .createdAt(new Date(1469022010883L))
             .origin(Origin.MANAGEMENT)
@@ -103,6 +105,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .updatedAt(new Date(1439022010883L))
             .createdAt(new Date(1439022010883L))
             .origin(Origin.MANAGEMENT)
+            .orgId("org1")
             .build();
 
         Optional<PortalNotificationConfig> optNotificationFound = portalNotificationConfigRepository.findById(
@@ -217,13 +220,16 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
     }
 
     private static void assertNotification(PortalNotificationConfig actual, PortalNotificationConfig expected) {
-        assertThat(actual.getReferenceType()).isEqualTo(expected.getReferenceType());
-        assertThat(actual.getReferenceId()).isEqualTo(expected.getReferenceId());
-        assertThat(actual.getUser()).isEqualTo(expected.getUser());
-        assertThat(actual.getHooks()).containsExactlyInAnyOrderElementsOf(expected.getHooks());
-        assertThat(actual.getGroups()).containsExactlyInAnyOrderElementsOf(expected.getGroups());
-        assertThat(actual.getOrigin()).isEqualTo(expected.getOrigin());
-        assertThat(compareDate(actual.getCreatedAt(), expected.getCreatedAt())).isTrue();
-        assertThat(compareDate(actual.getUpdatedAt(), expected.getUpdatedAt())).isTrue();
+        assertAll(
+            () -> assertThat(actual.getReferenceType()).isEqualTo(expected.getReferenceType()),
+            () -> assertThat(actual.getReferenceId()).isEqualTo(expected.getReferenceId()),
+            () -> assertThat(actual.getUser()).isEqualTo(expected.getUser()),
+            () -> assertThat(actual.getHooks()).containsExactlyInAnyOrderElementsOf(expected.getHooks()),
+            () -> assertThat(actual.getGroups()).containsExactlyInAnyOrderElementsOf(expected.getGroups()),
+            () -> assertThat(actual.getOrigin()).isEqualTo(expected.getOrigin()),
+            () -> assertThat(actual.getOrgId()).isEqualTo(expected.getOrgId()),
+            () -> assertThat(compareDate(actual.getCreatedAt(), expected.getCreatedAt())).isTrue(),
+            () -> assertThat(compareDate(actual.getUpdatedAt(), expected.getUpdatedAt())).isTrue()
+        );
     }
 }

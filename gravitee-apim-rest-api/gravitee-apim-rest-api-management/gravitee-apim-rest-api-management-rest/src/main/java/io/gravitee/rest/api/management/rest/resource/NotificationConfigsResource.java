@@ -43,8 +43,8 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "Portal Notifications")
-public class PortalNotificationSettingsResource extends AbstractResource {
+@Tag(name = "Notifications Configs")
+public class NotificationConfigsResource extends AbstractResource {
 
     @Inject
     private PortalNotificationConfigService portalNotificationConfigService;
@@ -56,7 +56,7 @@ public class PortalNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Get notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = ENVIRONMENT_NOTIFICATION, acls = READ) })
-    public List<Object> getPortalNotificationSettings() {
+    public List<Object> getNotificationConfigs() {
         List<Object> settings = new ArrayList<>();
         settings.add(
             portalNotificationConfigService.findById(
@@ -86,11 +86,11 @@ public class PortalNotificationSettingsResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        config.setOrgId(executionContext.getOrganizationId());
         if (
             config.getConfigType().equals(NotificationConfigType.GENERIC) &&
             hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, executionContext.getEnvironmentId(), CREATE)
         ) {
-            config.setOrgId(executionContext.getOrganizationId());
             return genericNotificationConfigService.create(config);
         } else if (
             config.getConfigType().equals(NotificationConfigType.PORTAL) &&
@@ -151,13 +151,14 @@ public class PortalNotificationSettingsResource extends AbstractResource {
         return Response.noContent().build();
     }
 
-    private PortalNotificationConfigEntity convert(GenericNotificationConfigEntity generic) {
+    PortalNotificationConfigEntity convert(GenericNotificationConfigEntity generic) {
         PortalNotificationConfigEntity portalNotificationConfigEntity = new PortalNotificationConfigEntity();
         portalNotificationConfigEntity.setConfigType(generic.getConfigType());
         portalNotificationConfigEntity.setReferenceType(generic.getReferenceType());
         portalNotificationConfigEntity.setReferenceId(generic.getReferenceId());
         portalNotificationConfigEntity.setUser(getAuthenticatedUser());
         portalNotificationConfigEntity.setHooks(generic.getHooks());
+        portalNotificationConfigEntity.setOrgId(generic.getOrgId());
         return portalNotificationConfigEntity;
     }
 }
