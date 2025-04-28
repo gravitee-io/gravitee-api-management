@@ -17,12 +17,13 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -33,9 +34,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class GenericNotificationConfig {
 
+    @EqualsAndHashCode.Include
     private String id;
+
     private String name;
     private String notifier;
     private String config;
@@ -43,51 +48,7 @@ public class GenericNotificationConfig {
     private List<String> hooks;
     private NotificationReferenceType referenceType;
     private String referenceId;
+    private String orgId;
     private Date createdAt;
     private Date updatedAt;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GenericNotificationConfig that = (GenericNotificationConfig) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    public String toString() {
-        return (
-            "GenericNotificationConfig{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", notifier='" +
-            notifier +
-            '\'' +
-            ", config=" +
-            config +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", hooks='" +
-            hooks +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
-    }
 }
