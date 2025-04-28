@@ -18,12 +18,14 @@ package io.gravitee.repository.management.model;
 import io.gravitee.definition.model.Origin;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -32,32 +34,26 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
+@Getter
+@Setter
 public class PortalNotificationConfig {
 
+    @EqualsAndHashCode.Include
     private String user;
+
     private List<String> hooks;
     private Set<String> groups;
+
+    @EqualsAndHashCode.Include
     private NotificationReferenceType referenceType;
+
+    @EqualsAndHashCode.Include
     private String referenceId;
+
+    private String orgId;
     private Date createdAt;
     private Date updatedAt;
     private Origin origin = Origin.MANAGEMENT;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        PortalNotificationConfig portalNotificationConfig = (PortalNotificationConfig) o;
-        return (
-            Objects.equals(referenceType, portalNotificationConfig.referenceType) &&
-            Objects.equals(referenceId, portalNotificationConfig.referenceId) &&
-            Objects.equals(user, portalNotificationConfig.user)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(referenceType, referenceId, user);
-    }
 }

@@ -21,15 +21,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Data
+@Getter
+@Setter
+@ToString
 public class PortalNotificationConfigEntity {
 
     @JsonProperty("config_type")
@@ -41,16 +43,12 @@ public class PortalNotificationConfigEntity {
     private String name = "Console Notification";
 
     private String referenceType;
-
     private String referenceId;
-
     private String user;
-
     private List<String> hooks;
-
     private List<String> groups;
-
     private Origin origin;
+    private String orgId;
 
     public PortalNotificationConfigEntity() {
         origin = Origin.MANAGEMENT;
@@ -66,7 +64,7 @@ public class PortalNotificationConfigEntity {
         );
     }
 
-    public static PortalNotificationConfigEntity newDefaultEmpty(String user, String referenceType, String referenceId) {
+    public static PortalNotificationConfigEntity newDefaultEmpty(String user, String referenceType, String referenceId, String orgId) {
         if (user == null || user.isEmpty()) {
             throw new IllegalArgumentException("User must not be empty");
         }
@@ -83,6 +81,24 @@ public class PortalNotificationConfigEntity {
         entity.setUser(user);
         entity.setHooks(Collections.emptyList());
         entity.setGroups(Collections.emptyList());
+        entity.setOrgId(orgId);
         return entity;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PortalNotificationConfigEntity)) return false;
+        PortalNotificationConfigEntity that = (PortalNotificationConfigEntity) o;
+        return (
+            Objects.equals(referenceType, that.referenceType) &&
+            Objects.equals(referenceId, that.referenceId) &&
+            Objects.equals(user, that.user)
+        );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user);
     }
 }

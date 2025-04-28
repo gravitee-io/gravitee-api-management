@@ -46,4 +46,5 @@ public class PortalNotificationConfigMongo {
     private Date createdAt;
     private Date updatedAt;
     private Origin origin;
+    private String orgId;
 }

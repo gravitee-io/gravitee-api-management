@@ -65,7 +65,8 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
                 return PortalNotificationConfigEntity.newDefaultEmpty(
                     notificationEntity.getUser(),
                     notificationEntity.getReferenceType(),
-                    notificationEntity.getReferenceId()
+                    notificationEntity.getReferenceId(),
+                    notificationEntity.getOrgId()
                 );
             } else {
                 Optional<PortalNotificationConfig> optionalConfig = portalNotificationConfigRepository.findById(
@@ -108,7 +109,12 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             if (optionalConfig.isPresent()) {
                 return convert(optionalConfig.get());
             }
-            return PortalNotificationConfigEntity.newDefaultEmpty(user, referenceType.name(), referenceId);
+            return PortalNotificationConfigEntity.newDefaultEmpty(
+                user,
+                referenceType.name(),
+                referenceId,
+                GraviteeContext.getExecutionContext().getOrganizationId()
+            );
         } catch (TechnicalException te) {
             LOGGER.error("An error occurs while trying to get the notification settings {}/{}/{}", user, referenceType, referenceId, te);
             throw new TechnicalManagementException(
@@ -182,6 +188,7 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             .hooks(entity.getHooks())
             .groups(Set.copyOf(entity.getGroups()))
             .origin(entity.getOrigin())
+            .orgId(entity.getOrgId())
             .build();
     }
 
@@ -194,6 +201,7 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         entity.setHooks(portalNotificationConfig.getHooks());
         entity.setGroups(List.copyOf(portalNotificationConfig.getGroups()));
         entity.setOrigin(portalNotificationConfig.getOrigin());
+        entity.setOrgId(portalNotificationConfig.getOrgId());
         return entity;
     }
 }

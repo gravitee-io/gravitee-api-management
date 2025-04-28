@@ -90,6 +90,7 @@ public class PortalNotificationSettingsResource extends AbstractResource {
             config.getConfigType().equals(NotificationConfigType.GENERIC) &&
             hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, executionContext.getEnvironmentId(), CREATE)
         ) {
+            config.setOrgId(executionContext.getOrganizationId());
             return genericNotificationConfigService.create(config);
         } else if (
             config.getConfigType().equals(NotificationConfigType.PORTAL) &&
@@ -135,6 +136,7 @@ public class PortalNotificationSettingsResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
         config.setUser(getAuthenticatedUser());
+        config.setOrgId(GraviteeContext.getExecutionContext().getOrganizationId());
         return portalNotificationConfigService.save(config);
     }
 

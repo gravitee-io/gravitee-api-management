@@ -80,6 +80,7 @@ public class JdbcPortalNotificationConfigRepository
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("origin", Types.NVARCHAR, Origin.class)
+            .addColumn("org_id", Types.NVARCHAR, String.class)
             .build();
     }
 
