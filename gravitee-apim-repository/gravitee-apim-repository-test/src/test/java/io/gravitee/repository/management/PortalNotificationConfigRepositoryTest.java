@@ -47,19 +47,23 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .user("userid")
             .hooks(Arrays.asList("A", "B", "C"))
             .groups(Set.of("1", "2", "3"))
+            .orgId("org1")
             .updatedAt(new Date(1439022010883L))
             .createdAt(new Date(1439022010883L))
             .build();
 
         PortalNotificationConfig notificationCreated = portalNotificationConfigRepository.create(cfg);
 
-        assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId());
-        assertEquals(cfg.getUser(), notificationCreated.getUser());
-        assertEquals(cfg.getHooks(), notificationCreated.getHooks());
-        assertEquals(cfg.getGroups(), notificationCreated.getGroups());
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt()));
+        assertAll(
+            () -> assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType()),
+            () -> assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId()),
+            () -> assertEquals(cfg.getUser(), notificationCreated.getUser()),
+            () -> assertEquals(cfg.getHooks(), notificationCreated.getHooks()),
+            () -> assertEquals(cfg.getGroups(), notificationCreated.getGroups()),
+            () -> assertEquals(cfg.getOrgId(), notificationCreated.getOrgId()),
+            () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt())),
+            () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt()))
+        );
     }
 
     @Test
@@ -84,19 +88,23 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .user("userE")
             .hooks(Arrays.asList("D", "B", "C"))
             .groups(Set.of("7", "8", "9"))
+            .orgId("org1")
             .updatedAt(new Date(1479022010883L))
             .createdAt(new Date(1469022010883L))
             .build();
 
         PortalNotificationConfig notificationUpdated = portalNotificationConfigRepository.update(cfg);
 
-        assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId());
-        assertEquals(cfg.getUser(), notificationUpdated.getUser());
-        assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks()));
-        assertTrue(cfg.getGroups().containsAll(notificationUpdated.getGroups()));
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt()));
+        assertAll(
+            () -> assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType()),
+            () -> assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId()),
+            () -> assertEquals(cfg.getUser(), notificationUpdated.getUser()),
+            () -> assertEquals(cfg.getOrgId(), notificationUpdated.getOrgId()),
+            () -> assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks())),
+            () -> assertTrue(cfg.getGroups().containsAll(notificationUpdated.getGroups())),
+            () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt())),
+            () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt()))
+        );
     }
 
     @Test
