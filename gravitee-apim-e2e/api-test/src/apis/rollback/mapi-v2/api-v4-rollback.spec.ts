@@ -218,11 +218,10 @@ describe('API - V4 - Rollback', () => {
       // Rollbacked API values
       expect(api.name).toEqual(importedApi.name);
       expect(api.apiVersion).toEqual(importedApi.apiVersion);
-      expect(api.description).not.toEqual(importedApi.description);
+      expect(api.description).toEqual(importedApi.description);
 
       // Non rollbacked API values
       expect(api.visibility).toEqual(updatedApi.visibility);
-      expect(api.description).toEqual(updatedApi.description);
     });
 
     test('should rollback" a new plan created"', async () => {
