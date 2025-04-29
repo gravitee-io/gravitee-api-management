@@ -134,7 +134,7 @@ public class FlowableProxyResponse extends Flowable<Buffer> {
             if (cancelled.compareAndSet(false, true)) {
                 log.debug("Cancelling proxy response");
                 proxyResponse.cancel();
-                connection.cancel();
+                connection.end();
             }
         } catch (Exception e) {
             log.warn("Unable to properly cancel the proxy response.", e);
