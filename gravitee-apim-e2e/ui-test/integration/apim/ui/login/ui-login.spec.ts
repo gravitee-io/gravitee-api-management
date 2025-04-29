@@ -29,6 +29,14 @@ describe('Login Feature', () => {
     cy.get('.card__header__title').contains('Sign In');
   });
 
+  it(`should be accessible`, () => {
+    cy.url().should('contain', 'login');
+    cy.get('.card__header__title').should('be.visible');
+    cy.get('.card__header__title').contains('Sign In');
+
+    cy.checkAccessibility();
+  });
+
   it(`should be able to login`, () => {
     cy.getByDataTestId('username-input').type(ADMIN_USER.username);
     cy.getByDataTestId('password-input').type(ADMIN_USER.password);
