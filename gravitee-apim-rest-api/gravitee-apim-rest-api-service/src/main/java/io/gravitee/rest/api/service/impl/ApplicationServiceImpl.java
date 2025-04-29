@@ -1542,6 +1542,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         if (applicationQuery != null) {
+            if (applicationQuery.getQuery() != null) {
+                criteriaBuilder.query(applicationQuery.getQuery());
+            }
+
             if (CollectionUtils.isNotEmpty(applicationQuery.getGroups())) {
                 criteriaBuilder.groups(applicationQuery.getGroups());
             }

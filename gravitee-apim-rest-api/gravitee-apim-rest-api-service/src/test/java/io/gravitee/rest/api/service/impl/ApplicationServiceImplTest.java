@@ -18,9 +18,11 @@ package io.gravitee.rest.api.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
@@ -42,6 +44,37 @@ public class ApplicationServiceImplTest {
 
     @Mock
     private MembershipService membershipService;
+
+    @Test
+    public void buildSearchCriteria() {
+        ExecutionContext executionContext = new ExecutionContext("org1", "env1");
+        ApplicationQuery query = ApplicationQuery
+            .builder()
+            .query("app1")
+            .name("name1")
+            .groups(Set.of("group1", "group2"))
+            .status("active")
+            .user("user1")
+            .ids(Set.of("app1", "app2"))
+            .build();
+        when(membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION))
+            .thenReturn(Set.of("app1", "app2", "app3"));
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP))
+            .thenReturn(Set.of());
+        ApplicationCriteria criteria = applicationService.buildSearchCriteria(executionContext, query);
+
+        assertAll(
+            () -> assertThat(criteria.getEnvironmentIds().size()).isEqualTo(1),
+            () -> assertTrue(criteria.getEnvironmentIds().contains("env1")),
+            () -> assertThat(criteria.getRestrictedToIds().size()).isEqualTo(1),
+            () -> assertTrue(criteria.getRestrictedToIds().contains("app1")),
+            () -> assertThat(criteria.getName()).isEqualTo("name1"),
+            () -> assertThat(criteria.getStatus()).isEqualTo(ApplicationStatus.ACTIVE),
+            () -> assertThat(criteria.getGroups().size()).isEqualTo(2),
+            () -> assertThat(criteria.getGroups()).containsAll(List.of("group1", "group2")),
+            () -> assertThat(criteria.getQuery()).isEqualTo("app1")
+        );
+    }
 
     @Test
     public void buildSearchCriteria_userAndIds() {
