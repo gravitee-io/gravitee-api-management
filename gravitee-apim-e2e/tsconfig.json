@@ -3,7 +3,7 @@
     "target": "ES2020",
     "downlevelIteration": true,
     "lib": ["ES2020", "dom"],
-    "types": ["./types", "cypress", "node", "node-fetch", "jsonwebtoken"],
+    "types": ["./types", "cypress", "cypress-axe", "node", "node-fetch", "jsonwebtoken"],
     "baseUrl": ".",
     "resolveJsonModule": true,
     "module": "Node16",
