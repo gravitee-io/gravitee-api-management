@@ -204,7 +204,7 @@ class FlowableProxyResponseTest {
         obs.assertValueCount(1);
 
         verify(proxyResponse).cancel();
-        verify(proxyConnection).cancel();
+        verify(proxyConnection).end();
     }
 
     private void setupChunkProducer(Runnable runnable) {
