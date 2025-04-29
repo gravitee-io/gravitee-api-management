@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.5.0...1.5.1) (2025-04-29)
+
+
+### Bug Fixes
+
+* bump gravitee-reporter-api version ([c554478](https://github.com/gravitee-io/gravitee-reporter-common/commit/c554478245e9202acadf71d7896b735cf6156bc2))
+
 # [1.5.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.4.1...1.5.0) (2025-04-23)
 
 
