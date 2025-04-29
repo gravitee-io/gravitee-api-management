@@ -17,11 +17,11 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 
-import { PolicyListItem } from '../../../../../../entities/policy';
 import { DebugResponse } from '../../models/DebugResponse';
 import { HttpStatusCodeDescription } from '../../models/HttpStatusCodeDescription';
 import { TimelineStep } from '../policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
 import { PolicyScope, RequestDebugStep, ResponseDebugStep } from '../../models/DebugStep';
+import { PolicyListItem } from '../../../../../entities/policy';
 
 type ResponseDisplayableVM = {
   statusCode: number;

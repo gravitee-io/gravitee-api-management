@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
 import { DebugRequest } from './models/DebugRequest';
 import { DebugResponse } from './models/DebugResponse';
-import { PolicyStudioDebugService } from './policy-studio-debug.service';
+import { DebugModeService } from './debug-mode.service';
 
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { PolicyListItem } from '../../../../entities/policy';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { PolicyListItem } from '../../../entities/policy';
 
 @Component({
   selector: 'policy-studio-debug',
-  templateUrl: './policy-studio-debug.component.html',
-  styleUrls: ['./policy-studio-debug.component.scss'],
+  templateUrl: './debug-mode.component.html',
+  styleUrls: ['./debug-mode.component.scss'],
   standalone: false,
 })
-export class PolicyStudioDebugComponent implements OnInit {
+export class DebugModeComponent implements OnInit, OnDestroy {
   public debugResponse: DebugResponse;
   public listPolicies: PolicyListItem[];
 
@@ -39,12 +39,12 @@ export class PolicyStudioDebugComponent implements OnInit {
   private cancelRequest$ = new Subject<void>();
 
   constructor(
-    private readonly policyStudioDebugService: PolicyStudioDebugService,
+    private readonly debugModeService: DebugModeService,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit() {
-    this.policyStudioDebugService
+    this.debugModeService
       .listPolicies()
       .pipe(
         tap((listPolicies) => {
@@ -74,7 +74,7 @@ export class PolicyStudioDebugComponent implements OnInit {
       responseDebugSteps: {},
     };
 
-    this.policyStudioDebugService
+    this.debugModeService
       .debug(debugRequest)
       .pipe(
         catchError(() => {

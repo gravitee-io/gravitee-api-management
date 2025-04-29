@@ -28,7 +28,7 @@ import { PolicyStudioDebugInspectorTableComponent } from './policy-studio-debug-
 import { PolicyStudioDebugInspectorTextComponent } from './policy-studio-debug-inspector-text/policy-studio-debug-inspector-text.component';
 
 import { fakeErrorRequestDebugStep, fakeRequestDebugStep } from '../../models/DebugStep.fixture';
-import { GioDiffModule } from '../../../../../../shared/components/gio-diff/gio-diff.module';
+import { GioDiffModule } from '../../../../../shared/components/gio-diff/gio-diff.module';
 
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Inspector ',

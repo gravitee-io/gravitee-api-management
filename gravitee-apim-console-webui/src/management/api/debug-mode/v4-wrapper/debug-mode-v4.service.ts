@@ -14,31 +14,30 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { interval, Observable, race, timer } from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
+import { interval, Observable, race, timer } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
-import { DebugRequest } from './models/DebugRequest';
-import { DebugEvent } from './models/DebugEvent';
-import { convertDebugEventToDebugResponse, DebugResponse } from './models/DebugResponse';
-
-import { DebugApiService } from '../../../../services-ngx/debug-api.service';
-import { EventService } from '../../../../services-ngx/event.service';
-import { PolicyListItem } from '../../../../entities/policy';
+import { ApiEventsV2Service } from '../../../../services-ngx/api-events-v2.service';
 import { PolicyService } from '../../../../services-ngx/policy.service';
-import { PolicyStudioService } from '../policy-studio.service';
-import { ApiService } from '../../../../services-ngx/api.service';
+import { DebugRequest } from '../models/DebugRequest';
+import { convertDebugEventToDebugResponse, DebugResponse } from '../models/DebugResponse';
+import { DebugApiV2Service } from '../../../../services-ngx/debug-api-v2.service';
+import { DebugModeService } from '../debug-mode.service';
+import { DebugEvent } from '../models/DebugEvent';
 
 @Injectable({
   providedIn: 'root',
 })
-export class PolicyStudioDebugService {
+export class DebugModeV4Service extends DebugModeService {
   constructor(
-    private readonly apiService: ApiService,
-    private readonly policyStudioService: PolicyStudioService,
-    private readonly debugApiService: DebugApiService,
-    private readonly eventService: EventService,
-    private readonly policyService: PolicyService,
-  ) {}
+    private readonly debugApiService: DebugApiV2Service,
+    private readonly eventService: ApiEventsV2Service,
+    private readonly activatedRoute: ActivatedRoute,
+    policyService: PolicyService,
+  ) {
+    super(policyService);
+  }
 
   public debug(debugRequest: DebugRequest): Observable<DebugResponse> {
     const maxPollingTime$ = timer(10000).pipe(
@@ -68,10 +67,6 @@ export class PolicyStudioDebugService {
     return race(maxPollingTime$, pollingEvent$);
   }
 
-  public listPolicies(): Observable<PolicyListItem[]> {
-    return this.policyService.list({ expandIcon: true, withoutResource: true });
-  }
-
   private sendDebugEvent(request: DebugRequest): Observable<{ apiId: string; debugEventId: string }> {
     const headersAsMap = (request.headers ?? [])
       .filter((header) => !!header.value)
@@ -83,17 +78,17 @@ export class PolicyStudioDebugService {
         {} as Record<string, string[]>,
       );
 
-    return this.policyStudioService.getApiDefinition$().pipe(
-      switchMap((apiDefinition) => this.apiService.get(apiDefinition.id).pipe(map((api) => ({ ...api, ...apiDefinition })))),
-      switchMap((api) =>
-        this.debugApiService
-          .debug(api, {
-            ...request,
-            headers: headersAsMap,
-          })
-          .pipe(map((event) => ({ apiId: api.id, debugEventId: event.id }))),
-      ),
-    );
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+
+    return this.debugApiService
+      .debug(
+        {
+          ...request,
+          headers: headersAsMap,
+        },
+        apiId,
+      )
+      .pipe(map((event) => ({ apiId: apiId, debugEventId: event.id })));
   }
 
   private getDebugEvent(apiId: string, eventId: string): Observable<DebugEvent> {
@@ -102,7 +97,7 @@ export class PolicyStudioDebugService {
       map((event) => ({
         id: event.id,
         payload: JSON.parse(event.payload),
-        status: event.properties.api_debug_status === 'SUCCESS' ? 'SUCCESS' : 'FAILED',
+        status: event.properties.API_DEBUG_STATUS === 'SUCCESS' ? 'SUCCESS' : 'FAILED',
       })),
     );
   }

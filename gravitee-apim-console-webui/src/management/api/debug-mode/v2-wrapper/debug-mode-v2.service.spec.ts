@@ -16,18 +16,18 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 
-import { PolicyStudioDebugService } from './policy-studio-debug.service';
-import { fakeDebugEvent } from './models/DebugEvent.fixture';
-import { RequestPolicyDebugStep, ResponsePolicyDebugStep } from './models/DebugStep';
+import { DebugModeV2Service } from './debug-mode-v2.service';
 
+import { PolicyStudioService } from '../../policy-studio-v2/policy-studio.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { PolicyStudioService } from '../policy-studio.service';
-import { toApiDefinition } from '../models/ApiDefinition';
+import { toApiDefinition } from '../../policy-studio-v2/models/ApiDefinition';
+import { RequestPolicyDebugStep, ResponsePolicyDebugStep } from '../models/DebugStep';
+import { fakeDebugEvent } from '../models/DebugEvent.fixture';
 import { fakeApiV2 } from '../../../../entities/management-api-v2';
 
-describe('PolicyStudioDebugService', () => {
+describe('DebugModeV2Service', () => {
   let httpTestingController: HttpTestingController;
-  let policyStudioDebugService: PolicyStudioDebugService;
+  let debugModeV2Service: DebugModeV2Service;
   let policyStudioService: PolicyStudioService;
   const api = fakeApiV2();
 
@@ -37,7 +37,7 @@ describe('PolicyStudioDebugService', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    policyStudioDebugService = TestBed.inject<PolicyStudioDebugService>(PolicyStudioDebugService);
+    debugModeV2Service = TestBed.inject<DebugModeV2Service>(DebugModeV2Service);
     policyStudioService = TestBed.inject(PolicyStudioService);
     policyStudioService.setApiDefinition(toApiDefinition(api));
   });
@@ -285,7 +285,7 @@ describe('PolicyStudioDebugService', () => {
       ];
 
       let done = false;
-      policyStudioDebugService
+      debugModeV2Service
         .debug({
           method: 'GET',
           body: '',
@@ -315,7 +315,7 @@ describe('PolicyStudioDebugService', () => {
 
     it('should return some empty data when timeout is reached', fakeAsync(() => {
       let done = false;
-      policyStudioDebugService
+      debugModeV2Service
         .debug({
           method: 'GET',
           body: '',

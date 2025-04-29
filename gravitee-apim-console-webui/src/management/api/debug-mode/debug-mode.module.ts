@@ -24,11 +24,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTreeModule } from '@angular/material/tree';
-import { GioIconsModule, GioFormHeadersModule, GioClipboardModule } from '@gravitee/ui-particles-angular';
+import { GioClipboardModule, GioFormHeadersModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
 
-import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
+import { DebugModeComponent } from './debug-mode.component';
 import { PolicyStudioDebugInspectorBodyComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-body/policy-studio-debug-inspector-body.component';
 import { PolicyStudioDebugInspectorComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector.component';
 import { PolicyStudioDebugInspectorErrorComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-error/policy-studio-debug-inspector-error.component';
@@ -42,7 +42,7 @@ import { PolicyStudioDebugInspectorTextComponent } from './components/policy-stu
 import { PolicyStudioDebugTimelineOverviewComponent } from './components/policy-studio-debug-timeline-overview/policy-studio-debug-timeline-overview.component';
 import { PolicyStudioDebugTimelineHoverComponent } from './components/policy-studio-debug-timeline-hover/policy-studio-debug-timeline-hover.directive';
 
-import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.module';
+import { GioDiffModule } from '../../../shared/components/gio-diff/gio-diff.module';
 
 @NgModule({
   imports: [
@@ -66,7 +66,7 @@ import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.m
     MatCardModule,
   ],
   declarations: [
-    PolicyStudioDebugComponent,
+    DebugModeComponent,
     PolicyStudioDebugInspectorComponent,
     PolicyStudioDebugInspectorBodyComponent,
     PolicyStudioDebugInspectorErrorComponent,
@@ -80,8 +80,8 @@ import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.m
     PolicyStudioDebugTimelineLegendComponent,
     PolicyStudioDebugTimelineHoverComponent,
   ],
-  exports: [PolicyStudioDebugComponent],
+  exports: [DebugModeComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [TitleCasePipe],
 })
-export class PolicyStudioDebugModule {}
+export class DebugModeModule {}
