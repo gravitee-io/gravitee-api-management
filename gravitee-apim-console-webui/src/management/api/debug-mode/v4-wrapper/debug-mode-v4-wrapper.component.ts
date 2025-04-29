@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Header } from '@gravitee/ui-particles-angular';
+import { Component } from '@angular/core';
 
-import { HttpMethod } from '../../../../../entities/HttpMethod';
+import { DebugModeV4Service } from './debug-mode-v4.service';
 
-export type DebugRequest = {
-  body: string;
-  headers: Header[];
-  method: HttpMethod;
-  path: string;
-};
+import { DebugModeService } from '../debug-mode.service';
+import { DebugModeModule } from '../debug-mode.module';
+
+@Component({
+  selector: 'policy-studio-debug-v4',
+  template: ` <policy-studio-debug></policy-studio-debug>`,
+  imports: [DebugModeModule],
+  providers: [{ provide: DebugModeService, useClass: DebugModeV4Service }],
+})
+export class DebugModeV4WrapperComponent {}

@@ -18,7 +18,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PolicyStudioDebugInspectorTableComponent } from './policy-studio-debug-inspector-table.component';
 
-import { PolicyStudioDebugModule } from '../../../policy-studio-debug.module';
+import { DebugModeModule } from '../../../debug-mode.module';
 
 describe('PolicyStudioDebugInspectorTableComponent', () => {
   let fixture: ComponentFixture<PolicyStudioDebugInspectorTableComponent>;
@@ -29,7 +29,7 @@ describe('PolicyStudioDebugInspectorTableComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [PolicyStudioDebugModule],
+      imports: [DebugModeModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PolicyStudioDebugInspectorTableComponent);

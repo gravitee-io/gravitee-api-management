@@ -31,7 +31,6 @@ import { DebugResponse } from '../../models/DebugResponse';
 import { fakeDebugResponse } from '../../models/DebugResponse.fixture';
 import { PolicyStudioDebugTimelineCardComponent } from '../policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
 import { PolicyStudioDebugTimelineComponent } from '../policy-studio-debug-timeline/policy-studio-debug-timeline.component';
-import { fakePolicyListItem } from '../../../../../../entities/policy';
 import { PolicyStudioDebugTimelineLegendComponent } from '../policy-studio-debug-timeline-legend/policy-studio-debug-timeline-legend.component';
 import { PolicyStudioDebugInspectorTableComponent } from '../policy-studio-debug-inspector/policy-studio-debug-inspector-table/policy-studio-debug-inspector-table.component';
 import { PolicyStudioDebugInspectorBodyComponent } from '../policy-studio-debug-inspector/policy-studio-debug-inspector-body/policy-studio-debug-inspector-body.component';
@@ -39,6 +38,7 @@ import { PolicyStudioDebugInspectorTextComponent } from '../policy-studio-debug-
 import { PolicyStudioDebugInspectorComponent } from '../policy-studio-debug-inspector/policy-studio-debug-inspector.component';
 import { PolicyStudioDebugTimelineOverviewComponent } from '../policy-studio-debug-timeline-overview/policy-studio-debug-timeline-overview.component';
 import { PolicyStudioDebugTimelineHoverComponent } from '../policy-studio-debug-timeline-hover/policy-studio-debug-timeline-hover.directive';
+import { fakePolicyListItem } from '../../../../../entities/policy';
 
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Response',

@@ -52,6 +52,7 @@ export class ApiV4MenuService implements ApiMenuService {
       ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...this.addAlertsMenuEntry(),
+      this.addDebugMenuEntry(),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
     return { subMenuItems, groupItems: [] };
@@ -417,6 +418,20 @@ export class ApiV4MenuService implements ApiMenuService {
         subtitle: 'Gain actionable insights into API performance with real-time metrics and connection logs',
       },
       tabs,
+    };
+  }
+
+  private addDebugMenuEntry(): MenuItem {
+    return {
+      displayName: 'Debug',
+      icon: 'verified',
+      header: {
+        title: 'Debug',
+        subtitle:
+          'Debug an API by identifying, diagnosing, and fixing issues in its functionality, performance, or integration through inspecting requests, responses, logs and error messages.',
+      },
+      routerLink: 'v4/debug',
+      tabs: undefined,
     };
   }
 }
