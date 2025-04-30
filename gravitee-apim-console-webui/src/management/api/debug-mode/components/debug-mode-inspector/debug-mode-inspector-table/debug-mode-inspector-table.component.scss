@@ -1,0 +1,18 @@
+@use './../debug-mode-inspector.component' as debug-mode-inspector;
+
+:host {
+  display: flex;
+
+  > * {
+    width: 100%;
+    flex: 1;
+  }
+
+  th,
+  td {
+    width: 25%;
+    word-break: break-all;
+  }
+
+  @include debug-mode-inspector.diff();
+}

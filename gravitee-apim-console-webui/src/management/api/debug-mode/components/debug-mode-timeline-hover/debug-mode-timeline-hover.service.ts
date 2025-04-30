@@ -13,17 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
 
-import { DebugModeV2Service } from './debug-mode-v2.service';
+import { Injectable } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { map, scan } from 'rxjs/operators';
 
-import { DebugModeService } from '../debug-mode.service';
-import { DebugModeModule } from '../debug-mode.module';
-
-@Component({
-  selector: 'debug-mode-v2',
-  template: ` <debug-mode></debug-mode>`,
-  imports: [DebugModeModule],
-  providers: [{ provide: DebugModeService, useClass: DebugModeV2Service }],
+@Injectable({
+  providedIn: 'root',
 })
-export class DebugModeV2WrapperComponent {}
+export class DebugModeTimelineHoverService {
+  private hoveredMap$ = new Subject<Record<string, boolean>>();
+
+  setHover(id: string, isHover: boolean): void {
+    this.hoveredMap$.next({ [id]: isHover });
+  }
+
+  hoveredChanges(id: string): Observable<boolean> {
+    return this.hoveredMap$.pipe(
+      scan((acc, curr) => Object.assign({}, acc, curr), {}),
+      map((hovered) => hovered[id] ?? false),
+    );
+  }
+}

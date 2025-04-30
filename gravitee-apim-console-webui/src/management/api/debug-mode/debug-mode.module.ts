@@ -29,18 +29,18 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
 
 import { DebugModeComponent } from './debug-mode.component';
-import { PolicyStudioDebugInspectorBodyComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-body/policy-studio-debug-inspector-body.component';
-import { PolicyStudioDebugInspectorComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector.component';
-import { PolicyStudioDebugInspectorErrorComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-error/policy-studio-debug-inspector-error.component';
-import { PolicyStudioDebugInspectorTableComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-table/policy-studio-debug-inspector-table.component';
-import { PolicyStudioDebugRequestComponent } from './components/policy-studio-debug-request/policy-studio-debug-request.component';
-import { PolicyStudioDebugResponseComponent } from './components/policy-studio-debug-response/policy-studio-debug-response.component';
-import { PolicyStudioDebugTimelineCardComponent } from './components/policy-studio-debug-timeline-card/policy-studio-debug-timeline-card.component';
-import { PolicyStudioDebugTimelineComponent } from './components/policy-studio-debug-timeline/policy-studio-debug-timeline.component';
-import { PolicyStudioDebugTimelineLegendComponent } from './components/policy-studio-debug-timeline-legend/policy-studio-debug-timeline-legend.component';
-import { PolicyStudioDebugInspectorTextComponent } from './components/policy-studio-debug-inspector/policy-studio-debug-inspector-text/policy-studio-debug-inspector-text.component';
-import { PolicyStudioDebugTimelineOverviewComponent } from './components/policy-studio-debug-timeline-overview/policy-studio-debug-timeline-overview.component';
-import { PolicyStudioDebugTimelineHoverComponent } from './components/policy-studio-debug-timeline-hover/policy-studio-debug-timeline-hover.directive';
+import { DebugModeInspectorBodyComponent } from './components/debug-mode-inspector/debug-mode-inspector-body/debug-mode-inspector-body.component';
+import { DebugModeInspectorComponent } from './components/debug-mode-inspector/debug-mode-inspector.component';
+import { DebugModeInspectorErrorComponent } from './components/debug-mode-inspector/debug-mode-inspector-error/debug-mode-inspector-error.component';
+import { DebugModeInspectorTableComponent } from './components/debug-mode-inspector/debug-mode-inspector-table/debug-mode-inspector-table.component';
+import { DebugModeRequestComponent } from './components/debug-mode-request/debug-mode-request.component';
+import { DebugModeResponseComponent } from './components/debug-mode-response/debug-mode-response.component';
+import { DebugModeTimelineCardComponent } from './components/debug-mode-timeline-card/debug-mode-timeline-card.component';
+import { DebugModeTimelineComponent } from './components/debug-mode-timeline/debug-mode-timeline.component';
+import { DebugModeTimelineLegendComponent } from './components/debug-mode-timeline-legend/debug-mode-timeline-legend.component';
+import { DebugModeInspectorTextComponent } from './components/debug-mode-inspector/debug-mode-inspector-text/debug-mode-inspector-text.component';
+import { DebugModeTimelineOverviewComponent } from './components/debug-mode-timeline-overview/debug-mode-timeline-overview.component';
+import { DebugModeTimelineHoverComponent } from './components/debug-mode-timeline-hover/debug-mode-timeline-hover.directive';
 
 import { GioDiffModule } from '../../../shared/components/gio-diff/gio-diff.module';
 
@@ -67,18 +67,18 @@ import { GioDiffModule } from '../../../shared/components/gio-diff/gio-diff.modu
   ],
   declarations: [
     DebugModeComponent,
-    PolicyStudioDebugInspectorComponent,
-    PolicyStudioDebugInspectorBodyComponent,
-    PolicyStudioDebugInspectorErrorComponent,
-    PolicyStudioDebugInspectorTableComponent,
-    PolicyStudioDebugInspectorTextComponent,
-    PolicyStudioDebugRequestComponent,
-    PolicyStudioDebugResponseComponent,
-    PolicyStudioDebugTimelineCardComponent,
-    PolicyStudioDebugTimelineComponent,
-    PolicyStudioDebugTimelineOverviewComponent,
-    PolicyStudioDebugTimelineLegendComponent,
-    PolicyStudioDebugTimelineHoverComponent,
+    DebugModeInspectorComponent,
+    DebugModeInspectorBodyComponent,
+    DebugModeInspectorErrorComponent,
+    DebugModeInspectorTableComponent,
+    DebugModeInspectorTextComponent,
+    DebugModeRequestComponent,
+    DebugModeResponseComponent,
+    DebugModeTimelineCardComponent,
+    DebugModeTimelineComponent,
+    DebugModeTimelineOverviewComponent,
+    DebugModeTimelineLegendComponent,
+    DebugModeTimelineHoverComponent,
   ],
   exports: [DebugModeComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
