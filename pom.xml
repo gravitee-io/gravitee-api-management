@@ -35,8 +35,8 @@
 	<properties>
 		<gravitee-bom.version>8.2.22</gravitee-bom.version>
 		<gravitee-apim.version>4.6.8</gravitee-apim.version>
-		<gravitee-reporter-api.version>1.31.2</gravitee-reporter-api.version>
-		<gravitee-reporter-common.version>1.4.1</gravitee-reporter-common.version>
+		<gravitee-reporter-api.version>1.32.3</gravitee-reporter-api.version>
+		<gravitee-reporter-common.version>1.5.1</gravitee-reporter-common.version>
 		<gravitee-node.version>4.8.7</gravitee-node.version>
 
 		<maven-plugin-assembly.version>3.7.1</maven-plugin-assembly.version>
@@ -93,8 +93,7 @@
 		<dependency>
 			<groupId>io.gravitee.reporter</groupId>
 			<artifactId>gravitee-reporter-api</artifactId>
-			<!-- TODO remove before merge -->
-			<version>1.32.0-apim-9340-SNAPSHOT</version>
+			<version>${gravitee-reporter-api.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
