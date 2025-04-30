@@ -26,7 +26,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PolicyListItem } from '../../../entities/policy';
 
 @Component({
-  selector: 'policy-studio-debug',
+  selector: 'debug-mode',
   templateUrl: './debug-mode.component.html',
   styleUrls: ['./debug-mode.component.scss'],
   standalone: false,

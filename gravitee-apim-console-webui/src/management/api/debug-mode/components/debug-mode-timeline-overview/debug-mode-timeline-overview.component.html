@@ -1,0 +1,111 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="debug-mode-timeline-overview">
+  <div class="debug-mode-timeline-overview__left-client-app">
+    <mat-icon class="gio-left" svgIcon="gio:smartphone-device"></mat-icon>
+  </div>
+
+  <ng-container *ngFor="let timelineStep of timelineSteps">
+    <ng-container [ngSwitch]="timelineStep.mode">
+      <div
+        *ngSwitchCase="'CLIENT_APP_REQUEST'"
+        class="debug-mode-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
+        matTooltip="Client App"
+        (click)="selected.emit(timelineStep)"
+      >
+        <div class="debug-mode-timeline-overview__step__line color-green" [ngClass]="'selected-' + timelineStep.selection"></div>
+      </div>
+
+      <div
+        *ngSwitchCase="'CLIENT_APP_RESPONSE'"
+        class="debug-mode-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
+        matTooltip="Client App"
+        (click)="selected.emit(timelineStep)"
+      >
+        <div class="debug-mode-timeline-overview__step__line color-green" [ngClass]="'selected-' + timelineStep.selection"></div>
+      </div>
+
+      <div
+        *ngSwitchCase="'REQUEST_INPUT'"
+        class="debug-mode-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
+        matTooltip="Request input"
+        (click)="selected.emit(timelineStep)"
+      >
+        <div class="debug-mode-timeline-overview__step__line color-blue" [ngClass]="'selected-' + timelineStep.selection"></div>
+      </div>
+
+      <div
+        *ngSwitchCase="'REQUEST_OUTPUT'"
+        class="debug-mode-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
+        matTooltip="Request output"
+        (click)="selected.emit(timelineStep)"
+      >
+        <div class="debug-mode-timeline-overview__step__line color-blue" [ngClass]="'selected-' + timelineStep.selection"></div>
+      </div>
+
+      <div
+        *ngSwitchCase="'RESPONSE_INPUT'"
+        class="debug-mode-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
+        matTooltip="Response input"
+        (click)="selected.emit(timelineStep)"
+      >
+        <div class="debug-mode-timeline-overview__step__line color-blue" [ngClass]="'selected-' + timelineStep.selection"></div>
+      </div>
+
+      <div
+        *ngSwitchCase="'RESPONSE_OUTPUT'"
+        class="debug-mode-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
+        matTooltip="Response output"
+        (click)="selected.emit(timelineStep)"
+      >
+        <div class="debug-mode-timeline-overview__step__line color-blue" [ngClass]="'selected-' + timelineStep.selection"></div>
+      </div>
+
+      <div *ngSwitchCase="'BACKEND_TARGET'" class="debug-mode-timeline-overview__center-target-backend">
+        <mat-icon class="gio-left" svgIcon="gio:server"></mat-icon>
+      </div>
+
+      <div
+        *ngSwitchDefault
+        class="debug-mode-timeline-overview__step"
+        [timelineHover]="timelineStep.id"
+        [matTooltip]="$any(timelineStep).policyName"
+        [class.disabled]="$any(timelineStep).executionStatus === 'SKIPPED'"
+        (click)="selected.emit(timelineStep)"
+      >
+        <div
+          class="debug-mode-timeline-overview__step__line"
+          [class.color-red]="$any(timelineStep).executionStatus === 'ERROR'"
+          [class.color-grey]="$any(timelineStep).executionStatus === 'SKIPPED'"
+          [ngClass]="'selected-' + timelineStep.selection"
+        ></div>
+      </div>
+    </ng-container>
+  </ng-container>
+
+  <div class="debug-mode-timeline-overview__right-client-app">
+    <mat-icon class="gio-left" svgIcon="gio:smartphone-device"></mat-icon>
+  </div>
+</div>

@@ -15,20 +15,6 @@
     limitations under the License.
 
 -->
-<mat-card class="debug-mode-card">
-  <div class="debug-mode">
-    <div class="debug-mode__request">
-      <debug-mode-request
-        [debugInProgress]="debugResponse?.isLoading"
-        (requestSubmitted)="onRequestSubmitted($event)"
-        (cancelSubmitted)="onRequestCancelled()"
-      ></debug-mode-request>
-    </div>
-
-    <div class="debug-mode__response">
-      <div class="debug-mode__response__container">
-        <debug-mode-response [debugResponse]="debugResponse" [listPolicies]="listPolicies"></debug-mode-response>
-      </div>
-    </div>
-  </div>
-</mat-card>
+<div class="debug-mode-inspector-body">
+  <gio-diff [left]="formattedInput" [right]="formattedOutput"></gio-diff>
+</div>

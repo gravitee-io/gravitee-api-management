@@ -21,8 +21,8 @@ import { DebugModeService } from '../debug-mode.service';
 import { DebugModeModule } from '../debug-mode.module';
 
 @Component({
-  selector: 'policy-studio-debug-v4',
-  template: ` <policy-studio-debug></policy-studio-debug>`,
+  selector: 'debug-mode-v4',
+  template: ` <debug-mode></debug-mode>`,
   imports: [DebugModeModule],
   providers: [{ provide: DebugModeService, useClass: DebugModeV4Service }],
 })

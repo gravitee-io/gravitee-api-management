@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Component } from '@angular/core';
 
-import { DebugModeV2Service } from './debug-mode-v2.service';
-
-import { DebugModeService } from '../debug-mode.service';
-import { DebugModeModule } from '../debug-mode.module';
-
 @Component({
-  selector: 'debug-mode-v2',
-  template: ` <debug-mode></debug-mode>`,
-  imports: [DebugModeModule],
-  providers: [{ provide: DebugModeService, useClass: DebugModeV2Service }],
+  selector: 'debug-mode-timeline-legend',
+  templateUrl: './debug-mode-timeline-legend.component.html',
+  styleUrls: ['./debug-mode-timeline-legend.component.scss'],
+  standalone: false,
 })
-export class DebugModeV2WrapperComponent {}
+export class DebugModeTimelineLegendComponent {}

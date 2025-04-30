@@ -37,7 +37,7 @@ import { fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { toApiDefinition } from '../policy-studio-v2/models/ApiDefinition';
 
-describe('PolicyStudioDebugComponent with DebugModeV2Service', () => {
+describe('DebugModeComponent with DebugModeV2Service', () => {
   let fixture: ComponentFixture<DebugModeComponent>;
   let httpTestingController: HttpTestingController;
   let policyStudioService: PolicyStudioService;
@@ -112,7 +112,7 @@ describe('PolicyStudioDebugComponent with DebugModeV2Service', () => {
 
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.policy-studio-debug-response__display-response__header').textContent).toContain(
+    expect(fixture.nativeElement.querySelector('.debug-mode-response__display-response__header').textContent).toContain(
       'Response 200 - OK  GET /',
     );
   }));
@@ -133,11 +133,11 @@ describe('PolicyStudioDebugComponent with DebugModeV2Service', () => {
     }));
 
     it('should display timeline', () => {
-      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()].map((card) => ({
-        content: card.querySelector('.policy-studio-debug-timeline-card__content').textContent,
-        state: card.querySelector('.policy-studio-debug-timeline-card__right').innerHTML.includes('gio:alert-circle')
+      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()].map((card) => ({
+        content: card.querySelector('.debug-mode-timeline-card__content').textContent,
+        state: card.querySelector('.debug-mode-timeline-card__right').innerHTML.includes('gio:alert-circle')
           ? 'ERROR'
-          : card.querySelector('.policy-studio-debug-timeline-card__right').innerHTML.includes('gio:alert-circle')
+          : card.querySelector('.debug-mode-timeline-card__right').innerHTML.includes('gio:alert-circle')
             ? 'SKIPPED'
             : undefined,
       }));
@@ -189,37 +189,33 @@ describe('PolicyStudioDebugComponent with DebugModeV2Service', () => {
     });
 
     it('should display inspector content for selected policy', () => {
-      [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()]
+      [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
         .find((card) => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
 
-      const inspectorContent = fixture.nativeElement.querySelector(
-        '.policy-studio-debug-response__display-response__inspector',
-      ).textContent;
+      const inspectorContent = fixture.nativeElement.querySelector('.debug-mode-response__display-response__inspector').textContent;
       const expectedDebugStepAttributes = fakeDebugEvent().payload.debugSteps[1].result.attributes as Record<string, unknown>;
       expect(inspectorContent).toContain(expectedDebugStepAttributes.dev);
     });
 
     it('should display inspector content on selected policy with overview', () => {
-      [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()]
+      [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
         .find((card) => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
 
-      const inspectorContent = fixture.nativeElement.querySelector(
-        '.policy-studio-debug-response__display-response__inspector',
-      ).textContent;
+      const inspectorContent = fixture.nativeElement.querySelector('.debug-mode-response__display-response__inspector').textContent;
       const expectedDebugStepAttributes = fakeDebugEvent().payload.debugSteps[1].result.attributes as Record<string, unknown>;
       expect(inspectorContent).toContain(expectedDebugStepAttributes.dev);
     });
 
     it('should clear inspector selection after new request', fakeAsync(async () => {
       const getInspectorContent = () =>
-        fixture.nativeElement.querySelector('.policy-studio-debug-response__display-response__inspector')?.textContent ?? null;
+        fixture.nativeElement.querySelector('.debug-mode-response__display-response__inspector')?.textContent ?? null;
 
       // Select card and expect inspector content
-      [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()]
+      [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
         .find((card) => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
@@ -265,7 +261,7 @@ describe('PolicyStudioDebugComponent with DebugModeV2Service', () => {
   }
 });
 
-describe('PolicyStudioDebugComponent with DebugModeV4Service', () => {
+describe('DebugModeComponent with DebugModeV4Service', () => {
   let fixture: ComponentFixture<DebugModeComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
@@ -337,7 +333,7 @@ describe('PolicyStudioDebugComponent with DebugModeV4Service', () => {
 
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.policy-studio-debug-response__display-response__header').textContent).toContain(
+    expect(fixture.nativeElement.querySelector('.debug-mode-response__display-response__header').textContent).toContain(
       'Response 200 - OK  GET /',
     );
   }));
@@ -358,11 +354,11 @@ describe('PolicyStudioDebugComponent with DebugModeV4Service', () => {
     }));
 
     it('should display timeline', () => {
-      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()].map((card) => ({
-        content: card.querySelector('.policy-studio-debug-timeline-card__content').textContent,
-        state: card.querySelector('.policy-studio-debug-timeline-card__right').innerHTML.includes('gio:alert-circle')
+      const timeLineCards = [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()].map((card) => ({
+        content: card.querySelector('.debug-mode-timeline-card__content').textContent,
+        state: card.querySelector('.debug-mode-timeline-card__right').innerHTML.includes('gio:alert-circle')
           ? 'ERROR'
-          : card.querySelector('.policy-studio-debug-timeline-card__right').innerHTML.includes('gio:alert-circle')
+          : card.querySelector('.debug-mode-timeline-card__right').innerHTML.includes('gio:alert-circle')
             ? 'SKIPPED'
             : undefined,
       }));
@@ -414,37 +410,33 @@ describe('PolicyStudioDebugComponent with DebugModeV4Service', () => {
     });
 
     it('should display inspector content for selected policy', () => {
-      [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()]
+      [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
         .find((card) => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
 
-      const inspectorContent = fixture.nativeElement.querySelector(
-        '.policy-studio-debug-response__display-response__inspector',
-      ).textContent;
+      const inspectorContent = fixture.nativeElement.querySelector('.debug-mode-response__display-response__inspector').textContent;
       const expectedDebugStepAttributes = fakeDebugEvent().payload.debugSteps[1].result.attributes as Record<string, unknown>;
       expect(inspectorContent).toContain(expectedDebugStepAttributes.dev);
     });
 
     it('should display inspector content on selected policy with overview', () => {
-      [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()]
+      [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
         .find((card) => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
 
-      const inspectorContent = fixture.nativeElement.querySelector(
-        '.policy-studio-debug-response__display-response__inspector',
-      ).textContent;
+      const inspectorContent = fixture.nativeElement.querySelector('.debug-mode-response__display-response__inspector').textContent;
       const expectedDebugStepAttributes = fakeDebugEvent().payload.debugSteps[1].result.attributes as Record<string, unknown>;
       expect(inspectorContent).toContain(expectedDebugStepAttributes.dev);
     });
 
     it('should clear inspector selection after new request', fakeAsync(async () => {
       const getInspectorContent = () =>
-        fixture.nativeElement.querySelector('.policy-studio-debug-response__display-response__inspector')?.textContent ?? null;
+        fixture.nativeElement.querySelector('.debug-mode-response__display-response__inspector')?.textContent ?? null;
 
       // Select card and expect inspector content
-      [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()]
+      [...fixture.nativeElement.querySelectorAll('.debug-mode-timeline-card').values()]
         .find((card) => card.textContent.includes('Header  Assign Attributes'))
         .click();
       fixture.detectChanges();
