@@ -48,6 +48,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFact
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.security.core.AuthenticationHandlerSelector;
@@ -78,7 +79,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         FlowResolverFactory flowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         AccessPointManager accessPointManager,
-        EventManager eventManager
+        EventManager eventManager,
+        HttpAcceptorFactory httpAcceptorFactory
     ) {
         super(
             applicationContext,
@@ -94,6 +96,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             requestTimeoutConfiguration,
             accessPointManager,
             eventManager,
+            httpAcceptorFactory,
             null,
             null,
             null
@@ -107,7 +110,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         AccessPointManager accessPointManager,
         EventManager eventManager
     ) {
-        return new DebugApiReactorHandler(configuration, api, accessPointManager, eventManager, TracingContext.noop());
+        return new DebugApiReactorHandler(configuration, api, accessPointManager, eventManager, httpAcceptorFactory, TracingContext.noop());
     }
 
     @Override
@@ -185,6 +188,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             requestTimeoutConfiguration,
             accessPointManager,
             eventManager,
+            httpAcceptorFactory,
             TracingContext.noop()
         );
     }

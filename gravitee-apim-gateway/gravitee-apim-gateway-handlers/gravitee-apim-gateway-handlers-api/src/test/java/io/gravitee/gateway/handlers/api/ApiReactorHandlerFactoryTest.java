@@ -35,6 +35,7 @@ import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.configuration.Configuration;
@@ -126,6 +127,7 @@ public class ApiReactorHandlerFactoryTest {
                 new RequestTimeoutConfiguration(2000L, 10L),
                 accessPointManager,
                 eventManager,
+                new HttpAcceptorFactory(false),
                 openTelemetryConfiguration,
                 openTelemetryFactory,
                 List.of()

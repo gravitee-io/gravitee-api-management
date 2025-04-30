@@ -48,6 +48,7 @@ import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPol
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
@@ -166,6 +167,7 @@ class DefaultApiReactorFactoryTest {
                 reporterService,
                 accessPointManager,
                 eventManager,
+                new HttpAcceptorFactory(false),
                 openTelemetryConfiguration,
                 openTelemetryFactory,
                 List.of(),

@@ -36,6 +36,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainF
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
@@ -68,6 +69,7 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
         ReporterService reporterService,
         AccessPointManager accessPointManager,
         EventManager eventManager,
+        HttpAcceptorFactory httpAcceptorFactory,
         TracingContext tracingContext
     ) {
         super(
@@ -89,6 +91,7 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
             reporterService,
             accessPointManager,
             eventManager,
+            httpAcceptorFactory,
             tracingContext
         );
         invokerHooks.add(new DebugInvokerHook());

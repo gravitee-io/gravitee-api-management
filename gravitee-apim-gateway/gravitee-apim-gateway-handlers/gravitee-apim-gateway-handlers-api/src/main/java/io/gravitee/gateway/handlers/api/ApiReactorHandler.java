@@ -38,7 +38,7 @@ import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.reactor.handler.Acceptor;
-import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.http.AccessPointHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
@@ -86,18 +86,21 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     private final Configuration configuration;
     private final AccessPointManager accessPointManager;
     private final EventManager eventManager;
+    private final HttpAcceptorFactory httpAcceptorFactory;
 
     public ApiReactorHandler(
         Configuration configuration,
         final Api api,
         final AccessPointManager accessPointManager,
         final EventManager eventManager,
+        final HttpAcceptorFactory httpAcceptorFactory,
         final TracingContext tracingContext
     ) {
         super(api, tracingContext);
         this.configuration = configuration;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.httpAcceptorFactory = httpAcceptorFactory;
     }
 
     @Override
@@ -458,7 +461,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                     .stream()
                     .map(virtualHost -> {
                         if (virtualHost.getHost() != null) {
-                            return new DefaultHttpAcceptor(
+                            return httpAcceptorFactory.create(
                                 virtualHost.getHost(),
                                 virtualHost.getPath(),
                                 this,
@@ -467,6 +470,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                         } else {
                             return new AccessPointHttpAcceptor(
                                 eventManager,
+                                httpAcceptorFactory,
                                 reactable.getEnvironmentId(),
                                 accessPointManager.getByEnvironmentId(reactable.getEnvironmentId()),
                                 virtualHost.getPath(),

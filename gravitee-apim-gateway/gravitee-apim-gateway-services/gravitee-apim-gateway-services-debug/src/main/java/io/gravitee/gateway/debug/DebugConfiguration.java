@@ -71,6 +71,7 @@ import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.impl.DefaultAcceptorResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
@@ -390,7 +391,8 @@ public class DebugConfiguration {
         FlowResolverFactory flowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         AccessPointManager accessPointManager,
-        EventManager eventManager
+        EventManager eventManager,
+        HttpAcceptorFactory httpAcceptorFactory
     ) {
         return new DebugApiReactorHandlerFactory(
             applicationContext.getParent(),
@@ -405,7 +407,8 @@ public class DebugConfiguration {
             flowResolverFactory,
             requestTimeoutConfiguration,
             accessPointManager,
-            eventManager
+            eventManager,
+            httpAcceptorFactory
         );
     }
 
@@ -456,6 +459,7 @@ public class DebugConfiguration {
             reporterService,
             accessPointManager,
             eventManager,
+            new HttpAcceptorFactory(false),
             gatewayConfiguration
         );
     }

@@ -118,15 +118,15 @@ commands:
           secret-url: keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password
           var-name: DOCKER_REGISTRY_PASSWORD
       - run:
-          name: Login to Docker Hub
-          command: "echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin "
+          name: No login to Docker Hub - Dry-Run
+          command: echo "DRY RUN Mode. Build only"
     description: Login to Docker Hub
   cmd-docker-logout:
     steps:
       - run:
-          name: Logout from Docker Hub
-          command: docker logout
-    description: Logout from Docker Hub
+          name: No logout from Docker Hub - Dry-Run
+          command: echo "DRY RUN Mode. Build only"
+    description: No logout from Docker Hub - Dry-Run
 jobs:
   job-setup:
     docker:
@@ -158,7 +158,7 @@ jobs:
           apim-ui-project: gravitee-apim-console-webui
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-alpha.1\"/' gravitee-apim-console-webui/build.json"
       - run:
           name: Build
           command: yarn build:prod
@@ -185,7 +185,7 @@ jobs:
           apim-ui-project: gravitee-apim-portal-webui
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-alpha.1\"/' gravitee-apim-portal-webui/build.json"
       - run:
           name: Build
           command: yarn build:prod
@@ -196,7 +196,7 @@ jobs:
           apim-ui-project: gravitee-apim-portal-webui-next
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-alpha.1\"/' gravitee-apim-portal-webui-next/build.json"
       - run:
           name: Build
           command: yarn build:prod
@@ -266,8 +266,8 @@ jobs:
       - run:
           name: Build docker image for << parameters.apim-project >>
           command: |-
-            docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 \
+            docker buildx build --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1 -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - keeper/env-export:
@@ -291,32 +291,14 @@ jobs:
       - aquasec/install_billy
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
-          artifact_to_register: graviteeio/<< parameters.docker-image-name >>:4.2.0
+          artifact_to_register: graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1
           debug: true
       - aquasec/scan_docker_image:
-          docker_image_to_scan: graviteeio/<< parameters.docker-image-name >>:4.2.0
+          docker_image_to_scan: graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - cmd-docker-logout
-  job-publish-rpm-packages:
-    machine:
-      image: ubuntu-2204:current
-      docker_layer_caching: false
-    resource_class: medium
-    steps:
-      - keeper/env-export:
-          secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
-          var-name: GIO_PACKAGECLOUD_TOKEN
-      - run:
-          name: Building and publishing RPMs
-          command: |-
-            export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
-            git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
-
-            cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x
-            ./build.sh -v 4.2.0
-            docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
 workflows:
-  build-rpm-&-docker-images:
+  build-docker-images:
     jobs:
       - job-setup:
           context:
@@ -331,7 +313,7 @@ workflows:
       - job-build-docker-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Portal docker image for APIM 4.2.0
+          name: Build APIM Portal docker image for APIM 4.2.0-alpha.1 - Dry Run
           requires:
             - Build APIM Portal
           apim-project: gravitee-apim-portal-webui
@@ -346,7 +328,7 @@ workflows:
       - job-build-docker-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Console docker image for APIM 4.2.0
+          name: Build APIM Console docker image for APIM 4.2.0-alpha.1 - Dry Run
           requires:
             - Build APIM Console
           apim-project: gravitee-apim-console-webui
@@ -361,7 +343,7 @@ workflows:
       - job-build-docker-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Management API docker image for APIM 4.2.0
+          name: Build APIM Management API docker image for APIM 4.2.0-alpha.1 - Dry Run
           requires:
             - Backend build
           apim-project: gravitee-apim-rest-api
@@ -370,16 +352,12 @@ workflows:
       - job-build-docker-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Gateway docker image for APIM 4.2.0
+          name: Build APIM Gateway docker image for APIM 4.2.0-alpha.1 - Dry Run
           requires:
             - Backend build
           apim-project: gravitee-apim-gateway
           docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
           docker-image-name: apim-gateway
-      - job-publish-rpm-packages:
-          context:
-            - cicd-orchestrator
-          name: Build and push RPM packages for APIM 4.2.0
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5

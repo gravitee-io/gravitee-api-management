@@ -44,6 +44,8 @@ import io.gravitee.gateway.reactive.reactor.v4.secrets.ApiV4DefinitionSecretRefs
 import io.gravitee.gateway.reactive.reactor.v4.secrets.NativeApiV4DefinitionSecretRefsFinder;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariableProvider;
@@ -271,5 +273,10 @@ public class ReactorConfiguration {
     @Bean
     public DefinitionSecretRefsFinder<?> nativeV4ApiDefinitionSecretRefsFinder() {
         return new NativeApiV4DefinitionSecretRefsFinder();
+    }
+
+    @Bean
+    public HttpAcceptorFactory httpAcceptorFactory(GatewayConfiguration gatewayConfiguration) {
+        return new HttpAcceptorFactory(gatewayConfiguration.allowOverlappingApiContexts());
     }
 }

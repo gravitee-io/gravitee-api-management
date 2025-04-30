@@ -44,6 +44,8 @@ public class GatewayConfiguration implements InitializingBean {
     static final String ORGANIZATION_SYSTEM_PROPERTY = "organizations";
     private static final String ORGANIZATIONS_SEPARATOR = ",";
 
+    private static final String ALLOW_OVERLAPPING_API_CONTEXTS_PROPERTY = "gravitee.api.allowOverlappingContext";
+
     private Optional<List<String>> shardingTags;
     private Optional<String> zone;
     private Optional<String> tenant;
@@ -157,5 +159,9 @@ public class GatewayConfiguration implements InitializingBean {
 
     public boolean hasMatchingTags(Set<String> tags) {
         return EnvironmentUtils.hasMatchingTags(shardingTags(), tags);
+    }
+
+    public boolean allowOverlappingApiContexts() {
+        return configuration.getProperty(ALLOW_OVERLAPPING_API_CONTEXTS_PROPERTY, Boolean.class, false);
     }
 }

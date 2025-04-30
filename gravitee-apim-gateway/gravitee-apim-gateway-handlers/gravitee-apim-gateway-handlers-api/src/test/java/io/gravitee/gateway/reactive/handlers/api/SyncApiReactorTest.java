@@ -65,6 +65,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFact
 import io.gravitee.gateway.reactive.handlers.api.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -294,6 +295,7 @@ class SyncApiReactorTest {
                 requestTimeoutConfiguration,
                 accessPointManager,
                 eventManager,
+                new HttpAcceptorFactory(false),
                 tracingContext
             );
 

@@ -51,6 +51,7 @@ import io.gravitee.gateway.reactive.policy.HttpPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
@@ -183,6 +184,7 @@ public class ApiHandlerConfiguration {
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         AccessPointManager accessPointManager,
         EventManager eventManager,
+        HttpAcceptorFactory httpAcceptorFactory,
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
         @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories
@@ -201,6 +203,7 @@ public class ApiHandlerConfiguration {
             requestTimeoutConfiguration,
             accessPointManager,
             eventManager,
+            httpAcceptorFactory,
             openTelemetryConfiguration,
             openTelemetryFactory,
             instrumenterTracerFactories
@@ -251,6 +254,7 @@ public class ApiHandlerConfiguration {
         ReporterService reporterService,
         AccessPointManager accessPointManager,
         EventManager eventManager,
+        HttpAcceptorFactory httpAcceptorFactory,
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
         @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
@@ -271,6 +275,7 @@ public class ApiHandlerConfiguration {
             reporterService,
             accessPointManager,
             eventManager,
+            httpAcceptorFactory,
             openTelemetryConfiguration,
             openTelemetryFactory,
             instrumenterTracerFactories,

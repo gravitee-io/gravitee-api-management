@@ -21,6 +21,7 @@ import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.reactor.handler.AbstractAccessPointAcceptor;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
+import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import java.util.Collection;
 import java.util.List;
@@ -34,8 +35,11 @@ public class AccessPointHttpAcceptor extends AbstractAccessPointAcceptor<HttpAcc
     private final String path;
     private final Collection<String> serverIds;
 
+    private final HttpAcceptorFactory httpAcceptorFactory;
+
     public AccessPointHttpAcceptor(
         final EventManager eventManager,
+        final HttpAcceptorFactory httpAcceptorFactory,
         final String environmentId,
         final List<ReactableAccessPoint> initialReactableAccessPoints,
         final String path,
@@ -43,6 +47,7 @@ public class AccessPointHttpAcceptor extends AbstractAccessPointAcceptor<HttpAcc
         final Collection<String> serverIds
     ) {
         super(reactor, eventManager, environmentId);
+        this.httpAcceptorFactory = httpAcceptorFactory;
         this.path = path;
         this.serverIds = serverIds;
         if (initialReactableAccessPoints == null || initialReactableAccessPoints.isEmpty()) {
@@ -57,7 +62,7 @@ public class AccessPointHttpAcceptor extends AbstractAccessPointAcceptor<HttpAcc
 
     @Override
     protected HttpAcceptor createAcceptor(String accessPointHost) {
-        return new DefaultHttpAcceptor(accessPointHost, path, apiReactor, serverIds);
+        return httpAcceptorFactory.create(accessPointHost, path, apiReactor, serverIds);
     }
 
     @Override

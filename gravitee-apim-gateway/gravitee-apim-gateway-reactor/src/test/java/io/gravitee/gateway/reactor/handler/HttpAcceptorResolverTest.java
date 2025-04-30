@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactor.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
@@ -103,9 +104,7 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
-
-        httpAcceptorHandlers.addAll(Arrays.asList(acceptor1, acceptor2));
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
 
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
         when(request.path()).thenReturn("/teams");
@@ -119,9 +118,7 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
-
-        httpAcceptorHandlers.addAll(Arrays.asList(acceptor1, acceptor2));
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
 
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
 
@@ -136,9 +133,7 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
-
-        httpAcceptorHandlers.addAll(Arrays.asList(acceptor1, acceptor2));
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
 
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
 
@@ -153,9 +148,7 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
-
-        httpAcceptorHandlers.addAll(Arrays.asList(acceptor1, acceptor2));
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(Arrays.asList(acceptor1, acceptor2));
 
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
 
@@ -180,6 +173,88 @@ public class HttpAcceptorResolverTest {
 
         assertNull(handlerResolver.resolve(context, SERVER_ID));
         verify(context, never()).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), any());
+    }
+
+    @Test
+    public void should_resolve_with_sub_path_first() {
+        final List<HttpAcceptor> httpAcceptorHandlers = new ArrayList<>();
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor(null, "/c/"));
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor(null, "/b/a/"));
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor(null, "/b/"));
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor(null, "/"));
+
+        List<HttpAcceptor> copy = List.copyOf(httpAcceptorHandlers);
+        Collections.sort(httpAcceptorHandlers);
+
+        assertThat(httpAcceptorHandlers).containsExactlyElementsOf(copy);
+
+        when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
+
+        record RequestData(String path, int acceptorIndex) {}
+
+        List<RequestData> pathAcceptors = new ArrayList<>();
+        pathAcceptors.add(new RequestData("/", 3));
+        pathAcceptors.add(new RequestData("/b", 2));
+        pathAcceptors.add(new RequestData("/b/a", 1));
+        pathAcceptors.add(new RequestData("/c", 0));
+        pathAcceptors.add(new RequestData("/foo", 3));
+        pathAcceptors.add(new RequestData("/b/foo", 2));
+        pathAcceptors.add(new RequestData("/b/a/foo", 1));
+        pathAcceptors.add(new RequestData("/c/foo", 0));
+        for (RequestData pathAcceptor : pathAcceptors) {
+            reset(request);
+            when(request.host()).thenReturn(null);
+            when(request.path()).thenReturn(pathAcceptor.path);
+            assertEquals(httpAcceptorHandlers.get(pathAcceptor.acceptorIndex), handlerResolver.resolve(context, SERVER_ID));
+        }
+    }
+
+    @Test
+    public void should_resolve_with_wildcard_host() {
+        final List<HttpAcceptor> httpAcceptorHandlers = new ArrayList<>();
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor("root.test.acme.com", "/a/"));
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor("root.test.acme.com", "/"));
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor("*.test.acme.com", "/a/"));
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor("*.test.acme.com", "/"));
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor("test.acme.com", "/a/"));
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor("test.acme.com", "/"));
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor("*.acme.com", "/a/"));
+        httpAcceptorHandlers.add(new OverlappingHttpAcceptor("*.acme.com", "/"));
+
+        List<HttpAcceptor> copy = List.copyOf(httpAcceptorHandlers);
+        Collections.sort(httpAcceptorHandlers);
+
+        assertThat(httpAcceptorHandlers).containsExactlyElementsOf(copy);
+
+        when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
+
+        record RequestData(String host, String path, Integer acceptorIndex) {}
+
+        List<RequestData> requestDatas = new ArrayList<>();
+        requestDatas.add(new RequestData("root.test.acme.com", "/a", 0));
+        requestDatas.add(new RequestData("root.test.acme.com", "/", 1));
+        requestDatas.add(new RequestData("foo.test.acme.com", "/a", 2));
+        requestDatas.add(new RequestData("foo.test.acme.com", "/", 3));
+        requestDatas.add(new RequestData("test.acme.com", "/a", 4));
+        requestDatas.add(new RequestData("test.acme.com", "/", 5));
+        requestDatas.add(new RequestData("foo.acme.com", "/a", 6));
+        requestDatas.add(new RequestData("foo.bar.acme.com", "/a", 6));
+        requestDatas.add(new RequestData("foo.acme.com", "/", 7));
+        requestDatas.add(new RequestData("foo.bar.acme.com", "/", 7));
+        requestDatas.add(new RequestData("acme.com", "/", null));
+        requestDatas.add(new RequestData("api.acme.net", "/", null));
+
+        for (RequestData requestData : requestDatas) {
+            reset(request);
+            when(request.host()).thenReturn(requestData.host);
+            when(request.path()).thenReturn(requestData.path);
+            String message = "host=" + requestData.host + " path=" + requestData.path;
+            if (requestData.acceptorIndex != null) {
+                assertEquals(message, httpAcceptorHandlers.get(requestData.acceptorIndex), handlerResolver.resolve(context, SERVER_ID));
+            } else {
+                assertNull(message, handlerResolver.resolve(context, SERVER_ID));
+            }
+        }
     }
 
     @Test
