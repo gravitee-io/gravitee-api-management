@@ -66,8 +66,8 @@ public class ApplicationServiceImplTest {
         assertAll(
             () -> assertThat(criteria.getEnvironmentIds().size()).isEqualTo(1),
             () -> assertTrue(criteria.getEnvironmentIds().contains("env1")),
-            () -> assertThat(criteria.getRestrictedToIds().size()).isEqualTo(1),
-            () -> assertTrue(criteria.getRestrictedToIds().contains("app1")),
+            () -> assertThat(criteria.getRestrictedToIds().size()).isEqualTo(2),
+            () -> assertTrue(criteria.getRestrictedToIds().containsAll(List.of("app1", "app2"))),
             () -> assertThat(criteria.getName()).isEqualTo("name1"),
             () -> assertThat(criteria.getStatus()).isEqualTo(ApplicationStatus.ACTIVE),
             () -> assertThat(criteria.getGroups().size()).isEqualTo(2),
