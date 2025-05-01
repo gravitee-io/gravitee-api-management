@@ -49,7 +49,7 @@
 
   <span flex="5">&nbsp;</span>
 
-  <div ng-if="$ctrl.condition.operator && $ctrl.condition.type" ng-switch="$ctrl.condition.type" flex>
+  <div ng-switch="$ctrl.condition.type" flex>
     <gv-alert-trigger-condition-threshold
       ng-switch-when="THRESHOLD"
       condition="$ctrl.condition"
