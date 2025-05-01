@@ -104,6 +104,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
                 this.updateMode &&
                 (this.isSuperAdmin || (this.group.manageable && (this.group.system_invitation || this.group.email_invitation)));
 
+              this.enableDependentMember = this.isSuperAdmin && !(this.group.manageable && this.group.system_invitation);
               this.apiRoles = [{ scope: 'API', name: '', system: false }].concat(apiRolesResponse);
               this.applicationRoles = [{ scope: 'APPLICATION', name: '', system: false }].concat(applicationRolesResponse);
               this.integrationRoles = [{ scope: 'INTEGRATION', name: '', system: false }].concat(integrationRolesResponse);
@@ -173,7 +174,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
 
       this.update = () => {
         GroupService.updateEventRules(this.group, this.apiByDefault, this.applicationByDefault);
-
+        this.enableDependentMember = this.isSuperAdmin && !(this.group.manageable && this.group.system_invitation);
         if (!this.updateMode) {
           GroupService.create(this.group).then((response) => {
             ngRouter.navigate(['../', response.data.id], { relativeTo: this.activatedRoute });
