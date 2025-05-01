@@ -226,7 +226,7 @@
                         ng-false-value="''"
                         ng-change="$ctrl.updateRole(member)"
                         aria-label="Administrator of this group"
-                        ng-disabled="!ctrl.isSuperAdmin && !($ctrl.group.manageable && $ctrl.group.system_invitation)"
+                        ng-disabled="$ctrl.enableDependentMember"
                       >
                       </md-checkbox>
                     </td>
