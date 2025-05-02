@@ -78,8 +78,8 @@ describe('PortalApiListComponent', () => {
   const fakeApiPortalHeadersAfterDelete = initialFakeApiPortalHeaders.slice(1);
   const apiKeyHeaderOld = 'X-Gravitee-Api-Key-Old';
   const apiKeyHeaderNew = 'X-Gravitee-Api-Key-New';
-  const portalSettingsOld: PortalSettings = { portal: { apikeyHeader: apiKeyHeaderOld } };
-  const portalSettingsNew: PortalSettings = { portal: { apikeyHeader: apiKeyHeaderNew } };
+  const portalSettingsOld: PortalSettings = { portal: { apikeyHeader: apiKeyHeaderOld, kafkaSaslMechanisms: '[]' } };
+  const portalSettingsNew: PortalSettings = { portal: { apikeyHeader: apiKeyHeaderNew, kafkaSaslMechanisms: '[]' } };
 
   function configureApiHeaders(apiPortalHeaders: ApiPortalHeader[]) {
     httpTestingController

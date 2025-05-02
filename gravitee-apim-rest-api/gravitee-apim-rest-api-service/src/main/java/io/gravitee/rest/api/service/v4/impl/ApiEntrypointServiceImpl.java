@@ -69,6 +69,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
 
     @Override
     public List<ApiEntrypointEntity> getApiEntrypoints(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity) {
+        final Pattern COMMA_SPLIT_PATTERN = Pattern.compile("\\s*,\\s*");
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
         if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {

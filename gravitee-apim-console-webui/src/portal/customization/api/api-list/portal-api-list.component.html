@@ -22,12 +22,15 @@
         <mat-card-content class="api-style__content">
           <div class="api-style__content__header">
             <div class="api-style__content__header__title">
-              <h3>API Subscription</h3>
+              <h3>API Configuration</h3>
+            </div>
+          </div>
+          <div>
+            <div class="api-style__content__header__title">
+              <h5>API Subscription</h5>
               <both-portals-badge data-testid="both-portals-badge-for-api-subscription" />
             </div>
             <div class="menu-api__content__header__description">Customize the information included in API header</div>
-          </div>
-          <div>
             <mat-form-field appearance="outline" class="api-key-header">
               <input matInput formControlName="apiKeyHeader" />
               <mat-label>API Key Header</mat-label>
@@ -36,6 +39,23 @@
                 defined API Key Header in the Gateway YAML configuration.
               </mat-hint>
             </mat-form-field>
+          </div>
+          <div>
+            <div class="api-style__content__header__title">
+              <h5>Permitted Kafka SASL Mechanisms</h5>
+            </div>
+            <div>
+              <mat-form-field appearance="fill" class="api-kakfa-sasl-mechanism-select">
+                <mat-label>Kafka SASL Mechanisms</mat-label>
+                <mat-select formControlName="kafkaSaslMechanisms" multiple>
+                  @for (mechanism of availableKafkaMechanisms; track mechanism) {
+                    <mat-option [value]="mechanism">
+                      {{ mechanism }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
           </div>
         </mat-card-content>
       </mat-card>

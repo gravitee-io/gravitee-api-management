@@ -20,12 +20,6 @@ export interface PortalSettings extends PortalConfiguration {
   cors?: PortalSettingsCors;
 }
 
-export type PortalSettingsPayload = Omit<PortalSettings, 'portal'> & {
-  portal?: Omit<PortalSettings['portal'], 'kafkaSaslMechanisms'> & {
-    kafkaSaslMechanisms?: string;
-  };
-};
-
 export interface PortalConfiguration {
   portal?: PortalSettingsPortal;
   metadata?: PortalSettingsMetadata;
@@ -238,7 +232,7 @@ export interface PortalSettingsOpenAPIDocViewer {
     swagger: {
       enabled: boolean;
     };
-    defaultType: any;
+    defaultType: string;
     redoc: {
       enabled: boolean;
     };

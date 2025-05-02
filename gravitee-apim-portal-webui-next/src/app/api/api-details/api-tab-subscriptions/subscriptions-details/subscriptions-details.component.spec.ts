@@ -30,6 +30,7 @@ import { Configuration } from '../../../../../entities/configuration/configurati
 import { fakeUserApiPermissions } from '../../../../../entities/permission/permission.fixtures';
 import { fakePlan, fakePlansResponse } from '../../../../../entities/plan/plan.fixture';
 import { PlansResponse } from '../../../../../entities/plan/plans-response';
+import { fakePortalSettings } from '../../../../../entities/portal/portalSettings.fixture';
 import {
   fakeSubscription,
   fakeSubscriptionResponse,
@@ -234,6 +235,7 @@ describe('SubscriptionsDetailsComponent', () => {
     });
 
     it('should show API Key hash as username', async () => {
+      expectPortalSettings();
       const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
       expect(await apiAccess.getPlainConfig()).toContain(`username="${API_KEY_HASH}"`);
       expect(await apiAccess.getPlainConfig()).toContain(`password="${API_KEY}"`);
@@ -348,5 +350,9 @@ describe('SubscriptionsDetailsComponent', () => {
   function expectPostChangeConsumerStatus() {
     const url = `${TESTING_BASE_URL}/subscriptions/testSubscriptionId/_changeConsumerStatus?status=STARTED`;
     httpTestingController.expectOne(url).flush(fakeSubscription());
+  }
+
+  function expectPortalSettings() {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal`).flush(fakePortalSettings());
   }
 });

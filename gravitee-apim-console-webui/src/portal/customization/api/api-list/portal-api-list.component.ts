@@ -28,6 +28,8 @@ import { MatFormFieldModule, MatFormField, MatLabel } from '@angular/material/fo
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInput } from '@angular/material/input';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSelect } from '@angular/material/select';
+import { MatOption } from '@angular/material/autocomplete';
 
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { ApiPortalHeader } from '../../../../entities/apiPortalHeader';
@@ -45,6 +47,7 @@ import { BothPortalsBadgeComponent } from '../../../components/portal-badge/both
 
 interface ApiForm {
   apiKeyHeader: FormControl<string>;
+  kafkaSaslMechanisms: FormControl<Array<string>>;
 }
 
 @Component({
@@ -73,6 +76,8 @@ interface ApiForm {
     MatFormFieldModule,
     GioSaveBarModule,
     BothPortalsBadgeComponent,
+    MatSelect,
+    MatOption,
   ],
   templateUrl: './portal-api-list.component.html',
   styleUrl: './portal-api-list.component.scss',
@@ -85,6 +90,7 @@ export class PortalApiListComponent implements OnInit {
   form: FormGroup<ApiForm>;
   formInitialValues: unknown;
   displayedColumns: string[] = ['order', 'name', 'value', 'actions'];
+  availableKafkaMechanisms: string[] = ['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'];
 
   constructor(
     public environmentApiHeadersService: EnvironmentApiHeadersService,
@@ -143,7 +149,7 @@ export class PortalApiListComponent implements OnInit {
     return this.permissionService.hasAnyMatching(['environment-settings-c', 'environment-settings-u', 'environment-settings-d']);
   }
 
-  private changeHeaderOrder(updatedHeader): Observable<ApiPortalHeader[]> {
+  private changeHeaderOrder(updatedHeader: ApiPortalHeader): Observable<ApiPortalHeader[]> {
     return this.environmentApiHeadersService.updateApiHeader(updatedHeader).pipe(
       tap((apiPortalHeaders: ApiPortalHeader[]) => {
         this.snackBarService.success('API details order updated successfully');
@@ -255,8 +261,22 @@ export class PortalApiListComponent implements OnInit {
   }
 
   private initializeForm() {
+    let kafkaSaslMechanismsArray: string[] = [];
+
+    if (typeof this.settings.portal.kafkaSaslMechanisms === 'string') {
+      const raw = this.settings.portal.kafkaSaslMechanisms.trim();
+      if (raw.startsWith('[') && raw.endsWith(']')) {
+        kafkaSaslMechanismsArray = raw
+          .slice(1, -1)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+    }
+
     this.form = new FormGroup<ApiForm>({
-      apiKeyHeader: new FormControl<string>(this.settings.portal.apikeyHeader),
+      apiKeyHeader: new FormControl<string>(this.settings.portal.apikeyHeader ?? ''),
+      kafkaSaslMechanisms: new FormControl<string[]>(kafkaSaslMechanismsArray),
     });
     this.formInitialValues = this.form.getRawValue();
 
@@ -281,6 +301,7 @@ export class PortalApiListComponent implements OnInit {
             portal: {
               ...settings.portal,
               apikeyHeader: this.form.controls.apiKeyHeader.value,
+              kafkaSaslMechanisms: `[${this.form.controls.kafkaSaslMechanisms.value.join(', ')}]`,
             },
           };
           return this.portalSettingsService.save(updatedSettingsPayload);

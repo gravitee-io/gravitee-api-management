@@ -20,6 +20,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 
 import { PlanSecurityEnum } from '../../../entities/plan/plan';
+import { PortalSettings } from '../../../entities/portal/portalSettings';
+import { PortalSettingsService } from '../../../services/portal-settings.service';
 import { CopyCodeIconComponent } from '../../copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component';
 import { CopyCodeComponent } from '../../copy-code/copy-code.component';
 
@@ -102,6 +104,9 @@ ${this.trustStoreConfig}`,
       `  --producer.config ${this.configurationFileName}`,
   );
 
+  settings = signal<PortalSettings | null>(null);
+  kafkaSaslMechanisms = computed(() => this.parseKafkaSaslMechanisms(this.settings()?.portal?.kafkaSaslMechanisms));
+
   private computedClientId = computed(() => (this.clientId().length ? this.clientId() : '{{ CLIENT_ID }}'));
 
   private trustStoreConfig =
@@ -111,9 +116,46 @@ ${this.trustStoreConfig}`,
     '# ssl.truststore.location={{ PATH_TO_TRUSTSTORE_JKS }}\n' +
     '# ssl.truststore.password={{ TRUSTSTORE_PASSWORD }}';
 
-  constructor() {
+  constructor(private portalSettingsService: PortalSettingsService) {
     effect(() => {
       this.selectedEntrypointHost.set(this.entrypointUrls().length ? this.entrypointUrls()[0] : this.selectedEntrypointHost());
+      this.portalSettingsService.get().subscribe({
+        next: result => {
+          this.settings.set(result);
+        },
+        error: () => {
+          console.error('Failed to load portal settings');
+        },
+      });
     });
+  }
+
+  getKafkaConfigForMechanism(mech: string): string {
+    switch (mech) {
+      case 'PLAIN':
+        return this.plainConfig();
+      case 'SCRAM-SHA-256':
+        return this.scram256Config();
+      case 'SCRAM-SHA-512':
+        return this.scram512Config();
+      default:
+        return '';
+    }
+  }
+
+  generateIdForMechanism(mech: string): string {
+    return `native-kafka-api-key-${mech.toLowerCase().replace(/[^a-z0-9]/g, '-')}-properties`;
+  }
+
+  private parseKafkaSaslMechanisms(value: string | string[] | null | undefined): string[] {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+      return value
+        .slice(1, -1)
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+    return [];
   }
 }
