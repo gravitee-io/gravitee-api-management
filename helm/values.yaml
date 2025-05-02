@@ -470,9 +470,11 @@ api:
   name: api
   logging:
     debug: false
+    contextualLoggingEnabled: false
     stdout:
       json: false
       encoderPattern: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+      contextualLoggingEncoderPattern: "%d{HH:mm:ss.SSS} [%thread] [%X{orgId} %X{envId}] %-5level %logger{36} - %msg%n"
     file:
       enabled: true
       rollingPolicy: |
@@ -483,6 +485,7 @@ api:
             <maxHistory>30</maxHistory>
         </rollingPolicy>
       encoderPattern: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%n"
+      contextualLoggingEncoderPattern: "%d{HH:mm:ss.SSS} [%thread] [%X{orgId} %X{envId}] %-5level %logger{36} - %msg%n%n"
     graviteeLevel: DEBUG
     jettyLevel: INFO
   restartPolicy: OnFailure
