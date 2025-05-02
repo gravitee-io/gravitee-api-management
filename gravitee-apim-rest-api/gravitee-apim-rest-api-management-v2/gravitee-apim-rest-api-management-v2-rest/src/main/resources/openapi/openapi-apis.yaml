@@ -3972,6 +3972,9 @@ components:
                     type: string
                     description: Ingested API name
                     example: My API
+                version:
+                    type: string
+                    description: the version of API
         FlowV4:
             type: object
             properties:
@@ -4172,20 +4175,16 @@ components:
                     type: array
                     description: number of new APIs found to ingest
                     items:
-                        type: object
-                        properties:
-                            id:
-                                type: string
-                                description: the id of API
-                            name:
-                                type: string
-                                description: the name of API
-                            state:
+                        allOf:
+                          - $ref: "#/components/schemas/IngestedApi"
+                          - type: object
+                            properties:
+                              state:
                                 type: string
                                 description: "'NEW' if it's new API or 'UPDATE' if we maybe have update"
                                 enum:
-                                    - NEW
-                                    - UPDATE
+                                  - NEW
+                                  - UPDATE
 
         IntegrationIngestionResponse:
             type: object

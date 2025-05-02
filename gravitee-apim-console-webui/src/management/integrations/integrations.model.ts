@@ -88,6 +88,7 @@ export interface IntegrationProvider {
 export interface FederatedAPI {
   id: string;
   name: string;
+  version: string;
 }
 
 export interface FederatedAPIsResponse {
@@ -106,11 +107,9 @@ export enum IntegrationPreviewApisState {
   UPDATE = 'UPDATE',
 }
 
-export interface IntegrationPreviewApi {
-  id: string;
-  name: string;
+export type IntegrationPreviewApi = FederatedAPI & {
   state: IntegrationPreviewApisState;
-}
+};
 
 export interface IntegrationPreview {
   totalCount: number;

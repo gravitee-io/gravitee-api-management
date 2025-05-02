@@ -90,9 +90,9 @@ public class DiscoveryUseCase {
     public record Input(String integrationId, AuditInfo auditInfo) {}
 
     public record Output(Collection<PreviewApi> apis) {
-        public record PreviewApi(String id, String name, State state) {
+        public record PreviewApi(String id, String name, String version, State state) {
             public PreviewApi(IntegrationApi api, State state) {
-                this(api.id(), api.name(), state);
+                this(api.id(), api.name(), api.version(), state);
             }
         }
 

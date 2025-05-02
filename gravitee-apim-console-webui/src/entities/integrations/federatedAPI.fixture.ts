@@ -19,6 +19,7 @@ export function fakeFederatedAPI(attribute?: Partial<FederatedAPI>): FederatedAP
   const base: FederatedAPI = {
     name: 'FederatedAPIFake',
     id: 'TestID987FederatedAPI',
+    version: '1.0.0',
   };
 
   return {
