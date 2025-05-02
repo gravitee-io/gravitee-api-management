@@ -739,6 +739,14 @@ export class GroupComponent implements OnInit {
       this.disableAddGroupToExistingAPIs = true;
       this.disableAddGroupToExistingApplications = true;
     }
+
+    if (!this.group.value.lock_api_role) {
+      this.groupForm.controls.defaultAPIRole.enable();
+    }
+
+    if (!this.group.value.lock_application_role) {
+      this.groupForm.controls.defaultApplicationRole.enable();
+    }
   }
 
   private shouldAllowAddMembers() {
