@@ -374,12 +374,9 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
 
         final List<Application> apps = appsPage.getContent();
 
-        assertNotNull(apps);
-        assertFalse(apps.isEmpty());
-        assertEquals(7, apps.size());
-        List<String> names = apps.stream().map(Application::getName).collect(Collectors.toList());
-        assertEquals(
-            List.of(
+        assertThat(apps)
+            .map(Application::getName)
+            .containsExactlyInAnyOrder(
                 APP_WITH_LONG_NAME,
                 "Application test query 1",
                 "Application test query 2",
@@ -387,9 +384,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
                 "app-with-long-client-id",
                 "searched-app1",
                 "searched-app2"
-            ),
-            names
-        );
+            );
     }
 
     @Test
