@@ -192,6 +192,12 @@
             </dependency>
 
             <dependency>
+                <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-storage-api</artifactId>
+                <version>${gravitee-resource-storage-api.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.discovery</groupId>
                 <artifactId>gravitee-service-discovery-api</artifactId>
                 <version>${gravitee-service-discovery-api.version}</version>
