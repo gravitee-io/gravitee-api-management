@@ -215,10 +215,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
-            } else if (
-                auditEntity.getReferenceId() != null &&
-                Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType().name())
-            ) {
+            } else if (Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType().name())) {
                 metadataKey = "APPLICATION:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
@@ -231,9 +228,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
-            } else if (
-                auditEntity.getReferenceId() != null && Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType().name())
-            ) {
+            } else if (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType().name())) {
                 metadataKey = "API:" + auditEntity.getReferenceId() + ":name";
                 if (!metadata.containsKey(metadataKey)) {
                     try {
