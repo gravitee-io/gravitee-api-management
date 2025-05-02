@@ -685,18 +685,30 @@ data:
               {{- else }}
               <!-- encoders are assigned the type
                   ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+              {{- if .Values.api.logging.contextualLoggingEnabled}}
+              <encoder>
+                  <pattern>{{ .Values.api.logging.stdout.contextualLoggingEncoderPattern }}</pattern>
+              </encoder>
+              {{- else}}
               <encoder>
                   <pattern>{{ .Values.api.logging.stdout.encoderPattern }}</pattern>
               </encoder>
-               {{- end }}
+             {{- end}}
+             {{- end }}
           </appender>
           {{- if .Values.api.logging.file.enabled }}
           <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
               <file>${gravitee.management.log.dir}/gravitee.log</file>
 {{ .Values.api.logging.file.rollingPolicy | indent 14 }}
+              {{- if .Values.api.logging.contextualLoggingEnabled}}
+              <encoder>
+                  <pattern>{{ .Values.api.logging.file.contextualLoggingEncoderPattern }}</pattern>
+              </encoder>
+              {{- else}}
               <encoder>
                   <pattern>{{ .Values.api.logging.file.encoderPattern }}</pattern>
               </encoder>
+              {{- end}}
           </appender>
           {{- end }}
 
