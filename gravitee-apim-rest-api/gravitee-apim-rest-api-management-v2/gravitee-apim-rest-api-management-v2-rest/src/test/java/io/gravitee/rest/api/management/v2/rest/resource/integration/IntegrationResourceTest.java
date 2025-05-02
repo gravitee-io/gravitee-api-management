@@ -675,7 +675,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .totalCount(1)
                         .newCount(1)
                         .updateCount(0)
-                        .apis(List.of(new IngestionPreviewResponseApisInner().id("asset-id").name("An alien API").state(NEW)))
+                        .apis(
+                            List.of(new IngestionPreviewResponseApisInner().id("asset-id").name("An alien API").version("1.0.0").state(NEW))
+                        )
                 );
         }
     }
