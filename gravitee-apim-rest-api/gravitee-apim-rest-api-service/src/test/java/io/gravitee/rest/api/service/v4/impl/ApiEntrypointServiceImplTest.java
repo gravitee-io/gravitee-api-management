@@ -82,7 +82,6 @@ class ApiEntrypointServiceImplTest {
         when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("kafka.domain");
         when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
-
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
@@ -91,8 +90,8 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://default-entrypoint/path");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://default-entrypoint/path");
     }
 
     @Test
@@ -116,8 +115,8 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://default-entrypoint/path");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://default-entrypoint/path");
     }
 
     @Test
@@ -140,8 +139,8 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://tag-entrypoint/path");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://tag-entrypoint/path");
     }
 
     @Test
@@ -157,11 +156,12 @@ class ApiEntrypointServiceImplTest {
         when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("kafka.domain");
         when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("https://default-entrypoint");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("some_tcp_host:4082");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("https://default-entrypoint");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("some_tcp_host:4082");
     }
 
     @Test
@@ -185,8 +185,8 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("https://tag-entrypoint");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("some_tcp_host:4082");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("https://tag-entrypoint");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("some_tcp_host:4082");
     }
 
     @Test
@@ -208,8 +208,8 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://default-entrypoint/path");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://default-entrypoint/path");
     }
 
     @Test
@@ -236,8 +236,8 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://default-entrypoint/path");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://default-entrypoint/path");
     }
 
     @Test
@@ -259,8 +259,8 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://tag-entrypoint/path");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://tag-entrypoint/path");
     }
 
     @ParameterizedTest
@@ -333,7 +333,7 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(2);
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://ap1Host/path");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://ap1Host/path");
         assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("http://ap2Host/path");
     }
 
@@ -360,7 +360,7 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://tag-entrypoint/path");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://tag-entrypoint/path");
     }
 
     @Test
@@ -389,7 +389,7 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(2);
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://ap1Host/path");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://ap1Host/path");
         assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("http://ap2Host/path");
     }
 
@@ -419,7 +419,7 @@ class ApiEntrypointServiceImplTest {
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://tag-entrypoint/path");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("https://tag-entrypoint/path");
     }
 
     @Test
@@ -441,8 +441,8 @@ class ApiEntrypointServiceImplTest {
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host.kafka.domain:9092");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("kafka-host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("kafka-host.kafka.domain:9092");
     }
 
     @Test
@@ -470,8 +470,8 @@ class ApiEntrypointServiceImplTest {
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host.kafka-entrypoint:9042");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("kafka-host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("kafka-host.kafka-entrypoint:9042");
     }
 
     @Test
@@ -501,8 +501,8 @@ class ApiEntrypointServiceImplTest {
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host.kafka.domain:9092");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("kafka-host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("kafka-host.kafka.domain:9092");
     }
 
     @Test
@@ -531,8 +531,8 @@ class ApiEntrypointServiceImplTest {
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(2);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host1");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host1.kafka.domain:9092");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("kafka-host1");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("kafka-host1.kafka.domain:9092");
         assertThat(apiEntrypoints.get(1).getHost()).isEqualTo("kafka-host2");
         assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("kafka-host2.kafka.domain:9092");
     }
@@ -556,8 +556,8 @@ class ApiEntrypointServiceImplTest {
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("kafka-host");
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host:9092");
+        assertThat(apiEntrypoints.getFirst().getHost()).isEqualTo("kafka-host");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("kafka-host:9092");
     }
 
     @Test
@@ -585,7 +585,7 @@ class ApiEntrypointServiceImplTest {
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        var entrypoint = apiEntrypoints.get(0);
+        var entrypoint = apiEntrypoints.getFirst();
         assertThat(entrypoint.getHost()).isEqualTo("kafka-host");
         assertThat(entrypoint.getTarget()).isEqualTo("kafka-host.kafka-entrypoint:9042");
         assertThat(entrypoint.getTags()).containsExactlyInAnyOrder("tag1", "tag2");
@@ -611,7 +611,7 @@ class ApiEntrypointServiceImplTest {
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(1);
-        var entrypoint = apiEntrypoints.get(0);
+        var entrypoint = apiEntrypoints.getFirst();
         assertThat(entrypoint.getHost()).isEqualTo("kafka-host");
         assertThat(entrypoint.getTarget()).isEqualTo("kafka-host.kafka.domain:9092");
         assertThat(entrypoint.getTags()).isNull();
@@ -644,7 +644,7 @@ class ApiEntrypointServiceImplTest {
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(apiEntrypoints).hasSize(3);
-        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host.domain1:1234");
+        assertThat(apiEntrypoints.getFirst().getTarget()).isEqualTo("kafka-host.domain1:1234");
         assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("kafka-host.domain2:9092");
         assertThat(apiEntrypoints.get(2).getTarget()).isEqualTo("kafka-host-trial.domain3:1234");
     }

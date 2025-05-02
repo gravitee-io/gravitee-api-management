@@ -132,6 +132,7 @@ public class ConfigurationMapper {
         ConfigurationPortal configuration = new ConfigurationPortal();
         configuration.setAnalytics(convert(portal.getAnalytics()));
         configuration.setApikeyHeader(portal.getApikeyHeader());
+        configuration.setKafkaSaslMechanisms(portal.getKafkaSaslMechanisms());
         configuration.setApis(convert(portal.getApis()));
         configuration.setEntrypoint(portal.getEntrypoint());
         configuration.setUploadMedia(convert(portal.getUploadMedia()));

@@ -15,4 +15,5 @@
  */
 export class ConfigurationPortal {
   apikeyHeader?: string;
+  kafkaSaslMechanisms?: string[];
 }

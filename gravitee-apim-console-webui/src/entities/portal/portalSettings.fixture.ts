@@ -40,6 +40,8 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       apikeyHeader: 'X-Gravitee-Api-Key',
       kafkaDomain: '',
       kafkaPort: 9092,
+      kafkaSaslMechanisms: ['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'],
+      homepageTitle: '',
       support: {
         enabled: true,
       },
@@ -65,6 +67,7 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       },
       analytics: {
         enabled: false,
+        trackingId: '',
       },
       rating: {
         enabled: true,
@@ -72,6 +75,7 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
           mandatory: false,
         },
       },
+      url: '',
       userCreation: {
         enabled: true,
         automaticValidation: {
@@ -103,7 +107,7 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       host: 'testhost',
       port: 1,
       username: 'testusername',
-      password: 'testpassword',
+      password: '',
       protocol: 'smtp',
       subject: '[gravitee] %s',
       from: 'test@email',

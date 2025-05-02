@@ -20,6 +20,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatChipHarness } from '@angular/material/chips/testing';
 import { By } from '@angular/platform-browser';
+import { of } from 'rxjs/internal/observable/of';
 
 import { TermsAndConditionsDialogHarness } from './components/terms-and-conditions-dialog/terms-and-conditions-dialog.harness';
 import { SubscribeToApiCheckoutHarness } from './subscribe-to-api-checkout/subscribe-to-api-checkout.harness';
@@ -63,6 +64,7 @@ describe('SubscribeToApiComponent', () => {
   const APP_ID_NO_SUBSCRIPTIONS = 'app-id-no-subscriptions';
   const APP_ID_ONE_API_KEY_SUBSCRIPTION = 'app-id-one-api-key-subscription';
   const APP_ID_WITH_CLIENT_CERTIFICATE = 'app-id-with-client-certificate';
+  const CONFIGURATION_KAFKA_SASL_MECHANISMS = '[PLAIN, SCRAM-SHA-256, SCRAM-SHA-512]';
 
   const init = async (sharedApiKeyModeEnabled: boolean, api: Api = API) => {
     await TestBed.configureTestingModule({
@@ -81,6 +83,7 @@ describe('SubscribeToApiComponent', () => {
                 },
               },
             },
+            loadConfiguration: () => of({ portal: { kafkaSaslMechanisms: CONFIGURATION_KAFKA_SASL_MECHANISMS } }),
           },
         },
       ],

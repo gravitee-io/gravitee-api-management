@@ -19,7 +19,9 @@ import { MatIcon } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 
+import { ConfigurationPortal } from '../../../entities/configuration/configuration-portal';
 import { PlanSecurityEnum } from '../../../entities/plan/plan';
+import { ConfigService } from '../../../services/config.service';
 import { CopyCodeIconComponent } from '../../copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component';
 import { CopyCodeComponent } from '../../copy-code/copy-code.component';
 
@@ -102,6 +104,9 @@ ${this.trustStoreConfig}`,
       `  --producer.config ${this.configurationFileName}`,
   );
 
+  settings = signal<ConfigurationPortal | undefined>(undefined);
+  kafkaSaslMechanisms = computed(() => this.parseKafkaSaslMechanisms(this.settings()?.kafkaSaslMechanisms));
+
   private computedClientId = computed(() => (this.clientId().length ? this.clientId() : '{{ CLIENT_ID }}'));
 
   private trustStoreConfig =
@@ -111,9 +116,40 @@ ${this.trustStoreConfig}`,
     '# ssl.truststore.location={{ PATH_TO_TRUSTSTORE_JKS }}\n' +
     '# ssl.truststore.password={{ TRUSTSTORE_PASSWORD }}';
 
-  constructor() {
+  constructor(private configService: ConfigService) {
     effect(() => {
       this.selectedEntrypointHost.set(this.entrypointUrls().length ? this.entrypointUrls()[0] : this.selectedEntrypointHost());
+      this.settings.set(this.configService.configuration.portal);
     });
+  }
+
+  getKafkaConfigForMechanism(mech: string): string {
+    switch (mech) {
+      case 'PLAIN':
+        return this.plainConfig();
+      case 'SCRAM-SHA-256':
+        return this.scram256Config();
+      case 'SCRAM-SHA-512':
+        return this.scram512Config();
+      default:
+        return '';
+    }
+  }
+
+  generateIdForMechanism(mech: string): string {
+    return `native-kafka-api-key-${mech.toLowerCase()}-properties`;
+  }
+
+  private parseKafkaSaslMechanisms(value: string[] | null | undefined) {
+    if (value?.length) {
+      return value
+        .map(s => ({
+          mechanism: s,
+          id: this.generateIdForMechanism(s),
+          config: this.getKafkaConfigForMechanism(s),
+        }))
+        .filter(Boolean);
+    }
+    return [];
   }
 }
