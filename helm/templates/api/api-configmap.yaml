@@ -694,9 +694,15 @@ data:
           <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
               <file>${gravitee.management.log.dir}/gravitee.log</file>
 {{ .Values.api.logging.file.rollingPolicy | indent 14 }}
+              {{- if .Values.api.logging.file.contextualLoggingEnabled}}
+              <encoder>
+                  <pattern>{{ .Values.api.logging.file.contextualLoggingEncoderPattern }}</pattern>
+              </encoder>
+              {{- else}}
               <encoder>
                   <pattern>{{ .Values.api.logging.file.encoderPattern }}</pattern>
               </encoder>
+              {{- end}}
           </appender>
           {{- end }}
 

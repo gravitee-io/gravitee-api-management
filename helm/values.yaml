@@ -475,6 +475,7 @@ api:
       encoderPattern: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
     file:
       enabled: true
+      contextualLoggingEnabled: false
       rollingPolicy: |
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
@@ -483,6 +484,7 @@ api:
             <maxHistory>30</maxHistory>
         </rollingPolicy>
       encoderPattern: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%n"
+      contextualLoggingEncoderPattern: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} %X{orgId} %X{envId} - %msg%n%n"
     graviteeLevel: DEBUG
     jettyLevel: INFO
   restartPolicy: OnFailure
