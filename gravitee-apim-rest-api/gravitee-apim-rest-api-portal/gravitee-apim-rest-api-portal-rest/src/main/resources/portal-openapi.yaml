@@ -5063,6 +5063,11 @@ components:
                 apikeyHeader:
                     description: Api-key Header. Used by portal to display the CURL command.
                     type: string
+                kafkaSaslMechanisms:
+                    description: Permitted Kafka Sasl Mechanisms. Used by portal to display allowed Kafka Sasl Mechanisms.
+                    type: array
+                    items:
+                      type: string
                 support:
                     $ref: "#/components/schemas/Enabled"
                 applicationCreation:

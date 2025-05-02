@@ -95,6 +95,7 @@ export interface PortalSettingsPortal {
   entrypoint?: string;
   kafkaDomain?: string;
   kafkaPort?: number;
+  kafkaSaslMechanisms?: string[];
   rating?: {
     enabled: boolean;
     comment: {

@@ -32,6 +32,8 @@ describe('ApiAccessComponent', () => {
   let fixture: ComponentFixture<ApiAccessComponent>;
   let harnessLoader: HarnessLoader;
 
+  const CONFIGURATION_KAFKA_SASL_MECHANISMS = ['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'];
+
   @Injectable()
   class CustomConfigurationServiceStub {
     get baseURL(): string {
@@ -41,6 +43,7 @@ describe('ApiAccessComponent', () => {
       return {
         portal: {
           apikeyHeader: 'X-My-Apikey',
+          kafkaSaslMechanisms: CONFIGURATION_KAFKA_SASL_MECHANISMS,
         },
       };
     }
@@ -156,13 +159,13 @@ describe('ApiAccessComponent', () => {
 
           const configTabs = await getApiKeyPropertiesConfiguration();
           expect(await configTabs.getTabs().then(tabs => tabs.length)).toEqual(3);
-          await configTabs.selectTab({ label: 'SCRAM-256' });
+          await configTabs.selectTab({ label: 'SCRAM-SHA-256' });
 
           expect(await plainConfigurationShown()).toBeFalsy();
           expect(await scram256ConfigurationShown()).toBeTruthy();
           expect(await scram512ConfigurationShown()).toBeFalsy();
 
-          await configTabs.selectTab({ label: 'SCRAM-512' });
+          await configTabs.selectTab({ label: 'SCRAM-SHA-512' });
 
           expect(await plainConfigurationShown()).toBeFalsy();
           expect(await scram256ConfigurationShown()).toBeFalsy();
@@ -316,10 +319,10 @@ describe('ApiAccessComponent', () => {
     return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-plain-properties'));
   }
   async function scram256ConfigurationShown() {
-    return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-scram-256-properties'));
+    return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-scram-sha-256-properties'));
   }
   async function scram512ConfigurationShown() {
-    return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-scram-512-properties'));
+    return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-scram-sha-512-properties'));
   }
   async function getCommandExamples() {
     return await harnessLoader.getHarness(MatTabGroupHarness.with({ selector: '[aria-label="Example commands"]' }));

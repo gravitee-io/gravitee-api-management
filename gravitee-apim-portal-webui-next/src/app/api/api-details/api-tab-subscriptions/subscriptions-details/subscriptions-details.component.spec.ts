@@ -48,6 +48,7 @@ describe('SubscriptionsDetailsComponent', () => {
   let harnessLoader: HarnessLoader;
 
   const API_ID = 'testApiId';
+  const CONFIGURATION_KAFKA_SASL_MECHANISMS = ['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'];
 
   @Injectable()
   class CustomConfigurationServiceStub {
@@ -58,6 +59,7 @@ describe('SubscriptionsDetailsComponent', () => {
       return {
         portal: {
           apikeyHeader: 'X-My-Apikey',
+          kafkaSaslMechanisms: CONFIGURATION_KAFKA_SASL_MECHANISMS,
         },
       };
     }

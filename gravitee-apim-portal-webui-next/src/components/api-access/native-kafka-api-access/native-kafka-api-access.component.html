@@ -48,23 +48,14 @@
     <div class="m3-body-medium" i18n="@@nativeKafkaApiAccessChooseSASLMechanism">
       Choose one of the following SASL mechanisms for your security.
     </div>
-
     <mat-tab-group aria-label="API Key connect properties">
-      <mat-tab label="PLAIN">
-        <div class="native-kafka-api-access__tab-container">
-          <app-copy-code id="native-kafka-api-key-plain-properties" [text]="plainConfig()" />
-        </div>
-      </mat-tab>
-      <mat-tab label="SCRAM-256">
-        <div class="native-kafka-api-access__tab-container">
-          <app-copy-code id="native-kafka-api-key-scram-256-properties" [text]="scram256Config()" />
-        </div>
-      </mat-tab>
-      <mat-tab label="SCRAM-512">
-        <div class="native-kafka-api-access__tab-container">
-          <app-copy-code id="native-kafka-api-key-scram-512-properties" [text]="scram512Config()" />
-        </div>
-      </mat-tab>
+      @for (mech of kafkaSaslMechanisms(); track mech) {
+        <mat-tab [label]="mech.mechanism">
+          <div class="native-kafka-api-access__tab-container">
+            <app-copy-code [id]="mech.id" [text]="mech.config" />
+          </div>
+        </mat-tab>
+      }
     </mat-tab-group>
   } @else if (planSecurity() === 'KEY_LESS') {
     <app-copy-code id="native-kafka-ssl-properties" [text]="sslConfig()" />

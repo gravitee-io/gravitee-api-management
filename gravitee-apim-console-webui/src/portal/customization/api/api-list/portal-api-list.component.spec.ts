@@ -78,8 +78,8 @@ describe('PortalApiListComponent', () => {
   const fakeApiPortalHeadersAfterDelete = initialFakeApiPortalHeaders.slice(1);
   const apiKeyHeaderOld = 'X-Gravitee-Api-Key-Old';
   const apiKeyHeaderNew = 'X-Gravitee-Api-Key-New';
-  const portalSettingsOld: PortalSettings = { portal: { apikeyHeader: apiKeyHeaderOld } };
-  const portalSettingsNew: PortalSettings = { portal: { apikeyHeader: apiKeyHeaderNew } };
+  const portalSettingsOld: PortalSettings = { portal: { apikeyHeader: apiKeyHeaderOld, kafkaSaslMechanisms: [] } };
+  const portalSettingsNew: PortalSettings = { portal: { apikeyHeader: apiKeyHeaderNew, kafkaSaslMechanisms: [] } };
 
   function configureApiHeaders(apiPortalHeaders: ApiPortalHeader[]) {
     httpTestingController
@@ -203,7 +203,7 @@ describe('PortalApiListComponent', () => {
     postRequest.flush(portalSettingsNew);
     expect(postRequest.request.body).toEqual(portalSettingsNew);
 
-    expect(fakeSnackBarService.success).toHaveBeenCalledWith('API Key Header updated successfully');
+    expect(fakeSnackBarService.success).toHaveBeenCalledWith('API Configuration updated successfully');
 
     httpTestingController
       .expectOne({
