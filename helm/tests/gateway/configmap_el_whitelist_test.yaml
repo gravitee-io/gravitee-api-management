@@ -1,0 +1,32 @@
+suite: Test config maps properly sets EL whitelist
+templates:
+  - "gateway/gateway-configmap.yaml"
+
+tests:
+  - it: Check that no el whitelist by default
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |-
+            el:
+              whitelist:
+
+  - it: Check that EL whitelist is set
+    set:
+      gateway:
+        el:
+          whitelist:
+            mode: replace
+            list:
+              - class my.Class
+              - class my.inner.Class
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |-
+            el:
+              whitelist:
+                mode: replace
+                list:
+                  - "class my.Class"
+                  - "class my.inner.Class"
