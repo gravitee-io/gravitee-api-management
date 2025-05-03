@@ -1570,6 +1570,18 @@ gateway:
   #  - name: config
   #    secret:
   #      secretName: gravitee-config-secret-name
+  # Gravitee Expression Language whitelist
+  # These are the java classes / methods that are whitelisted for Gravitee Expression Language (SpEL) expressions:
+  # https://github.com/gravitee-io/gravitee-expression-language/blob/master/src/main/resources/whitelist
+  # Everything beyond must be explicitly whitelisted:
+  #el:
+  #  whitelist:
+  #    mode: append
+  #    list:
+  #    - class java.io.ByteArrayInputStream
+  #    - class java.util.regex.Pattern
+  #    - class java.util.regex.Matcher
+  #    - ...
 
 portal:
   enabled: true

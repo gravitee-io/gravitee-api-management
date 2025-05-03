@@ -717,6 +717,20 @@ data:
       legacy:
         enabled: {{ .Values.gateway.classloader.legacy.enabled }}
 
+    {{- if hasKey .Values.gateway "el" }}
+    el:
+      {{- if hasKey .Values.gateway.el "whitelist" }}
+      whitelist:
+        mode: {{ .Values.gateway.el.whitelist.mode | default "append" }}
+        {{- if hasKey .Values.gateway.el.whitelist "list" }}
+        list:
+          {{- range $item := .Values.gateway.el.whitelist.list }}
+          - {{ $item | quote }}
+          {{- end }}
+        {{- end }}
+      {{- end}}
+    {{- end}}
+
   {{- end }}
     {{- if .Values.gateway.logging.debug }}
   logback.xml: |
