@@ -32,3 +32,9 @@ annotations:
   artifacthub.io/changes: |
     - kind: changed
       description: 'BREAKING CHANGE: fix(scraping): Introduce modular utilities for performance and concurrency with default concurrent limit 3'
+    - kind: added
+      description: 'Allow to configure Expression Language whitelist.'
+      links:
+        - name: GitHub Issue
+          url: https://github.com/gravitee-io/issues/issues/10533
+
