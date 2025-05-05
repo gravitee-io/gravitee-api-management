@@ -48,10 +48,6 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       padding-left: 20px;
     }
 
-    &__title {
-      border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter80');
-    }
-
     &__item {
       display: flex;
       flex-direction: row;
