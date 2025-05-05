@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioAvatarModule, GioIconsModule, GioTopBarLinkModule, GioTopBarMenuModule, GioTopBarModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
@@ -40,6 +40,7 @@ import { GioNotificationMenuModule } from '../gio-notification-menu/gio-notifica
     GioUserMenuModule,
     GioNotificationMenuModule,
     RouterModule,
+    NgOptimizedImage,
   ],
   declarations: [GioTopNavComponent],
   exports: [GioTopNavComponent],
