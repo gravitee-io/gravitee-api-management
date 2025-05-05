@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
   GioLicenseExpirationNotificationModule,
@@ -23,7 +23,6 @@ import {
   GioTopBarMenuModule,
   GioTopBarModule,
 } from '@gravitee/ui-particles-angular';
-import { MatIcon } from '@angular/material/icon';
 import { MatIconButton } from '@angular/material/button';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -51,7 +50,6 @@ import { PortalSettingsService } from '../../services-ngx/portal-settings.servic
     GioTopBarMenuModule,
     GioTopBarModule,
     GioUserMenuModule,
-    MatIcon,
     MatIconButton,
     RouterLink,
     AsyncPipe,
@@ -60,6 +58,7 @@ import { PortalSettingsService } from '../../services-ngx/portal-settings.servic
     GioPermissionModule,
     RouterLinkActive,
     PortalUserAvatarComponent,
+    NgOptimizedImage,
   ],
   templateUrl: './portal-navigation.component.html',
   styleUrl: './portal-navigation.component.scss',
