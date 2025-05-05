@@ -21,13 +21,13 @@ import Prism from 'prismjs';
 import { ActivatedRoute } from '@angular/router';
 
 import NotificationService from '../../../services/notification.service';
-
 // Step 2. Import language files of prismjs that you need
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-java';
 import 'prismjs/components/prism-groovy';
 import 'prismjs/components/prism-xml-doc';
+import { addAnchorLinks } from '../../../util/document.util';
 
 class ComponentCtrl implements ng.IComponentController {
   public page: any;
@@ -42,6 +42,10 @@ class ComponentCtrl implements ng.IComponentController {
     private readonly NotificationService: NotificationService,
     private readonly activatedRoute: ActivatedRoute,
   ) {}
+
+  $onInit() {
+    addAnchorLinks('.toastui-editor-contents');
+  }
 
   $onChanges() {
     let mediaURL;
