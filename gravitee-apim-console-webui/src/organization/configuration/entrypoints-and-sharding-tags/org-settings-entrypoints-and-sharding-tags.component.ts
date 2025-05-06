@@ -19,11 +19,11 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './dialog/org-settings-add-tag-dialog.component';
 import { OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData } from './dialog/org-settings-add-mapping-dialog.component';
-import { kafkaDomainValidator, portValidator } from './org-settings-entrypoints-and-sharding-tags.utils';
+import { kafkaBootstrapDomainPatternValidator, portValidator } from './org-settings-entrypoints-and-sharding-tags.utils';
 
 import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
@@ -156,7 +156,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
                   value: portalSettings.portal.kafkaDomain,
                   disabled: PortalSettingsService.isReadonly(portalSettings, 'portal.kafkaDomain'),
                 },
-                [kafkaDomainValidator],
+                [kafkaBootstrapDomainPatternValidator],
               ),
               kafkaPort: new UntypedFormControl(
                 {
@@ -248,7 +248,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   onAddTagClicked() {
     this.matDialog
       .open<OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData, Tag>(OrgSettingAddTagDialogComponent, {
-        width: '450px',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {},
         role: 'dialog',
         id: 'addTagDialog',
@@ -272,7 +272,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   onEditTagClicked(tag: TagTableDS[number]) {
     this.matDialog
       .open<OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData, Tag>(OrgSettingAddTagDialogComponent, {
-        width: '450px',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           tag: this.tags.find((t) => t.id === tag.id),
         },
@@ -323,7 +323,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
 
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-        width: '500px',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           title: 'Delete a tag',
           content: `Are you sure you want to delete the tag <strong>${tag.name}</strong>?
@@ -374,7 +374,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   onAddEntrypointClicked(target: Entrypoint['target']) {
     this.matDialog
       .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
-        width: '450px',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           target,
         },
@@ -402,7 +402,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
 
     this.matDialog
       .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
-        width: '450px',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           target: entrypointToEdit.target,
           entrypoint: entrypointToEdit,
@@ -429,7 +429,7 @@ export class OrgSettingsEntrypointsAndShardingTagsComponent implements OnInit, O
   onDeleteEntrypointClicked(entrypoint: EntrypointTableDS[number]) {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-        width: '500px',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           title: 'Delete a entrypoint',
           content: `Are you sure you want to delete the entrypoint <strong>${entrypoint.url}</strong>?`,

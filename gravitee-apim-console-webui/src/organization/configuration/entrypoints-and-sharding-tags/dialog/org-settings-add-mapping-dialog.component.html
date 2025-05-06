@@ -46,12 +46,17 @@
         @case ('KAFKA') {
           <div class="kafka">
             <mat-form-field class="kafka__domain">
-              <mat-label>Default Kafka domain</mat-label>
+              <mat-label>Default Kafka Bootstrap Domain Pattern</mat-label>
               <input matInput formControlName="kafkaDomain" />
+
               <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('maxLength')"
-                >Kafka Domain must be less than 192 characters.</mat-error
+                >Kafka Domain must be less than 201 characters.</mat-error
               >
-              <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('format')">Kafka Domain is not valid.</mat-error>
+              <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('required')">Kafka Bootstrap Domain Pattern is required.</mat-error>
+              <mat-error *ngIf="mappingForm.get('kafkaDomain').hasError('apiHostMissing')">
+                Kafka Bootstrap Domain Pattern must contain {{ '{apiHost}' }}.
+              </mat-error>
+              <mat-hint> To be configured according to the gateway configuration. e.g: {{ '{apiHost}.mycompany.org' }} </mat-hint>
             </mat-form-field>
             <mat-form-field class="kafka__port">
               <mat-label>Default Kafka port</mat-label>

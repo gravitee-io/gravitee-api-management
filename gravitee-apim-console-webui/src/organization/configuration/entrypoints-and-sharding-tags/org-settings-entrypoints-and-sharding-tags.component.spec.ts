@@ -105,7 +105,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
             portal: {
               entrypoint: 'https://api.company.com',
               tcpPort: 4082,
-              kafkaDomain: 'kafka.domain.com',
+              kafkaDomain: '{apiHost}.kafka.domain.com',
               kafkaPort: 9092,
             },
           }),
@@ -120,7 +120,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
         await tcpPortInput.setValue('8888');
 
         const kafkaDomainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaDomain]' }));
-        await kafkaDomainInput.setValue('kafka-gateway.company.com');
+        await kafkaDomainInput.setValue('{apiHost}.kafka-gateway.company.com');
 
         const kafkaPortInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaPort]' }));
         expect(await kafkaPortInput.getValue()).toEqual('9092');
@@ -134,7 +134,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
             portal: {
               entrypoint: 'https://my-new-api.company.com',
               tcpPort: 8888,
-              kafkaDomain: 'kafka-gateway.company.com',
+              kafkaDomain: '{apiHost}.kafka-gateway.company.com',
               kafkaPort: 1600,
             },
           }),
@@ -147,7 +147,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
             portal: {
               entrypoint: 'https://api.company.com',
               tcpPort: 4082,
-              kafkaDomain: 'kafka.domain.com',
+              kafkaDomain: '{apiHost}.kafka.domain.com',
               kafkaPort: 9092,
             },
             metadata: { readonly: ['portal.entrypoint', 'portal.tcpPort', 'portal.kafkaDomain', 'portal.kafkaPort'] },
@@ -166,7 +166,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
 
         const kafkaDomainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaDomain]' }));
 
-        expect(await kafkaDomainInput.getValue()).toEqual('kafka.domain.com');
+        expect(await kafkaDomainInput.getValue()).toEqual('{apiHost}.kafka.domain.com');
         expect(await kafkaDomainInput.isDisabled()).toEqual(true);
 
         const kafkaPortInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaPort]' }));
@@ -176,6 +176,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       });
 
       it.each([
+        undefined,
         '!invalid',
         'in valid',
         'too-long-string.ertmkcowxvhpzjaqfiptpddcmmcfqfkwha.xergowgbqkwrsajowkjjqjxmshzibwraekfv.lmdozkplwxxvrfjlwvpebcmzskivwezndfcjgpmld.zilqrkgamlbczjemrkhtsylfpkumhbpnk.qrcxgoeggadkewfbqpjnatmsrjflrqjhryzth',
@@ -187,14 +188,14 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
             portal: {
               entrypoint: 'https://api.company.com',
               tcpPort: 4082,
-              kafkaDomain: '',
+              kafkaDomain: '{apiHost}',
               kafkaPort: 9092,
             },
           }),
         );
 
         const kafkaDomainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaDomain]' }));
-        await kafkaDomainInput.setValue('kafka.domain.com');
+        await kafkaDomainInput.setValue('{apiHost}.kafka.domain.com');
 
         const saveBar = await loader.getHarness(GioSaveBarHarness);
         expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
@@ -205,26 +206,25 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       });
 
       it.each([
-        'valid',
-        'nice-domain.dev',
-        'long-string.ertmkcowxvhpzjaqfiptpddcmmcfqfkwha.xergowgbqkwrsajowkjjqjxmshzibwraekfv.lmdozkplwxxvrfjlwvpebcmzskivwezndfcjgpmld.zilqrkgamlbczjemrkhtsylfpkumhbpnk',
-        'sarzahlltkxeevpajsnncxgvqfqmnmfmvvtnzalgrwqvltvllqvvttneeylokks.long-segment',
-        '',
-        undefined,
+        '{apiHost}valid',
+        '{apiHost}nice-domain.dev',
+        '{apiHost}long-string.ertmkcowxvhpzjaqfiptpddcmmcfqfkwha.xergowgbqkwrsajowkjjqjxmshzibwraekfv.lmdozkplwxxvrfjlwvpebcmzskivwezndfcjgpmld.zilqrkgamlbczjemrkhtsylfpkumhbpnk',
+        '{apiHost}sarzahlltkxeevpajsnncxgvqfqmnmfmvvtnzalgrwqvltvllqvvttneeylokks.long-segment',
+        '{apiHost}',
       ])('should have valid Kafka Domain', async (value: string) => {
         expectPortalSettingsGetRequest(
           fakePortalSettings({
             portal: {
               entrypoint: 'https://api.company.com',
               tcpPort: 4082,
-              kafkaDomain: '',
+              kafkaDomain: '{apiHost}.initial',
               kafkaPort: 9092,
             },
           }),
         );
 
         const kafkaDomainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaDomain]' }));
-        await kafkaDomainInput.setValue('kafka.domain.com');
+        await kafkaDomainInput.setValue('{apiHost}.kafka.domain.com');
 
         const saveBar = await loader.getHarness(GioSaveBarHarness);
         expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
@@ -485,7 +485,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const entrypointKafkaDomainInput = await addMappingDialog.getHarness(
         MatInputHarness.with({ selector: '[formControlName=kafkaDomain]' }),
       );
-      await entrypointKafkaDomainInput.setValue('entry.my');
+      await entrypointKafkaDomainInput.setValue('{apiHost}.entry.my');
 
       const entrypointKafkaPortInput = await addMappingDialog.getHarness(MatInputHarness.with({ selector: '[formControlName=kafkaPort]' }));
       await entrypointKafkaPortInput.setValue('9092');
@@ -497,7 +497,7 @@ describe('OrgSettingsEntrypointsAndShardingTagsComponent', () => {
       const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/` });
       expect(req.request.body).toStrictEqual({
         target: 'KAFKA',
-        value: 'entry.my:9092',
+        value: '{apiHost}.entry.my:9092',
         tags: ['tag-1'],
       });
     });
