@@ -33,6 +33,7 @@ import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
@@ -126,9 +127,13 @@ public class HttpConnector implements ProxyConnector {
                 .map(this::customizeHttpClientRequest)
                 .flatMap(httpClientRequest -> {
                     observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
-                    return httpClientRequest.rxSend(
-                        request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
-                    );
+                    if (requestWithBody(request)) {
+                        return httpClientRequest.rxSend(
+                            request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                        );
+                    } else {
+                        return httpClientRequest.rxSend();
+                    }
                 })
                 .doOnSuccess(endpointResponse -> {
                     response.status(endpointResponse.statusCode());
@@ -269,5 +274,9 @@ public class HttpConnector implements ProxyConnector {
         if (parametersToAdd != null && !parametersToAdd.isEmpty()) {
             parametersToAdd.forEach((key, values) -> parameters.computeIfAbsent(key, k -> new ArrayList<>()).addAll(values));
         }
+    }
+
+    private static boolean requestWithBody(HttpRequest request) {
+        return request.headers().contains(HttpHeaderNames.TRANSFER_ENCODING) || request.headers().contains(HttpHeaderNames.CONTENT_LENGTH);
     }
 }
