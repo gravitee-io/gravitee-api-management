@@ -47,6 +47,7 @@ import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -126,9 +127,17 @@ public class HttpConnector implements ProxyConnector {
                 .map(this::customizeHttpClientRequest)
                 .flatMap(httpClientRequest -> {
                     observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
-                    return httpClientRequest.rxSend(
-                        request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
-                    );
+                    if ("chunked".equals(request.headers().get("transfer-encoding"))) {
+                        return httpClientRequest.rxSend(
+                            request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                        );
+                    } else {
+                        return request
+                            .body()
+                            .map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                            .flatMapSingle(httpClientRequest::rxSend)
+                            .switchIfEmpty(Single.defer(httpClientRequest::rxSend));
+                    }
                 })
                 .doOnSuccess(endpointResponse -> {
                     response.status(endpointResponse.statusCode());
