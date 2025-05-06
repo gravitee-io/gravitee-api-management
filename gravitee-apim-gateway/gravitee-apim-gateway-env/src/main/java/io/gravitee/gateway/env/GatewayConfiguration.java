@@ -44,7 +44,7 @@ public class GatewayConfiguration implements InitializingBean {
     static final String ORGANIZATION_SYSTEM_PROPERTY = "organizations";
     private static final String ORGANIZATIONS_SEPARATOR = ",";
 
-    private static final String ALLOW_OVERLAPPING_API_CONTEXTS_PROPERTY = "gravitee.api.allowOverlappingContext";
+    private static final String ALLOW_OVERLAPPING_API_CONTEXTS_PROPERTY = "api.allowOverlappingContext";
 
     private Optional<List<String>> shardingTags;
     private Optional<String> zone;
