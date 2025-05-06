@@ -314,9 +314,15 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         final String port,
         final Set<String> tags
     ) {
-        var domainSegment = domain != null && !domain.isBlank() ? "." + domain : "";
-
-        var target = host + domainSegment + ":" + port;
+        String kafkaDomain;
+        if (domain == null || domain.isBlank()) {
+            kafkaDomain = host;
+        } else if (domain.contains("{apiHost}")) {
+            kafkaDomain = domain.replace("{apiHost}", host);
+        } else {
+            kafkaDomain = host + "." + domain;
+        }
+        var target = kafkaDomain + ":" + port;
         return new ApiEntrypointEntity(tags, target, host);
     }
 

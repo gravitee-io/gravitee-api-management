@@ -20,7 +20,7 @@ import { shareReplay } from 'rxjs/operators';
 
 import { Entrypoint } from '../../../../entities/entrypoint/entrypoint';
 import { TagService } from '../../../../services-ngx/tag.service';
-import { kafkaDomainValidator, portValidator } from '../org-settings-entrypoints-and-sharding-tags.utils';
+import { kafkaBootstrapDomainPatternValidator, portValidator } from '../org-settings-entrypoints-and-sharding-tags.utils';
 
 export type OrgSettingAddMappingDialogData = {
   target: Entrypoint['target'];
@@ -67,9 +67,12 @@ export class OrgSettingAddMappingDialogComponent {
         break;
       }
       case 'KAFKA': {
-        const [kafkaDomain, kafkaPort] = this.entrypoint?.value?.split(':') ?? ['', '9092'];
+        const [kafkaDomain, kafkaPort] = this.entrypoint?.value?.split(':') ?? ['{apiHost}', '9092'];
 
-        this.mappingForm.addControl('kafkaDomain', new FormControl(kafkaDomain, [Validators.required, kafkaDomainValidator]));
+        this.mappingForm.addControl(
+          'kafkaDomain',
+          new FormControl(kafkaDomain, [Validators.required, kafkaBootstrapDomainPatternValidator]),
+        );
         this.mappingForm.addControl('kafkaPort', new FormControl(kafkaPort, [Validators.required, portValidator]));
         break;
       }

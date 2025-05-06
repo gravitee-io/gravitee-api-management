@@ -692,7 +692,7 @@ notifiers:
 #          host: '{environment}.{organization}.{account}.example.com'
 #          secured: true
 #        kafka-gateway:
-#          host: '{environment}.{organization}.{account}.example.com'
+#          host: '{apiHost}.{environment}.{organization}.{account}.example.com'
 #          secured: true
 
 # External Authentication

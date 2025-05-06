@@ -636,14 +636,16 @@ class ApiEntrypointServiceImplTest {
             .thenReturn(
                 List.of(
                     AccessPoint.builder().host("domain1:1234").target(AccessPoint.Target.KAFKA_GATEWAY).build(),
-                    AccessPoint.builder().host("domain2").target(AccessPoint.Target.KAFKA_GATEWAY).build()
+                    AccessPoint.builder().host("domain2").target(AccessPoint.Target.KAFKA_GATEWAY).build(),
+                    AccessPoint.builder().host("{apiHost}-trial.domain3:1234").target(AccessPoint.Target.KAFKA_GATEWAY).build()
                 )
             );
 
         var apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
-        assertThat(apiEntrypoints).hasSize(2);
+        assertThat(apiEntrypoints).hasSize(3);
         assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("kafka-host.domain1:1234");
         assertThat(apiEntrypoints.get(1).getTarget()).isEqualTo("kafka-host.domain2:9092");
+        assertThat(apiEntrypoints.get(2).getTarget()).isEqualTo("kafka-host-trial.domain3:1234");
     }
 }
