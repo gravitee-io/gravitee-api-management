@@ -23,10 +23,10 @@ import { RouterModule } from '@angular/router';
 
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
 import { PolicyStudioDesignModule } from './design/policy-studio-design.module';
-import { PolicyStudioDebugModule } from './debug/policy-studio-debug.module';
 import { PolicyStudioConfigModule } from './config/policy-studio-config.module';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { DebugModeModule } from '../debug-mode/debug-mode.module';
 
 @NgModule({
   imports: [
@@ -43,7 +43,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
 
     PolicyStudioDesignModule,
     PolicyStudioConfigModule,
-    PolicyStudioDebugModule,
+    DebugModeModule,
     GioLicenseModule,
     GioIconsModule,
   ],

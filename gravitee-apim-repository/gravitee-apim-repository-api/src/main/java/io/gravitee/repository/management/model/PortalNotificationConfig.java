@@ -18,6 +18,7 @@ package io.gravitee.repository.management.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,6 +38,7 @@ public class PortalNotificationConfig {
 
     private String user;
     private List<String> hooks;
+    private Set<String> groups;
     private NotificationReferenceType referenceType;
     private String referenceId;
     private Date createdAt;

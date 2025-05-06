@@ -104,6 +104,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "portal_notifications",
         "portal_notification_configs",
         "portal_notification_config_hooks",
+        "portal_notification_config_groups",
         "ratings",
         "rating_answers",
         "roles",

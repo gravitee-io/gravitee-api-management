@@ -22,11 +22,16 @@ import { groupBy, map } from 'lodash';
 import { Hooks } from '../../../entities/notification/hooks';
 import { Notifier } from '../../../entities/notification/notifier';
 import { NotificationSettings } from '../../../entities/notification/notificationSettings';
+import { GroupData } from '../../../management/api/user-group-access/members/api-general-members.component';
 
 export interface NotificationEditDialogData {
   hooks: Hooks[];
   notifier: Notifier;
   notification: NotificationSettings;
+  primaryOwner?: string;
+  isPrimaryOwner?: boolean;
+  isPortalNotification?: boolean;
+  groupData?: GroupData[];
 }
 
 export type NotificationEditDialogResult = NotificationSettings;
@@ -40,9 +45,13 @@ export type NotificationEditDialogResult = NotificationSettings;
 })
 export class NotificationEditDialogComponent {
   protected readonly hooks: Hooks[] = this.dialogData.hooks;
+  protected readonly groupData: GroupData[] = this.dialogData.groupData;
   protected readonly categories: Category[] = groupHooks(this.dialogData.hooks);
   protected readonly notifier: Notifier = this.dialogData.notifier;
   protected readonly notification: NotificationSettings = this.dialogData.notification;
+  protected readonly primaryOwner: string = this.dialogData.primaryOwner;
+  protected readonly isPrimaryOwner: boolean = this.dialogData.isPrimaryOwner;
+  protected readonly isPortalNotification: boolean = this.dialogData.isPortalNotification;
 
   protected staticForm = this.buildForm();
 
@@ -57,10 +66,13 @@ export class NotificationEditDialogComponent {
     }
     const raw = this.staticForm.getRawValue();
 
+    const cleansedGroups = raw.groups ? Object.values(raw.groups).filter((g) => g !== this.primaryOwner) : [];
+
     this.dialogRef.close({
       ...this.notification,
       config: raw?.notifier?.config,
       useSystemProxy: raw?.notifier?.useSystemProxy,
+      groups: cleansedGroups,
       hooks: Object.values(raw.hooks)
         .map((category) => {
           return Object.entries(category)
@@ -69,6 +81,7 @@ export class NotificationEditDialogComponent {
         })
         .flat(),
     });
+    this.notification.groups = cleansedGroups;
   }
 
   private buildForm() {
@@ -81,8 +94,14 @@ export class NotificationEditDialogComponent {
             }),
           }
         : {}),
+      groups: new FormControl(this.withPrimaryOwner(this.notification)),
       hooks: toFormGroup(this.categories, this.notification),
     });
+  }
+
+  private withPrimaryOwner(notification: NotificationSettings): string[] {
+    notification.groups?.push(this.primaryOwner);
+    return notification.groups;
   }
 }
 

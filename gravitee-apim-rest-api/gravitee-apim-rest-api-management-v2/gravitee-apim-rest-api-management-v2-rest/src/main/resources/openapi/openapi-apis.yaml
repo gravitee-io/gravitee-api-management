@@ -816,6 +816,30 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Members
+    /environments/{envId}/apis/{apiId}/primaryowner:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+      get:
+        tags:
+          - API Members
+        summary: Get the API's primary owner userId
+        description: |
+          Get the API Primary Owner userId. 
+          If the primary owner is a group, then the userId of the primary owner user within that group will be returned, not the groupId.
+          
+          The userId is wrapper into a Member object, but no other properties are returned.
+          
+          User must have the API_MEMBER[READ] permission.
+        operationId: getApiPrimaryOwner
+        responses:
+          "200":
+            description: Primary owner returned successfully
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Member"
+          default:
+            $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/members:
         parameters:
             - $ref: "#/components/parameters/envIdParam"

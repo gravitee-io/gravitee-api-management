@@ -40,7 +40,18 @@
         </gio-form-slide-toggle>
       </div>
     </ng-container>
-
+    @if (isPortalNotification && isPrimaryOwner) {
+      <ng-container>
+        <mat-form-field>
+          <mat-label>Groups</mat-label>
+          <mat-select multiple [formControl]="staticForm.controls.groups">
+            @for (group of groupData; track group) {
+              <mat-option [value]="group.id" [disabled]="primaryOwner == group.id">{{ group.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </ng-container>
+    }
     <div formGroupName="hooks">
       <h3>Event subscribed</h3>
 

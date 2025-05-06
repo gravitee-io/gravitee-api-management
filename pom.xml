@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>23.1.0</version>
+        <version>23.2.1</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
@@ -50,7 +50,7 @@
              https://github.com/awhitford/lombok.maven/issues/179 -->
         <maven-lombok.version>1.18.36</maven-lombok.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>8.2.22</gravitee-bom.version>
+        <gravitee-bom.version>8.3.0</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.8.2</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.1.1</gravitee-cloud-initializer.version>
@@ -59,11 +59,11 @@
         <gravitee-exchange.version>1.8.3</gravitee-exchange.version>
         <gravitee-expression-language.version>4.1.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>3.11.1</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>3.12.0</gravitee-gateway-api.version>
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <gravitee-kubernetes.version>3.5.1</gravitee-kubernetes.version>
-        <gravitee-node.version>7.0.8</gravitee-node.version>
+        <gravitee-node.version>7.4.0</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>4.7.0</gravitee-plugin.version>
@@ -74,6 +74,7 @@
         <gravitee-resource-cache-provider-api.version>2.0.0</gravitee-resource-cache-provider-api.version>
         <gravitee-resource-content-provider-api.version>1.0.0</gravitee-resource-content-provider-api.version>
         <gravitee-resource-oauth2-provider-api.version>1.4.1</gravitee-resource-oauth2-provider-api.version>
+        <gravitee-resource-storage-api.version>1.1.0-alpha.1</gravitee-resource-storage-api.version>
         <gravitee-scoring-api.version>0.7.0</gravitee-scoring-api.version>
         <gravitee-secret-api.version>1.0.0</gravitee-secret-api.version>
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
@@ -287,7 +288,7 @@
         <gravitee-resource-schema-registry-confluent.version>4.0.0-alpha.1</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>7.0.0-alpha.1</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>3.0.0-alpha.5</gravitee-reactor-native-kafka.version>
-        <gravitee-apim-repository-bridge.version>6.0.0</gravitee-apim-repository-bridge.version>
+        <gravitee-apim-repository-bridge.version>7.0.0-alpha.1</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
         <gravitee-service-secrets.version>1.0.0</gravitee-service-secrets.version>

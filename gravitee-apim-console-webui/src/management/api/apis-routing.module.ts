@@ -65,7 +65,6 @@ import { ApisGuard } from './apis.guard';
 import { GioPolicyStudioLayoutComponent } from './policy-studio-v2/gio-policy-studio-layout.component';
 import { PolicyStudioDesignComponent } from './policy-studio-v2/design/policy-studio-design.component';
 import { PolicyStudioConfigComponent } from './policy-studio-v2/config/policy-studio-config.component';
-import { PolicyStudioDebugComponent } from './policy-studio-v2/debug/policy-studio-debug.component';
 import { ApiProxyGroupEndpointEditComponent } from './endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyGroupEditComponent } from './endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyEndpointListComponent } from './endpoints/list/api-proxy-endpoint-list.component';
@@ -89,6 +88,8 @@ import { DocumentationEditCustomPageComponent } from './documentation-v4/documen
 import { DocumentationEditHomepageComponent } from './documentation-v4/main-pages-tab/documentation-edit-homepage/documentation-edit-homepage.component';
 import { ApiDocumentationChooseExistingPageComponent } from './documentation-v4/components/api-documentation-choose-existing-page/api-documentation-choose-existing-page.component';
 import { ApiHealthCheckDashboardV4Component } from './health-check-dashboard-v4/api-health-check-dashboard-v4.component';
+import { DebugModeV2WrapperComponent } from './debug-mode/v2-wrapper/debug-mode-v2-wrapper.component';
+import { DebugModeV4WrapperComponent } from './debug-mode/v4-wrapper/debug-mode-v4-wrapper.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -839,7 +840,7 @@ const apisRoutes: Routes = [
           },
           {
             path: 'debug',
-            component: PolicyStudioDebugComponent,
+            component: DebugModeV2WrapperComponent,
             data: {
               menu: null,
               docs: {
@@ -1183,6 +1184,10 @@ const apisRoutes: Routes = [
             anyOf: ['api-event-r'],
           },
         },
+      },
+      {
+        path: 'v4/debug',
+        component: DebugModeV4WrapperComponent,
       },
     ],
   },

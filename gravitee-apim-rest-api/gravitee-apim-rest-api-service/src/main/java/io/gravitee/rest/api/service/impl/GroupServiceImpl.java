@@ -71,6 +71,8 @@ import io.gravitee.rest.api.service.InvitationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -164,6 +166,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     @Autowired
     private ApiConverter apiConverter;
+
+    @Autowired
+    private PortalNotificationConfigService portalNotificationConfigService;
 
     @Override
     public List<GroupEntity> findAll(ExecutionContext executionContext) {
@@ -603,6 +608,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .forEach(api -> {
                     api.removeGroup(groupId);
                     api.setUpdatedAt(updatedDate);
+                    portalNotificationConfigService.removeGroupIds(api.getId(), Set.of(groupId));
                     try {
                         apiRepository.update(api);
                         triggerUpdateNotification(executionContext, api);

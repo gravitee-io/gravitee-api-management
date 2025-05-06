@@ -1325,6 +1325,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
+    public String getPrimaryOwnerUserId(String organizationId, MembershipReferenceType referenceType, String referenceId) {
+        MembershipEntity primaryOwner = getPrimaryOwner(organizationId, MembershipReferenceType.API, referenceId);
+        String primaryOwnerId = primaryOwner.getMemberId();
+        if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
+            primaryOwnerId =
+                groupService.findByIds(Set.of(primaryOwnerId)).stream().findFirst().map(GroupEntity::getApiPrimaryOwner).orElseThrow();
+        }
+
+        return primaryOwnerId;
+    }
+
+    @Override
     public Set<RoleEntity> getRoles(
         MembershipReferenceType referenceType,
         String referenceId,

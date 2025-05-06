@@ -239,3 +239,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_7_0/03_add_deadline_to_async_jobs_table.yml
     - include:
         - file: liquibase/changelogs/v4_8_0/00_add_target_to_entrypoints_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_8_0/01_add_portal_notifications_groups_table.yml

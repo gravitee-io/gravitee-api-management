@@ -19,17 +19,28 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.assertArg;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
-import io.gravitee.rest.api.service.impl.PortalNotificationConfigServiceImpl;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -47,6 +58,9 @@ public class PortalNotificationConfigService_SaveTest {
 
     @Mock
     private PortalNotificationConfigRepository portalNotificationConfigRepository;
+
+    @Mock
+    MembershipService membershipService;
 
     @Test
     public void shouldDelete() throws TechnicalException {
@@ -125,5 +139,27 @@ public class PortalNotificationConfigService_SaveTest {
         verify(portalNotificationConfigRepository, times(1)).create(any());
         verify(portalNotificationConfigRepository, never()).delete(any());
         verify(portalNotificationConfigRepository, never()).update(any());
+    }
+
+    @Test
+    public void shouldRemoveGroupIds() throws TechnicalException {
+        PortalNotificationConfig config = PortalNotificationConfig
+            .builder()
+            .groups(new HashSet<>(Set.of("1", "2", "3")))
+            .user("po")
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("123")
+            .build();
+
+        when(membershipService.getPrimaryOwnerUserId(any(), eq(MembershipReferenceType.API), eq("123"))).thenReturn("po");
+        when(portalNotificationConfigRepository.findById("po", NotificationReferenceType.API, "123")).thenReturn(Optional.of(config));
+
+        portalNotificationConfigService.removeGroupIds("123", Set.of("3"));
+        verify(portalNotificationConfigRepository, times(1))
+            .update(
+                assertArg(c -> {
+                    assertEquals(Set.of("1", "2"), c.getGroups());
+                })
+            );
     }
 }

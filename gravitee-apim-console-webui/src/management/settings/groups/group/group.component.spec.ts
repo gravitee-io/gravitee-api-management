@@ -62,9 +62,10 @@ describe('GroupComponent', () => {
 
   const GROUP: Group = {
     disable_membership_notifications: false,
+    manageable: true,
     email_invitation: false,
     event_rules: [],
-    lock_api_role: false,
+    lock_api_role: true,
     lock_application_role: false,
     max_invitation: 2,
     name: 'Group 1',
@@ -72,6 +73,8 @@ describe('GroupComponent', () => {
     system_invitation: true,
     id: '1',
   };
+
+  const PERMISSIONS = ['environment-group-u', 'environment-group-d', 'environment-group-c'];
 
   const GROUP_MEMBERS: Member[] = [
     {
@@ -129,13 +132,18 @@ describe('GroupComponent', () => {
     },
   ];
 
-  const init = async (groupId: string, snapshot = SETTINGS_SNAPSHOT, users = USERS) => {
+  const init = async (
+    groupId: string,
+    snapshot = SETTINGS_SNAPSHOT,
+    users: SearchableUser[] = USERS,
+    permissions: string[] = PERMISSIONS,
+  ) => {
     await TestBed.configureTestingModule({
       declarations: [],
       providers: [
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['environment-group-u', 'environment-group-d', 'environment-group-c'],
+          useValue: permissions,
         },
         {
           provide: ActivatedRoute,
@@ -218,14 +226,11 @@ describe('GroupComponent', () => {
   });
 
   describe('Update group', () => {
-    beforeEach(async () => {
+    it('should initialize form with group properties', async () => {
       await init(GROUP.id);
       expectGetGroup();
       expect(component.mode).toEqual('edit');
       fixture.detectChanges();
-    });
-
-    it('should initialize form with group properties', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();
       expectGetGroupAPIs();
@@ -245,7 +250,34 @@ describe('GroupComponent', () => {
       });
     });
 
+    it('should disable specific form controls when user has read permission and is an admin', async () => {
+      await init(GROUP.id, SETTINGS_SNAPSHOT, USERS, ['environment-group-r']);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetGroupAPIs();
+      expectGetGroupApplications();
+      const nameInputHarness = await getNameInput();
+      expect(await nameInputHarness.isDisabled()).toEqual(true);
+      const apiRoleHarness = await harnessLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName="defaultAPIRole"]' }));
+      expect(await apiRoleHarness.isDisabled()).toEqual(true);
+      const applicationRoleHarness = await harnessLoader.getHarness(
+        MatSelectHarness.with({ selector: '[formControlName="defaultApplicationRole"]' }),
+      );
+      expect(await applicationRoleHarness.isDisabled()).toEqual(false);
+      const maxNoOfMembersHarness = await harnessLoader.getHarness(
+        MatInputHarness.with({ selector: '[formControlName="maxNumberOfMembers"]' }),
+      );
+      expect(await maxNoOfMembersHarness.isDisabled()).toEqual(true);
+    });
+
     it('should submit form to update group', async () => {
+      await init(GROUP.id);
+      expectGetGroup();
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
       expectGetGroupAPIs();

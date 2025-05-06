@@ -1227,6 +1227,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (updateApiEntity.getGroups() == null) {
                 api.setGroups(apiToUpdate.getGroups());
+            } else if (apiToUpdate.getGroups() != null) {
+                Set<String> toRemove = apiToUpdate
+                    .getGroups()
+                    .stream()
+                    .filter(g -> !api.getGroups().contains(g))
+                    .collect(Collectors.toCollection(HashSet::new));
+                if (!toRemove.isEmpty()) {
+                    portalNotificationConfigService.removeGroupIds(apiToUpdate.getId(), toRemove);
+                }
             }
             if (updateApiEntity.getLabels() == null && apiToUpdate.getLabels() != null) {
                 api.setLabels(new ArrayList<>(new HashSet<>(apiToUpdate.getLabels())));

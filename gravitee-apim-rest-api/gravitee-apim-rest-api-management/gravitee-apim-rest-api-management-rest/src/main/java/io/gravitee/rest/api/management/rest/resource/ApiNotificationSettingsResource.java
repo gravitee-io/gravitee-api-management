@@ -18,18 +18,27 @@ package io.gravitee.rest.api.management.rest.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_NOTIFICATION;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,6 +48,8 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -52,6 +63,9 @@ public class ApiNotificationSettingsResource extends AbstractResource {
 
     @Inject
     private GenericNotificationConfigService genericNotificationConfigService;
+
+    @Inject
+    private GroupService groupService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
@@ -87,7 +101,9 @@ public class ApiNotificationSettingsResource extends AbstractResource {
         } else if (
             config.getConfigType().equals(NotificationConfigType.PORTAL) && hasPermission(executionContext, API_NOTIFICATION, api, READ)
         ) {
-            return portalNotificationConfigService.save(convert(config));
+            PortalNotificationConfigEntity notificationEntity = convert(config);
+            checkGroups(executionContext, notificationEntity);
+            return portalNotificationConfigService.save(notificationEntity);
         }
         throw new ForbiddenAccessException();
     }
@@ -126,7 +142,8 @@ public class ApiNotificationSettingsResource extends AbstractResource {
         ) {
             throw new ForbiddenAccessException();
         }
-        config.setUser(getAuthenticatedUser());
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        checkGroups(executionContext, config);
         return portalNotificationConfigService.save(config);
     }
 
@@ -148,6 +165,35 @@ public class ApiNotificationSettingsResource extends AbstractResource {
         portalNotificationConfigEntity.setReferenceId(generic.getReferenceId());
         portalNotificationConfigEntity.setUser(getAuthenticatedUser());
         portalNotificationConfigEntity.setHooks(generic.getHooks());
+        portalNotificationConfigEntity.setGroups(generic.getGroups());
         return portalNotificationConfigEntity;
+    }
+
+    private void checkGroups(ExecutionContext executionContext, PortalNotificationConfigEntity notificationEntity) {
+        if (CollectionUtils.isEmpty(notificationEntity.getGroups())) {
+            return;
+        }
+
+        String primaryOwnerUserId = membershipService.getPrimaryOwnerUserId(
+            executionContext.getOrganizationId(),
+            MembershipReferenceType.API,
+            notificationEntity.getReferenceId()
+        );
+
+        // can't set group if you are not API Primary Owner
+        if (!Objects.equals(primaryOwnerUserId, getAuthenticatedUser())) {
+            throw new ForbiddenAccessException();
+        }
+
+        // check if the groups sent belong to the API
+        GenericApiEntity theAPI = apiSearchService.findGenericById(executionContext, api);
+        if (!theAPI.getGroups().containsAll(notificationEntity.getGroups())) {
+            throw new InvalidDataException(
+                "One of the groups is not a member of this API, got [%s] expected one of [%s]".formatted(
+                        notificationEntity.getGroups(),
+                        theAPI.getGroups()
+                    )
+            );
+        }
     }
 }

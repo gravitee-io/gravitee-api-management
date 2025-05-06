@@ -44,6 +44,8 @@ public class GenericNotificationConfigEntity {
     private String referenceId;
     private String notifier;
     private String config;
+    private String user;
+    private List<String> groups;
     private List<String> hooks;
     private boolean useSystemProxy;
 

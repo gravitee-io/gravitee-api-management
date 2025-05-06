@@ -112,6 +112,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
         PortalNotificationConfigMongo mongo = new PortalNotificationConfigMongo();
         mongo.setId(pk);
         mongo.setHooks(portalNotificationConfig.getHooks());
+        mongo.setGroups(portalNotificationConfig.getGroups());
         mongo.setCreatedAt(portalNotificationConfig.getCreatedAt());
         mongo.setUpdatedAt(portalNotificationConfig.getUpdatedAt());
 
@@ -125,6 +126,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
             .referenceId(mongo.getId().getReferenceId())
             .user(mongo.getId().getUser())
             .hooks(mongo.getHooks())
+            .groups(mongo.getGroups())
             .createdAt(mongo.getCreatedAt())
             .updatedAt(mongo.getUpdatedAt())
             .build();

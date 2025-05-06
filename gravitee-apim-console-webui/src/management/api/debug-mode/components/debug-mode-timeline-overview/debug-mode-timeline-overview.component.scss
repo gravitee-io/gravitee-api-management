@@ -1,0 +1,118 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.debug-mode-timeline-overview {
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+  border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+  height: 40px;
+  display: flex;
+  align-items: center;
+
+  &__left-client-app,
+  &__right-client-app,
+  &__center-target-backend {
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker70');
+    flex: 0 0 24px;
+    margin: 0 8px;
+  }
+
+  &__step {
+    flex: 1 1 auto;
+    height: 24px;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+
+    &__line {
+      height: 4px;
+      background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      &.color-green {
+        background-color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
+      }
+
+      &.color-blue {
+        background-color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, 'default');
+      }
+
+      &.color-grey {
+        background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, disabled);
+      }
+
+      &.color-red {
+        background-color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
+      }
+
+      // Empty before. With 6px width. All before must respect this size to avoid a shift in selection
+      &::before {
+        content: '';
+        width: 0px;
+        height: 0px;
+        margin-top: 8px;
+        border-left: 6px solid transparent;
+      }
+
+      // `>` before
+      &.selected-start::before {
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        border-left: 6px solid mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
+
+      // `•` before
+      &.selected-single::before,
+      &.selected-content::before {
+        margin-top: 9px;
+        background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+        border: 1px solid mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+        border-radius: 50%;
+        padding: 2px;
+      }
+      &.selected-single::before {
+        background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
+
+      // `<` before
+      &.selected-end::before {
+        border-top: 4px solid transparent;
+        border-bottom: 4px solid transparent;
+        border-right: 6px solid mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
+        border-left: 0px solid transparent;
+      }
+    }
+
+    &:hover,
+    &.hover {
+      .selected-start::before {
+        border-left: 6px solid mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
+      .selected-single::before,
+      .selected-content::before {
+        background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
+      .selected-end::before {
+        border-right: 6px solid mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
+      }
+      .selected-none::before {
+        margin-top: 9px;
+        background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'default');
+        border: 1px solid mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+        border-radius: 50%;
+        padding: 2px;
+      }
+    }
+
+    // Add margin between step
+    & + & {
+      margin-left: 2px;
+    }
+  }
+}
