@@ -1276,7 +1276,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     public InlinePictureEntity getPicture(final ExecutionContext executionContext, String applicationId) {
         ApplicationEntity applicationEntity = findById(executionContext, applicationId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
-        if (applicationEntity.getPicture() != null) {
+        if (applicationEntity.getPicture() != null && !applicationEntity.getPicture().isEmpty()) {
             String[] parts = applicationEntity.getPicture().split(";", 2);
             imageEntity.setType(parts[0].split(":")[1]);
             String base64Content = applicationEntity.getPicture().split(",", 2)[1];
