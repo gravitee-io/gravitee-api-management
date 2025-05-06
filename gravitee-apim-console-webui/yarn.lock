@@ -3118,9 +3118,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:14.2.0-update-gravitee-theme-1b6d864":
-  version: 14.2.0-update-gravitee-theme-1b6d864
-  resolution: "@gravitee/ui-particles-angular@npm:14.2.0-update-gravitee-theme-1b6d864"
+"@gravitee/ui-particles-angular@npm:14.2.0-update-gravitee-theme-ba616c7":
+  version: 14.2.0-update-gravitee-theme-ba616c7
+  resolution: "@gravitee/ui-particles-angular@npm:14.2.0-update-gravitee-theme-ba616c7"
   dependencies:
     "@fontsource/fira-mono": "npm:5.0.14"
     "@fontsource/kanit": "npm:^5.2.6"
@@ -3149,13 +3149,13 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/ee52e927d4e2044e3ecd931514231180307f74e4b37be39006f37beb94de98938be93c1bb2deaa476940e1eee6ae8b8cdfb465395f11829d8402a9bac77259de
+  checksum: 10c0/b04e8f670eb1a723f183de9b1eb8ef15b323f7983d0c5fff7b9ceaedf738fb882319ca78e8f7927e68fade073795d09a1cd954af37257cfe7bb05219d618e565
   languageName: node
   linkType: hard
 
-"@gravitee/ui-policy-studio-angular@npm:14.2.0-update-gravitee-theme-1b6d864":
-  version: 14.2.0-update-gravitee-theme-1b6d864
-  resolution: "@gravitee/ui-policy-studio-angular@npm:14.2.0-update-gravitee-theme-1b6d864"
+"@gravitee/ui-policy-studio-angular@npm:14.2.0-update-gravitee-theme-ba616c7":
+  version: 14.2.0-update-gravitee-theme-ba616c7
+  resolution: "@gravitee/ui-policy-studio-angular@npm:14.2.0-update-gravitee-theme-ba616c7"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -3167,7 +3167,7 @@ __metadata:
     "@angular/material": ^19.0.0
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
-  checksum: 10c0/ffdd5385da7b8f3f16ad9fdc4a63052e53492e76f4df0213b17f997af702ade1eb9d84d21cc14807acd3ccf060fbedcef1cfdcfb9fb15bc5d00fd39d6791a6fe
+  checksum: 10c0/85508fe0a70667b30827dcbd60a8cc57de1dbbff7343e0540a4542abecf99e95d0270b3c2ed6749bff2ec8dfc538a81e7dec76002f5c65483bd3602bdf4f602b
   languageName: node
   linkType: hard
 
@@ -12066,8 +12066,8 @@ __metadata:
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/ui-analytics": "npm:14.1.5"
     "@gravitee/ui-components": "npm:4.3.3"
-    "@gravitee/ui-particles-angular": "npm:14.2.0-update-gravitee-theme-1b6d864"
-    "@gravitee/ui-policy-studio-angular": "npm:14.2.0-update-gravitee-theme-1b6d864"
+    "@gravitee/ui-particles-angular": "npm:14.2.0-update-gravitee-theme-ba616c7"
+    "@gravitee/ui-policy-studio-angular": "npm:14.2.0-update-gravitee-theme-ba616c7"
     "@gravitee/ui-schematics": "npm:14.1.5"
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.12"
