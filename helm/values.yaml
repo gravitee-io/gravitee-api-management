@@ -1765,7 +1765,7 @@ ui:
     tasks: 10
   theme:
     name: "default"
-    logo: "themes/assets/GRAVITEE_LOGO1-01.png"
+    logo: "assets/gravitee_logo_solaris.png"
     loader: "assets/gravitee_logo_anim.gif"
   portal:
     apikeyHeader: "X-Gravitee-Api-Key"
