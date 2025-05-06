@@ -1,3 +1,10 @@
+# [5.8.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.7.0...5.8.0) (2025-05-06)
+
+
+### Features
+
+* additional metrics long, boolean & keyword ([b94262a](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/b94262aca69df27fc6659f1289e75532358e2a9e))
+
 # [5.7.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.6.0...5.7.0) (2025-04-23)
 
 
