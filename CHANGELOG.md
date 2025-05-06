@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.5.1...1.5.2) (2025-05-06)
+
+
+### Bug Fixes
+
+* add additionnals metrics ([279a624](https://github.com/gravitee-io/gravitee-reporter-common/commit/279a624b5c58ce246ecb1246ba6dc31065a906a9))
+
 ## [1.5.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.5.0...1.5.1) (2025-04-29)
 
 
