@@ -1,3 +1,10 @@
+# [3.4.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.3.0...3.4.0) (2025-05-06)
+
+
+### Features
+
+* additional metrics long, boolean & keyword ([44c0406](https://github.com/gravitee-io/gravitee-reporter-file/commit/44c040624e20c6d55d587276749cf89bd0a35abb))
+
 # [3.3.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.2.3...3.3.0) (2025-04-23)
 
 
