@@ -24,6 +24,7 @@ import static io.gravitee.gateway.api.http.HttpHeaderNames.PROXY_CONNECTION;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.TE;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.TRAILER;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.UPGRADE;
+import static io.gravitee.gateway.http.utils.RequestUtils.hasStreamingContentType;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT_OVERRIDE;
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR;
@@ -33,6 +34,7 @@ import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
@@ -119,11 +121,15 @@ public class HttpConnector implements ProxyConnector {
                 .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .rxRequest(options)
                 .map(this::customizeHttpClientRequest)
-                .flatMap(httpClientRequest ->
-                    httpClientRequest.rxSend(
-                        request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
-                    )
-                )
+                .flatMap(httpClientRequest -> {
+                    if (requestWithBody(request)) {
+                        return httpClientRequest.rxSend(
+                            request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                        );
+                    } else {
+                        return httpClientRequest.rxSend();
+                    }
+                })
                 .doOnSuccess(endpointResponse -> {
                     response.status(endpointResponse.statusCode());
 
@@ -258,5 +264,13 @@ public class HttpConnector implements ProxyConnector {
         if (parametersToAdd != null && !parametersToAdd.isEmpty()) {
             parametersToAdd.forEach((key, values) -> parameters.computeIfAbsent(key, k -> new ArrayList<>()).addAll(values));
         }
+    }
+
+    private static boolean requestWithBody(Request request) {
+        return (
+            request.headers().contains(HttpHeaderNames.TRANSFER_ENCODING) ||
+            request.headers().contains(HttpHeaderNames.CONTENT_LENGTH) ||
+            hasStreamingContentType(request.headers())
+        );
     }
 }
