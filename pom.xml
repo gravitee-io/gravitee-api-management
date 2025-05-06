@@ -33,7 +33,7 @@
 	<name>Gravitee.io APIM - Reporter - File</name>
 
 	<properties>
-		<gravitee-bom.version>8.2.22</gravitee-bom.version>
+		<gravitee-bom.version>8.3.0</gravitee-bom.version>
 		<gravitee-apim.version>4.7.4</gravitee-apim.version>
 		<gravitee-reporter-api.version>1.32.3</gravitee-reporter-api.version>
 		<gravitee-reporter-common.version>1.5.2</gravitee-reporter-common.version>
