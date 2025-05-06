@@ -96,7 +96,7 @@ public final class RequestUtils {
      * @param httpHeaders header to test
      * @return true for gRPC, SSE, octet-stream
      */
-    private static boolean hasStreamingContentType(final HttpHeaders httpHeaders) {
+    public static boolean hasStreamingContentType(final HttpHeaders httpHeaders) {
         String contentLengthHeaderValue = httpHeaders.get(CONTENT_LENGTH);
         if (contentLengthHeaderValue == null) {
             String contentTypeHeaderValue = httpHeaders.get(CONTENT_TYPE);
