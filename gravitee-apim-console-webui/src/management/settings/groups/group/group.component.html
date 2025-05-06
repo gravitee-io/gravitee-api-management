@@ -16,22 +16,24 @@
 
 -->
 @if (group$ | async; as group) {
-  <mat-card class="group__form__card">
+  <mat-card class="group__card">
     <mat-card-header>
       <gio-go-back-button routerLink=".." aria-hidden="false" aria-label="Click to go back to groups"></gio-go-back-button>
       <h2>{{ mode === 'new' ? 'Create group' : group.name }}</h2>
     </mat-card-header>
     <mat-card-content>
       <form [formGroup]="groupForm">
-        <mat-form-field class="group__form__card__form-field">
+        <mat-form-field class="group__form__field">
           <mat-label>Name</mat-label>
           <input matInput formControlName="name" />
         </mat-form-field>
 
+        <h3 class="group__card__subtitle">Roles & Permissions</h3>
+
         @if (mode === 'edit') {
-          <mat-form-field aria-hidden="false" aria-label="Select default API role" class="group__form__card__form-field">
+          <mat-form-field aria-hidden="false" aria-label="Select default API role" class="group__form__field">
             <mat-label>Default API Role</mat-label>
-            <mat-select formControlName="defaultAPIRole" class="group__form__card__form-select">
+            <mat-select formControlName="defaultAPIRole">
               <mat-option></mat-option>
               @for (role of defaultAPIRoles; track role.id) {
                 <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
@@ -39,9 +41,9 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field aria-hidden="false" aria-label="Select default application role" class="group__form__card__form-field">
+          <mat-form-field aria-hidden="false" aria-label="Select default application role" class="group__form__field">
             <mat-label>Default Application Role</mat-label>
-            <mat-select formControlName="defaultApplicationRole" class="group__form__card__form-select">
+            <mat-select formControlName="defaultApplicationRole">
               <mat-option></mat-option>
               @for (role of defaultApplicationRoles; track role.id) {
                 <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
@@ -50,33 +52,8 @@
           </mat-form-field>
         }
 
-        <mat-form-field class="group__form__card__form-field">
-          <mat-label>Max Number Of Members</mat-label>
-          <input matInput type="number" formControlName="maxNumberOfMembers" />
-        </mat-form-field>
-
-        <gio-form-slide-toggle class="group__form__card__actions">
-          <gio-form-label>Allow adding members via user search</gio-form-label>
-          <mat-slide-toggle
-            formControlName="shouldAllowInvitationViaSearch"
-            gioFormSlideToggle
-            aria-hidden="false"
-            aria-label="Enable invitations via user search"
-          ></mat-slide-toggle>
-        </gio-form-slide-toggle>
-
-        <gio-form-slide-toggle class="group__form__card__actions">
-          <gio-form-label>Allow sending invitations to users via email</gio-form-label>
-          <mat-slide-toggle
-            formControlName="shouldAllowInvitationViaEmail"
-            gioFormSlideToggle
-            aria-hidden="false"
-            aria-label="Enable invitations via email"
-          ></mat-slide-toggle>
-        </gio-form-slide-toggle>
-
-        <gio-form-slide-toggle class="group__form__card__actions">
-          <gio-form-label>Allow group admin to change default API role</gio-form-label>
+        <gio-form-slide-toggle class="group__form__actions">
+          <gio-form-label>Allow Group Admin to change default API role</gio-form-label>
           <mat-slide-toggle
             formControlName="canAdminChangeAPIRole"
             gioFormSlideToggle
@@ -85,8 +62,8 @@
           ></mat-slide-toggle>
         </gio-form-slide-toggle>
 
-        <gio-form-slide-toggle class="group__form__card__actions">
-          <gio-form-label>Allow group admin to change default application role</gio-form-label>
+        <gio-form-slide-toggle class="group__form__actions">
+          <gio-form-label>Allow Group Admin to change default application role</gio-form-label>
           <mat-slide-toggle
             formControlName="canAdminChangeApplicationRole"
             gioFormSlideToggle
@@ -95,7 +72,7 @@
           ></mat-slide-toggle>
         </gio-form-slide-toggle>
 
-        <div class="group__form__card__actions">
+        <div class="group__form__actions">
           <gio-form-slide-toggle>
             <gio-form-label>Automatically add group to new APIs</gio-form-label>
             <mat-slide-toggle
@@ -105,21 +82,21 @@
               aria-label="Enable to add group to the new APIs automatically"
             ></mat-slide-toggle>
           </gio-form-slide-toggle>
+
           @if (mode === 'edit') {
             <button
               mat-raised-button
-              color="primary"
+              class="group__form__actions"
+              color="secondary"
               [disabled]="disableAddGroupToExistingAPIs"
               (click)="addToExistingAPIs(group)"
-              matTooltip="Click to add this group to all existing APIs"
             >
-              <mat-icon svgIcon="gio:plus"></mat-icon>
               Add Group To Existing APIs
             </button>
           }
         </div>
 
-        <div class="group__form__card__actions">
+        <div class="group__form__actions">
           <gio-form-slide-toggle>
             <gio-form-label>Automatically add group to new applications</gio-form-label>
             <mat-slide-toggle
@@ -129,21 +106,47 @@
               aria-label="Enable to add group to the new applications automatically"
             ></mat-slide-toggle>
           </gio-form-slide-toggle>
+
           @if (mode === 'edit') {
             <button
               mat-raised-button
-              color="primary"
+              color="secondary"
               (click)="addToExistingApplications(group)"
               [disabled]="disableAddGroupToExistingApplications"
-              matTooltip="Click to add this group to all existing applications"
             >
-              <mat-icon svgIcon="gio:plus"></mat-icon>
               Add Group To Existing Applications
             </button>
           }
         </div>
 
-        <gio-form-slide-toggle class="group__form__card__actions">
+        <h3 class="group__card__subtitle">Members Management</h3>
+
+        <mat-form-field class="group__form__field">
+          <mat-label>Max Number Of Members</mat-label>
+          <input matInput type="number" formControlName="maxNumberOfMembers" />
+        </mat-form-field>
+
+        <gio-form-slide-toggle class="group__form__actions">
+          <gio-form-label>Allow adding members via user search</gio-form-label>
+          <mat-slide-toggle
+            formControlName="shouldAllowInvitationViaSearch"
+            gioFormSlideToggle
+            aria-hidden="false"
+            aria-label="Enable invitations via user search"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle class="group__form__actions">
+          <gio-form-label>Allow sending invitations to users via email</gio-form-label>
+          <mat-slide-toggle
+            formControlName="shouldAllowInvitationViaEmail"
+            gioFormSlideToggle
+            aria-hidden="false"
+            aria-label="Enable invitations via email"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle class="group__form__actions">
           <gio-form-label>Notify when new members are added to the group</gio-form-label>
           <mat-slide-toggle
             formControlName="shouldNotifyWhenMemberAdded"
@@ -157,11 +160,11 @@
   </mat-card>
 
   @if (mode === 'edit') {
-    <mat-card class="group__form__card">
+    <mat-card class="group__card">
       <mat-card-header>
-        <mat-card-subtitle>Dependents</mat-card-subtitle>
+        <mat-card-title>Members</mat-card-title>
         <button
-          class="group__form__card__actions"
+          class="group__form__actions"
           mat-raised-button
           color="primary"
           [disabled]="!canAddMembers"
@@ -169,7 +172,7 @@
           matTooltip="Search and invite users to the group"
         >
           <mat-icon svgIcon="gio:plus"></mat-icon>
-          Add Users
+          Add Members
         </button>
         <mat-menu #addMembersMenu="matMenu" xPosition="before" yPosition="below">
           <button
@@ -214,7 +217,7 @@
                     <div>
                       {{ row.displayName }}
                       @if (row.roles['GROUP'] === 'ADMIN') {
-                        <span class="gio-badge-primary" tooltip="User is an administrator of the group">Admin</span>
+                        <span class="gio-badge-primary">Group Admin</span>
                       }
                     </div>
                   </td>
@@ -241,7 +244,7 @@
                   </td>
                 </ng-container>
 
-                <ng-container matColumnDef="actions">
+                <ng-container matColumnDef="actions" class="group__table__actions">
                   <th mat-header-cell *matHeaderCellDef id="actions"></th>
                   <td mat-cell *matCellDef="let row">
                     <button
@@ -348,9 +351,9 @@
       </mat-tab-group>
     </mat-card>
 
-    <mat-card class="group__form__card">
+    <mat-card class="group__card">
       <mat-card-header>
-        <mat-card-subtitle>APIs</mat-card-subtitle>
+        <mat-card-title>APIs</mat-card-title>
       </mat-card-header>
       @if (groupAPIs$ | async; as data) {
         <gio-table-wrapper [length]="noOfAPIs" [filters]="apisDefaultFilters" (filtersChange)="filterGroupAPIs($event)">
@@ -388,9 +391,9 @@
       }
     </mat-card>
 
-    <mat-card class="group__form__card">
+    <mat-card class="group__card">
       <mat-card-header>
-        <mat-card-subtitle>Applications</mat-card-subtitle>
+        <mat-card-title>Applications</mat-card-title>
       </mat-card-header>
       @if (groupApplications$ | async; as data) {
         <gio-table-wrapper

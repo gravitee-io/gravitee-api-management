@@ -304,7 +304,7 @@ describe('GroupComponent', () => {
       expectGetGroupMembers();
       expectGetGroupAPIs();
       expectGetGroupApplications();
-      const buttonHarness = await getButtonByTooltipText('Click to add this group to all existing APIs');
+      const buttonHarness = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add Group To Existing APIs' }));
       await buttonHarness.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Add' }));
@@ -322,7 +322,7 @@ describe('GroupComponent', () => {
       expectGetGroupMembers();
       expectGetGroupAPIs();
       expectGetGroupApplications();
-      const buttonHarness = await getButtonByTooltipText('Click to add this group to all existing applications');
+      const buttonHarness = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add Group To Existing Applications' }));
       await buttonHarness.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Add' }));
