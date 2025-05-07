@@ -3638,15 +3638,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-analytics@npm:14.1.5":
-  version: 14.1.5
-  resolution: "@gravitee/ui-analytics@npm:14.1.5"
+"@gravitee/ui-analytics@npm:14.2.1":
+  version: 14.2.1
+  resolution: "@gravitee/ui-analytics@npm:14.2.1"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
     "@angular/common": ^19.0.0
     "@angular/core": ^19.0.0
-  checksum: 10c0/f8bb95a3fef742ed90217390a65cc74c63f37819b74db92972b3cafdafc12577d097ba2ee53c66dd393589f5bbb35c19e03a524753a482d24c1b671b6a8a90bb
+  checksum: 10c0/470eccb316f338a4fdd1a8ceac23cbe024d812a557f30e0ec315082e55f1ff036ae53563445c67a95211cafb4968568c35019d363207b182f4f877e8a3510c28
   languageName: node
   linkType: hard
 
@@ -3695,9 +3695,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:14.1.5":
-  version: 14.1.5
-  resolution: "@gravitee/ui-particles-angular@npm:14.1.5"
+"@gravitee/ui-particles-angular@npm:14.2.1":
+  version: 14.2.1
+  resolution: "@gravitee/ui-particles-angular@npm:14.2.1"
   dependencies:
     "@fontsource/fira-mono": "npm:4.5.0"
     "@fontsource/golos-ui": "npm:^4.5.1"
@@ -3725,13 +3725,13 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/98f4a288b1f120ef8d882dc2b299c8a405fb14b4eb8bb9d254df2d74e010b45efbd6e668e1c7ce0d462724be4b4cfc84212797f7eb2d72c5a52689ef8544c12f
+  checksum: 10c0/41ed23ee7bf627fac1f96f7f1d3c821226cd053a3cbdebbb28740a5731480eb72f016dfa473a122cbe20ee36ea29ad83a132afccef92507a454f1e421aa65e37
   languageName: node
   linkType: hard
 
-"@gravitee/ui-policy-studio-angular@npm:14.1.5":
-  version: 14.1.5
-  resolution: "@gravitee/ui-policy-studio-angular@npm:14.1.5"
+"@gravitee/ui-policy-studio-angular@npm:14.2.1":
+  version: 14.2.1
+  resolution: "@gravitee/ui-policy-studio-angular@npm:14.2.1"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -3743,7 +3743,7 @@ __metadata:
     "@angular/material": ^19.0.0
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
-  checksum: 10c0/4e906ff075aa4629beb32ba086ae0077480f5d05d1b6def0e448ddecfee89bb60198f49343e0b138956e0c0c36c7422ed30d629bc14dded2a9ad9a0c8bca330f
+  checksum: 10c0/b2cfa2839dd09bf777152f839a1149f7fb3b671284b6eef5d3db27a979dc274be89ed89249f2dfbc841c1c0141978940ced7a9a7a3362613c8122e1ac13e0ab8
   languageName: node
   linkType: hard
 
@@ -10193,11 +10193,11 @@ __metadata:
   linkType: hard
 
 "cronstrue@npm:^2.48.0":
-  version: 2.49.0
-  resolution: "cronstrue@npm:2.49.0"
+  version: 2.60.0
+  resolution: "cronstrue@npm:2.60.0"
   bin:
     cronstrue: bin/cli.js
-  checksum: 10c0/bdbcbe745b12b51b5ff123b561d9b95d624963b1d0d43717a70adf20872f58e87ad74c62d255133f9b0e8adcc682cb7e5ea405c4da36ba7ec5146af1f0d75017
+  checksum: 10c0/3db862b826b14c29e1680514f223d84a2fef3f10cee9f78077237ebc5eb24dd19d128677dbaa55904e348236d969a3cc04e378df04a9e4fe08293a30b6a3ac33
   languageName: node
   linkType: hard
 
@@ -13322,10 +13322,10 @@ __metadata:
     "@danielmoncada/angular-datetime-picker": "npm:19.0.0"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:6.0.2"
     "@fontsource/libre-franklin": "npm:4.5.11"
-    "@gravitee/ui-analytics": "npm:14.1.5"
+    "@gravitee/ui-analytics": "npm:14.2.1"
     "@gravitee/ui-components": "npm:4.3.3"
-    "@gravitee/ui-particles-angular": "npm:14.1.5"
-    "@gravitee/ui-policy-studio-angular": "npm:14.1.5"
+    "@gravitee/ui-particles-angular": "npm:14.2.1"
+    "@gravitee/ui-policy-studio-angular": "npm:14.2.1"
     "@gravitee/ui-schematics": "npm:14.1.5"
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.12"
