@@ -284,7 +284,7 @@
         <gravitee-endpoint-solace.version>1.2.0</gravitee-endpoint-solace.version>
         <gravitee-endpoint-azure-service-bus.version>0.1.0</gravitee-endpoint-azure-service-bus.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
-        <gravitee-resource-schema-registry-confluent.version>3.1.0</gravitee-resource-schema-registry-confluent.version>
+        <gravitee-resource-schema-registry-confluent.version>3.1.1</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>4.0.1</gravitee-reactor-message.version>
         <gravitee-repository-bridge.version>5.1.4</gravitee-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
