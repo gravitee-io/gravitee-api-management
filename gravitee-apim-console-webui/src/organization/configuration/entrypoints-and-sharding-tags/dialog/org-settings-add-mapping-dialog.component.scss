@@ -7,10 +7,15 @@
   }
   .kafka {
     display: flex;
+    align-items: flex-start;
     gap: 8px;
 
+    &__domain {
+      flex: 1 1 auto;
+    }
+
     &__port {
-      flex: 1;
+      flex: 0 0 120px;
     }
   }
 }

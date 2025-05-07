@@ -16,23 +16,27 @@
 
 import { UntypedFormControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
-import { HOST_PATTERN_REGEX } from '../../../shared/utils';
-
 export const portValidator: ValidatorFn = (control: UntypedFormControl): ValidationErrors | null => {
   const tcpPort = control.value;
   return tcpPort < 1025 || tcpPort > 65535 ? { invalidPort: true } : null;
 };
 
-export const kafkaDomainValidator: ValidatorFn = (control: UntypedFormControl): ValidationErrors | null => {
+export const kafkaBootstrapDomainPatternValidator: ValidatorFn = (control: UntypedFormControl): ValidationErrors | null => {
   const kafkaDomain: string = control.value;
-  if (kafkaDomain?.length) {
-    // Max length of URL (255) - reserved characters for host prefix (63) - "." to separate host prefix and domain (1) = 191 max characters
-    if (kafkaDomain.length > 191) {
-      return { maxLength: true };
-    }
-    if (!HOST_PATTERN_REGEX.test(kafkaDomain)) {
-      return { format: true };
-    }
+  // Check if the value is empty
+  if (!kafkaDomain) {
+    return { required: true };
   }
+  // Check if the value not contain {apiHost}
+  if (!kafkaDomain.includes('{apiHost}')) {
+    return { apiHostMissing: true };
+  }
+  // Best effort to avoid too long domain names
+  // Max length of URL (255) - reserved characters for host prefix (63) - "." to separate host prefix and domain (1) = 191 max characters
+  // + 10 characters for `{apiHost}` = 201 max characters
+  if (kafkaDomain.length > 201) {
+    return { maxLength: true };
+  }
+
   return null;
 };

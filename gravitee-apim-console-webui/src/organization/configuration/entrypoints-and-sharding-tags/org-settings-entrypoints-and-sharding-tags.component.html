@@ -81,13 +81,19 @@
               <mat-icon *ngIf="isReadonlySetting(configForm.key, 'kafkaDomain')" class="org-settings-tags__configuration__icon" matPrefix
                 >lock</mat-icon
               >
-              <mat-label>Default Kafka domain</mat-label>
+              <mat-label>Default Kafka Bootstrap Domain Pattern</mat-label>
               <input #kafkaDomainInput matInput formControlName="kafkaDomain" />
               <gio-clipboard-copy-icon matSuffix [contentToCopy]="kafkaDomainInput.value"></gio-clipboard-copy-icon>
               <mat-error *ngIf="configForm.value.get('kafkaDomain').hasError('maxLength')"
-                >Kafka Domain must be less than 192 characters.</mat-error
+                >Kafka Domain must be less than 201 characters.</mat-error
               >
-              <mat-error *ngIf="configForm.value.get('kafkaDomain').hasError('format')">Kafka Domain is not valid.</mat-error>
+              <mat-error *ngIf="configForm.value.get('kafkaDomain').hasError('required')"
+                >Kafka Bootstrap Domain Pattern is required.</mat-error
+              >
+              <mat-error *ngIf="configForm.value.get('kafkaDomain').hasError('apiHostMissing')">
+                Kafka Bootstrap Domain Pattern must contain {{ '{apiHost}' }}.
+              </mat-error>
+              <mat-hint> To be configured according to the gateway configuration. e.g: {{ '{apiHost}.mycompany.org' }} </mat-hint>
             </mat-form-field>
             <mat-form-field
               [matTooltip]="providedConfigurationMessage"

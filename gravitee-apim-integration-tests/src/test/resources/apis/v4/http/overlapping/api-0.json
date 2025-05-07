@@ -1,0 +1,101 @@
+{
+    "id": "http-route-demo-0",
+    "name": "http-route-demo-0",
+    "version": "v1alpha1",
+    "definitionVersion": "4.0.0",
+    "type": "proxy",
+    "listeners": [
+        {
+            "entrypoints": [
+                {
+                    "qos": "auto",
+                    "type": "http-proxy"
+                }
+            ],
+            "pathMappings": [],
+            "paths": [
+                {
+                    "path": "/"
+                }
+            ],
+            "servers": [],
+            "type": "http"
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "rule-0",
+            "type": "http-proxy",
+            "sharedConfiguration": {},
+            "endpoints": [
+                {
+                    "name": "backend-0",
+                    "type": "http-proxy",
+                    "weight": 1,
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "http://localhost:8080/endpoint0"
+                    },
+                    "secondary": false,
+                    "tenants": []
+                }
+            ]
+        }
+    ],
+    "flowExecution": {
+        "mode": "default",
+        "matchRequired": true
+    },
+    "flows": [
+        {
+            "name": "rule-0-match0",
+            "enabled": true,
+            "selectors": [
+                {
+                    "methods": [],
+                    "path": "/",
+                    "pathOperator": "START_WITH",
+                    "type": "http"
+                },
+                {
+                    "condition": "{#request.contextPath eq '/'}",
+                    "type": "condition"
+                }
+            ],
+            "request": [
+                {
+                    "enabled": true,
+                    "policy": "dynamic-routing",
+                    "configuration": {
+                        "rules": [
+                            {
+                                "pattern": "(.*)",
+                                "url": "rule-0:{#group[0]}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "apiVersion": "v1alpha1",
+    "plans": [
+        {
+            "id": "170d5427-c05b-ae75-3d9f-60f91a44fef2",
+            "tags": [],
+            "status": "published",
+            "characteristics": [],
+            "validation": "AUTO",
+            "type": "API",
+            "definitionVersion": "V4",
+            "security": {
+                "type": "key-less",
+                "configuration": {}
+            },
+            "mode": "standard",
+            "flows": [],
+            "excludedGroups": [],
+            "name": "default"
+        }
+    ]
+}
