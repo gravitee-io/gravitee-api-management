@@ -35,6 +35,7 @@ import { fakeApplication, fakeApplicationsResponse } from '../../../entities/app
 import { Page } from '../../../entities/page/page';
 import { fakePage } from '../../../entities/page/page.fixtures';
 import { fakePlan } from '../../../entities/plan/plan.fixture';
+import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
 import { CreateSubscription, Subscription } from '../../../entities/subscription/subscription';
 import { fakeSubscription, fakeSubscriptionResponse } from '../../../entities/subscription/subscription.fixture';
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
@@ -169,6 +170,7 @@ describe('SubscribeToApiComponent', () => {
           fixture.detectChanges();
         });
         it('should see checkout information', async () => {
+          expectPortalSettings();
           expect(fixture.debugElement.query(By.css('app-subscription-info'))).toBeTruthy();
           const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
           expect(apiAccess).toBeTruthy();
@@ -177,6 +179,7 @@ describe('SubscribeToApiComponent', () => {
           expect(await apiAccess.getProducerCommand()).toContain(KAFKA_ENTRYPOINT);
         });
         it('should not show subscribe button', async () => {
+          expectPortalSettings();
           expect(await getSubscribeButton()).toEqual(null);
         });
       });
@@ -1092,6 +1095,10 @@ describe('SubscribeToApiComponent', () => {
 
   function expectGetPage(page: Page) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/pages/${page.id}?include=content`).flush(page);
+  }
+
+  function expectPortalSettings() {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal`).flush(fakePortalSettings());
   }
 
   async function canGoToNextStep(): Promise<boolean> {

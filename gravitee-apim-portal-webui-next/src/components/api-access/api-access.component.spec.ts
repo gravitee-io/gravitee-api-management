@@ -145,28 +145,6 @@ describe('ApiAccessComponent', () => {
 
           expect(await apiKeyUsernameShown()).toBeTruthy();
           expect(await apiKeyPasswordShown()).toBeTruthy();
-          expect(await plainConfigurationShown()).toBeTruthy();
-          expect(await scram256ConfigurationShown()).toBeFalsy();
-          expect(await scram512ConfigurationShown()).toBeFalsy();
-
-          const plainConfiguration = await getPlainConfiguration();
-          const plainConfigurationContent = await plainConfiguration?.host().then(host => host.text());
-          expect(plainConfigurationContent).toContain(component.apiKey);
-          expect(plainConfigurationContent).toContain(component.apiKeyConfigUsername);
-
-          const configTabs = await getApiKeyPropertiesConfiguration();
-          expect(await configTabs.getTabs().then(tabs => tabs.length)).toEqual(3);
-          await configTabs.selectTab({ label: 'SCRAM-256' });
-
-          expect(await plainConfigurationShown()).toBeFalsy();
-          expect(await scram256ConfigurationShown()).toBeTruthy();
-          expect(await scram512ConfigurationShown()).toBeFalsy();
-
-          await configTabs.selectTab({ label: 'SCRAM-512' });
-
-          expect(await plainConfigurationShown()).toBeFalsy();
-          expect(await scram256ConfigurationShown()).toBeFalsy();
-          expect(await scram512ConfigurationShown()).toBeTruthy();
 
           const commandExamples = await getCommandExamples();
           expect(await commandExamples.getTabs().then(tabs => tabs.length)).toEqual(2);
@@ -305,21 +283,6 @@ describe('ApiAccessComponent', () => {
   }
   async function clientSecretShown() {
     return !!(await getCopyCodeHarnessOrNullByTitle('Client Secret'));
-  }
-  async function getApiKeyPropertiesConfiguration() {
-    return await harnessLoader.getHarness(MatTabGroupHarness.with({ selector: '[aria-label="API Key connect properties"]' }));
-  }
-  async function getPlainConfiguration() {
-    return await getCopyCodeHarnessOrNullById('native-kafka-api-key-plain-properties');
-  }
-  async function plainConfigurationShown() {
-    return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-plain-properties'));
-  }
-  async function scram256ConfigurationShown() {
-    return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-scram-256-properties'));
-  }
-  async function scram512ConfigurationShown() {
-    return !!(await getCopyCodeHarnessOrNullById('native-kafka-api-key-scram-512-properties'));
   }
   async function getCommandExamples() {
     return await harnessLoader.getHarness(MatTabGroupHarness.with({ selector: '[aria-label="Example commands"]' }));

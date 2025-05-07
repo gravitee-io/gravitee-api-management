@@ -68,4 +68,34 @@ export class PortalSettingsService {
       }),
     );
   }
+
+  // private transformSettings(settings: PortalSettings): PortalSettings {
+  //   if (typeof settings?.portal?.kafkaSaslMechanisms === 'string') {
+  //     try {
+  //       const value: string = settings.portal.kafkaSaslMechanisms;
+  //       if (value.startsWith('[') && value.endsWith(']')) {
+  //         settings.portal.kafkaSaslMechanisms = value.slice(1, -1).split(/\s*,\s*/);
+  //       } else {
+  //         settings.portal.kafkaSaslMechanisms = [];
+  //       }
+  //     } catch (e) {
+  //       settings.portal.kafkaSaslMechanisms = [];
+  //     }
+  //   }
+  //   return settings;
+  // }
+  //
+  // private prepareSettingsForSaving(settings: PortalSettings): PortalSettingsPayload {
+  //   const copy: PortalSettingsPayload = {
+  //     ...settings,
+  //     portal: {
+  //       ...settings.portal,
+  //       kafkaSaslMechanisms: '',
+  //     },
+  //   };
+  //   if (Array.isArray(settings.portal?.kafkaSaslMechanisms)) {
+  //     copy.portal.kafkaSaslMechanisms = `[${settings.portal.kafkaSaslMechanisms.join(', ')}]`;
+  //   }
+  //   return copy;
+  // }
 }

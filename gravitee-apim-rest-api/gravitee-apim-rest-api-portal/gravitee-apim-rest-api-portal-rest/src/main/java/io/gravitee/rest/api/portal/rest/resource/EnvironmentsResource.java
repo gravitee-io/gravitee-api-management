@@ -130,4 +130,9 @@ public class EnvironmentsResource extends AbstractResource {
     public PortalMenuLinksResource getPortalMenuLinksResource() {
         return resourceContext.getResource(PortalMenuLinksResource.class);
     }
+
+    @Path("portal")
+    public PortalResource getPortalResource() {
+        return resourceContext.getResource(PortalResource.class);
+    }
 }
