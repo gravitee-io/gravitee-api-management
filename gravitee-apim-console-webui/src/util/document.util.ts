@@ -30,13 +30,16 @@ export function addAnchorLinks(containerSelector: string): void {
       container.setAttribute('data-anchor-handler-attached', 'true');
       container.addEventListener('click', (event: MouseEvent) => {
         const target = event.target as HTMLElement;
-        if (target.tagName.toLowerCase() === 'a') {
-          const href = (target as HTMLAnchorElement).getAttribute('href') ?? '';
+        const anchor = target.closest('a');
+        if (anchor) {
+          const href = anchor.getAttribute('href') ?? '';
           if (href.startsWith('#')) {
             event.preventDefault();
             const anchorId = decodeURIComponent(href.slice(1));
             const anchorEl = container.querySelector(`#${anchorId}, a[name='${anchorId}']`);
-            anchorEl?.scrollIntoView({ behavior: 'smooth' });
+            if (anchorEl) {
+              anchorEl.scrollIntoView({ behavior: 'smooth' });
+            }
           }
         }
       });
