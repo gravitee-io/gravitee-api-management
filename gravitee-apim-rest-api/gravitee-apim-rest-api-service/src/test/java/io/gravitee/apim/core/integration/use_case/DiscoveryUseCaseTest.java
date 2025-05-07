@@ -101,8 +101,7 @@ class DiscoveryUseCaseTest {
         var result = usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).blockingGet();
 
         //Then
-        assertThat(result.apis())
-            .containsExactlyInAnyOrder(new DiscoveryUseCase.Output.PreviewApi(api.id(), api.name(), DiscoveryUseCase.Output.State.NEW));
+        assertThat(result.apis()).containsExactlyInAnyOrder(new DiscoveryUseCase.Output.PreviewApi(api, DiscoveryUseCase.Output.State.NEW));
     }
 
     @Test
@@ -119,6 +118,6 @@ class DiscoveryUseCaseTest {
 
         //Then
         assertThat(result.apis())
-            .containsExactlyInAnyOrder(new DiscoveryUseCase.Output.PreviewApi(api.id(), api.name(), DiscoveryUseCase.Output.State.UPDATE));
+            .containsExactlyInAnyOrder(new DiscoveryUseCase.Output.PreviewApi(api, DiscoveryUseCase.Output.State.UPDATE));
     }
 }

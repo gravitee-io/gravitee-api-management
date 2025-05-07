@@ -70,6 +70,7 @@ public interface IntegrationMapper {
                         new IngestionPreviewResponseApisInner()
                             .id(a.id())
                             .name(a.name())
+                            .version(a.version())
                             .state(
                                 switch (a.state()) {
                                     case NEW -> IngestionPreviewResponseApisInner.StateEnum.NEW;

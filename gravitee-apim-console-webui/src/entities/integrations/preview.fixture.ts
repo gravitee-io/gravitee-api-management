@@ -25,16 +25,19 @@ export function fakeDiscoveryPreview(attribute?: Partial<IntegrationPreview>): I
       {
         id: 'testit',
         name: 'test name',
+        version: '1.0.0',
         state: IntegrationPreviewApisState.NEW,
       },
       {
         id: 'testit2',
         name: 'test name2',
+        version: '1.0.0',
         state: IntegrationPreviewApisState.NEW,
       },
       {
         id: 'testit3',
         name: 'test name3',
+        version: '1.0.0',
         state: IntegrationPreviewApisState.NEW,
       },
     ],
