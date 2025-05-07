@@ -283,7 +283,7 @@
         <gravitee-endpoint-solace.version>3.0.1</gravitee-endpoint-solace.version>
         <gravitee-endpoint-azure-service-bus.version>1.0.1</gravitee-endpoint-azure-service-bus.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
-        <gravitee-resource-schema-registry-confluent.version>3.1.0</gravitee-resource-schema-registry-confluent.version>
+        <gravitee-resource-schema-registry-confluent.version>3.1.1</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>6.0.1</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>2.1.0</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>6.0.0</gravitee-apim-repository-bridge.version>
