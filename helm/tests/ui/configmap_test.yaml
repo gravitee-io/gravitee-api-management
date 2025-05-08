@@ -32,7 +32,7 @@ tests:
                 "support": {"enabled":true},
                 "userCreation": {"enabled":false}
               },
-              "theme": {"loader":"assets/gravitee_logo_anim.gif","logo":"themes/assets/GRAVITEE_LOGO1-01.png","name":"default"},
+              "theme": {"loader":"assets/gravitee_logo_anim.gif","logo":"assets/gravitee_logo_solaris.png","name":"default"},
               "scheduler": {"tasks":10},
               "defaultPortal": "classic"
             }
@@ -70,7 +70,7 @@ tests:
                 "support": {"enabled":true},
                 "userCreation": {"enabled":false}
               },
-              "theme": {"loader":"assets/gravitee_logo_anim.gif","logo":"themes/assets/GRAVITEE_LOGO1-01.png","name":"default"},
+              "theme": {"loader":"assets/gravitee_logo_anim.gif","logo":"assets/gravitee_logo_solaris.png","name":"default"},
               "scheduler": {"tasks":10},
               "defaultPortal": "next"
             }
