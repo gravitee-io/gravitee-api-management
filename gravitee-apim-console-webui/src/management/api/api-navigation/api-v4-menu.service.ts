@@ -52,7 +52,7 @@ export class ApiV4MenuService implements ApiMenuService {
       ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...this.addAlertsMenuEntry(),
-      this.addDebugMenuEntry(),
+      ...(api.type === 'PROXY' ? [this.addDebugMenuEntry()] : []),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
     return { subMenuItems, groupItems: [] };
