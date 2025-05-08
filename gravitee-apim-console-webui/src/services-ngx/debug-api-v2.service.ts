@@ -39,7 +39,10 @@ export class DebugApiV2Service {
     apiId: string,
   ): Observable<Event> {
     return this.http.post<Event>(`${this.constants.env.v2BaseURL}/apis/${apiId}/debug`, {
-      request,
+      path: request.path,
+      method: request.method,
+      headers: request.headers,
+      body: request.body,
     });
   }
 }
