@@ -62,9 +62,6 @@ export class SubscriptionService {
   }
 
   resumeConsumerStatus(subscriptionId: string): Observable<Subscription> {
-    return this.http.post<Subscription>(
-      `${this.configService.baseURL}/subscriptions/${subscriptionId}/_changeConsumerStatus?status=STARTED`,
-      null,
-    );
+    return this.http.post<Subscription>(`${this.configService.baseURL}/subscriptions/${subscriptionId}/_resumeFailure`, null);
   }
 }
