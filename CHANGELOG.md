@@ -1,3 +1,10 @@
+## [3.4.1](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.4.0...3.4.1) (2025-05-09)
+
+
+### Bug Fixes
+
+* update gravitee parent ([c2d171b](https://github.com/gravitee-io/gravitee-reporter-file/commit/c2d171bb35dc3c48c4f81eac8caf0ae8508fc302))
+
 # [3.4.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.3.0...3.4.0) (2025-05-06)
 
 
