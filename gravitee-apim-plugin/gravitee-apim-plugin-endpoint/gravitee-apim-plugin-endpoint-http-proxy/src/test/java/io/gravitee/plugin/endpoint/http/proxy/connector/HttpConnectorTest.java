@@ -57,6 +57,7 @@ import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointCon
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.rxjava3.core.Vertx;
@@ -166,7 +167,7 @@ class HttpConnectorTest {
     @Test
     void shouldExecuteGetRequest() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
 
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -186,7 +187,7 @@ class HttpConnectorTest {
 
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.parameters()).thenReturn(parameters);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
 
         configuration.setTarget("http://localhost:" + wiremock.port() + "/team?foo=bar");
         cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
@@ -211,7 +212,7 @@ class HttpConnectorTest {
     @Test
     void shouldExecuteGetRequestWhenEndpointAttributeOverridenWithAbsoluteUrl() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port());
 
         wiremock.stubFor(get("/").willReturn(ok(BACKEND_RESPONSE_BODY)));
@@ -232,7 +233,7 @@ class HttpConnectorTest {
 
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.parameters()).thenReturn(parameters);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port() + "/?foo=bar");
 
         wiremock.stubFor(get(urlPathEqualTo("/")).willReturn(ok(BACKEND_RESPONSE_BODY)));
@@ -255,7 +256,7 @@ class HttpConnectorTest {
     @Test
     void shouldExecuteGetRequestWhenAttributeOverridenWithAbsoluteUrlAndPath() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port() + "/team/subPath");
 
         wiremock.stubFor(get(urlPathEqualTo("/team/subPath")).willReturn(ok(BACKEND_RESPONSE_BODY)));
@@ -276,7 +277,7 @@ class HttpConnectorTest {
 
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.parameters()).thenReturn(parameters);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port() + "/team/subPath?foo=bar");
 
         wiremock.stubFor(get(urlPathEqualTo("/team/subPath")).willReturn(ok(BACKEND_RESPONSE_BODY)));
@@ -304,7 +305,7 @@ class HttpConnectorTest {
 
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.parameters()).thenReturn(parameters);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("/subPath?foo=bar");
 
         wiremock.stubFor(get(urlPathEqualTo("/team/subPath")).willReturn(ok(BACKEND_RESPONSE_BODY)));
@@ -327,6 +328,7 @@ class HttpConnectorTest {
     @Test
     void shouldExecutePostRequest() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.POST);
+        when(request.headers()).thenReturn(HttpHeaders.create().add(TRANSFER_ENCODING, "chunked"));
         when(request.chunks())
             .thenReturn(
                 Flowable.just(Buffer.buffer(REQUEST_BODY_CHUNK1), Buffer.buffer(REQUEST_BODY_CHUNK2), Buffer.buffer(REQUEST_BODY_CHUNK3))
@@ -348,8 +350,8 @@ class HttpConnectorTest {
     @Test
     void shouldExecutePostRequestChunked() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.POST);
+        when(request.headers()).thenReturn(HttpHeaders.create().add(TRANSFER_ENCODING, "chunked"));
         when(request.chunks()).thenReturn(Flowable.just(Buffer.buffer(REQUEST_BODY)));
-        requestHeaders.set(CONTENT_LENGTH, "" + REQUEST_BODY_LENGTH);
 
         wiremock.stubFor(post("/team").withRequestBody(new EqualToPattern(REQUEST_BODY)).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -360,15 +362,15 @@ class HttpConnectorTest {
         wiremock.verify(
             1,
             postRequestedFor(urlPathEqualTo("/team"))
-                .withHeader(CONTENT_LENGTH, new EqualToPattern("" + REQUEST_BODY_LENGTH))
-                .withRequestBody(new EqualToPattern(REQUEST_BODY))
+                .withHeader(TRANSFER_ENCODING, new EqualToPattern("chunked"))
+                .withRequestBody(new EqualToPattern(REQUEST_BODY.trim()))
         );
     }
 
     @Test
     void shouldPropagateRequestHeadersAndRemoveHopHeaders() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
 
         requestHeaders.add("X-Custom", List.of("value1", "value2"));
         HttpConnector.HOP_HEADERS.forEach(header -> requestHeaders.add(header.toString(), "should be removed"));
@@ -393,7 +395,7 @@ class HttpConnectorTest {
     @Test
     void shouldAddOrReplaceRequestHeadersWithConfiguration() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
         sharedConfiguration.setHeaders(List.of(new HttpHeader("X-To-Be-Overriden", "Override"), new HttpHeader("X-To-Be-Added", "Added")));
 
         requestHeaders.add("X-Custom", "value1");
@@ -420,7 +422,7 @@ class HttpConnectorTest {
     @Test
     void shouldOverrideHostWithRequestHostHeader() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
         when(request.originalHost()).thenReturn("localhost:8082");
 
         // Simulated a policy that force the host header to use when calling the backend endpoint.
@@ -447,7 +449,7 @@ class HttpConnectorTest {
     @Test
     void shouldNotOverrideRequestHostHeaderWhenSameAsRequestOriginalHost() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
         when(request.originalHost()).thenReturn("api.gravitee.io");
         when(request.host()).thenReturn("api.gravitee.io");
 
@@ -475,7 +477,7 @@ class HttpConnectorTest {
         requestHeaders = new VertxHttpHeaders(new HeadersMultiMap());
         when(request.headers()).thenReturn(requestHeaders);
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
 
         requestHeaders.add("X-Custom", List.of("value1", "value2"));
         HttpConnector.HOP_HEADERS.forEach(header -> requestHeaders.add(header.toString(), "should be removed"));
@@ -500,7 +502,7 @@ class HttpConnectorTest {
     @Test
     void shouldPropagateResponseHeaders() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
 
         wiremock.stubFor(
             get("/team")
@@ -525,7 +527,7 @@ class HttpConnectorTest {
 
         when(response.headers()).thenReturn(responseHeaders);
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
 
         wiremock.stubFor(
             get("/team")
@@ -561,7 +563,7 @@ class HttpConnectorTest {
         parameters.add("foo2", "bar2");
 
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
         when(request.parameters()).thenReturn(parameters);
 
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
@@ -586,7 +588,7 @@ class HttpConnectorTest {
         parameters.add("foo3", null);
 
         when(request.method()).thenReturn(HttpMethod.GET);
-        when(request.chunks()).thenReturn(Flowable.empty());
+        when(request.body()).thenReturn(Maybe.empty());
         when(request.parameters()).thenReturn(parameters);
 
         configuration.setTarget("http://localhost:" + wiremock.port() + "/team?param1=value1&param2=value2");
