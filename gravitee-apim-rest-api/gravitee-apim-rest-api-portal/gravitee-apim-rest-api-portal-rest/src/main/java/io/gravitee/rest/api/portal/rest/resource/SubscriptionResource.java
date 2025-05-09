@@ -23,10 +23,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
-import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
@@ -45,19 +42,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -106,7 +95,7 @@ public class SubscriptionResource extends AbstractResource {
                     .stream()
                     .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
                     .map(keyMapper::convert)
-                    .collect(Collectors.toList());
+                    .toList();
                 subscription.setKeys(keys);
             }
 
@@ -205,20 +194,37 @@ public class SubscriptionResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        switch (subscriptionConsumerStatus) {
-            case STARTED:
-                {
-                    SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeConsumer(executionContext, subscriptionId);
-                    return Response.ok(updatedSubscriptionEntity).build();
-                }
-            case STOPPED:
-                {
-                    SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pauseConsumer(executionContext, subscriptionId);
-                    return Response.ok(updatedSubscriptionEntity).build();
-                }
-            default:
-                return Response.status(Response.Status.BAD_REQUEST).build();
+        return switch (subscriptionConsumerStatus) {
+            case STARTED -> {
+                SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeConsumer(executionContext, subscriptionId);
+                yield Response.ok(updatedSubscriptionEntity).build();
+            }
+            case STOPPED -> {
+                SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pauseConsumer(executionContext, subscriptionId);
+                yield Response.ok(updatedSubscriptionEntity).build();
+            }
+            default -> Response.status(Response.Status.BAD_REQUEST).build();
+        };
+    }
+
+    @POST
+    @Path("_resumeFailure")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response resumeFailedSubscription(@PathParam("subscriptionId") String subscriptionId) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), UPDATE)) {
+            throw new ForbiddenAccessException();
         }
+
+        if (subscriptionEntity.getConsumerStatus() != SubscriptionConsumerStatus.FAILURE) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeFailed(executionContext, subscriptionId);
+        return Response.ok(updatedSubscriptionEntity).build();
     }
 
     @Path("keys")

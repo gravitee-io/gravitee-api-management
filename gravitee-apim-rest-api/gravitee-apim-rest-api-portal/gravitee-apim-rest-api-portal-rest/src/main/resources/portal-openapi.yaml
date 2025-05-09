@@ -2113,6 +2113,33 @@ paths:
                                 $ref: "#/components/schemas/ErrorResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /subscriptions/{subscriptionId}/_resumeFailure:
+        parameters:
+            -   $ref: "#/components/parameters/subscriptionIdParam"
+        post:
+            tags:
+                - Subscription
+            summary: Resume the failed subscription
+            description: |
+                Resume the failed subscription
+
+                User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
+            operationId: resumeFailedSubscriptionConsumerStatus
+            responses:
+                200:
+                    description: Subscription successfully resumed
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                400:
+                    description: Invalid Request
+                404:
+                    description: Subscription not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /subscriptions/{subscriptionId}/keys/_renew:
         parameters:
             - $ref: "#/components/parameters/subscriptionIdParam"
