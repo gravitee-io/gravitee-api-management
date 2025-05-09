@@ -18,15 +18,24 @@ package io.gravitee.rest.api.model.notification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.AccessLevel;
-import lombok.Data;
+import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
 public class PortalNotificationConfigEntity {
 
     @JsonProperty("config_type")
@@ -46,4 +55,23 @@ public class PortalNotificationConfigEntity {
     private List<String> hooks;
 
     private List<String> groups;
+
+    private String orgId;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PortalNotificationConfigEntity)) return false;
+        PortalNotificationConfigEntity that = (PortalNotificationConfigEntity) o;
+        return (
+            Objects.equals(referenceType, that.referenceType) &&
+            Objects.equals(referenceId, that.referenceId) &&
+            Objects.equals(user, that.user)
+        );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user);
+    }
 }

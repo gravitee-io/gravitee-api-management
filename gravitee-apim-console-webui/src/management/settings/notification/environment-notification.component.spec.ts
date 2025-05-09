@@ -157,7 +157,7 @@ describe('AppNotificationComponent', () => {
       expect(req.request.body).toEqual({
         name: 'New Notification',
         notifier: NOTIFIER_WEBHOOK_ID,
-        referenceType: 'PORTAL',
+        referenceType: 'ENVIRONMENT',
         referenceId: ENVIRONMENT_ID,
         config_type: 'GENERIC',
         hooks: [],
