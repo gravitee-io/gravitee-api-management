@@ -35,8 +35,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -54,7 +54,7 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
     private static final String APPLICATION = "my-application";
     private static final String ANALYTICS_ROOT_FIELD = "application";
 
-    @Before
+    @BeforeEach
     public void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
         reset(analyticsService);

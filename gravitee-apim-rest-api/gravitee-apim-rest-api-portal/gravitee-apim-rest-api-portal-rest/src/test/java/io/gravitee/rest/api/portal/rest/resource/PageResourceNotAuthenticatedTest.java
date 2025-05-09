@@ -29,8 +29,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -51,7 +51,7 @@ public class PageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     private PageEntity mockAnotherPage;
 
-    @Before
+    @BeforeEach
     public void init() {
         resetAllMocks();
 

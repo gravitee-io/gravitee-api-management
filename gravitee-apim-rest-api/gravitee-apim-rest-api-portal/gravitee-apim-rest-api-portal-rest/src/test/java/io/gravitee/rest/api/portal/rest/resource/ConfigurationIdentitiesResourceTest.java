@@ -32,7 +32,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.collections.Sets;
 
 /**

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
@@ -31,11 +30,9 @@ import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -51,7 +48,7 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
         return "apis/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         resetAllMocks();
 

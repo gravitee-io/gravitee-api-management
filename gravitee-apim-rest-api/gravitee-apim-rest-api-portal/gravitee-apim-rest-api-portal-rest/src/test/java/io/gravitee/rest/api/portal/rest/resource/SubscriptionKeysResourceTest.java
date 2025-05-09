@@ -39,9 +39,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -72,7 +71,7 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         return "subscriptions/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         resetAllMocks();
 
