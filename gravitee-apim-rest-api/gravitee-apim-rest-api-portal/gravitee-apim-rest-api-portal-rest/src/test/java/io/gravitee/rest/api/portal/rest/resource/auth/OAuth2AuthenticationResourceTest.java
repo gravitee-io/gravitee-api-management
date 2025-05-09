@@ -16,9 +16,8 @@
 package io.gravitee.rest.api.portal.rest.resource.auth;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static jakarta.ws.rs.client.Entity.form;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -30,9 +29,10 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.rest.api.model.UserEntity;
@@ -48,29 +48,25 @@ import jakarta.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
+class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     private static final String USER_SOURCE_OAUTH2 = "oauth2";
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+    private WireMockServer wireMockServer;
 
     @Override
     protected String contextPath() {
@@ -79,8 +75,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     private SocialIdentityProviderEntity identityProvider = null;
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         identityProvider =
             new SocialIdentityProviderEntity() {
                 @Override
@@ -100,12 +96,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
                 @Override
                 public String getTokenEndpoint() {
-                    return "http://localhost:" + wireMockRule.port() + "/token";
+                    return "http://localhost:" + wireMockServer.port() + "/token";
                 }
 
                 @Override
                 public String getUserInfoEndpoint() {
-                    return "http://localhost:" + wireMockRule.port() + "/userinfo";
+                    return "http://localhost:" + wireMockServer.port() + "/userinfo";
                 }
 
                 @Override
@@ -169,6 +165,17 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         cleanEnvironment();
         cleanRolesGroupMapping();
         reset(userService, groupService, roleService, membershipService);
+
+        wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
+        wireMockServer.start();
+        configureFor("localhost", wireMockServer.port());
+    }
+
+    @Override
+    @AfterEach
+    public void tearDown() throws Exception {
+        super.tearDown();
+        wireMockServer.stop();
     }
 
     private void cleanEnvironment() {
@@ -181,7 +188,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldConnectUser() throws Exception {
+    void shouldConnectUser() throws Exception {
         // -- MOCK
         //mock environment
         mockDefaultEnvironment();
@@ -227,8 +234,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verifyJwtToken(response);
     }
 
-    private void verifyJwtToken(Response response)
-        throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
+    private void verifyJwtToken(Response response) throws JWTVerificationException {
         Token responseToken = response.readEntity(Token.class);
         assertEquals("BEARER", responseToken.getTokenType().name());
 
@@ -239,7 +245,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         DecodedJWT jwt = jwtVerifier.verify(token);
 
-        assertEquals(jwt.getSubject(), "janedoe@example.com");
+        assertEquals("janedoe@example.com", jwt.getSubject());
 
         assertEquals("Jane", jwt.getClaim("firstname").asString());
         assertEquals("gravitee-management-auth", jwt.getClaim("iss").asString());
@@ -249,8 +255,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertEquals("My-organization", jwt.getClaim("org").asString());
     }
 
-    private void verifyJwtTokenIsNotPresent(Response response)
-        throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
+    private void verifyJwtTokenIsNotPresent(Response response) throws JWTVerificationException {
         assertNull(response.getCookies().get(HttpHeaders.AUTHORIZATION));
     }
 
@@ -276,7 +281,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotConnectUserOn401UserInfo() throws Exception {
+    void shouldNotConnectUserOn401UserInfo() throws Exception {
         // -- MOCK
         //mock environment
         mockDefaultEnvironment();
@@ -310,7 +315,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotConnectUserWhenMissingMailInUserInfo() throws Exception {
+    void shouldNotConnectUserWhenMissingMailInUserInfo() throws Exception {
         // -- MOCK
         //mock environment
         mockWrongEnvironment();
@@ -346,8 +351,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertFalse(response.getCookies().containsKey(HttpHeaders.AUTHORIZATION));
     }
 
-    private void mockUserInfo(ResponseDefinitionBuilder responseDefinitionBuilder) throws IOException {
-        stubFor(
+    private void mockUserInfo(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        wireMockServer.stubFor(
             get("/userinfo")
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer 2YotnFZFEjr1zCsicMWpAA"))
@@ -365,7 +370,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             "client_id=the_client_id&" +
             "code_verifier=";
 
-        stubFor(
+        wireMockServer.stubFor(
             post("/token")
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
                 .withRequestBody(equalTo(tokenRequestBody))
@@ -388,12 +393,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         identityProvider.getUserProfileMapping().put(SocialIdentityProviderEntity.UserProfile.ID, "theEmail");
     }
 
-    private InputStream read(String resource) throws IOException {
+    private InputStream read(String resource) {
         return this.getClass().getResourceAsStream(resource);
     }
 
     @Test
-    public void shouldNotConnectNewUserWhenWrongELGroupsMapping() throws Exception {
+    void shouldNotConnectNewUserWhenWrongELGroupsMapping() throws Exception {
         // -- MOCK
         //mock environment
         mockDefaultEnvironment();

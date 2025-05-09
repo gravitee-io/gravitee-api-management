@@ -30,12 +30,11 @@ import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import io.gravitee.rest.api.portal.rest.model.PagesResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,8 +46,8 @@ public class PagesResourceTest extends AbstractResourceTest {
         return "pages";
     }
 
-    @Before
-    public void init() throws IOException {
+    @BeforeEach
+    void init() {
         resetAllMocks();
 
         doReturn(new Page()).when(pageMapper).convert(any());
@@ -56,7 +55,7 @@ public class PagesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetPagesIfAuthorizeAndPublishedPageAndNotSystemFolder() {
+    void shouldGetPagesIfAuthorizeAndPublishedPageAndNotSystemFolder() {
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);
         PageEntity markdownTemplatePage = new PageEntity();

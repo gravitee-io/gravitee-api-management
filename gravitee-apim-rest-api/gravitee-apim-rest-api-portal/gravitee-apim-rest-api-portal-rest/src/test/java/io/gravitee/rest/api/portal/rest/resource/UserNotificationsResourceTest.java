@@ -32,8 +32,8 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -47,7 +47,7 @@ public class UserNotificationsResourceTest extends AbstractResourceTest {
         return "user";
     }
 
-    @Before
+    @BeforeEach
     public void init() throws IOException, URISyntaxException {
         resetAllMocks();
 

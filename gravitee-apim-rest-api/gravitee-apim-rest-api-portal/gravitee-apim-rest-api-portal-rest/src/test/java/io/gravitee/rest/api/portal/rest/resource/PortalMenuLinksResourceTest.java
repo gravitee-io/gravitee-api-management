@@ -15,27 +15,21 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalMenuLinkFixtures;
 import inmemory.PortalMenuLinkCrudServiceInMemory;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink;
 import io.gravitee.apim.core.portal_menu_link.model.PortalMenuLinkVisibility;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.portal.rest.mapper.PortalMenuLinkMapper;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class PortalMenuLinksResourceTest extends AbstractResourceTest {
 
@@ -49,12 +43,12 @@ public class PortalMenuLinksResourceTest extends AbstractResourceTest {
         return "portal-menu-links";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
