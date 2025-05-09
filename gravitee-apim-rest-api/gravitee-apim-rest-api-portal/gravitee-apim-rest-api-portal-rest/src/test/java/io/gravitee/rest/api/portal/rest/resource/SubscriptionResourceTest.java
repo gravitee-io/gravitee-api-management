@@ -16,10 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static jakarta.ws.rs.client.Entity.json;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -27,12 +24,8 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Key;
-import io.gravitee.rest.api.portal.rest.model.Subscription;
-import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
-import io.gravitee.rest.api.portal.rest.model.UpdateSubscriptionInput;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.ws.rs.core.Response;
@@ -40,6 +33,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 
 /**
@@ -71,13 +66,13 @@ class SubscriptionResourceTest extends AbstractResourceTest {
         subscriptionEntity.setPlan(PLAN);
         subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
 
-        doReturn(subscriptionEntity).when(subscriptionService).findById(SUBSCRIPTION);
-        doThrow(SubscriptionNotFoundException.class).when(subscriptionService).findById(UNKNOWN_SUBSCRIPTION);
+        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
+        when(subscriptionService.findById(UNKNOWN_SUBSCRIPTION)).thenThrow(new SubscriptionNotFoundException(SUBSCRIPTION));
 
-        doReturn(List.of(new ApiKeyEntity())).when(apiKeyService).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION);
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION)).thenReturn(List.of(new ApiKeyEntity()));
 
-        doReturn(new Key()).when(keyMapper).convert(any(ApiKeyEntity.class));
-        doReturn(true).when(permissionService).hasPermission(any(), any(), any(), any());
+        when(keyMapper.convert(any(ApiKeyEntity.class))).thenReturn(new Key());
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Nested
@@ -97,97 +92,107 @@ class SubscriptionResourceTest extends AbstractResourceTest {
         void testPermissionsForGettingASubscription() {
             reset(permissionService);
 
-            doReturn(true)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_SUBSCRIPTION),
-                    eq(API),
-                    eq(RolePermissionAction.READ)
-                );
-            doReturn(true)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                    eq(APPLICATION),
-                    eq(RolePermissionAction.READ)
-                );
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_SUBSCRIPTION,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(true);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.APPLICATION_SUBSCRIPTION,
+                    APPLICATION,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(true);
             assertEquals(HttpStatusCode.OK_200, target(SUBSCRIPTION).request().get().getStatus());
 
-            doReturn(true)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_SUBSCRIPTION),
-                    eq(API),
-                    eq(RolePermissionAction.READ)
-                );
-            doReturn(false)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                    eq(APPLICATION),
-                    eq(RolePermissionAction.READ)
-                );
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_SUBSCRIPTION,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(true);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.APPLICATION_SUBSCRIPTION,
+                    APPLICATION,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
             assertEquals(HttpStatusCode.OK_200, target(SUBSCRIPTION).request().get().getStatus());
 
-            doReturn(false)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_SUBSCRIPTION),
-                    eq(API),
-                    eq(RolePermissionAction.READ)
-                );
-            doReturn(true)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                    eq(APPLICATION),
-                    eq(RolePermissionAction.READ)
-                );
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_SUBSCRIPTION,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.APPLICATION_SUBSCRIPTION,
+                    APPLICATION,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(true);
             assertEquals(HttpStatusCode.OK_200, target(SUBSCRIPTION).request().get().getStatus());
 
-            doReturn(false)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_SUBSCRIPTION),
-                    eq(API),
-                    eq(RolePermissionAction.READ)
-                );
-            doReturn(false)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                    eq(APPLICATION),
-                    eq(RolePermissionAction.READ)
-                );
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_SUBSCRIPTION,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.APPLICATION_SUBSCRIPTION,
+                    APPLICATION,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
             assertEquals(HttpStatusCode.FORBIDDEN_403, target(SUBSCRIPTION).request().get().getStatus());
         }
 
         @Test
         void shouldGetSubscriptionWithKeys() {
-            doReturn(true)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_SUBSCRIPTION),
-                    eq(API),
-                    eq(RolePermissionAction.READ)
-                );
-            doReturn(true)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                    eq(APPLICATION),
-                    eq(RolePermissionAction.READ)
-                );
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_SUBSCRIPTION,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(true);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.APPLICATION_SUBSCRIPTION,
+                    APPLICATION,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(true);
 
             final Response response = target(SUBSCRIPTION).queryParam("include", "keys").request().get();
             assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -200,22 +205,24 @@ class SubscriptionResourceTest extends AbstractResourceTest {
 
         @Test
         void shouldGetSubscriptionWithConsumerStatus() {
-            doReturn(true)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_SUBSCRIPTION),
-                    eq(API),
-                    eq(RolePermissionAction.READ)
-                );
-            doReturn(true)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                    eq(APPLICATION),
-                    eq(RolePermissionAction.READ)
-                );
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_SUBSCRIPTION,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(true);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.APPLICATION_SUBSCRIPTION,
+                    APPLICATION,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(true);
 
             SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
             subscriptionConfigurationEntity.setEntrypointId("entrypointId");
@@ -248,17 +255,18 @@ class SubscriptionResourceTest extends AbstractResourceTest {
     class CloseSubscription {
 
         @Test
-        public void testPermissionsForClosingASubscription() {
+        void testPermissionsForClosingASubscription() {
             reset(permissionService);
 
-            doReturn(false)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                    eq(APPLICATION),
-                    eq(RolePermissionAction.DELETE)
-                );
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.APPLICATION_SUBSCRIPTION,
+                    APPLICATION,
+                    RolePermissionAction.DELETE
+                )
+            )
+                .thenReturn(false);
             assertEquals(HttpStatusCode.FORBIDDEN_403, target(SUBSCRIPTION).path("_close").request().post(null).getStatus());
         }
     }
@@ -278,7 +286,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
 
         @Test
         void shouldNotUpdateSubscriptionConfigurationCauseInsufficientPermissions() {
-            doReturn(false).when(permissionService).hasPermission(any(), any(), any(), any());
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
             SubscriptionConfigurationInput subscriptionConfigurationInput = new SubscriptionConfigurationInput();
             Response response = target(SUBSCRIPTION).request().put(json(subscriptionConfigurationInput));
@@ -295,7 +303,6 @@ class SubscriptionResourceTest extends AbstractResourceTest {
             subscriptionConfigurationInput.setEntrypointConfiguration("{\"url\":\"my-url\"}");
             updateSubscriptionInput.setConfiguration(subscriptionConfigurationInput);
 
-            SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
             SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
             subscriptionConfigurationEntity.setEntrypointConfiguration("{\"url\":\"my-url\"}");
             subscriptionEntity.setConfiguration(subscriptionConfigurationEntity);
@@ -325,7 +332,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
             Response response = target(SUBSCRIPTION).path("_changeConsumerStatus").queryParam("status", "STOPPED").request().post(null);
 
             assertEquals(200, response.getStatus());
-            verify(subscriptionService, times(1)).pauseConsumer(eq(GraviteeContext.getExecutionContext()), eq(subscriptionEntity.getId()));
+            verify(subscriptionService, times(1)).pauseConsumer(GraviteeContext.getExecutionContext(), subscriptionEntity.getId());
         }
 
         @Test
@@ -333,7 +340,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
             Response response = target(SUBSCRIPTION).path("_changeConsumerStatus").queryParam("status", "STARTED").request().post(null);
 
             assertEquals(200, response.getStatus());
-            verify(subscriptionService, times(1)).resumeConsumer(eq(GraviteeContext.getExecutionContext()), eq(subscriptionEntity.getId()));
+            verify(subscriptionService, times(1)).resumeConsumer(GraviteeContext.getExecutionContext(), subscriptionEntity.getId());
         }
 
         @Test
@@ -341,25 +348,64 @@ class SubscriptionResourceTest extends AbstractResourceTest {
             Response response = target(SUBSCRIPTION).path("_changeConsumerStatus").queryParam("status", "INVALID").request().post(null);
 
             assertEquals(400, response.getStatus());
-            verify(subscriptionService, times(0)).pauseConsumer(eq(GraviteeContext.getExecutionContext()), eq(subscriptionEntity.getId()));
-            verify(subscriptionService, times(0)).resumeConsumer(eq(GraviteeContext.getExecutionContext()), eq(subscriptionEntity.getId()));
+            verify(subscriptionService, times(0)).pauseConsumer(GraviteeContext.getExecutionContext(), subscriptionEntity.getId());
+            verify(subscriptionService, times(0)).resumeConsumer(GraviteeContext.getExecutionContext(), subscriptionEntity.getId());
         }
 
         @Test
         void shouldBeForbiddenWhenUpdatingConsumerStatus() {
             reset(permissionService);
 
-            doReturn(false)
-                .when(permissionService)
-                .hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                    eq(APPLICATION),
-                    eq(RolePermissionAction.UPDATE)
-                );
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.APPLICATION_SUBSCRIPTION,
+                    APPLICATION,
+                    RolePermissionAction.UPDATE
+                )
+            )
+                .thenReturn(false);
             Response response = target(SUBSCRIPTION).path("_changeConsumerStatus").queryParam("status", "STOPPED").request().post(null);
 
             assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        }
+    }
+
+    @Nested
+    class ResumeFailedSubscription {
+
+        @Test
+        void shouldReturn403IfIncorrectPermission() {
+            reset(permissionService);
+
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.APPLICATION_SUBSCRIPTION,
+                    APPLICATION,
+                    RolePermissionAction.UPDATE
+                )
+            )
+                .thenReturn(false);
+            assertEquals(HttpStatusCode.FORBIDDEN_403, target(SUBSCRIPTION).path("_resumeFailure").request().post(null).getStatus());
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = SubscriptionConsumerStatus.class, names = { "STARTED", "STOPPED" })
+        void shouldReturnBadRequestIfTryingAWrongConsumerStatus(SubscriptionConsumerStatus status) {
+            subscriptionEntity.setConsumerStatus(status);
+            Response response = target(SUBSCRIPTION).path("_resumeFailure").request().post(null);
+
+            assertEquals(400, response.getStatus());
+        }
+
+        @Test
+        void shouldResumeFailedSubscription() {
+            subscriptionEntity.setConsumerStatus(SubscriptionConsumerStatus.FAILURE);
+            Response response = target(SUBSCRIPTION).path("_resumeFailure").request().post(null);
+
+            verify(subscriptionService, times(1)).resumeFailed(GraviteeContext.getExecutionContext(), subscriptionEntity.getId());
+            assertEquals(200, response.getStatus());
         }
     }
 }
