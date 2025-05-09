@@ -17,8 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.mockito.Mockito.reset;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
@@ -40,7 +38,6 @@ import io.gravitee.rest.api.portal.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
-import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -308,19 +305,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected AccessControlService accessControlService;
 
     @Autowired
-    private AuthoritiesProvider authoritiesProvider;
-
-    @Autowired
     protected ThemeService themeService;
 
     @Autowired
     protected ThemeMapper themeMapper;
-
-    @Autowired
-    protected ObjectMapper objectMapper;
-
-    @Autowired
-    protected CategoryDomainService categoryDomainService;
 
     @Autowired
     protected EndpointConnectorPluginService endpointConnectorPluginService;
