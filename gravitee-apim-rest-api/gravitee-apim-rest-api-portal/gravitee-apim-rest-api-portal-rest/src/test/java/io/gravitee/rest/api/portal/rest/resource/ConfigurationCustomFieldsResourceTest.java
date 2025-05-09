@@ -27,7 +27,7 @@ import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -47,9 +47,7 @@ public class ConfigurationCustomFieldsResourceTest extends AbstractResourceTest 
         customUserFieldEntity.setLabel("label 1");
         customUserFieldEntity.setRequired(true);
         customUserFieldEntity.setValues(Arrays.asList("a", "b"));
-        doReturn(Arrays.asList(customUserFieldEntity))
-            .when(customUserFieldService)
-            .listAllFields(eq(GraviteeContext.getExecutionContext()));
+        doReturn(List.of(customUserFieldEntity)).when(customUserFieldService).listAllFields(eq(GraviteeContext.getExecutionContext()));
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

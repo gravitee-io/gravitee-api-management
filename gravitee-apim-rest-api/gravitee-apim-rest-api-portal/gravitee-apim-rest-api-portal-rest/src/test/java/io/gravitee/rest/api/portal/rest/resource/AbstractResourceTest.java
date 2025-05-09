@@ -17,8 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.mockito.Mockito.reset;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
@@ -40,7 +38,6 @@ import io.gravitee.rest.api.portal.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
-import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -99,18 +96,18 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ResourceContextConfiguration.class })
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
@@ -308,19 +305,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected AccessControlService accessControlService;
 
     @Autowired
-    private AuthoritiesProvider authoritiesProvider;
-
-    @Autowired
     protected ThemeService themeService;
 
     @Autowired
     protected ThemeMapper themeMapper;
-
-    @Autowired
-    protected ObjectMapper objectMapper;
-
-    @Autowired
-    protected CategoryDomainService categoryDomainService;
 
     @Autowired
     protected EndpointConnectorPluginService endpointConnectorPluginService;

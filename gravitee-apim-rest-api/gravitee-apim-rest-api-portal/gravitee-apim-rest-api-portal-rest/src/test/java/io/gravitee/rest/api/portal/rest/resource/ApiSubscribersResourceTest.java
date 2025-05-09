@@ -40,8 +40,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -57,7 +57,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         return "apis/";
     }
 
-    @Before
+    @BeforeEach
     public void init() throws IOException {
         resetAllMocks();
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);

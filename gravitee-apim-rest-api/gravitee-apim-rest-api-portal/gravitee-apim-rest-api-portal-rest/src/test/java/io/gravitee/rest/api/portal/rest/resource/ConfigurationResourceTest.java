@@ -39,7 +39,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 

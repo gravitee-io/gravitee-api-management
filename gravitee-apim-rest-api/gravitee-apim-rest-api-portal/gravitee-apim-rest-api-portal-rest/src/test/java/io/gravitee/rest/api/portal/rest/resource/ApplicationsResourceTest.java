@@ -38,8 +38,8 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -56,7 +56,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         return "applications";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         resetAllMocks();
 

@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -55,16 +55,9 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +67,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author GraviteeSource Team
  */
 public class ApplicationLogsResourceTest extends AbstractResourceTest {
+
+    private static Locale defaultLocale;
 
     @Override
     protected String contextPath() {
@@ -125,7 +120,18 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
     private Map<String, Map<String, String>> metadata;
     private SearchLogResponse<ApplicationRequestItem> searchResponse;
 
-    @Before
+    @BeforeAll
+    static void beforeAll() {
+        defaultLocale = Locale.getDefault();
+        Locale.setDefault(Locale.US);
+    }
+
+    @AfterAll
+    static void afterAll() {
+        Locale.setDefault(defaultLocale);
+    }
+
+    @BeforeEach
     public void init() {
         resetAllMocks();
 
@@ -151,7 +157,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         planCrudServiceInMemory.initWith(List.of(PLAN_1, PLAN_2));
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         Stream
             .of(

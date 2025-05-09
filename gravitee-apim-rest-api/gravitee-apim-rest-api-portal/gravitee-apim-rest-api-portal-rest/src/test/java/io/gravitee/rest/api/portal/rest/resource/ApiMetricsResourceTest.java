@@ -17,9 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -43,14 +41,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiMetricsResourceTest extends AbstractResourceTest {
+class ApiMetricsResourceTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
     private static final Float API_NB_HITS = Float.valueOf(150000);
@@ -61,8 +59,8 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
         return "apis/";
     }
 
-    @Before
-    public void init() throws IOException {
+    @BeforeEach
+    void init() throws IOException {
         resetAllMocks();
 
         ApiEntity mockApi = new ApiEntity();
@@ -73,7 +71,7 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotFoundApiWhileGettingApiMetrics() {
+    void shouldNotFoundApiWhileGettingApiMetrics() {
         when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
 
         final Response response = target(API).path("metrics").request().get();
@@ -83,7 +81,7 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        Error error = errors.get(0);
+        Error error = errors.getFirst();
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
@@ -91,7 +89,7 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetApiMetrics() {
+    void shouldGetApiMetrics() {
         StatsAnalytics mockAnalytics = new StatsAnalytics();
         mockAnalytics.setCount(API_NB_HITS);
         doReturn(mockAnalytics).when(analyticsService).execute(any(ExecutionContext.class), any(StatsQuery.class));
@@ -132,7 +130,7 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetEmptyApiMetrics() {
+    void shouldGetEmptyApiMetrics() {
         // Case 1
         doReturn(null).when(analyticsService).execute(any(ExecutionContext.class), any(StatsQuery.class));
         doReturn(null).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());

@@ -41,8 +41,8 @@ import java.util.Date;
 import java.util.List;
 import org.apache.http.client.utils.DateUtils;
 import org.eclipse.jetty.http.HttpHeader;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -64,7 +64,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     private InlinePictureEntity mockImage;
     private byte[] applicationLogoContent;
 
-    @Before
+    @BeforeEach
     public void init() throws IOException, URISyntaxException {
         resetAllMocks();
 

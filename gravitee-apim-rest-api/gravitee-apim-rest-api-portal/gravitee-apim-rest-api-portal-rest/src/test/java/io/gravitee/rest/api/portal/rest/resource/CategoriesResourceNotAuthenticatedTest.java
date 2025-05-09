@@ -26,8 +26,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -45,7 +45,7 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
         resourceConfig.register(NotAuthenticatedAuthenticationFilter.class);
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         resetAllMocks();
 

@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.portal.rest.resource.v4;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -26,26 +26,26 @@ import io.gravitee.rest.api.portal.rest.model.ConnectorsResponse;
 import io.gravitee.rest.api.portal.rest.resource.AbstractResourceTest;
 import jakarta.ws.rs.core.Response;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
  */
-public class EndpointsResourceTest extends AbstractResourceTest {
+class EndpointsResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
         return "endpoints";
     }
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
     @Test
-    public void should_empty_list_of_endpoints() {
+    void should_empty_list_of_endpoints() {
         when(endpointConnectorPluginService.findAll()).thenReturn(Set.of());
         final Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
@@ -56,7 +56,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_list_of_endpoints() {
+    void should_list_of_endpoints() {
         when(endpointConnectorPluginService.findAll()).thenReturn(Set.of(ConnectorPluginEntity.builder().id("mock").name("Mock").build()));
         final Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());

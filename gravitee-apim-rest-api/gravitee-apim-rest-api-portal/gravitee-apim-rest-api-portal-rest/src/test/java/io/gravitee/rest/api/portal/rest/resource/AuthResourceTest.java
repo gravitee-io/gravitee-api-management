@@ -27,7 +27,6 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.portal.rest.model.Token;
-import io.gravitee.rest.api.portal.rest.model.Token.TokenTypeEnum;
 import jakarta.servlet.http.Cookie;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -36,8 +35,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Collections;
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,7 +52,7 @@ public class AuthResourceTest extends AbstractResourceTest {
         return "auth";
     }
 
-    @AfterClass
+    @AfterAll
     public static void afterClass() {
         // Clean up Spring security context.
         SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_THREADLOCAL);

@@ -34,8 +34,8 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Collections;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -51,7 +51,7 @@ public class UsersResourceTest extends AbstractResourceTest {
 
     private SearchableUser searchableUser;
 
-    @Before
+    @BeforeEach
     public void init() {
         resetAllMocks();
 

@@ -20,14 +20,13 @@ import static org.junit.Assert.assertEquals;
 
 import io.gravitee.rest.api.portal.rest.model.Info;
 import jakarta.ws.rs.core.Response;
-import java.io.IOException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class InfoResourceTest extends AbstractResourceTest {
+class InfoResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
@@ -35,7 +34,7 @@ public class InfoResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetInfo() throws IOException {
+    void shouldGetInfo() {
         final Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
 

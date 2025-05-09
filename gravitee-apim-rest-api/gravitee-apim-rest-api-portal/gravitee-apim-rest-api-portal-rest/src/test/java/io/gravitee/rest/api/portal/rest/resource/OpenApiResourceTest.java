@@ -21,9 +21,8 @@ import static org.junit.Assert.assertEquals;
 import io.gravitee.common.http.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import java.io.IOException;
 import org.eclipse.jetty.http.HttpHeader;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -37,7 +36,7 @@ public class OpenApiResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetOpenApiSpecification() throws IOException {
+    public void shouldGetOpenApiSpecification() {
         final Response response = root().path("openapi").request().get();
         assertEquals(OK_200, response.getStatus());
 

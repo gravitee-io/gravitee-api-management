@@ -24,25 +24,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PaginationFilteringTest {
+class PaginationFilteringTest {
 
     AbstractResource paginatedResourceForTest = new AbstractResource() {};
     List<Integer> initList = Collections.emptyList();
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         initList.clear();
     }
 
     @Test
-    public void testPaginatedList() {
+    void testPaginatedList() {
         Integer page = 3;
         Integer size = 10;
         Integer totalItems = 100;
@@ -67,7 +67,7 @@ public class PaginationFilteringTest {
     }
 
     @Test
-    public void testShortList() {
+    void testShortList() {
         Integer page = 1;
         Integer size = 10;
         Integer totalItems = 8;
@@ -91,7 +91,7 @@ public class PaginationFilteringTest {
         assertFalse(initList == resultList);
     }
 
-    @Test(expected = PaginationInvalidException.class)
+    @Test
     public void shouldHaveBadRequestExceptionPageGreaterThanMaxPage() {
         Integer page = 20;
         Integer size = 10;
@@ -100,10 +100,13 @@ public class PaginationFilteringTest {
         initList = initIntegerList(totalItems);
         Map<String, Object> paginatedMetadata = new HashMap<>();
 
-        paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
+        assertThrows(
+            PaginationInvalidException.class,
+            () -> paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata)
+        );
     }
 
-    @Test(expected = PaginationInvalidException.class)
+    @Test
     public void shouldHaveBadRequestExceptionPageSmallThanMinPage() {
         Integer page = 0;
         Integer size = 10;
@@ -112,7 +115,10 @@ public class PaginationFilteringTest {
         initList = initIntegerList(totalItems);
         Map<String, Object> paginatedMetadata = new HashMap<>();
 
-        paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
+        assertThrows(
+            PaginationInvalidException.class,
+            () -> paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata)
+        );
     }
 
     private List<Integer> initIntegerList(int n) {

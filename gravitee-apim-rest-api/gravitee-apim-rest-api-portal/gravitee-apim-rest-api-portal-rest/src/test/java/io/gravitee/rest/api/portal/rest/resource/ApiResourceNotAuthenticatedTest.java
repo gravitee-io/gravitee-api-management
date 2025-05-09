@@ -37,8 +37,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -58,7 +58,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         resourceConfig.register(NotAuthenticatedAuthenticationFilter.class);
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         resetAllMocks();
 

@@ -56,8 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +88,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         return "apis";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         resetAllMocks();
         prepareInMemoryServices();
