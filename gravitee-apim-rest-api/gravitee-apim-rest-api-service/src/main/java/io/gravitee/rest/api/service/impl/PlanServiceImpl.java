@@ -17,12 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DELETED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DEPRECATED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLISHED;
-import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDATED;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,62 +27,26 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.BasePlanEntity;
-import io.gravitee.rest.api.model.NewPlanEntity;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanSecurityEntity;
-import io.gravitee.rest.api.model.PlanSecurityType;
-import io.gravitee.rest.api.model.PlansConfigurationEntity;
-import io.gravitee.rest.api.model.UpdatePlanEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
-import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
-import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
-import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
-import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
-import io.gravitee.rest.api.service.exceptions.PlanFlowRequiredException;
-import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
-import io.gravitee.rest.api.service.exceptions.PlanWithSubscriptionsException;
-import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
+import io.gravitee.rest.api.service.v4.EntityConversionService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import jakarta.ws.rs.BadRequestException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,6 +116,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     @Autowired
     private GroupService groupService;
 
+    @Autowired
+    private EntityConversionService entityConversionService;
+
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
         return (PlanEntity) planSearchService.findById(executionContext, plan);
@@ -164,7 +126,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Override
     public Set<PlanEntity> findByApi(final ExecutionContext executionContext, final String api) {
-        return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
+        return planSearchService
+            .findByApi(executionContext, api)
+            .stream()
+            .map(entityConversionService::convertV4ToPlanEntity)
+            .collect(Collectors.toSet());
     }
 
     @Override
