@@ -16,9 +16,13 @@
 package io.gravitee.repository.mongodb.management;
 
 import static io.gravitee.repository.mongodb.utils.CollectionUtils.stream;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.api.search.GroupCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.mongodb.management.internal.group.GroupMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
@@ -31,11 +35,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.LookupOperation;
-import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -123,6 +131,28 @@ public class MongoGroupRepository implements GroupRepository {
     }
 
     @Override
+    public Page<Group> search(GroupCriteria groupCriteria, Pageable pageable) {
+        Query query = new Query();
+        if (StringUtils.hasText(groupCriteria.getEnvironmentId())) {
+            query.addCriteria(where("environmentId").is(groupCriteria.getEnvironmentId()));
+        }
+        if (!CollectionUtils.isEmpty(groupCriteria.getIdIn())) {
+            query.addCriteria(where("id").in(groupCriteria.getIdIn()));
+        }
+        if (StringUtils.hasText(groupCriteria.getQuery())) {
+            query.addCriteria(where("name").regex(groupCriteria.getQuery(), "i"));
+        }
+        org.springframework.data.domain.Pageable dbPageable = PageRequest.of(
+            pageable.pageNumber(),
+            pageable.pageSize(),
+            Sort.by(Sort.Order.asc("name"))
+        );
+        long total = mongoTemplate.count(Query.of(query), GroupMongo.class);
+        List<Group> groups = mongoTemplate.find(query.with(dbPageable), GroupMongo.class).stream().map(mapper::map).toList();
+        return new Page<>(groups, pageable.pageNumber(), pageable.pageSize(), total);
+    }
+
+    @Override
     public Set<Group> findAllByEnvironment(String environmentId) throws TechnicalException {
         logger.debug("Find all groups by environment");
         Set<Group> all = internalRepository.findByEnvironmentId(environmentId).stream().map(this::map).collect(Collectors.toSet());
@@ -156,7 +186,7 @@ public class MongoGroupRepository implements GroupRepository {
 
         Aggregation aggregation = Aggregation.newAggregation(
             lookupOperation,
-            Aggregation.match(Criteria.where("environment.organizationId").is(organizationId))
+            Aggregation.match(where("environment.organizationId").is(organizationId))
         );
 
         Set<Group> groups = mongoTemplate
