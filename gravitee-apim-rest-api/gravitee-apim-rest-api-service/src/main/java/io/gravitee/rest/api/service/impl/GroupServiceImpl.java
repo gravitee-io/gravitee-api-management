@@ -33,6 +33,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.GroupCriteria;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.AccessControl;
 import io.gravitee.repository.management.model.Api;
@@ -60,6 +61,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
@@ -215,6 +217,43 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.error("An error occurs while trying to find all groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
         }
+    }
+
+    @Override
+    public io.gravitee.common.data.domain.Page<GroupEntity> search(ExecutionContext executionContext, Pageable pageable, String query) {
+        String environmentId = executionContext.getEnvironmentId();
+        GroupCriteria.GroupCriteriaBuilder groupCriteriaBuilder = GroupCriteria.builder().environmentId(environmentId).query(query);
+        if (
+            !permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        ) {
+            Optional<RoleEntity> optGroupAdminSystemRole = roleService.findByScopeAndName(
+                RoleScope.GROUP,
+                SystemRole.ADMIN.name(),
+                executionContext.getOrganizationId()
+            );
+            if (optGroupAdminSystemRole.isPresent()) {
+                Set<String> groupIds = membershipService
+                    .getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.USER,
+                        getAuthenticatedUsername(),
+                        MembershipReferenceType.GROUP,
+                        optGroupAdminSystemRole.get().getId()
+                    )
+                    .stream()
+                    .map(MembershipEntity::getReferenceId)
+                    .collect(Collectors.toSet());
+                groupCriteriaBuilder.idIn(groupIds);
+            }
+        }
+        io.gravitee.common.data.domain.Page<Group> groups = groupRepository.search(groupCriteriaBuilder.build(), convert(pageable));
+        return groups.map(this::map);
     }
 
     @Override
@@ -921,7 +960,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         return entity;
     }
 
-    private GroupEntity map(Group group) {
+    GroupEntity map(Group group) {
         return map(null, group);
     }
 

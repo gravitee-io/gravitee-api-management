@@ -18,6 +18,11 @@
 <div class="gv-forms" layout="column">
   <div class="gv-form">
     <div class="gv-form-content" layout="column">
+      <md-input-container class="md-block" flex-gt-sm flex="20">
+        <label>Search</label>
+        <input ng-model="$ctrl.searchTerm" ng-change="$ctrl.loadGroups()" />
+      </md-input-container>
+
       <md-table-container ng-if="$ctrl.groups.length > 0">
         <table md-table ng-init="orderGrp = 'name'" class="gv-table-dense">
           <thead md-head md-order="orderGrp">
@@ -60,6 +65,15 @@
           </tbody>
         </table>
       </md-table-container>
+
+      <md-table-pagination
+        md-limit="$ctrl.page.per_page"
+        md-limit-options="[5, 10, 15, 20, 30, 50, 100]"
+        md-page="$ctrl.page.current"
+        md-total="{{$ctrl.page.total_elements}}"
+        md-on-paginate="$ctrl.loadGroups"
+      >
+      </md-table-pagination>
 
       <gravitee-empty-state
         ng-if="$ctrl.groups.length == 0"
