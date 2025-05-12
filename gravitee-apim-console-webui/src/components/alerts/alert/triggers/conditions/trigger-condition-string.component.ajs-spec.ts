@@ -114,4 +114,29 @@ describe('AlertTriggerConditionStringComponent', () => {
       });
     });
   });
+
+  /* This `describe` block is testing the `onSearch` method of the `AlertTriggerConditionStringComponent`. */
+  describe('onSearch', () => {
+    beforeEach(() => {
+      alertTriggerConditionStringComponent.values = [{ value: 'default' }, { value: 'env' }, { value: 'org' }];
+    });
+
+    it('should show all values when searchTerm is empty', () => {
+      alertTriggerConditionStringComponent.searchTerm = '';
+      alertTriggerConditionStringComponent.onSearch();
+      expect(alertTriggerConditionStringComponent.filteredValues).toEqual(alertTriggerConditionStringComponent.values);
+    });
+
+    it('should filter values by searchTerm (case-insensitive)', () => {
+      alertTriggerConditionStringComponent.searchTerm = 'def';
+      alertTriggerConditionStringComponent.onSearch();
+      expect(alertTriggerConditionStringComponent.filteredValues).toEqual([{ value: 'default' }]);
+    });
+
+    it('should return no results if searchTerm does not match', () => {
+      alertTriggerConditionStringComponent.searchTerm = 'zzz';
+      alertTriggerConditionStringComponent.onSearch();
+      expect(alertTriggerConditionStringComponent.filteredValues).toEqual([]);
+    });
+  });
 });
