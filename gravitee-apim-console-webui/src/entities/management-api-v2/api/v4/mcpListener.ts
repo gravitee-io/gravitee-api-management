@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * Listener type.
- */
-export type ListenerType = 'HTTP' | 'SUBSCRIPTION' | 'TCP' | 'KAFKA' | 'MCP';
+import { BaseListener } from './baseListener';
+
+export interface McpListener extends BaseListener {}
