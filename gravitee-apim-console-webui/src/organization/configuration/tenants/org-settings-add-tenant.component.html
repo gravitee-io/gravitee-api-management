@@ -27,8 +27,8 @@
       <mat-form-field>
         <mat-label>Name</mat-label>
         <input matInput formControlName="name" required data-testid="tenant-name" />
-        <mat-hint align="end">{{ tenantForm.get('name').value?.length ?? 0 }}/30</mat-hint>
-        <mat-error *ngIf="tenantForm.get('name').hasError('maxlength')">Name has to be less than 30 characters long.</mat-error>
+        <mat-hint align="end">{{ tenantForm.get('name').value?.length ?? 0 }}/40</mat-hint>
+        <mat-error *ngIf="tenantForm.get('name').hasError('maxlength')">Name has to be less than 40 characters long.</mat-error>
         <mat-error *ngIf="tenantForm.get('name').hasError('minlength')">Name has to be more than 2 characters long.</mat-error>
         <mat-error *ngIf="tenantForm.get('name').hasError('required')">Name is required.</mat-error>
       </mat-form-field>

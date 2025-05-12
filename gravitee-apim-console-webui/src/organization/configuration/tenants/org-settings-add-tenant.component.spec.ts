@@ -129,5 +129,16 @@ describe('GioConfirmDialogComponent', () => {
         description: 'Internal tenant',
       });
     });
+    it('should disable submit if name exceeds 40 characters', async () => {
+      fixture.detectChanges();
+      const submitButton = await loader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      // 41-character string
+      const longName = 'A'.repeat(41);
+      await nameInput.setValue(longName);
+      expect(await submitButton.isDisabled()).toBeTruthy();
+      expect(component.tenantForm.controls['name'].valid).toBeFalsy();
+      expect(component.tenantForm.controls['name'].errors?.['maxlength']).toBeTruthy();
+    });
   });
 });

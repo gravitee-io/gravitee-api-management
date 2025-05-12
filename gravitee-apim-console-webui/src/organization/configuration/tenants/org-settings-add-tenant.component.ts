@@ -41,7 +41,7 @@ export class OrgSettingAddTenantComponent {
     this.isUpdate = !!this.tenant;
 
     this.tenantForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.tenant?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(30)]),
+      name: new UntypedFormControl(this.tenant?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(40)]),
       description: new UntypedFormControl(this.tenant?.description, [Validators.maxLength(160)]),
     });
 

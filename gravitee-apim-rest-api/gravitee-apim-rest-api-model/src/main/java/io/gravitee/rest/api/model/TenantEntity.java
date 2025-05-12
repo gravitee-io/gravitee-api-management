@@ -28,7 +28,7 @@ public class TenantEntity {
     private String id;
 
     @NotNull
-    @Size(min = 1)
+    @Size(min = 1, max = 40)
     private String name;
 
     private String description;
