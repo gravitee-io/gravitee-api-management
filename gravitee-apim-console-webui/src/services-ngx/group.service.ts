@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Page } from 'src/shared/rest/page';
+
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { isEmpty } from 'lodash';
@@ -35,6 +37,12 @@ export class GroupService {
 
   list(): Observable<Group[]> {
     return this.http.get<Group[]>(`${this.constants.env.baseURL}/configuration/groups`);
+  }
+
+  listPaginated(page: number = 1, size: number = 20, searchTerm: string = ''): Observable<Page<Group>> {
+    return this.http.get<Page<Group>>(
+      `${this.constants.env.baseURL}/configuration/groups/paginated?page=${page}&size=${size}&searchTerm=${searchTerm}`,
+    );
   }
 
   listByOrganization(): Observable<Group[]> {

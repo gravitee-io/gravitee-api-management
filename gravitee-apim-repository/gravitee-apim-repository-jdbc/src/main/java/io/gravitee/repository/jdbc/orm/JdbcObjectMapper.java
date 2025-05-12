@@ -22,17 +22,23 @@ import static java.lang.Byte.parseByte;
 import static java.util.Collections.emptyList;
 import static org.springframework.util.StringUtils.hasText;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.*;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -48,14 +54,30 @@ public class JdbcObjectMapper<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcObjectMapper.class);
 
     private final Constructor<T> constructor;
+
+    @Getter
     private final List<JdbcColumn> columns;
+
     private final String idColumn;
     private final String insertSql;
     private final String updateSql;
+
+    @Getter
     private final String selectByIdSql;
+
+    @Getter
     private final String selectAllSql;
+
+    @Getter
+    private final String countSql;
+
+    @Getter
     private final String deleteSql;
+
+    @Getter
     private final RowMapper<T> rowMapper;
+
+    @Getter
     private final String tableName;
 
     private static class BatchStringSetter implements BatchPreparedStatementSetter {
@@ -183,35 +205,12 @@ public class JdbcObjectMapper<T> {
         this.deleteSql = "delete from " + escapeReservedWord(tableName) + WHERE_CLAUSE + escapeReservedWord(idColumn) + " = ?";
         this.selectByIdSql = "select * from " + escapeReservedWord(tableName) + WHERE_CLAUSE + escapeReservedWord(idColumn) + " = ?";
         this.selectAllSql = "select * from " + escapeReservedWord(tableName);
+        this.countSql = "SELECT COUNT(*) FROM " + escapeReservedWord(tableName);
         this.rowMapper = new Rm();
-    }
-
-    public RowMapper<T> getRowMapper() {
-        return rowMapper;
     }
 
     public BatchPreparedStatementSetter getBatchStringSetter(Object parentId, Collection<String> values) {
         return new BatchStringSetter(parentId, values);
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public List<JdbcColumn> getColumns() {
-        return columns;
-    }
-
-    public String getSelectByIdSql() {
-        return selectByIdSql;
-    }
-
-    public String getSelectAllSql() {
-        return selectAllSql;
-    }
-
-    public String getDeleteSql() {
-        return deleteSql;
     }
 
     public PreparedStatementCreator buildInsertPreparedStatementCreator(T item) {
