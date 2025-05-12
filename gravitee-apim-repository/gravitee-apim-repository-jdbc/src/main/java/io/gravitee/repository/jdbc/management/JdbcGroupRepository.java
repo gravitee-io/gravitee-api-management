@@ -15,11 +15,16 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static java.lang.String.format;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.api.search.GroupCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.GroupEventRule;
@@ -30,7 +35,10 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  *
@@ -235,6 +243,52 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             LOGGER.error("Failed to find group by organization", ex);
             throw new TechnicalException("Failed to find group by organization", ex);
         }
+    }
+
+    @Override
+    public Page<Group> search(GroupCriteria groupCriteria, Pageable pageable) {
+        String querySuffix = "";
+        List<Object> countParams = new ArrayList<>();
+
+        if (groupCriteria != null) {
+            if (StringUtils.hasText(groupCriteria.getEnvironmentId())) {
+                querySuffix += " AND environment_id = ?";
+                countParams.add(groupCriteria.getEnvironmentId());
+            }
+            if (!CollectionUtils.isEmpty(groupCriteria.getIdIn())) {
+                querySuffix += " AND id IN (" + getOrm().buildInClause(groupCriteria.getIdIn()) + ")";
+                countParams.addAll(groupCriteria.getIdIn());
+            }
+            if (StringUtils.hasText(groupCriteria.getQuery())) {
+                querySuffix += " AND LOWER(name) LIKE ?";
+                countParams.add("%" + groupCriteria.getQuery().toLowerCase() + "%");
+            }
+        }
+
+        String countQuery = getOrm().getCountSql() + " WHERE 1=1" + querySuffix;
+
+        String query = getOrm().getSelectAllSql() + " WHERE 1=1" + querySuffix;
+        query += " ORDER BY name " + createPagingClause(pageable.pageSize(), pageable.pageNumber());
+
+        PreparedStatementSetter preparedStatementSetter = (PreparedStatement ps) -> {
+            int lastIndex = 1;
+            if (groupCriteria != null) {
+                if (StringUtils.hasText(groupCriteria.getEnvironmentId())) {
+                    ps.setString(lastIndex++, groupCriteria.getEnvironmentId());
+                }
+                if (!isEmpty(groupCriteria.getIdIn())) {
+                    lastIndex = getOrm().setArguments(ps, groupCriteria.getIdIn(), lastIndex);
+                }
+                if (StringUtils.hasText(groupCriteria.getQuery())) {
+                    ps.setString(lastIndex++, "%" + groupCriteria.getQuery().toLowerCase() + "%");
+                }
+            }
+        };
+
+        Integer totalCount = jdbcTemplate.queryForObject(countQuery, Integer.class, countParams.toArray());
+        List<Group> rows = jdbcTemplate.query(query, preparedStatementSetter, getOrm().getRowMapper());
+
+        return new Page<>(rows, pageable.pageNumber(), pageable.pageSize(), totalCount);
     }
 
     @Override
