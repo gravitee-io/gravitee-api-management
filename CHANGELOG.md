@@ -1,3 +1,10 @@
+## [5.8.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.8.0...5.8.1) (2025-05-12)
+
+
+### Bug Fixes
+
+* ensure to get version 1.32.3 of gravitee-reporter-api ([3bdfa90](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/3bdfa906a0fce53b81989bad8c901483edc18c38))
+
 # [5.8.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.7.0...5.8.0) (2025-05-06)
 
 
