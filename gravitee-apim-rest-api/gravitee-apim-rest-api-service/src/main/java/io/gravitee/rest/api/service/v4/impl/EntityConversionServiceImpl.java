@@ -28,11 +28,22 @@ public class EntityConversionServiceImpl implements EntityConversionService {
 
     @Override
     public PlanEntity convertV4ToPlanEntity(GenericPlanEntity genericPlanEntity) {
-        if (genericPlanEntity instanceof io.gravitee.rest.api.model.v4.plan.PlanEntity v4PlanEntity) {
-            PlanEntity convertedPlanEntity = PlanEntityMapper.INSTANCE.convertV4ToPlanEntity(v4PlanEntity);
-            log.info("Converted v4 plan entity to rest.api.model plan entity: {}", convertedPlanEntity);
-            return convertedPlanEntity;
+        PlanEntity convertedPlanEntity;
+        try {
+            if (genericPlanEntity instanceof io.gravitee.rest.api.model.v4.plan.PlanEntity v4PlanEntity) {
+                convertedPlanEntity = PlanEntityMapper.INSTANCE.convertV4ToPlanEntity(v4PlanEntity);
+            } else {
+                convertedPlanEntity = PlanEntityMapper.INSTANCE.convertGenericToPlanEntity(genericPlanEntity);
+            }
+        } catch (IllegalArgumentException e) {
+            log.error(
+                "Unsupported entity type: {}Error converting v4 plan entity to rest.api.model plan entity: {}",
+                genericPlanEntity.getClass().getName(),
+                e.getMessage()
+            );
+            throw e;
         }
-        throw new IllegalArgumentException("Unsupported entity type: " + genericPlanEntity.getClass().getName());
+        log.info("Converted v4 plan entity to rest.api.model plan entity: {}", convertedPlanEntity);
+        return convertedPlanEntity;
     }
 }

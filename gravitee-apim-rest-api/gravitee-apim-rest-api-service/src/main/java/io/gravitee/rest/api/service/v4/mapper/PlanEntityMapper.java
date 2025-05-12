@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4.mapper;
 
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -28,6 +29,8 @@ public interface PlanEntityMapper {
 
     @Mapping(source = "security.type", target = "security", qualifiedByName = "mapStringToStatusEnum")
     PlanEntity convertV4ToPlanEntity(io.gravitee.rest.api.model.v4.plan.PlanEntity planEntity);
+
+    PlanEntity convertGenericToPlanEntity(GenericPlanEntity genericPlanEntity);
 
     @Named("mapStringToStatusEnum")
     default PlanSecurityType mapStringToStatusEnum(String status) {
