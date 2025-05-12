@@ -214,4 +214,22 @@ describe('OrgSettingsTenantsComponent', () => {
       })
       .flush(tenants);
   }
+
+  it('should not submit tenant form if name is too long', async () => {
+    permissionsService._setPermissions(['organization-tenant-c']);
+    fixture.detectChanges();
+    respondToGetTenants([fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' })]);
+    fixture.detectChanges();
+    const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tenant"]' }));
+    await addButton.click();
+    const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+    await nameInput.setValue('A'.repeat(41)); // greater than allowed characters
+    const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+    expect(await submitButton.isDisabled()).toBeTruthy();
+
+    httpTestingController.expectNone({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tenants`,
+    });
+  });
 });
