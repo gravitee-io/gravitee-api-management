@@ -34,7 +34,8 @@
     <properties>
         <gravitee-bom.version>8.2.22</gravitee-bom.version>
         <gravitee-apim.version>4.7.4</gravitee-apim.version>
-        <gravitee-reporter-common.version>1.5.1</gravitee-reporter-common.version>
+        <gravitee-reporter-api.version>1.32.3</gravitee-reporter-api.version>
+        <gravitee-reporter-common.version>1.5.2</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>6.2.0</gravitee-common-elasticsearch.version>
         <gravitee-node-api.version>4.8.7</gravitee-node-api.version>
         <commons-validator.version>1.7</commons-validator.version>
@@ -103,6 +104,7 @@
         <dependency>
             <groupId>io.gravitee.reporter</groupId>
             <artifactId>gravitee-reporter-api</artifactId>
+            <version>${gravitee-reporter-api.version}</version>
             <scope>provided</scope>
         </dependency>
 
