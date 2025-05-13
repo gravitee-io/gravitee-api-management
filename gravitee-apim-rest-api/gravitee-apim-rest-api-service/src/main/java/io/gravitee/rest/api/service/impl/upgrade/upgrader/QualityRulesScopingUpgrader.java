@@ -22,7 +22,6 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.quality.QualityRuleReferenceType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
@@ -84,7 +83,7 @@ public class QualityRulesScopingUpgrader implements Upgrader {
             scopeExistingQualityRulesToEnvironments();
             return isUpgradeSuccessful();
         } catch (Exception e) {
-            log.error("error occurred while applying upgrader {}", this.getClass().getSimpleName());
+            log.error("Error applying upgrader", e);
             return false;
         }
     }
