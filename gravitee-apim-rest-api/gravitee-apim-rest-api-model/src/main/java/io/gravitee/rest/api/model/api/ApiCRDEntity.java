@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.PropertiesEntity;
 import io.gravitee.rest.api.model.PropertyEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.jackson.PropertiesEntityAsListDeserializer;
+import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
@@ -181,6 +182,9 @@ public class ApiCRDEntity {
 
     @Schema(description = "List of API pages")
     private Map<String, PageCRD> pages;
+
+    @Schema
+    private PortalNotificationConfigEntity consoleNotificationConfiguration;
 
     public void setName(String name) {
         this.name = HtmlSanitizer.sanitize(name);

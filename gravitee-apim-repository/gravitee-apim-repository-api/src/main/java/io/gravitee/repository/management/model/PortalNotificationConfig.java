@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.definition.model.Origin;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -22,9 +23,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -43,6 +42,7 @@ public class PortalNotificationConfig {
     private String referenceId;
     private Date createdAt;
     private Date updatedAt;
+    private Origin origin = Origin.MANAGEMENT;
 
     @Override
     public boolean equals(Object o) {
@@ -59,28 +59,5 @@ public class PortalNotificationConfig {
     @Override
     public int hashCode() {
         return Objects.hash(referenceType, referenceId, user);
-    }
-
-    public String toString() {
-        return (
-            "PortalNotificationConfig{" +
-            "user='" +
-            user +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", hooks='" +
-            hooks +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
     }
 }

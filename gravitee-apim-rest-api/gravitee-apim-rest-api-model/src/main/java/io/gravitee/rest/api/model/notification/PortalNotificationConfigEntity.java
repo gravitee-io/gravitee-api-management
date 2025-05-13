@@ -16,7 +16,10 @@
 package io.gravitee.rest.api.model.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Origin;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -46,4 +49,40 @@ public class PortalNotificationConfigEntity {
     private List<String> hooks;
 
     private List<String> groups;
+
+    private Origin origin;
+
+    public PortalNotificationConfigEntity() {
+        origin = Origin.MANAGEMENT;
+    }
+
+    public boolean isDefaultEmpty() {
+        return (
+            (hooks == null || hooks.isEmpty()) &&
+            (groups == null || groups.isEmpty()) &&
+            (user != null && !user.isEmpty()) &&
+            (referenceType != null && !referenceType.isEmpty()) &&
+            (referenceId != null && !referenceId.isEmpty())
+        );
+    }
+
+    public static PortalNotificationConfigEntity newDefaultEmpty(String user, String referenceType, String referenceId) {
+        if (user == null || user.isEmpty()) {
+            throw new IllegalArgumentException("User must not be empty");
+        }
+        if (referenceType == null || referenceType.isEmpty()) {
+            throw new IllegalArgumentException("ReferenceType must not be empty");
+        }
+        if (referenceId == null || referenceId.isEmpty()) {
+            throw new IllegalArgumentException("ReferenceId must not be empty");
+        }
+        PortalNotificationConfigEntity entity = new PortalNotificationConfigEntity();
+        entity.setConfigType(NotificationConfigType.PORTAL);
+        entity.setReferenceType(referenceType);
+        entity.setReferenceId(referenceId);
+        entity.setUser(user);
+        entity.setHooks(Collections.emptyList());
+        entity.setGroups(Collections.emptyList());
+        return entity;
+    }
 }

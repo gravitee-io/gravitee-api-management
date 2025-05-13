@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.8.0_02_add_portal_notification_configs_origin_col_1
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}portal_notification_configs
+            columns:
+              - column:
+                  name: origin
+                  type: nvarchar(64)
+                  defaultValue: MANAGEMENT
+                  constraints:
+                    nullable: false
+

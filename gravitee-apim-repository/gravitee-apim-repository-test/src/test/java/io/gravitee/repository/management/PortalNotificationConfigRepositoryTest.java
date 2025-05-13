@@ -16,10 +16,9 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
 import java.util.Arrays;
@@ -27,7 +26,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.Test;
 
 public class PortalNotificationConfigRepositoryTest extends AbstractManagementRepositoryTest {
@@ -39,7 +37,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
 
     @Test
     public void shouldCreate() throws Exception {
-        final PortalNotificationConfig cfg = PortalNotificationConfig
+        final PortalNotificationConfig expected = PortalNotificationConfig
             .builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-created")
@@ -48,35 +46,33 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .groups(Set.of("1", "2", "3"))
             .updatedAt(new Date(1439022010883L))
             .createdAt(new Date(1439022010883L))
+            .origin(Origin.MANAGEMENT)
             .build();
 
-        PortalNotificationConfig notificationCreated = portalNotificationConfigRepository.create(cfg);
+        PortalNotificationConfig notificationCreated = portalNotificationConfigRepository.create(expected);
 
-        assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId());
-        assertEquals(cfg.getUser(), notificationCreated.getUser());
-        assertEquals(cfg.getHooks(), notificationCreated.getHooks());
-        assertEquals(cfg.getGroups(), notificationCreated.getGroups());
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt()));
+        assertNotification(notificationCreated, expected);
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        assertTrue(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete").isPresent());
+        assertThat(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete")).isPresent();
+
         final PortalNotificationConfig cfg = PortalNotificationConfig
             .builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-to-delete")
             .user("userid")
             .build();
+
         portalNotificationConfigRepository.delete(cfg);
-        assertFalse(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete").isPresent());
+
+        assertThat(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete")).isNotPresent();
     }
 
     @Test
     public void shouldUpdate() throws Exception {
-        final PortalNotificationConfig cfg = PortalNotificationConfig
+        final PortalNotificationConfig expected = PortalNotificationConfig
             .builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-to-update")
@@ -85,22 +81,17 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .groups(Set.of("7", "8", "9"))
             .updatedAt(new Date(1479022010883L))
             .createdAt(new Date(1469022010883L))
+            .origin(Origin.MANAGEMENT)
             .build();
 
-        PortalNotificationConfig notificationUpdated = portalNotificationConfigRepository.update(cfg);
+        PortalNotificationConfig notificationUpdated = portalNotificationConfigRepository.update(expected);
 
-        assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId());
-        assertEquals(cfg.getUser(), notificationUpdated.getUser());
-        assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks()));
-        assertTrue(cfg.getGroups().containsAll(notificationUpdated.getGroups()));
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt()));
+        assertNotification(notificationUpdated, expected);
     }
 
     @Test
     public void shouldFindById() throws Exception {
-        final PortalNotificationConfig cfg = PortalNotificationConfig
+        final PortalNotificationConfig expected = PortalNotificationConfig
             .builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-to-find")
@@ -109,6 +100,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .groups(Set.of("1", "2"))
             .updatedAt(new Date(1439022010883L))
             .createdAt(new Date(1439022010883L))
+            .origin(Origin.MANAGEMENT)
             .build();
 
         Optional<PortalNotificationConfig> optNotificationFound = portalNotificationConfigRepository.findById(
@@ -117,31 +109,42 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             "config-to-find"
         );
 
-        assertTrue(optNotificationFound.isPresent());
-        PortalNotificationConfig notificationFound = optNotificationFound.get();
-        assertEquals(cfg.getReferenceType(), notificationFound.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationFound.getReferenceId());
-        assertEquals(cfg.getUser(), notificationFound.getUser());
-        assertEquals(cfg.getHooks(), notificationFound.getHooks());
-        assertEquals(cfg.getGroups(), notificationFound.getGroups());
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationFound.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationFound.getUpdatedAt()));
+        assertThat(optNotificationFound).isPresent();
+        assertNotification(optNotificationFound.get(), expected);
+    }
+
+    @Test
+    public void shouldKubernetesOriginById() throws Exception {
+        final PortalNotificationConfig cfg = PortalNotificationConfig
+            .builder()
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("kubernetes-config-to-find")
+            .user("userid")
+            .hooks(Arrays.asList("A", "B"))
+            .groups(Set.of("1", "2"))
+            .updatedAt(new Date(1439022010883L))
+            .createdAt(new Date(1439022010883L))
+            .origin(Origin.KUBERNETES)
+            .build();
+
+        Optional<PortalNotificationConfig> optNotificationFound = portalNotificationConfigRepository.findById(
+            "userid",
+            NotificationReferenceType.API,
+            "kubernetes-config-to-find"
+        );
+
+        assertThat(optNotificationFound).isPresent();
+        assertNotification(optNotificationFound.get(), cfg);
     }
 
     @Test
     public void shouldNotFoundById() throws Exception {
-        Optional<PortalNotificationConfig> optNotificationFound;
-        //userid
-        optNotificationFound =
-            portalNotificationConfigRepository.findById("userid-unknown", NotificationReferenceType.API, "config-to-find");
-        assertFalse(optNotificationFound.isPresent());
-        //type
-        optNotificationFound =
-            portalNotificationConfigRepository.findById("userid", NotificationReferenceType.APPLICATION, "config-to-find");
-        assertFalse(optNotificationFound.isPresent());
-        //ref
-        optNotificationFound = portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-not-find");
-        assertFalse(optNotificationFound.isPresent());
+        assertThat(portalNotificationConfigRepository.findById("userid-unknown", NotificationReferenceType.API, "config-to-find"))
+            .isNotPresent();
+        assertThat(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.APPLICATION, "config-to-find"))
+            .isNotPresent();
+        assertThat(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-not-find"))
+            .isNotPresent();
     }
 
     @Test
@@ -152,10 +155,11 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             "search"
         );
 
-        assertEquals("size", 2, configs.size());
-        List<String> userIds = configs.stream().map(PortalNotificationConfig::getUser).collect(Collectors.toList());
-        assertTrue("userA", userIds.contains("userA"));
-        assertTrue("userB", userIds.contains("userB"));
+        assertThat(configs).as("size").hasSize(2);
+
+        List<String> userIds = configs.stream().map(PortalNotificationConfig::getUser).toList();
+
+        assertThat(userIds).containsExactlyInAnyOrder("userA", "userB");
     }
 
     @Test
@@ -166,36 +170,45 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             "search"
         );
 
-        assertTrue("size", configs.isEmpty());
+        assertThat(configs).as("size").isEmpty();
     }
 
     @Test
     public void shouldDeleteByUser() throws Exception {
         portalNotificationConfigRepository.deleteByUser("useridToDelete");
 
-        assertFalse(portalNotificationConfigRepository.findById("useridToDelete", NotificationReferenceType.API, "config").isPresent());
+        assertThat(portalNotificationConfigRepository.findById("useridToDelete", NotificationReferenceType.API, "config")).isNotPresent();
     }
 
     @Test
     public void shouldDeleteReference() throws Exception {
-        assertTrue(
-            "should exists before delete {apiToDelete-1}",
-            portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete").isPresent()
-        );
-        assertTrue(
-            "should exists before delete {apiToDelete-2}",
-            portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete").isPresent()
-        );
+        assertThat(portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete"))
+            .as("should exist before delete {apiToDelete-1}")
+            .isPresent();
+
+        assertThat(portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete"))
+            .as("should exist before delete {apiToDelete-2}")
+            .isPresent();
 
         portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType("apiToDelete", NotificationReferenceType.API);
 
-        assertFalse(
-            "should be deleted {apiToDelete-1}",
-            portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete").isPresent()
-        );
-        assertFalse(
-            "should be deleted {apiToDelete-2}",
-            portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete").isPresent()
-        );
+        assertThat(portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete"))
+            .as("should be deleted {apiToDelete-1}")
+            .isNotPresent();
+
+        assertThat(portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete"))
+            .as("should be deleted {apiToDelete-2}")
+            .isNotPresent();
+    }
+
+    private static void assertNotification(PortalNotificationConfig actual, PortalNotificationConfig expected) {
+        assertThat(actual.getReferenceType()).isEqualTo(expected.getReferenceType());
+        assertThat(actual.getReferenceId()).isEqualTo(expected.getReferenceId());
+        assertThat(actual.getUser()).isEqualTo(expected.getUser());
+        assertThat(actual.getHooks()).containsExactlyInAnyOrderElementsOf(expected.getHooks());
+        assertThat(actual.getGroups()).containsExactlyInAnyOrderElementsOf(expected.getGroups());
+        assertThat(actual.getOrigin()).isEqualTo(expected.getOrigin());
+        assertThat(compareDate(actual.getCreatedAt(), expected.getCreatedAt())).isTrue();
+        assertThat(compareDate(actual.getUpdatedAt(), expected.getUpdatedAt())).isTrue();
     }
 }
