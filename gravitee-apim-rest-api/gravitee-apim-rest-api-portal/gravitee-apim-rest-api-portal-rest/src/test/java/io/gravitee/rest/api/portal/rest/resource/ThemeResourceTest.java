@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
@@ -25,13 +24,12 @@ import static org.mockito.Mockito.when;
 
 import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.theme.model.Theme;
-import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.model.ThemeResponse;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -49,7 +47,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
         return "theme";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         when(themeMapper.convert(any(Theme.class), anyString())).thenCallRealMethod();
         reset(themeService);

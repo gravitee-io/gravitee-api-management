@@ -43,8 +43,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -59,7 +59,7 @@ public class UserResourceTest extends AbstractResourceTest {
         return "user";
     }
 
-    @Before
+    @BeforeEach
     public void init() throws IOException, URISyntaxException {
         resetAllMocks();
 

@@ -9,29 +9,30 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-responsive-margin-container;
 }
 
-.title {
-  display: flex;
-  flex-flow: row;
-}
-
 .group {
-  display: flex;
-  align-items: flex-start;
+  &__card {
+    margin-bottom: 24px;
 
-  &__form {
-    &__card {
-      margin-top: 5px;
-
-      &__form-field {
-        width: 80%;
-      }
-
-      &__actions {
-        display: flex;
-        justify-content: space-between;
-        margin-left: auto;
-        align-items: center;
-      }
+    &__subtitle {
+      margin-top: 10px;
     }
   }
+
+  &__form {
+    &__field {
+      width: 80%;
+    }
+
+    &__actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-left: auto;
+    }
+  }
+}
+
+.mat-column-actions {
+  width: 10%;
+  padding: 0 5px;
 }

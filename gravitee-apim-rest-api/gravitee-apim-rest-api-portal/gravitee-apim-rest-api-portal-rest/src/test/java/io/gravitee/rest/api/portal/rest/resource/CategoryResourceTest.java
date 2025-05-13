@@ -37,8 +37,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import org.eclipse.jetty.http.HttpHeader;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -57,7 +57,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
         return "categories/";
     }
 
-    @Before
+    @BeforeEach
     public void init() throws IOException, URISyntaxException {
         resetAllMocks();
 

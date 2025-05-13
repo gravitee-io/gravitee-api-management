@@ -407,9 +407,6 @@ export const settingsRoutes: Routes = [
         path: 'groups',
         component: GroupsComponent,
         data: {
-          docs: {
-            page: 'management-configuration-groups',
-          },
           permissions: {
             anyOf: ['environment-group-r'],
             unauthorizedFallbackTo: '../notifications',
@@ -420,9 +417,6 @@ export const settingsRoutes: Routes = [
         path: 'groups/new',
         component: GroupComponent,
         data: {
-          docs: {
-            page: 'management-configuration-group',
-          },
           permissions: {
             anyOf: ['environment-group-r'],
           },
@@ -432,9 +426,6 @@ export const settingsRoutes: Routes = [
         path: 'groups/:groupId',
         component: GroupComponent,
         data: {
-          docs: {
-            page: 'management-configuration-group',
-          },
           permissions: {
             anyOf: ['environment-group-r'],
           },

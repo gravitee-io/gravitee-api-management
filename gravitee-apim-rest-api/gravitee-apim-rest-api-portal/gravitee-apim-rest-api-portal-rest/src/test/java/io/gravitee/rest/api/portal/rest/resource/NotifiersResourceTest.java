@@ -23,17 +23,17 @@ import io.gravitee.rest.api.model.NotifierEntity;
 import io.gravitee.rest.api.service.NotifierService;
 import jakarta.ws.rs.core.Response;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class NotifiersResourceTest {
+@ExtendWith(MockitoExtension.class)
+class NotifiersResourceTest {
 
     @InjectMocks
     private NotifiersResource notifiersResource;
@@ -42,14 +42,14 @@ public class NotifiersResourceTest {
     private NotifierService notifierService;
 
     @Test
-    public void should_call_notifier_service_to_retrieve_all_notifiers() {
+    void should_call_notifier_service_to_retrieve_all_notifiers() {
         notifiersResource.getNotifiers();
 
         verify(notifierService, times(1)).findAll();
     }
 
     @Test
-    public void should_return_http_200_OK_with_list_from_notifier_service() {
+    void should_return_http_200_OK_with_list_from_notifier_service() {
         Set<NotifierEntity> notifiersList = mock(Set.class);
         when(notifierService.findAll()).thenReturn(notifiersList);
 

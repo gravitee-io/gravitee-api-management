@@ -346,7 +346,7 @@ describe('SubscriptionsDetailsComponent', () => {
   }
 
   function expectPostChangeConsumerStatus() {
-    const url = `${TESTING_BASE_URL}/subscriptions/testSubscriptionId/_changeConsumerStatus?status=STARTED`;
+    const url = `${TESTING_BASE_URL}/subscriptions/testSubscriptionId/_resumeFailure`;
     httpTestingController.expectOne(url).flush(fakeSubscription());
   }
 });

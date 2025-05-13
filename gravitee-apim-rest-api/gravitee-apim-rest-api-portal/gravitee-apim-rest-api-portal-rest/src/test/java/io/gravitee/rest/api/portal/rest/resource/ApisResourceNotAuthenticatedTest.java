@@ -39,8 +39,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -70,7 +70,7 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         resourceConfig.register(NotAuthenticatedAuthenticationFilter.class);
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         resetAllMocks();
         categoryQueryServiceInMemory.reset();

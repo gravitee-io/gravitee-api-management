@@ -16,10 +16,6 @@ $typography: map.get(gio.$mat-theme, typography);
     align-items: center;
   }
 
-  &__card-subtitle {
-    margin-top: 20px;
-  }
-
   &__actions {
     display: flex;
   }

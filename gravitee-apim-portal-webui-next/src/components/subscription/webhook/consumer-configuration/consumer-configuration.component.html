@@ -16,12 +16,15 @@
 
 -->
 <mat-card appearance="outlined" class="consumer-configuration">
-  <mat-card-header class="consumer-configuration__header">
-    <div class="consumer-configuration__navigate-back m3-title-small" i18n="@@subscriptionDetailsBackButton" [routerLink]="['../']">
-      <mat-icon class="consumer-configuration__arrow_backward">arrow_backward</mat-icon>
-      Subscription details
-    </div>
-  </mat-card-header>
+  @if (isUpdate) {
+    <mat-card-header class="consumer-configuration__header">
+      <div class="consumer-configuration__navigate-back m3-title-small" i18n="@@subscriptionDetailsBackButton" [routerLink]="['../']">
+        <mat-icon class="consumer-configuration__arrow_backward">arrow_backward</mat-icon>
+        Subscription details
+      </div>
+    </mat-card-header>
+  }
+
   <mat-card-content class="consumer-configuration__header">
     @if (!!consumerConfigurationForm) {
       <form [formGroup]="consumerConfigurationForm">
@@ -54,33 +57,35 @@
           <app-consumer-configuration-ssl [formControl]="consumerConfigurationForm.controls.consumerConfiguration.controls.ssl" />
         </form>
 
-        @if (error) {
+        @if (isUpdate && error()) {
           <div class="m3-title-medium" i18n="@@consumerConfigurationErrorMessage" aria-label="Error message">
             The consumer configuration update has failed. Try again, and if the issue persists, contact your portal administrator.
           </div>
         }
 
-        <div class="consumer-configuration__form__actions">
-          <button
-            (click)="submit()"
-            mat-flat-button
-            class="secondary-button"
-            [disabled]="consumerConfigurationForm.invalid || (formUnchanged$ | async)"
-            i18n="@@saveSubscriptionConfiguration"
-            aria-label="Save subscription configuration"
-            data-testId="save">
-            Save
-          </button>
-          <button
-            (click)="reset()"
-            mat-stroked-button
-            [disabled]="formUnchanged$ | async"
-            i18n="@@discardSubscriptionConfigurationChanges"
-            aria-label="Discard changes"
-            data-testId="discard">
-            Discard changes
-          </button>
-        </div>
+        @if (isUpdate) {
+          <div class="consumer-configuration__form__actions">
+            <button
+              (click)="submit()"
+              mat-flat-button
+              class="secondary-button"
+              [disabled]="consumerConfigurationForm.invalid || (formUnchanged$ | async)"
+              i18n="@@saveSubscriptionConfiguration"
+              aria-label="Save subscription configuration"
+              data-testId="save">
+              Save
+            </button>
+            <button
+              (click)="reset()"
+              mat-stroked-button
+              [disabled]="formUnchanged$ | async"
+              i18n="@@discardSubscriptionConfigurationChanges"
+              aria-label="Discard changes"
+              data-testId="discard">
+              Discard changes
+            </button>
+          </div>
+        }
       </form>
     }
   </mat-card-content>

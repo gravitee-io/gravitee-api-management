@@ -17,6 +17,8 @@ package io.gravitee.gateway.buffer.netty;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -87,7 +89,16 @@ public class BufferImpl implements Buffer {
     }
 
     private Buffer appendBuf(ByteBuf cb, int length) {
-        buffer = Unpooled.wrappedBuffer(buffer, cb.slice(0, length));
+        if (cb.writerIndex() > length) {
+            // Slice is needed only when appending sub part of the buffer.
+            cb = cb.slice(0, length);
+        }
+
+        if (buffer instanceof CompositeByteBuf composite && composite.maxNumComponents() == Integer.MAX_VALUE) {
+            buffer = composite.addComponent(true, cb);
+        } else {
+            buffer = new CompositeByteBuf(ByteBufAllocator.DEFAULT, false, Integer.MAX_VALUE, buffer, cb);
+        }
         return this;
     }
 
