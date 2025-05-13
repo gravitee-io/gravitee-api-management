@@ -101,7 +101,7 @@ public class AlertsEnvironmentUpgrader implements Upgrader {
                 }
             }
         } catch (Exception e) {
-            log.error("Failed to apply upgrader {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
 

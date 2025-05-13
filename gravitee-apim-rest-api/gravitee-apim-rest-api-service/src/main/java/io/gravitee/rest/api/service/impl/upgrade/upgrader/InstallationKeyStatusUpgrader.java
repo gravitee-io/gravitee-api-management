@@ -95,7 +95,7 @@ public class InstallationKeyStatusUpgrader implements Upgrader {
 
             return true;
         } catch (Exception e) {
-            log.error("unable to apply upgrader {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
     }
