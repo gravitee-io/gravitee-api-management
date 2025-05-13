@@ -24,7 +24,7 @@ import org.testcontainers.utility.DockerImageName;
 
 public class JaegerTestContainer extends GenericContainer<JaegerTestContainer> {
 
-    private static final String JAEGER_DOCKER_IMAGE = "jaegertracing/all-in-one:1.62.0";
+    private static final String JAEGER_DOCKER_IMAGE = "jaegertracing/all-in-one:1.69.0";
     public static final int JAEGER_COLLECTOR_GRPC_PORT = 4317;
     public static final int JAEGER_COLLECTOR_HTTP_PORT = 4318;
     public static final int JAEGER_ADMIN_PORT = 14269;
