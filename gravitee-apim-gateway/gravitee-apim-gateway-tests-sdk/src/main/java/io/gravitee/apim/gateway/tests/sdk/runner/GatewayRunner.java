@@ -285,16 +285,17 @@ public class GatewayRunner {
         } else {
             System.setProperty("api.v2.emulateV4Engine.default", "yes");
         }
+
+        System.setProperty("http.port", String.valueOf(gatewayPort));
+        System.setProperty("services.core.http.port", String.valueOf(technicalApiPort));
+        System.setProperty("services.core.http.enabled", String.valueOf(false));
+
         gatewayConfiguration
             .systemProperties()
             .forEach((k, v) -> {
                 configuredSystemProperties.put(k, v);
                 System.setProperty(String.valueOf(k), String.valueOf(v));
             });
-
-        System.setProperty("http.port", String.valueOf(gatewayPort));
-        System.setProperty("services.core.http.port", String.valueOf(technicalApiPort));
-        System.setProperty("services.core.http.enabled", String.valueOf(false));
     }
 
     private void applyOnGraviteeYaml(ApplicationContext context, Properties extraProperties) {
@@ -775,11 +776,14 @@ public class GatewayRunner {
         Set<Class<? extends AbstractService<?>>> services = new HashSet<>();
         testInstance.configureServices(services);
         services.forEach(serviceClass -> {
-            ApplicationContext context = pluginContextFactory.create(ServiceBuilder.build(serviceClass));
-            AbstractService<?> service = context.getBean(serviceClass);
-            serviceManager.register(service);
+            if (!container.applicationContext().getBeansOfType(serviceClass).isEmpty()) {
+                serviceManager.register(container.applicationContext().getBean(serviceClass));
+            } else {
+                ApplicationContext context = pluginContextFactory.create(ServiceBuilder.build(serviceClass));
+                AbstractService<?> service = context.getBean(serviceClass);
+                serviceManager.register(service);
+            }
         });
-        serviceManager.start();
     }
 
     private void registerReactors(GatewayTestContainer container) {
