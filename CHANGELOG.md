@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.5.2...1.6.0) (2025-05-13)
+
+
+### Features
+
+* handle double additional metrics ([2802aa5](https://github.com/gravitee-io/gravitee-reporter-common/commit/2802aa5579f944205371f0d4f95e7f4e5b8a5412))
+
 ## [1.5.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.5.1...1.5.2) (2025-05-06)
 
 
