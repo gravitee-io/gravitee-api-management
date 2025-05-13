@@ -1102,6 +1102,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         final Date now = new Date();
         subscription.setUpdatedAt(now);
         subscription.setConsumerPausedAt(null);
+        subscription.setFailureCause(null);
         subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
 
         subscription = subscriptionRepository.update(subscription);

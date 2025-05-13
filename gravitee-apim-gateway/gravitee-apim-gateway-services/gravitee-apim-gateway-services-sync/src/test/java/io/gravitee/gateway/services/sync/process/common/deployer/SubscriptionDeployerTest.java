@@ -17,11 +17,19 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
@@ -31,15 +39,20 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscri
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.model.Command;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -63,8 +76,8 @@ class SubscriptionDeployerTest {
     @Mock
     private Node node;
 
-    @Mock
-    private ObjectMapper objectMapper;
+    @Captor
+    private ArgumentCaptor<Command> commandCaptor;
 
     private SubscriptionDeployer cut;
 
@@ -76,7 +89,7 @@ class SubscriptionDeployerTest {
                 subscriptionDispatcher,
                 commandRepository,
                 node,
-                objectMapper,
+                new ObjectMapper(),
                 new NoopDistributedSyncService()
             );
     }
@@ -200,6 +213,126 @@ class SubscriptionDeployerTest {
                     verify(subscriptionDispatcher).dispatch(subscriptionToDispatch1);
                     verify(commandRepository).create(any());
                     verify(subscriptionDispatcher).dispatch(subscriptionToDispatch2);
+                });
+        }
+
+        @Test
+        void should_create_SubscriptionFailureCommand_for_random_error() throws InterruptedException {
+            Subscription subscriptionToDispatch1 = Subscription
+                .builder()
+                .api("apiId")
+                .plan("plan")
+                .type(Subscription.Type.PUSH)
+                .id("subscription1")
+                .build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
+                .builder()
+                .apiId("apiId")
+                .reactableApi(mock(ReactableApi.class))
+                .subscribablePlans(Set.of("plan"))
+                .subscriptions(List.of(subscriptionToDispatch1))
+                .build();
+            cut.deploy(apiReactorDeployable).test().assertComplete();
+            verify(subscriptionService).register(subscriptionToDispatch1);
+            verifyNoMoreInteractions(subscriptionService);
+
+            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1))
+                .thenReturn(Completable.error(new SyncException("my-random-error")));
+            cut.doAfterDeployment(apiReactorDeployable).test().await().onComplete();
+
+            await()
+                .untilAsserted(() -> {
+                    verify(subscriptionDispatcher).dispatch(subscriptionToDispatch1);
+                    verify(commandRepository).create(commandCaptor.capture());
+
+                    Assertions.assertThat(commandCaptor.getValue().getContent()).contains("my-random-error");
+                });
+        }
+
+        @Test
+        void should_create_SubscriptionFailureCommand_for_InterruptionFailureException_with_no_webhook_response_body()
+            throws InterruptedException {
+            Subscription subscriptionToDispatch1 = Subscription
+                .builder()
+                .api("apiId")
+                .plan("plan")
+                .type(Subscription.Type.PUSH)
+                .id("subscription1")
+                .build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
+                .builder()
+                .apiId("apiId")
+                .reactableApi(mock(ReactableApi.class))
+                .subscribablePlans(Set.of("plan"))
+                .subscriptions(List.of(subscriptionToDispatch1))
+                .build();
+            cut.deploy(apiReactorDeployable).test().assertComplete();
+            verify(subscriptionService).register(subscriptionToDispatch1);
+            verifyNoMoreInteractions(subscriptionService);
+
+            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1))
+                .thenReturn(
+                    Completable.error(
+                        new InterruptionFailureException(
+                            new ExecutionFailure(500)
+                                .key("failure-key")
+                                .message("failure-message")
+                                .parameters(Map.of("exception", new RuntimeException("my-cause-error")))
+                        )
+                    )
+                );
+            cut.doAfterDeployment(apiReactorDeployable).test().await().onComplete();
+
+            await()
+                .untilAsserted(() -> {
+                    verify(subscriptionDispatcher).dispatch(subscriptionToDispatch1);
+                    verify(commandRepository).create(commandCaptor.capture());
+
+                    Assertions.assertThat(commandCaptor.getValue().getContent()).contains("failure-message").contains("my-cause-error");
+                });
+        }
+
+        @Test
+        void should_create_SubscriptionFailureCommand_for_InterruptionFailureException_with_detailed_message() throws InterruptedException {
+            Subscription subscriptionToDispatch1 = Subscription
+                .builder()
+                .api("apiId")
+                .plan("plan")
+                .type(Subscription.Type.PUSH)
+                .id("subscription1")
+                .build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
+                .builder()
+                .apiId("apiId")
+                .reactableApi(mock(ReactableApi.class))
+                .subscribablePlans(Set.of("plan"))
+                .subscriptions(List.of(subscriptionToDispatch1))
+                .build();
+            cut.deploy(apiReactorDeployable).test().assertComplete();
+            verify(subscriptionService).register(subscriptionToDispatch1);
+            verifyNoMoreInteractions(subscriptionService);
+
+            when(subscriptionDispatcher.dispatch(subscriptionToDispatch1))
+                .thenReturn(
+                    Completable.error(
+                        new InterruptionFailureException(
+                            new ExecutionFailure(500)
+                                .key("failure-key")
+                                .message("failure-message")
+                                .parameters(
+                                    Map.of("exception", new RuntimeException("my-cause-error"), "detailedMessage", "detailed-message")
+                                )
+                        )
+                    )
+                );
+            cut.doAfterDeployment(apiReactorDeployable).test().await().onComplete();
+
+            await()
+                .untilAsserted(() -> {
+                    verify(subscriptionDispatcher).dispatch(subscriptionToDispatch1);
+                    verify(commandRepository).create(commandCaptor.capture());
+
+                    Assertions.assertThat(commandCaptor.getValue().getContent()).contains("failure-message").contains("detailed-message");
                 });
         }
     }

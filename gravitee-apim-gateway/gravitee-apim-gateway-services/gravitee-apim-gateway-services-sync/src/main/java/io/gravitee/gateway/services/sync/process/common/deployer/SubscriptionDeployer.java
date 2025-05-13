@@ -21,6 +21,7 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.command.SubscriptionFailureCommand;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.process.common.model.SubscriptionDeployable;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
@@ -124,8 +125,7 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
 
     private Completable distributeIfNeeded(final SubscriptionDeployable deployable) {
         return Completable.defer(() -> {
-            if (deployable instanceof SingleSubscriptionDeployable) {
-                SingleSubscriptionDeployable singleSubscriptionDeployable = (SingleSubscriptionDeployable) deployable;
+            if (deployable instanceof SingleSubscriptionDeployable singleSubscriptionDeployable) {
                 return distributedSyncService.distributeIfNeeded(singleSubscriptionDeployable);
             }
             return Completable.complete();
@@ -180,22 +180,37 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
                 command.setUpdatedAt(Date.from(now));
                 command.setEnvironmentId(subscription.getEnvironmentId());
 
-                convertSubscriptionCommand(subscription, command, throwable.getMessage());
+                convertSubscriptionCommand(subscription, command, throwable);
 
                 saveCommand(subscription, command);
             })
             .subscribeOn(Schedulers.io());
     }
 
-    private void convertSubscriptionCommand(Subscription subscription, Command command, String errorMessage) {
+    private void convertSubscriptionCommand(Subscription subscription, Command command, Throwable throwable) {
+        var failureCause = extractFailureCause(throwable);
         try {
-            command.setContent(objectMapper.writeValueAsString(new SubscriptionFailureCommand(subscription.getId(), errorMessage)));
+            command.setContent(objectMapper.writeValueAsString(new SubscriptionFailureCommand(subscription.getId(), failureCause)));
         } catch (JsonProcessingException e) {
             log.error("Failed to convert subscription command [{}] to string", subscription.getId(), e);
             JsonObject json = new JsonObject();
-            json.put("subscriptionId", subscription.getId()).put("failureCause", errorMessage);
+            json.put("subscriptionId", subscription.getId()).put("failureCause", failureCause);
             command.setContent(json.encode());
         }
+    }
+
+    private String extractFailureCause(Throwable throwable) {
+        if (throwable instanceof InterruptionFailureException interruptionFailureException) {
+            var executionFailure = interruptionFailureException.getExecutionFailure();
+            var causeMessage = executionFailure.parameters().get("exception") instanceof Throwable th ? th.getMessage() : null;
+            var message = executionFailure.message();
+
+            return executionFailure.parameters().get("detailedMessage") instanceof String detailedMessage
+                ? message + '\n' + detailedMessage
+                : message + '\n' + causeMessage;
+        }
+
+        return throwable.getMessage();
     }
 
     private void saveCommand(Subscription subscription, Command command) {
