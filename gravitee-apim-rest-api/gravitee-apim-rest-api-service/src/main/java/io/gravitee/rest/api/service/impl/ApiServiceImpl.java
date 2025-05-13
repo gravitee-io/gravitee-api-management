@@ -780,6 +780,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         ExecutionContext executionContext = new ExecutionContext(environmentService.findById(api.getEnvironmentId()));
 
+        if (api.getDefinitionVersion() == null && api.getId() != null) {
+            api.setDefinitionVersion(DefinitionVersion.V2);
+        }
         var apiEntity =
             switch (api.getDefinitionVersion()) {
                 case V1, V2 -> convert(executionContext, api, getPrimaryOwner(executionContext, api));
