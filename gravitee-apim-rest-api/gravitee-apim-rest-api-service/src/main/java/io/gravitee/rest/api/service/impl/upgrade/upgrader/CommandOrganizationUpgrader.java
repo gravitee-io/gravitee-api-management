@@ -53,7 +53,7 @@ public class CommandOrganizationUpgrader implements Upgrader {
         try {
             environmentRepository.findAll().forEach(this::updateCommands);
         } catch (Exception e) {
-            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
 
