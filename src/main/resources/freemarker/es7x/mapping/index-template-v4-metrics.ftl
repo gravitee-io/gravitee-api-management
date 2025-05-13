@@ -225,6 +225,13 @@
                         "type": "boolean"
                     }
                 }
+            },
+            {
+                "additional_double_metrics": {
+                "path_match": "policy-metrics.double_*",
+                "mapping": {
+                    "type": "double"
+                }
             }
         ]
     }
