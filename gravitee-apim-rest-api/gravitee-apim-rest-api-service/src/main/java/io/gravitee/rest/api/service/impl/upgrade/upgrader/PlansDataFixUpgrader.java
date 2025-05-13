@@ -127,7 +127,7 @@ public class PlansDataFixUpgrader implements Upgrader {
 
             return !upgradeFailed.get();
         } catch (Exception e) {
-            log.error("error applying upgrader {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
     }

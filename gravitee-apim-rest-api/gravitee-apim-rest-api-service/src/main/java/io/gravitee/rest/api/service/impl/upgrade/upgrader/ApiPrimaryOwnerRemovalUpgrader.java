@@ -34,8 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -44,9 +43,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ApiPrimaryOwnerRemovalUpgrader.class);
 
     private final RoleRepository roleRepository;
 
@@ -94,7 +92,7 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
             }
             return true;
         } catch (Exception e) {
-            LOG.error("Failed to fix APIs Primary Owner removal", e);
+            log.error("Failed to fix APIs Primary Owner removal", e);
             return false;
         }
     }
@@ -135,24 +133,24 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
     }
 
     private void warn(List<String> apiIds) {
-        LOG.warn("");
-        LOG.warn("##############################################################");
-        LOG.warn("#                           WARNING                          #");
-        LOG.warn("##############################################################");
-        LOG.warn("");
-        LOG.warn("The following APIs do not have a Primary Owner:");
-        LOG.warn("");
-        apiIds.forEach(LOG::warn);
-        LOG.warn("");
-        LOG.warn("Please edit the services.api-primary-owner-default property of your configuration file to fix this");
-        LOG.warn("This value must refer to a valid user or group ID");
-        LOG.warn("");
-        LOG.warn("##############################################################");
-        LOG.warn("");
+        log.warn("");
+        log.warn("##############################################################");
+        log.warn("#                           WARNING                          #");
+        log.warn("##############################################################");
+        log.warn("");
+        log.warn("The following APIs do not have a Primary Owner:");
+        log.warn("");
+        apiIds.forEach(log::warn);
+        log.warn("");
+        log.warn("Please edit the services.api-primary-owner-default property of your configuration file to fix this");
+        log.warn("This value must refer to a valid user or group ID");
+        log.warn("");
+        log.warn("##############################################################");
+        log.warn("");
     }
 
     private void fix(List<String> apiIds, String apiPrimaryOwnerRoleId) throws TechnicalException {
-        LOG.info("Attempting to fix APIs without a Primary Owner from configuration");
+        log.info("Attempting to fix APIs without a Primary Owner from configuration");
         Membership membership = prepareMembership(apiPrimaryOwnerRoleId);
         for (String apiId : apiIds) {
             membership.setId(UuidString.generateRandom());
@@ -160,7 +158,7 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
             membershipRepository.create(membership);
         }
         String memberType = membership.getMemberType().name().toLowerCase();
-        LOG.info("APIs without a Primary Owner has been associated with {} {}", memberType, defaultPrimaryOwnerId);
+        log.info("APIs without a Primary Owner has been associated with {} {}", memberType, defaultPrimaryOwnerId);
     }
 
     @Override

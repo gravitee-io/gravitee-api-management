@@ -52,7 +52,7 @@ public class EnvironmentFederationAgentRoleUpgrader implements Upgrader {
                     roleService.create(new ExecutionContext(organization.getId()), ROLE_ENVIRONMENT_FEDERATION_AGENT);
                 });
         } catch (Exception e) {
-            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
 

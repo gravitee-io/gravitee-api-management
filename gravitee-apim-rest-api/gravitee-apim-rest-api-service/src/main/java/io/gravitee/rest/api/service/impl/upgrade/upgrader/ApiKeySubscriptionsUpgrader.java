@@ -54,7 +54,7 @@ public class ApiKeySubscriptionsUpgrader implements Upgrader {
         try {
             apiKeyRepository.findAll().forEach(this::updateApiKeySubscriptions);
         } catch (Exception e) {
-            log.error("error applying upgrader {}", this.getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
 

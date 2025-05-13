@@ -68,7 +68,7 @@ public class DefaultSharedPolicyGroupRolesUpgrader implements Upgrader {
                     updateDefaultAPIPublisherRoles(executionContext, DEFAULT_ROLE_ENVIRONMENT_USER.getName(), new char[] { READ.getId() });
                 });
         } catch (Exception e) {
-            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
 
