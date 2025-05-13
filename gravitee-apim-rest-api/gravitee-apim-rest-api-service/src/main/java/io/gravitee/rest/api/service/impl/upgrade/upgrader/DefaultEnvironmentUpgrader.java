@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +29,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class DefaultEnvironmentUpgrader implements Upgrader {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(DefaultEnvironmentUpgrader.class);
 
     @Autowired
     private EnvironmentService environmentService;
@@ -43,11 +40,11 @@ public class DefaultEnvironmentUpgrader implements Upgrader {
         try {
             // initialize roles.
             if (environmentService.findByOrganization(GraviteeContext.getDefaultOrganization()).isEmpty()) {
-                logger.info("    No environment found. Add default one.");
+                log.info("    No environment found. Add default one.");
                 environmentService.initialize();
             }
         } catch (Exception e) {
-            logger.error("unable to apply upgrader {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
 
