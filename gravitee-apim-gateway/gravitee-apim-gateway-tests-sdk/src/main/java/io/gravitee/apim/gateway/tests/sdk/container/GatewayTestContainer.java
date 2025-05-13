@@ -44,6 +44,9 @@ import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.noop.ratelimit.NoOpRateLimitRepository;
+import io.gravitee.repository.ratelimit.api.RateLimitRepository;
+import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.vertx.core.Vertx;
 import java.util.List;
 import java.util.function.Consumer;
@@ -80,7 +83,6 @@ public class GatewayTestContainer extends GatewayContainer {
     protected List<Class<?>> annotatedClasses() {
         List<Class<?>> classes = super.annotatedClasses();
         classes.add(GatewayTestConfiguration.class);
-        classes.remove(NodeMonitoringConfiguration.class);
         return classes;
     }
 
@@ -146,6 +148,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public OrganizationRepository organizationRepository() {
             return Mockito.mock(OrganizationRepository.class);
+        }
+
+        @Bean
+        public RateLimitRepository<RateLimit> rateLimitRepository() {
+            return new NoOpRateLimitRepository();
         }
 
         @Bean
