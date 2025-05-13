@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -50,7 +51,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import java.util.List;
 import java.util.Map;
-import org.jsoup.select.Evaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -84,6 +84,9 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
 
     @Inject
     private MembershipService membershipService;
+
+    @Inject
+    private NotificationCRDDomainService notificationCRDService;
 
     @Override
     public ApiCRDStatusEntity importApiDefinitionCRD(ExecutionContext executionContext, ApiCRDEntity api) {
@@ -125,6 +128,12 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
                 .findByApi(executionContext, importedApi.getId())
                 .stream()
                 .collect(toMap(PlanEntity::getCrossId, PlanEntity::getId));
+
+            notificationCRDService.syncApiPortalNotifications(
+                importedApi.getId(),
+                getAuthenticatedUsername(),
+                api.getConsoleNotificationConfiguration()
+            );
 
             return new ApiCRDStatusEntity(
                 executionContext.getOrganizationId(),

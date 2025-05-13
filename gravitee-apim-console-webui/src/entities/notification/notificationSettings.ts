@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { OriginEnum } from '../management-api-v2';
+
 export interface NotificationSettings {
   id?: string;
   name: string;
@@ -24,4 +26,5 @@ export interface NotificationSettings {
   config_type: string;
   config?: string;
   groups?: string[];
+  origin?: OriginEnum;
 }

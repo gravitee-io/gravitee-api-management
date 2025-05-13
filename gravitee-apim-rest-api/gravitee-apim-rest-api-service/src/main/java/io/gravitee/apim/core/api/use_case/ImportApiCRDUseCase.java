@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
@@ -97,6 +98,7 @@ public class ImportApiCRDUseCase {
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
     private final ValidateApiCRDDomainService validateCRDDomainService;
+    private final NotificationCRDDomainService notificationCRDService;
 
     public ImportApiCRDUseCase(
         ApiCrudService apiCrudService,
@@ -120,7 +122,8 @@ public class ImportApiCRDUseCase {
         PageCrudService pageCrudService,
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
-        ValidateApiCRDDomainService validateCRDDomainService
+        ValidateApiCRDDomainService validateCRDDomainService,
+        NotificationCRDDomainService notificationCRDService
     ) {
         this.apiCrudService = apiCrudService;
         this.apiQueryService = apiQueryService;
@@ -144,6 +147,7 @@ public class ImportApiCRDUseCase {
         this.createApiDocumentationDomainService = createApiDocumentationDomainService;
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
         this.validateCRDDomainService = validateCRDDomainService;
+        this.notificationCRDService = notificationCRDService;
     }
 
     public record Output(ApiCRDStatus status) {}
@@ -220,6 +224,12 @@ public class ImportApiCRDUseCase {
             createOrUpdatePages(sanitizedInput.spec.getPages(), createdApi.getId(), sanitizedInput.auditInfo);
 
             apiMetadataDomainService.importApiMetadata(createdApi.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
+
+            notificationCRDService.syncApiPortalNotifications(
+                createdApi.getId(),
+                sanitizedInput.auditInfo.actor().userId(),
+                sanitizedInput.spec.getConsoleNotificationConfiguration()
+            );
 
             if (shouldDeploy(sanitizedInput.spec())) {
                 // This will also DEPLOYS the API because it is the first time it has been started
@@ -325,6 +335,12 @@ public class ImportApiCRDUseCase {
             deleteRemovedPages(sanitizedInput.spec.getPages(), updatedApi.getId());
 
             apiMetadataDomainService.importApiMetadata(api.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
+
+            notificationCRDService.syncApiPortalNotifications(
+                api.getId(),
+                sanitizedInput.auditInfo.actor().userId(),
+                sanitizedInput.spec.getConsoleNotificationConfiguration()
+            );
 
             return ApiCRDStatus
                 .builder()

@@ -27,6 +27,16 @@
         "updatedAt": 1439022010883
     },
     {
+        "user": "userid",
+        "referenceType": "API",
+        "referenceId": "kubernetes-config-to-find",
+        "hooks": ["A", "B"],
+        "groups": ["1", "2"],
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "origin": "KUBERNETES"
+    },
+    {
         "user": "userA",
         "referenceType": "APPLICATION",
         "referenceId": "search",

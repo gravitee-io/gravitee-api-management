@@ -23,6 +23,7 @@ export interface NotificationSummary {
   subscribedEvents: number;
   notifier: Notifier;
   isPortalNotification: boolean;
+  isReadonly?: boolean;
 }
 
 @Component({

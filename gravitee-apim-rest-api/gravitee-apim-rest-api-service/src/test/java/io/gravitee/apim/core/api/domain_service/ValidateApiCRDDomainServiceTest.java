@@ -28,9 +28,12 @@ import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainSer
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.model.notification.NotificationConfigType;
+import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +67,8 @@ class ValidateApiCRDDomainServiceTest {
 
     ValidatePlanDomainService planValidator = mock(ValidatePlanDomainService.class);
 
+    ValidatePortalNotificationDomainService portalNotificationValidator = mock(ValidatePortalNotificationDomainService.class);
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -72,18 +77,25 @@ class ValidateApiCRDDomainServiceTest {
         groupsValidator,
         resourceValidator,
         pagesValidator,
-        planValidator
+        planValidator,
+        portalNotificationValidator
     );
+
+    PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
 
     @BeforeEach
     void setUp() {
         reset(categoryIdsValidator);
         when(pathValidator.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        consoleNotificationConfiguration.setConfigType(NotificationConfigType.PORTAL);
     }
 
     @Test
     void should_return_input_with_categories_and_no_warnings() {
-        var spec = ApiCRDFixtures.BASE_SPEC.categories(Set.of("key-1", "id-2")).build();
+        var spec = ApiCRDFixtures.BASE_SPEC
+            .categories(Set.of("key-1", "id-2"))
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
         var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).build(), spec);
 
         when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories())))
@@ -106,6 +118,13 @@ class ValidateApiCRDDomainServiceTest {
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(
+            portalNotificationValidator.validateAndSanitize(
+                new ValidatePortalNotificationDomainService.Input(consoleNotificationConfiguration, any(), null, AUDIT_INFO)
+            )
+        )
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().categories(Set.of("id-1", "id-2")).build();
@@ -145,6 +164,13 @@ class ValidateApiCRDDomainServiceTest {
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(
+            portalNotificationValidator.validateAndSanitize(
+                new ValidatePortalNotificationDomainService.Input(consoleNotificationConfiguration, any(), null, AUDIT_INFO)
+            )
+        )
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().build();

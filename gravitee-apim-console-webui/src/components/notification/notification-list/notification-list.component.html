@@ -41,16 +41,29 @@
     <th mat-header-cell *matHeaderCellDef id="actions">Action</th>
     <td mat-cell *matCellDef="let element">
       <div class="notifications__actions">
-        <button
-          *ngIf="canUpdate"
-          mat-icon-button
-          aria-label="Edit notification"
-          matTooltip="Edit notification"
-          (click)="edit.emit(element.id)"
-          data-testid="edit-button"
-        >
-          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-        </button>
+        @if (element.isReadonly) {
+          <button
+            *ngIf="canUpdate"
+            mat-icon-button
+            aria-label="View notification"
+            matTooltip="View notification"
+            (click)="edit.emit(element.id)"
+            data-testid="edit-button"
+          >
+            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+          </button>
+        } @else {
+          <button
+            *ngIf="canUpdate"
+            mat-icon-button
+            aria-label="Edit notification"
+            matTooltip="Edit notification"
+            (click)="edit.emit(element.id)"
+            data-testid="edit-button"
+          >
+            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+          </button>
+        }
 
         <button
           *ngIf="canDelete && !element.isPortalNotification"
