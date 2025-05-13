@@ -59,7 +59,7 @@ public class ExecutionModeUpgrader implements Upgrader {
         try {
             migrateApiEvents();
         } catch (Exception e) {
-            log.error("error occurred while applying upgrader {}", this.getClass().getSimpleName());
+            log.error("Error applying upgrader", e);
             return false;
         }
 
