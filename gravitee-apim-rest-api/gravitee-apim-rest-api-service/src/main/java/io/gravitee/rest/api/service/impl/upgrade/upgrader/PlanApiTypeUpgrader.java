@@ -52,7 +52,7 @@ public class PlanApiTypeUpgrader implements Upgrader {
         try {
             updatePlanApiType();
         } catch (Exception e) {
-            log.error("Unable to apply upgrader {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
 

@@ -89,7 +89,7 @@ public class PlansFlowsDefinitionUpgrader implements Upgrader {
 
             return !upgradeFailed.get();
         } catch (Exception e) {
-            log.error("unable to apply upgrader {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
     }

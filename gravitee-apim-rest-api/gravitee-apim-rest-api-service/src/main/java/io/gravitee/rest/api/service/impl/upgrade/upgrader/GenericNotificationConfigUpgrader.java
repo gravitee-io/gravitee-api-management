@@ -74,7 +74,7 @@ public class GenericNotificationConfigUpgrader implements Upgrader {
                 .toList();
             log.info("Migrating genericNotificationConfig: {} for environments {}", genericNotificationConfigs.size(), environments);
         } catch (Exception e) {
-            log.error("Failed to apply {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
         return true;

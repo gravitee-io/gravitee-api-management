@@ -17,8 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.service.OrganizationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,12 +26,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class DefaultOrganizationUpgrader implements Upgrader {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(DefaultOrganizationUpgrader.class);
 
     @Autowired
     private OrganizationService organizationService;
@@ -41,7 +36,7 @@ public class DefaultOrganizationUpgrader implements Upgrader {
     public boolean upgrade() {
         // initialize default organization.
         if (organizationService.count().equals(0L)) {
-            logger.info("    No organization found. Add default one.");
+            log.info("    No organization found. Add default one.");
             organizationService.initialize();
         }
         return true;
