@@ -20,6 +20,7 @@ import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +31,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class InitializeSharedPolicyGroupUpgrader implements Upgrader {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(InitializeSharedPolicyGroupUpgrader.class);
 
     @Autowired
     private InitializeSharedPolicyGroupUseCase initializeSharedPolicyGroupUseCase;
@@ -66,7 +63,7 @@ public class InitializeSharedPolicyGroupUpgrader implements Upgrader {
                         });
                 });
         } catch (Exception e) {
-            logger.error("unable to apply upgrader {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
 

@@ -53,7 +53,7 @@ public class ClientIdInApiKeySubscriptionsUpgrader implements Upgrader {
             criteriaBuilder.planSecurityTypes(List.of(Plan.PlanSecurityType.API_KEY.name()));
             subscriptionRepository.search(criteriaBuilder.build()).forEach(this::updateApiKeySubscriptions);
         } catch (Exception e) {
-            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
 
