@@ -237,7 +237,7 @@ export class ApiGeneralMembersComponent implements OnInit {
         id: 'addGroupsDialog',
         data: {
           api: this.api,
-          groups: this.groups,
+          groups: this.groups.filter((group) => !group.apiPrimaryOwner),
           isKubernetesOrigin: this.isKubernetesOrigin,
         },
       })
