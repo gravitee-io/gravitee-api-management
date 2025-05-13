@@ -93,7 +93,7 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
                 log.warn("They need to be redeployed manually to apply the patch.");
             }
         } catch (Exception e) {
-            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
 
