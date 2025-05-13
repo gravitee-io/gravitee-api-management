@@ -1,3 +1,10 @@
+# [3.5.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.4.1...3.5.0) (2025-05-13)
+
+
+### Features
+
+* handle double additional metrics ([ab2fabe](https://github.com/gravitee-io/gravitee-reporter-file/commit/ab2fabebb65c0423a1bd91e8baf6be718e6c8f12))
+
 ## [3.4.1](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.4.0...3.4.1) (2025-05-09)
 
 
