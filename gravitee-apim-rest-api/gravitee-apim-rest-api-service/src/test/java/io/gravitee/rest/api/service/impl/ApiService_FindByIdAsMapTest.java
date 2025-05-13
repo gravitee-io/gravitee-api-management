@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +34,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -42,7 +45,9 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
+import io.gravitee.rest.api.service.exceptions.BadNotificationConfigException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.Collections;
 import java.util.List;
@@ -90,6 +95,9 @@ public class ApiService_FindByIdAsMapTest {
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
+    @Mock
+    private ApiSearchService apiSearchService;
+
     @BeforeEach
     void setup() {
         objectMapper.setFilterProvider(
@@ -135,6 +143,81 @@ public class ApiService_FindByIdAsMapTest {
             .containsEntry("metadata", Map.of("metadata3", "metadataValue3", "metadata2", "metadataValue2", "metadata1", "metadataValue1"))
             // ensure those API data have been explicitly removed from map
             .doesNotContainKeys("picture", "proxy", "paths", "properties", "services", "resources", "response_templates", "path_mappings");
+    }
+
+    @Test
+    void shouldDefaultToV2WhenDefinitionVersionIsNull() throws TechnicalException {
+        Api api = new Api();
+        api.setId("api-id");
+        api.setName("test api with null definitionVersion");
+        api.setEnvironmentId(ENV_ID);
+        api.setDefinitionVersion(null);
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId(ENV_ID);
+        environment.setOrganizationId(ORG_ID);
+
+        MembershipEntity membership = new MembershipEntity();
+        membership.setMemberId("member-id");
+
+        when(apiRepository.findById("api-id")).thenReturn(Optional.of(api));
+        when(environmentService.findById(ENV_ID)).thenReturn(environment);
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("user");
+        PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(primaryOwner);
+        when(apiMetadataService.findAllByApi(new ExecutionContext(environment), "api-id")).thenReturn(buildMetadatas());
+        var resultMap = apiService.findByIdAsMap("api-id");
+
+        assertThat(resultMap)
+            .containsEntry("id", "api-id")
+            .containsEntry("name", "test api with null definitionVersion")
+            .containsKey("primaryOwner")
+            .containsEntry("metadata", Map.of("metadata3", "metadataValue3", "metadata2", "metadataValue2", "metadata1", "metadataValue1"))
+            .doesNotContainKeys("picture", "proxy", "paths", "properties", "services", "resources", "response_templates", "path_mappings");
+
+        assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
+    }
+
+    @Test
+    void shouldFindByIdAsMapWithV4Definition() throws TechnicalException {
+        Api api = new Api();
+        api.setId("api-id-v4");
+        api.setName("test api v4");
+        api.setEnvironmentId(ENV_ID);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId(ENV_ID);
+        environment.setOrganizationId(ORG_ID);
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("user");
+
+        PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
+
+        io.gravitee.rest.api.model.v4.api.ApiEntity mockApiEntity = mock(io.gravitee.rest.api.model.v4.api.ApiEntity.class);
+        when(mockApiEntity.getId()).thenReturn("api-id-v4");
+        when(mockApiEntity.getName()).thenReturn("test api v4");
+        when(mockApiEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        when(mockApiEntity.getPrimaryOwner()).thenReturn(primaryOwner);
+
+        when(apiRepository.findById("api-id-v4")).thenReturn(Optional.of(api));
+        when(environmentService.findById(ENV_ID)).thenReturn(environment);
+        when(apiSearchService.findById(new ExecutionContext(environment), "api-id-v4")).thenReturn(mockApiEntity);
+        when(apiMetadataService.findAllByApi(new ExecutionContext(environment), "api-id-v4")).thenReturn(buildMetadatas());
+
+        var resultMap = apiService.findByIdAsMap("api-id-v4");
+
+        assertThat(resultMap)
+            .containsEntry("id", "api-id-v4")
+            .containsEntry("name", "test api v4")
+            .containsEntry("definitionVersion", "4.0.0")
+            .containsKey("primaryOwner")
+            .containsEntry("metadata", Map.of("metadata3", "metadataValue3", "metadata2", "metadataValue2", "metadata1", "metadataValue1"))
+            .doesNotContainKeys("picture", "proxy", "paths", "properties", "services", "resources", "response_templates", "path_mappings");
+        verifyNoMoreInteractions(apiSearchService);
     }
 
     private List<ApiMetadataEntity> buildMetadatas() {
