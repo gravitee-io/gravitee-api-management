@@ -117,17 +117,31 @@
   </#list>
   }
   </#if>
-  <#if metrics.longAdditionalMetrics()?? || metrics.keywordAdditionalMetrics()?? || metrics.boolAdditionalMetrics()??>
-    ,"additional-metrics": {
-    <#list metrics.longAdditionalMetrics() as propKey, propValue>
-      "${propKey}":${propValue}<#sep>,
-    </#list>
-    <#list metrics.keywordAdditionalMetrics() as propKey, propValue>
-      "${propKey}":"${propValue}"<#sep>,
-    </#list>
-    <#list metrics.boolAdditionalMetrics() as propKey, propValue>
-      "${propKey}":"${propValue}"<#sep>,
-    </#list>
+  <#if (metrics.longAdditionalMetrics)()?? || (metrics.doubleAdditionalMetrics)()?? || (metrics.keywordAdditionalMetrics)()?? || (metrics.boolAdditionalMetrics)()??>
+    ,"policy-metrics": {
+    <#if (metrics.longAdditionalMetrics)()??>
+      <#list metrics.longAdditionalMetrics() as propKey, propValue>
+        "${propKey}":${propValue}<#sep>,
+      </#list>
+      <#if (metrics.doubleAdditionalMetrics)()?? || (metrics.keywordAdditionalMetrics)()?? || (metrics.boolAdditionalMetrics)()??>,</#if>
+    </#if>
+    <#if (metrics.doubleAdditionalMetrics)()??>
+      <#list metrics.doubleAdditionalMetrics() as propKey, propValue>
+        "${propKey}":${propValue}<#sep>,
+      </#list>
+      <#if (metrics.keywordAdditionalMetrics)()?? || (metrics.boolAdditionalMetrics)()??>,</#if>
+    </#if>
+    <#if (metrics.keywordAdditionalMetrics)()??>
+      <#list metrics.keywordAdditionalMetrics() as propKey, propValue>
+        "${propKey}":"${propValue}"<#sep>,
+      </#list>
+      <#if (metrics.boolAdditionalMetrics)()??>,</#if>
+    </#if>
+    <#if (metrics.boolAdditionalMetrics)()??>
+      <#list metrics.boolAdditionalMetrics() as propKey, propValue>
+        "${propKey}":"${propValue?string('true', 'false')}"<#sep>,
+      </#list>
+    </#if>
     }
   </#if>
 }

@@ -80,6 +80,12 @@ public class MetricsFormatter extends SingleValueFormatter<Metrics> {
         .values()
         .forEach(value -> appendLong(buffer, value));
     }
+    var doubleAdditionalMetrics = metrics.doubleAdditionalMetrics();
+    if (doubleAdditionalMetrics != null) {
+      doubleAdditionalMetrics
+        .values()
+        .forEach(value -> appendString(buffer, value.toString()));
+    }
     var keywordAdditionalMetrics = metrics.keywordAdditionalMetrics();
     if (keywordAdditionalMetrics != null) {
       keywordAdditionalMetrics
