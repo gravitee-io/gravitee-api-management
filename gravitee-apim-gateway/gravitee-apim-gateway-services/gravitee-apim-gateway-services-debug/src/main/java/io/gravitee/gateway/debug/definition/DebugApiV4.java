@@ -17,12 +17,10 @@ package io.gravitee.gateway.debug.definition;
 
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
-import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import io.gravitee.gateway.reactor.ReactableApi;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -86,6 +84,7 @@ public class DebugApiV4 extends Api implements ReactableDebugApi<io.gravitee.def
                 .flatMap(listener -> ((HttpListener) listener).getPaths().stream())
                 .map(Path::getPath)
                 .findFirst()
+                .map(path -> path.endsWith("/") ? path.substring(0, path.length() - 1) : path)
                 .orElse("") +
             request.getPath()
         );
