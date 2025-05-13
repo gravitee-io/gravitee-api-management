@@ -241,3 +241,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_8_0/00_add_target_to_entrypoints_table.yml
     - include:
         - file: liquibase/changelogs/v4_8_0/01_add_portal_notifications_groups_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_8_0/02_add_portal_notification_configs_origin_col.yml

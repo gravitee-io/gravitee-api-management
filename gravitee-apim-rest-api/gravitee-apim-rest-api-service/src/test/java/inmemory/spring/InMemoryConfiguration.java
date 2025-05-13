@@ -61,6 +61,7 @@ import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
 import inmemory.NoopSwaggerOpenApiResolver;
 import inmemory.NoopTemplateResolverDomainService;
+import inmemory.NotificationCRDDomainServiceInMemory;
 import inmemory.OasProviderInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
@@ -98,7 +99,7 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
-import io.gravitee.apim.core.application.query_service.ApplicationQueryService;
+import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.core.specgen.crud_service.ApiSpecGenCrudService;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.OasProvider;
@@ -538,5 +539,10 @@ public class InMemoryConfiguration {
     @Bean
     public ApiExposedEntrypointDomainServiceInMemory apiExposedEntrypointDomainServiceInMemory() {
         return new ApiExposedEntrypointDomainServiceInMemory();
+    }
+
+    @Bean
+    NotificationCRDDomainService notificationCRDDomainServiceInMemory() {
+        return new NotificationCRDDomainServiceInMemory();
     }
 }

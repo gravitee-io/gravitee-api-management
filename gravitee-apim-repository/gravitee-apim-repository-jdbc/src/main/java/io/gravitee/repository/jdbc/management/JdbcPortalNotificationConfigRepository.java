@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 
+import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
@@ -66,6 +67,7 @@ public class JdbcPortalNotificationConfigRepository
                 " , reference_id = ?" +
                 " , created_at = ? " +
                 " , updated_at = ? " +
+                " , origin = ? " +
                 " where " +
                 escapeReservedWord("user") +
                 " = ? " +
@@ -77,6 +79,7 @@ public class JdbcPortalNotificationConfigRepository
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("origin", Types.NVARCHAR, Origin.class)
             .build();
     }
 
@@ -107,7 +110,7 @@ public class JdbcPortalNotificationConfigRepository
             StringBuilder q = new StringBuilder(
                 "select pnc." +
                 escapeReservedWord("user") +
-                ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at " +
+                ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at, pnc.origin " +
                 " from " +
                 this.tableName +
                 " pnc" +
@@ -124,7 +127,7 @@ public class JdbcPortalNotificationConfigRepository
                 " and pnc.reference_id = ?" +
                 " and pnch.hook = ?"
             );
-            final List<PortalNotificationConfig> items = jdbcTemplate.query(
+            return jdbcTemplate.query(
                 q.toString(),
                 (PreparedStatement ps) -> {
                     ps.setString(1, referenceType.name());
@@ -133,8 +136,6 @@ public class JdbcPortalNotificationConfigRepository
                 },
                 getOrm().getRowMapper()
             );
-
-            return items;
         } catch (final Exception ex) {
             final String message = "Failed to find notifications by reference and hook";
             LOGGER.error(message, ex);
@@ -191,7 +192,7 @@ public class JdbcPortalNotificationConfigRepository
             final List<PortalNotificationConfig> items = jdbcTemplate.query(
                 "select " +
                 escapeReservedWord("user") +
-                ", reference_type, reference_id, created_at, updated_at " +
+                ", reference_type, reference_id, created_at, updated_at, origin " +
                 " from " +
                 this.tableName +
                 " where " +

@@ -24,6 +24,7 @@ import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
@@ -59,6 +60,8 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
     private final ValidatePlanDomainService planValidator;
 
+    private final ValidatePortalNotificationDomainService portalNotificationValidator;
+
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
@@ -93,6 +96,17 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
                 )
             )
             .peek(sanitized -> sanitizedBuilder.groups(sanitized.groups()), errors::addAll);
+
+        portalNotificationValidator
+            .validateAndSanitize(
+                new ValidatePortalNotificationDomainService.Input(
+                    input.spec().getConsoleNotificationConfiguration(),
+                    input.spec().getDefinitionVersion(),
+                    sanitizedBuilder.build().getGroups(),
+                    input.auditInfo()
+                )
+            )
+            .peek(sanitized -> sanitizedBuilder.consoleNotificationConfiguration(sanitized.portalNotificationConfig()), errors::addAll);
 
         resourceValidator
             .validateAndSanitize(new ValidateResourceDomainService.Input(input.auditInfo.environmentId(), input.spec().getResources()))

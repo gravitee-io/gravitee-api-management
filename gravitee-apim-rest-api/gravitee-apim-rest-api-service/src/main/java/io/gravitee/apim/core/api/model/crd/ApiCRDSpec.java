@@ -46,6 +46,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
@@ -124,6 +125,8 @@ public class ApiCRDSpec {
     private ApiServicesCRD services;
 
     private Map<String, @Valid PageCRD> pages;
+
+    private PortalNotificationConfigEntity consoleNotificationConfiguration;
 
     public String getDefinitionVersion() {
         return "V4";
