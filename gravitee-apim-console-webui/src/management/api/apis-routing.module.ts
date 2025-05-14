@@ -104,6 +104,7 @@ import { HasLicenseGuard } from '../../shared/components/gio-license/has-license
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 import { RuntimeAlertCreateComponent } from '../../components/runtime-alerts';
 import { ApiScoringGuard } from '../../shared/guards/api-scoring.guard';
+import {AddMcpEntrypointComponent} from "./mcp/add-mcp-entrypoint/add-mcp-entrypoint.component";
 
 const apisRoutes: Routes = [
   {
@@ -1072,6 +1073,15 @@ const apisRoutes: Routes = [
           docs: null,
           permissions: {
             anyOf: ['api-definition-r'],
+          },
+        },
+      },{
+        path: 'v4/mcp/add',
+        component: AddMcpEntrypointComponent,
+        data: {
+          docs: null,
+          permissions: {
+            anyOf: ['api-definition-u'],
           },
         },
       },
