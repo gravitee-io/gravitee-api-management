@@ -279,6 +279,19 @@ data:
         openssl: {{ .Values.gateway.kafka.ssl.openssl }}
         {{- end}}
       {{- end }}
+
+      {{- if hasKey .Values.gateway.kafka "probe" }}
+      probe:
+        {{- if hasKey .Values.gateway.kafka.probe "protocol" }}
+        protocol: {{ .Values.gateway.kafka.probe.protocol }}
+        {{- end}}
+        {{- if hasKey .Values.gateway.kafka.probe "properties" }}
+        properties:
+          {{- range $key,$value := .Values.gateway.kafka.probe.properties }}
+          {{$key}}: {{$value}}
+          {{- end}}
+        {{- end}}
+      {{- end}}
     {{- end }}
     management:
     {{- if .Values.gateway.dbLess }}
@@ -466,7 +479,7 @@ data:
           {{- if .Values.gateway.ratelimit.redis.truststore.alias }}
           alias: {{ .Values.gateway.ratelimit.redis.truststore.alias }}
           {{- end }}
-        {{- end }}        
+        {{- end }}
         {{- if (not (empty ((.Values.gateway.ratelimit.redis.sentinel).nodes))) }}
         sentinel:
           master: {{ .Values.gateway.ratelimit.redis.sentinel.master }}
