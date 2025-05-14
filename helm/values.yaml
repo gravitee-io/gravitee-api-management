@@ -1001,6 +1001,21 @@ gateway:
 #      #      myapi-broker1.mycompany.org
 #      #      ...
 #
+#    # Kafka probe
+#    probe:
+#      # When protocol is tcp, the probe only checks the kafka port is listening by attempting a basic TCP connection (default).
+#      # When protocol is kafka, the probe uses a kafka client library to connect to one of the kafka API deployed on this gateway instance.
+#      protocol: tcp
+#      # When using kafka protocol, you must provide the kafka properties with the connection info.
+#      properties:
+#        bootstrap.servers: bootstrap-myapi.mycompany.org:9092
+#        sasl.mechanism: PLAIN
+#        security.protocol: SASL_SSL
+#        sasl.jaas.config: >-
+#            org.apache.kafka.common.security.plain.PlainLoginModule required
+#            username="username"
+#            password="********";
+#
 #    # API-Key plan security configuration
 #    apiKey:
 #      securityMechanisms: PLAIN, SCRAM-SHA-256, SCRAM-SHA-512

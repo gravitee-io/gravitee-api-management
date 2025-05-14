@@ -150,4 +150,75 @@ tests:
                   password: "password-trust"
                   watch: false
                 openssl: true
+  - it: Enable Kafka and set tcp probe
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          probe:
+            protocol: tcp
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              probe:
+                protocol: tcp
+  - it: Enable Kafka and set kafka probe with multiline jaas config
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          probe:
+            protocol: kafka
+            properties:
+              bootstrap.servers: "bootstrap-myapi.mycompany.org:9092"
+              sasl.jaas.config: >-
+                  org.apache.kafka.common.security.plain.PlainLoginModule required
+                  username="username"
+                  password="password";
+              sasl.mechanism: "PLAIN"
+              security.protocol: SASL_SSL
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              probe:
+                protocol: kafka
+                properties:
+                  bootstrap.servers: bootstrap-myapi.mycompany.org:9092
+                  sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="username" password="password";
+                  sasl.mechanism: PLAIN
+                  security.protocol: SASL_SSL
+  - it: Enable Kafka and set kafka probe with single line jaas config
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          probe:
+            protocol: kafka
+            properties:
+              bootstrap.servers: "bootstrap-myapi.mycompany.org:9092"
+              sasl.jaas.config: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"username\" password=\"password\";"
+              sasl.mechanism: "PLAIN"
+              security.protocol: SASL_SSL
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              probe:
+                protocol: kafka
+                properties:
+                  bootstrap.servers: bootstrap-myapi.mycompany.org:9092
+                  sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="username" password="password";
+                  sasl.mechanism: PLAIN
+                  security.protocol: SASL_SSL
 
