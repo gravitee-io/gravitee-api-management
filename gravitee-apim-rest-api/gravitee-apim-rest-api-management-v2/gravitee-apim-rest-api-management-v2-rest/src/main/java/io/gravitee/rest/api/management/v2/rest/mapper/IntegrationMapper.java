@@ -30,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponseApi
 import java.util.List;
 import java.util.Set;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,17 +44,27 @@ public interface IntegrationMapper {
     Logger logger = LoggerFactory.getLogger(IntegrationMapper.class);
     IntegrationMapper INSTANCE = Mappers.getMapper(IntegrationMapper.class);
 
-    Integration map(CreateIntegration source);
+    Integration.ApiIntegration map(CreateIntegration source);
 
     IngestionJob map(AsyncJob source);
 
+    @Mapping(target = "id", expression = "java(source.id())")
+    @Mapping(target = "name", expression = "java(source.name())")
+    @Mapping(target = "description", expression = "java(source.description())")
+    @Mapping(target = "provider", expression = "java(source.provider())")
+    @Mapping(target = "groups", expression = "java(List.copyOf(source.groups()))")
     io.gravitee.rest.api.management.v2.rest.model.Integration map(Integration source);
 
+    @Mapping(target = "id", expression = "java(source.getIntegration().id())")
+    @Mapping(target = "name", expression = "java(source.getIntegration().name())")
+    @Mapping(target = "description", expression = "java(source.getIntegration().description())")
+    @Mapping(target = "provider", expression = "java(source.getIntegration().provider())")
+    @Mapping(target = "groups", expression = "java(List.copyOf(source.getIntegration().groups()))")
     io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source);
 
     List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> source);
 
-    Integration map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration source);
+    Integration.ApiIntegration map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration source);
 
     AsyncJobStatus map(AsyncJob.Status source);
 

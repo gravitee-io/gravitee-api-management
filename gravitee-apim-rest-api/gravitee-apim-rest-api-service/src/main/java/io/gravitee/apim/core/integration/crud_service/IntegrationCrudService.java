@@ -23,11 +23,13 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface IntegrationCrudService {
-    Integration create(Integration integration);
+    <T extends Integration> T create(T integration);
 
-    Optional<Integration> findById(String id);
+    Optional<Integration.ApiIntegration> findApiIntegrationById(String id);
 
-    Integration update(Integration integration);
+    Optional<Integration.A2aIntegration> findA2aIntegrationById(String id);
+
+    <T extends Integration> T update(T integration);
 
     void delete(String id);
 }

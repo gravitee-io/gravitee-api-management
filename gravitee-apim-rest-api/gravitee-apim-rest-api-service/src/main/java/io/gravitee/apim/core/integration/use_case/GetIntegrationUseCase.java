@@ -21,7 +21,6 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.async_job.query_service.AsyncJobQueryService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
@@ -50,8 +49,8 @@ public class GetIntegrationUseCase {
             throw noLicenseForFederation();
         }
 
-        Integration integration = integrationCrudService
-            .findById(integrationId)
+        var integration = integrationCrudService
+            .findApiIntegrationById(integrationId)
             .orElseThrow(() -> new IntegrationNotFoundException(integrationId));
 
         var agentStatus = integrationAgent
@@ -61,7 +60,7 @@ public class GetIntegrationUseCase {
 
         var pendingJob = asyncJobQueryService.findPendingJobFor(integrationId);
         var primaryOwner = integrationPrimaryOwnerDomainService
-            .getIntegrationPrimaryOwner(input.organizationId(), integration.getId())
+            .getIntegrationPrimaryOwner(input.organizationId(), integration.id())
             .map(po -> new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName()))
             .onErrorComplete()
             .blockingGet();

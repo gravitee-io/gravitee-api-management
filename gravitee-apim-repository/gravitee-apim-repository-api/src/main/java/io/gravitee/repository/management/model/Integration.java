@@ -48,9 +48,15 @@ public class Integration {
     private Date createdAt;
 
     private Date updatedAt;
+    private IngestionType ingestionType;
 
     @Builder.Default
     private Set<String> groups = new HashSet<>();
+
+    /**
+     * A2A field
+     */
+    private String wellKnownUrl;
 
     /**
      * @deprecated Agent status is not saved in database anymore but calculated. This field can be deleted after 4.5 release
@@ -67,6 +73,11 @@ public class Integration {
     public enum AgentStatus {
         CONNECTED,
         DISCONNECTED,
+    }
+
+    public enum IngestionType {
+        API,
+        A2A,
     }
 
     public boolean addGroup(String groupId) {
