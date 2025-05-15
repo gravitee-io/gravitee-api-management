@@ -33,6 +33,7 @@ interface ApiVM {
   title: string;
   version: string;
   content: string;
+  isEnabledMcpServer: boolean;
   picture?: string;
 }
 
@@ -112,6 +113,7 @@ export class ApisListComponent {
               version: api.version,
               title: api.name,
               picture: api._links?.picture,
+              isEnabledMcpServer: !!api.mcp?.enabled,
             }))
           : [];
 

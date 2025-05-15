@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
+import { MatChipHarness } from '@angular/material/chips/testing';
 
 export class ApiCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-api-card';
   protected locateHeaderContent = this.locatorFor('.api-card__header__content');
   protected locateDescription = this.locatorFor('.api-card__description');
+  protected locateMcpServerChip = this.locatorForOptional(MatChipHarness.with({ text: 'MCP Server' }));
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<ApiCardHarness> {
     return new HarnessPredicate(ApiCardHarness, options);
@@ -35,6 +37,11 @@ export class ApiCardHarness extends ContentContainerComponentHarness {
   public async getDescription(): Promise<string> {
     const div = await this.locateDescription();
     return await div.text();
+  }
+
+  public async isMcpServer(): Promise<boolean> {
+    const mcpServerChip = await this.locateMcpServerChip();
+    return mcpServerChip !== null;
   }
 
   private async getTitleAndVersion(): Promise<{ title: string; version: string }> {
