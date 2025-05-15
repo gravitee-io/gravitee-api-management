@@ -168,7 +168,7 @@
         <!-- Management API & Gateway -->
         <gravitee-alert-engine-connectors-ws.version>2.1.0</gravitee-alert-engine-connectors-ws.version>
         <gravitee-connector-http.version>5.0.4</gravitee-connector-http.version>
-        <gravitee-policy-apikey.version>5.0.1</gravitee-policy-apikey.version>
+        <gravitee-policy-apikey.version>5.1.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>2.0.3</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>2.0.1</gravitee-policy-assign-content.version>
         <gravitee-policy-assign-metrics.version>3.1.0</gravitee-policy-assign-metrics.version>
@@ -285,7 +285,7 @@
         <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>3.1.1</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>6.0.1</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>2.2.0</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-native-kafka.version>2.2.1</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>6.0.0</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
@@ -294,7 +294,7 @@
 
         <gravitee-policy-kafka-quota.version>1.0.2</gravitee-policy-kafka-quota.version>
         <gravitee-policy-kafka-topic-mapping.version>1.2.0</gravitee-policy-kafka-topic-mapping.version>
-        <gravitee-policy-kafka-acl.version>1.7.3</gravitee-policy-kafka-acl.version>
+        <gravitee-policy-kafka-acl.version>1.7.4</gravitee-policy-kafka-acl.version>
     </properties>
 
     <scm>
