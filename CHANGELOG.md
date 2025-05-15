@@ -1,3 +1,10 @@
+# [5.9.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.8.1...5.9.0) (2025-05-15)
+
+
+### Features
+
+* handle double metrics ([dcd1924](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/dcd1924f66ca02be6b9c2afdd06ed8b659211307))
+
 ## [5.8.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.8.0...5.8.1) (2025-05-12)
 
 
