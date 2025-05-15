@@ -23,6 +23,9 @@
         <div class="m3-title-medium">{{ title }}</div>
         <div class="m3-body-medium"><span i18n="@@apiVersion">Version: </span>{{ version }}</div>
       </div>
+      @if (isEnabledMcpServer) {
+        <mat-chip i18n="@@apiCardMcpServer">MCP Server</mat-chip>
+      }
     </div>
     <div class="api-card__description m3-body-medium">
       @if (content) {

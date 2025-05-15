@@ -95,6 +95,14 @@ describe('ApisListComponent', () => {
               description:
                 'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
             }),
+            fakeApi({
+              id: '2',
+              name: 'MCP Server API',
+              version: 'v.2.0',
+              description:
+                'Access enterprise-level financial data, reports, and analytics to empower your applications with financial insights.',
+              mcp: { enabled: true, tools: [{ name: 'MCP Tool', description: 'MCP Tool Description', inputSchema: {} }] },
+            }),
           ],
           metadata: {
             pagination: {
@@ -119,7 +127,7 @@ describe('ApisListComponent', () => {
     it('should call second page after scrolled event', async () => {
       const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(apiCard).toBeDefined();
-      expect(apiCard.length).toEqual(1);
+      expect(apiCard.length).toEqual(2);
       expect(await apiCard[0].getTitle()).toEqual('Test title');
 
       document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
@@ -142,7 +150,7 @@ describe('ApisListComponent', () => {
       fixture.detectChanges();
 
       const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(allHarnesses.length).toEqual(2);
+      expect(allHarnesses.length).toEqual(3);
 
       const secondPageApi = await harnessLoader.getHarnessOrNull(ApiCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
       expect(secondPageApi).toBeTruthy();
@@ -151,7 +159,7 @@ describe('ApisListComponent', () => {
     it('should call API list with search query', async () => {
       const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(apiCard).toBeDefined();
-      expect(apiCard.length).toEqual(1);
+      expect(apiCard.length).toEqual(2);
       expect(await apiCard[0].getTitle()).toEqual('Test title');
 
       document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
@@ -176,7 +184,7 @@ describe('ApisListComponent', () => {
 
     it('should not call page if on last page', async () => {
       const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(apiCard.length).toEqual(1);
+      expect(apiCard.length).toEqual(2);
 
       document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
       fixture.detectChanges();
@@ -198,12 +206,17 @@ describe('ApisListComponent', () => {
       fixture.detectChanges();
 
       const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(allHarnesses.length).toEqual(2);
+      expect(allHarnesses.length).toEqual(3);
 
       document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
       fixture.detectChanges();
 
       httpTestingController.expectNone(`${TESTING_BASE_URL}/apis?page=3&size=9`);
+    });
+
+    it('should show MCP server chip', async () => {
+      const apiCards = await harnessLoader.getAllHarnesses(ApiCardHarness);
+      expect(await apiCards[1].isMcpServer()).toBeTruthy();
     });
   });
 
