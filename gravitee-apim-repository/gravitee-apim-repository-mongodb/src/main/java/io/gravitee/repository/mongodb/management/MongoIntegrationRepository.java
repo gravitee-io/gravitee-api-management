@@ -26,8 +26,6 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +45,7 @@ public class MongoIntegrationRepository implements IntegrationRepository {
     private final GraviteeMapper mapper;
 
     @Override
-    public Optional<Integration> findById(String s) throws TechnicalException {
+    public Optional<Integration> findByIntegrationId(String s) {
         logger.debug("Find integration by id [{}]", s);
         Optional<Integration> result = internalRepository.findById(s).map(this::map);
         logger.debug("Find integration by id [{}] - DONE", s);
@@ -58,6 +56,9 @@ public class MongoIntegrationRepository implements IntegrationRepository {
     public Integration create(Integration integration) throws TechnicalException {
         logger.debug("Create integration [{}]", integration.getId());
         Integration createdIntegration = map(internalRepository.insert(map(integration)));
+        if (createdIntegration.getWellKnownUrls() != null && createdIntegration.getWellKnownUrls().isEmpty()) {
+            createdIntegration.setWellKnownUrls(null);
+        }
         logger.debug("Create integration [{}] - Done", createdIntegration.getId());
         return createdIntegration;
     }
@@ -84,11 +85,6 @@ public class MongoIntegrationRepository implements IntegrationRepository {
         logger.debug("Delete integration [{}]", id);
         internalRepository.deleteById(id);
         logger.debug("Delete integration [{}] - Done", id);
-    }
-
-    @Override
-    public Set<Integration> findAll() throws TechnicalException {
-        return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 
     @Override
@@ -132,7 +128,11 @@ public class MongoIntegrationRepository implements IntegrationRepository {
     }
 
     private Integration map(IntegrationMongo integrationMongo) {
-        return mapper.map(integrationMongo);
+        Integration integration = mapper.map(integrationMongo);
+        if (integration.getWellKnownUrls() != null && integration.getWellKnownUrls().isEmpty()) {
+            integration.setWellKnownUrls(null);
+        }
+        return integration;
     }
 
     private IntegrationMongo map(Integration integration) {

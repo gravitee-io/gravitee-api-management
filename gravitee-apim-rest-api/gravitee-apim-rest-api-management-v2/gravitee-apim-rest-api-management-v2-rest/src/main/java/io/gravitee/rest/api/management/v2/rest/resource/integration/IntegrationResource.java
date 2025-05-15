@@ -124,8 +124,10 @@ public class IntegrationResource extends AbstractResource {
         @Valid @NotNull UpdateIntegration updateIntegration
     ) {
         AuditInfo auditInfo = getAuditInfo();
-        var integrationToUpdate = IntegrationMapper.INSTANCE.map(updateIntegration).toBuilder().id(integrationId).build();
-        var input = new UpdateIntegrationUseCase.Input(integrationToUpdate, auditInfo);
+
+        var integrationToUpdate = IntegrationMapper.INSTANCE.map(updateIntegration);
+
+        var input = new UpdateIntegrationUseCase.Input(integrationId, integrationToUpdate, auditInfo);
         var updatedIntegration = updateIntegrationUsecase.execute(input).integration();
         return Response.ok(IntegrationMapper.INSTANCE.map(updatedIntegration)).build();
     }

@@ -104,7 +104,7 @@ public class IngestFederatedApisUseCase {
                 try (var bulk = apiIndexerDomainService.bulk(auditInfo)) {
                     for (IntegrationApi api : input.apisToIngest) {
                         var integration = integrationCrudService
-                            .findById(job.getSourceId())
+                            .findApiIntegrationById(job.getSourceId())
                             .orElseThrow(() -> new IllegalStateException("Integration %s not found".formatted(job.getSourceId())));
                         var federatedApi = ApiModelFactory.fromIngestionJob(api, job, integration);
 

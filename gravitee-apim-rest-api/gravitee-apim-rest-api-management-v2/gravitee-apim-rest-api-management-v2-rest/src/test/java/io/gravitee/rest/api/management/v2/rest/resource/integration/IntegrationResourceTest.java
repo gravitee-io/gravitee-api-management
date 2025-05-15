@@ -176,9 +176,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     new Integration()
                         .id(INTEGRATION_ID)
-                        .name(integration.getName())
-                        .description(integration.getDescription())
-                        .provider(integration.getProvider())
+                        .name(integration.name())
+                        .description(integration.description())
+                        .provider(integration.provider())
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
                         .primaryOwner(new PrimaryOwner().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe"))
                         .groups(List.of())
@@ -186,7 +186,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_get_integration_with_pending_job() {
+        void should_get_integration_with_pending_job() {
             // Given
             var integration = givenAnIntegration(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
             var job = givenAnAsyncJob(AsyncJobFixture.aPendingFederatedApiIngestionJob().withSourceId(INTEGRATION_ID));
@@ -201,9 +201,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     new Integration()
                         .id(INTEGRATION_ID)
-                        .name(integration.getName())
-                        .description(integration.getDescription())
-                        .provider(integration.getProvider())
+                        .name(integration.name())
+                        .description(integration.description())
+                        .provider(integration.provider())
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
                         .primaryOwner(new PrimaryOwner().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe"))
                         .pendingJob(
@@ -301,12 +301,12 @@ public class IntegrationResourceTest extends AbstractResourceTest {
     class UpdateIntegration {
 
         @Test
-        public void should_update_integration() {
+        void should_update_integration() {
             //Given
             var updatedName = "updated-name";
             var updatedDescription = "updated-description";
             var integration = List.of(IntegrationFixture.anIntegration());
-            integrationCrudServiceInMemory.initWith(integration);
+            integrationCrudServiceInMemory.initializeWith(integration);
 
             var updateIntegration = new io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration()
                 .name(updatedName)
@@ -330,7 +330,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             var groupId = "group-id";
             var updatedName = "updated-name";
             var updatedDescription = "updated-description";
-            var integration = List.of(IntegrationFixture.anIntegration());
+            var integration = List.<io.gravitee.apim.core.integration.model.Integration>of(IntegrationFixture.anIntegration());
             integrationCrudServiceInMemory.initWith(integration);
             givenExistingGroup(List.of(Group.builder().id(groupId).name("group-name").build()));
 
