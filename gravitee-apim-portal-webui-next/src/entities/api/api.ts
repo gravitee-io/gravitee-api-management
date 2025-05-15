@@ -15,6 +15,7 @@
  */
 import { ApiLinks } from './api-links';
 import { ListenerType } from './listener-type';
+import { Mcp } from './mcp';
 import { User } from '../user/user';
 
 /**
@@ -71,6 +72,7 @@ export interface Api {
    * List of categories this API belongs to.
    */
   categories?: Array<string>;
+  mcp?: Mcp;
   _links?: ApiLinks;
 }
 
