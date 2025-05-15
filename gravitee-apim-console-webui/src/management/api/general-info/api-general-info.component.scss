@@ -98,6 +98,7 @@ $typography: map.get(gio.$mat-theme, typography);
             .details-card__header__right-coll__media__picture__btn__text {
               opacity: 1;
               visibility: visible;
+              line-height: 1.8;
             }
           }
         }
@@ -112,6 +113,7 @@ $typography: map.get(gio.$mat-theme, typography);
               justify-content: center;
               align-items: center;
               height: 114px;
+              line-height: 1.8;
             }
           }
         }
