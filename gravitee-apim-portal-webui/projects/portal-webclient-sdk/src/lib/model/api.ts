@@ -14,6 +14,7 @@ import { User } from './user';
 import { ApiType } from './apiType';
 import { ListenerType } from './listenerType';
 import { Page } from './page';
+import { Mcp } from './mcp';
 import { ApiLinks } from './apiLinks';
 import { Plan } from './plan';
 
@@ -61,6 +62,7 @@ export interface Api {
      * List of labels linked to this API.
      */
     labels?: Array<string>;
+    mcp?: Mcp;
     owner: User;
     /**
      * Create date and time.
