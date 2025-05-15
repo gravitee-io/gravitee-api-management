@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,4 +53,8 @@ public class IntegrationMongo extends Auditable {
     private AgentStatus agentStatus;
 
     private Set<String> groups;
+
+    private Collection<A2aWellKnownUrl> wellKnownUrls = new HashSet<>();
+
+    public record A2aWellKnownUrl(String url) {}
 }

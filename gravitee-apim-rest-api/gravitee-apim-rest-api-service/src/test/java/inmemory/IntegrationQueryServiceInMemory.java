@@ -46,8 +46,8 @@ public class IntegrationQueryServiceInMemory implements IntegrationQueryService,
 
         var matches = storage
             .stream()
-            .filter(integration -> integration.getEnvironmentId().equals(environmentId))
-            .sorted(Comparator.comparing(Integration::getUpdatedAt).reversed())
+            .filter(integration -> integration.environmentId().equals(environmentId))
+            .sorted(Comparator.comparing(Integration::updatedAt).reversed())
             .toList();
 
         var page = matches.size() <= pageSize
@@ -70,9 +70,9 @@ public class IntegrationQueryServiceInMemory implements IntegrationQueryService,
 
         var matches = storage
             .stream()
-            .filter(integration -> integration.getEnvironmentId().equals(environmentId))
-            .filter(integration -> isAdmin || stream(integration.getGroups()).anyMatch(groups::contains))
-            .sorted(Comparator.comparing(Integration::getUpdatedAt).reversed())
+            .filter(integration -> integration.environmentId().equals(environmentId))
+            .filter(integration -> isAdmin || stream(integration.groups()).anyMatch(groups::contains))
+            .sorted(Comparator.comparing(Integration::updatedAt).reversed())
             .toList();
 
         var page = matches.size() <= pageSize

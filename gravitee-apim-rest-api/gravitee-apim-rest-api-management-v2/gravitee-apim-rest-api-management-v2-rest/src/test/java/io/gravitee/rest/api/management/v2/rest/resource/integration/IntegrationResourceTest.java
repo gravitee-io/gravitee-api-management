@@ -164,7 +164,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_get_integration() {
             // Given
-            var integration = givenAnIntegration(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
+            var integration = givenAnIntegration(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID));
 
             //When
             Response response = target.request().get();
@@ -176,9 +176,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     new Integration()
                         .id(INTEGRATION_ID)
-                        .name(integration.getName())
-                        .description(integration.getDescription())
-                        .provider(integration.getProvider())
+                        .name(integration.name())
+                        .description(integration.description())
+                        .provider(integration.provider())
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
                         .primaryOwner(new PrimaryOwner().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe"))
                         .groups(List.of())
@@ -186,9 +186,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_get_integration_with_pending_job() {
+        void should_get_integration_with_pending_job() {
             // Given
-            var integration = givenAnIntegration(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
+            var integration = givenAnIntegration(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID));
             var job = givenAnAsyncJob(AsyncJobFixture.aPendingFederatedApiIngestionJob().withSourceId(INTEGRATION_ID));
 
             //When
@@ -201,9 +201,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     new Integration()
                         .id(INTEGRATION_ID)
-                        .name(integration.getName())
-                        .description(integration.getDescription())
-                        .provider(integration.getProvider())
+                        .name(integration.name())
+                        .description(integration.description())
+                        .provider(integration.provider())
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
                         .primaryOwner(new PrimaryOwner().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe"))
                         .pendingJob(
@@ -283,7 +283,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         public void should_return_success_when_ingestion_has_started() {
             //Given
             var entity = Entity.entity(new ApisIngest().apiIds(List.of()), MediaType.APPLICATION_JSON_TYPE);
-            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID)));
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID)));
             integrationAgentInMemory.configureApisNumberToIngest(INTEGRATION_ID, 10L);
 
             //When
@@ -301,12 +301,12 @@ public class IntegrationResourceTest extends AbstractResourceTest {
     class UpdateIntegration {
 
         @Test
-        public void should_update_integration() {
+        void should_update_integration() {
             //Given
             var updatedName = "updated-name";
             var updatedDescription = "updated-description";
-            var integration = List.of(IntegrationFixture.anIntegration());
-            integrationCrudServiceInMemory.initWith(integration);
+            var integration = List.of(IntegrationFixture.anApiIntegration());
+            integrationCrudServiceInMemory.initializeWith(integration);
 
             var updateIntegration = new io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration()
                 .name(updatedName)
@@ -330,7 +330,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             var groupId = "group-id";
             var updatedName = "updated-name";
             var updatedDescription = "updated-description";
-            var integration = List.of(IntegrationFixture.anIntegration());
+            var integration = List.<io.gravitee.apim.core.integration.model.Integration>of(IntegrationFixture.anApiIntegration());
             integrationCrudServiceInMemory.initWith(integration);
             givenExistingGroup(List.of(Group.builder().id(groupId).name("group-name").build()));
 
@@ -419,7 +419,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_delete_integration() {
             //Given
-            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration()));
             //When
             Response response = target.request().delete();
 
@@ -437,7 +437,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_400_when_associated_federated_api_found() {
-            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration()));
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
 
             Response response = target.request().delete();
@@ -661,7 +661,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_new_integration_apis_count() {
             //Given
-            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID)));
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID)));
             integrationAgentInMemory.initWith(List.of(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)));
 
             //When
@@ -693,7 +693,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         void asAdmin() {
             //Given
-            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID)));
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID)));
             integrationAgentInMemory.initWith(List.of(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)));
 
             //When

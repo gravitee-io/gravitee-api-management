@@ -259,7 +259,7 @@ public class TemplateDataFetcher {
     private Optional<IntegrationNotificationTemplateData> buildIntegrationNotificationTemplateData(String integrationId) {
         try {
             return integrationRepository
-                .findById(integrationId)
+                .findByIntegrationId(integrationId)
                 .map(subscription ->
                     IntegrationNotificationTemplateData
                         .builder()

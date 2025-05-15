@@ -29,13 +29,14 @@ import lombok.experimental.SuperBuilder;
  */
 @Data
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class IntegrationView extends Integration {
+public class IntegrationView {
 
     AgentStatus agentStatus;
+    Integration integration;
 
     AsyncJob pendingJob;
     PrimaryOwner primaryOwner;
@@ -45,28 +46,27 @@ public class IntegrationView extends Integration {
         DISCONNECTED,
     }
 
-    public IntegrationView(Integration integration, AgentStatus agentStatus) {
-        this(integration, agentStatus, null, null);
-    }
-
-    public IntegrationView(Integration integration, AgentStatus agentStatus, AsyncJob pendingJob, PrimaryOwner primaryOwner) {
-        super(
-            integration.getId(),
-            integration.getName(),
-            integration.getDescription(),
-            integration.getProvider(),
-            integration.getEnvironmentId(),
-            integration.getCreatedAt(),
-            integration.getUpdatedAt(),
-            integration.getGroups()
-        );
+    public IntegrationView(
+        Integration.ApiIntegration integration,
+        AgentStatus agentStatus,
+        AsyncJob pendingJob,
+        PrimaryOwner primaryOwner
+    ) {
+        this.integration = integration;
         this.agentStatus = agentStatus;
         this.pendingJob = pendingJob;
         this.primaryOwner = primaryOwner;
     }
 
+    public IntegrationView(Integration.A2aIntegration integration, PrimaryOwner primaryOwner) {
+        this.integration = integration;
+        this.agentStatus = null;
+        this.pendingJob = null;
+        this.primaryOwner = primaryOwner;
+    }
+
     public Integration toIntegration() {
-        return super.toBuilder().build();
+        return integration;
     }
 
     public record PrimaryOwner(String id, String email, String displayName) {}

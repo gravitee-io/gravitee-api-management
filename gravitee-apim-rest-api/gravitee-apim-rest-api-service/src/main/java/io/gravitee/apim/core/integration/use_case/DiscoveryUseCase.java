@@ -57,10 +57,10 @@ public class DiscoveryUseCase {
         Function<IntegrationApi, Output.State> computeState = apiStateComputing(input.auditInfo().environmentId(), integrationId);
 
         return Maybe
-            .fromOptional(integrationCrudService.findById(integrationId))
-            .filter(integration -> integration.getEnvironmentId().equals(input.auditInfo.environmentId()))
+            .fromOptional(integrationCrudService.findApiIntegrationById(integrationId))
+            .filter(integration -> integration.environmentId().equals(input.auditInfo.environmentId()))
             .switchIfEmpty(Single.error(new IntegrationNotFoundException(integrationId)))
-            .flatMapPublisher(integration -> integrationAgent.discoverApis(integration.getId()))
+            .flatMapPublisher(integration -> integrationAgent.discoverApis(integration.id()))
             .map(discoveredApi -> new Output.PreviewApi(discoveredApi, computeState.apply(discoveredApi)))
             .toList()
             .map(Output::new)

@@ -13,25 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.crud_service;
+package io.gravitee.repository.jdbc.utils;
 
-import io.gravitee.apim.core.integration.model.Integration;
-import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import lombok.experimental.UtilityClass;
 
-/**
- * @author Remi Baptiste (remi.baptiste at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface IntegrationCrudService {
-    <T extends Integration> T create(T integration);
+@UtilityClass
+public class CollectionUtils {
 
-    Optional<Integration.ApiIntegration> findApiIntegrationById(String id);
-
-    Optional<Integration.A2aIntegration> findA2aIntegrationById(String id);
-
-    Optional<Integration> findById(String id);
-
-    <T extends Integration> T update(T integration);
-
-    void delete(String id);
+    public static <T> Stream<T> stream(Iterable<T> iterable) {
+        return iterable == null ? Stream.empty() : StreamSupport.stream(iterable.spliterator(), false);
+    }
 }

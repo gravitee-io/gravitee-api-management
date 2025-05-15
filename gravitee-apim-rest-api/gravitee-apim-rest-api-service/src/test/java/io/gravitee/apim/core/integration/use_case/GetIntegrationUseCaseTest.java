@@ -37,6 +37,7 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
+import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase.Input;
@@ -96,7 +97,7 @@ class GetIntegrationUseCaseTest {
                 integrationAgent,
                 integrationPrimaryOwnerDomainService
             );
-        var integration = List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
+        var integration = List.<Integration>of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID));
         integrationCrudServiceInMemory.initWith(integration);
 
         roleQueryServiceInMemory.resetSystemRoles(ORGANIZATION_ID);
@@ -147,15 +148,15 @@ class GetIntegrationUseCaseTest {
 
         //Then
         assertThat(output).isNotNull();
-        assertThat(output.integration().getId()).isEqualTo(INTEGRATION_ID);
+        assertThat(output.integration().getIntegration().id()).isEqualTo(INTEGRATION_ID);
         assertThat(output.integration())
             .extracting(
-                IntegrationView::getName,
-                IntegrationView::getDescription,
-                IntegrationView::getProvider,
-                IntegrationView::getEnvironmentId,
-                IntegrationView::getCreatedAt,
-                IntegrationView::getUpdatedAt,
+                view -> view.getIntegration().name(),
+                view -> view.getIntegration().description(),
+                view -> view.getIntegration().provider(),
+                view -> view.getIntegration().environmentId(),
+                view -> view.getIntegration().createdAt(),
+                view -> view.getIntegration().updatedAt(),
                 IntegrationView::getAgentStatus,
                 IntegrationView::getPrimaryOwner
             )

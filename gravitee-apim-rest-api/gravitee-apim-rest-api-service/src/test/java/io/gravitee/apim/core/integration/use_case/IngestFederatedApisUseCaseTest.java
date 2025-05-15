@@ -379,7 +379,7 @@ class IngestFederatedApisUseCaseTest {
         );
         userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").email("one_valid@email.com").build()));
 
-        integrationCrudService.create(new Integration().withId(INTEGRATION_ID));
+        integrationCrudService.create(new Integration.ApiIntegration(INTEGRATION_ID, null, null, null, null, null, null, null));
     }
 
     @AfterEach
@@ -1882,8 +1882,8 @@ class IngestFederatedApisUseCaseTest {
         assertThat(result.getCrossId()).isEqualTo("old");
         assertThat(result.getOriginContext()).isEqualTo(new OriginContext.Integration("old"));
         assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
-        assertThat(result.getApiDefinitionHttpV4()).isEqualTo(null);
-        assertThat(result.getApiDefinition()).isEqualTo(null);
+        assertThat(result.getApiDefinitionHttpV4()).isNull();
+        assertThat(result.getApiDefinition()).isNull();
         assertThat(result.getType()).isEqualTo(ApiType.PROXY);
         assertThat(result.getDeployedAt()).isEqualTo(oldDate);
         assertThat(result.getCreatedAt()).isEqualTo(oldDate);
@@ -1891,7 +1891,7 @@ class IngestFederatedApisUseCaseTest {
         assertThat(result.getLifecycleState()).isEqualTo(Api.LifecycleState.STARTED);
         assertThat(result.getPicture()).isEqualTo("old");
         assertThat(result.getGroups()).isEqualTo(Set.of("old"));
-        assertThat(result.isDisableMembershipNotifications()).isEqualTo(true);
+        assertThat(result.isDisableMembershipNotifications()).isTrue();
         assertThat(result.getBackground()).isEqualTo("old");
         assertThat(result.getVisibility()).isEqualTo(Api.Visibility.PUBLIC);
         assertThat(result.getLabels()).isEqualTo(List.of("old"));

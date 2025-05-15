@@ -1072,8 +1072,8 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
     @SneakyThrows
     private Integration givenExistingIntegration(Integration integration) {
-        lenient().when(integrationRepository.findById(any())).thenReturn(Optional.empty());
-        lenient().when(integrationRepository.findById(eq(integration.getId()))).thenReturn(Optional.of(integration));
+        lenient().when(integrationRepository.findByIntegrationId(any())).thenReturn(Optional.empty());
+        lenient().when(integrationRepository.findByIntegrationId(eq(integration.getId()))).thenReturn(Optional.of(integration));
 
         return integration;
     }

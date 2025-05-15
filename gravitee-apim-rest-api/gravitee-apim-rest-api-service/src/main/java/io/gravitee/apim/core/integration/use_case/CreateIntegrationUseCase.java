@@ -24,8 +24,6 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerFactory;
-import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.service.common.UuidString;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -47,20 +45,13 @@ public class CreateIntegrationUseCase {
             throw noLicenseForFederation();
         }
 
-        var now = TimeProvider.now();
+        var integrationToCreate =
+            switch (input.integration()) {
+                case Integration.ApiIntegration apiIntegration -> Integration.create(apiIntegration);
+                case Integration.A2aIntegration a2aIntegration -> Integration.create(a2aIntegration);
+            };
 
-        var integrationToCreate = Integration
-            .builder()
-            .id(UuidString.generateRandom())
-            .name(input.integration.getName())
-            .description(input.integration.getDescription())
-            .provider(input.integration.getProvider())
-            .environmentId(input.integration.getEnvironmentId())
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
-
-        Integration integrationCreated = integrationCrudService.create(integrationToCreate);
+        var integrationCreated = integrationCrudService.create(integrationToCreate);
 
         var primaryOwner = integrationPrimaryOwnerFactory.createForNewIntegration(
             input.auditInfo.organizationId(),
@@ -69,7 +60,7 @@ public class CreateIntegrationUseCase {
         );
 
         integrationPrimaryOwnerDomainService.createIntegrationPrimaryOwnerMembership(
-            integrationCreated.getId(),
+            integrationCreated.id(),
             primaryOwner,
             input.auditInfo
         );

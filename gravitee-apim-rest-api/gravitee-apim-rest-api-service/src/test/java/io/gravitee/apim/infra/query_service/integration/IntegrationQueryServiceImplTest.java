@@ -27,12 +27,9 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
 import java.util.List;
@@ -63,7 +60,7 @@ public class IntegrationQueryServiceImplTest {
         //Given
         var envId = "my-env";
         var pageable = new PageableImpl(1, 5);
-        var expectedIntegration = IntegrationFixture.anIntegration();
+        var expectedIntegration = IntegrationFixture.anApiIntegration();
         var page = integrationPage(pageable, expectedIntegration);
         when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(page);
 
@@ -106,7 +103,7 @@ public class IntegrationQueryServiceImplTest {
             Collection<String> grp = Set.of();
             boolean admin = true;
             var pageable = new PageableImpl(1, 5);
-            var expectedIntegration = IntegrationFixture.anIntegration();
+            var expectedIntegration = IntegrationFixture.anApiIntegration();
             var page = integrationPage(pageable, expectedIntegration);
             when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(page);
 
@@ -129,7 +126,7 @@ public class IntegrationQueryServiceImplTest {
             Collection<String> grp = Set.of();
             boolean admin = false;
             var pageable = new PageableImpl(1, 5);
-            var expectedIntegration = IntegrationFixture.anIntegration();
+            var expectedIntegration = IntegrationFixture.anApiIntegration();
             var page = integrationPage(pageable, expectedIntegration);
             when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
                 .thenReturn(Set.of(MembershipEntity.builder().id("My-ID").build()));

@@ -26,7 +26,7 @@ import io.gravitee.apim.core.integration.exception.IntegrationGroupValidationExc
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
-import io.gravitee.common.utils.TimeProvider;
+import java.util.Collection;
 import java.util.Set;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -46,19 +46,25 @@ public class UpdateIntegrationUseCase {
             throw noLicenseForFederation();
         }
 
-        var now = TimeProvider.now();
-        var integrationId = input.integration.getId();
+        var integrationId = input.integrationId();
 
         var validatedGroups = validateGroups(input);
 
         var integration = integrationCrudService.findById(integrationId).orElseThrow(() -> new IntegrationNotFoundException(integrationId));
-        var integrationToUpdate = integration
-            .toBuilder()
-            .name(input.integration.getName())
-            .description(input.integration.getDescription())
-            .groups(validatedGroups)
-            .updatedAt(now)
-            .build();
+        var integrationToUpdate =
+            switch (integration) {
+                case Integration.ApiIntegration apiIntegration -> apiIntegration.update(
+                    input.updateFields().name(),
+                    input.updateFields().description(),
+                    validatedGroups
+                );
+                case Integration.A2aIntegration a2aIntegration -> a2aIntegration.update(
+                    input.updateFields().name(),
+                    input.updateFields().description(),
+                    validatedGroups,
+                    input.updateFields().wellKnownUrls()
+                );
+            };
 
         return new Output(integrationCrudService.update(integrationToUpdate));
     }
@@ -67,7 +73,7 @@ public class UpdateIntegrationUseCase {
         var validationResult = validateGroupsDomainService.validateAndSanitize(
             new ValidateGroupsDomainService.Input(
                 input.auditInfo.environmentId(),
-                input.integration.getGroups(),
+                input.updateFields().groups(),
                 null,
                 Group.GroupEvent.API_CREATE,
                 false
@@ -76,14 +82,21 @@ public class UpdateIntegrationUseCase {
 
         if (validationResult.errors().isPresent() && !validationResult.errors().get().isEmpty()) {
             validationResult.errors().get().forEach(error -> log.error(error.getMessage(), error));
-            throw new IntegrationGroupValidationException(input.integration.getId());
+            throw new IntegrationGroupValidationException(input.integrationId());
         }
 
         return validationResult.value().isPresent() ? validationResult.value().get().groups() : Set.of();
     }
 
     @Builder
-    public record Input(Integration integration, AuditInfo auditInfo) {}
+    public record Input(String integrationId, UpdateFields updateFields, AuditInfo auditInfo) {
+        public record UpdateFields(
+            String name,
+            String description,
+            Set<String> groups,
+            Collection<Integration.A2aIntegration.WellKnownUrl> wellKnownUrls
+        ) {}
+    }
 
     public record Output(Integration integration) {}
 }

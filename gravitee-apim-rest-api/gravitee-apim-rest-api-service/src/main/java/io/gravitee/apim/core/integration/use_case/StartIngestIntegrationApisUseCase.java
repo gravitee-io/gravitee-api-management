@@ -56,18 +56,18 @@ public class StartIngestIntegrationApisUseCase {
         return Single
             .fromCallable(() ->
                 integrationCrudService
-                    .findById(integrationId)
-                    .filter(integration -> integration.getEnvironmentId().equals(environmentId))
+                    .findApiIntegrationById(integrationId)
+                    .filter(integration -> integration.environmentId().equals(environmentId))
                     .orElseThrow(() -> new IntegrationNotFoundException(integrationId))
             )
             .flatMap(integration ->
                 integrationAgent
-                    .startIngest(integration.getId(), UuidString.generateRandom(), input.apiIds())
+                    .startIngest(integration.id(), UuidString.generateRandom(), input.apiIds())
                     .map(ingestStarted -> {
-                        log.info("Ingestion started for integration {}", integration.getId());
+                        log.info("Ingestion started for integration {}", integration.id());
 
                         if (ingestStarted.total() == 0) {
-                            log.info("No APIs to ingest for integration {}", integration.getId());
+                            log.info("No APIs to ingest for integration {}", integration.id());
                             return AsyncJob.Status.SUCCESS;
                         }
 
@@ -86,8 +86,8 @@ public class StartIngestIntegrationApisUseCase {
         return AsyncJob
             .builder()
             .id(id)
-            .sourceId(integration.getId())
-            .environmentId(integration.getEnvironmentId())
+            .sourceId(integration.id())
+            .environmentId(integration.environmentId())
             .initiatorId(initiatorId)
             .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
             .status(AsyncJob.Status.PENDING)

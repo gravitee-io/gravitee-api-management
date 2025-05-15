@@ -92,7 +92,7 @@ class DiscoveryUseCaseTest {
     @Test
     void should_discover_new_api_if_this_api_not_exist() {
         //Given
-        integrationCrudService.initWith(List.of(IntegrationFixture.anIntegration(ENV_ID)));
+        integrationCrudService.initWith(List.of(IntegrationFixture.anApiIntegration(ENV_ID)));
         IntegrationApi api = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID);
         integrationAgent.initWith(List.of(api));
         apiQueryService.initWith(List.of());
@@ -107,7 +107,7 @@ class DiscoveryUseCaseTest {
     @Test
     void should_not_discover_new_api_if_this_api_is_already_ingested() {
         //Given
-        integrationCrudService.initWith(List.of(IntegrationFixture.anIntegration(ENV_ID)));
+        integrationCrudService.initWith(List.of(IntegrationFixture.anApiIntegration(ENV_ID)));
         IntegrationApi api = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID);
         var discoveredApiId = ApiModelFactory.generateFederatedApiId(ENV_ID, INTEGRATION_ID, api);
         integrationAgent.initWith(List.of(api));
