@@ -64,6 +64,11 @@ export interface RenewKeySubscriptionRequestParams {
     requestBody?: Array<string>;
 }
 
+export interface ResumeFailedSubscriptionConsumerStatusRequestParams {
+    /** Id of a subscription. */
+    subscriptionId: string;
+}
+
 export interface RevokeKeySubscriptionRequestParams {
     /** Id of a subscription. */
     subscriptionId: string;
@@ -480,6 +485,65 @@ export class SubscriptionService {
 
         return this.httpClient.post<Key>(`${this.configuration.basePath}/subscriptions/${encodeURIComponent(String(subscriptionId))}/keys/_renew`,
             requestBody,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Resume the failed subscription
+     * Resume the failed subscription  User must have APPLICATION_SUBSCRIPTION[UPDATE] permission. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public resumeFailedSubscriptionConsumerStatus(requestParameters: ResumeFailedSubscriptionConsumerStatusRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<any>;
+    public resumeFailedSubscriptionConsumerStatus(requestParameters: ResumeFailedSubscriptionConsumerStatusRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<any>>;
+    public resumeFailedSubscriptionConsumerStatus(requestParameters: ResumeFailedSubscriptionConsumerStatusRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<any>>;
+    public resumeFailedSubscriptionConsumerStatus(requestParameters: ResumeFailedSubscriptionConsumerStatusRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const subscriptionId = requestParameters.subscriptionId;
+        if (subscriptionId === null || subscriptionId === undefined) {
+            throw new Error('Required parameter subscriptionId was null or undefined when calling resumeFailedSubscriptionConsumerStatus.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.post<any>(`${this.configuration.basePath}/subscriptions/${encodeURIComponent(String(subscriptionId))}/_resumeFailure`,
+            null,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

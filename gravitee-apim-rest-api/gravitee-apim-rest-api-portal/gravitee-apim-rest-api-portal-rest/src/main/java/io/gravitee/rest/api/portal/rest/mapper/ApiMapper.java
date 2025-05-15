@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.ApiType;
 import io.gravitee.rest.api.portal.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.portal.rest.model.ListenerType;
+import io.gravitee.rest.api.portal.rest.model.Mcp;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.CategoryService;
@@ -42,8 +43,10 @@ import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -126,6 +129,7 @@ public class ApiMapper {
         }
 
         apiItem.setVersion(api.getApiVersion());
+        apiItem.setMcp(computeMcp(api));
 
         boolean isCategoryModeEnabled =
             this.parameterService.findAsBoolean(executionContext, Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
@@ -171,6 +175,20 @@ public class ApiMapper {
         }
         if (api instanceof NativeApiEntity asNativeApiEntity) {
             return ApiType.fromValue(asNativeApiEntity.getType().name());
+        }
+        return null;
+    }
+
+    private static Mcp computeMcp(GenericApiEntity api) {
+        if (api instanceof ApiEntity asHttpApiEntity) {
+            var mcp = new Mcp();
+            mcp.setEnabled(
+                asHttpApiEntity.getListeners().getFirst().getEntrypoints().stream().anyMatch(e -> Objects.equals(e.getType(), "mcp"))
+            );
+
+            // TODO - MCP: Add list of tools once entrypoint configuration is determined
+            mcp.setTools(Collections.emptyList());
+            return mcp;
         }
         return null;
     }
