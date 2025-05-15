@@ -22,6 +22,7 @@ import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.use_case.DiscoveryUseCase;
+import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJobStatus;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionJob;
@@ -29,7 +30,6 @@ import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponseApisInner;
 import java.util.List;
 import java.util.Set;
-import io.gravitee.rest.api.management.v2.rest.model.IntegrationWellKnownUrlInner;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -45,7 +45,13 @@ public interface IntegrationMapper {
     Logger logger = LoggerFactory.getLogger(IntegrationMapper.class);
     IntegrationMapper INSTANCE = Mappers.getMapper(IntegrationMapper.class);
 
-    Integration.ApiIntegration map(CreateIntegration source);
+    default Integration map(CreateIntegration source, String environmentId) {
+        return "A2A".equals(source.getProvider()) ? mapToA2aIntegration(source).withEnvironmentId(environmentId) : mapToApiIntegration(source).withEnvironmentId(environmentId);
+    }
+    
+    Integration.ApiIntegration mapToApiIntegration(CreateIntegration source);
+    
+    Integration.A2aIntegration mapToA2aIntegration(CreateIntegration source);
 
     IngestionJob map(AsyncJob source);
 
@@ -76,11 +82,9 @@ public interface IntegrationMapper {
     @Mapping(target = "groups", expression = "java(List.copyOf(integration.groups()))")
     io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source, Integration.A2aIntegration integration);
 
-    IntegrationWellKnownUrlInner map(Integration.A2aIntegration.WellKnownUrl source);
-
     List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> source);
 
-    Integration.ApiIntegration map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration source);
+    UpdateIntegrationUseCase.Input.UpdateFields map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration source);
 
     AsyncJobStatus map(AsyncJob.Status source);
 

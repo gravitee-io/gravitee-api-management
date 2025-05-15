@@ -4142,14 +4142,18 @@ components:
                     - DISCONNECTED
             pendingJob:
                 $ref: "#/components/schemas/IngestionJob"
-            wellKnownUrl:
+            wellKnownUrls:
               type: array
-              description: A2A well-known URLs (only for A2A)
+              description: A2A well-known URLs (only for A2A provider)
               items:
-                type: object
-                properties:
-                  url:
-                    type: string
+                $ref: "#/components/schemas/IntegrationWellKnownUrl"
+                
+        IntegrationWellKnownUrl:
+          type: object
+          properties:
+            url:
+              type: string
+              description: URL for well-known endpoint
         IngestionJob:
             type: object
             properties:
@@ -7243,7 +7247,12 @@ components:
                     maxLength: 250
                 provider:
                     type: string
-                    description: Provider of this integration
+                    description: Provider of this integration (use "A2A" for A2A integrations)
+                wellKnownUrls:
+                    type: array
+                    description: A2A well-known URLs (only for A2A provider)
+                    items:
+                        $ref: "#/components/schemas/IntegrationWellKnownUrl"
             required:
                 - name
                 - provider
@@ -7269,6 +7278,11 @@ components:
                         - MY_GROUP2
                     items:
                         type: string
+                wellKnownUrls:
+                    type: array
+                    description: A2A well-known URLs (only for A2A provider)
+                    items:
+                        $ref: "#/components/schemas/IntegrationWellKnownUrl"
             required:
                 - name
         # API SpecGen

@@ -61,7 +61,7 @@ public class IntegrationsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }))
     public Response createIntegration(@PathParam("envId") String environmentId, @Valid @NotNull final CreateIntegration integration) {
-        var newIntegrationEntity = IntegrationMapper.INSTANCE.map(integration).withEnvironmentId(environmentId);
+        var newIntegrationEntity = IntegrationMapper.INSTANCE.map(integration, environmentId);
 
         var auditInfo = getAuditInfo();
 
