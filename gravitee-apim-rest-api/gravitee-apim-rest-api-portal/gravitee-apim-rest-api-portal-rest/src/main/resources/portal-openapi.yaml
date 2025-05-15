@@ -4064,6 +4064,8 @@ components:
                     type: array
                     items:
                         type: string
+                mcp:
+                    $ref: "#/components/schemas/Mcp"
                 owner:
                     $ref: "#/components/schemas/User"
                 created_at:
@@ -4165,6 +4167,28 @@ components:
                 name:
                     description: Name of the group.
                     type: string
+        Mcp:
+          required:
+            - enabled
+          properties:
+            enabled:
+              type: boolean
+              description: Whether or not the API is a MCP server.
+            tools:
+              type: array
+              items:
+                $ref: "#/components/schemas/McpTool"
+        McpTool:
+          properties:
+            name:
+              type: string
+              description: Name of the MCP tool.
+            description:
+              type: string
+              description: Description of the MCP tool.
+            inputSchema:
+              type: object
+              description: Input schema of the MCP tool.
         Page:
             required:
                 - id

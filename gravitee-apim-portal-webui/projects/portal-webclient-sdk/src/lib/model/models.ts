@@ -76,6 +76,8 @@ export * from './linksResponse';
 export * from './listenerType';
 export * from './log';
 export * from './logsResponse';
+export * from './mcp';
+export * from './mcpTool';
 export * from './member';
 export * from './memberInput';
 export * from './membersResponse';
