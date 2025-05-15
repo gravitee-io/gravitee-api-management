@@ -13,25 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.crud_service;
+package io.gravitee.repository.management.model.integration;
 
-import io.gravitee.apim.core.integration.model.Integration;
-import java.util.Optional;
-
-/**
- * @author Remi Baptiste (remi.baptiste at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface IntegrationCrudService {
-    <T extends Integration> T create(T integration);
-
-    Optional<Integration.ApiIntegration> findApiIntegrationById(String id);
-
-    Optional<Integration.A2aIntegration> findA2aIntegrationById(String id);
-
-    Optional<Integration> findById(String id);
-
-    <T extends Integration> T update(T integration);
-
-    void delete(String id);
+public record A2aWellKnownUrl(String url) {
 }

@@ -191,7 +191,6 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
             .addColumn("provider", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("agent_status", Types.NVARCHAR, Integration.AgentStatus.class)
-            .addColumn("ingestion_type", Types.NVARCHAR, Integration.IngestionType.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();

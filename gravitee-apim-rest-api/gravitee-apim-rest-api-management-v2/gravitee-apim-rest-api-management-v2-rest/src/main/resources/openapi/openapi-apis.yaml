@@ -4109,39 +4109,47 @@ components:
                               $ref: "#/components/schemas/HttpMethod"
                           uniqueItems: true
         Integration:
-            type: object
-            properties:
-                id:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Id of the integration
+            name:
+              type: string
+              description: Name of the integration
+            description:
+              type: string
+              description: Description of the integration
+            provider:
+              type: string
+              description: Provider of this integration
+            primaryOwner:
+              $ref: "#/components/schemas/PrimaryOwner"
+            groups:
+              type: array
+              description: A list of group ids
+              example:
+                - 3dc1bc32-1411-4262-b3a2-058222569670
+                - 63cd7036-694f-4c40-833f-84c4a5d39544
+              items:
+                type: string
+            agentStatus:
+                type: string
+                description: Agent connection status (not for A2A)
+                example: DISCONNECTED
+                enum:
+                    - CONNECTED
+                    - DISCONNECTED
+            pendingJob:
+                $ref: "#/components/schemas/IngestionJob"
+            wellKnownUrl:
+              type: array
+              description: A2A well-known URLs (only for A2A)
+              items:
+                type: object
+                properties:
+                  url:
                     type: string
-                    description: Id of the integration
-                name:
-                    type: string
-                    description: Name of the integration
-                description:
-                    type: string
-                    description: Description of the integration
-                provider:
-                    type: string
-                    description: Provider of this integration
-                agentStatus:
-                    type: string
-                    description: Agent connection status
-                    example: DISCONNECTED
-                    enum:
-                        - CONNECTED
-                        - DISCONNECTED
-                pendingJob:
-                    $ref: "#/components/schemas/IngestionJob"
-                primaryOwner:
-                    $ref: "#/components/schemas/PrimaryOwner"
-                groups:
-                    type: array
-                    description: A list of group ids
-                    example:
-                        - 3dc1bc32-1411-4262-b3a2-058222569670
-                        - 63cd7036-694f-4c40-833f-84c4a5d39544
-                    items:
-                        type: string
         IngestionJob:
             type: object
             properties:

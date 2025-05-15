@@ -35,11 +35,7 @@ public interface IntegrationAdapter {
     SpecificA2aAdapter SPECIFIC_A2A_INTEGRATION_ADAPTER = Mappers.getMapper(SpecificA2aAdapter.class);
 
     default Integration toEntity(io.gravitee.repository.management.model.Integration integration) {
-        return switch (integration.getIngestionType()) {
-            case API -> SPECIFIC_API_INTEGRATION_ADAPTER.toEntity(integration);
-            case A2A -> SPECIFIC_A2A_INTEGRATION_ADAPTER.toEntity(integration);
-            case null -> SPECIFIC_API_INTEGRATION_ADAPTER.toEntity(integration);
-        };
+        return integration.isA2aIntegration() ? SPECIFIC_A2A_INTEGRATION_ADAPTER.toEntity(integration) : SPECIFIC_API_INTEGRATION_ADAPTER.toEntity(integration);
     }
 
     default io.gravitee.repository.management.model.Integration toRepository(Integration integration) {
@@ -78,7 +74,6 @@ public interface IntegrationAdapter {
     interface SpecificApiAdapter extends SpecificAdapter<Integration.ApiIntegration> {
         Integration.ApiIntegration toEntity(io.gravitee.repository.management.model.Integration integration);
 
-        @Mapping(target = "ingestionType", constant = "API")
         io.gravitee.repository.management.model.Integration toRepository(Integration.ApiIntegration integration);
     }
 
@@ -86,7 +81,7 @@ public interface IntegrationAdapter {
     interface SpecificA2aAdapter extends SpecificAdapter<Integration.A2aIntegration> {
         Integration.A2aIntegration toEntity(io.gravitee.repository.management.model.Integration integration);
 
-        @Mapping(target = "ingestionType", constant = "A2A")
+        @Mapping(target = "provider", constant = "A2A")
         io.gravitee.repository.management.model.Integration toRepository(Integration.A2aIntegration integration);
     }
 }

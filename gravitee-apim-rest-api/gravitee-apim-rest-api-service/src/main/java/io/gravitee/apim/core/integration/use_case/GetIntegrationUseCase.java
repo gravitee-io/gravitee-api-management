@@ -21,6 +21,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.async_job.query_service.AsyncJobQueryService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
+import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationView;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
@@ -42,7 +43,7 @@ public class GetIntegrationUseCase {
     private final IntegrationAgent integrationAgent;
     private final IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService;
 
-    public GetIntegrationUseCase.Output execute(GetIntegrationUseCase.Input input) {
+    public Output execute(Input input) {
         var integrationId = input.integrationId();
 
         if (!licenseDomainService.isFederationFeatureAllowed(input.organizationId())) {
@@ -50,22 +51,28 @@ public class GetIntegrationUseCase {
         }
 
         var integration = integrationCrudService
-            .findApiIntegrationById(integrationId)
+            .findById(integrationId)
             .orElseThrow(() -> new IntegrationNotFoundException(integrationId));
-
-        var agentStatus = integrationAgent
-            .getAgentStatusFor(integrationId)
-            .map(status -> IntegrationView.AgentStatus.valueOf(status.name()))
-            .blockingGet();
-
-        var pendingJob = asyncJobQueryService.findPendingJobFor(integrationId);
         var primaryOwner = integrationPrimaryOwnerDomainService
-            .getIntegrationPrimaryOwner(input.organizationId(), integration.id())
-            .map(po -> new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName()))
-            .onErrorComplete()
-            .blockingGet();
+                .getIntegrationPrimaryOwner(input.organizationId(), integration.id())
+                .map(po -> new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName()))
+                .onErrorComplete()
+                .blockingGet();
 
-        return new GetIntegrationUseCase.Output(new IntegrationView(integration, agentStatus, pendingJob.orElse(null), primaryOwner));
+        return switch (integration) {
+            case Integration.ApiIntegration apiIntegration -> {
+                var agentStatus = integrationAgent
+                        .getAgentStatusFor(integrationId)
+                        .map(status -> IntegrationView.AgentStatus.valueOf(status.name()))
+                        .blockingGet();
+
+                var pendingJob = asyncJobQueryService.findPendingJobFor(integrationId);
+
+                yield new Output(new IntegrationView(apiIntegration, agentStatus, pendingJob.orElse(null), primaryOwner));
+            }
+            case Integration.A2aIntegration a2aIntegration ->
+                    new Output(new IntegrationView(a2aIntegration, primaryOwner));
+        };
     }
 
     @Builder

@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionPreviewResponseApisInner;
 import java.util.List;
 import java.util.Set;
+import io.gravitee.rest.api.management.v2.rest.model.IntegrationWellKnownUrlInner;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -55,12 +56,27 @@ public interface IntegrationMapper {
     @Mapping(target = "groups", expression = "java(List.copyOf(source.groups()))")
     io.gravitee.rest.api.management.v2.rest.model.Integration map(Integration source);
 
-    @Mapping(target = "id", expression = "java(source.getIntegration().id())")
-    @Mapping(target = "name", expression = "java(source.getIntegration().name())")
-    @Mapping(target = "description", expression = "java(source.getIntegration().description())")
-    @Mapping(target = "provider", expression = "java(source.getIntegration().provider())")
-    @Mapping(target = "groups", expression = "java(List.copyOf(source.getIntegration().groups()))")
-    io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source);
+    default io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source) {
+        return switch (source.getIntegration()) {
+            case Integration.A2aIntegration a2aIntegration -> map(source, a2aIntegration);
+            default -> map(source, source.getIntegration());
+        };
+    }
+    @Mapping(target = "id", expression = "java(integration.id())")
+    @Mapping(target = "name", expression = "java(integration.name())")
+    @Mapping(target = "description", expression = "java(integration.description())")
+    @Mapping(target = "provider", expression = "java(integration.provider())")
+    @Mapping(target = "groups", expression = "java(List.copyOf(integration.groups()))")
+    io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source, Integration integration);
+
+    @Mapping(target = "id", expression = "java(integration.id())")
+    @Mapping(target = "name", expression = "java(integration.name())")
+    @Mapping(target = "description", expression = "java(integration.description())")
+    @Mapping(target = "provider", expression = "java(integration.provider())")
+    @Mapping(target = "groups", expression = "java(List.copyOf(integration.groups()))")
+    io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source, Integration.A2aIntegration integration);
+
+    IntegrationWellKnownUrlInner map(Integration.A2aIntegration.WellKnownUrl source);
 
     List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> source);
 

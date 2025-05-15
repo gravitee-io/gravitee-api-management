@@ -18,6 +18,7 @@ package io.gravitee.apim.core.integration.model;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -66,9 +67,11 @@ public sealed interface Integration {
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt,
         Set<String> groups,
-        String wellKnownUrl
+        Collection<WellKnownUrl> wellKnownUrls
     )
-        implements Integration {}
+        implements Integration {
+        public record WellKnownUrl(String url) {}
+    }
 
     static ApiIntegration create(ApiIntegration integration) {
         var now = TimeProvider.now();
@@ -95,7 +98,7 @@ public sealed interface Integration {
             now,
             now,
             Set.of(),
-            integration.wellKnownUrl()
+            integration.wellKnownUrls()
         );
     }
 }

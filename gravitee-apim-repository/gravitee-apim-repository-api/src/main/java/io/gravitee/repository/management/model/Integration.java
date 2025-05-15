@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import io.gravitee.repository.management.model.integration.A2aWellKnownUrl;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,6 +36,7 @@ import lombok.With;
 @Data
 public class Integration {
 
+    public static final String A2A = "A2A";
     @With
     private String id;
 
@@ -48,7 +51,6 @@ public class Integration {
     private Date createdAt;
 
     private Date updatedAt;
-    private IngestionType ingestionType;
 
     @Builder.Default
     private Set<String> groups = new HashSet<>();
@@ -56,7 +58,7 @@ public class Integration {
     /**
      * A2A field
      */
-    private String wellKnownUrl;
+    private Collection<A2aWellKnownUrl> wellKnownUrls = new HashSet<>();
 
     /**
      * @deprecated Agent status is not saved in database anymore but calculated. This field can be deleted after 4.5 release
@@ -75,12 +77,11 @@ public class Integration {
         DISCONNECTED,
     }
 
-    public enum IngestionType {
-        API,
-        A2A,
-    }
-
     public boolean addGroup(String groupId) {
         return groups.add(groupId);
+    }
+
+    public boolean isA2aIntegration() {
+        return A2A.equals(provider);
     }
 }

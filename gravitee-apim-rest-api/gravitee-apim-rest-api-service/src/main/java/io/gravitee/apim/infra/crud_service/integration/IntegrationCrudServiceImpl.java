@@ -63,6 +63,11 @@ public class IntegrationCrudServiceImpl extends AbstractService implements Integ
         return findById(id, IntegrationAdapter.SPECIFIC_A2A_INTEGRATION_ADAPTER::toEntity);
     }
 
+    @Override
+    public Optional<Integration> findById(String id) {
+        return findById(id, IntegrationAdapter.INSTANCE::toEntity);
+    }
+
     public <T extends Integration> Optional<T> findById(
         String id,
         Function<io.gravitee.repository.management.model.Integration, T> mapper
