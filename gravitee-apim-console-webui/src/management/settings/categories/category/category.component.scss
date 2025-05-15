@@ -36,7 +36,18 @@ $typography: map.get(gio.$mat-theme, typography);
       gap: 6px;
 
       &__picture {
-        flex: 0 0 0;
+        flex: 0 0 0%;
+
+        &:hover {
+          .general__right__image-upload__picture__default-avatar {
+            opacity: 0.1;
+          }
+          .general__right__image-upload__picture__text {
+            opacity: 1;
+            visibility: visible;
+            line-height: 1.8;
+          }
+        }
 
         &__btn {
           position: relative;
@@ -58,16 +69,6 @@ $typography: map.get(gio.$mat-theme, typography);
           justify-content: center;
           align-items: center;
         }
-
-        &:hover {
-          .general__right__image-upload__picture__default-avatar {
-            opacity: 0.1;
-          }
-          .general__right__image-upload__picture__text {
-            opacity: 1;
-            visibility: visible;
-          }
-        }
       }
 
       &__background {
@@ -79,6 +80,7 @@ $typography: map.get(gio.$mat-theme, typography);
           justify-content: center;
           align-items: center;
           height: 114px;
+          line-height: 1.8;
         }
       }
     }
