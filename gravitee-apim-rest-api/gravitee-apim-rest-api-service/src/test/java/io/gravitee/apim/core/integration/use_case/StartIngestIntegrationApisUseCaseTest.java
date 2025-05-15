@@ -102,7 +102,7 @@ class StartIngestIntegrationApisUseCaseTest {
     @Test
     void should_create_a_job_and_return_pending_status_when_a_job_has_started() {
         // Given
-        givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
+        givenAnIntegration(IntegrationFixture.anApiIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
         integrationAgent.configureApisNumberToIngest(INTEGRATION_ID, 10L);
 
         // When
@@ -138,7 +138,7 @@ class StartIngestIntegrationApisUseCaseTest {
     @Test
     void should_return_done_status_when_no_job_has_started_because_no_apis_to_ingest() {
         // Given
-        givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
+        givenAnIntegration(IntegrationFixture.anApiIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
         integrationAgent.configureApisNumberToIngest(INTEGRATION_ID, 0L);
 
         // When

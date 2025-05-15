@@ -49,6 +49,7 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
@@ -147,7 +148,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_throw_bad_request_when_name_is_missing() {
+        void should_throw_bad_request_when_name_is_missing() {
             //Given
             CreateIntegration createIntegration = new CreateIntegration()
                 .description(INTEGRATION_DESCRIPTION)
@@ -161,7 +162,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_throw_bad_request_when_payload_is_empty() {
+        void should_throw_bad_request_when_payload_is_empty() {
             //When
             Response response = target.request().post(Entity.json(null));
 
@@ -196,8 +197,8 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setup() {
-            var integration = IntStream.range(0, 15).mapToObj(i -> IntegrationFixture.anIntegration()).toList();
-            integrationCrudServiceInMemory.initWith(integration);
+            var integration = IntStream.range(0, 15).mapToObj(i -> IntegrationFixture.anApiIntegration()).toList();
+            integrationCrudServiceInMemory.initializeWith(integration);
             membershipQueryServiceInMemory.initWith(
                 List.of(
                     Membership
@@ -213,8 +214,8 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void get_first_page_of_integrations_for_specific_env_id() {
-            var integrationOtherEnv = IntegrationFixture.anIntegration("other-env");
+        void get_first_page_of_integrations_for_specific_env_id() {
+            var integrationOtherEnv = IntegrationFixture.anApiIntegration("other-env");
             integrationCrudServiceInMemory.create(integrationOtherEnv);
 
             //When
@@ -229,7 +230,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void get_second_page_of_integrations() {
+        void get_second_page_of_integrations() {
             //When
             Response response = target.queryParam("page", 2).queryParam("perPage", 2).request().get();
 
@@ -242,7 +243,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void get_first_page_with_page_size_10_when_pagination_param_missing() {
+        void get_first_page_with_page_size_10_when_pagination_param_missing() {
             //When
             Response response = target.request().get();
 
@@ -255,21 +256,22 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void get_sorted_list_of_integrations() {
+        void get_sorted_list_of_integrations() {
             //Given
             var name = "most-recent-integration";
             var description = "should-be-returned-first";
             var provider = "test-provider";
             var recentDate = ZonedDateTime.parse("2024-02-03T20:22:02.00Z");
-            var integration = IntegrationFixture.BASE
-                .get()
-                .id(INTEGRATION_ID)
-                .name(name)
-                .description(description)
-                .provider(provider)
-                .createdAt(recentDate)
-                .updatedAt(recentDate)
-                .build();
+            var integration = new io.gravitee.apim.core.integration.model.Integration.ApiIntegration(
+                INTEGRATION_ID,
+                name,
+                description,
+                provider,
+                "my-env",
+                recentDate,
+                recentDate,
+                Set.of()
+            );
             integrationCrudServiceInMemory.create(integration);
 
             //When
@@ -280,7 +282,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(IntegrationsResponse.class)
                 .extracting(IntegrationsResponse::getData)
-                .extracting(integrations -> integrations.get(0))
+                .extracting(List::getFirst)
                 .isEqualTo(
                     new Integration()
                         .id(INTEGRATION_ID)
@@ -312,7 +314,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        public void should_return_403_when_incorrect_permission() {
+        void should_return_403_when_incorrect_permission() {
             //Given
             when(
                 permissionService.hasPermission(

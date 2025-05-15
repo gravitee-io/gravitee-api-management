@@ -33,13 +33,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-public class IntegrationCrudServiceImplTest {
+class IntegrationCrudServiceImplTest {
 
     IntegrationRepository integrationRepository;
 
@@ -58,7 +59,7 @@ public class IntegrationCrudServiceImplTest {
         @SneakyThrows
         void should_create_integration() {
             //Given
-            Integration integration = IntegrationFixture.anIntegration();
+            Integration integration = IntegrationFixture.anApiIntegration();
             when(integrationRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             //When
@@ -71,7 +72,7 @@ public class IntegrationCrudServiceImplTest {
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            var integration = IntegrationFixture.anIntegration();
+            var integration = IntegrationFixture.anApiIntegration();
             when(integrationRepository.create(any())).thenThrow(TechnicalException.class);
 
             // When
@@ -89,7 +90,7 @@ public class IntegrationCrudServiceImplTest {
         @SneakyThrows
         void should_return_the_found_integration() {
             //Given
-            when(integrationRepository.findById(any()))
+            when(integrationRepository.findByIntegrationId(any()))
                 .thenAnswer(invocation ->
                     Optional.of(fixtures.repository.IntegrationFixture.anIntegration().toBuilder().id(invocation.getArgument(0)).build())
                 );
@@ -100,17 +101,16 @@ public class IntegrationCrudServiceImplTest {
             //Then
             assertThat(result)
                 .contains(
-                    IntegrationFixture
-                        .anIntegration()
-                        .toBuilder()
-                        .id("my-id")
-                        .name("An integration")
-                        .description("A description")
-                        .provider("amazon")
-                        .environmentId("environment-id")
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .build()
+                    new Integration.ApiIntegration(
+                        "my-id",
+                        "An integration",
+                        "A description",
+                        "amazon",
+                        "environment-id",
+                        Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                        Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                        Set.of()
+                    )
                 );
         }
 
@@ -118,7 +118,7 @@ public class IntegrationCrudServiceImplTest {
         @SneakyThrows
         void should_return_empty_when_not_found() {
             //Given
-            when(integrationRepository.findById(any())).thenAnswer(invocation -> Optional.empty());
+            when(integrationRepository.findByIntegrationId(any())).thenAnswer(invocation -> Optional.empty());
 
             //When
             var result = service.findById("my-id");
@@ -130,7 +130,7 @@ public class IntegrationCrudServiceImplTest {
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            when(integrationRepository.findById(any())).thenThrow(TechnicalException.class);
+            when(integrationRepository.findByIntegrationId(any())).thenThrow(TechnicalException.class);
 
             // When
             Throwable throwable = catchThrowable(() -> service.findById("my-id"));
@@ -148,18 +148,16 @@ public class IntegrationCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_integration() {
-            Integration integration = IntegrationFixture
-                .anIntegration()
-                .toBuilder()
-                .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                .build();
+            var integration = IntegrationFixture.anApiIntegration();
+            integration = IntegrationFixture.withUpdatedAt(integration, "2020-02-04T20:22:02.00Z");
+            long create = integration.createdAt().toInstant().toEpochMilli();
+            long update = integration.updatedAt().toInstant().toEpochMilli();
             when(integrationRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             service.update(integration);
 
             var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Integration.class);
             verify(integrationRepository).update(captor.capture());
-
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
@@ -170,8 +168,8 @@ public class IntegrationCrudServiceImplTest {
                         .description("integration-description")
                         .provider("test-provider")
                         .environmentId("my-env")
-                        .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                        .createdAt(new Date(create))
+                        .updatedAt(new Date(update))
                         .build()
                 );
         }
@@ -183,7 +181,7 @@ public class IntegrationCrudServiceImplTest {
             when(integrationRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             //When
-            Integration toUpdate = IntegrationFixture.anIntegration();
+            Integration toUpdate = IntegrationFixture.anApiIntegration();
             Integration updated = service.update(toUpdate);
 
             //Then
@@ -193,7 +191,7 @@ public class IntegrationCrudServiceImplTest {
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            var integration = IntegrationFixture.anIntegration();
+            var integration = IntegrationFixture.anApiIntegration();
             when(integrationRepository.update(any())).thenThrow(TechnicalException.class);
 
             // When

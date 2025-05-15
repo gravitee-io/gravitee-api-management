@@ -15,8 +15,12 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.utils.CollectionUtils.stream;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.management.model.JdbcIntegration;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -27,13 +31,16 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+@Slf4j
 @Repository
-public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integration, String> implements IntegrationRepository {
+public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIntegration, String> implements IntegrationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIntegrationRepository.class);
     private final String INTEGRATION_GROUPS;
@@ -49,11 +56,15 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
         final List<Integration> integrations;
         try {
             integrations =
-                jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where environment_id = ? order by updated_at desc",
-                    getOrm().getRowMapper(),
-                    environmentId
-                );
+                jdbcTemplate
+                    .query(
+                        getOrm().getSelectAllSql() + " where environment_id = ? order by updated_at desc",
+                        getOrm().getRowMapper(),
+                        environmentId
+                    )
+                    .stream()
+                    .flatMap(this::toEntityIntegration)
+                    .toList();
 
             integrations.forEach(this::addGroups);
         } catch (final Exception ex) {
@@ -75,14 +86,15 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
         List<Integration> integrations;
         try {
             String query = "%s where environment_id = ? order by updated_at desc".formatted(getOrm().getSelectAllSql());
-            integrations = jdbcTemplate.query(query, getOrm().getRowMapper(), environmentId);
+            integrations =
+                jdbcTemplate.query(query, getOrm().getRowMapper(), environmentId).stream().flatMap(this::toEntityIntegration).toList();
 
             integrations =
                 integrations
                     .stream()
                     .peek(this::addGroups)
                     .filter(integration ->
-                        integrationIds.contains(integration.getId()) || integration.getGroups().stream().anyMatch(groups::contains)
+                        integrationIds.contains(integration.getId()) || stream(integration.getGroups()).anyMatch(groups::contains)
                     )
                     .toList();
         } catch (final Exception ex) {
@@ -120,11 +132,24 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
         }
     }
 
-    @Override
-    public Optional<Integration> findById(String id) throws TechnicalException {
-        var integration = super.findById(id);
+    public Optional<Integration> findByIntegrationId(String id) throws TechnicalException {
+        var integration = super
+            .findById(id)
+            .flatMap(jdbcIntegration -> {
+                try {
+                    return Optional.of(jdbcIntegration.toIntegration(getGroups(jdbcIntegration.getId())));
+                } catch (JsonProcessingException e) {
+                    log.warn("Failed to convert Integration from db to Integration id = " + id, e);
+                    return Optional.empty();
+                }
+            });
         integration.ifPresent(this::addGroups);
         return integration;
+    }
+
+    @Override
+    public Optional<JdbcIntegration> findById(String id) throws TechnicalException {
+        return super.findById(id);
     }
 
     private void addGroups(Integration parent) {
@@ -145,13 +170,21 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
     @Override
     public Integration create(final Integration integration) throws TechnicalException {
         storeGroups(integration, false);
-        return super.create(integration);
+        try {
+            return super.create(JdbcIntegration.fromIntegration(integration)).toIntegration(integration.getGroups());
+        } catch (JsonProcessingException e) {
+            throw new TechnicalException("Failed to create Integration name = " + integration.getName(), e);
+        }
     }
 
     @Override
     public Integration update(final Integration integration) throws TechnicalException {
         storeGroups(integration, true);
-        return super.update(integration);
+        try {
+            return super.update(JdbcIntegration.fromIntegration(integration)).toIntegration(integration.getGroups());
+        } catch (JsonProcessingException e) {
+            throw new TechnicalException("Failed to update Integration fid = " + integration.getId(), e);
+        }
     }
 
     private void storeGroups(Integration integration, boolean deleteExistingGroups) {
@@ -177,22 +210,31 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
     }
 
     @Override
-    protected String getId(Integration item) {
+    protected String getId(JdbcIntegration item) {
         return item.getId();
     }
 
     @Override
-    protected JdbcObjectMapper<Integration> buildOrm() {
+    protected JdbcObjectMapper<JdbcIntegration> buildOrm() {
         return JdbcObjectMapper
-            .builder(Integration.class, this.tableName, "id")
+            .builder(JdbcIntegration.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("provider", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("agent_status", Types.NVARCHAR, Integration.AgentStatus.class)
+            .addColumn("wellKnownUrls", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
+    }
+
+    private Stream<Integration> toEntityIntegration(JdbcIntegration jdbcIntegration) {
+        try {
+            return Stream.of(jdbcIntegration.toIntegration(getGroups(jdbcIntegration.getId())));
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to parse Integration from db id = {}", jdbcIntegration.getName());
+            return Stream.empty();
+        }
     }
 }

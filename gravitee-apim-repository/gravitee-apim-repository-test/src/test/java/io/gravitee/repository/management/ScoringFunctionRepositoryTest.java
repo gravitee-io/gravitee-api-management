@@ -90,9 +90,9 @@ public class ScoringFunctionRepositoryTest extends AbstractManagementRepositoryT
     public void delete_should_delete_function() throws TechnicalException {
         var id = "to-delete";
 
-        integrationRepository.delete(id);
+        scoringFunctionRepository.delete(id);
 
-        assertThat(integrationRepository.findById(id)).isEmpty();
+        assertThat(scoringFunctionRepository.findById(id)).isEmpty();
     }
 
     // deleteByReferenceId

@@ -1395,7 +1395,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         .orElseThrow(() -> new ApplicationNotFoundException(referenceId))
                         .getGroups();
                     case INTEGRATION -> integrationRepository
-                        .findById(referenceId)
+                        .findByIntegrationId(referenceId)
                         .orElseThrow(() -> new ApplicationNotFoundException(referenceId))
                         .getGroups();
                     default -> Set.of();

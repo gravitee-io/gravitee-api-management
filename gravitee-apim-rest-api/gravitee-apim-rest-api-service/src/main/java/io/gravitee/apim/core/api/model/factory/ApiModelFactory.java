@@ -150,9 +150,9 @@ public class ApiModelFactory {
             .description(integrationApi.description())
             .createdAt(now)
             .updatedAt(now)
-            .environmentId(integration.getEnvironmentId())
+            .environmentId(integration.environmentId())
             .lifecycleState(null)
-            .originContext(new OriginContext.Integration(integration.getId(), integration.getName(), integration.getProvider()))
+            .originContext(new OriginContext.Integration(integration.id(), integration.name(), integration.provider()))
             .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
             .build();
     }
@@ -173,7 +173,7 @@ public class ApiModelFactory {
             .updatedAt(now)
             .environmentId(job.getEnvironmentId())
             .lifecycleState(null)
-            .originContext(new OriginContext.Integration(job.getSourceId(), integration.getName(), integration.getProvider()))
+            .originContext(new OriginContext.Integration(job.getSourceId(), integration.name(), integration.provider()))
             .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
             .build();
     }
@@ -198,7 +198,7 @@ public class ApiModelFactory {
      * @return The generated id
      */
     public static String generateFederatedApiId(IntegrationApi integrationApi, Integration integration) {
-        return generateFederatedApiId(integration.getEnvironmentId(), integration.getId(), integrationApi);
+        return generateFederatedApiId(integration.environmentId(), integration.id(), integrationApi);
     }
 
     public static String generateFederatedApiId(String environmentId, String integrationId, IntegrationApi integrationApi) {

@@ -480,7 +480,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
                 fede.getOriginContext() != null && fede.getOriginContext().integrationName() == null
             ) {
                 integrationRepository
-                    .findById(fede.getOriginContext().integrationId())
+                    .findByIntegrationId(fede.getOriginContext().integrationId())
                     .map(integration ->
                         new OriginContext.Integration(
                             fede.getOriginContext().integrationId(),

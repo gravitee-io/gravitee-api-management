@@ -90,9 +90,9 @@ public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTe
     public void delete_should_delete_ruleset() throws TechnicalException {
         var id = "to-delete";
 
-        integrationRepository.delete(id);
+        scoringRulesetRepository.delete(id);
 
-        assertThat(integrationRepository.findById(id)).isEmpty();
+        assertThat(scoringRulesetRepository.findById(id)).isEmpty();
     }
 
     // deleteByReferenceId

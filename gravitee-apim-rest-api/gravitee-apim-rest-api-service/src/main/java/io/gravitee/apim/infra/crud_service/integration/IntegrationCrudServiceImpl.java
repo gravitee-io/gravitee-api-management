@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.Optional;
+import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -42,31 +43,50 @@ public class IntegrationCrudServiceImpl extends AbstractService implements Integ
     }
 
     @Override
-    public Integration create(Integration integration) {
+    public <T extends Integration> T create(T integration) {
         try {
-            var createdIntegration = integrationRepository.create(IntegrationAdapter.INSTANCE.toRepository(integration));
-            return IntegrationAdapter.INSTANCE.toEntity(createdIntegration);
+            var specificAdapter = IntegrationAdapter.INSTANCE.specific(integration);
+            var createdIntegration = integrationRepository.create(specificAdapter.toRepository(integration));
+            return specificAdapter.toEntity(createdIntegration);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("Error when creating Integration: " + integration.getName(), e);
+            throw new TechnicalManagementException("Error when creating Integration: " + integration.name(), e);
         }
     }
 
     @Override
+    public Optional<Integration.ApiIntegration> findApiIntegrationById(String id) {
+        return findById(id, IntegrationAdapter.SPECIFIC_API_INTEGRATION_ADAPTER::toEntity);
+    }
+
+    @Override
+    public Optional<Integration.A2aIntegration> findA2aIntegrationById(String id) {
+        return findById(id, IntegrationAdapter.SPECIFIC_A2A_INTEGRATION_ADAPTER::toEntity);
+    }
+
+    @Override
     public Optional<Integration> findById(String id) {
+        return findById(id, IntegrationAdapter.INSTANCE::toEntity);
+    }
+
+    public <T extends Integration> Optional<T> findById(
+        String id,
+        Function<io.gravitee.repository.management.model.Integration, T> mapper
+    ) {
         try {
-            return integrationRepository.findById(id).map(IntegrationAdapter.INSTANCE::toEntity);
+            return integrationRepository.findByIntegrationId(id).map(mapper);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find the integration: " + id, e);
         }
     }
 
     @Override
-    public Integration update(Integration integration) {
+    public <T extends Integration> T update(T integration) {
         try {
-            var updatedIntegration = integrationRepository.update(IntegrationAdapter.INSTANCE.toRepository(integration));
-            return IntegrationAdapter.INSTANCE.toEntity(updatedIntegration);
+            var specificAdapter = IntegrationAdapter.INSTANCE.specific(integration);
+            var updatedIntegration = integrationRepository.update(specificAdapter.toRepository(integration));
+            return specificAdapter.toEntity(updatedIntegration);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurred when updating integration: " + integration.getId(), e);
+            throw new TechnicalManagementException("An error occurred when updating integration: " + integration.id(), e);
         }
     }
 

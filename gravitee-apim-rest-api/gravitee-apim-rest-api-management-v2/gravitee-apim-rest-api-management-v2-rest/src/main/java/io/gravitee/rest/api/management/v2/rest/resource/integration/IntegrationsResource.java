@@ -61,8 +61,7 @@ public class IntegrationsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }))
     public Response createIntegration(@PathParam("envId") String environmentId, @Valid @NotNull final CreateIntegration integration) {
-        var newIntegrationEntity = IntegrationMapper.INSTANCE.map(integration);
-        newIntegrationEntity.setEnvironmentId(environmentId);
+        var newIntegrationEntity = IntegrationMapper.INSTANCE.map(integration, environmentId);
 
         var auditInfo = getAuditInfo();
 
@@ -71,7 +70,7 @@ public class IntegrationsResource extends AbstractResource {
             .createdIntegration();
 
         return Response
-            .created(this.getLocationHeader(createdIntegration.getId()))
+            .created(this.getLocationHeader(createdIntegration.id()))
             .entity(IntegrationMapper.INSTANCE.map(createdIntegration))
             .build();
     }

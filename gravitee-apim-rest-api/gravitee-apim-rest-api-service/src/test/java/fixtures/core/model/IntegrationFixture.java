@@ -19,29 +19,53 @@ import io.gravitee.apim.core.integration.model.Integration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class IntegrationFixture {
 
     private IntegrationFixture() {}
 
-    public static final Supplier<Integration.IntegrationBuilder> BASE = () ->
-        Integration
-            .builder()
-            .id("integration-id")
-            .name("test-name")
-            .description("integration-description")
-            .provider("test-provider")
-            .environmentId("my-env")
-            .groups(Set.of())
-            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
+    public static final Integration.ApiIntegration BASE = new Integration.ApiIntegration(
+        "integration-id",
+        "test-name",
+        "integration-description",
+        "test-provider",
+        "my-env",
+        Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+        Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+        Set.of()
+    );
 
-    public static Integration anIntegration() {
-        return BASE.get().build();
+    public static Integration.ApiIntegration anApiIntegration() {
+        return BASE;
     }
 
-    public static Integration anIntegration(String envId) {
-        return BASE.get().environmentId(envId).build();
+    public static Integration.ApiIntegration anApiIntegration(String envId) {
+        return BASE.withEnvironmentId(envId);
+    }
+
+    public static Integration.ApiIntegration withGroups(Integration.ApiIntegration integration, Set<String> groups) {
+        return new Integration.ApiIntegration(
+            integration.id(),
+            integration.name(),
+            integration.description(),
+            integration.provider(),
+            integration.environmentId(),
+            integration.createdAt(),
+            integration.updatedAt(),
+            groups
+        );
+    }
+
+    public static Integration.ApiIntegration withUpdatedAt(Integration.ApiIntegration integration, String date) {
+        return new Integration.ApiIntegration(
+            integration.id(),
+            integration.name(),
+            integration.description(),
+            integration.provider(),
+            integration.environmentId(),
+            Instant.parse(date).atZone(ZoneId.systemDefault()),
+            integration.updatedAt(),
+            integration.groups()
+        );
     }
 }

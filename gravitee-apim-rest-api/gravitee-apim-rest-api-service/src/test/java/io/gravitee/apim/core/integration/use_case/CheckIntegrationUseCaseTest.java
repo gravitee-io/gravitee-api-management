@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.integration.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +34,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
@@ -55,13 +53,17 @@ class CheckIntegrationUseCaseTest {
     private static final String ENVIRONMENT_2 = "environment-2";
     private static final String INTEGRATION_ID = "my-integration-id";
     private static final String PROVIDER = "aws-api-gateway";
-    private static final Integration INTEGRATION = IntegrationFixture
-        .anIntegration()
-        .toBuilder()
-        .id(INTEGRATION_ID)
-        .provider(PROVIDER)
-        .environmentId(ENVIRONMENT_1)
-        .build();
+    private static final Integration INTEGRATION_BASE = IntegrationFixture.anApiIntegration();
+    private static final Integration INTEGRATION = new Integration.ApiIntegration(
+        INTEGRATION_ID,
+        INTEGRATION_BASE.name(),
+        INTEGRATION_BASE.description(),
+        PROVIDER,
+        ENVIRONMENT_1,
+        INTEGRATION_BASE.createdAt(),
+        INTEGRATION_BASE.updatedAt(),
+        INTEGRATION_BASE.groups()
+    );
 
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
     EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
@@ -189,7 +191,7 @@ class CheckIntegrationUseCaseTest {
     }
 
     private void givenExistingIntegration(Integration... integration) {
-        integrationCrudService.initWith(Arrays.asList(integration));
+        integrationCrudService.initWith(List.of(integration));
     }
 
     private void givenPermission(RolePermission rolePermission, String referenceId, RolePermissionAction... acls) {

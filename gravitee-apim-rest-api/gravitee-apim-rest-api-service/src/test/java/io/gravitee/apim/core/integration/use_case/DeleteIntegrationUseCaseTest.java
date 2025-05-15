@@ -35,7 +35,6 @@ import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.membership.domain_service.DeleteMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.rest.api.service.AuditService;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -84,7 +83,7 @@ public class DeleteIntegrationUseCaseTest {
 
     @Test
     void should_delete_integration() {
-        integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
+        integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration()));
         var input = DeleteIntegrationUseCase.Input.builder().integrationId(INTEGRATION_ID).build();
 
         usecase.execute(input);
@@ -104,7 +103,7 @@ public class DeleteIntegrationUseCaseTest {
             .memberType(Membership.Type.USER)
             .build();
         givenExistingMemberships(List.of(integrationMember));
-        integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
+        integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration()));
         var input = DeleteIntegrationUseCase.Input.builder().integrationId(INTEGRATION_ID).build();
 
         usecase.execute(input);
@@ -114,7 +113,7 @@ public class DeleteIntegrationUseCaseTest {
 
     @Test
     void should_throw_error_when_associated_federated_apis_found() {
-        integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
+        integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration()));
         apiQueryServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
         var input = DeleteIntegrationUseCase.Input.builder().integrationId(INTEGRATION_ID).build();
 
