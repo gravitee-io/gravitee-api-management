@@ -171,6 +171,13 @@ export class ApiV4MenuService implements ApiMenuService {
       },
     ];
 
+    if (api.type === 'PROXY') {
+      tabs.push({
+        displayName: 'MCP',
+        routerLink: 'v4/mcp',
+      });
+    }
+
     if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
       tabs.push({
         displayName: 'Response Templates',
