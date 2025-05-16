@@ -56,6 +56,8 @@ import { CreateIntegrationModule } from './create-integration/create-integration
 import { IntegrationAgentModule } from './integration-agent/integration-agent.module';
 import { DiscoveryPreviewModule } from './discovery-preview/discovery-preview.module';
 import { IntegrationOverviewModule } from './integration-overview/integration-overview.module';
+import { IsApiIntegration } from './pipes/is-api-integration.pipe';
+import { IsA2aIntegration } from './pipes/is-a2a-integration.pipe';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -106,6 +108,8 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     IntegrationOverviewModule,
     IntegrationStatusComponent,
     MapProviderNamePipe,
+    IsApiIntegration,
+    IsA2aIntegration,
   ],
   providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })

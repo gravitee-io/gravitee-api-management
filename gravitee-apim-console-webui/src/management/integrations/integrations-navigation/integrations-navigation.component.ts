@@ -35,6 +35,7 @@ export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
       permissions: ['integration-definition-r'],
       icon: 'info',
       routerLinkActiveOptions: { exact: true },
+      providerType: ['API', 'A2A'],
     },
     {
       routerLink: `agent`,
@@ -42,6 +43,7 @@ export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
       permissions: ['integration-definition-r'],
       icon: 'server-connection',
       routerLinkActiveOptions: { exact: true },
+      providerType: ['API'],
     },
     {
       routerLink: `configuration`,
@@ -49,6 +51,7 @@ export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
       permissions: ['integration-definition-r'],
       icon: 'settings',
       routerLinkActiveOptions: { exact: false },
+      providerType: ['API', 'A2A'],
     },
   ];
 
