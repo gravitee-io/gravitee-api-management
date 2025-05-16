@@ -108,7 +108,7 @@
     "license-check-and-add": "4.0.5",
     "prettier": "3.5.3",
     "prettier-eslint": "16.4.1",
-    "storybook": "8.6.11",
+    "storybook": "8.6.14",
     "stylelint": "16.15.0",
     "stylelint-config-idiomatic-order": "10.0.0",
     "stylelint-config-prettier-scss": "1.0.0",
