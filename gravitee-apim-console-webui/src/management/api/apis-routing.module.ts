@@ -90,6 +90,7 @@ import { ApiDocumentationChooseExistingPageComponent } from './documentation-v4/
 import { ApiHealthCheckDashboardV4Component } from './health-check-dashboard-v4/api-health-check-dashboard-v4.component';
 import { DebugModeV2WrapperComponent } from './debug-mode/v2-wrapper/debug-mode-v2-wrapper.component';
 import { DebugModeV4WrapperComponent } from './debug-mode/v4-wrapper/debug-mode-v4-wrapper.component';
+import { McpComponent } from './mcp/mcp.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -1057,6 +1058,16 @@ const apisRoutes: Routes = [
       {
         path: 'v4/cors',
         component: ApiCorsComponent,
+        data: {
+          docs: null,
+          permissions: {
+            anyOf: ['api-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'v4/mcp',
+        component: McpComponent,
         data: {
           docs: null,
           permissions: {

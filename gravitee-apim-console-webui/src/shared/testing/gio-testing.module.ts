@@ -35,6 +35,7 @@ export const CONSTANTS_TESTING: Constants = {
         enabled: false,
       },
     },
+    v2BaseURL: 'https://url.test:3000/management/v2/organizations/DEFAULT',
     // FIXME: Fill missing fields
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
