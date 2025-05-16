@@ -22,7 +22,7 @@ import { BehaviorSubject, EMPTY, Subject, timer } from 'rxjs';
 import { isEqual } from 'lodash';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
-import { AgentStatus, Integration } from '../integrations.model';
+import { AgentStatus, ApiIntegration, Integration, isApiIntegration } from '../integrations.model';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
@@ -74,7 +74,7 @@ export class IntegrationOverviewComponent implements OnInit {
         next: ({ integration, federatedAPIs, pagination }) => {
           this.integration = integration;
           this.isLoading = false;
-          this.isIngesting = this.integration.pendingJob != null;
+          this.isIngesting = isApiIntegration(this.integration) && this.integration.pendingJob != null;
 
           this.federatedAPIs = federatedAPIs;
           this.nbTotalInstances = pagination?.totalCount || 0;
@@ -94,6 +94,10 @@ export class IntegrationOverviewComponent implements OnInit {
   public onFiltersChanged(filters: GioTableWrapperFilters): void {
     this.filters = { ...this.filters, ...filters };
     this.filters$.next(this.filters);
+  }
+
+  public apiIntegration(integration: unknown): integration is ApiIntegration {
+    return isApiIntegration(integration);
   }
 
   private getIntegration() {
