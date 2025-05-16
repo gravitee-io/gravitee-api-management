@@ -35,7 +35,9 @@ public interface IntegrationAdapter {
     SpecificA2aAdapter SPECIFIC_A2A_INTEGRATION_ADAPTER = Mappers.getMapper(SpecificA2aAdapter.class);
 
     default Integration toEntity(io.gravitee.repository.management.model.Integration integration) {
-        return integration.isA2aIntegration() ? SPECIFIC_A2A_INTEGRATION_ADAPTER.toEntity(integration) : SPECIFIC_API_INTEGRATION_ADAPTER.toEntity(integration);
+        return integration.isA2aIntegration()
+            ? SPECIFIC_A2A_INTEGRATION_ADAPTER.toEntity(integration)
+            : SPECIFIC_API_INTEGRATION_ADAPTER.toEntity(integration);
     }
 
     default io.gravitee.repository.management.model.Integration toRepository(Integration integration) {

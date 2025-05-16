@@ -73,7 +73,7 @@ public class IntegrationCrudServiceImpl extends AbstractService implements Integ
         Function<io.gravitee.repository.management.model.Integration, T> mapper
     ) {
         try {
-            return integrationRepository.findById(id).map(mapper);
+            return integrationRepository.findByIntegrationId(id).map(mapper);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find the integration: " + id, e);
         }

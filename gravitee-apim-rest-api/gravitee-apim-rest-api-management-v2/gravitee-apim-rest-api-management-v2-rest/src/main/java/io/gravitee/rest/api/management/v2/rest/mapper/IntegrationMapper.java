@@ -46,11 +46,13 @@ public interface IntegrationMapper {
     IntegrationMapper INSTANCE = Mappers.getMapper(IntegrationMapper.class);
 
     default Integration map(CreateIntegration source, String environmentId) {
-        return "A2A".equals(source.getProvider()) ? mapToA2aIntegration(source).withEnvironmentId(environmentId) : mapToApiIntegration(source).withEnvironmentId(environmentId);
+        return "A2A".equals(source.getProvider())
+            ? mapToA2aIntegration(source).withEnvironmentId(environmentId)
+            : mapToApiIntegration(source).withEnvironmentId(environmentId);
     }
-    
+
     Integration.ApiIntegration mapToApiIntegration(CreateIntegration source);
-    
+
     Integration.A2aIntegration mapToA2aIntegration(CreateIntegration source);
 
     IngestionJob map(AsyncJob source);
@@ -68,6 +70,7 @@ public interface IntegrationMapper {
             default -> map(source, source.getIntegration());
         };
     }
+
     @Mapping(target = "id", expression = "java(integration.id())")
     @Mapping(target = "name", expression = "java(integration.name())")
     @Mapping(target = "description", expression = "java(integration.description())")

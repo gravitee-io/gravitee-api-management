@@ -15,11 +15,11 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.repository.management.model.integration.A2aWellKnownUrl;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import io.gravitee.repository.management.model.integration.A2aWellKnownUrl;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,6 +37,7 @@ import lombok.With;
 public class Integration {
 
     public static final String A2A = "A2A";
+
     @With
     private String id;
 

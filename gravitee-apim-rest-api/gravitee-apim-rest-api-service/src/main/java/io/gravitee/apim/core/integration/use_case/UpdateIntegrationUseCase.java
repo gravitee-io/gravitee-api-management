@@ -50,13 +50,21 @@ public class UpdateIntegrationUseCase {
 
         var validatedGroups = validateGroups(input);
 
-        var integration = integrationCrudService
-            .findById(integrationId)
-            .orElseThrow(() -> new IntegrationNotFoundException(integrationId));
-        var integrationToUpdate = switch (integration) {
-            case Integration.ApiIntegration apiIntegration -> apiIntegration.update(input.updateFields().name(), input.updateFields().description(), validatedGroups);
-            case Integration.A2aIntegration a2aIntegration -> a2aIntegration.update(input.updateFields().name(), input.updateFields().description(), validatedGroups, input.updateFields().wellKnownUrls());
-        };
+        var integration = integrationCrudService.findById(integrationId).orElseThrow(() -> new IntegrationNotFoundException(integrationId));
+        var integrationToUpdate =
+            switch (integration) {
+                case Integration.ApiIntegration apiIntegration -> apiIntegration.update(
+                    input.updateFields().name(),
+                    input.updateFields().description(),
+                    validatedGroups
+                );
+                case Integration.A2aIntegration a2aIntegration -> a2aIntegration.update(
+                    input.updateFields().name(),
+                    input.updateFields().description(),
+                    validatedGroups,
+                    input.updateFields().wellKnownUrls()
+                );
+            };
 
         return new Output(integrationCrudService.update(integrationToUpdate));
     }
@@ -82,9 +90,12 @@ public class UpdateIntegrationUseCase {
 
     @Builder
     public record Input(String integrationId, UpdateFields updateFields, AuditInfo auditInfo) {
-        public record UpdateFields(String name,
-                                   String description, Set<String> groups,
-                                   Collection<Integration.A2aIntegration.WellKnownUrl> wellKnownUrls) {}
+        public record UpdateFields(
+            String name,
+            String description,
+            Set<String> groups,
+            Collection<Integration.A2aIntegration.WellKnownUrl> wellKnownUrls
+        ) {}
     }
 
     public record Output(Integration integration) {}

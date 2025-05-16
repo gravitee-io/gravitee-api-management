@@ -75,7 +75,7 @@ public sealed interface Integration {
             return new A2aIntegration(id, name, description, provider, environmentId, createdAt, TimeProvider.now(), groups, wellKnownUrls);
         }
         public A2aIntegration withEnvironmentId(String environmentId) {
-            return new A2aIntegration(id, name, description, provider, environmentId, createdAt, updatedAt, groups,  wellKnownUrls);
+            return new A2aIntegration(id, name, description, provider, environmentId, createdAt, updatedAt, groups, wellKnownUrls);
         }
     }
 

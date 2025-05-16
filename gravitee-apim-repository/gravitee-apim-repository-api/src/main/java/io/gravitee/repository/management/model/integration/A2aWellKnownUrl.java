@@ -15,5 +15,4 @@
  */
 package io.gravitee.repository.management.model.integration;
 
-public record A2aWellKnownUrl(String url) {
-}
+public record A2aWellKnownUrl(String url) {}
