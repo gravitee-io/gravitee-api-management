@@ -92,7 +92,7 @@ public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTe
 
         integrationRepository.delete(id);
 
-        assertThat(integrationRepository.findById(id)).isEmpty();
+        assertThat(integrationRepository.findByIntegrationId(id)).isEmpty();
     }
 
     // deleteByReferenceId

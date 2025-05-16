@@ -131,7 +131,7 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
         var date = new Date(1_470_157_767_000L);
         var expectedIntegration = creatIntegration(id, date);
 
-        final Optional<Integration> integration = integrationRepository.findById(id);
+        final Optional<Integration> integration = integrationRepository.findByIntegrationId(id);
 
         assertThat(integration).hasValue(expectedIntegration);
     }
@@ -140,7 +140,7 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
     public void should_return_empty_when_integration_not_found() throws TechnicalException {
         var id = "not-existing-id";
 
-        final Optional<Integration> integration = integrationRepository.findById(id);
+        final Optional<Integration> integration = integrationRepository.findByIntegrationId(id);
 
         assertThat(integration).isNotPresent();
     }
@@ -181,7 +181,7 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
 
         integrationRepository.delete(id);
 
-        var deletedIntegration = integrationRepository.findById(id);
+        var deletedIntegration = integrationRepository.findByIntegrationId(id);
 
         assertThat(deletedIntegration).isEmpty();
     }

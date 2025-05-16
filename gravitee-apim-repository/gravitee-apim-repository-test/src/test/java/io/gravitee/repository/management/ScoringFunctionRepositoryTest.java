@@ -92,7 +92,7 @@ public class ScoringFunctionRepositoryTest extends AbstractManagementRepositoryT
 
         integrationRepository.delete(id);
 
-        assertThat(integrationRepository.findById(id)).isEmpty();
+        assertThat(integrationRepository.findByIntegrationId(id)).isEmpty();
     }
 
     // deleteByReferenceId
