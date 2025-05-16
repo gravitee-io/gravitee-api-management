@@ -22,9 +22,11 @@
       <ng-container *ngIf="integrationsService.currentIntegration() | async; let integration">
         <div class="title">
           <div class="title__name">{{ integration.name }}</div>
-          <div class="title__states">
-            <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
-          </div>
+          @if (apiIntegration(integration)) {
+            <div class="title__states">
+              <app-integration-status [agentStatus]="integration.agentStatus"/>
+            </div>
+          }
         </div>
 
         <ng-container *ngFor="let item of allowedItems">

@@ -53,9 +53,11 @@
             </div>
             <div class="details-card__item border-right">
               <h5 class="title body-strong">Agent Connection</h5>
-              <div class="status">
-                <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
-              </div>
+              @if (apiIntegration(integration)) {
+                <div class="status">
+                  <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
+                </div>
+              }
             </div>
             <div class="details-card__item">
               <h5 class="title body-strong">Integration ID</h5>
@@ -69,9 +71,11 @@
             </div>
           </div>
         </mat-card>
-        <gio-banner-error *ngIf="integration.agentStatus === AgentStatus.DISCONNECTED">
-          {{ integrationsService.bannerMessages.agentDisconnected }}
-        </gio-banner-error>
+        @if (apiIntegration(integration) && integration.agentStatus === AgentStatus.DISCONNECTED) {
+          <gio-banner-error>
+            {{ integrationsService.bannerMessages.agentDisconnected }}
+          </gio-banner-error>
+        }
       </div>
     </mat-card>
 
@@ -86,7 +90,7 @@
             <button
               mat-raised-button
               color="primary"
-              [disabled]="integration.agentStatus !== AgentStatus.CONNECTED || isIngesting"
+              [disabled]="(apiIntegration(integration) && integration.agentStatus !== AgentStatus.CONNECTED) || isIngesting"
               data-testid="discover-button"
               routerLink="discover"
               *gioPermission="{ anyOf: ['environment-integration-c'] }"
