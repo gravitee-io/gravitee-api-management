@@ -70,21 +70,16 @@ public class GetIntegrationsUseCase {
         var pageContent = Flowable
             .fromIterable(page.getContent())
             .flatMapSingle(integration ->
-                Single.zip(
-                    integrationAgent
-                        .getAgentStatusFor(integration.getId())
-                        .map(status -> IntegrationView.AgentStatus.valueOf(status.name())),
-                    Maybe
-                        .fromOptional(asyncJobQueryService.findPendingJobFor(integration.getId()))
-                        .map(Optional::of)
-                        .defaultIfEmpty(Optional.empty()),
-                    integrationPrimaryOwnerDomainService
-                        .getIntegrationPrimaryOwner(input.context().getOrganizationId(), integration.getId())
-                        .map(po -> Optional.of(new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName())))
-                        .defaultIfEmpty(Optional.empty()),
-                    (agentStatus, pendingJob, primaryOwner) ->
-                        new IntegrationView(integration, agentStatus, pendingJob.orElse(null), primaryOwner.orElse(null))
-                )
+                switch (integration) {
+                    case Integration.ApiIntegration apiIntegration -> enrichApiIntegration(
+                        input.context().getOrganizationId(),
+                        apiIntegration
+                    );
+                    case Integration.A2aIntegration a2aIntegration -> enrichA2aIntegration(
+                        input.context().getOrganizationId(),
+                        a2aIntegration
+                    );
+                }
             )
             .toList()
             .blockingGet();
@@ -92,6 +87,26 @@ public class GetIntegrationsUseCase {
         return new GetIntegrationsUseCase.Output(
             new Page<>(pageContent, page.getPageNumber(), (int) page.getPageElements(), page.getTotalElements())
         );
+    }
+
+    private Single<IntegrationView> enrichApiIntegration(String organisationId, Integration.ApiIntegration integration) {
+        return Single.zip(
+            integrationAgent.getAgentStatusFor(integration.id()).map(status -> IntegrationView.AgentStatus.valueOf(status.name())),
+            Maybe.fromOptional(asyncJobQueryService.findPendingJobFor(integration.id())).map(Optional::of).defaultIfEmpty(Optional.empty()),
+            integrationPrimaryOwnerDomainService
+                .getIntegrationPrimaryOwner(organisationId, integration.id())
+                .map(po -> Optional.of(new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName())))
+                .defaultIfEmpty(Optional.empty()),
+            (agentStatus, pendingJob, primaryOwner) ->
+                new IntegrationView(integration, agentStatus, pendingJob.orElse(null), primaryOwner.orElse(null))
+        );
+    }
+
+    private Single<IntegrationView> enrichA2aIntegration(String organisationId, Integration.A2aIntegration integration) {
+        return integrationPrimaryOwnerDomainService
+            .getIntegrationPrimaryOwner(organisationId, integration.id())
+            .map(po -> new IntegrationView(integration, new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName())))
+            .defaultIfEmpty(new IntegrationView(integration, null));
     }
 
     @Builder

@@ -291,7 +291,7 @@ class ApiExportDomainServiceImplTest {
         Api api = ApiFixtures.aFederatedApi();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
         when(integrationCrudService.findById(anyString()))
-            .thenReturn(Optional.of(Integration.builder().id(apiId).provider("provider").build()));
+            .thenReturn(Optional.of(new Integration.ApiIntegration(apiId, null, null, "provider", null, null, null, null)));
 
         // When
         GraviteeDefinition export = sut.export(
@@ -425,7 +425,7 @@ class ApiExportDomainServiceImplTest {
 
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
         when(integrationCrudService.findById(anyString()))
-            .thenReturn(Optional.of(Integration.builder().id(apiId).provider("provider").build()));
+            .thenReturn(Optional.of(new Integration.ApiIntegration(apiId, null, null, "provider", null, null, null, null)));
 
         // When
         GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.allOf(Excludable.class));

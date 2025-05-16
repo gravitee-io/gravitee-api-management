@@ -52,7 +52,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class GetIntegrationsUseCaseTest {
+class GetIntegrationsUseCaseTest {
 
     private static final String ENV_ID = "my-env";
     private static final String ORGANIZATION_ID = "my-org";
@@ -119,8 +119,8 @@ public class GetIntegrationsUseCaseTest {
     void should_return_integrations_with_specific_env_id_and_good_groups() {
         //Given
         var expected = IntegrationFixture.anIntegration();
-        expected.setGroups(Set.of("group-1"));
-        integrationAgent.configureAgentFor(expected.getId(), IntegrationAgent.Status.CONNECTED);
+        expected = IntegrationFixture.withGroups(expected, Set.of("group-1"));
+        integrationAgent.configureAgentFor(expected.id(), IntegrationAgent.Status.CONNECTED);
         integrationQueryServiceInMemory.initWith(
             List.of(expected, IntegrationFixture.anIntegration("falseEnvID"), IntegrationFixture.anIntegration("anotherFalseEnvID"))
         );
@@ -158,7 +158,7 @@ public class GetIntegrationsUseCaseTest {
     void should_return_integrations_with_default_pageable() {
         //Given
         var expected = IntegrationFixture.anIntegration();
-        integrationAgent.configureAgentFor(expected.getId(), IntegrationAgent.Status.CONNECTED);
+        integrationAgent.configureAgentFor(expected.id(), IntegrationAgent.Status.CONNECTED);
         integrationQueryServiceInMemory.initWith(List.of(expected));
         var input = new GetIntegrationsUseCase.Input(new ExecutionContext(ORGANIZATION_ID, ENV_ID), "MyUser", Set.of(), true);
 

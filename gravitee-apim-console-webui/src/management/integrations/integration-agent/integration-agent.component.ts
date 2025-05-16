@@ -20,7 +20,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { AgentStatus, Integration } from '../integrations.model';
+import { AgentStatus, ApiIntegration, Integration, isApiIntegration } from '../integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { Constants } from '../../../entities/Constants';
@@ -76,6 +76,10 @@ export class IntegrationAgentComponent implements OnInit {
 
   public refreshStatus(): void {
     this.getIntegration();
+  }
+
+  public apiIntegration(integration: unknown): integration is ApiIntegration {
+    return isApiIntegration(integration);
   }
 
   private getDocumentationUrl(providerName: string): string {

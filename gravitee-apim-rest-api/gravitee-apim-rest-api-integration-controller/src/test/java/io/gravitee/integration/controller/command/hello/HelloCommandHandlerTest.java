@@ -20,7 +20,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import fixtures.core.model.IntegrationFixture;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
@@ -42,6 +41,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
@@ -109,13 +109,16 @@ class HelloCommandHandlerTest {
     @Test
     void should_reply_succeeded_when_integration_exists() {
         var integration = givenIntegration(
-            IntegrationFixture
-                .anIntegration()
-                .toBuilder()
-                .id(INTEGRATION_ID)
-                .environmentId(ENVIRONMENT.getId())
-                .provider(INTEGRATION_PROVIDER)
-                .build()
+            new Integration.ApiIntegration(
+                INTEGRATION_ID,
+                "test-name",
+                "integration-description",
+                INTEGRATION_PROVIDER,
+                ENVIRONMENT.getId(),
+                Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                Set.of()
+            )
         );
         givenPermission(
             RolePermission.ENVIRONMENT_INTEGRATION,
@@ -134,7 +137,7 @@ class HelloCommandHandlerTest {
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.SUCCEEDED);
                     soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
-                    soft.assertThat(reply.getPayload()).isEqualTo(HelloReplyPayload.builder().targetId(integration.getId()).build());
+                    soft.assertThat(reply.getPayload()).isEqualTo(HelloReplyPayload.builder().targetId(integration.id()).build());
                 });
 
                 return true;
@@ -163,13 +166,16 @@ class HelloCommandHandlerTest {
     @Test
     void should_reply_error_when_integration_exist_but_provider_mismatch() {
         givenIntegration(
-            IntegrationFixture
-                .anIntegration()
-                .toBuilder()
-                .id("my-integration-id")
-                .environmentId(ENVIRONMENT.getId())
-                .provider("other")
-                .build()
+            new Integration.ApiIntegration(
+                "my-integration-id",
+                "test-name",
+                "integration-description",
+                "other",
+                ENVIRONMENT.getId(),
+                Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                Set.of()
+            )
         );
         givenPermission(
             RolePermission.ENVIRONMENT_INTEGRATION,
