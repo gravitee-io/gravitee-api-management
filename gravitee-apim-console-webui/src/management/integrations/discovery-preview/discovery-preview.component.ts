@@ -28,7 +28,7 @@ import {
   IntegrationPreview,
   IntegrationPreviewApi,
   IntegrationPreviewApisState,
-  isApiIntegration
+  isApiIntegration,
 } from '../integrations.model';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
