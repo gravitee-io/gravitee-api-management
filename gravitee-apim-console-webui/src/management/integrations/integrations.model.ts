@@ -55,7 +55,7 @@ export interface ApiIntegration extends IntegrationBase {
 
 export interface A2aIntegration extends IntegrationBase {
   provider: 'A2A';
-  wellKnownUrls: {url: string}[];
+  wellKnownUrls: { url: string }[];
 }
 
 export interface IntegrationIngestionRequest {
