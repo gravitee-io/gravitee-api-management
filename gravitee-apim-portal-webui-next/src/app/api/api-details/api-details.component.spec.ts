@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatChipHarness } from '@angular/material/chips/testing';
+import { MatTabNavBarHarness } from '@angular/material/tabs/testing';
 
 import { ApiDetailsComponent } from './api-details.component';
+import { Api } from '../../../entities/api/api';
 import { fakeApi } from '../../../entities/api/api.fixtures';
 import { AppTestingModule } from '../../../testing/app-testing.module';
 
@@ -24,24 +29,45 @@ describe('ApiDetailsComponent', () => {
   let component: ApiDetailsComponent;
   let fixture: ComponentFixture<ApiDetailsComponent>;
   let httpTestingController: HttpTestingController;
+  let harnessLoader: HarnessLoader;
 
-  beforeEach(async () => {
+  const init = async (api: Api) => {
     await TestBed.configureTestingModule({
       imports: [ApiDetailsComponent, AppTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiDetailsComponent);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     component = fixture.componentInstance;
-    component.api = fakeApi();
+    component.api = api;
     fixture.detectChanges();
-  });
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  describe('MCP enabled', () => {
+    beforeEach(async () => {
+      await init(
+        fakeApi({
+          mcp: {
+            enabled: true,
+          },
+        }),
+      );
+    });
+
+    it('should show Tools tab if api has mcp enabled', async () => {
+      const tabs = await harnessLoader.getHarness(MatTabNavBarHarness);
+      const links = await tabs.getLinks();
+      expect(await links[2].getLabel()).toBe('Tools');
+    });
+
+    it('should show MCP Server badge', async () => {
+      const mcpServerChip = await harnessLoader.getHarnessOrNull(MatChipHarness.with({ text: 'MCP Server' }));
+      expect(mcpServerChip).toBeTruthy();
+    });
   });
 });
