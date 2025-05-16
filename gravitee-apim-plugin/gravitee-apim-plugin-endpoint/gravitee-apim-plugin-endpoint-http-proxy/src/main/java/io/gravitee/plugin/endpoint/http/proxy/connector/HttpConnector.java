@@ -33,6 +33,7 @@ import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
@@ -119,11 +120,24 @@ public class HttpConnector implements ProxyConnector {
                 .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .rxRequest(options)
                 .map(this::customizeHttpClientRequest)
+<<<<<<< HEAD
                 .flatMap(httpClientRequest ->
                     httpClientRequest.rxSend(
                         request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
                     )
                 )
+=======
+                .flatMap(httpClientRequest -> {
+                    observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
+                    if (requestWithBody(request)) {
+                        return httpClientRequest.rxSend(
+                            request.chunks().map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                        );
+                    } else {
+                        return httpClientRequest.rxSend();
+                    }
+                })
+>>>>>>> 474ee5a80f (fix: proxy connector don’t send query chunked if not need)
                 .doOnSuccess(endpointResponse -> {
                     response.status(endpointResponse.statusCode());
 
@@ -258,5 +272,9 @@ public class HttpConnector implements ProxyConnector {
         if (parametersToAdd != null && !parametersToAdd.isEmpty()) {
             parametersToAdd.forEach((key, values) -> parameters.computeIfAbsent(key, k -> new ArrayList<>()).addAll(values));
         }
+    }
+
+    private static boolean requestWithBody(HttpRequest request) {
+        return request.headers().contains(HttpHeaderNames.TRANSFER_ENCODING) || request.headers().contains(HttpHeaderNames.CONTENT_LENGTH);
     }
 }
