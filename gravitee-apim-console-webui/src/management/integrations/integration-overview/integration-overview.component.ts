@@ -22,7 +22,7 @@ import { BehaviorSubject, EMPTY, Subject, timer } from 'rxjs';
 import { isEqual } from 'lodash';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
-import {AgentStatus, Integration, isApiIntegration} from '../integrations.model';
+import { AgentStatus, Integration, isApiIntegration } from '../integrations.model';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
