@@ -137,7 +137,7 @@ class HelloCommandHandlerTest {
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.SUCCEEDED);
                     soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
-                    soft.assertThat(reply.getPayload()).isEqualTo(HelloReplyPayload.builder().targetId(integration.getId()).build());
+                    soft.assertThat(reply.getPayload()).isEqualTo(HelloReplyPayload.builder().targetId(integration.id()).build());
                 });
 
                 return true;

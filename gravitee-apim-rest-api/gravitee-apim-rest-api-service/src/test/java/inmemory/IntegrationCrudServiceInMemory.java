@@ -75,6 +75,11 @@ public class IntegrationCrudServiceInMemory implements IntegrationCrudService, I
         storage.addAll(items);
     }
 
+    public <T extends Integration> void initializeWith(List<T> items) {
+        storage.clear();
+        storage.addAll(items);
+    }
+
     @Override
     public void reset() {
         storage.clear();
