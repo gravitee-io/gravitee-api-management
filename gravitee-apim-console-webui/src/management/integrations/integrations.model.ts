@@ -33,7 +33,7 @@ export function isApiIntegration(integration: unknown): integration is ApiIntegr
   return (integration as ApiIntegration).provider !== undefined && (integration as ApiIntegration).provider !== 'A2A';
 }
 
-export function A2aIntegration(integration: unknown): integration is A2aIntegration {
+export function isA2aIntegration(integration: unknown): integration is A2aIntegration {
   return (integration as A2aIntegration).provider === 'A2A';
 }
 
