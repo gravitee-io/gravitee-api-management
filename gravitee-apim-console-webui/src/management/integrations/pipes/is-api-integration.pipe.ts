@@ -13,29 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({
-  name: 'mapProviderName',
-  standalone: true,
-})
-export class MapProviderNamePipe implements PipeTransform {
-  private names: { [key: string]: string } = {
-    'aws-api-gateway': 'AWS API Gateway',
-    AWS: 'AWS API Gateway',
-    A2A: 'A2A Protocol',
-    solace: 'Solace',
-    apigee: 'Apigee',
-    'confluent-platform': 'Confluent Platform',
-    'azure-api-management': 'Azure API Management',
-    kong: 'Kong',
-    'ibm-api-connect': 'IBM API Connect',
-    mulesoft: 'Mulesoft',
-    'dell-boomi': 'Boomi',
-  };
+import { ApiIntegration, isApiIntegration } from '../integrations.model';
 
-  transform(value: string): string {
-    return this.names[value] || value;
+@Pipe({
+  name: 'isApiIntegration',
+})
+export class IsApiIntegration implements PipeTransform {
+  transform(value: any): value is ApiIntegration {
+    return isApiIntegration(value);
   }
 }

@@ -109,7 +109,9 @@
         <ng-container matColumnDef="agent">
           <th mat-header-cell *matHeaderCellDef id="agent">Agent</th>
           <td mat-cell *matCellDef="let integration">
-            <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
+            @if (apiIntegration(integration)) {
+              <app-integration-status [agentStatus]="integration.agentStatus" />
+            }
           </td>
         </ng-container>
 

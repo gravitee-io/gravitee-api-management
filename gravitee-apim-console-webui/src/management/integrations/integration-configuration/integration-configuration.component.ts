@@ -35,6 +35,7 @@ export class IntegrationConfigurationComponent {
       permissions: ['integration-definition-u', 'integration-definition-d'],
       routerLinkActiveOptions: { exact: true },
       disabled: false,
+      providerType: ['API', 'A2A'],
     },
     {
       displayName: 'User Permissions ',
@@ -42,6 +43,7 @@ export class IntegrationConfigurationComponent {
       permissions: ['integration-member-r'],
       routerLinkActiveOptions: { exact: true },
       disabled: false,
+      providerType: ['API', 'A2A'],
     },
   ];
   public allowedItems: IntegrationNavigationItem[] = [];

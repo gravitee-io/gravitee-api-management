@@ -23,7 +23,13 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { AgentStatus, IntegrationPreview, IntegrationPreviewApi, IntegrationPreviewApisState } from '../integrations.model';
+import {
+  AgentStatus,
+  IntegrationPreview,
+  IntegrationPreviewApi,
+  IntegrationPreviewApisState,
+  isApiIntegration,
+} from '../integrations.model';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
@@ -73,7 +79,7 @@ export class DiscoveryPreviewComponent implements OnInit {
       .getIntegration(this.integrationId)
       .pipe(
         switchMap((integration) => {
-          if (integration.agentStatus === AgentStatus.DISCONNECTED) {
+          if (isApiIntegration(integration) && integration.agentStatus === AgentStatus.DISCONNECTED) {
             this.snackBarService.error('Agent is DISCONNECTED, make sure your Agent is CONNECTED');
             this.router.navigate(['..'], { relativeTo: this.activatedRoute });
             return EMPTY;

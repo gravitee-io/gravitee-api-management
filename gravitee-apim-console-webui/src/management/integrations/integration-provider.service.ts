@@ -21,11 +21,12 @@ import { IntegrationProvider } from './integrations.model';
   providedIn: 'root',
 })
 export class IntegrationProviderService {
-  private integrationProviders: {
+  private readonly integrationProviders: {
     active: IntegrationProvider[];
     comingSoon: IntegrationProvider[];
   } = {
     active: [
+      { icon: 'a2a', value: 'A2A', apimDocsName: 'aws-api-gateway' },
       { icon: 'aws-api-gateway', value: 'aws-api-gateway', apimDocsName: 'aws-api-gateway' },
       { icon: 'solace', value: 'solace', apimDocsName: 'solace' },
       { icon: 'apigee', value: 'apigee', apimDocsName: 'apigee-x' },

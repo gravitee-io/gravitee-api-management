@@ -44,34 +44,38 @@
       <div class="card-content">
         <mat-card>
           <div class="details-card">
-            <div class="details-card__item border-right">
+            <div class="details-card__item" [class.border-right]="integration | isApiIntegration">
               <h5 class="title body-strong">Provider</h5>
               <div class="name">
                 <img class="logo" [src]="'assets/logos/' + integration.provider + '.svg'" alt="Integration provider logo" />
                 <span class="body-strong" data-testid="integration-provider">{{ integration.provider | mapProviderName }}</span>
               </div>
             </div>
-            <div class="details-card__item border-right">
-              <h5 class="title body-strong">Agent Connection</h5>
-              <div class="status">
-                <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
+            @if (integration | isApiIntegration) {
+              <div class="details-card__item border-right">
+                <h5 class="title body-strong">Agent Connection</h5>
+                <div class="status">
+                  <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
+                </div>
               </div>
-            </div>
-            <div class="details-card__item">
-              <h5 class="title body-strong">Integration ID</h5>
-              <div class="status">
-                <span class="gio-badge-neutral id-badge">
-                  <div gioClipboardCopyWrapper [alwaysVisible]="true" [contentToCopy]="integration?.id" data-testid="integration-id">
-                    {{ integration.id }}
-                  </div>
-                </span>
+              <div class="details-card__item">
+                <h5 class="title body-strong">Integration ID</h5>
+                <div class="status">
+                  <span class="gio-badge-neutral id-badge">
+                    <div gioClipboardCopyWrapper [alwaysVisible]="true" [contentToCopy]="integration?.id" data-testid="integration-id">
+                      {{ integration.id }}
+                    </div>
+                  </span>
+                </div>
               </div>
-            </div>
+            }
           </div>
         </mat-card>
-        <gio-banner-error *ngIf="integration.agentStatus === AgentStatus.DISCONNECTED">
-          {{ integrationsService.bannerMessages.agentDisconnected }}
-        </gio-banner-error>
+        @if ((integration | isApiIntegration) && integration.agentStatus === AgentStatus.DISCONNECTED) {
+          <gio-banner-error>
+            {{ integrationsService.bannerMessages.agentDisconnected }}
+          </gio-banner-error>
+        }
       </div>
     </mat-card>
 
@@ -86,7 +90,7 @@
             <button
               mat-raised-button
               color="primary"
-              [disabled]="integration.agentStatus !== AgentStatus.CONNECTED || isIngesting"
+              [disabled]="!(integration | isApiIntegration) || integration.agentStatus !== AgentStatus.CONNECTED || isIngesting"
               data-testid="discover-button"
               routerLink="discover"
               *gioPermission="{ anyOf: ['environment-integration-c'] }"

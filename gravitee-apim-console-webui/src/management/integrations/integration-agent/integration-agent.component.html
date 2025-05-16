@@ -33,14 +33,18 @@
       </div>
 
       <mat-card-content class="mat-card-content">
-        <div class="status">
-          <h5>Connection Status</h5>
-          <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
-        </div>
+        @if (integration | isApiIntegration) {
+          <div class="status">
+            <h5>Connection Status</h5>
+            <app-integration-status [agentStatus]="integration.agentStatus" />
+          </div>
 
-        <gio-banner-error *ngIf="integration.agentStatus === AgentStatus.DISCONNECTED">
-          {{ integrationsService.bannerMessages.agentDisconnected }}
-        </gio-banner-error>
+          @if (integration.agentStatus === AgentStatus.DISCONNECTED) {
+            <gio-banner-error>
+              {{ integrationsService.bannerMessages.agentDisconnected }}
+            </gio-banner-error>
+          }
+        }
 
         <button
           mat-raised-button
