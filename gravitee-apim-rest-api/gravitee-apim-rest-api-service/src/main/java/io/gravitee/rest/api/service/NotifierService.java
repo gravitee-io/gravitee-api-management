@@ -42,7 +42,7 @@ public interface NotifierService {
         List<Recipient> additionalRecipients
     );
     void trigger(ExecutionContext executionContext, final PortalHook hook, Map<String, Object> params);
-    List<NotifierEntity> list(NotificationReferenceType referenceType, String referenceId);
+    List<NotifierEntity> list();
     Set<io.gravitee.rest.api.model.NotifierEntity> findAll();
     io.gravitee.rest.api.model.NotifierEntity findById(String notifier);
     String getSchema(String notifier);

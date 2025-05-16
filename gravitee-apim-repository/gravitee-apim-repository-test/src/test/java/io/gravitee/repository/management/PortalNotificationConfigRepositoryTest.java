@@ -19,6 +19,7 @@ import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
@@ -46,24 +47,28 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .user("userid")
             .hooks(Arrays.asList("A", "B", "C"))
             .groups(Set.of("1", "2", "3"))
+            .orgId("org1")
             .updatedAt(new Date(1439022010883L))
             .createdAt(new Date(1439022010883L))
             .build();
 
         PortalNotificationConfig notificationCreated = portalNotificationConfigRepository.create(cfg);
 
-        assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId());
-        assertEquals(cfg.getUser(), notificationCreated.getUser());
-        assertEquals(cfg.getHooks(), notificationCreated.getHooks());
-        assertEquals(cfg.getGroups(), notificationCreated.getGroups());
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt()));
+        assertAll(
+            () -> assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType()),
+            () -> assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId()),
+            () -> assertEquals(cfg.getUser(), notificationCreated.getUser()),
+            () -> assertEquals(cfg.getHooks(), notificationCreated.getHooks()),
+            () -> assertEquals(cfg.getGroups(), notificationCreated.getGroups()),
+            () -> assertEquals(cfg.getOrgId(), notificationCreated.getOrgId()),
+            () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt())),
+            () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt()))
+        );
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        assertTrue(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete").isPresent());
+        assertTrue(portalNotificationConfigRepository.findById("userD", NotificationReferenceType.API, "config-to-delete").isPresent());
         final PortalNotificationConfig cfg = PortalNotificationConfig
             .builder()
             .referenceType(NotificationReferenceType.API)
@@ -80,22 +85,26 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-to-update")
-            .user("userid")
+            .user("userE")
             .hooks(Arrays.asList("D", "B", "C"))
             .groups(Set.of("7", "8", "9"))
+            .orgId("org1")
             .updatedAt(new Date(1479022010883L))
             .createdAt(new Date(1469022010883L))
             .build();
 
         PortalNotificationConfig notificationUpdated = portalNotificationConfigRepository.update(cfg);
 
-        assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId());
-        assertEquals(cfg.getUser(), notificationUpdated.getUser());
-        assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks()));
-        assertTrue(cfg.getGroups().containsAll(notificationUpdated.getGroups()));
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt()));
+        assertAll(
+            () -> assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType()),
+            () -> assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId()),
+            () -> assertEquals(cfg.getUser(), notificationUpdated.getUser()),
+            () -> assertEquals(cfg.getOrgId(), notificationUpdated.getOrgId()),
+            () -> assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks())),
+            () -> assertTrue(cfg.getGroups().containsAll(notificationUpdated.getGroups())),
+            () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt())),
+            () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt()))
+        );
     }
 
     @Test
@@ -104,7 +113,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-to-find")
-            .user("userid")
+            .user("userF")
             .hooks(Arrays.asList("A", "B"))
             .groups(Set.of("1", "2"))
             .updatedAt(new Date(1439022010883L))
@@ -112,7 +121,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .build();
 
         Optional<PortalNotificationConfig> optNotificationFound = portalNotificationConfigRepository.findById(
-            "userid",
+            "userF",
             NotificationReferenceType.API,
             "config-to-find"
         );
@@ -166,6 +175,19 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             "search"
         );
 
+        assertTrue("size", configs.isEmpty());
+    }
+
+    @Test
+    public void shouldFindByHookAndOrgId() throws Exception {
+        List<PortalNotificationConfig> configs = portalNotificationConfigRepository.findByHookAndOrgId("A", "org1");
+        List<String> userIds = configs.stream().map(PortalNotificationConfig::getUser).toList();
+        assertAll(() -> assertEquals("size", 2, configs.size()), () -> assertTrue(userIds.containsAll(List.of("userA", "userF"))));
+    }
+
+    @Test
+    public void shouldNotFindByHookAndOrgId() throws Exception {
+        List<PortalNotificationConfig> configs = portalNotificationConfigRepository.findByHookAndOrgId("A", "org4");
         assertTrue("size", configs.isEmpty());
     }
 
