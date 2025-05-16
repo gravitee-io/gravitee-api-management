@@ -1,4 +1,12 @@
-{{- if and (.Values.gateway.enabled) (or (not (include "gateway.externalConfig" .)) (.Values.gateway.logging.debug)) -}}
+{{- if and
+        (.Values.gateway.enabled)
+        (or
+          (not (include "gateway.externalConfig" .))
+          (.Values.gateway.logging.debug)
+          (.Values.gateway.config.graviteeYml)
+          (.Values.gateway.config.logbackXml)
+        )
+-}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -22,7 +30,10 @@ metadata:
     {{- end }}
     {{- end }}
 data:
-  {{- if not (include "gateway.externalConfig" .)}}
+  {{- if .Values.gateway.config.graviteeYml }}
+  gravitee.yml: |-
+    {{- toYaml .Values.gateway.config.graviteeYml | nindent 4 }}
+  {{- else if not (include "gateway.externalConfig" .)}}
   gravitee.yml: |
     # Gateway HTTP server
     {{- if .Values.gateway.servers }}
@@ -731,7 +742,10 @@ data:
         enabled: {{ .Values.gateway.classloader.legacy.enabled }}
 
   {{- end }}
-    {{- if .Values.gateway.logging.debug }}
+  {{- if .Values.gateway.config.logbackXml }}
+  logback.xml: |-
+        {{- .Values.gateway.config.logbackXml | nindent 4 }}
+  {{- else if .Values.gateway.logging.debug }}
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
 
@@ -812,4 +826,4 @@ data:
 
     </configuration>
   {{- end -}}
-  {{- end -}}
+{{- end -}}
