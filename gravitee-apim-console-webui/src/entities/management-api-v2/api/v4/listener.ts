@@ -17,5 +17,6 @@ import { HttpListener } from './httpListener';
 import { SubscriptionListener } from './subscriptionListener';
 import { TcpListener } from './tcpListener';
 import { KafkaListener } from './kafkaListener';
+import { McpListener } from './mcpListener';
 
-export type Listener = HttpListener | SubscriptionListener | TcpListener | KafkaListener;
+export type Listener = HttpListener | SubscriptionListener | TcpListener | KafkaListener | McpListener;

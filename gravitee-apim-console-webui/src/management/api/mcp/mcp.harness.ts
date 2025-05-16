@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
 
-/**
- * Listener type.
- */
-export type ListenerType = 'HTTP' | 'SUBSCRIPTION' | 'TCP' | 'KAFKA' | 'MCP';
+import { NoMcpEntrypointHarness } from './no-mcp-entrypoint/no-mcp-entrypoint.harness';
+
+export class McpHarness extends ComponentHarness {
+  static readonly hostSelector = 'mcp';
+
+  protected locateMcpEntryPointNotFound = this.locatorForOptional(NoMcpEntrypointHarness);
+
+  async getMcpEntryPointNotFound(): Promise<NoMcpEntrypointHarness | null> {
+    return this.locateMcpEntryPointNotFound();
+  }
+}

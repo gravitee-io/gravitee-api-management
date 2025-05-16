@@ -1,0 +1,33 @@
+<mat-card>
+  <mat-card-content>
+    <mat-stepper #stepper>
+      <mat-step [stepControl]="firstFormGroup" errorMessage="Name is required.">
+        <form [formGroup]="firstFormGroup">
+          <ng-template matStepLabel>Configuration</ng-template>
+          <gio-form-json-schema [jsonSchema]="mcpEntrypointSchema$ | async" formControlName="configuration" />
+          <div class="add-mcp-entrypoint__stepper__actions first-step">
+            <button mat-flat-button color="primary" matStepperNext [disabled]="firstFormGroup.invalid">Next</button>
+          </div>
+        </form>
+      </mat-step>
+      <mat-step [stepControl]="secondFormGroup" errorMessage="Address is required.">
+        <form [formGroup]="secondFormGroup">
+          <ng-template matStepLabel>Tool Source</ng-template>
+          Content here.
+          <div class="add-mcp-entrypoint__stepper__actions">
+            <button mat-stroked-button matStepperPrevious>Back</button>
+            <button mat-flat-button color="primary" matStepperNext [disabled]="secondFormGroup.invalid">Next</button>
+          </div>
+        </form>
+      </mat-step>
+      <mat-step>
+        <ng-template matStepLabel>Tool Configuration</ng-template>
+        <p>You are now done.</p>
+        <div class="add-mcp-entrypoint__stepper__actions">
+          <button mat-stroked-button matStepperPrevious>Back</button>
+          <button mat-flat-button color="primary" matStepperNext [disabled]="secondFormGroup.invalid">Enable</button>
+        </div>
+      </mat-step>
+    </mat-stepper>
+  </mat-card-content>
+</mat-card>

@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
-/**
- * Listener type.
- */
-export type ListenerType = 'HTTP' | 'SUBSCRIPTION' | 'TCP' | 'KAFKA' | 'MCP';
+export class NoMcpEntrypointHarness extends ComponentHarness {
+  static readonly hostSelector = 'no-mcp-entrypoint';
+  protected locateEnableMcpEntrypointButton = this.locatorFor(MatButtonHarness.with({ text: 'Enable MCP' }));
+
+  async getEnableMcpButton(): Promise<MatButtonHarness> {
+    return this.locateEnableMcpEntrypointButton();
+  }
+}

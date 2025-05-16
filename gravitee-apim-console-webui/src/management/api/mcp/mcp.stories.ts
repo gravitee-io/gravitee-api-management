@@ -13,8 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Meta, StoryObj } from '@storybook/angular';
 
-/**
- * Listener type.
- */
-export type ListenerType = 'HTTP' | 'SUBSCRIPTION' | 'TCP' | 'KAFKA' | 'MCP';
+import { McpComponent } from './mcp.component';
+
+export default {
+  title: 'McpComponent story',
+  component: McpComponent,
+  argTypes: {},
+  render: (args) => ({
+    template: `
+      <div style="width: 800px">
+        <mcp></mcp>
+      </div>
+    `,
+    props: args,
+  }),
+} as Meta;
+
+export const Default: StoryObj = {};
+Default.args = {};
