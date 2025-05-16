@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.NewGroupEntity;
+import io.gravitee.rest.api.model.bootstrap.PortalUIBootstrapEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -72,6 +75,26 @@ public class GroupsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getGroups() {
         return Response.ok(groupService.findAll(GraviteeContext.getExecutionContext())).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Find paginated groups",
+        description = "Find paginated groups based on a size and a page query params. Results can be filtered based on a searchTerm query param." +
+        "Only administrators could see all groups." +
+        "Only users with MANAGE_API permissions could see API groups."
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page containing the list of groups",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Page.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
+    @Path("/paginated")
+    public Response getGroupsPaginated(@Valid @BeanParam Pageable pageable, @QueryParam("searchTerm") String searchTerm) {
+        return Response.ok(groupService.search(GraviteeContext.getExecutionContext(), pageable.toPageable(), searchTerm)).build();
     }
 
     @POST

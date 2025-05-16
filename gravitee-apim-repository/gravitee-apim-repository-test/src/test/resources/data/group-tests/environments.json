@@ -1,5 +1,10 @@
 [
    {
+      "id": "DEFAULT_2",
+      "name": "Default 2 env",
+      "organizationId": "DEFAULT"
+   },
+   {
       "id": "ENV_ORG_1",
       "name": "Default env",
       "organizationId": "ORGANIZATION_1"

@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,6 +33,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Group {
 
     public enum AuditEvent implements Audit.AuditEvent {
@@ -40,9 +42,15 @@ public class Group {
         GROUP_DELETED,
     }
 
+    @EqualsAndHashCode.Include
     private String id;
+
+    @EqualsAndHashCode.Include
     private String environmentId;
+
+    @EqualsAndHashCode.Include
     private String name;
+
     private List<GroupEventRule> eventRules;
     private Date createdAt;
     private Date updatedAt;
