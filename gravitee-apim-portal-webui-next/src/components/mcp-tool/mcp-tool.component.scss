@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,48 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.api-details {
-  margin-top: 34px;
-
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-
-    &__content {
-      display: flex;
-      flex-flow: column;
-      gap: 4px;
-    }
-  }
-
-  &__header-button {
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-    gap: 16px;
-  }
-
-  &__banner {
-    display: block;
-    margin: 16px 0;
-  }
-
-  &__banner-content {
-    display: flex;
-    padding: 0 8px;
-    gap: 12px;
-
-    &__icon {
-      min-width: max-content;
-    }
-  }
-
-  &__content {
-    padding-top: 32px;
-  }
+mat-expansion-panel {
+  border-width: var(--mdc-outlined-card-outline-width);
+  border-style: solid;
+  border-color: var(--mdc-outlined-card-outline-color);
 }
 
-mat-chip {
-  align-self: flex-start;
+.mcp-tool {
+  display: flex;
+  flex-flow: column;
+  gap: 16px;
+
+  &__display {
+    &__code-block {
+      display: flex;
+      padding: 10px;
+      border-width: var(--mdc-outlined-card-outline-width);
+      border-style: solid;
+      border-color: var(--mdc-outlined-card-outline-color);
+    }
+
+    pre {
+      flex: 1;
+      padding-left: 16px;
+      white-space: pre-wrap;
+    }
+  }
 }
