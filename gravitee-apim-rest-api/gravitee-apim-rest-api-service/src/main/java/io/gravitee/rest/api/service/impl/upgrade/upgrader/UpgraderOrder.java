@@ -30,6 +30,7 @@ public class UpgraderOrder {
     public static final int DEFAULT_ROLES_UPGRADER = 120;
     public static final int API_PRIMARY_OWNER_REMOVAL_UPGRADER = 140;
     public static final int DEFAULT_METADATA_UPGRADER = 160;
+    public static final int PORTAL_NOTIFICATION_CONFIG_ORIGIN_UPGRADER = 190;
     public static final int PORTAL_NOTIFICATION_CONFIG_UPGRADER = 200;
     public static final int GENERIC_NOTIFICATION_CONFIG_UPGRADER = 220;
     public static final int ALERTS_ENVIRONMENT_UPGRADER = 500;

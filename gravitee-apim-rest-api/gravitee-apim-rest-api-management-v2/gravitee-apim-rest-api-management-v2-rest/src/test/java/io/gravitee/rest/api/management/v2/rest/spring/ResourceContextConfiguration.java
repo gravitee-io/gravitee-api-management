@@ -77,6 +77,7 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -506,13 +507,14 @@ public class ResourceContextConfiguration {
         PolicyValidationDomainService policyValidationDomainService,
         PageCrudService pageCrudService
     ) {
+        ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
             new ValidateApiCRDDomainService(
                 new ValidateCategoryIdsDomainService(categoryQueryService),
                 verifyApiPathDomainService,
                 new VerifyApiHostsDomainService(apiQueryService),
                 new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-                new ValidateGroupsDomainService(groupQueryService),
+                groupsValidator,
                 validateResourceDomainService,
                 new ValidatePagesDomainService(
                     validatePageSourceDomainService,
@@ -521,7 +523,8 @@ public class ResourceContextConfiguration {
                 ),
                 new ValidatePlanDomainService(
                     new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService)
-                )
+                ),
+                new ValidatePortalNotificationDomainService(groupsValidator)
             )
         );
     }

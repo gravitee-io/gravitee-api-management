@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import io.gravitee.definition.model.Origin;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -44,4 +45,5 @@ public class PortalNotificationConfigMongo {
     private Set<String> groups;
     private Date createdAt;
     private Date updatedAt;
+    private Origin origin;
 }

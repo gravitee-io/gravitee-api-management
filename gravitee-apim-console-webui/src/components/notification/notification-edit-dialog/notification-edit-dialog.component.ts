@@ -31,6 +31,7 @@ export interface NotificationEditDialogData {
   primaryOwner?: string;
   isPrimaryOwner?: boolean;
   isPortalNotification?: boolean;
+  isReadonly?: boolean;
   groupData?: GroupData[];
 }
 
@@ -52,6 +53,7 @@ export class NotificationEditDialogComponent {
   protected readonly primaryOwner: string = this.dialogData.primaryOwner;
   protected readonly isPrimaryOwner: boolean = this.dialogData.isPrimaryOwner;
   protected readonly isPortalNotification: boolean = this.dialogData.isPortalNotification;
+  protected readonly isReadonly: boolean = this.isReadyOnly();
 
   protected staticForm = this.buildForm();
 
@@ -94,14 +96,21 @@ export class NotificationEditDialogComponent {
             }),
           }
         : {}),
-      groups: new FormControl(this.withPrimaryOwner(this.notification)),
-      hooks: toFormGroup(this.categories, this.notification),
+      groups: new FormControl({
+        value: this.withPrimaryOwner(this.notification),
+        disabled: this.isReadonly,
+      }),
+      hooks: toFormGroup(this.categories, this.notification, this.isReadonly),
     });
   }
 
   private withPrimaryOwner(notification: NotificationSettings): string[] {
     notification.groups?.push(this.primaryOwner);
     return notification.groups;
+  }
+
+  private isReadyOnly() {
+    return this.notification.origin && this.notification.origin !== 'MANAGEMENT';
   }
 }
 
@@ -115,15 +124,21 @@ function groupHooks(hooks: Hooks[]): Category[] {
   return map(group, (h, k) => ({ name: k, hooks: h }));
 }
 
-const toFormGroup = (categories: Category[], notification: NotificationSettings) =>
-  categories.reduce(categoryToGroup(notification), new FormGroup({}));
+const toFormGroup = (categories: Category[], notification: NotificationSettings, readonly: boolean) =>
+  categories.reduce(categoryToGroup(notification, readonly), new FormGroup({}));
 
-const categoryToGroup = (notification: NotificationSettings) => (group: FormGroup, category: Category) => {
-  group.addControl(category.name, category.hooks.reduce(addHookToGroup(notification), new FormGroup({})));
+const categoryToGroup = (notification: NotificationSettings, readonly: boolean) => (group: FormGroup, category: Category) => {
+  group.addControl(category.name, category.hooks.reduce(addHookToGroup(notification, readonly), new FormGroup({})));
   return group;
 };
 
-const addHookToGroup = (notification: NotificationSettings) => (group: FormGroup, hook: Hooks) => {
-  group.addControl(hook.id, new FormControl(notification.hooks.includes(hook.id)));
+const addHookToGroup = (notification: NotificationSettings, readonly: boolean) => (group: FormGroup, hook: Hooks) => {
+  group.addControl(
+    hook.id,
+    new FormControl({
+      value: notification.hooks.includes(hook.id),
+      disabled: readonly,
+    }),
+  );
   return group;
 };
