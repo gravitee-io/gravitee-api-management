@@ -54,11 +54,11 @@ public class CreateSharedPolicyGroupUseCase {
 
         validateCreateSharedPolicyGroup.validate(sharedPolicyGroupToCreate, input.auditInfo().environmentId());
 
-        var cratedSharedPolicyGroup = this.sharedPolicyGroupCrudService.create(sharedPolicyGroupToCreate);
+        var createdSharedPolicyGroup = this.sharedPolicyGroupCrudService.create(sharedPolicyGroupToCreate);
 
-        createAuditLog(cratedSharedPolicyGroup, input.auditInfo());
+        createAuditLog(createdSharedPolicyGroup, input.auditInfo());
 
-        return new Output(cratedSharedPolicyGroup);
+        return new Output(createdSharedPolicyGroup);
     }
 
     @Builder

@@ -130,6 +130,7 @@ public class SharedPolicyGroup {
 
     public SharedPolicyGroup(SharedPolicyGroup cloned) {
         this.id = cloned.id;
+        this.hrid = cloned.hrid;
         this.crossId = cloned.crossId;
         this.environmentId = cloned.environmentId;
         this.name = cloned.name;

@@ -13,41 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.model;
+package io.gravitee.apim.rest.api.automation.model;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import java.util.List;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Data
-public class SharedPolicyGroupCRD {
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = false)
+public class LegacySharedPolicyGroupSpec extends SharedPolicyGroupSpec {
 
-    private String hrid;
-
-    @NotNull
-    @NotEmpty
+    private String id;
     private String crossId;
-
-    @NotNull
-    @NotEmpty
-    private String name;
-
-    private String description;
-    private String prerequisiteMessage;
-
-    @NotNull
-    private ApiType apiType;
-
-    @NotNull
-    private FlowPhase phase;
-
-    private List<StepV4> steps;
-
-    // Only for update
-    private String sharedPolicyGroupId;
 }
