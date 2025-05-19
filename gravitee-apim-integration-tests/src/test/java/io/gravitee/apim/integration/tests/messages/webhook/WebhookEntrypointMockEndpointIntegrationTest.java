@@ -164,8 +164,8 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             configureMockEndpoint(api, 0, 1);
             deploy(api);
 
-            // 1 first attempt + 3 retries  then 5 dispatcher retries * ( 1 regular attempt + 3 retries)
-            final int messageCount = (1 + 3) + (5 * (1 + 3));
+            // 1 first attempt + 3 retries
+            final int messageCount = (1 + 3);
             final String callbackPath = WEBHOOK_URL_PATH + "/test";
             final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
 
