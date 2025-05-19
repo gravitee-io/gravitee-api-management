@@ -33,6 +33,8 @@ public class SharedPolicyGroupMongo extends Auditable {
 
     private String environmentId;
 
+    private String hrid;
+
     private String crossId;
 
     private String name;

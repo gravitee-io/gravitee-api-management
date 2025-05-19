@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.rest.api.automation;
 
+import io.gravitee.apim.rest.api.automation.exception.ValidationDomainExceptionMapper;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentsResource;
 import io.gravitee.apim.rest.api.automation.resource.OrganizationResource;
@@ -35,6 +36,8 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(EnvironmentsResource.class);
         register(EnvironmentResource.class);
         register(SharedPolicyGroupsResource.class);
+
+        register(ValidationDomainExceptionMapper.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
         property(ServerProperties.BV_DISABLE_VALIDATE_ON_EXECUTABLE_OVERRIDE_CHECK, true);

@@ -37,6 +37,11 @@ import lombok.NoArgsConstructor;
 public class SharedPolicyGroup {
 
     /**
+     * The shared policy group human-readable ID
+     */
+    private String hrid;
+
+    /**
      * The shared policy group ID
      */
     private String id;
@@ -137,6 +142,7 @@ public class SharedPolicyGroup {
     public SharedPolicyGroupBuilder toBuilder() {
         return new SharedPolicyGroupBuilder()
             .id(this.id)
+            .hrid(this.hrid)
             .environmentId(this.environmentId)
             .organizationId(this.organizationId)
             .crossId(this.crossId)
@@ -174,6 +180,7 @@ public class SharedPolicyGroup {
     public static SharedPolicyGroup from(CreateSharedPolicyGroup createSharedPolicyGroup) {
         return SharedPolicyGroup
             .builder()
+            .hrid(createSharedPolicyGroup.getHrid())
             .crossId(createSharedPolicyGroup.getCrossId() == null ? UuidString.generateRandom() : createSharedPolicyGroup.getCrossId())
             .name(createSharedPolicyGroup.getName())
             .description(createSharedPolicyGroup.getDescription())
@@ -187,6 +194,7 @@ public class SharedPolicyGroup {
 
     public SharedPolicyGroup update(UpdateSharedPolicyGroup updateSharedPolicyGroup) {
         return this.toBuilder()
+            .hrid(updateSharedPolicyGroup.getHrid())
             .crossId(updateSharedPolicyGroup.getCrossId() == null ? this.getCrossId() : updateSharedPolicyGroup.getCrossId())
             .name(updateSharedPolicyGroup.getName() == null ? this.getName() : updateSharedPolicyGroup.getName())
             .description(
@@ -231,6 +239,7 @@ public class SharedPolicyGroup {
 
     public static class SharedPolicyGroupBuilder {
 
+        private String hrid;
         private String id;
         private String environmentId;
         private String organizationId;
@@ -249,6 +258,11 @@ public class SharedPolicyGroup {
         private SharedPolicyGroupLifecycleState lifecycleState;
 
         SharedPolicyGroupBuilder() {}
+
+        public SharedPolicyGroupBuilder hrid(String hrid) {
+            this.hrid = hrid;
+            return this;
+        }
 
         public SharedPolicyGroupBuilder id(String id) {
             this.id = id;
@@ -336,6 +350,7 @@ public class SharedPolicyGroup {
             }
 
             return new SharedPolicyGroup(
+                this.hrid,
                 this.id,
                 this.environmentId,
                 this.organizationId,
@@ -359,6 +374,8 @@ public class SharedPolicyGroup {
             return (
                 "SharedPolicyGroup.SharedPolicyGroupBuilder(id=" +
                 this.id +
+                ", hrid=" +
+                this.hrid +
                 ", environmentId=" +
                 this.environmentId +
                 ", organizationId=" +

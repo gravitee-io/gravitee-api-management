@@ -19,17 +19,22 @@ import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Slf4j
+@Component
 public class SharedPolicyGroupHRIDUpgrader implements Upgrader {
 
     @Lazy
@@ -59,11 +64,13 @@ public class SharedPolicyGroupHRIDUpgrader implements Upgrader {
     }
 
     private void setHRIDs(ExecutionContext executionContext) throws TechnicalException {
+        var pageable = new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build();
         sharedPolicyGroupRepository
-            .search(SharedPolicyGroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).build(), null, null)
+            .search(SharedPolicyGroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).build(), pageable, null)
             .getContent()
             .forEach(sharedPolicyGroup -> {
                 try {
+                    sharedPolicyGroup.setHrid(sharedPolicyGroup.getCrossId());
                     sharedPolicyGroupRepository.update(sharedPolicyGroup);
                 } catch (TechnicalException e) {
                     log.error("Unable to set HRID for Shared Policy Group {}", sharedPolicyGroup.getId(), e);

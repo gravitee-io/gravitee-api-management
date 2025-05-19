@@ -17,6 +17,7 @@ package io.gravitee.apim.core.shared_policy_group.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
@@ -46,8 +47,22 @@ public class ValidateSharedPolicyGroupCRDDomainService implements Validator<Vali
         var errors = new ArrayList<Error>();
         var sanitizedBuilder = input.crd.toBuilder();
 
+        if (input.crd().getCrossId() == null && input.crd().getHrid() == null) {
+            errors.add(Error.severe("when no hrid is set in the payload a cross ID should be passed to identify the resource"));
+            return Result.ofErrors(errors);
+        }
+
+        if (input.crd().getCrossId() != null && input.crd().getHrid() != null) {
+            errors.add(Error.severe("cross ID should only be passed to identify the resource if no hrid has been set"));
+            return Result.ofErrors(errors);
+        }
+
+        if (input.crd().getCrossId() != null && input.crd().getHrid() == null) {
+            input.crd().setHrid(input.crd().getCrossId());
+        }
+
         sharedPolicyGroupCrudService
-            .findByEnvironmentIdAndCrossId(input.auditInfo.environmentId(), input.crd.getCrossId())
+            .findByEnvironmentIdAndHRID(input.auditInfo.environmentId(), input.crd.getHrid())
             .ifPresentOrElse(
                 spg -> {
                     input.crd.setSharedPolicyGroupId(spg.getId());

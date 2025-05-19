@@ -245,3 +245,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_8_0/02_add_portal_notification_configs_origin_col.yml
     - include:
         - file: liquibase/changelogs/v4_8_0/03_add_wellknowns_to_integrations_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_8_0/03_add_hrid_to_shared_policy_group_table.yml

@@ -26,149 +26,19 @@ security:
   - BearerAuth: []
   - BasicAuth: []
 servers:
-  - url: "htto://localhost:8083/management/v2"
-  - url: "https://localhost:8083/management/v2"
+  - url: "htto://localhost:8083/automation"
+  - url: "https://localhost:8083/automation"
 tags:
   - name: APIs
     description: Everything about APIs
   - name: Shared Policy Group
     description: Everything about shared policy group
 paths:
-  /organizations/{orgId}/environments/{envId}/apis/_search:
-    post:
-      operationId: searchV4Apis
-      tags:
-        - APIs
-      summary: Search for APIs of a given type
-      description: Search for APIs of a given type
-      parameters:
-        - $ref: "#/components/parameters/orgIdParam"
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/pageParam"
-        - $ref: "#/components/parameters/perPageParam"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                definitionVersion:
-                  $ref: "#/components/schemas/ApiV4DefinitionVersion"
-              required:
-                - definitionVersion
-        required: true
-      responses:
-        "200":
-          $ref: "#/components/responses/ApisResponse"
-        "401":
-          description: No credential provided
-        "403":
-          description: Wrong credentials
-        "500":
-          description: Internal server error
-  /organizations/{orgId}/environments/{envId}/apis/{apiId}:
+  /organizations/{orgId}/environments/{envId}/shared-policy-groups/{hrid}:
     parameters:
       - $ref: "#/components/parameters/orgIdParam"
       - $ref: "#/components/parameters/envIdParam"
-      - $ref: "#/components/parameters/apiIdParam"
-    get:
-      operationId: getApi
-      tags:
-        - APIs
-      summary: Get one API
-      description: Get one API using it's ID
-      responses:
-        "200":
-          description: Successful retrieval
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiV4"
-        "401":
-          description: No credential provided
-        "403":
-          description: Wrong credentials
-        "500":
-          description: Internal server error
-    delete:
-      operationId: deleteApi
-      tags:
-        - APIs
-      summary: Deletes one API, and close plan by default
-      description: Deletes one API, and close plan by default
-      parameters:
-        - name: closePlans
-          required: true
-          in: query
-          schema:
-            type: string
-            enum:
-              - "true"
-      responses:
-        "204":
-          description: API successfully deleted
-        default:
-          $ref: "#/components/responses/Error"
-  /organizations/{orgId}/environments/{envId}/apis/_import/crd:
-    put:
-      operationId: createOrUpdateApiFromCRD
-      tags:
-        - APIs
-      summary:  Create or update a V4 API from V4 CRD Spec
-      description: Create or update a V4 API from V4 CRD Spec
-      parameters:
-        - $ref: "#/components/parameters/orgIdParam"
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/dryRunQueryParam"
-      requestBody:
-        content:
-          "application/json":
-            schema:
-              $ref: "#/components/schemas/ApiV4CRDSpec"
-        required: true
-      responses:
-        "200":
-          description: Status of API successfully created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Status"
-        "400":
-          $ref: "#/components/responses/Error"
-        "401":
-          description: No credential provided
-        "403":
-          description: Wrong credentials
-        "500":
-          description: Internal server error
-  /organizations/{orgId}/environments/{envId}/shared-policy-groups:
-    get:
-      operationId: getAllPolicyGroups
-      tags:
-        - Shared Policy Group
-      summary: Get pagineted policy groups
-      description: Get pagineted policy groups
-      parameters:
-        - $ref: "#/components/parameters/orgIdParam"
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/pageParam"
-        - $ref: "#/components/parameters/perPageParam"
-      responses:
-        "200":
-          $ref: "#/components/responses/SharedPolicyGroupsResponse"
-        default:
-          $ref: "#/components/responses/Error"
-        "401":
-          description: No credential provided
-        "403":
-          description: Wrong credentials
-        "500":
-          description: Internal server error
-  /organizations/{orgId}/environments/{envId}/shared-policy-groups/{spgId}:
-    parameters:
-      - $ref: "#/components/parameters/orgIdParam"
-      - $ref: "#/components/parameters/envIdParam"
-      - $ref: "#/components/parameters/spgIdParam"
+      - $ref: "#/components/parameters/hridParam"
     get:
       operationId: getPolicyGroup
       tags:
@@ -181,7 +51,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SharedPolicyGroup"
+                $ref: "#/components/schemas/SharedPolicyGroupState"
         "401":
           description: No credential provided
         "403":
@@ -199,7 +69,7 @@ paths:
           description: Shared Policy Group successfully deleted
         default:
           $ref: "#/components/responses/Error"
-  /organizations/{orgId}/environments/{envId}/shared-policy-groups/_import/crd:
+  /organizations/{orgId}/environments/{envId}/shared-policy-groups/:
     put:
       operationId: createOrUpdatePolicyGroupFromCRD
       tags:
@@ -214,15 +84,15 @@ paths:
         content:
           "application/json":
             schema:
-              $ref: "#/components/schemas/SharedPolicyGroup"
+              $ref: "#/components/schemas/SharedPolicyGroupSpec"
         required: true
       responses:
         "200":
-          description: Status of Shared Policy Group successfully created
+          description: State of the successfully created Shared Policy Group
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Status"
+                $ref: "#/components/schemas/SharedPolicyGroupState"
         "400":
           $ref: "#/components/responses/Error"
         "401":
@@ -999,7 +869,59 @@ components:
         - PUBLISHED
         - UNPUBLISHED
       type: string
-    SharedPolicyGroup:
+    Errors:
+      description: >-
+        When a resource has been created regardless of errors, this field
+        is used to persist the error message encountered during
+        admission
+      properties:
+        severe:
+          description: >-
+            severe errors do not pass admission and will block
+            reconcile hence, this field should always be populated during the admission
+            phase and is very unlikely to be persisted in the status
+          items:
+            type: string
+          type: array
+        warning:
+          description: >-
+            warning errors do not block object reconciliation,
+
+            most of the time because the value is ignored or
+            defaulted
+
+            when the resource gets synced with APIM
+          items:
+            type: string
+          type: array
+      type: object
+    SharedPolicyGroupState:
+      allOf:
+        - $ref: "#/components/schemas/SharedPolicyGroupSpec"
+        - type: object
+          properties:
+            errors:
+              $ref: "#/components/schemas/Errors"
+        - type: object
+          properties:
+            crossId:
+              description:
+                The Cross ID is used to identify a shared policy group that has been promoted from
+                one environment to another.
+              type: string
+            id:
+              description:
+                The id of the shared policy group.
+              type: string
+            environmentId:
+              description:
+                The environment ID of the shared policy group.
+              type: string
+            organizationId:
+              description:
+                The organization ID of the shared policy group.
+              type: string
+    SharedPolicyGroupSpec:
       description: Shared Policy Group Spec
       type: object
       properties:
@@ -1010,11 +932,6 @@ components:
           description: A unique human readable id identifying the shared policy group
           examples:
             - "products"
-        crossId:
-          type: string
-          description: The unique ID of the shared policy group
-          examples:
-            - "5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b"
         description:
           type: string
           description: The description of the shared policy group
@@ -2123,7 +2040,7 @@ components:
                 description: List of SharedPolicyGroup.
                 type: array
                 items:
-                  $ref: "#/components/schemas/SharedPolicyGroup"
+                  $ref: "#/components/schemas/SharedPolicyGroupState"
               pagination:
                 $ref: "#/components/schemas/Pagination"
               links:
@@ -2206,11 +2123,11 @@ components:
       description: Id of an API.
       schema:
         type: string
-    spgIdParam:
-      name: spgId
+    hridParam:
+      name: hrid
       in: path
       required: true
-      description: Id of a Shared Policy Group.
+      description: Human-readable ID of a resource
       schema:
         type: string
     pageParam:

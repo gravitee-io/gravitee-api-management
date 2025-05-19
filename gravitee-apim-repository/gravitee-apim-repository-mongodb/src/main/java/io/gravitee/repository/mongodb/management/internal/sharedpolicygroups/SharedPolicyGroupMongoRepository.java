@@ -28,6 +28,9 @@ public interface SharedPolicyGroupMongoRepository
     @Query(value = "{ 'environmentId': ?0, 'crossId': ?1 }")
     Optional<SharedPolicyGroupMongo> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
 
+    @Query(value = "{ 'environmentId': ?0, 'hrid': ?1 }")
+    Optional<SharedPolicyGroupMongo> findByEnvironmentIdAndHRID(String environmentId, String hrid);
+
     @Query(value = "{ 'environmentId': ?0 }", fields = "{ _id : 1 }", delete = true)
     List<SharedPolicyGroupMongo> deleteByEnvironmentId(String environmentId);
 }
