@@ -39,6 +39,7 @@ public class ImportSharedPolicyGroupCRDCRDUseCase {
     private final UpdateSharedPolicyGroupUseCase updateSharedPolicyGroupUseCase;
     private final DeploySharedPolicyGroupUseCase deploySharedPolicyGroupUseCase;
     private final ValidateSharedPolicyGroupCRDDomainService validateSharedPolicyGroupCRDDomainService;
+    private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
 
     public Output execute(Input input) {
         var validationResult = validateSharedPolicyGroupCRDDomainService.validateAndSanitize(
@@ -56,9 +57,9 @@ public class ImportSharedPolicyGroupCRDCRDUseCase {
                 );
             });
 
-        Optional<SharedPolicyGroup> sharedPolicyGroup = sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(
+        Optional<SharedPolicyGroup> sharedPolicyGroup = sharedPolicyGroupCrudService.findByEnvironmentIdAndHRID(
             input.auditInfo.environmentId(),
-            input.crd.getCrossId()
+            input.crd.getHrid()
         );
 
         if (sharedPolicyGroup.isPresent()) {
@@ -68,8 +69,6 @@ public class ImportSharedPolicyGroupCRDCRDUseCase {
             return createSharedPolicyGroup(input);
         }
     }
-
-    private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
 
     public record Output(SharedPolicyGroupCRDStatus status) {}
 

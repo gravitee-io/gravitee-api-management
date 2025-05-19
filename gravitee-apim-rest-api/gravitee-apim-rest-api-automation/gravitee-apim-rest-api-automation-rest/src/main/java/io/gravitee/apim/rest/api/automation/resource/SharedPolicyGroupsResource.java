@@ -15,14 +15,22 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
+import io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
+import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
+import io.gravitee.apim.rest.api.automation.mapper.SharedPolicyGroupMapper;
 import io.gravitee.apim.rest.api.automation.model.*;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -37,7 +45,7 @@ import jakarta.ws.rs.core.Response;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SharedPolicyGroupsResource {
+public class SharedPolicyGroupsResource extends AbstractResource {
 
     @Inject
     private ImportSharedPolicyGroupCRDCRDUseCase importSharedPolicyGroupCRDCRDUseCase;
@@ -50,7 +58,47 @@ public class SharedPolicyGroupsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
-    public Response createSharedPolicyGroupCrd(@Valid @NotNull final SharedPolicyGroup sharedPolicyGroup, @QueryParam("dryRun") boolean dryRun) {
-        return Response.ok().build();
+    public Response createOrUpdate(@Valid @NotNull LegacySharedPolicyGroupSpec spec, @QueryParam("dryRun") boolean dryRun) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        AuditInfo audit = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+
+        if (dryRun) {
+            var statusBuilder = SharedPolicyGroupCRDStatus.builder();
+            validateSharedPolicyGroupCRDDomainService
+                .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(audit, SharedPolicyGroupMapper.INSTANCE.map(spec)))
+                .peek(
+                    sanitized ->
+                        statusBuilder
+                            .crossId(sanitized.crd().getCrossId())
+                            .organizationId(audit.organizationId())
+                            .environmentId(audit.environmentId()),
+                    errors -> statusBuilder.errors(SharedPolicyGroupCRDStatus.Errors.fromErrorList(errors))
+                );
+            return Response
+                .ok(SharedPolicyGroupMapper.INSTANCE.withStatusInfos(SharedPolicyGroupMapper.INSTANCE.toState(spec), statusBuilder.build()))
+                .build();
+        }
+
+        var output = importSharedPolicyGroupCRDCRDUseCase.execute(
+            new ImportSharedPolicyGroupCRDCRDUseCase.Input(audit, SharedPolicyGroupMapper.INSTANCE.map(spec))
+        );
+
+        return Response
+            .ok(SharedPolicyGroupMapper.INSTANCE.withStatusInfos(SharedPolicyGroupMapper.INSTANCE.toState(spec), output.status()))
+            .build();
     }
 }

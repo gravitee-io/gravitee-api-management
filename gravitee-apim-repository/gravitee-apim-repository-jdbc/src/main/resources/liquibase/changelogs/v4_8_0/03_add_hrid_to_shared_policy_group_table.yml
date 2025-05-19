@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.8.0_03-add_hrid_shared_policy_groups
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # Application Changes: Kubernetes Operator
+        # ################
+        - addColumn:
+            tableName: ${gravitee_prefix}sharedpolicygroups
+            columns:
+              - column:
+                  name: hrid
+                  type: nvarchar(256)
+                  constraints:
+                    nullable: true

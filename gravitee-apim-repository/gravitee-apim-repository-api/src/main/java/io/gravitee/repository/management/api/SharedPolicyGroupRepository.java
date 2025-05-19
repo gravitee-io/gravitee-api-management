@@ -29,6 +29,8 @@ public interface SharedPolicyGroupRepository extends CrudRepository<SharedPolicy
 
     Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) throws TechnicalException;
 
+    Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String crossId) throws TechnicalException;
+
     /**
      * Delete shared policy group by environment ID
      * @param environmentId
