@@ -44,7 +44,7 @@ export interface MetadataSaveServicesList {
 }
 
 export interface MetadataSaveServices {
-  type: 'API' | 'Application' | 'Global';
+  type: 'API' | 'Application' | 'Global' | 'Notification Template';
   list: (searchMetadata?: SearchApiMetadataParam) => Observable<MetadataSaveServicesList>;
   create: (newMetadata: NewMetadata) => Observable<Metadata>;
   update: (updateMetadata: UpdateMetadata) => Observable<Metadata>;
@@ -86,7 +86,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   });
   displayedColumns: string[];
   permissionPrefix: string;
-  referenceType: 'API' | 'Application' | 'Global';
+  referenceType: 'API' | 'Application' | 'Global' | 'Notification Template';
   totalResults: number;
   form: FormGroup;
 
@@ -117,6 +117,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.referenceType = this.metadataSaveServices.type;
     this.permissionPrefix = this.referenceType === 'Global' ? 'environment' : this.referenceType.toLowerCase();
+    this.permissionPrefix = this.referenceType === 'Notification Template' ? 'application' : this.permissionPrefix;
     this.displayedColumns = ['key', 'name', 'format', 'value', 'actions'];
     this.filterLocally = this.metadataSaveServices.paginate !== true;
 

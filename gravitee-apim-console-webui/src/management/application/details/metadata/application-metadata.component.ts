@@ -45,7 +45,7 @@ export class ApplicationMetadataComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
     this.metadataSaveServices = {
-      type: 'Application',
+      type: 'Notification Template',
       list: () =>
         this.applicationMetadataService
           .listMetadata(applicationId)
@@ -54,7 +54,7 @@ export class ApplicationMetadataComponent implements OnInit, OnDestroy {
       update: (updateMetadata) => this.applicationMetadataService.updateMetadata(applicationId, updateMetadata),
       delete: (metadataKey) => this.applicationMetadataService.deleteMetadata(applicationId, metadataKey),
     };
-    this.description = `Create Application metadata to retrieve custom information about your API`;
+    this.description = `Create Notification Template metadata to retrieve custom information about your API`;
 
     this.applicationService
       .getById(applicationId)

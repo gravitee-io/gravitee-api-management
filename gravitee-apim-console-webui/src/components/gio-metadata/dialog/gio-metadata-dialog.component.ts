@@ -28,7 +28,7 @@ export interface GioMetadataDialogData {
   format?: MetadataFormat;
   value?: any;
   defaultValue?: string;
-  referenceType: 'API' | 'Application' | 'Global';
+  referenceType: 'API' | 'Application' | 'Global' | 'Notification Template';
   action: 'Update' | 'Create';
   readOnly?: boolean;
 }
