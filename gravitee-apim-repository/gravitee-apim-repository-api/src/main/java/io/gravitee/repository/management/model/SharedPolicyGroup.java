@@ -54,6 +54,11 @@ public class SharedPolicyGroup {
     public static final String ORIGIN_INTEGRATION = "integration";
 
     /**
+     * The shared policy group human-readable id
+     */
+    private String hrid;
+
+    /**
      * The shared policy group ID
      */
     private String id;
