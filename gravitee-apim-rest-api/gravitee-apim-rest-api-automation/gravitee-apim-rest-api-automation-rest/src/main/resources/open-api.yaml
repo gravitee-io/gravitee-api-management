@@ -1,0 +1,2240 @@
+# Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+openapi: 3.1.0
+info:
+  title: Gravitee.io GKO - Automation API
+  description: |-
+    This is the OpenAPI specification used by Automation tools to perform calls to APIM Management API.
+  contact:
+    email: team-gko@graviteesource.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 4.7.0
+security:
+  - BearerAuth: []
+  - BasicAuth: []
+servers:
+  - url: "htto://localhost:8083/management/v2"
+  - url: "https://localhost:8083/management/v2"
+tags:
+  - name: APIs
+    description: Everything about APIs
+  - name: Shared Policy Group
+    description: Everything about shared policy group
+paths:
+  /organizations/{orgId}/environments/{envId}/apis/_search:
+    post:
+      operationId: searchV4Apis
+      tags:
+        - APIs
+      summary: Search for APIs of a given type
+      description: Search for APIs of a given type
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                definitionVersion:
+                  $ref: "#/components/schemas/ApiV4DefinitionVersion"
+              required:
+                - definitionVersion
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/ApisResponse"
+        "401":
+          description: No credential provided
+        "403":
+          description: Wrong credentials
+        "500":
+          description: Internal server error
+  /organizations/{orgId}/environments/{envId}/apis/{apiId}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiIdParam"
+    get:
+      operationId: getApi
+      tags:
+        - APIs
+      summary: Get one API
+      description: Get one API using it's ID
+      responses:
+        "200":
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiV4"
+        "401":
+          description: No credential provided
+        "403":
+          description: Wrong credentials
+        "500":
+          description: Internal server error
+    delete:
+      operationId: deleteApi
+      tags:
+        - APIs
+      summary: Deletes one API, and close plan by default
+      description: Deletes one API, and close plan by default
+      parameters:
+        - name: closePlans
+          required: true
+          in: query
+          schema:
+            type: string
+            enum:
+              - "true"
+      responses:
+        "204":
+          description: API successfully deleted
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/apis/_import/crd:
+    put:
+      operationId: createOrUpdateApiFromCRD
+      tags:
+        - APIs
+      summary:  Create or update a V4 API from V4 CRD Spec
+      description: Create or update a V4 API from V4 CRD Spec
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/ApiV4CRDSpec"
+        required: true
+      responses:
+        "200":
+          description: Status of API successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          description: No credential provided
+        "403":
+          description: Wrong credentials
+        "500":
+          description: Internal server error
+  /organizations/{orgId}/environments/{envId}/shared-policy-groups:
+    get:
+      operationId: getAllPolicyGroups
+      tags:
+        - Shared Policy Group
+      summary: Get pagineted policy groups
+      description: Get pagineted policy groups
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+      responses:
+        "200":
+          $ref: "#/components/responses/SharedPolicyGroupsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+        "401":
+          description: No credential provided
+        "403":
+          description: Wrong credentials
+        "500":
+          description: Internal server error
+  /organizations/{orgId}/environments/{envId}/shared-policy-groups/{spgId}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/spgIdParam"
+    get:
+      operationId: getPolicyGroup
+      tags:
+        - Shared Policy Group
+      summary: Get one policy group
+      description: Get one policy group
+      responses:
+        "200":
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedPolicyGroup"
+        "401":
+          description: No credential provided
+        "403":
+          description: Wrong credentials
+        "500":
+          description: Internal server error
+    delete:
+      operationId: deletePolicyGroup
+      tags:
+        - Shared Policy Group
+      summary: Delete one policy group
+      description: Delete one policy group
+      responses:
+        "204":
+          description: Shared Policy Group successfully deleted
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/shared-policy-groups/_import/crd:
+    put:
+      operationId: createOrUpdatePolicyGroupFromCRD
+      tags:
+        - Shared Policy Group
+      summary: Create or update Shared Policy Group from CRD Spec
+      description: Create or update Shared Policy Group from CRD Spec
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/SharedPolicyGroup"
+        required: true
+      responses:
+        "200":
+          description: Status of Shared Policy Group successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          description: No credential provided
+        "403":
+          description: Wrong credentials
+        "500":
+          description: Internal server error
+
+components:
+  schemas:
+    ApiV4CRDSpec:
+      description: ApiV4DefinitionSpec defines the desired state of ApiDefinition.
+      type: object
+      properties:
+        analytics:
+          $ref: "#/components/schemas/Analytics"
+        categories:
+          default: []
+          description: >-
+            The list of categories the API belongs to.
+
+            Categories are reflected in APIM portal so that consumers
+            can easily find the APIs they need.
+          items:
+            type: string
+          type: array
+        crossId:
+          description: >-
+            When promoting an API from one environment to the other,
+
+            this ID identifies the API across those different
+            environments.
+
+            Setting this ID also allows to take control over an existing
+            API on an APIM instance
+
+            (by setting the same value as defined in APIM).
+
+            If empty, a UUID will be generated based on the namespace
+            and name of the resource.
+          type: string
+        definitionContext:
+          type: object
+          description: >-
+            The API Definition context is used to identify the
+            Kubernetes origin of the API,
+
+            and define whether the API definition should be synchronized
+
+            from an API instance or from a config map created in the
+            cluster (which is the default)
+          properties:
+            origin:
+              default: KUBERNETES
+              description: >-
+                The definition context origin where the API definition
+                is managed.
+
+                The value is always `KUBERNETES` for an API managed by
+                the operator.
+              enum:
+                - KUBERNETES
+              type: string
+            syncFrom:
+              default: MANAGEMENT
+              description: >-
+                The syncFrom field defines where the gateways should
+                source the API definition from.
+
+                If the value is `MANAGEMENT`, the API definition will be
+                sourced from an APIM instance.
+
+                This means that the API definition *must* hold a context
+                reference in that case.
+
+                Setting the value to `MANAGEMENT` allows to make an API
+                definition available on
+
+                gateways deployed across multiple clusters / regions.
+
+                If the value is `KUBERNETES`, the API definition will be
+                sourced from a config map.
+
+                This means that only gateways deployed in the same
+                cluster will be able to sync the API definition.
+              enum:
+                - KUBERNETES
+                - MANAGEMENT
+              type: string
+        definitionVersion:
+          $ref: "#/components/schemas/ApiV4DefinitionVersion"
+        endpointGroups:
+          description: List of Endpoint groups
+          items:
+            $ref: "#/components/schemas/EndpointGroupV4"
+          minItems: 1
+          type: array
+        failover:
+          $ref: "#/components/schemas/FailoverV4"
+        flowExecution:
+          $ref: "#/components/schemas/FlowExecution"
+        flows:
+          default: []
+          description: List of flows for the API
+          items:
+            $ref: "#/components/schemas/FlowV4"
+          type: array
+        groups:
+          default: []
+          description: >-
+            List of groups associated with the API.
+
+            This groups are id or name references to existing groups in
+            APIM.
+          items:
+            type: string
+          type: array
+        id:
+          description: >-
+            The API ID. If empty, this field will take the value of the
+            `metadata.uid`
+
+            field of the resource.
+          type: string
+        labels:
+          default: []
+          description: List of labels of the API
+          items:
+            type: string
+          type: array
+        lifecycleState:
+          $ref: "#/components/schemas/ApiLifecycleState"
+        listeners:
+          description: List of listeners for this API
+          items:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          minItems: 1
+          type: array
+        members:
+          description: List of members associated with the API
+          items:
+            type: object
+            properties:
+              role:
+                default: USER
+                description: The API role associated with this Member
+                type: string
+              source:
+                description: Member source
+                examples:
+                  - gravitee
+                type: string
+              sourceId:
+                description: Member source ID
+                examples:
+                  - "user@email.com"
+                type: string
+            required:
+              - source
+              - sourceId
+
+          type: array
+          writeOnly: true
+        metadata:
+          default: []
+          description: List of API metadata entries
+          items:
+            properties:
+              defaultValue:
+                description: Metadata Default value
+                type: string
+              format:
+                description: Metadata Format
+                enum:
+                  - STRING
+                  - NUMERIC
+                  - BOOLEAN
+                  - DATE
+                  - MAIL
+                  - URL
+                type: string
+              key:
+                description: Metadata Key
+                type: string
+              name:
+                description: Metadata Name
+                type: string
+              value:
+                description: Metadata Value
+                type: string
+            required:
+              - format
+              - key
+              - name
+            type: object
+          type: array
+          writeOnly: true
+        name:
+          description: API name
+          type: string
+        notifyMembers:
+          default: true
+          description: |-
+            If true, new members added to the API spec will
+            be notified when the API is synced with APIM.
+          type: boolean
+          writeOnly: true
+        originContext:
+          $ref: "#/components/schemas/BaseOriginContext"
+        pages:
+          additionalProperties:
+            properties:
+              api:
+                description:
+                  The API of the page. If empty, will be set automatically to the
+                  generated ID of the API.
+                type: string
+              configuration:
+                additionalProperties:
+                  type: string
+                description:
+                  Custom page configuration (e.g. page rendering can be changed to
+                  use Redoc instead of Swagger ui)
+                type: object
+              content:
+                description: The content of the page, if any.
+                type: string
+              crossId:
+                description: >-
+                  CrossID is designed to identified a page across
+                  environments.
+
+                  If not set, this ID will be generated in a predictable
+                  manner based on
+
+                  the map key associated to this entry in the API.
+                type: string
+              homepage:
+                default: false
+                description:
+                  If true, this page will be displayed as the homepage of your API
+                  documentation.
+                type: boolean
+              id:
+                description: >-
+                  The ID of the page. This field is mostly required when
+                  you are applying
+
+                  an API exported from APIM to make the operator take
+                  control over it.
+
+                  If not set, this ID will be generated in a predictable
+                  manner based on
+
+                  the map key associated to this entry in the API.
+                type: string
+              name:
+                description: >-
+                  This is the display name of the page in APIM and on
+                  the portal.
+
+                  This field can be edited safely if you want to rename
+                  a page.
+                type: string
+              order:
+                description: The order used to display the page in APIM and on the portal.
+                format: int64
+                type: integer
+              parent:
+                description: >-
+                  If your page contains a folder, setting this field to
+                  the map key associated to the
+
+                  folder entry will be reflected into APIM by making the
+                  page a child of this folder.
+                type: string
+              parentId:
+                description: >-
+                  The parent ID of the page. This field is mostly
+                  required when you are applying
+
+                  an API exported from APIM to make the operator take
+                  control over it. Use `Parent`
+
+                  in any other case.
+                type: string
+              published:
+                default: false
+                description:
+                  If true, the page will be accessible from the portal (default is
+                  false)
+                type: boolean
+              source:
+                description: >-
+                  Source allow you to fetch pages from various external
+                  sources, overriding page content
+
+                  each time the source is fetched.
+                properties:
+                  configuration:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  type:
+                    type: string
+                required:
+                  - configuration
+                  - type
+                type: object
+              type:
+                description: The type of the documentation page or folder.
+                enum:
+                  - MARKDOWN
+                  - SWAGGER
+                  - ASYNCAPI
+                  - ASCIIDOC
+                  - FOLDER
+                  - SYSTEM_FOLDER
+                  - ROOT
+                type: string
+              visibility:
+                default: PUBLIC
+                description: The visibility of the page.
+                enum:
+                  - PUBLIC
+                  - PRIVATE
+                type: string
+            required:
+              - type
+            type: object
+          description: >-
+            A map of pages objects.
+
+
+
+            Keys uniquely identify pages and are used to keep them in
+            sync
+
+            with APIM when using a management context.
+
+
+
+            Renaming a key is the equivalent of deleting the page and
+            recreating
+
+            it holding a new ID in APIM.
+          type: object
+          writeOnly: true
+        plans:
+          additionalProperties:
+            properties:
+              characteristics:
+                description: List of plan characteristics
+                items:
+                  type: string
+                type: array
+              comment_required:
+                description: Indicate of comment is required for this plan or not
+                type: boolean
+              crossId:
+                description: >-
+                  The plan Cross ID.
+
+                  This field is used to identify plans defined for an
+                  API
+
+                  that has been promoted between different environments.
+                type: string
+              definitionVersion:
+                $ref: "#/components/schemas/ApiV4DefinitionVersion"
+              description:
+                description: Plan Description
+                type: string
+              excludedGroups:
+                default: []
+                items:
+                  type: string
+                type: array
+              flows:
+                default: []
+                description: List of plan flows
+                items:
+                  properties:
+                    id:
+                      description: >-
+                        The ID of the flow this field is mainly used for
+                        compatibility with
+
+                        APIM exports and can be safely ignored.
+                      type: string
+                    name:
+                      description: Flow name
+                      type: string
+                    enabled:
+                      default: true
+                      description: Is flow enabled or not?
+                      type: boolean
+                    selectors:
+                      description: List of Flow selectors
+                      items:
+                        type: object
+                      type: array
+                    connect:
+                      description: List of Connect flow steps (Only available for Native APIs)
+                      items:
+                        $ref: "#/components/schemas/FlowStep"
+                      type: array
+                    interact:
+                      description: List of Publish flow steps (Only available for Native APIs)
+                      items:
+                        $ref: "#/components/schemas/FlowStep"
+                      type: array
+                    publish:
+                      description: List of Publish flow steps
+                      items:
+                        $ref: "#/components/schemas/FlowStep"
+                      type: array
+                    request:
+                      description: List of Request flow steps (NOT available for Native APIs)
+                      items:
+                        $ref: "#/components/schemas/FlowStep"
+                      type: array
+                    response:
+                      description: List of Response flow steps (NOT available for Native APIs)
+                      items:
+                        $ref: "#/components/schemas/FlowStep"
+                      type: array
+                    subscribe:
+                      description: List of Subscribe flow steps
+                      items:
+                        $ref: "#/components/schemas/FlowStep"
+                      type: array
+                    tags:
+                      description: List of tags
+                      items:
+                        type: string
+                      type: array
+                  required:
+                    - enabled
+                  type: object
+                type: array
+              generalConditions:
+                description: The general conditions defined to use this plan
+                type: string
+              id:
+                description: Plan ID
+                type: string
+              mode:
+                enum:
+                  - STANDARD
+                  - PUSH
+                default: STANDARD
+                description: The plan mode
+                type: string
+              name:
+                description: >-
+                  Plan display name, this will be the name displayed in
+                  the UI
+
+                  if a management context is used to sync the API with
+                  APIM
+                type: string
+              order:
+                description: Plan order
+                type: integer
+              security:
+                description: Plan security
+                properties:
+                  configuration:
+                    description: Plan security configuration, a map of arbitrary key-values
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  type:
+                    description: Plan Security type
+                    type: string
+                required:
+                  - type
+                type: object
+              selectionRule:
+                description: Plan selection rule
+                type: string
+              status:
+                default: PUBLISHED
+                description: The plan status
+                enum:
+                  - PUBLISHED
+                  - DEPRECATED
+                  - STAGING
+                type: string
+              tags:
+                default: []
+                description: List of plan tags
+                items:
+                  type: string
+                type: array
+              type:
+                default: API
+                description: Plan type
+                enum:
+                  - API
+                  - CATALOG
+                type: string
+              validation:
+                default: AUTO
+                description: Plan validation strategy
+                enum:
+                  - AUTO
+                  - MANUAL
+                type: string
+            required:
+              - name
+              - type
+              - mode
+              - status
+              - validation
+            type: object
+          description: >-
+            A map of plan identifiers to plan
+
+            Keys uniquely identify plans and are used to keep them in
+            sync
+
+            when using a management context.
+          type: object
+          writeOnly: true
+        properties:
+          default: []
+          description: List of Properties for the API
+          items:
+            properties:
+              dynamic:
+                description: Property is dynamic or not?
+                type: boolean
+              encrypted:
+                description: Property Encrypted or not?
+                type: boolean
+              key:
+                description: Property Key
+                type: string
+              value:
+                description: Property Value
+                type: string
+            type: object
+          type: array
+        resources:
+          default: []
+          description: >-
+            Resources can be either inlined or reference the namespace
+            and name
+
+            of an <a href="#apiresource">existing API resource
+            definition</a>.
+          items:
+            properties:
+              configuration:
+                description: Resource Configuration, arbitrary map of key-values
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              enabled:
+                default: true
+                description: Is resource enabled or not?
+                type: boolean
+              name:
+                description: Resource Name
+                type: string
+              type:
+                description: Resource Type
+                type: string
+            type: object
+          type: array
+        responseTemplates:
+          additionalProperties:
+            additionalProperties:
+              $ref: "#/components/schemas/ResponseTemplate"
+            type: object
+          description:
+            A list of Response Templates for the API (Not applicable for Native
+            API)
+          type: object
+        services:
+          $ref: "#/components/schemas/ApiServices"
+        state:
+          default: STARTED
+          description:
+            The state of API (setting the value to `STOPPED` will make the API
+            un-reachable from the gateway)
+          enum:
+            - STARTED
+            - STOPPED
+          type: string
+        tags:
+          description: List of Tags of the API
+          items:
+            type: string
+          type: array
+        type:
+          $ref: "#/components/schemas/ApiType"
+        version:
+          description: API version
+          type: string
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+      required:
+        - id
+        - crossId
+        - name
+        - type
+        - listeners
+        - endpointGroups
+        - originContext
+        - version
+    ApiV4:
+      type: object
+      properties:
+        analytics:
+          $ref: "#/components/schemas/Analytics"
+        categories:
+          type: array
+          description: The list of category keys associated with this API.
+          examples:
+            - health
+            - media
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+          description: The date (as timestamp) when the API was created.
+          examples:
+            - "1581256457163"
+        crossId:
+          type: string
+          description: API's crossId. Identifies API across environments.
+          examples:
+            - df83b2a4-cc3e-3f80-9f0d-c138c106c076
+        definitionVersion:
+          $ref: '#/components/schemas/ApiV4DefinitionVersion'
+        definitionContext:
+          deprecated: true
+          type: object
+          description: the context where the api definition was created. Deprecated in favor of OriginContext.
+        deployedAt:
+          type: string
+          format: date-time
+          description: The last date (as timestamp) when the API was deployed.
+          examples:
+            - "1581256457163"
+          readOnly: true
+        deploymentState:
+          type: string
+          description: The deployment state of the API regarding the gateway(s).
+          enum:
+            - NEED_REDEPLOY
+            - DEPLOYED
+          readOnly: true
+        description:
+          type: string
+          description: API's description. A short description of your API.
+          examples:
+            - I can use many characters to describe this API.
+        disableMembershipNotifications:
+          type: boolean
+          description: Disable membership notifications.
+          default: false
+          readOnly: true
+        endpointGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/EndpointGroupV4"
+        failover:
+          $ref: "#/components/schemas/FailoverV4"
+        flowExecution:
+          $ref: "#/components/schemas/FlowExecution"
+        flows:
+          type: array
+          items:
+            $ref: "#/components/schemas/FlowV4"
+        groups:
+          type: array
+          description: API's groups. Used to add team in your API.
+          examples:
+            - MY_GROUP1
+            - MY_GROUP2
+          items:
+            type: string
+        id:
+          type: string
+          description: API's uuid.
+          examples:
+            - "00f8c9e7-78fc-4907-b8c9-e778fc790750"
+        labels:
+          type: array
+          description: The free list of labels associated with this API.
+          examples:
+            - json
+            - read_only
+            - awesome
+          items:
+            type: string
+        lifecycleState:
+          $ref: "#/components/schemas/ApiLifecycleState"
+        listeners:
+          description: List of listeners for this API
+          items:
+            $ref: '#/components/schemas/Listener'
+          minItems: 1
+          type: array
+        name:
+          type: string
+          description: API's name. Duplicate names can exists.
+          examples:
+            - My Api
+        originContext:
+          $ref: "#/components/schemas/BaseOriginContext"
+        primaryOwner:
+          $ref: "#/components/schemas/PrimaryOwner"
+        properties:
+          type: array
+          items:
+            $ref: "#/components/schemas/Property"
+        resources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Resource"
+        responseTemplates:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              $ref: "#/components/schemas/ResponseTemplate"
+        services:
+          $ref: "#/components/schemas/ApiServices"
+        state:
+          type: string
+          description: The state of the API regarding the gateway(s).
+          enum:
+            - CLOSED
+            - INITIALIZED
+            - STARTED
+            - STOPPED
+            - STOPPING
+        tags:
+          type: array
+          description: The list of sharding tags associated with this API.
+          examples:
+            - public
+            - private
+          items:
+            type: string
+        type:
+          $ref: "#/components/schemas/ApiType"
+        updatedAt:
+          type: string
+          format: date-time
+          description: The last date (as timestamp) when the API was updated.
+          examples:
+            - "1581256457163"
+          readOnly: true
+        version:
+          description: API version
+          type: string
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        workflowState:
+          $ref: "#/components/schemas/ApiWorkflowState"
+        _links:
+          $ref: "#/components/schemas/ApiLinks"
+    ApiLifecycleState:
+      default: UNPUBLISHED
+      description: API life cycle state can be one of the values PUBLISHED,
+        UNPUBLISHED
+      enum:
+        - PUBLISHED
+        - UNPUBLISHED
+      type: string
+    SharedPolicyGroup:
+      description: Shared Policy Group Spec
+      type: object
+      properties:
+        apiType:
+          $ref: "#/components/schemas/ApiType"
+        hrid:
+          type: string
+          description: A unique human readable id identifying the shared policy group
+          examples:
+            - "products"
+        crossId:
+          type: string
+          description: The unique ID of the shared policy group
+          examples:
+            - "5e2b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b"
+        description:
+          type: string
+          description: The description of the shared policy group
+          examples:
+            - This is a shared policy group
+          maxLength: 1024
+        prerequisiteMessage:
+          type: string
+          description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
+          examples:
+            - The resource cache "my-cache" is required
+          maxLength: 1024
+        name:
+          type: string
+          description: The name of the shared policy group
+          examples:
+            - My Shared Policy Group
+          maxLength: 512
+        phase:
+          $ref: "#/components/schemas/FlowPhase"
+        steps:
+          description: SharedPolicyGroup Steps
+          items:
+            $ref: "#/components/schemas/FlowStep"
+          type: array
+      required:
+        - apiType
+        - name
+        - phase
+    SharedPolicyGroupLifecycleState:
+      type: string
+      description: The lifecycle state of a shared policy group
+      enum:
+        - DEPLOYED
+        - UNDEPLOYED
+        - PENDING
+    ApiV4DefinitionVersion:
+      type: string
+      description: The definition version of the API.
+      enum:
+        - V4
+      default: V4
+    Status:
+      description: ApiV4DefinitionStatus defines the observed state of API Definition.
+      properties:
+        crossId:
+          description:
+            The Cross ID is used to identify an API that has been promoted from
+            one environment to another.
+          type: string
+        environmentId:
+          description:
+            The environment ID, if a management context has been defined to
+            sync with an APIM instance
+          type: string
+        errors:
+          description: >-
+            When API has been created regardless of errors, this field
+            is
+
+            used to persist the error message encountered during
+            admission
+          properties:
+            severe:
+              description: >-
+                severe errors do not pass admission and will block
+                reconcile
+
+                hence, this field should always be during the admission
+                phase
+
+                and is very unlikely to be persisted in the status
+              items:
+                type: string
+              type: array
+            warning:
+              description: >-
+                warning errors do not block object reconciliation,
+
+                most of the time because the value is ignored or
+                defaulted
+
+                when the API gets synced with APIM
+              items:
+                type: string
+              type: array
+          type: object
+        id:
+          description:
+            The ID of the API definition in the Gravitee API Management
+            instance (if an API context has been configured).
+          type: string
+        organizationId:
+          description:
+            The organization ID, if a management context has been defined to
+            sync with an APIM instance
+          type: string
+        plans:
+          additionalProperties:
+            type: string
+          description: >-
+            This field is used to store the list of plans that have been
+            created
+
+            for the API definition if a management context has been
+            defined
+
+            to sync the API with an APIM instance
+          type: object
+        processingStatus:
+          description: The processing status of the API definition.
+          type: string
+        state:
+          description: The state of the API. Can be either STARTED or STOPPED.
+          enum:
+            - STARTED
+            - STOPPED
+          type: string
+        subscriptions:
+          description: The number of subscriptions that reference the API
+          type: integer
+    FlowPhase:
+      type: string
+      description: The execution phase of a policy.
+      enum:
+        - REQUEST
+        - RESPONSE
+        - INTERACT
+        - CONNECT
+        - PUBLISH
+        - SUBSCRIBE
+    FlowStep:
+      type: object
+      properties:
+        condition:
+          description: FlowStep condition
+          type: string
+        configuration:
+          description: FlowStep configuration is a map of arbitrary key-values
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+        description:
+          description: FlowStep description
+          type: string
+        enabled:
+          default: true
+          description: Indicate if this FlowStep is enabled or not
+          type: boolean
+        messageCondition:
+          description: The message condition (supports EL expressions)
+          type: string
+        name:
+          description: FlowStep name
+          type: string
+        policy:
+          description: FlowStep policy
+          type: string
+      required:
+        - enabled
+    Analytics:
+      description: API Analytics (Not applicable for Native API)
+      properties:
+        enabled:
+          default: true
+          description: Analytics Enabled or not?
+          type: boolean
+        logging:
+          description: Analytics Logging
+          properties:
+            condition:
+              description:
+                The logging condition. This field is evaluated for HTTP requests
+                and supports EL expressions.
+              type: string
+            content:
+              description:
+                Defines which component of the request should be included in the
+                log payload.
+              properties:
+                headers:
+                  description: Should HTTP headers be logged or not ?
+                  type: boolean
+                messageHeaders:
+                  description: Should message headers be logged or not ?
+                  type: boolean
+                messageMetadata:
+                  description: Should message metadata be logged or not ?
+                  type: boolean
+                messagePayload:
+                  description: Should message payloads be logged or not ?
+                  type: boolean
+                payload:
+                  description: Should HTTP payloads be logged or not ?
+                  type: boolean
+              required:
+                - headers
+                - messageHeaders
+                - messageMetadata
+                - messagePayload
+                - payload
+              type: object
+            messageCondition:
+              description:
+                The logging message condition. This field is evaluated for messages
+                and supports EL expressions.
+              type: string
+            mode:
+              description: >-
+                The logging mode defines which "hop" of the request
+                roundtrip
+
+                should be included in the log payload.
+
+                This can be either the inbound request to the
+                gateway,
+
+                the request issued by the gateway to the upstream
+                service, or both.
+              properties:
+                endpoint:
+                  description:
+                    If true, the request to the upstream service will be included in
+                    the log payload
+                  type: boolean
+                entrypoint:
+                  description:
+                    If true, the inbound request to the gateway will be included in the
+                    log payload
+                  type: boolean
+              required:
+                - endpoint
+                - entrypoint
+              type: object
+            phase:
+              description: >-
+                Defines which phase of the request roundtrip
+
+                should be included in the log payload.
+
+                This can be either the request phase, the response
+                phase, or both.
+              properties:
+                request:
+                  description:
+                    Should the request phase of the request roundtrip be included in
+                    the log payload or not ?
+                  type: boolean
+                response:
+                  description:
+                    Should the response phase of the request roundtrip be included in
+                    the log payload or not ?
+                  type: boolean
+              required:
+                - request
+                - response
+              type: object
+          type: object
+        sampling:
+          description: Analytics Sampling
+          properties:
+            type:
+              description: The sampling type to use
+              type: string
+            value:
+              description: Sampling Value
+              type: string
+          required:
+            - type
+            - value
+          type: object
+        tracing:
+          description: Analytics Tracing
+          properties:
+            enabled:
+              description: Specify if Tracing is Enabled or not
+              type: boolean
+            verbose:
+              description: Specify if Tracing is Verbose or not
+              type: boolean
+          type: object
+      required:
+        - enabled
+      type: object
+    EndpointGroupV4:
+      properties:
+        endpoints:
+          default: []
+          description: List of endpoint for the group
+          items:
+            properties:
+              configuration:
+                description: Endpoint Configuration, arbitrary map of key-values
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              inheritConfiguration:
+                description: Should endpoint group configuration be inherited or not ?
+                type: boolean
+              name:
+                description: The endpoint name (this value should be unique across endpoints)
+                type: string
+              secondary:
+                description: Endpoint is secondary or not?
+                type: boolean
+              services:
+                description: Endpoint Services
+                properties:
+                  healthCheck:
+                    description: Health check service
+                    properties:
+                      configuration:
+                        description: Service Configuration, a map of arbitrary key-values
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                      enabled:
+                        description: Is the service enabled or not ?
+                        type: boolean
+                      overrideConfiguration:
+                        description: Service Override Configuration or not?
+                        type: boolean
+                      type:
+                        description: Service Type
+                        type: string
+                    required:
+                      - enabled
+                      - overrideConfiguration
+                    type: object
+                type: object
+              sharedConfigurationOverride:
+                description: Endpoint Configuration Override, arbitrary map of key-values
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              tenants:
+                default: []
+                description: List of endpoint tenants
+                items:
+                  type: string
+                type: array
+              type:
+                description: Endpoint Type
+                type: string
+              weight:
+                description: Endpoint Weight
+                type: integer
+            required:
+              - inheritConfiguration
+              - secondary
+            type: object
+          type: array
+        headers:
+          additionalProperties:
+            type: string
+          description: Endpoint group headers, arbitrary map of key-values
+          type: object
+        http:
+          description: Endpoint group http client options
+          properties:
+            clearTextUpgrade:
+              default: true
+              description: Should HTTP/2 clear text upgrade be used or not ?
+              type: boolean
+            connectTimeout:
+              description: Connection timeout of the http connection
+              format: int64
+              type: integer
+            followRedirects:
+              default: false
+              description: Should HTTP redirects be followed or not ?
+              type: boolean
+            idleTimeout:
+              description: " Idle Timeout for the http connection"
+              format: int64
+              type: integer
+            keepAlive:
+              default: true
+              type: boolean
+            keepAliveTimeout:
+              default: 30000
+              description: Should keep alive be used for the HTTP connection ?
+              format: int64
+              type: integer
+            maxConcurrentConnections:
+              description: HTTP max concurrent connections
+              type: integer
+            pipelining:
+              default: false
+              description: Should HTTP/1.1 pipelining be used for the connection or not ?
+              type: boolean
+            propagateClientAcceptEncoding:
+              default: false
+              description: Propagate Client Accept-Encoding header
+              type: boolean
+            readTimeout:
+              description: Read timeout
+              format: int64
+              type: integer
+            useCompression:
+              default: false
+              description: Should compression be used or not ?
+              type: boolean
+            version:
+              default: HTTP_1_1
+              description: HTTP Protocol Version (Possible values Http1 or Http2)
+              enum:
+                - HTTP_1_1
+                - HTTP_2
+              type: string
+          required:
+            - followRedirects
+            - pipelining
+            - useCompression
+          type: object
+        loadBalancer:
+          description: Endpoint group load balancer
+          properties:
+            type:
+              default: ROUND_ROBIN
+              enum:
+                - ROUND_ROBIN
+                - RANDOM
+                - WEIGHTED_ROUND_ROBIN
+                - WEIGHTED_RANDOM
+              type: string
+          required:
+            - type
+          type: object
+        name:
+          description: Endpoint group name
+          type: string
+        services:
+          description: Endpoint group services
+          properties:
+            discovery:
+              description: Endpoint group discovery service
+              properties:
+                configuration:
+                  description: Service Configuration, a map of arbitrary key-values
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                enabled:
+                  description: Is the service enabled or not ?
+                  type: boolean
+                overrideConfiguration:
+                  description: Service Override Configuration or not?
+                  type: boolean
+                type:
+                  description: Service Type
+                  type: string
+              required:
+                - enabled
+                - overrideConfiguration
+              type: object
+            healthCheck:
+              description: Endpoint group health check service
+              properties:
+                configuration:
+                  description: Service Configuration, a map of arbitrary key-values
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                enabled:
+                  description: Is the service enabled or not ?
+                  type: boolean
+                overrideConfiguration:
+                  description: Service Override Configuration or not?
+                  type: boolean
+                type:
+                  description: Service Type
+                  type: string
+              required:
+                - enabled
+                - overrideConfiguration
+              type: object
+          type: object
+        sharedConfiguration:
+          description: Endpoint group shared configuration, arbitrary map of key-values
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+        ssl:
+          description: Endpoint group http client SSL options
+          properties:
+            hostnameVerifier:
+              default: true
+              description: Verify Hostname when establishing connection
+              type: boolean
+            keyStore:
+              description: KeyStore type (possible values PEM, PKCS12, JKS)
+              properties:
+                certContent:
+                  description: KeyStore cert content (Only applicable for PEM KeyStore)
+                  type: string
+                certPath:
+                  description: KeyStore cert path (Only applicable for PEM KeyStore)
+                  type: string
+                content:
+                  description:
+                    The base64 encoded trustStore content, if not relying on a path to
+                    a file
+                  type: string
+                keyContent:
+                  description: >-
+                    The base64 encoded trustStore content, if not
+                    relying on a path to a file
+
+                    (Only applicable for PEM KeyStore)
+                  type: string
+                keyPath:
+                  description: KeyStore key path (Only applicable for PEM KeyStore)
+                  type: string
+                password:
+                  type: string
+                path:
+                  description: KeyStore path
+                  type: string
+                type:
+                  description: The KeyStore type to use (possible values are PEM, PKCS12, JKS)
+                  enum:
+                    - PEM
+                    - PKCS12
+                    - JKS
+                  type: string
+              type: object
+            trustAll:
+              default: false
+              description: Whether to trust all issuers or not
+              type: boolean
+            trustStore:
+              description: TrustStore type (possible values PEM, PKCS12, JKS)
+              properties:
+                content:
+                  description:
+                    The base64 encoded trustStore content, if not relying on a path to
+                    a file
+                  type: string
+                password:
+                  description: TrustStore password (Not applicable for PEM TrustStore)
+                  type: string
+                path:
+                  type: string
+                type:
+                  description: The TrustStore type to use (possible values are PEM, PKCS12, JKS)
+                  enum:
+                    - PEM
+                    - PKCS12
+                    - JKS
+                  type: string
+              type: object
+          required:
+            - hostnameVerifier
+            - trustAll
+          type: object
+        type:
+          description: Endpoint group type
+          type: string
+      required:
+        - name
+      type: object
+    FailoverV4:
+      description: API Failover
+      properties:
+        enabled:
+          default: false
+          description: API Failover is enabled?
+          type: boolean
+        maxFailures:
+          default: 5
+          description: API Failover max failures
+          type: integer
+        maxRetries:
+          default: 2
+          description: API Failover max retires
+          type: integer
+        openStateDuration:
+          default: 10000
+          description: API Failover  open state duration
+          format: int64
+          type: integer
+        perSubscription:
+          default: true
+          description: API Failover  per subscription
+          type: boolean
+        slowCallDuration:
+          default: 2000
+          description: API Failover slow call duration
+          format: int64
+          type: integer
+      type: object
+    FlowExecution:
+      description: API Flow Execution (Not applicable for Native API)
+      properties:
+        matchRequired:
+          description:
+            Is match required or not ? If set to true, a 404 status response
+            will be returned if no matching flow was found.
+          type: boolean
+        mode:
+          description: The flow mode to use
+          type: string
+      required:
+        - matchRequired
+      type: object
+    FlowV4:
+      properties:
+        id:
+          description: >-
+            The ID of the flow this field is mainly used for
+            compatibility with
+
+            APIM exports and can be safely ignored.
+          type: string
+        enabled:
+          default: true
+          description: Is flow enabled or not?
+          type: boolean
+        name:
+          description: Flow name
+          type: string
+        selectors:
+          description: List of Flow selectors
+          items:
+            type: object
+          type: array
+        connect:
+          description: List of Connect flow steps (Only available for Native APIs)
+          items:
+            $ref: "#/components/schemas/FlowStep"
+          type: array
+        interact:
+          description: List of Publish flow steps (Only available for Native APIs)
+          items:
+            $ref: "#/components/schemas/FlowStep"
+          type: array
+        publish:
+          description: List of Publish flow steps
+          items:
+            $ref: "#/components/schemas/FlowStep"
+          type: array
+        request:
+          description: List of Request flow steps (NOT available for Native APIs)
+          items:
+            $ref: "#/components/schemas/FlowStep"
+          type: array
+        response:
+          description: List of Response flow steps (NOT available for Native APIs)
+          items:
+            $ref: "#/components/schemas/FlowStep"
+          type: array
+
+        subscribe:
+          description: List of Subscribe flow steps
+          items:
+            $ref: "#/components/schemas/FlowStep"
+          type: array
+        tags:
+          description: List of tags
+          items:
+            type: string
+          type: array
+      required:
+        - enabled
+      type: object
+    ApiServices:
+      description: API Services (Not applicable for Native API)
+      properties:
+        dynamicProperty:
+          description: API dynamic property service
+          properties:
+            configuration:
+              description: Service Configuration, a map of arbitrary key-values
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            enabled:
+              description: Is the service enabled or not ?
+              type: boolean
+            overrideConfiguration:
+              description: Service Override Configuration or not?
+              type: boolean
+            type:
+              description: Service Type
+              type: string
+          required:
+            - enabled
+            - overrideConfiguration
+          type: object
+      type: object
+    Listener:
+      oneOf:
+        - $ref: "#/components/schemas/HttpListener"
+        - $ref: "#/components/schemas/SubscriptionListener"
+        - $ref: "#/components/schemas/TcpListener"
+        - $ref: "#/components/schemas/KafkaListener"
+      discriminator:
+        propertyName: type
+        mapping:
+          HTTP: "#/components/schemas/HttpListener"
+          TCP: "#/components/schemas/TcpListener"
+          SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
+          KAFKA: "#/components/schemas/KafkaListener"
+    BaseListener:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          $ref: "#/components/schemas/ListenerType"
+        entrypoints:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Entrypoint"
+        servers:
+          type: array
+          items:
+            type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          HTTP: "#/components/schemas/HttpListener"
+          TCP: "#/components/schemas/TcpListener"
+          SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
+          KAFKA: "#/components/schemas/KafkaListener"
+    ListenerType:
+      type: string
+      description: Listener type.
+      enum:
+        - HTTP
+        - SUBSCRIPTION
+        - TCP
+        - KAFKA
+    Entrypoint:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: The type of the entrypoint
+          examples:
+            - http-get
+            - http-proxy
+        qos:
+          $ref: "#/components/schemas/Qos"
+        dlq:
+          $ref: "#/components/schemas/Dlq"
+        configuration:
+          type: object
+    Qos:
+      type: string
+      description: Type of the quality of service.
+      default: AUTO
+      enum:
+        - NONE
+        - AUTO
+        - AT_MOST_ONCE
+        - AT_LEAST_ONCE
+    Dlq:
+      type: object
+      properties:
+        endpoint:
+          type: string
+          description: The endpoint of the DLQ.
+    HttpListener:
+      type: object
+      title: "HttpListener"
+      allOf:
+        - $ref: "#/components/schemas/BaseListener"
+        - type: object
+          properties:
+            paths:
+              type: array
+              minItems: 1
+              items:
+                $ref: "#/components/schemas/PathV4"
+            pathMappings:
+              type: array
+              items:
+                type: string
+            cors:
+              $ref: "#/components/schemas/Cors"
+    PathV4:
+      type: object
+      properties:
+        host:
+          type: string
+        path:
+          type: string
+          default: "/"
+        overrideAccess:
+          type: boolean
+          default: false
+    Cors:
+      type: object
+      properties:
+        allowCredentials:
+          type: boolean
+        allowHeaders:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        allowMethods:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        allowOrigin:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        enabled:
+          type: boolean
+        exposeHeaders:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        maxAge:
+          type: integer
+          format: int32
+          default: -1
+        runPolicies:
+          type: boolean
+    SubscriptionListener:
+      title: "SubscriptionListener"
+      allOf:
+        - $ref: "#/components/schemas/BaseListener"
+    TcpListener:
+      title: "TcpListener"
+      allOf:
+        - $ref: "#/components/schemas/BaseListener"
+        - type: object
+          properties:
+            hosts:
+              description: >-
+                A list of hostnames for which the API will match against SNI. 
+                This must be unique for all TCP listener for a given server id. See 'servers' attribute
+              type: array
+              minItems: 1
+              items:
+                type: string
+                minLength: 1
+          required:
+            - "hosts"
+    KafkaListener:
+      title: "KafkaListener"
+      allOf:
+        - $ref: "#/components/schemas/BaseListener"
+        - type: object
+          properties:
+            host:
+              description: A hostname for which the API will match against SNI.
+              type: string
+            port:
+              type: integer
+              minimum: 0
+              description: The port of the listener
+              examples:
+                - "8080"
+          required:
+            - "host"
+    PrimaryOwner:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Owner's uuid.
+          examples:
+            - "00f8c9e7-78fc-4907-b8c9-e778fc790750"
+        email:
+          type: string
+          description: Owner's email. Can be null if owner is a group.
+        displayName:
+          type: string
+          description: Owner's name.
+          examples:
+            - John Doe
+          minLength: 1
+        type:
+          $ref: "#/components/schemas/MembershipMemberType"
+        readOnly: true
+    MembershipMemberType:
+      type: string
+      description: The type of membership
+      enum:
+        - USER
+        - GROUP
+    Property:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        encrypted:
+          type: boolean
+        dynamic:
+          type: boolean
+        encryptable:
+          type: boolean
+          writeOnly: true
+    Resource:
+      type: object
+      required:
+        - name
+        - type
+        - configuration
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        configuration:
+          type: object
+        enabled:
+          type: boolean
+    ResponseTemplate:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: string
+        propagateErrorKeyToLogs:
+          type: boolean
+    ApiType:
+      type: string
+      description: API's type.
+      enum:
+        - MESSAGE
+        - PROXY
+        - NATIVE
+    Visibility:
+      type: string
+      description: The visibility of the resource regarding the portal.
+      enum:
+        - PUBLIC
+        - PRIVATE
+    ApiWorkflowState:
+      type: string
+      description: The status of the API regarding the review feature.
+      enum:
+        - DRAFT
+        - IN_REVIEW
+        - REQUEST_FOR_CHANGES
+        - REVIEW_OK
+      readOnly: true
+    BaseOriginContext:
+      type: object
+      properties:
+        origin:
+          type: string
+          description: The origin of the API.
+          enum:
+            - MANAGEMENT
+            - KUBERNETES
+            - INTEGRATION
+      required:
+        - origin
+      discriminator:
+        propertyName: origin
+        mapping:
+          MANAGEMENT: "#/components/schemas/ManagementOriginContext"
+          KUBERNETES: "#/components/schemas/KubernetesOriginContext"
+          INTEGRATION: "#/components/schemas/IntegrationOriginContext"
+    ManagementOriginContext:
+      type: object
+      title: "ManagementOriginContext"
+      description: Indicates the API has been created by the Management API
+      allOf:
+        - $ref: "#/components/schemas/BaseOriginContext"
+    KubernetesOriginContext:
+      type: object
+      title: "KubernetesOriginContext"
+      description: Indicates the API has been created by the Gravitee Kubernetes Operator
+      allOf:
+        - $ref: "#/components/schemas/BaseOriginContext"
+        - type: object
+          properties:
+            mode:
+              type: string
+              description: |-
+                The mode of the API.
+                fully_managed: Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
+              enum:
+                - FULLY_MANAGED
+            syncFrom:
+              type: string
+              description: |-
+                syncFrom stands for where the Gateway should source the API definition from. 
+                If the value is KUBERNETES, then the gateway will sync the definition by listening to changes
+                issued on a kubernetes config map. If the value is MANAGEMENT, then the gateway will sync
+                the definition using the same datastore as APIM. 
+                Defining MANAGEMENT as source for sync is useful e.g. when a single operator should operate
+                on gateways deployed on multiple kubernetes clusters.
+              enum:
+                - MANAGEMENT
+                - KUBERNETES
+    IntegrationOriginContext:
+      type: object
+      title: "IntegrationOriginContext"
+      description: Indicates the API has been created through an Integration
+      allOf:
+        - $ref: "#/components/schemas/BaseOriginContext"
+        - type: object
+          properties:
+            integrationId:
+              type: string
+              description: |-
+                The id of the integration that created the API.
+              examples:
+                - "b300b445-8bbb-4034-865c-d2113ba5b768"
+            provider:
+              type: string
+              description: Provider of this Federated API.
+              examples:
+                - solace
+            integrationName:
+              type: string
+              description: Name of integration of this Federated API.
+              examples:
+                - My Solace env
+    ApiLinks:
+      type: object
+      properties:
+        pictureUrl:
+          type: string
+          description: The URL to the API's picture.
+          examples:
+            - "https://gravitee.example.com/management/v2/environments/00f8c9e7-78fc-4907-b8c9-e778fc790750/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture"
+        backgroundUrl:
+          type: string
+          description: The URL to the API's background.
+          examples:
+            - "https://gravitee.example.com/management/v2/environments/00f8c9e7-78fc-4907-b8c9-e778fc790750/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background"
+      readOnly: true
+    Links:
+      description: List of links for pagination
+      properties:
+        self:
+          type: string
+          description: Link to current resource
+        first:
+          type: string
+          description: In a paginated response, link to the first page
+        last:
+          type: string
+          description: In a paginated response, link to the last page
+        previous:
+          type: string
+          description: In a paginated response, link to the previous page. Maybe null if current is the first page
+        next:
+          type: string
+          description: In a paginated response, link to the next page. Maybe null if current is the last page
+    Pagination:
+      description: Generic object to handle pagination data.
+      type: object
+      properties:
+        page:
+          type: integer
+          description: The current page.
+        perPage:
+          type: integer
+          description: The number of items requested per page.
+        pageCount:
+          type: integer
+          description: The total number of pages.
+        pageItemsCount:
+          type: integer
+          description: The number of items for the current page.
+        totalCount:
+          type: integer
+          format: int64
+          description: The total number of items.
+  responses:
+    ApisResponse:
+      description: Page of apis
+      content:
+        application/json:
+          schema:
+            title: "ApisResponse"
+            type: object
+            properties:
+              data:
+                description: List of Apis.
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiV4"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+              links:
+                $ref: "#/components/schemas/Links"
+    SharedPolicyGroupsResponse:
+      description: Page of shared policy groups
+      content:
+        application/json:
+          schema:
+            title: "SharedPolicyGroupsResponse"
+            properties:
+              data:
+                description: List of SharedPolicyGroup.
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedPolicyGroup"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+              links:
+                $ref: "#/components/schemas/Links"
+
+    Error:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              httpStatus:
+                type: integer
+                format: int32
+                description: The error code
+                examples:
+                  - "400"
+              message:
+                type: string
+                description: The error message
+                examples:
+                  - Bad request
+              technicalCode:
+                type: string
+                description: A technical code to identify the error
+                examples:
+                  - invalid.import.definition
+              parameters:
+                type: object
+                description: A map of parameters to be used in the error message
+                additionalProperties:
+                  type: string
+              details:
+                type: array
+                description: A list of details about the error
+                items:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      description: The error message
+                      examples:
+                        - Bad request
+                    location:
+                      type: string
+                      description: The json path of the field in error.
+                      examples:
+                        - updateApi.properties[0].key
+                    invalidValue:
+                      type: string
+                      description: The invalid value.
+  parameters:
+    envIdParam:
+      name: envId
+      in: path
+      required: true
+      description: Id or Hrid (Human readable Id) of an environment.
+      schema:
+        type: string
+        default: DEFAULT
+    orgIdParam:
+      name: orgId
+      in: path
+      required: true
+      description: Id or Hrid (Human readable Id) of an organization.
+      schema:
+        type: string
+        default: DEFAULT
+    dryRunQueryParam:
+      name: dryRun
+      in: query
+      schema:
+        type: boolean
+        default: false
+    apiIdParam:
+      name: apiId
+      in: path
+      required: true
+      description: Id of an API.
+      schema:
+        type: string
+    spgIdParam:
+      name: spgId
+      in: path
+      required: true
+      description: Id of a Shared Policy Group.
+      schema:
+        type: string
+    pageParam:
+      name: page
+      in: query
+      required: false
+      description: The page number for pagination.
+      schema:
+        type: integer
+        default: 1
+    perPageParam:
+      name: perPage
+      in: query
+      required: false
+      description: |
+        The number of items per page for pagination.
+      schema:
+        type: integer
+        default: 10
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Gravitee service account ID
