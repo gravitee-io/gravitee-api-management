@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
+import { GioFormJsonSchemaModule, GioIconsModule, GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 
 import { NoMcpEntrypointComponent } from './no-mcp-entrypoint/no-mcp-entrypoint.component';
 
@@ -25,16 +29,29 @@ import { ApiV4 } from '../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 interface ApiVM extends ApiV4 {
   hasMCPEntrypoint: boolean;
 }
 
+const MCP_ENTRYPOINT_ID = 'mcp';
+
 @Component({
   selector: 'mcp',
   templateUrl: './mcp.component.html',
   styleUrls: ['./mcp.component.scss'],
-  imports: [NoMcpEntrypointComponent, AsyncPipe],
+  imports: [
+    NoMcpEntrypointComponent,
+    AsyncPipe,
+    GioFormJsonSchemaModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatButtonModule,
+    RouterLink,
+    GioIconsModule,
+    GioPermissionModule,
+  ],
 })
 export class McpComponent implements OnInit {
   apiId: string;
@@ -44,11 +61,14 @@ export class McpComponent implements OnInit {
     .listEntrypointPlugins()
     .pipe(
       map((plugins) =>
-        plugins.some((plugin) => plugin.id === this.mcpEntrypointId && this.gioPermissionService.hasAnyMatching(['api-definition-u'])),
+        plugins.some((plugin) => plugin.id === MCP_ENTRYPOINT_ID && this.gioPermissionService.hasAnyMatching(['api-definition-u'])),
       ),
     );
 
-  private mcpEntrypointId = 'mcp';
+  form: FormGroup<{ configuration: FormControl<unknown> }> = new FormGroup({
+    configuration: new FormControl<unknown>({}),
+  });
+  mcpEntrypointSchema$: Observable<GioJsonSchema> = inject(ConnectorPluginsV2Service).getEntrypointPluginSchema(MCP_ENTRYPOINT_ID);
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -61,9 +81,17 @@ export class McpComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.form.disable();
     this.api$ = this.apiV2Service.getLastApiFetch(this.apiId).pipe(
       filter((api) => api.definitionVersion === 'V4'),
-      map((api) => ({ ...api, hasMCPEntrypoint: api.listeners?.[0].entrypoints.some((e) => e.type === this.mcpEntrypointId) }) as ApiVM),
+      map((api) => ({ ...api, hasMCPEntrypoint: api.listeners?.[0].entrypoints.some((e) => e.type === MCP_ENTRYPOINT_ID) }) as ApiVM),
+      tap((api) => {
+        if (api.hasMCPEntrypoint) {
+          this.form.controls.configuration.setValue(
+            api.listeners?.[0].entrypoints.find((e) => e.type === MCP_ENTRYPOINT_ID)?.configuration,
+          );
+        }
+      }),
     );
   }
 
