@@ -17,12 +17,7 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -31,6 +26,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
@@ -47,6 +43,7 @@ public class DictionaryServiceImpl_StartTest {
 
     private static final String ENVIRONMENT_ID = GraviteeContext.getCurrentEnvironment();
     protected static final String ORGANIZATION_ID = GraviteeContext.getCurrentOrganization();
+    private static final String ENVIRONMENT_NAME = GraviteeContext.getExecutionContext().getEnvironmentId();
 
     @InjectMocks
     private DictionaryServiceImpl dictionaryService = new DictionaryServiceImpl();
@@ -60,10 +57,13 @@ public class DictionaryServiceImpl_StartTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     @Test
     public void shouldStartDictionary() throws TechnicalException {
         Dictionary dictionaryInDb = new Dictionary();
-        dictionaryInDb.setId("dictionaryId");
+        dictionaryInDb.setId("dictionaryId:DEFAULT:DEFAULT");
         dictionaryInDb.setCreatedAt(new Date(1486771200000L));
         dictionaryInDb.setUpdatedAt(new Date(1486771200000L));
         dictionaryInDb.setState(LifecycleState.STOPPED);
@@ -74,6 +74,7 @@ public class DictionaryServiceImpl_StartTest {
         updatedDictionary.setUpdatedAt(new Date());
         updatedDictionary.setState(LifecycleState.STARTED);
         updatedDictionary.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
+        updatedDictionary.setId("dictionaryId:DEFAULT:DEFAULT");
         when(
             dictionaryRepository.update(
                 argThat(arg -> arg.getId().equals(dictionaryInDb.getId()) && arg.getState().equals(updatedDictionary.getState()))
@@ -91,7 +92,7 @@ public class DictionaryServiceImpl_StartTest {
                 eq(Collections.singleton(ENVIRONMENT_ID)),
                 eq(ORGANIZATION_ID),
                 eq(EventType.START_DICTIONARY),
-                eq("dictionaryId")
+                eq("dictionaryId:DEFAULT:DEFAULT")
             );
         verify(auditService, times(1))
             .createAuditLog(
@@ -107,7 +108,7 @@ public class DictionaryServiceImpl_StartTest {
     @Test(expected = DictionaryNotFoundException.class)
     public void shouldNotStartDictionaryBecauseDoesNotBelongToEnvironment() throws TechnicalException {
         Dictionary dictionaryInDb = new Dictionary();
-        dictionaryInDb.setId("dictionaryId");
+        dictionaryInDb.setId("dictionaryId:DEFAULT:DEFAULT");
         dictionaryInDb.setCreatedAt(new Date(1486771200000L));
         dictionaryInDb.setUpdatedAt(new Date(1486771200000L));
         dictionaryInDb.setState(LifecycleState.STOPPED);
@@ -123,7 +124,7 @@ public class DictionaryServiceImpl_StartTest {
                 eq(Collections.singleton(ENVIRONMENT_ID)),
                 eq(ORGANIZATION_ID),
                 eq(EventType.START_DICTIONARY),
-                eq("dictionaryId")
+                eq("dictionaryId:DEFAULT:DEFAULT")
             );
         verify(auditService, never())
             .createAuditLog(
@@ -138,8 +139,7 @@ public class DictionaryServiceImpl_StartTest {
 
     @Test(expected = DictionaryNotFoundException.class)
     public void shouldNotStartBecauseNotFound() throws TechnicalException {
-        when(dictionaryRepository.findById("dictionaryId")).thenReturn(Optional.empty());
-
-        dictionaryService.start(GraviteeContext.getExecutionContext(), "dictionaryId");
+        when(dictionaryRepository.findById("dictionaryId:DEFAULT:DEFAULT")).thenReturn(Optional.empty());
+        dictionaryService.start(GraviteeContext.getExecutionContext(), "dictionaryId:DEFAULT:DEFAULT");
     }
 }

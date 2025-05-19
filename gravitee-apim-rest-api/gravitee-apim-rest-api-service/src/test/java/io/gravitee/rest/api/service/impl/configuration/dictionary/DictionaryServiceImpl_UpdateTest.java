@@ -17,12 +17,7 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -33,6 +28,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
@@ -49,7 +45,7 @@ public class DictionaryServiceImpl_UpdateTest {
 
     private static final String ENVIRONMENT_ID = GraviteeContext.getCurrentEnvironment();
     private static final String ORGANIZATION_ID = GraviteeContext.getCurrentOrganization();
-    public static final String DICTIONARY_ID = "dictionaryId";
+    public static final String DICTIONARY_ID = "dictionaryId:DEFAULT:DEFAULT";
 
     @InjectMocks
     private DictionaryServiceImpl dictionaryService = new DictionaryServiceImpl();
@@ -62,6 +58,9 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private EnvironmentService environmentService;
 
     @Test
     public void shouldUpdateDictionary() throws TechnicalException {
@@ -113,7 +112,7 @@ public class DictionaryServiceImpl_UpdateTest {
                 eq(Collections.singleton(ENVIRONMENT_ID)),
                 eq(ORGANIZATION_ID),
                 eq(EventType.START_DICTIONARY),
-                eq("dictionaryId")
+                eq("dictionaryId:DEFAULT:DEFAULT")
             );
         verify(auditService, times(1))
             .createAuditLog(
@@ -176,7 +175,7 @@ public class DictionaryServiceImpl_UpdateTest {
                 eq(Collections.singleton(ENVIRONMENT_ID)),
                 eq(ORGANIZATION_ID),
                 eq(EventType.START_DICTIONARY),
-                eq("dictionaryId")
+                eq("dictionaryId:DEFAULT:DEFAULT")
             );
         verify(auditService, times(1))
             .createAuditLog(

@@ -22,30 +22,21 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
-import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.repository.management.model.DictionaryProvider;
-import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;
-import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
-import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
-import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
-import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
-import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.*;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +66,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private EnvironmentService environmentService;
+
     @Override
     public Set<DictionaryEntity> findAll(ExecutionContext executionContext) {
         try {
@@ -95,7 +89,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             LOGGER.debug("Deploy dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
-                .findById(id)
+                .findById(formatId(id))
                 .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
                 .orElseThrow(() -> new DictionaryNotFoundException(id));
 
@@ -126,7 +120,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             LOGGER.debug("Undeploy dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
-                .findById(id)
+                .findById(formatId(id))
                 .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
                 .orElseThrow(() -> new DictionaryNotFoundException(id));
 
@@ -157,7 +151,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             LOGGER.debug("Start dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
-                .findById(id)
+                .findById(formatId(id))
                 .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
                 .orElseThrow(() -> new DictionaryNotFoundException(id));
 
@@ -198,7 +192,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             LOGGER.debug("Stop dictionary {}", id);
 
             Dictionary dictionary = dictionaryRepository
-                .findById(id)
+                .findById(formatId(id))
                 .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
                 .orElseThrow(() -> new DictionaryNotFoundException(id));
 
@@ -238,7 +232,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Create dictionary {}", newDictionaryEntity);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(IdGenerator.generate(newDictionaryEntity.getName()));
+            Optional<Dictionary> optDictionary = dictionaryRepository.findById(
+                formatId(IdGenerator.generate(newDictionaryEntity.getName()))
+            );
             if (optDictionary.isPresent()) {
                 throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
             }
@@ -268,13 +264,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             LOGGER.debug("Update dictionary {}", updateDictionaryEntity);
 
             Dictionary dictionaryToUpdate = dictionaryRepository
-                .findById(id)
+                .findById(formatId(id))
                 .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
                 .orElseThrow(() -> new DictionaryNotFoundException(updateDictionaryEntity.getName()));
 
             Dictionary dictionary = convert(updateDictionaryEntity);
 
-            dictionary.setId(id);
+            dictionary.setId(formatId(id));
             dictionary.setCreatedAt(dictionaryToUpdate.getCreatedAt());
             dictionary.setEnvironmentId(dictionaryToUpdate.getEnvironmentId());
             dictionary.setUpdatedAt(new Date());
@@ -314,7 +310,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Update dictionary properties {}", id);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
+            Optional<Dictionary> optDictionary = dictionaryRepository.findById(formatId(id));
             if (optDictionary.isEmpty()) {
                 throw new DictionaryNotFoundException(id);
             }
@@ -351,7 +347,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     public DictionaryEntity findById(ExecutionContext executionContext, String id) {
         try {
             LOGGER.debug("Find dictionary by ID: {}", id);
-            Optional<Dictionary> byId = dictionaryRepository.findById(id);
+            Optional<Dictionary> byId = dictionaryRepository.findById(formatId(id));
             //FIXME filter should be always applied but DictionaryManager (sync service) does not handle environments for dictionaries
             if (executionContext.hasEnvironmentId()) {
                 byId = byId.filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
@@ -369,7 +365,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             LOGGER.debug("Delete dictionary: {}", id);
 
             Dictionary dictionary = dictionaryRepository
-                .findById(id)
+                .findById(formatId(id))
                 .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
                 .orElseThrow(() -> new DictionaryNotFoundException(id));
 
@@ -377,7 +373,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 this.stop(executionContext, id);
             }
 
-            dictionaryRepository.delete(id);
+            dictionaryRepository.delete(formatId(id));
 
             // And create event
             eventService.createDictionaryEvent(
@@ -415,7 +411,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     private DictionaryEntity convert(Dictionary dictionary) {
         DictionaryEntity.DictionaryEntityBuilder dictionaryEntityBuilder = DictionaryEntity
             .builder()
-            .id(dictionary.getId())
+            .id(dictionary.getId().split(":")[0])
             .name(dictionary.getName())
             .description(dictionary.getDescription())
             .createdAt(dictionary.getCreatedAt())
@@ -454,8 +450,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     private Dictionary convert(NewDictionaryEntity newDictionaryEntity) {
         Dictionary dictionary = new Dictionary();
-
-        dictionary.setId(IdGenerator.generate(newDictionaryEntity.getName()));
+        dictionary.setId(formatId(IdGenerator.generate(newDictionaryEntity.getName())));
         dictionary.setName(newDictionaryEntity.getName());
         dictionary.setDescription(newDictionaryEntity.getDescription());
 
@@ -520,5 +515,15 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
 
         return entity;
+    }
+
+    private String formatId(String id) {
+        if (id.split(":").length == 3) {
+            return id;
+        }
+        String envName = environmentService.findById(GraviteeContext.getExecutionContext().getEnvironmentId()).getName();
+        String ordId = GraviteeContext.getCurrentOrganization();
+
+        return String.join(":", id, envName, ordId);
     }
 }
