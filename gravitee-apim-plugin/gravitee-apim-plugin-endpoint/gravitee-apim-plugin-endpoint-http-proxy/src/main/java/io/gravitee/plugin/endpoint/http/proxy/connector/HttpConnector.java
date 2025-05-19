@@ -24,6 +24,7 @@ import static io.gravitee.gateway.api.http.HttpHeaderNames.PROXY_CONNECTION;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.TE;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.TRAILER;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.UPGRADE;
+import static io.gravitee.gateway.http.utils.RequestUtils.hasStreamingContentType;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT_OVERRIDE;
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR;
@@ -277,6 +278,10 @@ public class HttpConnector implements ProxyConnector {
     }
 
     private static boolean requestWithBody(HttpRequest request) {
-        return request.headers().contains(HttpHeaderNames.TRANSFER_ENCODING) || request.headers().contains(HttpHeaderNames.CONTENT_LENGTH);
+        return (
+            request.headers().contains(HttpHeaderNames.TRANSFER_ENCODING) ||
+            request.headers().contains(HttpHeaderNames.CONTENT_LENGTH) ||
+            hasStreamingContentType(request.headers())
+        );
     }
 }
