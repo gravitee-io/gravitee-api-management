@@ -157,7 +157,6 @@ commands:
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
           artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
@@ -256,10 +255,8 @@ jobs:
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
           artifact_to_register: graviteeio.azurecr.io/apim-management-api:4.1.x-latest
-          debug: true
       - aquasec/register_artifact:
           artifact_to_register: graviteeio.azurecr.io/apim-gateway:4.1.x-latest
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/apim-management-api:4.1.x-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
@@ -426,5 +423,5 @@ workflows:
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5
-  aquasec: gravitee-io/aquasec@1.0.4
+  aquasec: gravitee-io/aquasec@1.0.5
   gh: circleci/github-cli@1.0.5

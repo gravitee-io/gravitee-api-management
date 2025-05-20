@@ -80,25 +80,21 @@ jobs:
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-gateway:4.1.0-alpha.1
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-gateway:4.1.0-alpha.1
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-management-api:4.1.0-alpha.1
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-management-api:4.1.0-alpha.1
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-management-ui:4.1.0-alpha.1
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-management-ui:4.1.0-alpha.1
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-portal-ui:4.1.0-alpha.1
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-portal-ui:4.1.0-alpha.1
           scanner_url: https://82fb8f75da.cloud.aquasec.com
@@ -111,4 +107,4 @@ workflows:
           name: Build and push docker images for APIM 4.1.0-alpha.1
 orbs:
   keeper: gravitee-io/keeper@0.6.3
-  aquasec: gravitee-io/aquasec@1.0.4
+  aquasec: gravitee-io/aquasec@1.0.5
