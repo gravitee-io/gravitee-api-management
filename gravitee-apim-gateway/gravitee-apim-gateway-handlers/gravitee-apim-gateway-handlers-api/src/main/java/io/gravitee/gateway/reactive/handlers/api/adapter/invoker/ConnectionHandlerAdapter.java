@@ -57,8 +57,13 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
 
     @Override
     public void handle(final ProxyConnection connection) {
-        // Set response handler to capture the response from the proxy connection.
-        connection.responseHandler(proxyResponse -> handleProxyResponse(connection, proxyResponse));
+        // Check if emitter has been disposed before handling connection to avoid unnecessary work
+        if (nextEmitter.isDisposed()) {
+            connection.cancel();
+        } else {
+            // Set response handler to capture the response from the proxy connection.
+            connection.responseHandler(proxyResponse -> handleProxyResponse(connection, proxyResponse));
+        }
     }
 
     /**
@@ -72,14 +77,20 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
     }
 
     private void handleProxyResponse(ProxyConnection connection, ProxyResponse proxyResponse) {
-        try {
-            if (proxyResponse.connected()) {
-                handleResponse(connection, proxyResponse);
-            } else {
-                handleConnectionError(proxyResponse);
+        // Check if emitter has been disposed before handling response to avoid unnecessary work
+        if (nextEmitter.isDisposed()) {
+            tryCancel(proxyResponse);
+            connection.cancel();
+        } else {
+            try {
+                if (proxyResponse.connected()) {
+                    handleResponse(connection, proxyResponse);
+                } else {
+                    handleConnectionError(proxyResponse);
+                }
+            } catch (Throwable t) {
+                nextEmitter.tryOnError(t);
             }
-        } catch (Throwable t) {
-            nextEmitter.tryOnError(t);
         }
     }
 
