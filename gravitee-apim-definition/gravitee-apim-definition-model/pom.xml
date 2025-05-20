@@ -47,6 +47,21 @@
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-vertx</artifactId>
         </dependency>
+<<<<<<< HEAD
+=======
+        <dependency>
+            <groupId>io.gravitee.secret</groupId>
+            <artifactId>gravitee-secret-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-api</artifactId>
+        </dependency>
+>>>>>>> 5ce54148ca (fix: After changing the name of shared policy group the updated name is not reflected in the API's in which its being used)
     </dependencies>
 
     <build>

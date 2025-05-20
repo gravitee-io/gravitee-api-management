@@ -18,7 +18,15 @@ package io.gravitee.rest.api.model.context;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-model/src/main/java/io/gravitee/rest/api/model/context/AbstractContext.java
 @EqualsAndHashCode
+=======
+/**
+ * @deprecated Use {@link io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration} instead.
+ */
+@Deprecated
+@Setter
+>>>>>>> 5ce54148ca (fix: After changing the name of shared policy group the updated name is not reflected in the API's in which its being used):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-shared-policy-group/src/main/java/io/gravitee/gateway/handlers/sharedpolicygroup/policy/SharedPolicyGroupPolicyConfiguration.java
 @Getter
 public abstract class AbstractContext implements OriginContext {
 
