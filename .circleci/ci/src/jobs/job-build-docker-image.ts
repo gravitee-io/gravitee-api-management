@@ -89,7 +89,6 @@ export class BuildDockerImageJob {
         new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
         new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
           artifact_to_register: `${dockerTags[0]}`,
-          debug: true,
         }),
         new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
           docker_image_to_scan: `${dockerTags[0]}`,
