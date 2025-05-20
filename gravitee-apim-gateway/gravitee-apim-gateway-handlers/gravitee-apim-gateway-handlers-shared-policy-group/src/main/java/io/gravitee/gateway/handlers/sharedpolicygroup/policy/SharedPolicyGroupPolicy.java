@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.sharedpolicygroup.policy;
 
+import io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration;
 import io.gravitee.gateway.handlers.sharedpolicygroup.reactor.SharedPolicyGroupReactor;
 import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroupRegistry;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;

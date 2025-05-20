@@ -19,6 +19,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
+import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupHistoryQueryService;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
@@ -34,13 +35,16 @@ public class SharedPolicyGroupCrudServiceImpl implements SharedPolicyGroupCrudSe
 
     private final SharedPolicyGroupRepository sharedPolicyGroupRepository;
     private final SharedPolicyGroupAdapter sharedPolicyGroupAdapter;
+    private final SharedPolicyGroupHistoryQueryService sharedPolicyGroupHistoryQueryService;
 
     public SharedPolicyGroupCrudServiceImpl(
         @Lazy SharedPolicyGroupRepository sharedPolicyGroupRepository,
-        SharedPolicyGroupAdapter sharedPolicyGroupAdapter
+        SharedPolicyGroupAdapter sharedPolicyGroupAdapter,
+        SharedPolicyGroupHistoryQueryService sharedPolicyGroupHistoryQueryService
     ) {
         this.sharedPolicyGroupRepository = sharedPolicyGroupRepository;
         this.sharedPolicyGroupAdapter = sharedPolicyGroupAdapter;
+        this.sharedPolicyGroupHistoryQueryService = sharedPolicyGroupHistoryQueryService;
     }
 
     @Override
@@ -131,6 +135,35 @@ public class SharedPolicyGroupCrudServiceImpl implements SharedPolicyGroupCrudSe
                     "An error occurs while trying to find a SharedPolicyGroup with environmentId: %s and hrid: %s",
                     environmentId,
                     hrid
+                ),
+                e
+            );
+        }
+    }
+
+    public Optional<SharedPolicyGroup> getLastDeployedByEnvironmentIdAndCrossId(String environmentId, String crossId) {
+        try {
+            var sharedPolicyGroupOpt = sharedPolicyGroupRepository.findByEnvironmentIdAndCrossId(environmentId, crossId);
+            if (sharedPolicyGroupOpt.isPresent()) {
+                var sharedPolicyGroup = sharedPolicyGroupOpt.get();
+                if (sharedPolicyGroup.isDeployed()) {
+                    return sharedPolicyGroupOpt.map(sharedPolicyGroupAdapter::toEntity);
+                }
+                var historySharedPolicyGroupOpt = sharedPolicyGroupHistoryQueryService.getLatestBySharedPolicyGroupId(
+                    environmentId,
+                    sharedPolicyGroup.getId()
+                );
+                if (historySharedPolicyGroupOpt.isPresent()) {
+                    return historySharedPolicyGroupOpt;
+                }
+            }
+            return Optional.empty();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format(
+                    "An error occurs while trying to find the last deployed SharedPolicyGroup with environmentId: %s and crossId: %s",
+                    environmentId,
+                    crossId
                 ),
                 e
             );
