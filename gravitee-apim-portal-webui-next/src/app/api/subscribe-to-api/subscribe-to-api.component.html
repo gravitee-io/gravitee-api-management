@@ -83,7 +83,8 @@
             [message]="message"
             [apiKeyMode]="applicationApiKeyMode"
             [showApiKeyModeSelection]="showApiKeyModeSelection()"
-            [applicationApiKeySubscriptions]="checkoutData.applicationApiKeySubscriptions" />
+            [applicationApiKeySubscriptions]="checkoutData.applicationApiKeySubscriptions"
+            [consumerConfigurationValues]="consumerConfigurationFormData().value" />
         } @else {
           <app-loader />
         }
@@ -135,11 +136,7 @@
         </div>
       } @else if (currentStep() === 4 && currentPlan()?.security !== 'KEY_LESS') {
         <!--  toDo: remove currentPlan()?.mode === 'PUSH' in APIM-9449 -->
-        <button
-          (click)="subscribe()"
-          mat-flat-button
-          class="secondary-button"
-          [disabled]="stepIsInvalid() || subscriptionInProgress() || currentPlan()?.mode === 'PUSH'">
+        <button (click)="subscribe()" mat-flat-button class="secondary-button" [disabled]="stepIsInvalid() || subscriptionInProgress()">
           @if (subscriptionInProgress()) {
             <span i18n="@@subscribeToApiSubscribingInProgress">Subscribing...</span>
           } @else {

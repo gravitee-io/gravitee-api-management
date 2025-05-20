@@ -63,7 +63,7 @@ export class ConsumerConfigurationComponent implements OnInit {
   save = new EventEmitter();
 
   @Input()
-  consumerConfigurationFormValues!: ConsumerConfigurationValues | null;
+  consumerConfigurationFormValues: ConsumerConfigurationValues | undefined;
 
   @Output()
   consumerConfigurationFormDataChange = new EventEmitter<ConsumerConfigurationFormData>();
@@ -75,7 +75,7 @@ export class ConsumerConfigurationComponent implements OnInit {
     consumerConfiguration: new FormGroup({
       callbackUrl: new FormControl('', {
         nonNullable: true,
-        validators: [Validators.required, Validators.pattern(/^(http|https):/)],
+        validators: [Validators.required, Validators.pattern(/(http|https)?:\/\/(\S+)/)],
       }),
       headers: new FormControl(),
       retry: new FormControl(),
@@ -84,7 +84,7 @@ export class ConsumerConfigurationComponent implements OnInit {
     }),
   });
 
-  initialValues!: ConsumerConfigurationValues;
+  initialValues!: Partial<ConsumerConfigurationValues>;
   formUnchanged$: Observable<boolean> = of(true);
 
   ngOnInit(): void {
@@ -107,11 +107,11 @@ export class ConsumerConfigurationComponent implements OnInit {
       this.consumerConfigurationForm.patchValue({
         channel: this.consumerConfigurationFormValues.channel,
         consumerConfiguration: {
-          callbackUrl: this.consumerConfigurationFormValues.consumerConfiguration.callbackUrl,
-          headers: this.consumerConfigurationFormValues.consumerConfiguration.headers,
-          retry: this.consumerConfigurationFormValues.consumerConfiguration.retry,
-          ssl: this.consumerConfigurationFormValues.consumerConfiguration.ssl,
-          auth: this.consumerConfigurationFormValues.consumerConfiguration.auth,
+          callbackUrl: this.consumerConfigurationFormValues.consumerConfiguration?.callbackUrl,
+          headers: this.consumerConfigurationFormValues.consumerConfiguration?.headers,
+          retry: this.consumerConfigurationFormValues.consumerConfiguration?.retry,
+          ssl: this.consumerConfigurationFormValues.consumerConfiguration?.ssl,
+          auth: this.consumerConfigurationFormValues.consumerConfiguration?.auth,
         },
       });
     }
@@ -126,12 +126,28 @@ export class ConsumerConfigurationComponent implements OnInit {
         map(value => deepEqualIgnoreOrder(this.initialValues, value)),
       );
     } else {
-      this.consumerConfigurationForm.valueChanges.subscribe(_ => {
+      // emit on every change:
+      this.consumerConfigurationForm.valueChanges.subscribe(() => {
         this.consumerConfigurationFormDataChange.emit({
-          value: this.consumerConfigurationForm.getRawValue(),
+          value: this.mapFormValuesToConfiguration(this.consumerConfigurationForm.getRawValue()),
           isValid: this.consumerConfigurationForm.valid,
         });
       });
     }
+  }
+
+  private mapFormValuesToConfiguration(formValues: ConsumerConfigurationValues): ConsumerConfigurationValues {
+    const { headers, callbackUrl, retry, ssl, auth } = formValues.consumerConfiguration;
+
+    return {
+      channel: formValues.channel || '',
+      consumerConfiguration: {
+        headers: headers || [],
+        callbackUrl,
+        ...(retry ? { retry } : {}),
+        ...(ssl ? { ssl } : {}),
+        ...(auth ? { auth } : {}),
+      },
+    };
   }
 }

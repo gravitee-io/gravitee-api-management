@@ -67,6 +67,7 @@ export interface CreateSubscription {
   };
   plan: string;
   request?: string;
+  configuration?: SubscriptionConsumerConfiguration;
 }
 
 export interface UpdateSubscription extends Omit<Subscription, 'consumerConfiguration'> {

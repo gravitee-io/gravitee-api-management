@@ -27,7 +27,7 @@ export interface Plan {
   mode: PlanMode;
   usage_configuration?: PlanUsageConfiguration;
 }
-export type PlanSecurityEnum = 'API_KEY' | 'KEY_LESS' | 'JWT' | 'OAUTH2' | 'MTLS';
+export type PlanSecurityEnum = 'API_KEY' | 'KEY_LESS' | 'JWT' | 'OAUTH2' | 'MTLS' | null;
 export const PlanSecurityEnum = {
   APIKEY: 'API_KEY' as PlanSecurityEnum,
   KEYLESS: 'KEY_LESS' as PlanSecurityEnum,

@@ -44,7 +44,7 @@ import { LoaderComponent } from '../loader/loader.component';
 })
 export class SubscriptionInfoComponent implements OnInit {
   @Input()
-  applicationName?: string = '';
+  applicationName: string = '';
 
   @Input()
   planName: string = '';
