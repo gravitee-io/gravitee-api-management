@@ -24,10 +24,20 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApplicationNotificationComponent } from './application-notification.component';
 
 import { NotificationModule } from '../../../../components/notification';
+import { ApplicationMetadataModule } from '../metadata/application-metadata.module';
 
 @NgModule({
   declarations: [ApplicationNotificationComponent],
   exports: [],
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatDialogModule, NotificationModule, MatSnackBarModule],
+  imports: [
+    ApplicationMetadataModule,
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDialogModule,
+    NotificationModule,
+    MatSnackBarModule,
+  ],
 })
 export class ApplicationNotificationModule {}
