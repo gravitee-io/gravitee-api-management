@@ -47,6 +47,10 @@
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-vertx</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

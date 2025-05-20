@@ -29,6 +29,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
+import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupHistoryQueryService;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapter;
 import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapterImpl;
 import io.gravitee.definition.model.v4.ApiType;
@@ -55,15 +56,15 @@ public class SharedPolicyGroupCrudServiceImplTest {
 
     SharedPolicyGroupRepository repository;
     SharedPolicyGroupAdapter mapper;
+    SharedPolicyGroupHistoryQueryService sharedPolicyGroupHistoryQueryService;
     SharedPolicyGroupCrudServiceImpl service;
 
     @BeforeEach
     void setUp() {
         repository = mock(SharedPolicyGroupRepository.class);
-
         mapper = new SharedPolicyGroupAdapterImpl();
-
-        service = new SharedPolicyGroupCrudServiceImpl(repository, mapper);
+        sharedPolicyGroupHistoryQueryService = mock(SharedPolicyGroupHistoryQueryService.class);
+        service = new SharedPolicyGroupCrudServiceImpl(repository, mapper, sharedPolicyGroupHistoryQueryService);
     }
 
     @Nested
@@ -327,5 +328,47 @@ public class SharedPolicyGroupCrudServiceImplTest {
             .createdAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
             .updatedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
             .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED);
+    }
+
+    @Test
+    public void getLastDeployedByEnvironmentIdAndCrossId_currentIsDeployed() throws TechnicalException {
+        String environmentId = "envId";
+        String crossId = "crossId";
+        var currentSharedPolicyGroup = io.gravitee.repository.management.model.SharedPolicyGroup
+            .builder()
+            .id("spg1")
+            .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED)
+            .build();
+        when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId)).thenReturn(Optional.of(currentSharedPolicyGroup));
+        SharedPolicyGroup sharedPolicyGroup = service.getLastDeployedByEnvironmentIdAndCrossId(environmentId, crossId).orElseThrow();
+        assertThat(sharedPolicyGroup.getId()).isEqualTo(currentSharedPolicyGroup.getId());
+    }
+
+    @Test
+    public void getLastDeployedByEnvironmentIdAndCrossId_currentIsNotDeployed_historyPresent() throws TechnicalException {
+        String environmentId = "envId";
+        String crossId = "crossId";
+        io.gravitee.repository.management.model.SharedPolicyGroup currentSharedPolicyGroup =
+            io.gravitee.repository.management.model.SharedPolicyGroup
+                .builder()
+                .id("spg1")
+                .lifecycleState(SharedPolicyGroupLifecycleState.PENDING)
+                .build();
+        when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId)).thenReturn(Optional.of(currentSharedPolicyGroup));
+        var historySharedPolicyGroup = SharedPolicyGroup.builder().id("spg1").name("previous_spg").build();
+        when(sharedPolicyGroupHistoryQueryService.getLatestBySharedPolicyGroupId(environmentId, currentSharedPolicyGroup.getId()))
+            .thenReturn(Optional.of(historySharedPolicyGroup));
+        SharedPolicyGroup sharedPolicyGroup = service.getLastDeployedByEnvironmentIdAndCrossId(environmentId, crossId).orElseThrow();
+        assertThat(sharedPolicyGroup.getId()).isEqualTo(historySharedPolicyGroup.getId());
+        assertThat(sharedPolicyGroup.getId()).isEqualTo(historySharedPolicyGroup.getId());
+    }
+
+    @Test
+    public void getLastDeployedByEnvironmentIdAndCrossId_noSharedPolicyGroup() throws TechnicalException {
+        String environmentId = "envId";
+        String crossId = "crossId";
+        when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId)).thenReturn(Optional.empty());
+        Optional<SharedPolicyGroup> sharedPolicyGroup = service.getLastDeployedByEnvironmentIdAndCrossId(environmentId, crossId);
+        assertThat(sharedPolicyGroup).isEmpty();
     }
 }

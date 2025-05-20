@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.sharedpolicygroup.policy;
+package io.gravitee.definition.model.sharedpolicygroup;
 
 import io.gravitee.policy.api.PolicyConfiguration;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * @deprecated Use {@link io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration} instead.
- */
-@Deprecated
-@Setter
 @Getter
+@Setter
 public class SharedPolicyGroupPolicyConfiguration implements PolicyConfiguration {
 
     String sharedPolicyGroupId;
