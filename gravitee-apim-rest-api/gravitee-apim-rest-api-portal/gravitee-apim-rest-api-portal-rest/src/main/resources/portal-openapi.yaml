@@ -4739,6 +4739,10 @@ components:
                     description: Creation date and time of the subscription.
                     type: string
                     format: date-time
+                updated_at:
+                  description: Updated date and time of the subscription.
+                  type: string
+                  format: date-time
                 processed_at:
                     description: Date and time when the subscription request was processed.
                     type: string

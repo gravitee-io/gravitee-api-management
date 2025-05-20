@@ -58,6 +58,15 @@
           }
         </div>
 
+        <div class="subscription-info__content-row">
+          <span class="m3-title-small" i18n="@@createdAt">Created At:</span>
+          <span class="m3-body-medium">{{ createdAt }}</span>
+        </div>
+        <div class="subscription-info__content-row">
+          <span class="m3-title-small" i18n="@@updatedAt">Updated At:</span>
+          <span class="m3-body-medium">{{ updatedAt }}</span>
+        </div>
+
         @if (!!planUsageConfiguration?.quota?.limit) {
           <div class="subscription-info__content-row">
             <span class="m3-title-small" i18n="@@subscriptionDetailsHeaderQuota">Quota:</span>
@@ -101,7 +110,11 @@
               <div class="banner-body__description">
                 <div class="m3-title-medium" i18n="@@subscriptionDetailsConsumerFailedTitle">Subscription consumer failed</div>
                 <div class="m3-body-medium" i18n="@@subscriptionDetailsConsumerFailedDescription">
-                  There is a problem with the API endpoint. Details of the error are available from the API publisher.
+                  Subscription consumer failed There is a problem with the Webhook endpoint.
+                </div>
+                <div class="subscription-info__header" i18n="@@subscriptionDetailsConsumerFailedCause">
+                  <span class="m3-title-medium">Failure Cause1:</span>
+                  <span class="m3-body-medium">{{ failureCause }}</span>
                 </div>
               </div>
             </div>

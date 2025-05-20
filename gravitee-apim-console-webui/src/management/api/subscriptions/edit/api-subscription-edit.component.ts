@@ -73,7 +73,9 @@ interface SubscriptionDetailVM {
   application?: { id: string; label: string; name: string; description: string };
   publisherMessage?: string;
   subscriberMessage?: string;
+  failureCause?: string;
   createdAt?: Date;
+  updatedAt?: Date;
   endingAt?: Date;
   pausedAt?: Date;
   processedAt?: Date;
@@ -170,10 +172,12 @@ export class ApiSubscriptionEditComponent implements OnInit {
               },
               status: subscription.status,
               consumerStatus: subscription.consumerStatus,
+              failureCause: subscription.failureCause,
               subscribedBy: subscription.subscribedBy.displayName,
               publisherMessage: subscription.publisherMessage,
               subscriberMessage: subscription.consumerMessage,
               createdAt: subscription.createdAt,
+              updatedAt: subscription.updatedAt,
               pausedAt: subscription.pausedAt,
               startingAt: subscription.startingAt,
               endingAt: subscription.endingAt,
