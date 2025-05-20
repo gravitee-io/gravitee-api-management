@@ -741,4 +741,4 @@ orbs:
   aws-cli: circleci/aws-cli@5.1.2
   helm: circleci/helm@3.0.0
   gh: circleci/github-cli@1.0.5
-  aquasec: gravitee-io/aquasec@1.0.4
+  aquasec: gravitee-io/aquasec@1.0.5
