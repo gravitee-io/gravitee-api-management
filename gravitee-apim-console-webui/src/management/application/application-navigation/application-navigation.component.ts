@@ -98,6 +98,11 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
                 },
               ],
             },
+            {
+              displayName: 'Metadata',
+              routerLink: 'metadata',
+              permissions: ['application-metadata-r'],
+            },
             ...(application.api_key_mode === 'SHARED'
               ? [
                   {

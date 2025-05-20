@@ -26,6 +26,7 @@ import { ApplicationCreationComponent } from '../application/application-creatio
 import { ApplicationGeneralComponent } from '../application/application-general/application-general.component';
 import { ApplicationLogsComponent } from '../application/application-logs/application-logs.component';
 import { ApplicationMembersComponent } from '../application/application-members/application-members.component';
+import { ApplicationMetadataComponent } from '../application/application-metadata/application-metadata.component';
 import { ApplicationNotificationsComponent } from '../application/application-notifications/application-notifications.component';
 import { ApplicationSubscriptionsComponent } from '../application/application-subscriptions/application-subscriptions.component';
 import { SubscriptionsComponent } from '../subscriptions/subscriptions.component';
@@ -111,12 +112,22 @@ const routes: Routes = [
         },
       },
       {
+        path: 'metadata',
+        component: ApplicationMetadataComponent,
+        data: {
+          icon: 'home:book-open',
+          title: 'route.metadata',
+          animation: { type: 'slide', group: 'app', index: 2 },
+          expectedPermissions: ['METADATA-R'],
+        },
+      },
+      {
         path: 'subscriptions',
         component: ApplicationSubscriptionsComponent,
         data: {
           icon: 'home:key',
           title: 'route.subscriptions',
-          animation: { type: 'slide', group: 'app', index: 2 },
+          animation: { type: 'slide', group: 'app', index: 3 },
           expectedPermissions: ['SUBSCRIPTION-R'],
         },
       },
@@ -126,7 +137,7 @@ const routes: Routes = [
         data: {
           icon: 'communication:group',
           title: 'route.members',
-          animation: { type: 'slide', group: 'app', index: 3 },
+          animation: { type: 'slide', group: 'app', index: 4 },
           expectedPermissions: ['MEMBER-R'],
         },
       },
@@ -137,7 +148,7 @@ const routes: Routes = [
           icon: 'shopping:chart-line#1',
           menu: { slots: { right: GvSelectDashboardComponent } },
           title: 'route.analyticsApplication',
-          animation: { type: 'slide', group: 'app', index: 4 },
+          animation: { type: 'slide', group: 'app', index: 5 },
           expectedPermissions: ['ANALYTICS-R'],
         },
         resolve: {
@@ -150,7 +161,7 @@ const routes: Routes = [
         data: {
           icon: 'communication:clipboard-list',
           title: 'route.logsApplication',
-          animation: { type: 'slide', group: 'app', index: 5 },
+          animation: { type: 'slide', group: 'app', index: 6 },
           expectedPermissions: ['LOG-R'],
         },
       },
@@ -160,7 +171,7 @@ const routes: Routes = [
         data: {
           icon: 'general:notifications#2',
           title: 'route.notifications',
-          animation: { type: 'slide', group: 'app', index: 6 },
+          animation: { type: 'slide', group: 'app', index: 7 },
           expectedPermissions: ['NOTIFICATION-R'],
         },
       },
@@ -172,7 +183,7 @@ const routes: Routes = [
           icon: 'home:alarm-clock',
           title: 'route.alerts',
           expectedFeature: FeatureEnum.alert,
-          animation: { type: 'slide', group: 'app', index: 7 },
+          animation: { type: 'slide', group: 'app', index: 8 },
           expectedPermissions: ['ALERT-R'],
         },
       },
