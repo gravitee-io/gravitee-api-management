@@ -157,13 +157,17 @@ describe('ApiSubscriptionEditComponent', () => {
         subscription: {
           ...BASIC_SUBSCRIPTION(),
           consumerStatus: 'FAILURE',
+          failureCause: 'Error occurred during message processing',
+
           plan: { ...BASIC_SUBSCRIPTION().plan, mode: 'PUSH', security: null },
         },
       });
       expectApiKeyListGet();
 
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
-
+      expect(await harness.getFailureCause()).toEqual('Error occurred during message processing');
+      expect(await harness.getCreatedAt()).toEqual('Jan 1, 2020, 12:00:00 AM');
+      expect(await harness.getUpdatedAt()).toEqual('Jan 1, 2020, 12:00:00 AM');
       expect(await harness.getConsumerStatus()).toEqual('FAILURE');
     });
 
