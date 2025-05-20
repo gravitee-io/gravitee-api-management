@@ -15,40 +15,37 @@
     limitations under the License.
 
 -->
-<div>
-  <mat-card>
-    <mat-card-content>
-      <div class="notifications">
-        <div class="notifications__header">
-          <div class="notifications__title">
-            <h3 class="notifications__title__main">Notifications</h3>
-            <div class="notifications__title__subtitle">
-              Configure your own Developer Portal notifications using Portal, Email or Webhook notifier
-            </div>
+<mat-card>
+  <mat-card-content>
+    <div class="notifications">
+      <div class="notifications__header">
+        <div class="notifications__title">
+          <h3 class="notifications__title__main">Notifications</h3>
+          <div class="notifications__title__subtitle">
+            Configure your own Developer Portal notifications using Portal, Email or Webhook notifier
           </div>
-
-          <button
-            *ngIf="canAdd"
-            mat-raised-button
-            [attr.aria-label]="'Add notification'"
-            (click)="addNotification()"
-            data-testid="add-notification"
-            color="primary"
-          >
-            <mat-icon svgIcon="gio:plus"></mat-icon>Add notification
-          </button>
         </div>
 
-        <notification-list
-          [canUpdate]="canUpdate"
-          [canDelete]="canDelete"
-          [loading]="loading"
-          [notifications]="notificationsSummary$ | async"
-          (delete)="deleteNotification($event)"
-          (edit)="editNotification($event)"
-        ></notification-list>
+        <button
+          *ngIf="canAdd"
+          mat-raised-button
+          [attr.aria-label]="'Add notification'"
+          (click)="addNotification()"
+          data-testid="add-notification"
+          color="primary"
+        >
+          <mat-icon svgIcon="gio:plus"></mat-icon>Add notification
+        </button>
       </div>
-    </mat-card-content>
-  </mat-card>
-  <application-metadata />
-</div>
+
+      <notification-list
+        [canUpdate]="canUpdate"
+        [canDelete]="canDelete"
+        [loading]="loading"
+        [notifications]="notificationsSummary$ | async"
+        (delete)="deleteNotification($event)"
+        (edit)="editNotification($event)"
+      ></notification-list>
+    </div>
+  </mat-card-content>
+</mat-card>
