@@ -70,6 +70,15 @@ export class SubscriptionInfoComponent implements OnInit {
   @Input()
   consumerStatus: SubscriptionConsumerStatusEnum = SubscriptionConsumerStatusEnum.STARTED;
 
+  @Input()
+  failureCause?: string = '';
+
+  @Input()
+  createdAt?: string = '';
+
+  @Input()
+  updatedAt?: string = '';
+
   @Output()
   resumeConsumerStatus = new EventEmitter<void>();
 
