@@ -1,5 +1,11 @@
-@use '../../../../scss/gio-layout' as gio-layout;
+$container-padding-top: 24px;
+$container-padding-bottom: 48px;
+
+@mixin application-metadata-content-container {
+  display: block;
+  padding: $container-padding-top 0 $container-padding-bottom 0;
+}
 
 :host {
-  @include gio-layout.gio-responsive-content-container;
+  @include application-metadata-content-container;
 }

@@ -16,26 +16,22 @@
 
 -->
 
-<div class="page__content">
-  <div class="main">
-    <div class="page__box form">
-      <div class="page__box-title">
-        <h3 class="title">
-          {{ 'application.metadata.list.title' | translate }}
-          <span *ngIf="metadata">({{ metadata.length - 1 }})</span>
-        </h3>
-      </div>
-      <div class="page__box-content">
-        <gv-table [items]="metadata" [options]="metadataOptions" order="key" nosort rowheight="52px"></gv-table>
-      </div>
-      <div class="page__box-footer form__actions" *ngIf="hasUpdatePermission && hasMetadata">
-        <gv-button primary outlined [disabled]="!this.canReset()" (click)="this.reset()">{{
-          'application.metadata.reset.title' | translate
-        }}</gv-button>
-        <gv-button primary icon="general:save" [disabled]="!this.canUpdate()" (click)="this.updateMetadata($event)">{{
-          'application.metadata.update.title' | translate
-        }}</gv-button>
-      </div>
-    </div>
+<div class="page__box form">
+  <div class="page__box-title">
+    <h3 class="title">
+      {{ 'application.metadata.list.title' | translate }}
+      <span *ngIf="metadata">({{ metadata.length - 1 }})</span>
+    </h3>
+  </div>
+  <div class="page__box-content">
+    <gv-table [items]="metadata" [options]="metadataOptions" order="key" nosort rowheight="52px"></gv-table>
+  </div>
+  <div class="page__box-footer form__actions" *ngIf="hasUpdatePermission && hasMetadata">
+    <gv-button primary outlined [disabled]="!this.canReset()" (click)="this.reset()">{{
+      'application.metadata.reset.title' | translate
+    }}</gv-button>
+    <gv-button primary icon="general:save" [disabled]="!this.canUpdate()" (click)="this.updateMetadata($event)">{{
+      'application.metadata.update.title' | translate
+    }}</gv-button>
   </div>
 </div>
