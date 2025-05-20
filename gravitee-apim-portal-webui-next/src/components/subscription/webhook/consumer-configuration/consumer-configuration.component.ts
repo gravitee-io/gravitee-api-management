@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, EventEmitter, input, Input, InputSignal, OnInit, Output } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, input, Input, InputSignal, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
@@ -22,6 +22,7 @@ import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
+import { omitBy, isNull } from 'lodash';
 import { map, Observable, startWith } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -55,7 +56,7 @@ import { ConsumerConfigurationSslComponent } from '../consumer-configuration-ssl
   templateUrl: './consumer-configuration.component.html',
   styleUrls: ['./consumer-configuration.component.scss'],
 })
-export class ConsumerConfigurationComponent implements OnInit {
+export class ConsumerConfigurationComponent implements OnInit, AfterViewInit {
   @Input()
   isUpdate = false;
 
@@ -63,7 +64,7 @@ export class ConsumerConfigurationComponent implements OnInit {
   save = new EventEmitter();
 
   @Input()
-  consumerConfigurationFormValues!: ConsumerConfigurationValues | null;
+  consumerConfigurationFormValues: ConsumerConfigurationValues | undefined;
 
   @Output()
   consumerConfigurationFormDataChange = new EventEmitter<ConsumerConfigurationFormData>();
@@ -75,7 +76,7 @@ export class ConsumerConfigurationComponent implements OnInit {
     consumerConfiguration: new FormGroup({
       callbackUrl: new FormControl('', {
         nonNullable: true,
-        validators: [Validators.required, Validators.pattern(/^(http|https):/)],
+        validators: [Validators.required, Validators.pattern(/(http|https)?:\/\/(\S+)/)],
       }),
       headers: new FormControl(),
       retry: new FormControl(),
@@ -84,11 +85,15 @@ export class ConsumerConfigurationComponent implements OnInit {
     }),
   });
 
-  initialValues!: ConsumerConfigurationValues;
+  initialValues!: Partial<ConsumerConfigurationValues>;
   formUnchanged$: Observable<boolean> = of(true);
 
   ngOnInit(): void {
     this.initForm();
+  }
+
+  ngAfterViewInit() {
+    this.afterFormInit();
   }
 
   submit() {
@@ -107,15 +112,14 @@ export class ConsumerConfigurationComponent implements OnInit {
       this.consumerConfigurationForm.patchValue({
         channel: this.consumerConfigurationFormValues.channel,
         consumerConfiguration: {
-          callbackUrl: this.consumerConfigurationFormValues.consumerConfiguration.callbackUrl,
-          headers: this.consumerConfigurationFormValues.consumerConfiguration.headers,
-          retry: this.consumerConfigurationFormValues.consumerConfiguration.retry,
-          ssl: this.consumerConfigurationFormValues.consumerConfiguration.ssl,
-          auth: this.consumerConfigurationFormValues.consumerConfiguration.auth,
+          callbackUrl: this.consumerConfigurationFormValues.consumerConfiguration?.callbackUrl,
+          headers: this.consumerConfigurationFormValues.consumerConfiguration?.headers,
+          retry: this.consumerConfigurationFormValues.consumerConfiguration?.retry,
+          ssl: this.consumerConfigurationFormValues.consumerConfiguration?.ssl,
+          auth: this.consumerConfigurationFormValues.consumerConfiguration?.auth,
         },
       });
     }
-    this.afterFormInit();
   }
 
   private afterFormInit() {
@@ -126,12 +130,28 @@ export class ConsumerConfigurationComponent implements OnInit {
         map(value => deepEqualIgnoreOrder(this.initialValues, value)),
       );
     } else {
-      this.consumerConfigurationForm.valueChanges.subscribe(_ => {
+      // emit on every change:
+      this.consumerConfigurationForm.valueChanges.subscribe(() => {
         this.consumerConfigurationFormDataChange.emit({
-          value: this.consumerConfigurationForm.getRawValue(),
+          value: this.mapFormValuesToConfiguration(this.consumerConfigurationForm.getRawValue()),
           isValid: this.consumerConfigurationForm.valid,
         });
       });
     }
+  }
+
+  private mapFormValuesToConfiguration(formValues: ConsumerConfigurationValues): ConsumerConfigurationValues {
+    const { headers, callbackUrl, retry, ssl, auth } = formValues.consumerConfiguration;
+
+    return {
+      channel: formValues.channel || '',
+      consumerConfiguration: {
+        headers: headers || [],
+        auth,
+        callbackUrl,
+        retry: { ...omitBy(retry, isNull), retryOption: retry?.retryOption },
+        ssl: { ...omitBy(ssl, isNull) },
+      },
+    };
   }
 }

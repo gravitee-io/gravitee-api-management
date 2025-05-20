@@ -29,6 +29,7 @@ import { SubscribeToApiChoosePlanHarness } from './subscribe-to-api-choose-plan/
 import { SubscribeToApiComponent } from './subscribe-to-api.component';
 import { ApiAccessHarness } from '../../../components/api-access/api-access.harness';
 import { RadioCardHarness } from '../../../components/radio-card/radio-card.harness';
+import { ConsumerConfigurationComponentHarness } from '../../../components/subscription/webhook/consumer-configuration/consumer-configuration.harness';
 import { Api } from '../../../entities/api/api';
 import { fakeApi } from '../../../entities/api/api.fixtures';
 import { ApplicationsResponse } from '../../../entities/application/application';
@@ -59,6 +60,7 @@ describe('SubscribeToApiComponent', () => {
   const OAUTH2_PLAN_ID = 'oauth2-plan';
   const JWT_PLAN_ID = 'jwt-plan';
   const MTLS_PLAN_ID = 'mtls-plan';
+  const PUSH_PLAN_ID = 'push-plan';
   const GENERAL_CONDITIONS_ID = 'page-id';
   const APP_ID = 'app-id';
   const APP_ID_NO_SUBSCRIPTIONS = 'app-id-no-subscriptions';
@@ -107,6 +109,7 @@ describe('SubscribeToApiComponent', () => {
         fakePlan({ id: OAUTH2_PLAN_ID, security: 'OAUTH2', general_conditions: undefined }),
         fakePlan({ id: JWT_PLAN_ID, security: 'JWT', general_conditions: undefined }),
         fakePlan({ id: MTLS_PLAN_ID, security: 'MTLS', general_conditions: undefined }),
+        fakePlan({ id: PUSH_PLAN_ID, comment_required: true, general_conditions: undefined, mode: 'PUSH' }),
       ],
     });
     fixture.detectChanges();
@@ -114,6 +117,82 @@ describe('SubscribeToApiComponent', () => {
 
   afterEach(() => {
     httpTestingController.verify();
+  });
+
+  describe('User subscribes to Push plan', () => {
+    beforeEach(async () => {});
+    describe('selects push plan', () => {
+      it('should be able to go to consumer configuration form', async () => {
+        await init(true);
+        const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
+        await step1.selectPlanByPlanId(PUSH_PLAN_ID);
+        await goToNextStep();
+
+        expectGetSubscriptionsForApi(
+          API_ID,
+          fakeSubscriptionResponse({
+            data: [fakeSubscription({ status: 'CLOSED', plan: PUSH_PLAN_ID, application: '3' })],
+            metadata: {
+              [PUSH_PLAN_ID]: {
+                planMode: 'PUSH',
+              },
+            },
+          }),
+        );
+        const APP_ID_1 = 'app-id-1';
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID_1, name: 'App 1' })],
+          }),
+        );
+        fixture.detectChanges();
+
+        expect(getTitle()).toEqual('Choose an application');
+        const app1 = await harnessLoader.getHarnessOrNull(RadioCardHarness.with({ title: 'App 1' }));
+        await app1?.select();
+        await goToNextStep();
+        fixture.detectChanges();
+
+        expect(getTitle()).toEqual('Configure Consumer');
+        const consumerConfigurationStep = await harnessLoader.getHarness(ConsumerConfigurationComponentHarness);
+        expect(await canGoToNextStep()).toEqual(false);
+        await consumerConfigurationStep.setInputTextValueFromControlName('callbackUrl', 'https://pawels.example.com');
+        expect(await canGoToNextStep()).toEqual(true);
+        await goToNextStep();
+        fixture.detectChanges();
+
+        expect(getTitle()).toEqual('Checkout');
+        const checkout = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+        const subscribeButton = await getSubscribeButton();
+        expect(await subscribeButton?.isDisabled()).toEqual(true);
+
+        const messageBox = await checkout.getMessageInput();
+        await messageBox.setValue('Test message');
+
+        expect(await subscribeButton?.isDisabled()).toEqual(false);
+        await subscribeButton?.click();
+
+        expectPostCreateSubscription({
+          plan: PUSH_PLAN_ID,
+          application: APP_ID_1,
+          request: 'Test message',
+          configuration: {
+            channel: '',
+            entrypointId: 'webhook',
+            entrypointConfiguration: {
+              callbackUrl: 'https://pawels.example.com',
+              headers: [],
+              retry: {
+                retryOption: 'No Retry',
+              },
+              ssl: { hostnameVerifier: false, trustAll: false },
+              auth: { type: 'none' },
+            },
+          },
+        });
+      });
+    });
   });
 
   describe('User subscribes to Keyless plan', () => {

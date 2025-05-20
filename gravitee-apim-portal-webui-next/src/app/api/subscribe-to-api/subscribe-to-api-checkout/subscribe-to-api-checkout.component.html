@@ -18,7 +18,7 @@
 <div class="subscribe-to-api-checkout__container">
   <app-subscription-info
     class="subscribe-to-api-checkout__container__subscription-info"
-    [applicationName]="application?.name"
+    [applicationName]="application ? application.name : ''"
     [planName]="plan.name"
     [planUsageConfiguration]="plan.usage_configuration"
     [planSecurity]="plan.security"
