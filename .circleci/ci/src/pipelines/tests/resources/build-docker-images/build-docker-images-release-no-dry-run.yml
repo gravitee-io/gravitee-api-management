@@ -79,8 +79,12 @@ jobs:
       - aquasec/install_billy
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
+<<<<<<< HEAD
           artifact_to_register: graviteeio/apim-gateway:4.1.0
           debug: true
+=======
+          artifact_to_register: graviteeio/<< parameters.docker-image-name >>:4.2.0
+>>>>>>> f67b47860e (ci: deactivate debug for aqua's job [skip ci])
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-gateway:4.1.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
