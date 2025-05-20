@@ -49,8 +49,8 @@ export class SubscribeToApiCheckoutComponent implements OnInit {
   @Input()
   apiKeyMode!: WritableSignal<'EXCLUSIVE' | 'SHARED' | 'UNSPECIFIED' | null>;
 
-  @Input()
-  application?: Application;
+  @Input({ required: true })
+  application: Application | undefined;
 
   showApiKeyModeSelection: InputSignal<boolean> = input(false);
 

@@ -37,13 +37,6 @@
       [id]="plan.id"
       [plan]="plan"
       [selected]="selectedPlanId() === plan.id"
-      [disabled]="
-        plan.security !== 'KEY_LESS' &&
-        plan.security !== 'API_KEY' &&
-        plan.security !== 'OAUTH2' &&
-        plan.security !== 'JWT' &&
-        plan.security !== 'MTLS'
-      "
       [apiType]="api.type"
       (selectPlan)="selectPlan.emit(plan)" />
   }

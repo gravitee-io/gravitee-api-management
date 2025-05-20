@@ -43,8 +43,8 @@ import { LoaderComponent } from '../loader/loader.component';
   styleUrl: './subscription-info.component.scss',
 })
 export class SubscriptionInfoComponent implements OnInit {
-  @Input()
-  applicationName?: string = '';
+  @Input({ required: true })
+  applicationName: string = '';
 
   @Input()
   planName: string = '';
