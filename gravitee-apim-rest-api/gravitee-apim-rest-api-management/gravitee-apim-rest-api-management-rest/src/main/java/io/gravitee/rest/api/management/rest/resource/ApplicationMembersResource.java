@@ -34,6 +34,8 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
+import io.gravitee.rest.api.service.exceptions.TransferNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.TransferOwnershipNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -222,6 +224,7 @@ public class ApplicationMembersResource extends AbstractResource {
     public Response transferApplicationOwnership(@Valid @NotNull TransferOwnership transferOwnership) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         List<RoleEntity> newRoles = new ArrayList<>();
+        assertNoPrimaryOwnerReassignment(transferOwnership.getPoRole());
 
         roleService
             .findByScopeAndName(APPLICATION, transferOwnership.getPoRole(), executionContext.getOrganizationId())
@@ -235,5 +238,11 @@ public class ApplicationMembersResource extends AbstractResource {
             newRoles
         );
         return Response.ok().build();
+    }
+
+    private void assertNoPrimaryOwnerReassignment(String poRole) {
+        if ("PRIMARY_OWNER".equals(poRole)) {
+            throw new TransferOwnershipNotAllowedException(poRole);
+        }
     }
 }
