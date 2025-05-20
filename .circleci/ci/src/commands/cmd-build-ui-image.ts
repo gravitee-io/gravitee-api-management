@@ -86,7 +86,6 @@ export class BuildUiImageCommand {
         new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
         new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
           artifact_to_register: `graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}`,
-          debug: true,
         }),
         new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
           docker_image_to_scan: `graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}`,

@@ -157,7 +157,6 @@ commands:
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
           artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
@@ -737,10 +736,8 @@ jobs:
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
           artifact_to_register: graviteeio.azurecr.io/apim-management-api:master-latest
-          debug: true
       - aquasec/register_artifact:
           artifact_to_register: graviteeio.azurecr.io/apim-gateway:master-latest
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/apim-management-api:master-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
@@ -1044,7 +1041,6 @@ workflows:
       - aquasec/fs_scan:
           context:
             - cicd-orchestrator
-          debug: true
           pre-steps:
             - keeper/env-export:
                 secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
