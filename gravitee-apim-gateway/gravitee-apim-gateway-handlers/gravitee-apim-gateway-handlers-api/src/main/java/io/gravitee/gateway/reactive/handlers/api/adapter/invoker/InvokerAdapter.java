@@ -22,8 +22,6 @@ import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
@@ -46,6 +44,9 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
 
     private static final Logger log = LoggerFactory.getLogger(InvokerAdapter.class);
     static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
+    static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
+    static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE =
+        "The response cannot be sent to the client because the client has aborted";
 
     private final io.gravitee.gateway.api.Invoker legacyInvoker;
     private final String id;
@@ -86,7 +87,15 @@ public class InvokerAdapter implements Invoker, io.gravitee.gateway.api.Invoker 
                     nextEmitter.tryOnError(new Exception("An error occurred while trying to execute invoker " + id, t));
                 }
             })
-            .doFinally(adaptedCtx::restore)
+            .doOnTerminate(adaptedCtx::restore)
+            .doOnDispose(() -> {
+                if (ctx.response().status() == 0) {
+                    ctx.response().status(500);
+                    ctx.metrics().setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+                    ctx.metrics().setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE);
+                }
+                adaptedCtx.restore();
+            })
             .onErrorResumeNext(throwable -> {
                 // In case of any error, make sure to reset the response content.
                 ctx.response().chunks(Flowable.empty());
