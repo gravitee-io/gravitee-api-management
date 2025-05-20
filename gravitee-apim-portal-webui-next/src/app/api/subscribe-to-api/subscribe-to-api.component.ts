@@ -42,6 +42,7 @@ import { Api } from '../../../entities/api/api';
 import { Application, ApplicationsResponse } from '../../../entities/application/application';
 import { Page } from '../../../entities/page/page';
 import { Plan } from '../../../entities/plan/plan';
+import { SubscriptionConsumerConfiguration } from '../../../entities/subscription';
 import { CreateSubscription, Subscription } from '../../../entities/subscription/subscription';
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
 import { ApplicationService } from '../../../services/application.service';
@@ -118,7 +119,7 @@ export class SubscribeToApiComponent implements OnInit {
   currentApplication$ = toObservable(this.currentApplication);
 
   hasSubscriptionError: boolean = false;
-  consumerConfigurationFormData = signal<ConsumerConfigurationFormData>({ value: null, isValid: false });
+  consumerConfigurationFormData = signal<ConsumerConfigurationFormData>({ value: undefined, isValid: false });
 
   private currentApplicationsPage: BehaviorSubject<number> = new BehaviorSubject(1);
   private destroyRef = inject(DestroyRef);
@@ -206,6 +207,7 @@ export class SubscribeToApiComponent implements OnInit {
     const createSubscription: CreateSubscription = {
       application,
       plan,
+      ...this.toConsumerConfiguration(),
       ...(this.message() ? { request: this.message() } : {}),
       ...(apiKeyMode ? { api_key_mode: apiKeyMode } : {}),
     };
@@ -231,6 +233,24 @@ export class SubscribeToApiComponent implements OnInit {
           this.subscriptionInProgress.set(false);
         },
       });
+  }
+
+  private toConsumerConfiguration(): SubscriptionConsumerConfiguration | Record<string, never> {
+    if (this.currentPlan()?.mode !== 'PUSH') {
+      return {};
+    }
+
+    let consumerConfiguration = {};
+    if (this.consumerConfigurationFormData().value) {
+      consumerConfiguration = {
+        configuration: {
+          entrypointId: 'webhook',
+          channel: this.consumerConfigurationFormData().value?.channel,
+          entrypointConfiguration: this.consumerConfigurationFormData().value?.consumerConfiguration,
+        },
+      };
+    }
+    return consumerConfiguration;
   }
 
   private getApplicationsData$(page: number, subscriptionsResponse: SubscriptionsResponse): Observable<ApplicationsData> {
