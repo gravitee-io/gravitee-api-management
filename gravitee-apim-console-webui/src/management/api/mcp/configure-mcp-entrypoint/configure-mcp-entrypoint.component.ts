@@ -128,4 +128,8 @@ export class ConfigureMcpEntrypointComponent implements OnInit {
       )
       .subscribe();
   }
+
+  importToolsFromOpenAPI() {
+
+  }
 }

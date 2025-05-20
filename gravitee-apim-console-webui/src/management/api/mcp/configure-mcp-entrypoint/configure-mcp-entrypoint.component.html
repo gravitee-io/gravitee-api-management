@@ -15,11 +15,11 @@
     limitations under the License.
 
 -->
-<div class="back">
-  <a mat-button [routerLink]="'..'"><mat-icon svgIcon="gio:arrow-left" />Go back</a>
-</div>
 <mat-card>
+  <div>
+
   @if (creationMode) {
+
     <mat-card-header>
       <mat-card-title>Enable MCP Entrypoint</mat-card-title>
       <mat-card-subtitle>Configure the new MCP entrypoint</mat-card-subtitle>
@@ -30,10 +30,15 @@
       <mat-card-subtitle>Configure the MCP entrypoint</mat-card-subtitle>
     </mat-card-header>
   }
+  </div>
+  <button mat-stroked-button (click)="importToolsFromOpenAPI()">Import tools from OpenAPI</button>
   <mat-card-content [formGroup]="form">
     <gio-form-json-schema [jsonSchema]="mcpEntrypointSchema$ | async" formControlName="configuration" />
   </mat-card-content>
 </mat-card>
+<div class="back">
+  <a mat-button [routerLink]="'..'"><mat-icon svgIcon="gio:arrow-left" />Go back</a>
+</div>
 <gio-save-bar
   [creationMode]="creationMode"
   [form]="form"
