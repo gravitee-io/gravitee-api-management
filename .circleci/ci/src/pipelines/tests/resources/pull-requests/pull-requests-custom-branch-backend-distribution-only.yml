@@ -146,7 +146,6 @@ workflows:
       - aquasec/fs_scan:
           context:
             - cicd-orchestrator
-          debug: true
           pre-steps:
             - keeper/env-export:
                 secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key

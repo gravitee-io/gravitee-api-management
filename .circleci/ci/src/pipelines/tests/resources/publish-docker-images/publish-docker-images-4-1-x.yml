@@ -281,7 +281,6 @@ jobs:
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
           artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest
           scanner_url: https://82fb8f75da.cloud.aquasec.com
