@@ -16,6 +16,8 @@
 package io.gravitee.gateway.reactive.handlers.api.adapter.invoker;
 
 import static io.gravitee.common.http.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
+import static io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter.CLIENT_ABORTED_DURING_RESPONSE_ERROR;
+import static io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter.CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE;
 import static io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter.GATEWAY_CLIENT_CONNECTION_ERROR;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,6 +34,7 @@ import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.reactive.policy.adapter.context.RequestAdapter;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.core.Flowable;
@@ -66,6 +69,9 @@ class InvokerAdapterTest {
 
     @Mock
     private ExecutionContext ctx;
+
+    @Mock
+    private Metrics metrics;
 
     private InvokerAdapter cut;
 
@@ -190,12 +196,15 @@ class InvokerAdapterTest {
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
+        when(ctx.metrics()).thenReturn(metrics);
 
         final TestObserver<Void> obs = cut.invoke(ctx).test(true);
 
         obs.assertNotComplete();
 
         verify(adaptedExecutionContext).restore();
+        verify(metrics).setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+        verify(metrics).setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE);
     }
 
     @Test
