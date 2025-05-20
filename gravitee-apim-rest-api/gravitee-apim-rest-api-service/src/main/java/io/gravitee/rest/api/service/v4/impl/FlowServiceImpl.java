@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -31,6 +33,7 @@ import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.FlowService;
@@ -57,11 +60,18 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
 
     private final FlowRepository flowRepository;
     private final TagService tagService;
+    private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
     private final FlowMapper flowMapper;
 
-    public FlowServiceImpl(@Lazy final FlowRepository flowRepository, final TagService tagService, final FlowMapper flowMapper) {
+    public FlowServiceImpl(
+        @Lazy final FlowRepository flowRepository,
+        final TagService tagService,
+        final SharedPolicyGroupCrudService sharedPolicyGroupCrudService,
+        final FlowMapper flowMapper
+    ) {
         this.flowRepository = flowRepository;
         this.tagService = tagService;
+        this.sharedPolicyGroupCrudService = sharedPolicyGroupCrudService;
         this.flowMapper = flowMapper;
     }
 
@@ -118,12 +128,33 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
         return fileContent;
     }
 
+    private void enrichFlow(io.gravitee.repository.management.model.flow.Flow flow) {
+        String envId = GraviteeContext.getCurrentEnvironment();
+        for (var flowRequest : flow.getRequest()) {
+            if ("shared-policy-group-policy".equals(flowRequest.getPolicy())) {
+                try {
+                    String crossId = new ObjectMapper()
+                        .readValue(flowRequest.getConfiguration(), HashMap.class)
+                        .get("sharedPolicyGroupId")
+                        .toString();
+                    SharedPolicyGroup sharedPolicyGroup = sharedPolicyGroupCrudService
+                        .findByEnvironmentIdAndCrossId(envId, crossId)
+                        .orElseThrow();
+                    flowRequest.setName(sharedPolicyGroup.getName());
+                } catch (Exception e) {
+                    log.warn("Error while trying to retrieve a shared policy group crossId. {}", e.getMessage());
+                }
+            }
+        }
+    }
+
     @Override
     public List<Flow> findByReference(final FlowReferenceType flowReferenceType, final String referenceId) {
         try {
             log.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
-            return flowRepository
-                .findByReference(flowReferenceType, referenceId)
+            List<io.gravitee.repository.management.model.flow.Flow> flows = flowRepository.findByReference(flowReferenceType, referenceId);
+            flows.forEach(this::enrichFlow);
+            return flows
                 .stream()
                 .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
                 .map(flowMapper::toDefinition)
