@@ -18,15 +18,23 @@ package inmemory;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
+import io.gravitee.apim.core.shared_policy_group.query_service.SharedPolicyGroupHistoryQueryService;
+import io.gravitee.repository.exceptions.TechnicalException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCrudService, InMemoryAlternative<SharedPolicyGroup> {
 
     final ArrayList<SharedPolicyGroup> storage = new ArrayList<>();
+
+    public SharedPolicyGroupCrudServiceInMemory(List<SharedPolicyGroup> items) {
+        initWith(items);
+    }
 
     @Override
     public SharedPolicyGroup create(SharedPolicyGroup sharedPolicyGroupEntity) {
@@ -68,6 +76,18 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
             .stream()
             .filter(sharedPolicyGroup ->
                 environmentId.equals(sharedPolicyGroup.getEnvironmentId()) && crossId.equals(sharedPolicyGroup.getCrossId())
+            )
+            .findFirst();
+    }
+
+    @Override
+    public Optional<SharedPolicyGroup> getLastDeployedByEnvironmentIdAndCrossId(String environmentId, String crossId) {
+        return storage
+            .stream()
+            .filter(sharedPolicyGroup ->
+                environmentId.equals(sharedPolicyGroup.getEnvironmentId()) &&
+                crossId.equals(sharedPolicyGroup.getCrossId()) &&
+                sharedPolicyGroup.isDeployed()
             )
             .findFirst();
     }
