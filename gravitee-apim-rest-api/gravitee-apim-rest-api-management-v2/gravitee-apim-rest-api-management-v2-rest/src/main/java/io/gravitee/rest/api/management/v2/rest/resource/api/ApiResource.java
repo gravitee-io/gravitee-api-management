@@ -111,6 +111,7 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.TransferOwnershipNotAllowedException;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
@@ -672,6 +673,7 @@ public class ApiResource extends AbstractResource {
         List<RoleEntity> newRoles = new ArrayList<>();
 
         if (apiTransferOwnership.getPoRole() != null) {
+            assertNoPrimaryOwnerReassignment(apiTransferOwnership.getPoRole());
             roleService
                 .findByScopeAndName(RoleScope.API, apiTransferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization())
                 .ifPresent(newRoles::add);
@@ -1105,5 +1107,11 @@ public class ApiResource extends AbstractResource {
             log.debug("Unknown excluded '{}'", ex);
         }
         return Stream.ofNullable(excludable);
+    }
+
+    private void assertNoPrimaryOwnerReassignment(String poRole) {
+        if ("PRIMARY_OWNER".equals(poRole)) {
+            throw new TransferOwnershipNotAllowedException(poRole);
+        }
     }
 }
