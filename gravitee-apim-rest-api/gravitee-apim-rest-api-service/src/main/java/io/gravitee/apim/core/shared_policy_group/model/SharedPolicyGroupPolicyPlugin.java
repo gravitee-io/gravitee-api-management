@@ -31,6 +31,8 @@ import lombok.Setter;
 @Builder(toBuilder = true)
 public class SharedPolicyGroupPolicyPlugin {
 
+    public static final String SHARED_POLICY_GROUP_POLICY = "shared-policy-group-policy";
+
     /**
      * The shared policy group id.
      */
@@ -62,7 +64,7 @@ public class SharedPolicyGroupPolicyPlugin {
      */
     @Setter(AccessLevel.NONE)
     @Builder.Default
-    private final String policyId = "shared-policy-group-policy";
+    private final String policyId = SHARED_POLICY_GROUP_POLICY;
 
     public static SharedPolicyGroupPolicyPlugin fromSharedPolicyGroup(SharedPolicyGroup sharedPolicyGroup) {
         return SharedPolicyGroupPolicyPlugin
