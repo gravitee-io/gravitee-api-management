@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -34,6 +37,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -114,5 +118,25 @@ public class ApiResource_TransferOwnershipTest extends ApiResourceTest {
         apiTransferOwnership.setUserType(MembershipMemberType.USER);
         apiTransferOwnership.setPoRole("role");
         return apiTransferOwnership;
+    }
+
+    @Test
+    public void should_not_reassign_primary_owner_role_to_PO() throws Exception {
+        when(apiSearchServiceV4.exists(API)).thenReturn(true);
+        ApiTransferOwnership apiTransferOwnership = fakeApiTransferOwnership();
+        apiTransferOwnership.setPoRole("PRIMARY_OWNER");
+
+        try (Response response = rootTarget().request().post(Entity.json(apiTransferOwnership))) {
+            String json = response.readEntity(String.class);
+            Map<String, Object> error = new ObjectMapper().readValue(json, Map.class);
+            Map<String, String> parameters = (Map<String, String>) error.get("parameters");
+
+            assertAll(
+                () -> assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400),
+                () -> assertThat(error).containsEntry("message", "The [PRIMARY_OWNER] role cannot be transferred to a Primary Owner."),
+                () -> assertThat(error).containsEntry("technicalCode", "role.transferNotAllowed"),
+                () -> assertThat(parameters).containsEntry("role", "PRIMARY_OWNER")
+            );
+        }
     }
 }
