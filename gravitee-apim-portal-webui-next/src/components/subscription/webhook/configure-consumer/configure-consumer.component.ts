@@ -45,7 +45,7 @@ export class ConfigureConsumerComponent implements OnInit {
   initialValues!: ConsumerConfigurationValues;
   isLoadingSubscription = true;
   error = false;
-  consumerConfigurationFormValues: ConsumerConfigurationValues | null = null;
+  consumerConfigurationFormValues: ConsumerConfigurationValues | undefined;
 
   constructor(
     private readonly subscriptionService: SubscriptionService,
@@ -133,19 +133,22 @@ export class ConfigureConsumerComponent implements OnInit {
     };
   }
 
-  private toConsumerConfigurationFormValues(): ConsumerConfigurationValues | null {
-    if (!this.subscription.consumerConfiguration) {
-      return null;
+  private toConsumerConfigurationFormValues(): ConsumerConfigurationValues {
+    const { consumerConfiguration } = this.subscription;
+    if (!consumerConfiguration) {
+      const error = 'Consumer configuration is missing in subscription';
+      this.error = true;
+      throw new Error(error);
     }
 
     return {
-      channel: this.subscription.consumerConfiguration.channel,
+      channel: this.subscription.consumerConfiguration?.channel || '',
       consumerConfiguration: {
-        callbackUrl: this.subscription.consumerConfiguration.entrypointConfiguration.callbackUrl,
-        headers: this.subscription.consumerConfiguration.entrypointConfiguration.headers,
-        retry: this.subscription.consumerConfiguration.entrypointConfiguration.retry,
-        ssl: this.subscription.consumerConfiguration.entrypointConfiguration.ssl,
-        auth: this.subscription.consumerConfiguration.entrypointConfiguration.auth,
+        callbackUrl: consumerConfiguration.entrypointConfiguration.callbackUrl || '',
+        headers: consumerConfiguration.entrypointConfiguration.headers || [],
+        retry: consumerConfiguration.entrypointConfiguration.retry,
+        ssl: consumerConfiguration.entrypointConfiguration.ssl,
+        auth: consumerConfiguration.entrypointConfiguration.auth,
       },
     };
   }

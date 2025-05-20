@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { CdkAccordionModule } from '@angular/cdk/accordion';
-import { Component, forwardRef } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, forwardRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -65,19 +66,24 @@ import { AccordionModule } from '../../../accordion/accordion.module';
     },
   ],
 })
-export class ConsumerConfigurationRetryComponent implements ControlValueAccessor, Validator {
+export class ConsumerConfigurationRetryComponent implements ControlValueAccessor, Validator, AfterViewInit {
   defaultRetryOption: RetryOptionsType = 'No Retry';
   retryForm: RetryFormType = new FormGroup({
     retryOption: new FormControl<RetryOptionsType>(this.defaultRetryOption, { validators: [Validators.required], nonNullable: true }),
   });
   retryOptions = RetryOptions;
   retryStrategies = RetryStrategies;
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
-    this.retryForm.valueChanges.subscribe(value => {
+    this.retryForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => {
       this.updateFormControls();
       this._onChange(this.toRetryFormValues(value));
     });
+  }
+
+  ngAfterViewInit() {
+    this.retryForm.patchValue({});
   }
 
   writeValue(value: RetryFormValues | null): void {

@@ -120,6 +120,7 @@ export class ConsumerConfigurationAuthenticationComponent implements AfterViewIn
   }
 
   ngAfterViewInit(): void {
+    this.authForm.patchValue({});
     if (this.authForm.controls.type.value === 'oauth2' && this.authForm.controls.scopes.getRawValue()) {
       this.scopes.set(this.authForm.controls.scopes.getRawValue());
     }
