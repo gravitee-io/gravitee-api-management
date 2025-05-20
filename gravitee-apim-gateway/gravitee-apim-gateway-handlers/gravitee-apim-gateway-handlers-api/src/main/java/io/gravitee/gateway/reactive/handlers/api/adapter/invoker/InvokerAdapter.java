@@ -46,6 +46,9 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
 
     private static final Logger log = LoggerFactory.getLogger(InvokerAdapter.class);
     static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
+    static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
+    static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE =
+        "The response cannot be sent to the client because the client has aborted";
 
     private final io.gravitee.gateway.api.Invoker legacyInvoker;
     private final String id;
@@ -92,7 +95,14 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
                 }
             })
             .doOnTerminate(adaptedCtx::restore)
-            .doOnDispose(adaptedCtx::restore)
+            .doOnDispose(() -> {
+                if (ctx.response().status() == 0) {
+                    ctx.response().status(500);
+                    ctx.metrics().setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+                    ctx.metrics().setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE);
+                }
+                adaptedCtx.restore();
+            })
             .onErrorResumeNext(throwable -> {
                 // In case of any error, make sure to reset the response content.
                 ctx.response().chunks(Flowable.empty());
