@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.rest.api.automation.mapper;
 
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
 import io.gravitee.apim.rest.api.automation.model.FlowStep;
 import io.gravitee.apim.rest.api.automation.model.LegacySharedPolicyGroupSpec;
@@ -39,6 +40,9 @@ public interface SharedPolicyGroupMapper {
     @Mapping(target = "sharedPolicyGroupId", ignore = true)
     @Mapping(target = "originContext", ignore = true)
     io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD map(LegacySharedPolicyGroupSpec spec);
+
+    @Mapping(target = "errors", ignore = true)
+    SharedPolicyGroupState toState(SharedPolicyGroup sharedPolicyGroup);
 
     @Mapping(target = "errors", ignore = true)
     @Mapping(target = "organizationId", ignore = true)

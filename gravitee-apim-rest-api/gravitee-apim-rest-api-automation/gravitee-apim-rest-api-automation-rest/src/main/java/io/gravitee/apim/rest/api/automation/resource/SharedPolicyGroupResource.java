@@ -18,9 +18,9 @@ package io.gravitee.apim.rest.api.automation.resource;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
-import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
+import io.gravitee.apim.rest.api.automation.mapper.SharedPolicyGroupMapper;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -28,6 +28,7 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
@@ -47,6 +48,19 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @Inject
     private DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase;
+
+    @GET
+    @Path("/")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    public Response get() {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var sharedPolicyGroup = sharedPolicyGroupCrudService
+            .findByEnvironmentIdAndHRID(executionContext.getEnvironmentId(), hrid)
+            .orElseThrow(() -> new HRIDNotFoundException(hrid));
+
+        return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(sharedPolicyGroup)).build();
+    }
 
     @DELETE
     @Path("/")

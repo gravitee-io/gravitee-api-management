@@ -19,28 +19,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
-import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
+import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import jakarta.inject.Inject;
 import java.util.List;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-class SharedPolicyGroupResourceTest extends AbstractResourceTest {
+class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
 
     private static final String HRID = "spg-foo";
 
     @Inject
     SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService;
-
-    @Inject
-    DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase;
 
     @Override
     protected String contextPath() {
@@ -58,6 +56,7 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
                     .hrid(HRID)
                     .environmentId(ENVIRONMENT)
                     .organizationId(ORGANIZATION)
+                    .steps(List.of(Step.builder().name("step-name").build()))
                     .build()
             )
         );
@@ -68,59 +67,34 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
         sharedPolicyGroupCrudService.reset();
     }
 
-    @Nested
-    class Run {
-
-        @Test
-        void should_delete_shared_policy_group_and_return_no_content() {
-            assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
-            expectNoContent(HRID);
-            assertThat(sharedPolicyGroupCrudService.storage()).isEmpty();
-        }
-
-        @Test
-        void should_return_a_404_status_code_with_unknown_hrid() {
-            expectNotFound("unknown");
-            assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
-        }
+    @Test
+    void should_get_shared_policy_group_from_known_hrid() {
+        var state = expectEntity(HRID);
+        SoftAssertions.assertSoftly(soft -> {
+            assertThat(state.getId()).isEqualTo("spg-id");
+            assertThat(state.getHrid()).isEqualTo(HRID);
+            assertThat(state.getCrossId()).isEqualTo("spg-cross-id");
+            assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
+            assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
+            assertThat(state.getSteps()).isNotEmpty();
+        });
     }
 
-    @Nested
-    class DryRun {
-
-        boolean dryRun = true;
-
-        @Test
-        void should_not_delete_shared_policy_group_and_return_no_content() {
-            assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
-            expectNoContent(HRID, dryRun);
-            assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
-        }
-
-        @Test
-        void should_return_a_404_status_code_with_unknown_hrid() {
-            expectNotFound("unknown", dryRun);
-            assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
-        }
+    @Test
+    void should_return_a_404_status_code_with_unknown_hrid() {
+        expectNotFound("unknown");
+        assertThat(sharedPolicyGroupCrudService.storage()).isNotEmpty();
     }
 
     private void expectNotFound(String hrid) {
-        expectNotFound(hrid, false);
-    }
-
-    private void expectNotFound(String hrid, boolean dryRun) {
-        try (var response = rootTarget().path(hrid).queryParam("dryRun", dryRun).request().delete()) {
+        try (var response = rootTarget().path(hrid).request().get()) {
             assertThat(response.getStatus()).isEqualTo(404);
         }
     }
 
-    private void expectNoContent(String hrid) {
-        expectNoContent(hrid, false);
-    }
-
-    private void expectNoContent(String hrid, boolean dryRun) {
-        try (var response = rootTarget().path(hrid).queryParam("dryRun", dryRun).request().delete()) {
-            assertThat(response.getStatus()).isEqualTo(204);
+    private SharedPolicyGroupState expectEntity(String hrid) {
+        try (var response = rootTarget().path(hrid).request().get()) {
+            return response.readEntity(SharedPolicyGroupState.class);
         }
     }
 }

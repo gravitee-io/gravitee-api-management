@@ -20,23 +20,19 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
-import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
-import io.gravitee.apim.core.shared_policy_group.use_case.DeploySharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
-import io.gravitee.apim.core.shared_policy_group.use_case.UpdateSharedPolicyGroupUseCase;
 import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-class SharedPolicyGroupsResourceTest extends AbstractResourceTest {
+class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
 
     @Inject
     private CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase;
