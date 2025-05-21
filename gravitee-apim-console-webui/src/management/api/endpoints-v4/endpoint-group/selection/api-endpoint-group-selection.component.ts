@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { catchError, switchMap, takeUntil } from 'rxjs/operators';
 import { Observable, of, Subject } from 'rxjs';
 import { UntypedFormGroup } from '@angular/forms';
@@ -56,6 +56,7 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
     private readonly licenseService: GioLicenseService,
     private readonly iconService: IconService,
     private readonly matDialog: MatDialog,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -66,6 +67,7 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((endpointPlugins) => {
         this.endpoints = mapAndFilterBySupportedQos(endpointPlugins, this.requiredQos, this.iconService);
+        this.cdr.detectChanges();
       });
   }
 
