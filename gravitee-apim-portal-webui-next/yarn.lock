@@ -5876,15 +5876,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/theming@npm:8.6.11":
-  version: 8.6.11
-  resolution: "@storybook/theming@npm:8.6.11"
-  peerDependencies:
-    storybook: ^8.2.0 || ^8.3.0-0 || ^8.4.0-0 || ^8.5.0-0 || ^8.6.0-0
-  checksum: 10c0/625172f789baf265e7260e4e3113b1be5d4104d70bd9599dbe2e5061889a9d0382e3154b1ff2a3ad550c78e8b80fc6b271f394ee2d632ec7cd22cdf82e48ee10
-  languageName: node
-  linkType: hard
-
 "@storybook/theming@npm:8.6.14":
   version: 8.6.14
   resolution: "@storybook/theming@npm:8.6.14"
@@ -6840,10 +6831,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.17.16":
-  version: 4.17.16
-  resolution: "@types/lodash@npm:4.17.16"
-  checksum: 10c0/cf017901b8ab1d7aabc86d5189d9288f4f99f19a75caf020c0e2c77b8d4cead4db0d0b842d009b029339f92399f49f34377dd7c2721053388f251778b4c23534
+"@types/lodash@npm:4.17.17":
+  version: 4.17.17
+  resolution: "@types/lodash@npm:4.17.17"
+  checksum: 10c0/8e75df02a15f04d4322c5a503e4efd0e7a92470570ce80f17e9f11ce2b1f1a7c994009c9bcff39f07e0f9ffd8ccaff09b3598997c404b801abd5a7eee5a639dc
   languageName: node
   linkType: hard
 
@@ -12324,7 +12315,7 @@ __metadata:
     "@storybook/test": "npm:8.6.14"
     "@types/jest": "npm:29.5.14"
     "@types/js-yaml": "npm:4.0.9"
-    "@types/lodash": "npm:4.17.16"
+    "@types/lodash": "npm:4.17.17"
     "@types/swagger-ui": "npm:3.52.4"
     "@typescript-eslint/eslint-plugin": "npm:7.18.0"
     "@typescript-eslint/parser": "npm:7.18.0"
