@@ -11,33 +11,15 @@ info:
     version: 2.0.0
 
 servers:
-    - url: "{protocol}://{managementAPIHost}/management/v2/environments/{envId}"
+    - url: "/management/v2/environments/{envId}"
       description: APIM Management API v2 - Default base URL
       variables:
-          protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                  - https
-                  - http
-          managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
           envId:
               description: Id or Hrid (Human readable Id) of an environment
               default: DEFAULT
-    - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}/environments/{envId}"
+    - url: "/management/v2/organizations/{orgId}/environments/{envId}"
       description: APIM Management API v2 - Base URL to target specific organizations
       variables:
-          protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                  - https
-                  - http
-          managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
           orgId:
               description: The unique ID of your organization
               default: DEFAULT
