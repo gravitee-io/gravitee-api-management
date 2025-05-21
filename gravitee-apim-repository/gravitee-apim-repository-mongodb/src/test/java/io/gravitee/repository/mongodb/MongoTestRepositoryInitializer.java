@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb;
 
 import com.mongodb.client.MongoClient;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.config.TestRepositoryInitializer;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
 import org.bson.BsonDocument;
@@ -44,7 +45,17 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
         LOG.debug("Constructed");
         this.mongoClient = mongoClient;
         LOG.info("Running MongoDB upgraders");
-        applicationContext.getBeansOfType(MongoUpgrader.class).values().forEach(MongoUpgrader::upgrade);
+
+        applicationContext
+            .getBeansOfType(MongoUpgrader.class)
+            .values()
+            .forEach(upgrader -> {
+                try {
+                    upgrader.upgrade();
+                } catch (UpgraderException e) {
+                    LOG.error("Failed to upgrade MongoDB with upgrader: {}", upgrader.getClass().getName(), e);
+                }
+            });
     }
 
     @Override
