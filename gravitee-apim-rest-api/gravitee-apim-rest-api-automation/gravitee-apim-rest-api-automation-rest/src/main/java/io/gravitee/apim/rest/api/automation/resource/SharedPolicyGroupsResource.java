@@ -17,14 +17,11 @@ package io.gravitee.apim.rest.api.automation.resource;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
-import io.gravitee.apim.core.shared_policy_group.model.CreateSharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
-import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.SharedPolicyGroupMapper;
-import io.gravitee.apim.rest.api.automation.model.*;
+import io.gravitee.apim.rest.api.automation.model.LegacySharedPolicyGroupSpec;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -39,6 +36,8 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
 /**
@@ -46,6 +45,9 @@ import jakarta.ws.rs.core.Response;
  * @author GraviteeSource Team
  */
 public class SharedPolicyGroupsResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private ImportSharedPolicyGroupCRDCRDUseCase importSharedPolicyGroupCRDCRDUseCase;
@@ -62,7 +64,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo audit = AuditInfo
+        var audit = AuditInfo
             .builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
@@ -100,5 +102,10 @@ public class SharedPolicyGroupsResource extends AbstractResource {
         return Response
             .ok(SharedPolicyGroupMapper.INSTANCE.withStatusInfos(SharedPolicyGroupMapper.INSTANCE.toState(spec), output.status()))
             .build();
+    }
+
+    @Path("/{hrid}")
+    public SharedPolicyGroupResource getSharedPolicyGroupResource() {
+        return resourceContext.getResource(SharedPolicyGroupResource.class);
     }
 }

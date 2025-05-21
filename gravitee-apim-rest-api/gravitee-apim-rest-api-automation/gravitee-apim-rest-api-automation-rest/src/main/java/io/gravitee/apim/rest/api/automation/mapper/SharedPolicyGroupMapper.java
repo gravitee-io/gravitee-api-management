@@ -23,7 +23,6 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.mapper.ConfigurationSerializationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
-import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -41,6 +40,7 @@ public interface SharedPolicyGroupMapper {
     @Mapping(target = "originContext", ignore = true)
     io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD map(LegacySharedPolicyGroupSpec spec);
 
+    @Mapping(target = "errors", ignore = true)
     @Mapping(target = "organizationId", ignore = true)
     @Mapping(target = "environmentId", ignore = true)
     SharedPolicyGroupState toState(LegacySharedPolicyGroupSpec spec);
