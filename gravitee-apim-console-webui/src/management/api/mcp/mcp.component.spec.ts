@@ -17,6 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { By } from '@angular/platform-browser';
 
 import { McpComponent } from './mcp.component';
 import { McpHarness } from './mcp.harness';
@@ -93,6 +94,17 @@ describe('McpComponent', () => {
     });
   });
 
+  describe('when mcp entrypoint is found', () => {
+    beforeEach(async () => {
+      expectGetApi(fakeApiV4({ id: API_ID, listeners: [{ type: 'HTTP', entrypoints: [{ type: 'mcp' }] }] }));
+      expectGetMcpEntrypointSchema();
+    });
+    it('should display the mcp entrypoint edit form', async () => {
+      const formElement = fixture.debugElement.query(By.css('gio-form-json-schema'));
+      expect(formElement).not.toBeNull();
+    });
+  });
+
   function expectGetApi(api: ApiV4): void {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
@@ -100,6 +112,22 @@ describe('McpComponent', () => {
 
   function expectGetEntrypoints(entrypoints: ConnectorPlugin[]) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(entrypoints);
+    fixture.detectChanges();
+  }
+  function expectGetMcpEntrypointSchema() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints/mcp/schema`, method: 'GET' }).flush({
+      $schema: 'http://json-schema.org/draft-07/schema#',
+      type: 'object',
+      properties: {
+        dummy: {
+          title: 'dummy',
+          type: 'string',
+          description: 'A dummy string',
+          readOnly: true,
+        },
+      },
+      required: ['dummy'],
+    });
     fixture.detectChanges();
   }
 });

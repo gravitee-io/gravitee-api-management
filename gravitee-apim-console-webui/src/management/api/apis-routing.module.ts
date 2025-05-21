@@ -91,6 +91,7 @@ import { ApiHealthCheckDashboardV4Component } from './health-check-dashboard-v4/
 import { DebugModeV2WrapperComponent } from './debug-mode/v2-wrapper/debug-mode-v2-wrapper.component';
 import { DebugModeV4WrapperComponent } from './debug-mode/v4-wrapper/debug-mode-v4-wrapper.component';
 import { McpComponent } from './mcp/mcp.component';
+import { ConfigureMcpEntrypointComponent } from './mcp/configure-mcp-entrypoint/configure-mcp-entrypoint.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -1073,6 +1074,28 @@ const apisRoutes: Routes = [
           permissions: {
             anyOf: ['api-definition-r'],
           },
+        },
+      },
+      {
+        path: 'v4/mcp/add',
+        component: ConfigureMcpEntrypointComponent,
+        data: {
+          docs: null,
+          permissions: {
+            anyOf: ['api-definition-u'],
+          },
+          creationMode: true,
+        },
+      },
+      {
+        path: 'v4/mcp/edit',
+        component: ConfigureMcpEntrypointComponent,
+        data: {
+          docs: null,
+          permissions: {
+            anyOf: ['api-definition-u'],
+          },
+          creationMode: false,
         },
       },
       {

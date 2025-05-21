@@ -13,19 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-@use '../../../scss/gio-layout' as gio-layout;
-
-:host {
-  @include gio-layout.gio-responsive-margin-container;
-  overflow: visible;
-}
-
-.mcp-header {
-  margin-bottom: 16px;
-  display: flex;
-
-  &__title {
-    flex: 1;
-  }
-}
