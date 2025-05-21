@@ -40,9 +40,9 @@ public class CheckIntegrationUseCase {
 
     public Output execute(Input input) {
         return integrationCrudService
-            .findById(input.integrationId)
+            .findApiIntegrationById(input.integrationId)
             .filter(integration -> {
-                var environment = environmentCrudService.get(integration.getEnvironmentId());
+                var environment = environmentCrudService.get(integration.environmentId());
                 return environment.getOrganizationId().equals(input.organizationId);
             })
             .filter(integration -> {
@@ -50,7 +50,7 @@ public class CheckIntegrationUseCase {
                     input.organizationId,
                     input.userId,
                     io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_INTEGRATION,
-                    integration.getEnvironmentId(),
+                    integration.environmentId(),
                     RolePermissionAction.CREATE,
                     RolePermissionAction.READ,
                     RolePermissionAction.UPDATE,
@@ -62,19 +62,19 @@ public class CheckIntegrationUseCase {
                     input.organizationId,
                     input.userId,
                     RolePermission.INTEGRATION_DEFINITION,
-                    integration.getId(),
+                    integration.id(),
                     RolePermissionAction.CREATE
                 );
                 return hasEnvironmentIntegrationPermission || hasIntegrationPermission;
             })
             .map(integration -> {
-                if (!integration.getProvider().equals(input.provider)) {
+                if (!integration.provider().equals(input.provider)) {
                     return new Output(
                         false,
                         String.format(
                             "Integration [id=%s] does not match. Expected provider [provider=%s]",
-                            integration.getId(),
-                            integration.getProvider()
+                            integration.id(),
+                            integration.provider()
                         )
                     );
                 }

@@ -35,7 +35,6 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
-import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.use_case.CreateIntegrationUseCase.Input;
@@ -43,8 +42,6 @@ import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.IntegrationPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
-import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
-import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.node.api.license.LicenseManager;
@@ -66,7 +63,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class CreateIntegrationUseCaseTest {
+class CreateIntegrationUseCaseTest {
 
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String INTEGRATION_ID = "generated-id";
@@ -173,15 +170,15 @@ public class CreateIntegrationUseCaseTest {
 
         //Then
         assertThat(output).isNotNull();
-        assertThat(output.createdIntegration().getId()).isEqualTo(INTEGRATION_ID);
+        assertThat(output.createdIntegration().id()).isEqualTo(INTEGRATION_ID);
         assertThat(output.createdIntegration())
             .extracting(
-                Integration::getName,
-                Integration::getDescription,
-                Integration::getProvider,
-                Integration::getEnvironmentId,
-                Integration::getCreatedAt,
-                Integration::getUpdatedAt
+                Integration::name,
+                Integration::description,
+                Integration::provider,
+                Integration::environmentId,
+                Integration::createdAt,
+                Integration::updatedAt
             )
             .containsExactly(
                 NAME,

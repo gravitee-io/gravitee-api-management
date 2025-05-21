@@ -17,7 +17,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
-import { AgentStatus, IntegrationNavigationItem } from '../integrations.model';
+import {
+  A2aIntegration,
+  AgentStatus,
+  ApiIntegration,
+  IntegrationNavigationItem,
+  isA2aIntegration,
+  isApiIntegration,
+} from '../integrations.model';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
@@ -35,6 +42,7 @@ export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
       permissions: ['integration-definition-r'],
       icon: 'info',
       routerLinkActiveOptions: { exact: true },
+      providerType: ['API', 'A2A'],
     },
     {
       routerLink: `agent`,
@@ -42,6 +50,7 @@ export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
       permissions: ['integration-definition-r'],
       icon: 'server-connection',
       routerLinkActiveOptions: { exact: true },
+      providerType: ['API'],
     },
     {
       routerLink: `configuration`,
@@ -49,6 +58,7 @@ export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
       permissions: ['integration-definition-r'],
       icon: 'settings',
       routerLinkActiveOptions: { exact: false },
+      providerType: ['API', 'A2A'],
     },
   ];
 
@@ -65,5 +75,13 @@ export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.allowedItems = this.items.filter((item: IntegrationNavigationItem) => this.permissionService.hasAnyMatching(item.permissions));
+  }
+
+  apiIntegration(integration: unknown): integration is ApiIntegration {
+    return isApiIntegration(integration);
+  }
+
+  a2aIntegration(integration: unknown): integration is A2aIntegration {
+    return isA2aIntegration(integration);
   }
 }

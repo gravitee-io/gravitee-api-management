@@ -86,12 +86,14 @@ describe('IntegrationsNavigationComponent', () => {
           displayName: 'test1',
           permissions: [''],
           icon: 'info',
+          providerType: ['API'],
         },
         {
           routerLink: `/bla`,
           displayName: 'test2',
           permissions: [''],
           icon: 'info',
+          providerType: ['API'],
         },
       ];
       fixture.detectChanges();
@@ -113,24 +115,28 @@ describe('IntegrationsNavigationComponent', () => {
           displayName: 'test1',
           permissions: [''],
           icon: 'info',
+          providerType: ['API'],
         },
         {
           routerLink: `/bla`,
           displayName: 'test2',
           permissions: [''],
           icon: 'info',
+          providerType: ['API'],
         },
         {
           routerLink: `/boo2`,
           displayName: 'test12',
           permissions: [''],
           icon: 'info',
+          providerType: ['API'],
         },
         {
           routerLink: `/bla3`,
           displayName: 'test23',
           permissions: [''],
           icon: 'info',
+          providerType: ['API'],
         },
       ];
       fixture.detectChanges();

@@ -43,30 +43,33 @@ public class GetIntegrationUseCase {
     private final IntegrationAgent integrationAgent;
     private final IntegrationPrimaryOwnerDomainService integrationPrimaryOwnerDomainService;
 
-    public GetIntegrationUseCase.Output execute(GetIntegrationUseCase.Input input) {
+    public Output execute(Input input) {
         var integrationId = input.integrationId();
 
         if (!licenseDomainService.isFederationFeatureAllowed(input.organizationId())) {
             throw noLicenseForFederation();
         }
 
-        Integration integration = integrationCrudService
-            .findById(integrationId)
-            .orElseThrow(() -> new IntegrationNotFoundException(integrationId));
-
-        var agentStatus = integrationAgent
-            .getAgentStatusFor(integrationId)
-            .map(status -> IntegrationView.AgentStatus.valueOf(status.name()))
-            .blockingGet();
-
-        var pendingJob = asyncJobQueryService.findPendingJobFor(integrationId);
+        var integration = integrationCrudService.findById(integrationId).orElseThrow(() -> new IntegrationNotFoundException(integrationId));
         var primaryOwner = integrationPrimaryOwnerDomainService
-            .getIntegrationPrimaryOwner(input.organizationId(), integration.getId())
+            .getIntegrationPrimaryOwner(input.organizationId(), integration.id())
             .map(po -> new IntegrationView.PrimaryOwner(po.id(), po.email(), po.displayName()))
             .onErrorComplete()
             .blockingGet();
 
-        return new GetIntegrationUseCase.Output(new IntegrationView(integration, agentStatus, pendingJob.orElse(null), primaryOwner));
+        return switch (integration) {
+            case Integration.ApiIntegration apiIntegration -> {
+                var agentStatus = integrationAgent
+                    .getAgentStatusFor(integrationId)
+                    .map(status -> IntegrationView.AgentStatus.valueOf(status.name()))
+                    .blockingGet();
+
+                var pendingJob = asyncJobQueryService.findPendingJobFor(integrationId);
+
+                yield new Output(new IntegrationView(apiIntegration, agentStatus, pendingJob.orElse(null), primaryOwner));
+            }
+            case Integration.A2aIntegration a2aIntegration -> new Output(new IntegrationView(a2aIntegration, primaryOwner));
+        };
     }
 
     @Builder

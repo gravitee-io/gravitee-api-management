@@ -30,31 +30,46 @@ public class IntegrationCrudServiceInMemory implements IntegrationCrudService, I
     }
 
     @Override
+    public Optional<Integration.ApiIntegration> findApiIntegrationById(String id) {
+        return findById(id)
+            .flatMap(integration ->
+                integration instanceof Integration.ApiIntegration apiIntegration ? Optional.of(apiIntegration) : Optional.empty()
+            );
+    }
+
+    @Override
+    public Optional<Integration.A2aIntegration> findA2aIntegrationById(String id) {
+        return findById(id)
+            .flatMap(integration ->
+                integration instanceof Integration.A2aIntegration a2aIntegration ? Optional.of(a2aIntegration) : Optional.empty()
+            );
+    }
+
+    @Override
     public Optional<Integration> findById(String id) {
-        return storage.stream().filter(item -> item.getId().equals(id)).findFirst();
+        return storage.stream().filter(item -> item.id().equals(id)).findFirst();
     }
 
     @Override
     public Integration update(Integration integration) {
-        OptionalInt index = this.findIndex(this.storage, i -> i.getId().equals(integration.getId()));
-        if (index.isPresent()) {
-            storage.set(index.getAsInt(), integration);
-            return integration;
-        }
-
-        throw new IllegalStateException("Integration not found");
+        var index = findIndex(storage, i -> i.id().equals(integration.id()))
+            .orElseThrow(() -> new IllegalStateException("Integration not found"));
+        storage.set(index, integration);
+        return integration;
     }
 
     @Override
     public void delete(String id) {
-        OptionalInt index = this.findIndex(this.storage, i -> i.getId().equals(id));
-        if (index.isPresent()) {
-            storage.remove(index.getAsInt());
-        }
+        findIndex(storage, i -> i.id().equals(id)).ifPresent(storage::remove);
     }
 
     @Override
     public void initWith(List<Integration> items) {
+        storage.clear();
+        storage.addAll(items);
+    }
+
+    public <T extends Integration> void initializeWith(List<T> items) {
         storage.clear();
         storage.addAll(items);
     }

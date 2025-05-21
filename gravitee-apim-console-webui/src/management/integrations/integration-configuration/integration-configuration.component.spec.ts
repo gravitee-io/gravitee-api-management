@@ -92,21 +92,25 @@ describe('IntegrationConfigurationComponent', (): void => {
           displayName: 'OneTab',
           routerLink: 'One',
           permissions: ['integration-member-r'],
+          providerType: ['API'],
         },
         {
           displayName: 'TwoTab',
           routerLink: 'Two',
           permissions: ['integration-member-r'],
+          providerType: ['API'],
         },
         {
           displayName: 'ThreeTab',
           routerLink: 'Three',
           permissions: ['integration-member-r'],
+          providerType: ['API'],
         },
         {
           displayName: 'FourTab',
           routerLink: 'Four',
           permissions: ['integration-definition-r'],
+          providerType: ['API'],
         },
       ]);
       const tabNavBar = await componentHarness.getTabNavBar();
@@ -120,11 +124,13 @@ describe('IntegrationConfigurationComponent', (): void => {
             displayName: 'OneTab',
             routerLink: 'one',
             permissions: ['integration-definition-u', 'integration-definition-d'],
+            providerType: ['API'],
           },
           {
             displayName: 'TwoTab',
             routerLink: 'two',
             permissions: ['integration-member-r'],
+            providerType: ['API'],
           },
         ],
         ['integration-member-r'],

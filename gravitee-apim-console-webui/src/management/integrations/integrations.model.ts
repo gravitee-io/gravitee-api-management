@@ -16,6 +16,8 @@
 
 import { Pagination } from '../../entities/management-api-v2';
 
+export const A2A_PROVIDER = 'A2A';
+
 export interface IntegrationNavigationItem {
   routerLink: string;
   displayName: string;
@@ -23,22 +25,40 @@ export interface IntegrationNavigationItem {
   icon?: string;
   routerLinkActiveOptions?: { exact: boolean };
   disabled?: boolean;
+  providerType: ('API' | 'A2A')[];
 }
 
 export interface IntegrationResponse {
   data: Integration[];
   pagination: Pagination;
 }
+export function isApiIntegration(integration: unknown): integration is ApiIntegration {
+  return (integration as ApiIntegration).provider !== undefined && (integration as ApiIntegration).provider !== A2A_PROVIDER;
+}
 
-export interface Integration {
-  agentStatus: AgentStatus;
+export function isA2aIntegration(integration: unknown): integration is A2aIntegration {
+  return (integration as A2aIntegration).provider === A2A_PROVIDER;
+}
+
+export type Integration = ApiIntegration | A2aIntegration;
+
+interface IntegrationBase {
   id: string;
   name: string;
   provider: string;
   description: string;
-  pendingJob?: AsyncJob;
   primaryOwner?: { id: string; displayName: string; email: string };
   groups: string[];
+}
+
+export interface ApiIntegration extends IntegrationBase {
+  agentStatus: AgentStatus;
+  pendingJob?: AsyncJob;
+}
+
+export interface A2aIntegration extends IntegrationBase {
+  provider: 'A2A';
+  wellKnownUrls: { url: string }[];
 }
 
 export interface IntegrationIngestionRequest {
@@ -71,6 +91,7 @@ export interface CreateIntegrationPayload {
   name: string;
   description: string;
   provider: string;
+  wellKnownUrls?: A2aIntegration['wellKnownUrls'];
 }
 
 export interface UpdateIntegrationPayload {

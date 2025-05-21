@@ -159,7 +159,7 @@ public interface GraviteeDefinitionAdapter {
         WorkflowState workflowState,
         Set<String> groups,
         Collection<NewApiMetadata> metadata,
-        Integration integration
+        Integration.ApiIntegration integration
     );
 
     @Mapping(target = "id", source = "apiEntity.id")
