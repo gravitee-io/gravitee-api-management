@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.rest.api.automation.exception;
+package io.gravitee.apim.rest.api.automation.exception.mapping;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.AbstractDomainExceptionMapper;
@@ -21,7 +21,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Error;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-public class ValidationDomainExceptionMapper extends AbstractDomainExceptionMapper<ValidationDomainException> {
+public class ValidationDomainMapper extends AbstractDomainExceptionMapper<ValidationDomainException> {
 
     @Override
     public Response toResponse(ValidationDomainException ve) {
@@ -29,9 +29,6 @@ public class ValidationDomainExceptionMapper extends AbstractDomainExceptionMapp
     }
 
     private Error validationDomainError(ValidationDomainException vde) {
-        return new Error()
-            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-            .technicalCode("invalid_domain")
-            .message(vde.getMessage());
+        return new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).technicalCode("invalid").message(vde.getMessage());
     }
 }
