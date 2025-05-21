@@ -417,11 +417,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     public GroupEntity findById(ExecutionContext executionContext, String groupId) {
         try {
             logger.debug("findById {}", groupId);
-            Optional<Group> group = groupRepository
-                .findById(groupId)
-                .filter(g ->
-                    !executionContext.hasEnvironmentId() || g.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId())
-                );
+            Optional<Group> group = groupRepository.findById(groupId);
             if (!group.isPresent()) {
                 throw new GroupNotFoundException(groupId);
             }
