@@ -21,6 +21,7 @@ import io.gravitee.apim.rest.api.automation.resource.EnvironmentResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentsResource;
 import io.gravitee.apim.rest.api.automation.resource.OrganizationResource;
 import io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupsResource;
+import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import jakarta.inject.Inject;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
@@ -40,6 +41,8 @@ public class GraviteeAutomationApplication extends ResourceConfig {
 
         register(ValidationDomainMapper.class);
         register(HRIDNotFoundMapper.class);
+
+        register(ObjectMapperResolver.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
         property(ServerProperties.BV_DISABLE_VALIDATE_ON_EXECUTABLE_OVERRIDE_CHECK, true);
