@@ -47,6 +47,11 @@ class SharedPolicyGroupsResourceTest extends AbstractResourceTest {
     @Inject
     private ValidateSharedPolicyGroupCRDDomainService validateSharedPolicyGroupCRDDomainService;
 
+    @Override
+    protected String contextPath() {
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/shared-policy-groups";
+    }
+
     @AfterEach
     void tearDown() {
         reset(createSharedPolicyGroupUseCase);
@@ -153,11 +158,6 @@ class SharedPolicyGroupsResourceTest extends AbstractResourceTest {
                     .contains("cross ID should only be passed to identify the resource if no hrid has been set");
             });
         }
-    }
-
-    @Override
-    protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/shared-policy-groups";
     }
 
     private void expectBadRequest(String spec) {

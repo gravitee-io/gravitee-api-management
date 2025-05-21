@@ -27,6 +27,7 @@ import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
+import inmemory.EventLatestCrudInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
@@ -34,6 +35,7 @@ import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
+import inmemory.SharedPolicyGroupHistoryCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
@@ -58,6 +60,7 @@ import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -67,6 +70,8 @@ import io.gravitee.apim.core.documentation.domain_service.DocumentationValidatio
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
@@ -90,6 +95,7 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
+import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupHistoryCrudService;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
@@ -610,8 +616,30 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase() {
-        return mock(DeleteSharedPolicyGroupUseCase.class);
+    public SharedPolicyGroupHistoryCrudServiceInMemory sharedPolicyGroupHistoryCrudService() {
+        return new SharedPolicyGroupHistoryCrudServiceInMemory();
+    }
+
+    @Bean
+    public EventLatestCrudInMemory eventLatestCrudService() {
+        return new EventLatestCrudInMemory();
+    }
+
+    @Bean
+    public DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase(
+        SharedPolicyGroupCrudService sharedPolicyGroupCrudService,
+        SharedPolicyGroupHistoryCrudService sharedPolicyGroupHistoryCrudService,
+        AuditDomainService auditService,
+        EventCrudService eventCrudService,
+        EventLatestCrudInMemory eventLatestCrudService
+    ) {
+        return new DeleteSharedPolicyGroupUseCase(
+            sharedPolicyGroupCrudService,
+            sharedPolicyGroupHistoryCrudService,
+            auditService,
+            eventCrudService,
+            eventLatestCrudService
+        );
     }
 
     @Bean
