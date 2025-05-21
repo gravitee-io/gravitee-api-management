@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.model.GroupSimpleEntity;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -92,7 +93,7 @@ public class GroupService_FindAllTest extends TestCase {
 
         when(groupRepository.findAllByOrganization(ORGANIZATION_ID)).thenReturn(groups);
 
-        List<GroupSimpleEntity> result = groupService.findAllByOrganization(ORGANIZATION_ID);
+        List<GroupSimpleEntity> result = groupService.findAllGroupByEnvironment(ENVIRONMENT_ID);
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(GroupSimpleEntity::getName).containsExactlyInAnyOrder("Alpha", "Beta");
@@ -102,7 +103,7 @@ public class GroupService_FindAllTest extends TestCase {
     public void shouldReturnEmptyListWhenNoGroupsFoundByOrganization() throws TechnicalException {
         when(groupRepository.findAllByOrganization(ORGANIZATION_ID)).thenReturn(Collections.emptySet());
 
-        List<GroupSimpleEntity> result = groupService.findAllByOrganization(ORGANIZATION_ID);
+        List<GroupSimpleEntity> result = groupService.findAllGroupByEnvironment(ENVIRONMENT_ID);
 
         assertThat(result).isEmpty();
     }

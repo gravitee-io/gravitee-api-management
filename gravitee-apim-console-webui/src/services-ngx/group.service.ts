@@ -44,7 +44,7 @@ export class GroupService {
   }
 
   listByOrganization(): Observable<Group[]> {
-    return this.http.get<Group[]>(`${this.constants.org.baseURL}/groups`);
+    return this.http.get<Group[]>(`${this.constants.env.baseURL}/groups`);
   }
 
   addOrUpdateMemberships(groupId: string, groupMemberships: GroupMembership[]): Observable<void> {

@@ -21,6 +21,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.PermissionMap;
 import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.organization.CurrentUserResource;
+import io.gravitee.rest.api.management.rest.resource.organization.OrganizationGroupsResource;
 import io.gravitee.rest.api.management.rest.resource.organization.UsersResource;
 import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -297,5 +298,10 @@ public class EnvironmentResource extends AbstractResource {
     @Path("restrictedDomains")
     public RestrictedDomainsResource getRestrictedDomainsResource() {
         return resourceContext.getResource(RestrictedDomainsResource.class);
+    }
+
+    @Path("groups")
+    public OrganizationGroupsResource getGroupsResource() {
+        return resourceContext.getResource(OrganizationGroupsResource.class);
     }
 }

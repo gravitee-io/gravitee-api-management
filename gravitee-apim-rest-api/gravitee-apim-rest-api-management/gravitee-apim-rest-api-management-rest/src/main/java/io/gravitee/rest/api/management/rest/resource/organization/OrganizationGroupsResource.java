@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -60,8 +61,9 @@ public class OrganizationGroupsResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.READ) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getGroups() {
-        return Response.ok(groupService.findAllByOrganization(GraviteeContext.getCurrentOrganization())).build();
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        return Response.ok(groupService.findAllGroupByEnvironment(executionContext.getEnvironmentId())).build();
     }
 }
