@@ -352,28 +352,28 @@ class MetricsAdapterTest {
     @Test
     void should_delegate_setProxyResponseTimeMs_to_metrics_v4() {
         // When
-        metricsAdapter.setProxyResponseTimeMs(-1);
+        metricsAdapter.setProxyResponseTimeMs(0);
 
         // Then
-        verify(metricsV4).setGatewayResponseTimeMs(-1);
+        verify(metricsV4).setGatewayResponseTimeMs(0);
     }
 
     @Test
     void should_delegate_setProxyLatencyMs_to_metrics_v4() {
         // When
-        metricsAdapter.setProxyLatencyMs(-1);
+        metricsAdapter.setProxyLatencyMs(0);
 
         // Then
-        verify(metricsV4).setGatewayLatencyMs(-1);
+        verify(metricsV4).setGatewayLatencyMs(0);
     }
 
     @Test
     void should_delegate_setApiResponseTimeMs_to_metrics_v4() {
         // When
-        metricsAdapter.setApiResponseTimeMs(-1);
+        metricsAdapter.setApiResponseTimeMs(0);
 
         // Then
-        verify(metricsV4).setEndpointResponseTimeMs(-1);
+        verify(metricsV4).setEndpointResponseTimeMs(0);
     }
 
     @Test
@@ -496,19 +496,19 @@ class MetricsAdapterTest {
     @Test
     void should_delegate_setRequestContentLength_to_metrics_v4() {
         // When
-        metricsAdapter.setRequestContentLength(-1);
+        metricsAdapter.setRequestContentLength(0);
 
         // Then
-        verify(metricsV4).setRequestContentLength(-1);
+        verify(metricsV4).setRequestContentLength(0);
     }
 
     @Test
     void should_delegate_setResponseContentLength_to_metrics_v4() {
         // When
-        metricsAdapter.setResponseContentLength(-1);
+        metricsAdapter.setResponseContentLength(0);
 
         // Then
-        verify(metricsV4).setResponseContentLength(-1);
+        verify(metricsV4).setResponseContentLength(0);
     }
 
     @Test

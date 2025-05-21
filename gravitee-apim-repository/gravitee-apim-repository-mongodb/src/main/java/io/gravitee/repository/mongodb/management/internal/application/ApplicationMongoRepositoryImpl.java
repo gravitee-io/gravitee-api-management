@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.application;
 
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
@@ -82,18 +83,26 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
         return mongoTemplate.findDistinct(query, "id", ApplicationMongo.class, String.class).parallelStream();
     }
 
-    private Query buildSearchCriteria(ApplicationCriteria criteria) {
+    Query buildSearchCriteria(ApplicationCriteria criteria) {
         Query query = new Query();
 
         if (criteria != null) {
-            if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
-                query.addCriteria(where("id").in(criteria.getIds()));
+            if (StringUtils.isNotBlank(criteria.getQuery())) {
+                query.addCriteria(
+                    new Criteria().orOperator(where("id").is(criteria.getQuery()), where("name").regex(criteria.getQuery(), "i"))
+                );
             }
+
+            if (!isEmpty(criteria.getRestrictedToIds())) {
+                query.addCriteria(where("id").in(criteria.getRestrictedToIds()));
+            }
+
+            if (StringUtils.isNotBlank(criteria.getName())) {
+                query.addCriteria(where("name").regex(criteria.getName(), "i"));
+            }
+
             if (criteria.getEnvironmentIds() != null) {
                 query.addCriteria(where("environmentId").in(criteria.getEnvironmentIds()));
-            }
-            if (criteria.getName() != null && !criteria.getName().isEmpty()) {
-                query.addCriteria(where("name").regex(criteria.getName(), "i"));
             }
             if (criteria.getStatus() != null) {
                 query.addCriteria(where("status").is(criteria.getStatus()));

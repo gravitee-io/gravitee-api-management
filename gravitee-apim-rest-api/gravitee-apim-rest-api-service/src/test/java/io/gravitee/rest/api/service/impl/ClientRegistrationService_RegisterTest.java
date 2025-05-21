@@ -73,7 +73,9 @@ public class ClientRegistrationService_RegisterTest {
         NewApplicationEntity application = new NewApplicationEntity();
 
         ApplicationSettings applicationSettings = new ApplicationSettings();
-        applicationSettings.setoAuthClient(new OAuthClientSettings());
+        OAuthClientSettings oAuthClient = new OAuthClientSettings();
+        oAuthClient.setApplicationType("web");
+        applicationSettings.setoAuthClient(oAuthClient);
         application.setSettings(applicationSettings);
 
         ClientRegistrationProvider provider = new ClientRegistrationProvider();
@@ -109,5 +111,6 @@ public class ClientRegistrationService_RegisterTest {
         assertNotNull("Result is null", clientRegistration);
 
         assertEquals(clientRegistration.getClientName(), "gravitee");
+        assertEquals(clientRegistration.getApplicationType(), "web");
     }
 }

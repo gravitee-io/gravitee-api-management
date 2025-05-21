@@ -80,57 +80,31 @@ jobs:
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-gateway:4.1.0
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-gateway:4.1.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-management-api:4.1.0
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-management-api:4.1.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-management-ui:4.1.0
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-management-ui:4.1.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-portal-ui:4.1.0
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-portal-ui:4.1.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
-  job-publish-rpm-packages:
-    machine:
-      image: ubuntu-2204:current
-      docker_layer_caching: false
-    resource_class: medium
-    steps:
-      - keeper/env-export:
-          secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
-          var-name: GIO_PACKAGECLOUD_TOKEN
-      - run:
-          name: Building and publishing RPMs
-          command: |-
-            export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
-            git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
-
-            cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x
-            ./build.sh -v 4.1.0
-            docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
 workflows:
-  build-rpm-&-docker-images:
+  build-docker-images:
     jobs:
       - job-publish-prod-docker-images:
           context:
             - cicd-orchestrator
           name: Build and push docker images for APIM 4.1.0
-      - job-publish-rpm-packages:
-          context:
-            - cicd-orchestrator
-          name: Build and push RPM packages for APIM 4.1.0
 orbs:
   keeper: gravitee-io/keeper@0.6.3
-  aquasec: gravitee-io/aquasec@1.0.4
+  aquasec: gravitee-io/aquasec@1.0.5

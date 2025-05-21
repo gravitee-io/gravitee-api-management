@@ -85,11 +85,9 @@ gateway-docker-context`,
         new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
         new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
           artifact_to_register: `graviteeio.azurecr.io/apim-management-api:${tag}`,
-          debug: true,
         }),
         new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
           artifact_to_register: `graviteeio.azurecr.io/apim-gateway:${tag}`,
-          debug: true,
         }),
         new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
           docker_image_to_scan: `graviteeio.azurecr.io/apim-management-api:${tag}`,

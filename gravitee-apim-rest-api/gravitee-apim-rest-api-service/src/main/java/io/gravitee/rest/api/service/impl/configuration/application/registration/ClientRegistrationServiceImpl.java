@@ -470,7 +470,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             return registrationProviderClient.renewClientSecret(
                 provider.getRenewClientSecretMethod(),
                 templateEngine.getValue(renewClientSecretEndpoint, String.class),
-                registrationResponse.getRegistrationAccessToken()
+                registrationResponse.getRegistrationAccessToken(),
+                registrationResponse.getApplicationType()
             );
         } catch (IOException ioe) {
             LOGGER.error("Unexpected error while updating a client", ioe);

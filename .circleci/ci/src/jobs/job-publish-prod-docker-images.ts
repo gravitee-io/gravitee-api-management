@@ -80,7 +80,6 @@ export class PublishProdDockerImagesJob {
         ({ image }) => [
           new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
             artifact_to_register: `graviteeio/${image}:${parsedGraviteeioVersion.full}`,
-            debug: true,
           }),
           new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
             docker_image_to_scan: `graviteeio/${image}:${parsedGraviteeioVersion.full}`,

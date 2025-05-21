@@ -24,6 +24,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationRequest;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPatch;
@@ -75,11 +76,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                     if (status >= 200 && status < 300) {
                         HttpEntity entity = response.getEntity();
 
-                        if (entity != null) {
-                            return mapper.readValue(EntityUtils.toString(entity), ClientRegistrationResponse.class);
-                        } else {
-                            throw new DynamicClientRegistrationException("Client registration response does not contain any body");
-                        }
+                        return buildClientRegistrationResponse(entity, request.getApplicationType());
                     } else {
                         String responsePayload = EntityUtils.toString(response.getEntity());
                         if (responsePayload != null && !responsePayload.isEmpty()) {
@@ -165,11 +162,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                     if (status >= 200 && status < 300) {
                         HttpEntity entity = response.getEntity();
 
-                        if (entity != null) {
-                            return mapper.readValue(EntityUtils.toString(entity), ClientRegistrationResponse.class);
-                        } else {
-                            throw new DynamicClientRegistrationException("Client registration response does not contain any body");
-                        }
+                        return buildClientRegistrationResponse(entity, request.getApplicationType());
                     } else {
                         String responsePayload = EntityUtils.toString(response.getEntity());
                         if (responsePayload != null && !responsePayload.isEmpty()) {
@@ -218,7 +211,12 @@ public abstract class DynamicClientRegistrationProviderClient {
         }
     }
 
-    public ClientRegistrationResponse renewClientSecret(String method, String endpoint, String registrationAccessToken) {
+    public ClientRegistrationResponse renewClientSecret(
+        String method,
+        String endpoint,
+        String registrationAccessToken,
+        String applicationType
+    ) {
         HttpRequestBase renewRequest;
 
         if (method.equalsIgnoreCase(HttpMethod.POST.name())) {
@@ -242,11 +240,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                     if (status >= 200 && status < 300) {
                         HttpEntity entity = response.getEntity();
 
-                        if (entity != null) {
-                            return mapper.readValue(EntityUtils.toString(entity), ClientRegistrationResponse.class);
-                        } else {
-                            throw new DynamicClientRegistrationException("Renew client secret response does not contain any body");
-                        }
+                        return buildClientRegistrationResponse(entity, applicationType);
                     } else {
                         String responsePayload = EntityUtils.toString(response.getEntity());
                         if (responsePayload != null && !responsePayload.isEmpty()) {
@@ -304,4 +298,20 @@ public abstract class DynamicClientRegistrationProviderClient {
     }
 
     public abstract String getInitialAccessToken();
+
+    private ClientRegistrationResponse buildClientRegistrationResponse(HttpEntity entity, String applicationType) throws IOException {
+        if (entity != null) {
+            ClientRegistrationResponse clientRegistrationResponse = mapper.readValue(
+                EntityUtils.toString(entity),
+                ClientRegistrationResponse.class
+            );
+            // Some IdPs do not support the optional application_type parameter. However, the DCR implementation expects this parameter to never be empty
+            if (clientRegistrationResponse.getApplicationType() == null) {
+                clientRegistrationResponse.setApplicationType(applicationType);
+            }
+            return clientRegistrationResponse;
+        } else {
+            throw new DynamicClientRegistrationException("Client registration response does not contain any body");
+        }
+    }
 }

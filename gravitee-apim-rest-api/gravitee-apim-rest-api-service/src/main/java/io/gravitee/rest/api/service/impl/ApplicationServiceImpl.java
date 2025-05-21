@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -250,14 +251,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 return Collections.emptySet();
             }
 
-            ApplicationCriteria.Builder criteriaBuilder = new ApplicationCriteria.Builder().ids(new HashSet<>(applicationIds));
+            ApplicationCriteria.ApplicationCriteriaBuilder criteriaBuilder = ApplicationCriteria
+                .builder()
+                .restrictedToIds(new HashSet<>(applicationIds));
 
             if (applicationStatus != null) {
                 criteriaBuilder.status(applicationStatus);
             }
 
             if (executionContext.hasEnvironmentId()) {
-                criteriaBuilder.environmentIds(executionContext.getEnvironmentId());
+                criteriaBuilder.environmentIds(Set.of(executionContext.getEnvironmentId()));
             }
 
             Page<Application> applications = applicationRepository.search(criteriaBuilder.build(), null);
@@ -660,6 +663,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             } else {
                 // Check that client registration is enabled
                 checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
+                // Some IdPs do not support the optional application_type parameter. However, the DCR implementation expects this parameter to never be empty
+                if (updateApplicationEntity.getSettings().getoAuthClient().getApplicationType() == null) {
+                    updateApplicationEntity.getSettings().getoAuthClient().setApplicationType(applicationToUpdate.getType().name());
+                }
                 checkAndSanitizeOAuthClientSettings(updateApplicationEntity.getSettings().getoAuthClient());
 
                 // Update an OAuth client
@@ -1269,7 +1276,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     public InlinePictureEntity getPicture(final ExecutionContext executionContext, String applicationId) {
         ApplicationEntity applicationEntity = findById(executionContext, applicationId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
-        if (applicationEntity.getPicture() != null) {
+        if (applicationEntity.getPicture() != null && !applicationEntity.getPicture().isEmpty()) {
             String[] parts = applicationEntity.getPicture().split(";", 2);
             imageEntity.setType(parts[0].split(":")[1]);
             String base64Content = applicationEntity.getPicture().split(",", 2)[1];
@@ -1345,8 +1352,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private ApplicationCriteria buildSearchCriteria(ExecutionContext executionContext, ApplicationQuery applicationQuery) {
-        ApplicationCriteria.Builder criteriaBuilder = new ApplicationCriteria.Builder();
+    ApplicationCriteria buildSearchCriteria(ExecutionContext executionContext, ApplicationQuery applicationQuery) {
+        ApplicationCriteria.ApplicationCriteriaBuilder criteriaBuilder = ApplicationCriteria.builder();
 
         if (executionContext.hasEnvironmentId()) {
             criteriaBuilder.environmentIds(Sets.newHashSet(executionContext.getEnvironmentId()));
@@ -1360,29 +1367,42 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         if (applicationQuery != null) {
-            if (applicationQuery.getIds() != null && !applicationQuery.getIds().isEmpty()) {
-                criteriaBuilder.ids(applicationQuery.getIds());
+            if (applicationQuery.getQuery() != null) {
+                criteriaBuilder.query(applicationQuery.getQuery());
             }
 
-            ApplicationStatus applicationStatus = null;
-            if (applicationQuery.getGroups() != null && !applicationQuery.getGroups().isEmpty()) {
+            if (CollectionUtils.isNotEmpty(applicationQuery.getGroups())) {
                 criteriaBuilder.groups(applicationQuery.getGroups());
             }
 
+            if (StringUtils.isNotBlank(applicationQuery.getName())) {
+                criteriaBuilder.name(applicationQuery.getName());
+            }
+
+            ApplicationStatus applicationStatus = null;
             if (applicationQuery.getStatus() != null && !applicationQuery.getStatus().isBlank()) {
                 applicationStatus = ApplicationStatus.valueOf(applicationQuery.getStatus().toUpperCase());
                 criteriaBuilder.status(applicationStatus);
             }
 
-            if (applicationQuery.getName() != null && !applicationQuery.getName().isBlank()) {
-                criteriaBuilder.name(applicationQuery.getName());
+            if (CollectionUtils.isNotEmpty(applicationQuery.getIds())) {
+                criteriaBuilder.restrictedToIds(applicationQuery.getIds());
             }
-            if (applicationQuery.getUser() != null && !applicationQuery.getUser().isBlank()) {
+
+            if (StringUtils.isNotBlank(applicationQuery.getUser())) {
                 Set<String> userApplicationsIds = findUserApplicationsIds(executionContext, applicationQuery.getUser(), applicationStatus);
                 if (userApplicationsIds.isEmpty()) {
                     return null;
                 }
-                criteriaBuilder.ids(userApplicationsIds);
+                if (CollectionUtils.isNotEmpty(applicationQuery.getIds())) {
+                    Set<String> authorizedApps = userApplicationsIds.stream().filter(applicationQuery.getIds()::contains).collect(toSet());
+                    if (authorizedApps.isEmpty()) {
+                        return null;
+                    }
+                    criteriaBuilder.restrictedToIds(authorizedApps);
+                } else {
+                    criteriaBuilder.restrictedToIds(userApplicationsIds);
+                }
             }
         }
         return criteriaBuilder.build();
@@ -1402,7 +1422,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .stream()
             .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.APPLICATION))
             .map(MembershipEntity::getReferenceId)
-            .collect(toList());
+            .toList();
 
         if (!groupIds.isEmpty()) {
             ApplicationQuery applicationQueryWithGroupsAndStatus = new ApplicationQuery();

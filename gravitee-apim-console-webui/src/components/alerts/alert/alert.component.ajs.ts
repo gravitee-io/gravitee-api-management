@@ -83,9 +83,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
           this.alert = new Alert('New alert', 'INFO', undefined, undefined, undefined, this.referenceType, this.referenceId);
           this.alerts.push(this.alert);
         } else {
-          this.alert = find(this.alerts, { id: this.activatedRoute.snapshot.params.alertId }) || this.alerts[0];
-          this.alert.type = (this.alert.source + '@' + this.alert.type).toUpperCase();
-          this.alert.reference_type = this.referenceType;
+          this.alert = getAlertWithoutMutation(this.alerts, this.activatedRoute.snapshot.params.alertId, this.referenceType);
         }
 
         this.template = this.alert.template || false;
@@ -100,11 +98,16 @@ const AlertComponentAjs: ng.IComponentOptions = {
         const currentAlert = find(this.alerts, { id: this.activatedRoute.snapshot.params.alertId });
         if (this.updateMode && (!isEqual(this.alerts, changes.alerts.currentValue) || !isEqual(currentAlert, this.alert))) {
           this.alerts = changes.alerts.currentValue;
-          this.alert = find(this.alerts, { id: this.activatedRoute.snapshot.params.alertId }) || this.alerts[0];
-          this.alert.type = (this.alert.source + '@' + this.alert.type).toUpperCase();
-          this.alert.reference_type = this.referenceType;
+          this.alert = getAlertWithoutMutation(this.alerts, this.activatedRoute.snapshot.params.alertId, this.referenceType);
         }
       };
+
+      function getAlertWithoutMutation(alerts: any[], alertId: any, referenceType: any) {
+        const tempAlert = { ...(find(alerts, { id: alertId }) || alerts[0]) };
+        tempAlert.type = (tempAlert.source + '@' + tempAlert.type).toUpperCase();
+        tempAlert.reference_type = referenceType;
+        return tempAlert;
+      }
 
       this.selectTab = (idx: number) => {
         this.selectedTab = idx;
@@ -125,11 +128,11 @@ const AlertComponentAjs: ng.IComponentOptions = {
         }
 
         let service;
-        alert.type = alert.type.split('@')[1];
+        const rawType = alert.type.includes('@') ? alert.type.split('@')[1] : alert.type;
         if (this.updateMode) {
-          service = AlertService.update(alert);
+          service = AlertService.update({ ...alert, type: rawType });
         } else {
-          service = AlertService.create(alert);
+          service = AlertService.create({ ...alert, type: rawType });
         }
         return service.then((response) => {
           this.formAlert.$setPristine();

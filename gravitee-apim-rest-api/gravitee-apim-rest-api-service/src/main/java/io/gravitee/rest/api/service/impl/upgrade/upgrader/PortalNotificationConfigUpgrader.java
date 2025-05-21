@@ -69,7 +69,7 @@ public class PortalNotificationConfigUpgrader implements Upgrader {
                 .toList();
             log.info("Migrating portalNotificationConfig: {} for environments {}", portalNotificationConfigs.size(), environments);
         } catch (Exception e) {
-            log.error("Failed to apply {}", getClass().getSimpleName(), e);
+            log.error("Error applying upgrader", e);
             return false;
         }
         return true;

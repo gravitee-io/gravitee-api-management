@@ -69,7 +69,7 @@ public class ApiV4CategoriesUpgrader implements Upgrader {
         try {
             migrateV4ApiCategories();
         } catch (Exception e) {
-            log.error("error occurred while applying upgrader {}", this.getClass().getSimpleName());
+            log.error("Error applying upgrader", e);
             return false;
         }
 

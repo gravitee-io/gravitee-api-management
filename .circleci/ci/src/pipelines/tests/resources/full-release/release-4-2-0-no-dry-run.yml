@@ -468,25 +468,21 @@ jobs:
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-gateway:4.2.0
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-gateway:4.2.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-management-api:4.2.0
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-management-api:4.2.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-management-ui:4.2.0
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-management-ui:4.2.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/apim-portal-ui:4.2.0
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/apim-portal-ui:4.2.0
           scanner_url: https://82fb8f75da.cloud.aquasec.com
@@ -499,15 +495,50 @@ jobs:
       - keeper/env-export:
           secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
           var-name: GIO_PACKAGECLOUD_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_pub_key
+          var-name: GPG_KEY_PUBLIC
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key
+          var-name: GPG_KEY_PRIVATE
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/field/login
+          var-name: GPG_KEY_NAME
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/passphrase
+          var-name: GPG_KEY_PASSPHRASE
       - run:
           name: Building and publishing RPMs
-          command: |-
+          command: |
             export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
-            git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
+            git clone --depth 1 --branch master --single-branch --no-tag git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
 
             cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x
             ./build.sh -v 4.2.0
-            docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
+
+            echo "change RPM file owner from root to graviteeio"
+            docker run --rm \
+                -v "${PWD}:/rpms" \
+                --workdir /rpms \
+                --entrypoint /bin/sh \
+                graviteeio/fpm:rpm \
+                -c 'chown 1001:1001 *.rpm'
+
+            docker run --rm \
+                -v "${PWD}:/rpms" \
+                -e "GPG_KEY_NAME" \
+                -e "GPG_KEY_PUBLIC" \
+                -e "GPG_KEY_PRIVATE" \
+                -e "GPG_KEY_PASSPHRASE" \
+                graviteeio/rpmsign
+
+            echo "RPMs will be published in https://packagecloud.io/graviteeio/rpms"
+
+            docker run --rm \
+                -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" \
+                -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} \
+                digitalocean/packagecloud \
+                push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
   job-release-notes-apim:
     docker:
       - image: cimg/node:20.11.1
@@ -689,4 +720,4 @@ orbs:
   aws-cli: circleci/aws-cli@5.1.2
   helm: circleci/helm@3.0.0
   gh: circleci/github-cli@1.0.5
-  aquasec: gravitee-io/aquasec@1.0.4
+  aquasec: gravitee-io/aquasec@1.0.5

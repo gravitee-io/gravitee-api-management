@@ -56,8 +56,14 @@
               <gio-form-file-picker formControlName="picture" accept="image/*">
                 <gio-form-file-picker-label>Picture</gio-form-file-picker-label>
                 <gio-form-file-picker-add-button class="general__right__image-upload__picture__btn">
-                  <span class="general__right__image-upload__picture__text"> Click here or drag an image </span>
-                  <gio-avatar [size]="108" [name]="category.name"></gio-avatar>
+                  <div class="general__right__image-upload__picture">
+                    <span class="general__right__image-upload__picture__text"> Click here or drag an image <br />Max 500KB</span>
+                    <gio-avatar
+                      class="general__right__image-upload__picture__default-avatar"
+                      [size]="108"
+                      [name]="category.name"
+                    ></gio-avatar>
+                  </div>
                 </gio-form-file-picker-add-button>
                 <gio-form-file-picker-empty>
                   <gio-avatar
@@ -74,7 +80,7 @@
               >
                 <gio-form-file-picker-label>Background</gio-form-file-picker-label>
                 <gio-form-file-picker-add-button>
-                  <span class="general__right__image-upload__background__text"> Click here or drag an image </span>
+                  <span class="general__right__image-upload__background__text"> Click here or drag an image <br />Max 500KB</span>
                 </gio-form-file-picker-add-button>
                 <gio-form-file-picker-empty><span>No background defined</span></gio-form-file-picker-empty>
               </gio-form-file-picker>

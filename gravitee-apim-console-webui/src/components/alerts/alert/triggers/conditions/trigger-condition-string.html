@@ -26,11 +26,6 @@
     aria-label="string value condition"
     ng-disabled="$ctrl.isReadonly"
   />
-  <!--
-  <div class="hint">
-    The pattern value to compare to.
-  </div>
-  -->
   <div ng-messages="$ctrl.formAlert['condition-string-value'].$error">
     <div ng-message="required">Pattern is required.</div>
   </div>
@@ -38,12 +33,25 @@
 
 <md-input-container class="md-block" ng-if="$ctrl.displaySelect()">
   <label>Value</label>
-  <md-select ng-model="$ctrl.condition.pattern" required ng-disabled="$ctrl.isReadonly">
-    <md-option ng-value="type.key" ng-repeat="type in $ctrl.values"> {{::type.value}} </md-option>
+  <md-select
+    ng-model="$ctrl.condition.pattern"
+    required
+    data-md-container-class="triggerdemoSelectHeader"
+    ng-disabled="$ctrl.isReadonly"
+    md-on-open="$ctrl.onSearch()"
+  >
+    <md-select-header class="demo-select-header">
+      <input
+        style="border-top: none; border-right: none; border-left: none; outline: none; padding: 1% 4%; width: 92% !important; height: 100%"
+        ng-model="$ctrl.searchTerm"
+        ng-change="$ctrl.onSearch()"
+        ng-keydown="$event.stopPropagation()"
+        type="search"
+        placeholder="Search values"
+        class="demo-header-searchbox md-text"
+      />
+    </md-select-header>
+
+    <md-option ng-value="type.key" ng-repeat="type in $ctrl.filteredValues track by type.key"> {{ type.value }} </md-option>
   </md-select>
-  <!--
-  <div class="hint">
-    Select the value to compare to.
-  </div>
-  -->
 </md-input-container>
