@@ -1,3 +1,10 @@
+## [5.9.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.9.0...5.9.1) (2025-05-22)
+
+
+### Bug Fixes
+
+* fix mapping ([1cbc485](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/1cbc48599190a4dd46d596b7c5ac8a4f0b5893f4))
+
 # [5.9.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.8.1...5.9.0) (2025-05-15)
 
 
