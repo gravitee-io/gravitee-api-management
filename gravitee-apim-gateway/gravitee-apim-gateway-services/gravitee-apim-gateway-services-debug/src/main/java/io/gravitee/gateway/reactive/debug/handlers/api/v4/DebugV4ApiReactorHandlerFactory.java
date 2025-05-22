@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.debug.handlers.api.v4;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -66,7 +67,8 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
         final AccessPointManager accessPointManager,
         final EventManager eventManager,
         final HttpAcceptorFactory httpAcceptorFactory,
-        final GatewayConfiguration gatewayConfiguration
+        final GatewayConfiguration gatewayConfiguration,
+        final DictionaryManager dictionaryManager
     ) {
         super(
             applicationContext,
@@ -87,7 +89,8 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
             OpenTelemetryConfiguration.builder().tracesEnabled(false).build(),
             null,
             null,
-            gatewayConfiguration
+            gatewayConfiguration,
+            dictionaryManager
         );
     }
 

@@ -17,11 +17,13 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.Map;
+import lombok.NoArgsConstructor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
 public class Dictionary {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
@@ -44,6 +46,11 @@ public class Dictionary {
      * Dictionary name
      */
     private String name;
+
+    /**
+     * Dictionary key
+     */
+    private String key;
 
     /**
      * Dictionary description
@@ -104,6 +111,14 @@ public class Dictionary {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public DictionaryType getType() {

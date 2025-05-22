@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.healthcheck.context;
 
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,13 +28,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class HealthCheckContextFactory {
 
     @Autowired
+    private DictionaryManager dictionaryManager;
+
+    @Autowired
     private HealthCheckTemplateVariableProviderFactory templateVariableProviderFactory;
 
     private List<TemplateVariableProvider> providers;
 
-    public HealthCheckContext create(ApiTemplateVariableProvider apiTemplateVariableProvider) {
+    public HealthCheckContext create(ApiTemplateVariableProvider apiTemplateVariableProvider, String environmentId) {
         final ArrayList<TemplateVariableProvider> templateVariableProviders = getProviders();
         templateVariableProviders.add(apiTemplateVariableProvider);
+        templateVariableProviders.add(dictionaryManager.createTemplateVariableProvider(environmentId));
 
         final HealthCheckContext healthCheckContext = new HealthCheckContext();
         healthCheckContext.setProviders(templateVariableProviders);
