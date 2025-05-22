@@ -229,7 +229,7 @@
         <gravitee-policy-xml-json.version>2.0.1</gravitee-policy-xml-json.version>
         <gravitee-policy-xml-threat-protection.version>1.5.1</gravitee-policy-xml-threat-protection.version>
         <gravitee-policy-xml-validation.version>1.2.0</gravitee-policy-xml-validation.version>
-        <gravitee-policy-xslt.version>3.1.0</gravitee-policy-xslt.version>
+        <gravitee-policy-xslt.version>3.1.1</gravitee-policy-xslt.version>
         <gravitee-policy-wssecurity-authentication.version>2.0.2</gravitee-policy-wssecurity-authentication.version>
 
         <gravitee-resource-cache.version>2.1.0</gravitee-resource-cache.version>
