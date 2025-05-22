@@ -119,8 +119,10 @@ public class DictionarySynchronizer implements RepositorySynchronizer {
 
     private Flowable<DictionaryDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {
         return eventsByType
-            .flatMapMaybe(dictionaryMapper::toId)
-            .map(dictionaryId -> DictionaryDeployable.builder().id(dictionaryId).syncAction(SyncAction.UNDEPLOY).build());
+            .flatMapMaybe(dictionaryMapper::to)
+            .map(dictionary ->
+                DictionaryDeployable.builder().id(dictionary.getId()).dictionary(dictionary).syncAction(SyncAction.UNDEPLOY).build()
+            );
     }
 
     private static Flowable<DictionaryDeployable> deploy(

@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -94,6 +95,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
     protected final RequestTimeoutConfiguration requestTimeoutConfiguration;
     protected final ReporterService reporterService;
     protected final GatewayConfiguration gatewayConfiguration;
+
     private final Logger logger = LoggerFactory.getLogger(DefaultApiReactorFactory.class);
 
     public DefaultApiReactorFactory(
@@ -114,9 +116,10 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final OpenTelemetryConfiguration openTelemetryConfiguration,
         final OpenTelemetryFactory openTelemetryFactory,
         final List<InstrumenterTracerFactory> instrumenterTracerFactories,
-        final GatewayConfiguration gatewayConfiguration
+        final GatewayConfiguration gatewayConfiguration,
+        final DictionaryManager dictionaryManager
     ) {
-        super(applicationContext, policyFactoryManager, configuration);
+        super(applicationContext, policyFactoryManager, configuration, dictionaryManager);
         this.node = node;
         this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
@@ -155,9 +158,10 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final OpenTelemetryConfiguration openTelemetryConfiguration,
         final OpenTelemetryFactory openTelemetryFactory,
         final List<InstrumenterTracerFactory> instrumenterTracerFactories,
-        final GatewayConfiguration gatewayConfiguration
+        final GatewayConfiguration gatewayConfiguration,
+        final DictionaryManager dictionaryManager
     ) {
-        super(applicationContext, new PolicyFactoryManager(new HashSet<>(Set.of(policyFactory))), configuration);
+        super(applicationContext, new PolicyFactoryManager(new HashSet<>(Set.of(policyFactory))), configuration, dictionaryManager);
         this.node = node;
         this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;

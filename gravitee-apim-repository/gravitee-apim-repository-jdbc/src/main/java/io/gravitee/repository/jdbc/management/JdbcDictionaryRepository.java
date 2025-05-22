@@ -73,6 +73,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("key", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, DictionaryType.class)
             .addColumn("state", Types.NVARCHAR, LifecycleState.class)
@@ -364,6 +365,31 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete dictionaries for environment: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete dictionaries by environment", ex);
+        }
+    }
+
+    @Override
+    public Optional<Dictionary> findByKeyAndEnvironment(String key, String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcDictionaryRepository.findByKeyAndEnvironment({}, {})", key, environmentId);
+        try {
+            JdbcHelper.CollatingRowMapper<Dictionary> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            jdbcTemplate.query(
+                getOrm().getSelectAllSql() +
+                " d left join " +
+                DICTIONARY_PROPERTY +
+                " dp on d.id = dp.dictionary_id where d." +
+                escapeReservedWord("key") +
+                " = ? and d.environment_id = ?",
+                rowMapper,
+                key,
+                environmentId
+            );
+            Optional<Dictionary> result = rowMapper.getRows().stream().findFirst();
+            LOGGER.debug("JdbcDictionaryRepository.findByKeyAndEnvironment({}, {}) = {}", key, environmentId, result);
+            return result;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find dictionary by key and environment:", ex);
+            throw new TechnicalException("Failed to find dictionary by id", ex);
         }
     }
 }

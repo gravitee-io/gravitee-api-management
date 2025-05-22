@@ -21,6 +21,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
@@ -185,7 +186,8 @@ public class ApiHandlerConfiguration {
         EventManager eventManager,
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
-        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories
+        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
+        DictionaryManager dictionaryManager
     ) {
         return new ApiReactorHandlerFactory(
             applicationContext,
@@ -203,7 +205,8 @@ public class ApiHandlerConfiguration {
             eventManager,
             openTelemetryConfiguration,
             openTelemetryFactory,
-            instrumenterTracerFactories
+            instrumenterTracerFactories,
+            dictionaryManager
         );
     }
 
@@ -254,7 +257,8 @@ public class ApiHandlerConfiguration {
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
         @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
-        GatewayConfiguration gatewayConfiguration
+        GatewayConfiguration gatewayConfiguration,
+        DictionaryManager dictionaryManager
     ) {
         return new DefaultApiReactorFactory(
             applicationContext,
@@ -274,7 +278,8 @@ public class ApiHandlerConfiguration {
             openTelemetryConfiguration,
             openTelemetryFactory,
             instrumenterTracerFactories,
-            gatewayConfiguration
+            gatewayConfiguration,
+            dictionaryManager
         );
     }
 
