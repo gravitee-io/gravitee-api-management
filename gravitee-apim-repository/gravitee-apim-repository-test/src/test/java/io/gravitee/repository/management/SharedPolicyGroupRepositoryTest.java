@@ -281,6 +281,27 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(optional.get().getVersion()).isEqualTo(1);
         assertThat(optional.get().getDescription()).isEqualTo("description");
         assertThat(optional.get().getCrossId()).isEqualTo("id_find-by-id_test_crossId");
+        assertThat(optional.get().getHrid()).isEqualTo("id_find-by-id_test_crossId");
+        assertThat(optional.get().getApiType()).isEqualTo(ApiType.PROXY);
+        assertThat(optional.get().getPhase()).isEqualTo(SharedPolicyGroup.FlowPhase.RESPONSE);
+        assertThat(optional.get().getDefinition()).isEqualTo("definition");
+        assertThat(optional.get().getLifecycleState()).isEqualTo(SharedPolicyGroupLifecycleState.UNDEPLOYED);
+        assertThat(optional.get().getEnvironmentId()).isEqualTo("environmentId");
+        assertThat(optional.get().getOrganizationId()).isEqualTo("organizationId");
+        assertThat(optional.get().getDeployedAt()).isNotNull();
+        assertThat(optional.get().getCreatedAt()).isNotNull();
+        assertThat(optional.get().getUpdatedAt()).isNotNull();
+    }
+
+    @Test
+    public void should_find_by_environment_id_and_hrid() throws TechnicalException {
+        final var optional = sharedPolicyGroupRepository.findByEnvironmentIdAndHRID("environmentId", "id_find-by-id_test_crossId");
+        assertThat(optional).isPresent();
+        assertThat(optional.get().getName()).isEqualTo("name");
+        assertThat(optional.get().getVersion()).isEqualTo(1);
+        assertThat(optional.get().getDescription()).isEqualTo("description");
+        assertThat(optional.get().getCrossId()).isEqualTo("id_find-by-id_test_crossId");
+        assertThat(optional.get().getHrid()).isEqualTo("id_find-by-id_test_crossId");
         assertThat(optional.get().getApiType()).isEqualTo(ApiType.PROXY);
         assertThat(optional.get().getPhase()).isEqualTo(SharedPolicyGroup.FlowPhase.RESPONSE);
         assertThat(optional.get().getDefinition()).isEqualTo("definition");

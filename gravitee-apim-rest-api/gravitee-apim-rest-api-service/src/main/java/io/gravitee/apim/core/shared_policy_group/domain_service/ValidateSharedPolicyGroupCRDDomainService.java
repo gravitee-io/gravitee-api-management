@@ -57,7 +57,7 @@ public class ValidateSharedPolicyGroupCRDDomainService implements Validator<Vali
             return Result.ofErrors(errors);
         }
 
-        if (input.crd().getCrossId() != null && input.crd().getHrid() == null) {
+        if (input.crd().getHrid() == null) {
             input.crd().setHrid(input.crd().getCrossId());
         }
 
