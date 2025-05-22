@@ -15,27 +15,23 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
-
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/organizations/{orgId}")
-public class OrganizationResource {
+@Path("/")
+public class OpenAPIResource {
 
-    @Context
-    private ResourceContext resourceContext;
-
-    @Path("/environments")
-    public EnvironmentsResource getEnvironmentsResource() {
-        return resourceContext.getResource(EnvironmentsResource.class);
+    @GET
+    @Path("/open-api.yaml")
+    @Produces("application/yaml")
+    public Response getOpenApi() {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("open-api.yaml")).build();
     }
 }
