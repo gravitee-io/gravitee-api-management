@@ -211,6 +211,15 @@
                     }
                 },
                 {
+                    "additional_keyword_metrics": {
+                        "path_match": "policy-metrics.keyword_*",
+                        "match_mapping_type": "string",
+                        "mapping": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                {
                     "policies_boolean_metrics": {
                         "path_match": "policy-metrics.bool_*",
                         "mapping": {
