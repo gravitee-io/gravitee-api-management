@@ -271,20 +271,10 @@ public class BasicSecurityConfigurerAdapter {
             .authorizeHttpRequests()
             .requestMatchers(HttpMethod.GET, "/")
             .permitAll()
-            .requestMatchers(HttpMethod.GET, "/index-*.html")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, "/openapi-*.yaml")
+            .requestMatchers(HttpMethod.GET, "/open-api.yaml")
             .permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "**")
             .permitAll()
-            /*
-             * Management UI resources.
-             */
-            .requestMatchers(HttpMethod.GET, "/ui/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/ui/**")
-            .permitAll()
-            // Any other request must be authenticated
             .anyRequest()
             .authenticated()
             .and();
