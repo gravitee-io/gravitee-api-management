@@ -36,6 +36,8 @@ public class DictionaryEntity {
 
     private String name;
 
+    private String key;
+
     private String description;
 
     private DictionaryType type;

@@ -39,7 +39,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAll();
 
         assertNotNull(dictionaries);
-        assertEquals(6, dictionaries.size());
+        assertEquals(7, dictionaries.size());
     }
 
     @Test
@@ -55,7 +55,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(Collections.emptySet());
 
         assertNotNull(dictionaries);
-        assertEquals(6, dictionaries.size());
+        assertEquals(7, dictionaries.size());
     }
 
     @Test
@@ -66,7 +66,25 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(envs);
 
         assertNotNull(dictionaries);
-        assertEquals(4, dictionaries.size());
+        assertEquals(5, dictionaries.size());
+    }
+
+    @Test
+    public void shouldFindAllByEnvironmentsDefaultAndKey() throws Exception {
+        Optional<Dictionary> dictionary = dictionaryRepository.findByKeyAndEnvironment("dic-1", "DEFAULT");
+
+        assertTrue(dictionary.isPresent());
+        assertEquals("dic-1", dictionary.get().getId());
+        assertEquals("dic-1", dictionary.get().getKey());
+    }
+
+    @Test
+    public void shouldFindAllByEnvironmentsOtherEnvAndKey() throws Exception {
+        Optional<Dictionary> dictionary = dictionaryRepository.findByKeyAndEnvironment("dic-1", "OTHER_ENV");
+
+        assertTrue(dictionary.isPresent());
+        assertEquals("dic-7", dictionary.get().getId());
+        assertEquals("dic-1", dictionary.get().getKey());
     }
 
     @Test
@@ -90,6 +108,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         dictionary.setId("new-dictionary");
         dictionary.setEnvironmentId("DEFAULT");
         dictionary.setName("My dic 1");
+        dictionary.setKey("new-dictionary");
         dictionary.setDescription("Description for my dic 1");
         dictionary.setCreatedAt(new Date(1000000000000L));
         dictionary.setUpdatedAt(new Date(1439032010883L));

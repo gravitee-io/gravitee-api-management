@@ -37,6 +37,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntit
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -238,12 +239,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Create dictionary {}", newDictionaryEntity);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(IdGenerator.generate(newDictionaryEntity.getName()));
+            String key = IdGenerator.generate(newDictionaryEntity.getName());
+            Optional<Dictionary> optDictionary = dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId());
             if (optDictionary.isPresent()) {
                 throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
             }
 
-            Dictionary dictionary = convert(newDictionaryEntity);
+            //if dictionary with this name exists, we generate a UUID, otherwise we use the name as ID to be backward compatible
+            Dictionary dictionary = convert(newDictionaryEntity, dictionaryRepository.findById(key).isEmpty());
 
             dictionary.setEnvironmentId(executionContext.getEnvironmentId());
 
@@ -275,6 +278,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             Dictionary dictionary = convert(updateDictionaryEntity);
 
             dictionary.setId(id);
+            dictionary.setKey(dictionaryToUpdate.getKey());
             dictionary.setCreatedAt(dictionaryToUpdate.getCreatedAt());
             dictionary.setEnvironmentId(dictionaryToUpdate.getEnvironmentId());
             dictionary.setUpdatedAt(new Date());
@@ -417,6 +421,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .builder()
             .id(dictionary.getId())
             .name(dictionary.getName())
+            .key(dictionary.getKey())
             .description(dictionary.getDescription())
             .createdAt(dictionary.getCreatedAt())
             .updatedAt(dictionary.getUpdatedAt())
@@ -452,10 +457,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         return dictionary;
     }
 
-    private Dictionary convert(NewDictionaryEntity newDictionaryEntity) {
+    private Dictionary convert(NewDictionaryEntity newDictionaryEntity, boolean legacy) {
         Dictionary dictionary = new Dictionary();
-
-        dictionary.setId(IdGenerator.generate(newDictionaryEntity.getName()));
+        String key = IdGenerator.generate(newDictionaryEntity.getName());
+        //create legacy dictionaries to be backward compatible
+        dictionary.setId(legacy ? key : UuidString.generateRandom());
+        dictionary.setKey(legacy ? null : key);
         dictionary.setName(newDictionaryEntity.getName());
         dictionary.setDescription(newDictionaryEntity.getDescription());
 
