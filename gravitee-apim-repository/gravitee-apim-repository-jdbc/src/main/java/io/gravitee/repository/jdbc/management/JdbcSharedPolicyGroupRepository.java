@@ -191,24 +191,23 @@ public class JdbcSharedPolicyGroupRepository
     }
 
     @Override
-    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String crossId) throws TechnicalException {
-        LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}]", environmentId, crossId);
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid) throws TechnicalException {
+        LOGGER.debug("Find shared policy group by environment ID [{}] and  HRID [{}]", environmentId, hrid);
 
         try {
             final var result = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " WHERE environment_id = ? AND hrid = ?",
                 getOrm().getRowMapper(),
                 environmentId,
-                crossId
+                hrid
             );
 
             final var sharedPolicyGroup = result.isEmpty() ? null : result.get(0);
 
-            LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, crossId);
+            LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, hrid);
             return Optional.ofNullable(sharedPolicyGroup);
         } catch (Exception ex) {
-            LOGGER.error("Failed to find SharedPolicyGroup by environment ID and cross ID:", ex);
-            throw new TechnicalException("Failed to find SharedPolicyGroup by environment ID and cross ID", ex);
+            throw new TechnicalException("Failed to find SharedPolicyGroup by environment ID and HRID", ex);
         }
     }
 
