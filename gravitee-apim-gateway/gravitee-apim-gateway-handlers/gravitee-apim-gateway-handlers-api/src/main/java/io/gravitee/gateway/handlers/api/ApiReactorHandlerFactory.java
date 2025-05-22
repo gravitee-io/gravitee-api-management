@@ -37,6 +37,7 @@ import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.core.endpoint.resolver.ProxyEndpointResolver;
 import io.gravitee.gateway.core.invoker.InvokerFactory;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
@@ -127,6 +128,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final AccessPointManager accessPointManager;
     private final EventManager eventManager;
+    private final DictionaryManager dictionaryManager;
     private ApplicationContext applicationContext;
 
     public ApiReactorHandlerFactory(
@@ -142,6 +144,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         FlowResolverFactory flowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         AccessPointManager accessPointManager,
+        DictionaryManager dictionaryManager,
         EventManager eventManager
     ) {
         this.applicationContext = applicationContext;
@@ -157,6 +160,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
+        this.dictionaryManager = dictionaryManager;
         this.contentTemplateVariableProvider = new ContentTemplateVariableProvider();
     }
 
@@ -397,6 +401,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         templateVariableProviders.addAll(
             applicationContext.getBean(ApiTemplateVariableProviderFactory.class).getTemplateVariableProviders()
         );
+        templateVariableProviders.add(dictionaryManager.createTemplateVariableProvider(api.getEnvironmentId()));
         return templateVariableProviders;
     }
 

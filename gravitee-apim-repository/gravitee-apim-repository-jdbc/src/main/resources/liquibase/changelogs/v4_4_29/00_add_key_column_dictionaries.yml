@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.29_add_key_column_dictionaries
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}dictionaries
+            columns:
+              - column: {name: key, type: nvarchar(64), constraints: { nullable: true } }

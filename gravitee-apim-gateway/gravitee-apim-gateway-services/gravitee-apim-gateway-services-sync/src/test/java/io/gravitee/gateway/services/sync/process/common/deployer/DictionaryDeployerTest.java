@@ -83,15 +83,15 @@ class DictionaryDeployerTest {
         void should_undeploy_dictionary() {
             DictionaryDeployable dictionaryDeployable = DictionaryDeployable.builder().id("dictionaryId").build();
             cut.undeploy(dictionaryDeployable).test().assertComplete();
-            verify(dictionaryManager).undeploy("dictionaryId");
+            verify(dictionaryManager).undeploy(dictionaryDeployable.dictionary());
         }
 
         @Test
         void should_complete_on_error_when_dictionary_manager_throw_exception() {
             DictionaryDeployable dictionaryDeployable = DictionaryDeployable.builder().id("dictionaryId").build();
-            doThrow(new SyncException("error")).when(dictionaryManager).undeploy("dictionaryId");
+            doThrow(new SyncException("error")).when(dictionaryManager).undeploy(dictionaryDeployable.dictionary());
             cut.undeploy(dictionaryDeployable).test().assertFailure(SyncException.class);
-            verify(dictionaryManager).undeploy("dictionaryId");
+            verify(dictionaryManager).undeploy(dictionaryDeployable.dictionary());
         }
     }
 }
