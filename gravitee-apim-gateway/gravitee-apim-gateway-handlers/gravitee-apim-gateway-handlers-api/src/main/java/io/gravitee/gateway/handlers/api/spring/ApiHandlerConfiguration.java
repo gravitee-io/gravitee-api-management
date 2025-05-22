@@ -21,6 +21,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
@@ -167,6 +168,7 @@ public class ApiHandlerConfiguration {
         io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         AccessPointManager accessPointManager,
+        DictionaryManager dictionaryManager,
         EventManager eventManager
     ) {
         return new ApiReactorHandlerFactory(
@@ -182,6 +184,7 @@ public class ApiHandlerConfiguration {
             flowResolverFactory,
             requestTimeoutConfiguration,
             accessPointManager,
+            dictionaryManager,
             eventManager
         );
     }
@@ -215,6 +218,7 @@ public class ApiHandlerConfiguration {
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         ReporterService reporterService,
         AccessPointManager accessPointManager,
+        DictionaryManager dictionaryManager,
         EventManager eventManager
     ) {
         return new DefaultApiReactorFactory(
@@ -231,6 +235,7 @@ public class ApiHandlerConfiguration {
             requestTimeoutConfiguration,
             reporterService,
             accessPointManager,
+            dictionaryManager,
             eventManager
         );
     }

@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -88,6 +89,9 @@ public class ApiReactorHandlerFactoryTest {
     private AccessPointManager accessPointManager;
 
     @Mock
+    private DictionaryManager dictionaryManager;
+
+    @Mock
     private EventManager eventManager;
 
     @Before
@@ -116,6 +120,7 @@ public class ApiReactorHandlerFactoryTest {
                 flowResolverFactory,
                 new RequestTimeoutConfiguration(2000L, 10L),
                 accessPointManager,
+                dictionaryManager,
                 eventManager
             );
     }
