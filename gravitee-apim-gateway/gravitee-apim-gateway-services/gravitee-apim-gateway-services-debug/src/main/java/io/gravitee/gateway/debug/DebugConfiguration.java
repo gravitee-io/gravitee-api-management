@@ -31,6 +31,7 @@ import io.gravitee.gateway.debug.reactor.DebugReactor;
 import io.gravitee.gateway.debug.reactor.processor.DebugResponseProcessorChainFactory;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
@@ -392,7 +393,8 @@ public class DebugConfiguration {
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         AccessPointManager accessPointManager,
         EventManager eventManager,
-        HttpAcceptorFactory httpAcceptorFactory
+        HttpAcceptorFactory httpAcceptorFactory,
+        DictionaryManager dictionaryManager
     ) {
         return new DebugApiReactorHandlerFactory(
             applicationContext.getParent(),
@@ -408,7 +410,8 @@ public class DebugConfiguration {
             requestTimeoutConfiguration,
             accessPointManager,
             eventManager,
-            httpAcceptorFactory
+            httpAcceptorFactory,
+            dictionaryManager
         );
     }
 
@@ -442,7 +445,8 @@ public class DebugConfiguration {
         ReporterService reporterService,
         AccessPointManager accessPointManager,
         EventManager eventManager,
-        GatewayConfiguration gatewayConfiguration
+        GatewayConfiguration gatewayConfiguration,
+        final DictionaryManager dictionaryManager
     ) {
         return new DebugV4ApiReactorHandlerFactory(
             applicationContext.getParent(),
@@ -460,7 +464,8 @@ public class DebugConfiguration {
             accessPointManager,
             eventManager,
             new HttpAcceptorFactory(false),
-            gatewayConfiguration
+            gatewayConfiguration,
+            dictionaryManager
         );
     }
 }
