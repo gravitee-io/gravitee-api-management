@@ -15,7 +15,7 @@ openapi: 3.1.0
 info:
   title: Gravitee.io GKO - Automation API
   description: |-
-    This is the OpenAPI specification used by Automation tools to perform calls to APIM Management API.
+    The APIM automation APIi.
   contact:
     email: team-gko@graviteesource.com
   license:
@@ -26,13 +26,12 @@ security:
   - BearerAuth: []
   - BasicAuth: []
 servers:
-  - url: "htto://localhost:8083/automation"
-  - url: "https://localhost:8083/automation"
+  - url: "https://apim-master-gateway.team-apim.gravitee.dev/automation"
 tags:
   - name: APIs
     description: Everything about APIs
   - name: Shared Policy Group
-    description: Everything about shared policy group
+    description: Everything about Shared Policy Groups
 paths:
   /organizations/{orgId}/environments/{envId}/shared-policy-groups/{hrid}:
     parameters:
@@ -45,6 +44,9 @@ paths:
         - Shared Policy Group
       summary: Get one policy group
       description: Get one policy group
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
       responses:
         "200":
           description: Successful retrieval
@@ -63,7 +65,11 @@ paths:
       tags:
         - Shared Policy Group
       summary: Delete one policy group
-      description: Delete one policy group
+      description: Delete one shared policy group
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
       responses:
         "204":
           description: Shared Policy Group successfully deleted
@@ -71,11 +77,11 @@ paths:
           $ref: "#/components/responses/Error"
   /organizations/{orgId}/environments/{envId}/shared-policy-groups/:
     put:
-      operationId: createOrUpdatePolicyGroupFromCRD
+      operationId: createOrUpdatePolicyGroup
       tags:
         - Shared Policy Group
-      summary: Create or update Shared Policy Group from CRD Spec
-      description: Create or update Shared Policy Group from CRD Spec
+      summary: Create or update Shared Policy Group from spec
+      description: Create or update Shared Policy Group from spec
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
@@ -88,7 +94,7 @@ paths:
         required: true
       responses:
         "200":
-          description: State of the successfully created Shared Policy Group
+          description: State of the successfully created / updated Shared Policy Group
           content:
             application/json:
               schema:
@@ -2113,6 +2119,9 @@ components:
     dryRunQueryParam:
       name: dryRun
       in: query
+      description: |
+        For modifying requests, this parameter allow you to test the result of an endpoint without actually persisting 
+        the state of the underlying resource.
       schema:
         type: boolean
         default: false

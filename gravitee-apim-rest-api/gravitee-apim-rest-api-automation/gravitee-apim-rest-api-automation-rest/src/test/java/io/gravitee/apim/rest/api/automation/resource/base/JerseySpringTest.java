@@ -16,9 +16,7 @@
 package io.gravitee.apim.rest.api.automation.resource.base;
 
 import io.gravitee.apim.rest.api.automation.GraviteeAutomationApplication;
-import io.gravitee.apim.rest.api.automation.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.management.v2.rest.GraviteeManagementV2Application;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -34,11 +32,9 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.Objects;
-import org.apache.commons.io.IOUtils;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
@@ -48,17 +44,12 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
