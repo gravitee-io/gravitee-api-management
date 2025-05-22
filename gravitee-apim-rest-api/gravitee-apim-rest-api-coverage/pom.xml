@@ -93,6 +93,18 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.apim.rest.api.automation</groupId>
+            <artifactId>gravitee-apim-rest-api-automation-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.automation</groupId>
+            <artifactId>gravitee-apim-rest-api-automation-security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.apim.rest.api.management.v2</groupId>
             <artifactId>gravitee-apim-rest-api-management-v2-rest</artifactId>
             <version>${project.version}</version>
