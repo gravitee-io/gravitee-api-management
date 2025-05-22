@@ -49,12 +49,12 @@ class DictionaryMapperTest {
         cut = new DictionaryMapper(objectMapper);
 
         Dictionary dictionary = new Dictionary();
-        dictionary.setId("id");
+        dictionary.setKey("id");
 
         distributedEvent =
             DistributedEvent
                 .builder()
-                .id(dictionary.getId())
+                .id(dictionary.getKey())
                 .payload(objectMapper.writeValueAsString(dictionary))
                 .updatedAt(new Date())
                 .type(DistributedEventType.DICTIONARY)
@@ -62,7 +62,7 @@ class DictionaryMapperTest {
                 .build();
 
         dictionaryDeployable =
-            DictionaryDeployable.builder().id(dictionary.getId()).dictionary(dictionary).syncAction(SyncAction.DEPLOY).build();
+            DictionaryDeployable.builder().id(dictionary.getKey()).dictionary(dictionary).syncAction(SyncAction.DEPLOY).build();
     }
 
     @Test

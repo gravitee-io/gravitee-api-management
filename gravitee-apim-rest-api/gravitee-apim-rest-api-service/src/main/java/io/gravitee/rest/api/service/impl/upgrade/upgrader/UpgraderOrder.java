@@ -46,4 +46,5 @@ public class UpgraderOrder {
     public static final int API_V4_CATEGORIES_UPGRADER = 701;
     public static final int API_CATEGORY_ORDER_UPGRADER = 702;
     public static final int USER_TOKEN_PERMISSION_UPGRADER = 702;
+    public static final int DICTIONARY_ID_UPGRADER = 710;
 }

@@ -82,6 +82,7 @@ public class DictionariesResource extends AbstractResource {
                 DictionaryListItem item = new DictionaryListItem();
                 item.setId(dictionaryEntity.getId());
                 item.setName(dictionaryEntity.getName());
+                item.setKey(dictionaryEntity.getKey());
                 item.setDescription(dictionaryEntity.getDescription());
                 item.setCreatedAt(dictionaryEntity.getCreatedAt());
                 item.setUpdatedAt(dictionaryEntity.getUpdatedAt());

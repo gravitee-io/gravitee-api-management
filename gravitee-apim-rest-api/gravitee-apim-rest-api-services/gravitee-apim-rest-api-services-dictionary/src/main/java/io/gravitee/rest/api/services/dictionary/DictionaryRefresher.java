@@ -104,19 +104,6 @@ public class DictionaryRefresher implements Handler<Long> {
         }
     }
 
-    private UpdateDictionaryEntity convert(DictionaryEntity dictionaryEntity) {
-        UpdateDictionaryEntity dictionary = new UpdateDictionaryEntity();
-
-        dictionary.setName(dictionaryEntity.getName());
-        dictionary.setDescription(dictionaryEntity.getDescription());
-        dictionary.setType(dictionaryEntity.getType());
-        dictionary.setProperties(dictionaryEntity.getProperties());
-        dictionary.setProvider(dictionaryEntity.getProvider());
-        dictionary.setTrigger(dictionaryEntity.getTrigger());
-
-        return dictionary;
-    }
-
     public void setDictionaryService(io.gravitee.rest.api.service.configuration.dictionary.DictionaryService dictionaryService) {
         this.dictionaryService = dictionaryService;
     }

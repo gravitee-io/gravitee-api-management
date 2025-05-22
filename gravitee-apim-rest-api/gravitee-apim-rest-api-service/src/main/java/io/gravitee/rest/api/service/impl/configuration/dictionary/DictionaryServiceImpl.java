@@ -37,6 +37,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntit
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -238,7 +239,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Create dictionary {}", newDictionaryEntity);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(IdGenerator.generate(newDictionaryEntity.getName()));
+            String key = IdGenerator.generate(newDictionaryEntity.getName());
+            Optional<Dictionary> optDictionary = dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId());
             if (optDictionary.isPresent()) {
                 throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
             }
@@ -417,6 +419,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .builder()
             .id(dictionary.getId())
             .name(dictionary.getName())
+            .key(dictionary.getKey())
             .description(dictionary.getDescription())
             .createdAt(dictionary.getCreatedAt())
             .updatedAt(dictionary.getUpdatedAt())
@@ -455,7 +458,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     private Dictionary convert(NewDictionaryEntity newDictionaryEntity) {
         Dictionary dictionary = new Dictionary();
 
-        dictionary.setId(IdGenerator.generate(newDictionaryEntity.getName()));
+        dictionary.setId(UuidString.generateRandom());
+        dictionary.setKey(IdGenerator.generate(newDictionaryEntity.getName()));
         dictionary.setName(newDictionaryEntity.getName());
         dictionary.setDescription(newDictionaryEntity.getDescription());
 

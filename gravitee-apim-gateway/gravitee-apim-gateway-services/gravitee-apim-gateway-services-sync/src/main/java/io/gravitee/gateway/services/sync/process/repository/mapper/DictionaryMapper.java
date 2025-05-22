@@ -40,17 +40,4 @@ public class DictionaryMapper {
             }
         });
     }
-
-    public Maybe<String> toId(Event dictionaryEvent) {
-        return Maybe.fromCallable(() -> {
-            String dictionaryId = null;
-            if (dictionaryEvent.getProperties() != null) {
-                dictionaryId = dictionaryEvent.getProperties().get(DICTIONARY_ID.getValue());
-            }
-            if (dictionaryId == null) {
-                log.warn("Unable to extract dictionary info from event [{}].", dictionaryEvent.getId());
-            }
-            return dictionaryId;
-        });
-    }
 }

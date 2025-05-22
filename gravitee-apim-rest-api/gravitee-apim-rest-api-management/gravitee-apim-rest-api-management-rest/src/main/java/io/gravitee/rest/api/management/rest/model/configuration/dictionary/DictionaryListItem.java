@@ -30,6 +30,8 @@ public class DictionaryListItem {
 
     private String name;
 
+    private String key;
+
     private String description;
 
     private DictionaryType type;
@@ -63,6 +65,14 @@ public class DictionaryListItem {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getDescription() {
