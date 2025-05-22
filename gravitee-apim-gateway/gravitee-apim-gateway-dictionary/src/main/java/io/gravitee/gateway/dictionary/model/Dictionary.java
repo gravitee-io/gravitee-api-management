@@ -32,8 +32,16 @@ import lombok.ToString;
 @ToString(onlyExplicitlyIncluded = true)
 public class Dictionary {
 
+    @ToString.Include
     @EqualsAndHashCode.Include
     private String id;
+
+    @ToString.Include
+    private String key;
+
+    @ToString.Include
+    @EqualsAndHashCode.Include
+    private String environmentId;
 
     @ToString.Include
     private String name;

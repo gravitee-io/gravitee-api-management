@@ -110,6 +110,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-dictionary</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-api</artifactId>
             <scope>provided</scope>

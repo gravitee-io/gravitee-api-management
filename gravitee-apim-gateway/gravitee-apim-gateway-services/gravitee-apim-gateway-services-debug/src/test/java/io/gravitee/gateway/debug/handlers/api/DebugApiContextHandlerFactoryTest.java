@@ -17,6 +17,7 @@ package io.gravitee.gateway.debug.handlers.api;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.getField;
@@ -26,6 +27,8 @@ import io.gravitee.el.TemplateVariableProviderFactory;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContextFactory;
+import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.gateway.dictionary.EnvironmentDictionaryTemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.context.ApiTemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -54,11 +57,15 @@ public class DebugApiContextHandlerFactoryTest {
     @Mock
     private DefaultReferenceRegister referenceRegister;
 
+    @Mock
+    private DictionaryManager dictionaryManager;
+
     @Test
     public void building_v3ExecutionContextFactory_should_put_ApiTemplateVariableProvider_in_context() {
         ApiTemplateVariableProviderFactory apiTemplateVariableProviderFactory = mock(ApiTemplateVariableProviderFactory.class);
         when(applicationContext.getBeansOfType(TemplateVariableProviderFactory.class))
             .thenReturn(Map.of(ApiTemplateVariableProviderFactory.class.getName(), apiTemplateVariableProviderFactory));
+        when(dictionaryManager.createTemplateVariableProvider(any())).thenReturn(mock(EnvironmentDictionaryTemplateVariableProvider.class));
 
         V3ExecutionContextFactory executionContextFactory = debugApiContextHandlerFactory.v3ExecutionContextFactory(
             mock(Api.class),
@@ -71,8 +78,9 @@ public class DebugApiContextHandlerFactoryTest {
             getField(executionContextFactory, "delegate"),
             "providers"
         );
-        assertEquals(2, providers.size());
+        assertEquals(3, providers.size());
         assertTrue(providers.contains(referenceRegister));
         assertTrue(providers.stream().filter(ApiTemplateVariableProvider.class::isInstance).findAny().isPresent());
+        assertTrue(providers.stream().filter(EnvironmentDictionaryTemplateVariableProvider.class::isInstance).findAny().isPresent());
     }
 }
