@@ -24,6 +24,10 @@
   <form name="$ctrl.formDictionary" ng-submit="$ctrl.update()" novalidate>
     <div class="gv-form">
       <h2>General</h2>
+      <div class="alert alert-warning" ng-if="$ctrl.dictionary.key">
+        This dictionary is only supported in a multi-tenant installation. To use it, please enable multi-tenancy for dictionaries in your
+        gateway configuration.
+      </div>
       <div class="gv-form-content" layout="column">
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
