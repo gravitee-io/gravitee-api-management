@@ -32,3 +32,5 @@ annotations:
   artifacthub.io/changes: |
     - kind: added
       description: 'If kafka gateway is enabled then startupProbe, readinessProbe and livenessProbe are configured to take the kafka-server probe into account'
+    - kind: added
+      description: 'allow users to enable dictionary multi-tenant support'

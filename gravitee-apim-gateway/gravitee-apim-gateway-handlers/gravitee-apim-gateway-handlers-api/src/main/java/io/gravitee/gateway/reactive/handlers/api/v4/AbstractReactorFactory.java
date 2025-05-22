@@ -23,6 +23,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
@@ -60,15 +61,18 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
     protected final ApplicationContext applicationContext;
     protected final PolicyFactoryManager policyFactoryManager;
     protected final Configuration configuration;
+    protected final DictionaryManager dictionaryManager;
 
     protected AbstractReactorFactory(
         ApplicationContext applicationContext,
         PolicyFactoryManager policyFactoryManager,
-        Configuration configuration
+        Configuration configuration,
+        DictionaryManager dictionaryManager
     ) {
         this.applicationContext = applicationContext;
         this.policyFactoryManager = policyFactoryManager;
         this.configuration = configuration;
+        this.dictionaryManager = dictionaryManager;
     }
 
     protected abstract void addExtraComponents(
@@ -154,6 +158,7 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
     protected List<TemplateVariableProvider> commonTemplateVariableProviders(T reactableApi) {
         final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
         templateVariableProviders.add(new ApiTemplateVariableProvider(reactableApi));
+        templateVariableProviders.add(dictionaryManager.createTemplateVariableProvider(reactableApi.getEnvironmentId()));
         List<TemplateVariableProvider> list = Stream
             .of(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, TemplateVariableProviderFactory.class))
             .map(name -> (TemplateVariableProviderFactory) applicationContext.getBean(name))

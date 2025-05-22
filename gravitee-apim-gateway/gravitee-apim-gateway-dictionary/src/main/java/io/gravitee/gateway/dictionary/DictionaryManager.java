@@ -16,6 +16,7 @@
 package io.gravitee.gateway.dictionary;
 
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -24,5 +25,9 @@ import io.gravitee.gateway.dictionary.model.Dictionary;
 public interface DictionaryManager {
     void deploy(Dictionary dictionary);
 
-    void undeploy(String dictionaryId);
+    void undeploy(Dictionary dictionary);
+
+    EnvironmentDictionaryTemplateVariableProvider createTemplateVariableProvider(String environmentId);
+
+    Map<String, Map<String, String>> getDictionaries(String environmentId);
 }

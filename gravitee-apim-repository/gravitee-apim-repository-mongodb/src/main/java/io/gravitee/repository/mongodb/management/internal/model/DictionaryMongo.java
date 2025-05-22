@@ -40,6 +40,8 @@ public class DictionaryMongo extends Auditable {
 
     private String name;
 
+    private String key;
+
     private String description;
 
     private String type;
