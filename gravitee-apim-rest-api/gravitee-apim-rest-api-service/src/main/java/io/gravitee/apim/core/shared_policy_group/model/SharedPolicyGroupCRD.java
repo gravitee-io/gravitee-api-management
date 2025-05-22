@@ -80,6 +80,7 @@ public class SharedPolicyGroupCRD {
     public SharedPolicyGroup toSharedPolicyGroup() {
         return SharedPolicyGroup
             .builder()
+            .hrid(hrid)
             .crossId(crossId)
             .id(sharedPolicyGroupId)
             .name(name)
