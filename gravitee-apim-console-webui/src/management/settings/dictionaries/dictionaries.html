@@ -36,7 +36,7 @@
           <tbody md-body>
             <tr md-row ng-repeat="dictionary in $ctrl.dictionaries | orderBy: name">
               <td md-cell>
-                <a ng-click="$ctrl.goTo(dictionary.id)"> {{dictionary.id}} </a>
+                <a ng-click="$ctrl.goTo(dictionary.id)"> {{ dictionary.key || dictionary.id }} </a>
               </td>
               <td md-cell>{{dictionary.name}}</td>
               <td md-cell>{{dictionary.description}}</td>

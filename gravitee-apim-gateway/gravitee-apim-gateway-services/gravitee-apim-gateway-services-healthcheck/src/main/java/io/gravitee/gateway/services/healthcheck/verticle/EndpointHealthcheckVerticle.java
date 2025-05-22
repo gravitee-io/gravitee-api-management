@@ -130,7 +130,10 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     private void addHandler(Api api, EndpointRule rule) {
         try {
-            final HealthCheckContext healthCheckContext = healthCheckContextFactory.create(new ApiTemplateVariableProvider(api));
+            final HealthCheckContext healthCheckContext = healthCheckContextFactory.create(
+                new ApiTemplateVariableProvider(api),
+                api.getEnvironmentId()
+            );
 
             EndpointRuleHandler runner = rule.createRunner(vertx, rule, healthCheckContext.getTemplateEngine(), environment);
             runner.setStatusHandler(statusReporter);
