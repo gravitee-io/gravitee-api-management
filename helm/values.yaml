@@ -1357,6 +1357,10 @@ gateway:
   #    header: X-Gravitee-Api-Key
   #    param: api-key
 
+  dictionaries:
+    multitenant:
+      enabled: false
+
   image:
     repository: graviteeio/apim-gateway
     # tag: 3.0.2

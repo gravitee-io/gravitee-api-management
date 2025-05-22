@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
@@ -100,6 +101,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     protected final FlowResolverFactory v4FlowResolverFactory;
     protected final RequestTimeoutConfiguration requestTimeoutConfiguration;
     protected final ReporterService reporterService;
+    protected final DictionaryManager dictionaryManager;
     private final Logger logger = LoggerFactory.getLogger(DefaultApiReactorFactory.class);
 
     public DefaultApiReactorFactory(
@@ -116,6 +118,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final ReporterService reporterService,
         final AccessPointManager accessPointManager,
+        final DictionaryManager dictionaryManager,
         final EventManager eventManager
     ) {
         this.applicationContext = applicationContext;
@@ -133,6 +136,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = flowResolverFactory();
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
+        this.dictionaryManager = dictionaryManager;
         this.reporterService = reporterService;
     }
 
@@ -359,7 +363,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         templateVariableProviders.addAll(
             applicationContext.getBean(ApiTemplateVariableProviderFactory.class).getTemplateVariableProviders()
         );
-
+        templateVariableProviders.add(dictionaryManager.createTemplateVariableProvider(api.getEnvironmentId()));
         return templateVariableProviders;
     }
 
