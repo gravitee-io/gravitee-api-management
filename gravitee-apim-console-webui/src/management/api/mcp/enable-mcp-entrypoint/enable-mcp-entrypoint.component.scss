@@ -1,0 +1,26 @@
+@use '../../../../scss/gio-layout' as gio-layout;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '@angular/material' as mat;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+  display: flex;
+  flex-flow: column;
+  gap: 16px;
+}
+
+.configure-mcp-entrypoint {
+  &__content {
+    display: flex;
+    flex-flow: column;
+    gap: 16px;
+
+    &__mcp-path {
+      width: 80%;
+    }
+  }
+}
+
+mat-card-header {
+  margin-bottom: 16px;
+}
