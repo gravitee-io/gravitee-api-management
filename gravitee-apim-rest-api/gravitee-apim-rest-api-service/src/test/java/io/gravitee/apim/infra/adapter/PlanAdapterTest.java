@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 import fixtures.core.model.PlanFixtures;
@@ -35,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
 
@@ -544,5 +546,83 @@ class PlanAdapterTest {
     void testMap_withUnknownGenericPlanEntity_returnsNull() {
         GenericPlanEntity unknownEntity = mock(GenericPlanEntity.class);
         Assertions.assertNull(PlanAdapter.INSTANCE.map(unknownEntity));
+    }
+
+    @Test
+    void testToApiDefinition_mapsEachEntry() {
+        PlanCRD plan1 = mock(PlanCRD.class);
+        PlanCRD plan2 = mock(PlanCRD.class);
+        when(plan1.getId()).thenReturn("id1");
+        when(plan2.getId()).thenReturn("id2");
+
+        var apiPlan1 = mock(io.gravitee.definition.model.v4.plan.Plan.class);
+        var apiPlan2 = mock(io.gravitee.definition.model.v4.plan.Plan.class);
+
+        PlanAdapter adapterSpy = mock(PlanAdapter.class);
+        when(adapterSpy.toApiDefinition(plan1)).thenReturn(apiPlan1);
+        when(adapterSpy.toApiDefinition(plan2)).thenReturn(apiPlan2);
+
+        Map<String, PlanCRD> source = Map.of("p1", plan1, "p2", plan2);
+
+        Map<String, io.gravitee.definition.model.v4.plan.Plan> result = source
+            .values()
+            .stream()
+            .map(plan -> Map.entry(plan.getId(), adapterSpy.toApiDefinition(plan)))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(apiPlan1, result.get("id1"));
+        Assertions.assertEquals(apiPlan2, result.get("id2"));
+    }
+
+    @Test
+    void testToPlanEntityV4_mapsEachEntry() {
+        PlanCRD plan1 = mock(PlanCRD.class);
+        PlanCRD plan2 = mock(PlanCRD.class);
+
+        PlanEntity entity1 = mock(PlanEntity.class);
+        PlanEntity entity2 = mock(PlanEntity.class);
+
+        PlanAdapter adapterSpy = mock(PlanAdapter.class);
+        when(adapterSpy.toEntityV4(plan1)).thenReturn(entity1);
+        when(adapterSpy.toEntityV4(plan2)).thenReturn(entity2);
+
+        Map<String, PlanCRD> source = Map.of("a", plan1, "b", plan2);
+
+        Set<PlanEntity> result = source.values().stream().map(adapterSpy::toEntityV4).collect(Collectors.toSet());
+
+        Assertions.assertEquals(2, result.size());
+        Assertions.assertTrue(result.containsAll(Set.of(entity1, entity2)));
+    }
+
+    @Test
+    void testComputeBasePlanEntityMode_null_returnsStandard() {
+        io.gravitee.repository.management.model.Plan source = mock(io.gravitee.repository.management.model.Plan.class);
+        when(source.getMode()).thenReturn(null);
+
+        PlanAdapter adapterSpy = spy(PlanAdapter.INSTANCE);
+
+        PlanMode result = adapterSpy.computeBasePlanEntityMode(source);
+        Assertions.assertEquals(PlanMode.STANDARD, result);
+    }
+
+    @Test
+    void testComputeBasePlanEntityStatusV4_null_returnsPublished() {
+        io.gravitee.repository.management.model.Plan source = mock(io.gravitee.repository.management.model.Plan.class);
+        when(source.getStatus()).thenReturn(null);
+        PlanAdapter adapterSpy = spy(PlanAdapter.INSTANCE);
+
+        PlanStatus result = adapterSpy.computeBasePlanEntityStatusV4(source);
+        assertEquals(PlanStatus.PUBLISHED, result);
+    }
+
+    @Test
+    void testComputeBasePlanEntityStatusV2_null_returnsPublished() {
+        io.gravitee.repository.management.model.Plan source = mock(io.gravitee.repository.management.model.Plan.class);
+        when(source.getStatus()).thenReturn(null);
+
+        PlanAdapter adapterSpy = spy(PlanAdapter.INSTANCE);
+        io.gravitee.rest.api.model.PlanStatus result = adapterSpy.computeBasePlanEntityStatusV2(source);
+        Assertions.assertEquals(io.gravitee.rest.api.model.PlanStatus.PUBLISHED, result);
     }
 }
