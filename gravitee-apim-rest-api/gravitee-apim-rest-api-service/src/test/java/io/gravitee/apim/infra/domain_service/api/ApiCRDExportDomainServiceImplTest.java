@@ -24,6 +24,7 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
@@ -77,6 +78,9 @@ class ApiCRDExportDomainServiceImplTest {
     @Mock
     ApiCrudService apiCrudService;
 
+    @Mock
+    ApiQueryService apiQueryService;
+
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     GroupQueryServiceInMemory groupQueryServiceInMemory = new GroupQueryServiceInMemory();
@@ -93,7 +97,7 @@ class ApiCRDExportDomainServiceImplTest {
         );
         groupQueryServiceInMemory.initWith(List.of(Group.builder().id(GROUP_ID).name(GROUP_NAME).build()));
         apiCRDExportDomainService =
-            new ApiCRDExportDomainServiceImpl(exportService, apiCrudService, userCrudService, groupQueryServiceInMemory);
+            new ApiCRDExportDomainServiceImpl(exportService, apiCrudService, userCrudService, groupQueryServiceInMemory, apiQueryService);
     }
 
     @Test

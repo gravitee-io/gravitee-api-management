@@ -30,5 +30,7 @@ public interface ApiQueryService {
 
     Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
 
+    Optional<Api> findByEnvironmentIdAndHRID(String environmentId, String hrid);
+
     Page<Api> findByIntegrationId(String integrationId, Pageable pageable);
 }

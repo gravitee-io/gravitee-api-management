@@ -24,10 +24,12 @@ import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,6 +64,9 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
         input.plans.forEach((k, v) -> {
             try {
                 Plan plan = PlanModelFactory.fromCRDSpec(v, input.apiCRDSpec);
+                if (plan.getId() == null && input.apiCRDSpec.getHrid() != null) {
+                    plan.setId(UuidString.generateFrom(k, input.apiCRDSpec.getHrid()));
+                }
 
                 planValidator.validatePlanSecurity(
                     plan,

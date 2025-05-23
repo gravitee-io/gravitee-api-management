@@ -86,6 +86,10 @@ public class Api {
      */
     private String crossId;
     /**
+     * The api human-readable id uniquely identifies an API across environments.
+     */
+    private String hrid;
+    /**
      * The api name.
      */
     private String name;
@@ -169,6 +173,7 @@ public class Api {
     public Api(Api cloned) {
         this.id = cloned.id;
         this.crossId = cloned.crossId;
+        this.hrid = cloned.hrid;
         this.environmentId = cloned.environmentId;
         this.name = cloned.name;
         this.description = cloned.description;

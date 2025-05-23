@@ -48,6 +48,20 @@ public class UuidString {
         return uuidGenerator.apply(null);
     }
 
+    public static String generateFrom(String... seeds) {
+        if (Stream.of(seeds).anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("Seeds must not be null");
+        }
+
+        StringBuilder b = new StringBuilder();
+
+        for (String seed : seeds) {
+            b.append(seed);
+        }
+
+        return uuidGenerator.apply(b.toString());
+    }
+
     public static String generateForEnvironment(String environmentId, String... fields) {
         if (Stream.of(fields).anyMatch(Objects::isNull)) {
             return generateRandom();

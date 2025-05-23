@@ -55,6 +55,8 @@ public class ApiCRDSpec {
     @NotEmpty
     private String crossId;
 
+    private String hrid;
+
     @NotNull
     @Valid
     private DefinitionContext definitionContext;

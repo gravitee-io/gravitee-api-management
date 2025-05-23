@@ -30,6 +30,7 @@ import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainServi
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,24 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
+
+        if (input.spec.getCrossId() == null && input.spec.getHrid() == null) {
+            errors.add(Error.severe("when no hrid is set in the payload a cross ID should be passed to identify the resource"));
+            return Result.ofErrors(errors);
+        }
+
+        if (input.spec.getCrossId() != null && input.spec.getHrid() == null) {
+            input.spec.setHrid(input.spec.getCrossId());
+        }
+
+        if (input.spec.getCrossId() == null && input.spec.getHrid() != null) {
+            input.spec.setCrossId(UuidString.generateFrom(input.auditInfo.organizationId(), input.spec.getHrid()));
+        }
+
+        if (input.spec.getId() == null && input.spec.getHrid() != null) {
+            input.spec.setId(UuidString.generateForEnvironment(input.auditInfo.environmentId(), input.spec.getHrid()));
+        }
+
         var sanitizedBuilder = input.spec().toBuilder();
 
         if (input.spec.isNative()) {
@@ -113,7 +132,9 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             .peek(sanitized -> sanitizedBuilder.resources(sanitized.resources()), errors::addAll);
 
         pagesValidator
-            .validateAndSanitize(new ValidatePagesDomainService.Input(input.auditInfo, input.spec.getId(), input.spec.getPages()))
+            .validateAndSanitize(
+                new ValidatePagesDomainService.Input(input.auditInfo, input.spec.getId(), input.spec.getHrid(), input.spec.getPages())
+            )
             .peek(sanitized -> sanitizedBuilder.pages(sanitized.pages()), errors::addAll);
 
         planValidator
