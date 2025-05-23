@@ -80,6 +80,9 @@ public class NativeApiEntity implements GenericApiEntity {
     @Schema(description = "API's crossId. Identifies API across environments.", example = "df83b2a4-cc3e-3f80-9f0d-c138c106c076")
     private String crossId;
 
+    @Schema(description = "API's hrid. human-readable ID that identifies API across environments.", example = "echo-api")
+    private String hrid;
+
     @Schema(description = "API's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
