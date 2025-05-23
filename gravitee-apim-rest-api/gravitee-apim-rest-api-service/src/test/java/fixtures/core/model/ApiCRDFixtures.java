@@ -106,10 +106,10 @@ public class ApiCRDFixtures {
         );
 
     public static ApiCRDSpec anApiCRD() {
-        return BASE_SPEC.build();
+        return BASE_SPEC.crossId(API_CROSS_ID).build();
     }
 
     public static ApiCRDSpec aNativeApiCRD() {
-        return BASE_NATIVE_SPEC.build();
+        return BASE_NATIVE_SPEC.crossId(API_CROSS_ID).build();
     }
 }

@@ -42,6 +42,22 @@ public class UuidStringTest {
     }
 
     @Test
+    public void generate_should_generate_same_uuids_if_called_with_same_fields() {
+        String firstUuid = UuidString.generateFrom("field1", "field2", "field3");
+        String secondUuid = UuidString.generateFrom("field1", "field2", "field3");
+
+        assertEquals(firstUuid, secondUuid);
+    }
+
+    @Test
+    public void generate_should_generate_different_uuids_if_called_with_different_fields() {
+        String firstUuid = UuidString.generateFrom("field1", "field2", "field3");
+        String secondUuid = UuidString.generateFrom("field1", "field2", "field4");
+
+        assertNotEquals(firstUuid, secondUuid);
+    }
+
+    @Test
     public void generateForEnvironment_should_generate_different_uuid_if_called_with_null_fields() {
         String firstUuid = UuidString.generateForEnvironment("environmentId", "field1", "field2", null);
         String secondUuid = UuidString.generateForEnvironment("environmentId", "field1", "field2", null);

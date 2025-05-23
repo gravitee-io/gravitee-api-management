@@ -155,9 +155,31 @@ public class ImportApiCRDUseCase {
     public record Input(AuditInfo auditInfo, ApiCRDSpec spec) {}
 
     public Output execute(Input input) {
-        var api = apiQueryService.findByEnvironmentIdAndCrossId(input.auditInfo.environmentId(), input.spec.getCrossId());
+        var validationResult = validateCRDDomainService
+            .validateAndSanitize(new ValidateApiCRDDomainService.Input(input.auditInfo(), input.spec()))
+            .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
 
-        var status = api.map(exiting -> this.update(input, exiting)).orElseGet(() -> this.create(input));
+        validationResult
+            .severe()
+            .ifPresent(errors -> {
+                throw new ValidationDomainException(
+                    String.format(
+                        "Unable to import because of errors [%s]",
+                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
+                    )
+                );
+            });
+
+        var warnings = validationResult.warning().orElseGet(List::of);
+        var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
+
+        var api = apiQueryService.findByEnvironmentIdAndHRID(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec.getHrid());
+        if (api.isEmpty()) {
+            api = apiQueryService.findByEnvironmentIdAndCrossId(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec.getCrossId());
+        }
+
+        var status = api.map(exiting -> this.update(sanitizedInput, exiting)).orElseGet(() -> this.create(sanitizedInput));
+        status.setErrors(ApiCRDStatus.Errors.fromErrorList(warnings));
 
         return new Output(status);
     }
@@ -167,40 +189,17 @@ public class ImportApiCRDUseCase {
             String environmentId = input.auditInfo.environmentId();
             String organizationId = input.auditInfo.organizationId();
 
-            var validationResult = validateCRDDomainService
-                .validateAndSanitize(new ValidateApiCRDDomainService.Input(input.auditInfo(), input.spec()))
-                .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
-
-            validationResult
-                .severe()
-                .ifPresent(errors -> {
-                    throw new ValidationDomainException(
-                        String.format(
-                            "Unable to import because of errors [%s]",
-                            String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
-                        )
-                    );
-                });
-
-            var warnings = validationResult.warning().orElseGet(List::of);
-
-            var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
-
-            var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
-                organizationId,
-                environmentId,
-                sanitizedInput.auditInfo.actor().userId()
-            );
+            var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
 
             var createdApi = createApiDomainService.create(
-                ApiModelFactory.fromCrd(sanitizedInput.spec, environmentId),
+                ApiModelFactory.fromCrd(input.spec, environmentId),
                 primaryOwner,
-                sanitizedInput.auditInfo,
+                input.auditInfo,
                 api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId),
-                oneShotIndexation(sanitizedInput.auditInfo)
+                oneShotIndexation(input.auditInfo)
             );
 
-            var planNameIdMapping = sanitizedInput.spec
+            var planNameIdMapping = input.spec
                 .getPlans()
                 .entrySet()
                 .stream()
@@ -208,32 +207,27 @@ public class ImportApiCRDUseCase {
                     Map.entry(
                         entry.getKey(),
                         createPlanDomainService
-                            .create(
-                                initPlanFromCRD(entry.getValue(), createdApi),
-                                entry.getValue().getFlows(),
-                                createdApi,
-                                sanitizedInput.auditInfo
-                            )
+                            .create(initPlanFromCRD(entry.getValue(), createdApi), entry.getValue().getFlows(), createdApi, input.auditInfo)
                             .getId()
                     )
                 )
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            membersDomainService.updateApiMembers(input.auditInfo, createdApi.getId(), sanitizedInput.spec().getMembers());
+            membersDomainService.updateApiMembers(input.auditInfo, createdApi.getId(), input.spec().getMembers());
 
-            createOrUpdatePages(sanitizedInput.spec.getPages(), createdApi.getId(), sanitizedInput.auditInfo);
+            createOrUpdatePages(input.spec.getPages(), createdApi.getId(), input.auditInfo);
 
-            apiMetadataDomainService.importApiMetadata(createdApi.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
+            apiMetadataDomainService.importApiMetadata(createdApi.getId(), input.spec.getMetadata(), input.auditInfo);
 
             notificationCRDService.syncApiPortalNotifications(
                 createdApi.getId(),
-                sanitizedInput.auditInfo.actor().userId(),
-                sanitizedInput.spec.getConsoleNotificationConfiguration()
+                input.auditInfo.actor().userId(),
+                input.spec.getConsoleNotificationConfiguration()
             );
 
-            if (shouldDeploy(sanitizedInput.spec())) {
+            if (shouldDeploy(input.spec())) {
                 // This will also DEPLOYS the API because it is the first time it has been started
-                apiStateDomainService.start(createdApi, sanitizedInput.auditInfo);
+                apiStateDomainService.start(createdApi, input.auditInfo);
             }
 
             return ApiCRDStatus
@@ -244,7 +238,6 @@ public class ImportApiCRDUseCase {
                 .organizationId(organizationId)
                 .state(createdApi.getLifecycleState().name())
                 .plans(planNameIdMapping)
-                .errors(ApiCRDStatus.Errors.fromErrorList(warnings))
                 .build();
         } catch (AbstractDomainException e) {
             throw e;
@@ -255,22 +248,14 @@ public class ImportApiCRDUseCase {
 
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
-            var validationResult = validateCRDDomainService
-                .validateAndSanitize(new ValidateApiCRDDomainService.Input(input.auditInfo(), input.spec()))
-                .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
-
-            var warnings = validationResult.warning().orElseGet(List::of);
-
-            var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
-
             Api updatedApi;
             if (existingApi.isNative()) {
                 updatedApi =
                     updateNativeApiUseCase
-                        .execute(new UpdateNativeApiUseCase.Input(ApiModelFactory.toUpdateNativeApi(sanitizedInput.spec), input.auditInfo))
+                        .execute(new UpdateNativeApiUseCase.Input(ApiModelFactory.toUpdateNativeApi(input.spec), input.auditInfo))
                         .updatedApi();
             } else {
-                updatedApi = updateApiDomainService.update(existingApi.getId(), sanitizedInput.spec, sanitizedInput.auditInfo);
+                updatedApi = updateApiDomainService.update(existingApi.getId(), input.spec, input.auditInfo);
             }
             // update state and definition context because legacy service does not update it
             // Why are we getting MANAGEMENT as an origin here ? the API has been saved as kubernetes before
@@ -279,18 +264,18 @@ public class ImportApiCRDUseCase {
                     .toBuilder()
                     .originContext(
                         new OriginContext.Kubernetes(
-                            OriginContext.Kubernetes.Mode.valueOf(sanitizedInput.spec().getDefinitionContext().getMode().toUpperCase()),
-                            sanitizedInput.spec().getDefinitionContext().getSyncFrom().toUpperCase()
+                            OriginContext.Kubernetes.Mode.valueOf(input.spec().getDefinitionContext().getMode().toUpperCase()),
+                            input.spec().getDefinitionContext().getSyncFrom().toUpperCase()
                         )
                     )
-                    .lifecycleState(Api.LifecycleState.valueOf(sanitizedInput.spec().getState()))
+                    .lifecycleState(Api.LifecycleState.valueOf(input.spec().getState()))
                     .build()
             );
 
             List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
             Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
 
-            var planKeyIdMapping = sanitizedInput
+            var planKeyIdMapping = input
                 .spec()
                 .getPlans()
                 .entrySet()
@@ -303,21 +288,21 @@ public class ImportApiCRDUseCase {
                         return Map.entry(
                             key,
                             updatePlanDomainService
-                                .update(initPlanFromCRD(plan, api), plan.getFlows(), existingPlanStatuses, api, sanitizedInput.auditInfo)
+                                .update(initPlanFromCRD(plan, api), plan.getFlows(), existingPlanStatuses, api, input.auditInfo)
                                 .getId()
                         );
                     }
 
                     return Map.entry(
                         key,
-                        createPlanDomainService.create(initPlanFromCRD(plan, api), plan.getFlows(), api, sanitizedInput.auditInfo).getId()
+                        createPlanDomainService.create(initPlanFromCRD(plan, api), plan.getFlows(), api, input.auditInfo).getId()
                     );
                 })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            deletePlans(api, existingPlans, planKeyIdMapping, sanitizedInput);
+            deletePlans(api, existingPlans, planKeyIdMapping, input);
 
-            if (shouldDeploy(sanitizedInput.spec())) {
+            if (shouldDeploy(input.spec())) {
                 apiStateDomainService.deploy(api, "Updated by GKO", input.auditInfo);
             }
 
@@ -329,17 +314,17 @@ public class ImportApiCRDUseCase {
                 }
             }
 
-            membersDomainService.updateApiMembers(input.auditInfo, updatedApi.getId(), sanitizedInput.spec().getMembers());
+            membersDomainService.updateApiMembers(input.auditInfo, updatedApi.getId(), input.spec().getMembers());
 
-            createOrUpdatePages(sanitizedInput.spec.getPages(), updatedApi.getId(), sanitizedInput.auditInfo);
-            deleteRemovedPages(sanitizedInput.spec.getPages(), updatedApi.getId());
+            createOrUpdatePages(input.spec.getPages(), updatedApi.getId(), input.auditInfo);
+            deleteRemovedPages(input.spec.getPages(), updatedApi.getId());
 
-            apiMetadataDomainService.importApiMetadata(api.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
+            apiMetadataDomainService.importApiMetadata(api.getId(), input.spec.getMetadata(), input.auditInfo);
 
             notificationCRDService.syncApiPortalNotifications(
                 api.getId(),
-                sanitizedInput.auditInfo.actor().userId(),
-                sanitizedInput.spec.getConsoleNotificationConfiguration()
+                input.auditInfo.actor().userId(),
+                input.spec.getConsoleNotificationConfiguration()
             );
 
             return ApiCRDStatus
@@ -347,10 +332,9 @@ public class ImportApiCRDUseCase {
                 .id(api.getId())
                 .crossId(api.getCrossId())
                 .environmentId(api.getEnvironmentId())
-                .organizationId(sanitizedInput.auditInfo.organizationId())
+                .organizationId(input.auditInfo.organizationId())
                 .state(api.getLifecycleState().name())
                 .plans(planKeyIdMapping)
-                .errors(ApiCRDStatus.Errors.fromErrorList(warnings))
                 .build();
         } catch (Exception e) {
             throw new TechnicalManagementException(e);
