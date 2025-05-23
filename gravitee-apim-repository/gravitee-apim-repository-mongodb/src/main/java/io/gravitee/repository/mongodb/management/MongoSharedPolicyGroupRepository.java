@@ -143,6 +143,16 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
     }
 
     @Override
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid) throws TechnicalException {
+        LOGGER.debug("Find shared policy group by environment ID [{}] and HRID [{}]", environmentId, hrid);
+
+        var res = internalSharedPolicyGroupMongoRepo.findByEnvironmentIdAndHRID(environmentId, hrid).map(this::mapSharedPolicyGroup);
+
+        LOGGER.debug("Find shared policy group by environment ID [{}] and HRID [{}] - Done", environmentId, hrid);
+        return res;
+    }
+
+    @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         LOGGER.debug("Delete shared policy group by environmentId [{}]", environmentId);
 

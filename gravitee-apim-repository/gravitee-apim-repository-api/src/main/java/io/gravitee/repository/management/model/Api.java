@@ -71,6 +71,12 @@ public class Api {
     public static final String MODE_API_DEFINITION_ONLY = "api_definition_only";
 
     /**
+     * The api human-readable id.
+     */
+    @EqualsAndHashCode.Include
+    private String hrid;
+
+    /**
      * The api ID.
      */
     @EqualsAndHashCode.Include

@@ -44,6 +44,11 @@ public class NoOpSharedPolicyGroupRepository
     }
 
     @Override
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String crossId) throws TechnicalException {
+        return Optional.empty();
+    }
+
+    @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         return Collections.emptyList();
     }

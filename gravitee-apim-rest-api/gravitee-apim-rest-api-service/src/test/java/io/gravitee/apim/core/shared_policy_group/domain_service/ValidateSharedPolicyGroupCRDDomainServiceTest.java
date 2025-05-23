@@ -71,17 +71,22 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
     @Test
     void should_return_no_warning_or_errors_on_creation() {
         SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
+
+        var sanitizedSPG = aCRD.toSharedPolicyGroup().toBuilder().hrid(aCRD.getCrossId()).build();
+
+        var sanitizedCRD = aCRD.toBuilder().build();
+
         when(sharedPolicyGroupCrudService.getByEnvironmentId(any(), any())).thenReturn(null);
         when(
             validateCreateSharedPolicyGroupDomainService.validateAndSanitize(
-                new ValidateCreateSharedPolicyGroupDomainService.Input(AUDIT_INFO, aCRD.toSharedPolicyGroup())
+                new ValidateCreateSharedPolicyGroupDomainService.Input(AUDIT_INFO, sanitizedSPG)
             )
         )
             .thenReturn(Validator.Result.ofValue(null));
 
         var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
-        result.peek(sanitized -> assertThat(sanitized.crd()).isEqualTo(aCRD), errors -> assertThat(errors).isEmpty());
+        result.peek(sanitized -> assertThat(sanitized.crd()).isEqualTo(sanitizedCRD), errors -> assertThat(errors).isEmpty());
         verify(validateCreateSharedPolicyGroupDomainService, times(1)).validateAndSanitize(any());
         verify(validateUpdateSharedPolicyGroupDomainService, times(0)).validateAndSanitize(any());
     }
@@ -89,17 +94,22 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
     @Test
     void should_return_errors_on_creation() {
         SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
+
+        var sanitizedSPG = aCRD.toSharedPolicyGroup().toBuilder().hrid(aCRD.getCrossId()).build();
+
+        var sanitizedCRD = aCRD.toBuilder().build();
+
         when(sharedPolicyGroupCrudService.getByEnvironmentId(any(), any())).thenReturn(null);
         when(
             validateCreateSharedPolicyGroupDomainService.validateAndSanitize(
-                new ValidateCreateSharedPolicyGroupDomainService.Input(AUDIT_INFO, aCRD.toSharedPolicyGroup())
+                new ValidateCreateSharedPolicyGroupDomainService.Input(AUDIT_INFO, sanitizedSPG)
             )
         )
             .thenReturn(Validator.Result.withError(Validator.Error.severe("validation failed")));
 
         var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
-        result.peek(sanitized -> assertThat(sanitized.crd()).isEqualTo(aCRD), errors -> assertThat(errors).hasSize(1));
+        result.peek(sanitized -> assertThat(sanitized.crd()).isEqualTo(sanitizedCRD), errors -> assertThat(errors).hasSize(1));
         verify(validateCreateSharedPolicyGroupDomainService, times(1)).validateAndSanitize(any());
         verify(validateUpdateSharedPolicyGroupDomainService, times(0)).validateAndSanitize(any());
     }
@@ -107,18 +117,23 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
     @Test
     void should_return_no_warning_or_errors_on_update() {
         SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
-        when(sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(ENV_ID, aCRD.getCrossId()))
+
+        var sanitizedSPG = aCRD.toSharedPolicyGroup().toBuilder().hrid(aCRD.getCrossId()).build();
+
+        var sanitizedCRD = aCRD.toBuilder().build();
+
+        when(sharedPolicyGroupCrudService.findByEnvironmentIdAndHRID(ENV_ID, aCRD.getCrossId()))
             .thenReturn(Optional.of(aCRD.toSharedPolicyGroup()));
         when(
             validateUpdateSharedPolicyGroupDomainService.validateAndSanitize(
-                new ValidateUpdateSharedPolicyGroupDomainService.Input(AUDIT_INFO, aCRD.toSharedPolicyGroup())
+                new ValidateUpdateSharedPolicyGroupDomainService.Input(AUDIT_INFO, sanitizedSPG)
             )
         )
             .thenReturn(Validator.Result.ofValue(null));
 
         var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
-        result.peek(sanitized -> assertThat(sanitized.crd()).isEqualTo(aCRD), errors -> assertThat(errors).isEmpty());
+        result.peek(sanitized -> assertThat(sanitized.crd()).isEqualTo(sanitizedCRD), errors -> assertThat(errors).isEmpty());
         verify(validateCreateSharedPolicyGroupDomainService, times(0)).validateAndSanitize(any());
         verify(validateUpdateSharedPolicyGroupDomainService, times(1)).validateAndSanitize(any());
     }
@@ -126,18 +141,25 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
     @Test
     void should_return_errors_on_update() {
         SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
+        when(sharedPolicyGroupCrudService.findByEnvironmentIdAndHRID(ENV_ID, aCRD.getCrossId()))
+            .thenReturn(Optional.of(aCRD.toSharedPolicyGroup()));
         when(sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(ENV_ID, aCRD.getCrossId()))
             .thenReturn(Optional.of(aCRD.toSharedPolicyGroup()));
+
+        var sanitizedSPG = aCRD.toSharedPolicyGroup().toBuilder().hrid(aCRD.getCrossId()).build();
+
+        var sanitizedCRD = aCRD.toBuilder().build();
+
         when(
             validateUpdateSharedPolicyGroupDomainService.validateAndSanitize(
-                new ValidateUpdateSharedPolicyGroupDomainService.Input(AUDIT_INFO, aCRD.toSharedPolicyGroup())
+                new ValidateUpdateSharedPolicyGroupDomainService.Input(AUDIT_INFO, sanitizedSPG)
             )
         )
             .thenReturn(Validator.Result.withError(Validator.Error.severe("validation failed")));
 
         var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
-        result.peek(sanitized -> assertThat(sanitized.crd()).isEqualTo(aCRD), errors -> assertThat(errors).hasSize(1));
+        result.peek(sanitized -> assertThat(sanitized.crd()).isEqualTo(sanitizedCRD), errors -> assertThat(errors).hasSize(1));
         verify(validateCreateSharedPolicyGroupDomainService, times(0)).validateAndSanitize(any());
         verify(validateUpdateSharedPolicyGroupDomainService, times(1)).validateAndSanitize(any());
     }

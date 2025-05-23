@@ -28,4 +28,6 @@ public interface SharedPolicyGroupCrudService {
     void delete(String sharedPolicyGroupId);
 
     Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
+
+    Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid);
 }

@@ -228,6 +228,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             crd.setSharedPolicyGroupId(UUID.randomUUID().toString());
             SharedPolicyGroup sharedPolicyGroup = crd.toSharedPolicyGroup();
             sharedPolicyGroup.setEnvironmentId(ENV_ID);
+            sharedPolicyGroup.setHrid(sharedPolicyGroup.getCrossId());
 
             sharedPolicyGroupCrudService.create(sharedPolicyGroup);
 

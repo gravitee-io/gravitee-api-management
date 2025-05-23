@@ -73,6 +73,16 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
     }
 
     @Override
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid) {
+        return storage
+            .stream()
+            .filter(sharedPolicyGroup ->
+                environmentId.equals(sharedPolicyGroup.getEnvironmentId()) && hrid.equals(sharedPolicyGroup.getHrid())
+            )
+            .findFirst();
+    }
+
+    @Override
     public void initWith(List<SharedPolicyGroup> items) {
         storage.clear();
         storage.addAll(items);

@@ -29,6 +29,11 @@ import lombok.NoArgsConstructor;
 public class UpdateSharedPolicyGroup {
 
     /**
+     * The shared policy group human-readable id uniquely identifies a shared policy group across environments.
+     */
+    private String hrid;
+
+    /**
      * The shared policy group crossId uniquely identifies a shared policy group across environments.
      * Apis promoted between environments will share the same crossId. Gateways will use this crossId to identify the shared policy group
      */
