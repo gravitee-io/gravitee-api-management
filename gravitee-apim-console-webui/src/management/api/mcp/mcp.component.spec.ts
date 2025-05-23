@@ -81,7 +81,7 @@ describe('McpComponent', () => {
       await enableMcpButton.click();
 
       expect(routerSpy).toHaveBeenCalledTimes(1);
-      expect(routerSpy).toHaveBeenCalledWith(['./add'], expect.anything());
+      expect(routerSpy).toHaveBeenCalledWith(['./enable'], expect.anything());
     });
 
     it('should not navigate to adding the entrypoint if mcp entrypoint is missing', async () => {

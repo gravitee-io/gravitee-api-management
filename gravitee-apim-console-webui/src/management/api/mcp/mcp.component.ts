@@ -68,6 +68,6 @@ export class McpComponent implements OnInit {
   }
 
   addMcpEntrypoint() {
-    this.router.navigate(['./add'], { relativeTo: this.activatedRoute });
+    this.router.navigate(['./enable'], { relativeTo: this.activatedRoute });
   }
 }
