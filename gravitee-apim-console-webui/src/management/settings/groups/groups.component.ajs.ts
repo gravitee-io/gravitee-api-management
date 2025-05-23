@@ -16,7 +16,6 @@
 import { IScope } from 'angular';
 
 import { Router } from '@angular/router';
-import { filter } from 'lodash';
 
 import GroupService from '../../../services/group.service';
 import NotificationService from '../../../services/notification.service';
@@ -46,10 +45,18 @@ const GroupsComponentAjs: ng.IComponentOptions = {
       this.ngRouter = ngRouter;
 
       this.$onInit = () => {
-        GroupService.list().then((response) => {
-          this.groups = filter(response.data, 'manageable');
+        GroupService.listPaginated().then((response) => {
+          this.groups = response.data.data;
+          this.page = response.data.page;
         });
         this.canRemoveGroup = UserService.isUserHasPermissions(['environment-group-d']);
+      };
+
+      this.loadGroups = () => {
+        GroupService.listPaginated(this.page.current, this.page.per_page, this.searchTerm ?? '').then((response) => {
+          this.groups = response.data.data;
+          this.page = response.data.page;
+        });
       };
 
       this.create = () => {
@@ -73,29 +80,22 @@ const GroupsComponentAjs: ng.IComponentOptions = {
             if (response) {
               GroupService.remove(groupId).then(() => {
                 NotificationService.show('Group ' + groupName + ' has been deleted.');
-                GroupService.list().then((response) => {
-                  this.groups = filter(response.data, 'manageable');
-                  this.initEventRules();
-                });
+                this.loadGroups();
+                this.initEventRules();
               });
             }
           });
       };
 
       this.saveEventRules = (group: any) => {
-        if (group.manageable) {
-          GroupService.updateEventRules(group, this.apiByDefault[group.id], this.applicationByDefault[group.id]);
-          GroupService.update(group).then(() => {
-            NotificationService.show('Group ' + group.name + ' has been updated.');
-          });
-        }
+        GroupService.updateEventRules(group, this.apiByDefault[group.id], this.applicationByDefault[group.id]);
+        GroupService.update(group).then(() => {
+          NotificationService.show('Group ' + group.name + ' has been updated.');
+        });
       };
 
       this.selectGroupUrl = (group: any) => {
-        if (group.manageable) {
-          return this.ngRouter.navigate([group.id], { relativeTo: this.activatedRoute });
-        }
-        return null;
+        return this.ngRouter.navigate([group.id], { relativeTo: this.activatedRoute });
       };
 
       this.hasEvent = (group: any, event: string) => {
