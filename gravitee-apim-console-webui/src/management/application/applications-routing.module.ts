@@ -19,7 +19,6 @@ import { RouterModule, Routes } from '@angular/router';
 import { ApplicationNavigationComponent } from './application-navigation/application-navigation.component';
 import { EnvApplicationListComponent } from './list/env-application-list.component';
 import { ApplicationGuard } from './application.guard';
-import { ApplicationMetadataComponent } from './details/metadata/application-metadata.component';
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
 import { ApplicationLogComponent } from './details/logs/application-log.component';
@@ -74,18 +73,6 @@ const applicationRoutes: Routes = [
         path: '',
         redirectTo: 'general',
         pathMatch: 'full',
-      },
-      {
-        path: 'metadata',
-        component: ApplicationMetadataComponent,
-        data: {
-          permissions: {
-            anyOf: ['application-metadata-r'],
-          },
-          docs: {
-            page: 'management-application-metadata',
-          },
-        },
       },
       {
         path: 'subscriptions',
