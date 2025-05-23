@@ -29,6 +29,7 @@ import { UTMTags, ApimFeature } from '../../../../../shared/components/gio-licen
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
+import { AGENT_TO_AGENT } from '../../../../../entities/management-api-v2/api/v4/agentToAgent';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -140,6 +141,9 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
       case 'KAFKA':
         this.doSaveKafka();
         break;
+      case 'A2A':
+        this.doSaveA2A();
+        break;
     }
   }
 
@@ -194,6 +198,47 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
             ],
             type: 'NATIVE',
             selectedNativeType: 'KAFKA',
+          }));
+          this.stepService.goToNextStep({
+            groupNumber: 2,
+            component: Step2Entrypoints2ConfigComponent,
+          });
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  private doSaveA2A() {
+    combineLatest([
+      this.connectorPluginsV2Service.getEntrypointPlugin(AGENT_TO_AGENT.id),
+      this.connectorPluginsV2Service.getEndpointPlugin(AGENT_TO_AGENT.id),
+    ])
+      .pipe(
+        tap(([agentToAgentEntrypoint, agentToAgentEndpoint]) => {
+          this.stepService.validStep((previousPayload) => ({
+            ...previousPayload,
+            selectedEntrypoints: [
+              {
+                id: agentToAgentEntrypoint.id,
+                name: agentToAgentEntrypoint.name,
+                icon: this.iconService.registerSvg(agentToAgentEntrypoint.id, agentToAgentEntrypoint.icon),
+                supportedListenerType: agentToAgentEntrypoint.supportedListenerType,
+                deployed: agentToAgentEntrypoint.deployed,
+                selectedQos: 'NONE',
+              },
+            ],
+            selectedEndpoints: [
+              {
+                id: agentToAgentEndpoint.id,
+                name: agentToAgentEndpoint.name,
+                icon: this.iconService.registerSvg(agentToAgentEndpoint.id, agentToAgentEndpoint.icon),
+                supportedListenerType: agentToAgentEndpoint.supportedListenerType,
+                deployed: agentToAgentEndpoint.deployed,
+              },
+            ],
+            type: 'MESSAGE', // We save the A2A or the Agent proxy as  MESSAGE only
+            isA2ASelected: true,
           }));
           this.stepService.goToNextStep({
             groupNumber: 2,

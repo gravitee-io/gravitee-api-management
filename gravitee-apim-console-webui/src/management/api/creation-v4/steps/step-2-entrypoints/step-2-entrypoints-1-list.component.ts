@@ -18,12 +18,13 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { map, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
+import { AGENT_TO_AGENT } from '../../../../../entities/management-api-v2/api/v4/agentToAgent';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiType, ConnectorPlugin, ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
 import { IconService } from '../../../../../services-ngx/icon.service';
@@ -69,10 +70,17 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       selectedEntrypointsIds: this.formBuilder.control(currentSelectedEntrypointIds, [Validators.required]),
     });
 
-    const connectorPlugins$: Observable<ConnectorPlugin[]> =
+    const connectorPlugins$: Observable<ConnectorPlugin[]> = (
       currentStepPayload.type === 'MESSAGE'
         ? this.connectorPluginsV2Service.listAsyncEntrypointPlugins()
-        : this.connectorPluginsV2Service.listSyncEntrypointPlugins();
+        : this.connectorPluginsV2Service.listSyncEntrypointPlugins()
+    ).pipe(
+      map((plugins) =>
+        currentStepPayload.isA2ASelected
+          ? plugins.filter((p) => p.id === AGENT_TO_AGENT.id)
+          : plugins.filter((p) => p.id !== AGENT_TO_AGENT.id),
+      ),
+    );
 
     connectorPlugins$.pipe(takeUntil(this.unsubscribe$)).subscribe((entrypointPlugins) => {
       this.entrypoints = entrypointPlugins
