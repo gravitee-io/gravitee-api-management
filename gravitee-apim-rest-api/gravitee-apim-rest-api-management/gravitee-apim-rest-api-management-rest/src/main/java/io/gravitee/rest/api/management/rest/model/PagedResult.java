@@ -18,15 +18,23 @@ package io.gravitee.rest.api.management.rest.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
 import java.util.Map;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@NoArgsConstructor
 public class PagedResult<T> {
 
     private Collection<T> data;
+
+    @Setter
     private Map<String, Map<String, Object>> metadata;
+
     private Page page;
 
     public PagedResult(Collection<T> data, int pageNumber, int perPage, int totalElements) {
@@ -42,24 +50,7 @@ public class PagedResult<T> {
         this(page.getContent(), page.getPageNumber(), perPage, (int) page.getTotalElements());
     }
 
-    public PagedResult() {}
-
-    public Collection<T> getData() {
-        return data;
-    }
-
-    public void setMetadata(Map<String, Map<String, Object>> metadata) {
-        this.metadata = metadata;
-    }
-
-    public Map<String, Map<String, Object>> getMetadata() {
-        return metadata;
-    }
-
-    public Page getPage() {
-        return page;
-    }
-
+    @Getter
     public static class Page {
 
         /**
@@ -98,26 +89,6 @@ public class PagedResult<T> {
             this.size = size;
             this.totalPages = (int) Math.ceil((double) totalElements / (double) perPage);
             this.totalElements = totalElements;
-        }
-
-        public int getCurrent() {
-            return current;
-        }
-
-        public int getPerPage() {
-            return perPage;
-        }
-
-        public int getSize() {
-            return size;
-        }
-
-        public int getTotalPages() {
-            return totalPages;
-        }
-
-        public int getTotalElements() {
-            return totalElements;
         }
     }
 }

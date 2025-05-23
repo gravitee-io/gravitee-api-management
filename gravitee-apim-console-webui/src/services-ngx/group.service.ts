@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PagedResult } from 'src/entities/pagedResult';
+
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { isEmpty } from 'lodash';
@@ -33,6 +35,12 @@ export class GroupService {
 
   list(): Observable<Group[]> {
     return this.http.get<Group[]>(`${this.constants.env.baseURL}/configuration/groups`);
+  }
+
+  listPaginated(page: number = 1, size: number = 20, query: string = ''): Observable<PagedResult<Group>> {
+    return this.http.get<PagedResult<Group>>(
+      `${this.constants.env.baseURL}/configuration/groups/_paged?page=${page}&size=${size}&query=${query}`,
+    );
   }
 
   listByOrganization(): Observable<Group[]> {
