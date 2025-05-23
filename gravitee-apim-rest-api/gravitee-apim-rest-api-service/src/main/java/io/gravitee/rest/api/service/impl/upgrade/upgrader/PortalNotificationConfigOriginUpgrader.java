@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.P
 
 import io.gravitee.definition.model.Origin;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
@@ -42,27 +43,26 @@ public class PortalNotificationConfigOriginUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            List<PortalNotificationConfig> portalNotificationConfigs = portalNotificationConfigRepository
-                .findAll()
-                .stream()
-                .filter(portalNotificationConfig -> portalNotificationConfig.getOrigin() == null)
-                .map(portalNotificationConfig -> {
-                    portalNotificationConfig.setOrigin(Origin.MANAGEMENT);
-                    try {
-                        portalNotificationConfigRepository.update(portalNotificationConfig);
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException(e);
-                    }
-                    return portalNotificationConfig;
-                })
-                .toList();
-            log.info("Migrating portalNotificationConfig: {} with origin set", portalNotificationConfigs.size());
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::applyUpgrade);
+    }
+
+    private boolean applyUpgrade() throws TechnicalException {
+        List<PortalNotificationConfig> portalNotificationConfigs = portalNotificationConfigRepository
+            .findAll()
+            .stream()
+            .filter(portalNotificationConfig -> portalNotificationConfig.getOrigin() == null)
+            .map(portalNotificationConfig -> {
+                portalNotificationConfig.setOrigin(Origin.MANAGEMENT);
+                try {
+                    portalNotificationConfigRepository.update(portalNotificationConfig);
+                } catch (TechnicalException e) {
+                    throw new TechnicalManagementException(e);
+                }
+                return portalNotificationConfig;
+            })
+            .toList();
+        log.info("Migrating portalNotificationConfig: {} with origin set", portalNotificationConfigs.size());
         return true;
     }
 

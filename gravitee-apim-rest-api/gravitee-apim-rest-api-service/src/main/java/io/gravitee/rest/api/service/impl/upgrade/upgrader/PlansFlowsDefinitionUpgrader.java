@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -65,33 +66,24 @@ public class PlansFlowsDefinitionUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            AtomicBoolean upgradeFailed = new AtomicBoolean(false);
-            apiRepository
-                .search(
-                    new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(),
-                    null,
-                    ApiFieldFilter.allFields()
-                )
-                .forEach(api -> {
-                    try {
-                        io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                            api.getDefinition(),
-                            io.gravitee.definition.model.Api.class
-                        );
-                        migrateApiFlows(api.getId(), apiDefinition);
-                    } catch (Exception e) {
-                        upgradeFailed.set(true);
-                        throw new RuntimeException(e);
-                    }
-                });
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::applyUpgrade);
+    }
 
-            return !upgradeFailed.get();
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
+    private boolean applyUpgrade() throws Exception {
+        AtomicBoolean upgradeFailed = new AtomicBoolean(false);
+        var apis = apiRepository
+            .search(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(), null, ApiFieldFilter.allFields())
+            .toList();
+
+        for (var api : apis) {
+            io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                api.getDefinition(),
+                io.gravitee.definition.model.Api.class
+            );
+            migrateApiFlows(api.getId(), apiDefinition);
         }
+        return !upgradeFailed.get();
     }
 
     protected void migrateApiFlows(String apiId, io.gravitee.definition.model.Api apiDefinition) throws Exception {

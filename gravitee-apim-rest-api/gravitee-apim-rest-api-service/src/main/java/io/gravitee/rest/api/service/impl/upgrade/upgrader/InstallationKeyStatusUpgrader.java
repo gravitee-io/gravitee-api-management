@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.UpgradeRecord;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.node.api.upgrader.UpgraderRepository;
 import io.gravitee.rest.api.service.InstallationService;
 import java.util.Date;
@@ -76,30 +77,28 @@ public class InstallationKeyStatusUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            installationService
-                .get()
-                .getAdditionalInformation()
-                .forEach((k, v) -> {
-                    if ("SUCCESS".equals(v)) {
-                        String id = INSTALLATION_KEY_STATUS.get(k);
-                        if (id == null) {
-                            log.error("Can't find upgrader class with installation status key {}", k);
-                            return;
-                        }
-                        UpgradeRecord upgradeRecord = upgraderRepository.findById(id).blockingGet();
-                        if (upgradeRecord == null) {
-                            upgraderRepository.create(new UpgradeRecord(id, new Date())).blockingGet();
-                        }
-                    }
-                });
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::applyUpgrade);
+    }
 
-            return true;
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
+    private boolean applyUpgrade() {
+        installationService
+            .get()
+            .getAdditionalInformation()
+            .forEach((k, v) -> {
+                if ("SUCCESS".equals(v)) {
+                    String id = INSTALLATION_KEY_STATUS.get(k);
+                    if (id == null) {
+                        log.error("Can't find upgrader class with installation status key {}", k);
+                        return;
+                    }
+                    UpgradeRecord upgradeRecord = upgraderRepository.findById(id).blockingGet();
+                    if (upgradeRecord == null) {
+                        upgraderRepository.create(new UpgradeRecord(id, new Date())).blockingGet();
+                    }
+                }
+            });
+        return true;
     }
 
     @Override

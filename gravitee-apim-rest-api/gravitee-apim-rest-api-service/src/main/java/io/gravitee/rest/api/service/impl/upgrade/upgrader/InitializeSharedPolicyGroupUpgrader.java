@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.apim.core.shared_policy_group.use_case.InitializeSharedPolicyGroupUseCase;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import lombok.extern.slf4j.Slf4j;
@@ -41,29 +42,26 @@ public class InitializeSharedPolicyGroupUpgrader implements Upgrader {
     private OrganizationService organizationService;
 
     @Override
-    public boolean upgrade() {
-        try {
-            organizationService
-                .findAll()
-                .forEach(organization -> {
-                    environmentService
-                        .findByOrganization(organization.getId())
-                        .forEach(environment -> {
-                            // Create default shared policy group for each environment
-                            initializeSharedPolicyGroupUseCase.execute(
-                                InitializeSharedPolicyGroupUseCase.Input
-                                    .builder()
-                                    .organizationId(organization.getId())
-                                    .environmentId(environment.getId())
-                                    .build()
-                            );
-                        });
-                });
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::applyUpgrade);
+    }
 
+    private boolean applyUpgrade() {
+        organizationService
+            .findAll()
+            .forEach(organization ->
+                environmentService
+                    .findByOrganization(organization.getId())
+                    .forEach(environment ->
+                        initializeSharedPolicyGroupUseCase.execute(
+                            InitializeSharedPolicyGroupUseCase.Input
+                                .builder()
+                                .organizationId(organization.getId())
+                                .environmentId(environment.getId())
+                                .build()
+                        )
+                    )
+            );
         return true;
     }
 

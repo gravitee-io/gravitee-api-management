@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RoleScope.API;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_REVIEWER;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -47,21 +48,17 @@ public class DefaultRolesUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    initializeDefaultRoles(executionContext);
-                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
-                });
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                organizationRepository
+                    .findAll()
+                    .forEach(organization -> {
+                        ExecutionContext executionContext = new ExecutionContext(organization);
+                        initializeDefaultRoles(executionContext);
+                        roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+                    });
+                return true;
+            });
     }
 
     private void initializeDefaultRoles(ExecutionContext executionContext) {

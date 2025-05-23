@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.rest.api.service.OrganizationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +34,14 @@ public class DefaultOrganizationUpgrader implements Upgrader {
     private OrganizationService organizationService;
 
     @Override
-    public boolean upgrade() {
-        // initialize default organization.
-        if (organizationService.count().equals(0L)) {
-            log.info("    No organization found. Add default one.");
-            organizationService.initialize();
-        }
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                if (organizationService.count().equals(0L)) {
+                    log.info("    No organization found. Add default one.");
+                    organizationService.initialize();
+                }
+                return true;
+            });
     }
 
     @Override

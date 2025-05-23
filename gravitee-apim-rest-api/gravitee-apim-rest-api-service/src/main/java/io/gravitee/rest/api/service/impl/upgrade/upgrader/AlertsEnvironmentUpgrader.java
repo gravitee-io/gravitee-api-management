@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -81,30 +82,28 @@ public class AlertsEnvironmentUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            Set<AlertTrigger> alertTriggers = alertTriggerRepository.findAll();
-            for (AlertTrigger alertTrigger : alertTriggers) {
-                switch (alertTrigger.getReferenceType()) {
-                    case "PLATFORM":
-                        handlePlatformAlert(alertTrigger);
-                        break;
-                    case "API":
-                        handleApiAlert(alertTrigger);
-                        break;
-                    case "APPLICATION":
-                        handleApplicationAlert(alertTrigger);
-                        break;
-                    default:
-                        log.error("unsupported reference type {}", alertTrigger.getReferenceType());
-                        break;
-                }
-            }
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::applyUpgrade);
+    }
 
+    private boolean applyUpgrade() throws TechnicalException {
+        Set<AlertTrigger> alertTriggers = alertTriggerRepository.findAll();
+        for (AlertTrigger alertTrigger : alertTriggers) {
+            switch (alertTrigger.getReferenceType()) {
+                case "PLATFORM":
+                    handlePlatformAlert(alertTrigger);
+                    break;
+                case "API":
+                    handleApiAlert(alertTrigger);
+                    break;
+                case "APPLICATION":
+                    handleApplicationAlert(alertTrigger);
+                    break;
+                default:
+                    log.error("unsupported reference type {}", alertTrigger.getReferenceType());
+                    break;
+            }
+        }
         return true;
     }
 

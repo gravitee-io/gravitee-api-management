@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.I
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -77,23 +78,21 @@ public class IntegrationPrimaryOwnerUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            environmentRepository
-                .findAll()
-                .forEach(environment -> {
-                    ExecutionContext executionContext = new ExecutionContext(environment);
-                    try {
-                        setPrimaryOwnersForIntegrations(executionContext);
-                    } catch (TechnicalException e) {
-                        log.error("An error occurs while updating primary owner for integrations", e);
-                    }
-                });
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::applyUpgrade);
+    }
 
+    private boolean applyUpgrade() throws TechnicalException {
+        environmentRepository
+            .findAll()
+            .forEach(environment -> {
+                ExecutionContext executionContext = new ExecutionContext(environment);
+                try {
+                    setPrimaryOwnersForIntegrations(executionContext);
+                } catch (TechnicalException e) {
+                    log.error("An error occurs while updating primary owner for integrations", e);
+                }
+            });
         return true;
     }
 

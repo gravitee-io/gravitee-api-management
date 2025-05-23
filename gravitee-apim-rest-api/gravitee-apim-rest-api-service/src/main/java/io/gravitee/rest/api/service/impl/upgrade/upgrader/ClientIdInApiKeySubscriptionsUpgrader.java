@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
@@ -47,21 +48,19 @@ public class ClientIdInApiKeySubscriptionsUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder();
-            criteriaBuilder.planSecurityTypes(List.of(Plan.PlanSecurityType.API_KEY.name()));
-            subscriptionRepository.search(criteriaBuilder.build()).forEach(this::updateApiKeySubscriptions);
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder();
+                criteriaBuilder.planSecurityTypes(List.of(Plan.PlanSecurityType.API_KEY.name()));
+                for (Subscription subscription : subscriptionRepository.search(criteriaBuilder.build())) {
+                    updateApiKeySubscriptions(subscription);
+                }
+                return true;
+            });
     }
 
     @SuppressWarnings("removal")
-    private void updateApiKeySubscriptions(Subscription subscription) {
+    private void updateApiKeySubscriptions(Subscription subscription) throws TechnicalException {
         try {
             if (subscription.getClientId() != null) {
                 log.debug("Removing clientId from API Key subscription [{}]", subscription);
@@ -69,7 +68,7 @@ public class ClientIdInApiKeySubscriptionsUpgrader implements Upgrader {
                 subscriptionRepository.update(subscription);
             }
         } catch (TechnicalException e) {
-            log.error("Failed to remove clientID from API Key subscriptions for API Key [{}]", subscription, e);
+            throw new TechnicalException("Failed to remove clientID from API Key subscriptions for API Key [" + subscription + "]", e);
         }
     }
 }

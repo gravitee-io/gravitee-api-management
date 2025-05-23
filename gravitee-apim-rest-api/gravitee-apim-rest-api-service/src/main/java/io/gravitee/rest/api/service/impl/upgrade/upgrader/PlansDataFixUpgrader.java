@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -91,45 +92,42 @@ public class PlansDataFixUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        if (!enabled) {
-            log.info("Skipping {} execution cause it's not enabled in configuration", this.getClass().getSimpleName());
-            return true;
+    public boolean upgrade() throws UpgraderException {
+        if (enabled) {
+            return this.wrapException(this::applyUpgrade);
         }
+        log.info("Skipping {} execution cause it's not enabled in configuration", this.getClass().getSimpleName());
+        return true;
+    }
 
-        try {
-            AtomicBoolean upgradeFailed = new AtomicBoolean(false);
-            apiRepository
-                .search(
-                    new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(),
-                    null,
-                    ApiFieldFilter.allFields()
-                )
-                .forEach(api -> {
-                    try {
-                        io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                            api.getDefinition(),
-                            io.gravitee.definition.model.Api.class
-                        );
-                        ExecutionContext executionContext = getApiExecutionContext(api);
-                        if (executionContext != null) {
-                            fixApiPlans(executionContext, api, apiDefinition);
-                        }
-                    } catch (Exception e) {
-                        upgradeFailed.set(true);
-                        throw new RuntimeException(e);
-                    }
-                });
+    private boolean applyUpgrade() throws Exception {
+        AtomicBoolean upgradeFailed = new AtomicBoolean(false);
 
-            if (!anomalyFound) {
-                log.info("No plan data anomaly found");
+        var apis = apiRepository
+            .search(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(), null, ApiFieldFilter.allFields())
+            .toList();
+
+        for (var api : apis) {
+            try {
+                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                    api.getDefinition(),
+                    io.gravitee.definition.model.Api.class
+                );
+                ExecutionContext executionContext = getApiExecutionContext(api);
+                if (executionContext != null) {
+                    fixApiPlans(executionContext, api, apiDefinition);
+                }
+            } catch (Exception e) {
+                upgradeFailed.set(true);
+                throw e;
             }
-
-            return !upgradeFailed.get();
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
         }
+
+        if (!anomalyFound) {
+            log.info("No plan data anomaly found");
+        }
+
+        return !upgradeFailed.get();
     }
 
     protected void fixApiPlans(ExecutionContext executionContext, Api api, io.gravitee.definition.model.Api apiDefinition)

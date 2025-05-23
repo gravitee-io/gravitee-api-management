@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.PORTAL_NOTIFICATION_CONFIG_UPGRADER;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -51,27 +52,26 @@ public class PortalNotificationConfigUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            Set<Environment> environments = environmentRepository.findAll();
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::applyUpgrade);
+    }
 
-            List<PortalNotificationConfig> portalNotificationConfigs = portalNotificationConfigRepository
-                .findAll()
-                .stream()
-                .filter(portalNotificationConfig ->
-                    portalNotificationConfig.getReferenceType().equals(NotificationReferenceType.PORTAL) &&
-                    portalNotificationConfig.getReferenceId().equals("DEFAULT")
-                )
-                .flatMap(
-                    (Function<PortalNotificationConfig, Stream<PortalNotificationConfig>>) portalNotificationConfig ->
-                        migratePortalNotificationConfigToEnvironments(environments, portalNotificationConfig)
-                )
-                .toList();
-            log.info("Migrating portalNotificationConfig: {} for environments {}", portalNotificationConfigs.size(), environments);
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
+    private boolean applyUpgrade() throws TechnicalException {
+        Set<Environment> environments = environmentRepository.findAll();
+
+        List<PortalNotificationConfig> portalNotificationConfigs = portalNotificationConfigRepository
+            .findAll()
+            .stream()
+            .filter(portalNotificationConfig ->
+                portalNotificationConfig.getReferenceType().equals(NotificationReferenceType.PORTAL) &&
+                portalNotificationConfig.getReferenceId().equals("DEFAULT")
+            )
+            .flatMap(
+                (Function<PortalNotificationConfig, Stream<PortalNotificationConfig>>) portalNotificationConfig ->
+                    migratePortalNotificationConfigToEnvironments(environments, portalNotificationConfig)
+            )
+            .toList();
+        log.info("Migrating portalNotificationConfig: {} for environments {}", portalNotificationConfigs.size(), environments);
         return true;
     }
 
@@ -86,15 +86,16 @@ public class PortalNotificationConfigUpgrader implements Upgrader {
                 try {
                     return portalNotificationConfigRepository.create(portalNotificationConfigToCreate);
                 } catch (TechnicalException e) {
-                    log.error("Failed to duplicate portalNotificationConfig {} to {}", portalNotificationConfig, environment, e);
-                    throw new TechnicalManagementException(e);
+                    throw new TechnicalManagementException(
+                        "Failed to duplicate portalNotificationConfig " + portalNotificationConfig + " to " + environment,
+                        e
+                    );
                 }
             });
         try {
             portalNotificationConfigRepository.delete(portalNotificationConfig);
         } catch (TechnicalException e) {
-            log.error("Failed to delete portalNotificationConfig {}", portalNotificationConfig, e);
-            throw new TechnicalManagementException(e);
+            throw new TechnicalManagementException("Failed to delete portalNotificationConfig " + portalNotificationConfig, e);
         }
         return stream;
     }

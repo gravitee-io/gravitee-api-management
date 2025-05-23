@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -48,45 +49,40 @@ public class PlanApiTypeUpgrader implements Upgrader {
     private PlanRepository planRepository;
 
     @Override
-    public boolean upgrade() {
-        try {
-            updatePlanApiType();
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::updatePlanApiType);
     }
 
-    private void updatePlanApiType() throws TechnicalException {
+    private boolean updatePlanApiType() throws TechnicalException {
         log.info("Starting migration of plan api_type...");
 
-        apiRepository
+        var apis = apiRepository
             .search(
                 new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V4)).build(),
                 null,
                 ApiFieldFilter.defaultFields()
             )
-            .forEach(this::populatePlansWithApiTypeForApi);
+            .toList();
+
+        for (var api : apis) {
+            try {
+                populatePlansWithApiTypeForApi(api);
+            } catch (TechnicalException e) {
+                throw new TechnicalException("Error populating plans for API " + api.getId(), e);
+            }
+        }
 
         log.info("Migration of plan api_type completed.");
+        return true;
     }
 
-    private void populatePlansWithApiTypeForApi(Api api) {
+    private void populatePlansWithApiTypeForApi(Api api) throws TechnicalException {
         try {
-            planRepository
-                .findByApi(api.getId())
-                .stream()
-                .forEach(plan -> {
-                    try {
-                        populateApiType(plan, api.getType());
-                    } catch (TechnicalException e) {
-                        log.error("Unable to update api_type for plan {}", plan.getId(), e);
-                    }
-                });
-        } catch (Exception e) {
-            log.error("Unable to migrate api_type for API {} and its plans", api.getId(), e);
+            for (var plan : planRepository.findByApi(api.getId())) {
+                populateApiType(plan, api.getType());
+            }
+        } catch (TechnicalException e) {
+            throw new TechnicalException("Unable to migrate api_type for API" + api.getId() + " {} and its plans", e);
         }
     }
 

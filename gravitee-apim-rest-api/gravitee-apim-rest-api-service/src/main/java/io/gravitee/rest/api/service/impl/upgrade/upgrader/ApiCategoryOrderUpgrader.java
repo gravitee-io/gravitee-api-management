@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -56,18 +57,11 @@ public class ApiCategoryOrderUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            fillApiCategoryOrderTable();
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::fillApiCategoryOrderTable);
     }
 
-    private void fillApiCategoryOrderTable() throws TechnicalException {
+    private boolean fillApiCategoryOrderTable() throws TechnicalException {
         this.categoryRepository.findAll()
             .forEach(category -> {
                 var order = new AtomicInteger(0);
@@ -93,5 +87,6 @@ public class ApiCategoryOrderUpgrader implements Upgrader {
                         }
                     });
             });
+        return true;
     }
 }

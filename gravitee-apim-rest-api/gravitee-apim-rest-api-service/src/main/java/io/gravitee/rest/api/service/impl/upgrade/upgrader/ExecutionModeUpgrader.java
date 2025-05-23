@@ -15,12 +15,16 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -55,42 +59,38 @@ public class ExecutionModeUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            migrateApiEvents();
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::migrateApiEvents);
     }
 
-    private void migrateApiEvents() {
+    private boolean migrateApiEvents() throws UpgraderException {
         log.info("Starting migrating execution mode for APIs");
         modelCounter = 0;
         ApiCriteria onlyV2ApiCriteria = new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build();
-        apiRepository
-            .search(onlyV2ApiCriteria, null, new ApiFieldFilter.Builder().excludePicture().build())
-            .forEach(api -> {
-                try {
-                    if (api.getDefinition() != null) {
-                        JsonNode apiDefinitionNode = objectMapper.readTree(api.getDefinition());
-                        if (apiDefinitionNode.isObject()) {
-                            ObjectNode objectNode = (ObjectNode) apiDefinitionNode;
-                            JsonNode executionMode = objectNode.get("execution_mode");
-                            if (executionMode != null && executionMode.asText().equals("jupiter")) {
-                                modelCounter++;
-                                objectNode.put("execution_mode", ExecutionMode.V4_EMULATION_ENGINE.getLabel());
-                                api.setDefinition(objectMapper.writeValueAsString(apiDefinitionNode));
-                                apiRepository.update(api);
-                            }
+
+        var apis = apiRepository.search(onlyV2ApiCriteria, null, new ApiFieldFilter.Builder().excludePicture().build()).toList();
+
+        for (var api : apis) {
+            try {
+                if (api.getDefinition() != null) {
+                    JsonNode apiDefinitionNode = objectMapper.readTree(api.getDefinition());
+                    if (apiDefinitionNode.isObject()) {
+                        ObjectNode objectNode = (ObjectNode) apiDefinitionNode;
+                        JsonNode executionMode = objectNode.get("execution_mode");
+                        if (executionMode != null && executionMode.asText().equals("jupiter")) {
+                            modelCounter++;
+                            objectNode.put("execution_mode", ExecutionMode.V4_EMULATION_ENGINE.getLabel());
+                            api.setDefinition(objectMapper.writeValueAsString(apiDefinitionNode));
+                            apiRepository.update(api);
                         }
                     }
-                } catch (Exception e) {
-                    log.error("Unable to migrate execution_mode for api {}", api.getId(), e);
                 }
-            });
+            } catch (JsonProcessingException | TechnicalException e) {
+                log.error("Error processing API {}: {}", api.getId(), e.getMessage());
+                throw new UpgraderException(e);
+            }
+        }
         log.info("{} jupiter APIs have been migrated to use v4-emulation-engine execution mode", modelCounter);
+        return true;
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
@@ -50,19 +51,15 @@ public class OrphanCategoryUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            Set<Api> updatedApis = findAndFixApisWithOrphanCategories();
-            for (Api api : updatedApis) {
-                log.info("Removing orphan categories for API [{}]", api.getId());
-                apiRepository.update(api);
-            }
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                Set<Api> updatedApis = findAndFixApisWithOrphanCategories();
+                for (Api api : updatedApis) {
+                    log.info("Removing orphan categories for API [{}]", api.getId());
+                    apiRepository.update(api);
+                }
+                return true;
+            });
     }
 
     private Set<Api> findAndFixApisWithOrphanCategories() throws TechnicalException {

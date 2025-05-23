@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_
 import static java.util.stream.Collectors.*;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -69,24 +70,22 @@ public class ApplicationApiKeyModeUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            List<String> apiKeyPlansIds = findAllApiKeyPlansId();
-            Map<String, Long> apiKeySubscriptionsCountByApplication = countApiKeySubscriptionsByApplication(apiKeyPlansIds);
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::applyUpgrade);
+    }
 
-            applicationRepository
-                .findAll()
-                .forEach(application -> {
-                    if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
-                        Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
-                        updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
-                    }
-                });
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
+    private boolean applyUpgrade() throws TechnicalException {
+        List<String> apiKeyPlansIds = findAllApiKeyPlansId();
+        Map<String, Long> apiKeySubscriptionsCountByApplication = countApiKeySubscriptionsByApplication(apiKeyPlansIds);
 
+        applicationRepository
+            .findAll()
+            .forEach(application -> {
+                if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
+                    Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
+                    updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
+                }
+            });
         return true;
     }
 
