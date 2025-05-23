@@ -106,6 +106,31 @@
             ></gio-license-banner>
           </div>
         </mat-radio-button>
+        <mat-radio-button value="A2A" [class.gio-selection__selected]="form.controls['type'].value === 'A2A'">
+          <gio-selection-list-option-layout>
+            <gio-selection-list-option-layout-title>
+              <div class="option__badges">
+                <div>Agent Proxy</div>
+                <span class="gio-badge-accent">New</span>
+              </div>
+            </gio-selection-list-option-layout-title>
+
+            <gio-selection-list-option-layout-body>
+              <p>Choose this mode if you want to proxy the A2A protocol.</p>
+              <div class="option__badges">
+                Can expose
+                <span class="gio-badge-neutral gio-caption-2">A2A Protocol</span>
+              </div>
+            </gio-selection-list-option-layout-body>
+          </gio-selection-list-option-layout>
+          <div *ngIf="isMissingMessageReactor$ | async">
+            <gio-license-banner
+              [license]="license$ | async"
+              [isOEM]="isOEM$ | async"
+              (onRequestUpgrade)="onRequestMessageUpgrade()"
+            ></gio-license-banner>
+          </div>
+        </mat-radio-button>
       </mat-radio-group>
 
       <div class="api-creation-v4__step__footer">

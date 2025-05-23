@@ -49,6 +49,15 @@ const ENDPOINT_LIST: ConnectorPlugin[] = [
     supportedApiType: 'MESSAGE',
     supportedQos: ['AT_MOST_ONCE', 'NONE', 'AT_LEAST_ONCE', 'AUTO'],
   },
+  {
+    id: 'agent-to-agent',
+    name: 'Agent to agent',
+    description: 'should be filtered out',
+    icon: 'agent-icon',
+    deployed: true,
+    supportedApiType: 'MESSAGE',
+    supportedQos: ['NONE'],
+  },
 ];
 
 describe('ApiEndpointGroupSelectionComponent', () => {
@@ -85,6 +94,13 @@ describe('ApiEndpointGroupSelectionComponent', () => {
     fixture.componentRef.setInput('requiredQos', ['AUTO']);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointGroupSelectionHarness);
     fixture.detectChanges();
+  });
+
+  /* We do not show Add endpoint group in case of agent to agent.
+     In case of normal MESSAGE api, we hide the agent-to-agent endpoint. */
+  it('should not render the AGENT_TO_AGENT endpoint at all', async () => {
+    const values = await harness.getAllEndpointIds();
+    expect(values).not.toContain('agent-to-agent');
   });
 
   it('should show license banner when endpoint is not deployed', async () => {

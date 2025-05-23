@@ -31,4 +31,10 @@ export class ApiEndpointGroupSelectionHarness extends ComponentHarness {
       selector: `[ng-reflect-value=${id}]`,
     });
   }
+
+  async getAllEndpointIds(): Promise<string[]> {
+    const group = await this.getEndpointsRadioGroup();
+    const buttons = await group.getRadioButtons();
+    return Promise.all(buttons.map((b) => b.getValue()));
+  }
 }

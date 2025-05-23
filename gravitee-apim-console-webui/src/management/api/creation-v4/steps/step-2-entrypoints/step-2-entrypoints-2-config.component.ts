@@ -129,6 +129,10 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       });
   }
 
+  public get isA2ASelected(): boolean {
+    return this.stepService.payload.isA2ASelected;
+  }
+
   private initFormForSyncEntrypoints(currentStepPayload: ApiCreationPayload, paths: PathV4[], tcpHosts: TcpHost[], kafkaHost: KafkaHost) {
     this.hasHttpListeners =
       currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'HTTP') != null;
@@ -197,7 +201,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       case 'MESSAGE':
         this.stepService.goToNextStep({
           groupNumber: 3,
-          component: Step3Endpoints1ListComponent,
+          component: this.isA2ASelected ? Step3Endpoints2ConfigComponent : Step3Endpoints1ListComponent,
         });
         break;
       case 'PROXY':
