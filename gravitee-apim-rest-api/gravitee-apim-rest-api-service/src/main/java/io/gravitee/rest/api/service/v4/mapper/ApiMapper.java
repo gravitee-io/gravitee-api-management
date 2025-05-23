@@ -103,6 +103,7 @@ public class ApiMapper {
 
         apiEntity.setId(api.getId());
         apiEntity.setCrossId(api.getCrossId());
+        apiEntity.setHrid(api.getHrid());
         apiEntity.setName(api.getName());
         apiEntity.setApiVersion(api.getVersion());
         apiEntity.setUpdatedAt(api.getUpdatedAt());
@@ -168,6 +169,7 @@ public class ApiMapper {
 
         apiEntity.setId(api.getId());
         apiEntity.setCrossId(api.getCrossId());
+        apiEntity.setHrid(api.getHrid());
         apiEntity.setName(api.getName());
         apiEntity.setApiVersion(api.getVersion());
         apiEntity.setUpdatedAt(api.getUpdatedAt());
@@ -361,6 +363,7 @@ public class ApiMapper {
         String apiId = updateApiEntity.getId();
         repoApi.setId(apiId.trim());
         repoApi.setCrossId(updateApiEntity.getCrossId());
+        repoApi.setHrid(updateApiEntity.getHrid());
         repoApi.setEnvironmentId(executionContext.getEnvironmentId());
         repoApi.setType(updateApiEntity.getType());
         repoApi.setUpdatedAt(new Date());
@@ -446,6 +449,7 @@ public class ApiMapper {
         repoApi.setBackground(apiEntity.getBackground());
         repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), apiEntity.getCategories()));
         repoApi.setCrossId(apiEntity.getCrossId());
+        repoApi.setHrid(apiEntity.getHrid());
         repoApi.setCreatedAt(apiEntity.getCreatedAt());
         repoApi.setDefinition(toApiDefinition(apiEntity));
         repoApi.setDefinitionVersion(apiEntity.getDefinitionVersion());
