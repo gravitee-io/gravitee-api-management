@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 import fixtures.core.model.PlanFixtures;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
@@ -25,6 +26,7 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.Instant;
@@ -34,10 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -513,5 +512,37 @@ class PlanAdapterTest {
             assertThat(planEntity.getPlanSecurity().getType()).isEqualTo(io.gravitee.rest.api.model.PlanSecurityType.KEY_LESS.name());
             assertThat(planEntity.getSecurityDefinition()).isEqualTo(plan.getPlanSecurity().getConfiguration());
         }
+    }
+
+    @Test
+    void testMap_withNullInput_returnsNull() {
+        Assertions.assertNull(PlanAdapter.INSTANCE.map(null));
+    }
+
+    @Test
+    void testMap_withPlanEntity_returnsSameInstance() {
+        io.gravitee.rest.api.model.PlanEntity plan = mock(io.gravitee.rest.api.model.PlanEntity.class);
+        Assertions.assertSame(plan, PlanAdapter.INSTANCE.map(plan));
+    }
+
+    @Test
+    void testMap_withV4PlanEntity_callsMapV4() {
+        PlanAdapter adapterSpy = spy(PlanAdapter.INSTANCE);
+
+        PlanEntity v4Plan = mock(PlanEntity.class);
+        io.gravitee.rest.api.model.PlanEntity expected = mock(io.gravitee.rest.api.model.PlanEntity.class);
+
+        doReturn(expected).when(adapterSpy).map(v4Plan);
+
+        io.gravitee.rest.api.model.PlanEntity result = adapterSpy.map(v4Plan);
+
+        Assertions.assertSame(expected, result);
+        verify(adapterSpy).map(v4Plan);
+    }
+
+    @Test
+    void testMap_withUnknownGenericPlanEntity_returnsNull() {
+        GenericPlanEntity unknownEntity = mock(GenericPlanEntity.class);
+        Assertions.assertNull(PlanAdapter.INSTANCE.map(unknownEntity));
     }
 }
