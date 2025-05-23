@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import lombok.extern.slf4j.Slf4j;
@@ -34,19 +35,14 @@ public class DefaultEnvironmentUpgrader implements Upgrader {
     private EnvironmentService environmentService;
 
     @Override
-    public boolean upgrade() {
-        try {
-            // initialize roles.
-            if (environmentService.findByOrganization(GraviteeContext.getDefaultOrganization()).isEmpty()) {
-                log.info("    No environment found. Add default one.");
-                environmentService.initialize();
-            }
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                if (environmentService.findByOrganization(GraviteeContext.getDefaultOrganization()).isEmpty()) {
+                    log.info("    No environment found. Add default one.");
+                    environmentService.initialize();
+                }
+                return true;
+            });
     }
 
     @Override

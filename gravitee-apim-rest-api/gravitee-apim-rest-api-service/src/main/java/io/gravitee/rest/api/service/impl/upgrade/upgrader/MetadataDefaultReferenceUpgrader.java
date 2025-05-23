@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.DEFAULT_METADATA_UPGRADER;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -51,21 +52,20 @@ public class MetadataDefaultReferenceUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            Set<Environment> environments = environmentRepository.findAll();
-            List<Metadata> metadataList = metadataRepository
-                .findAll()
-                .stream()
-                .filter(metadata -> metadata.getReferenceId().equals("_"))
-                .flatMap((Function<Metadata, Stream<Metadata>>) metadata -> migrateDefaultMetadataToEnvironments(environments, metadata))
-                .toList();
-            log.info("Migrating metadata: {} for environments {}", metadataList.size(), environments);
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                Set<Environment> environments = environmentRepository.findAll();
+                List<Metadata> metadataList = metadataRepository
+                    .findAll()
+                    .stream()
+                    .filter(metadata -> metadata.getReferenceId().equals("_"))
+                    .flatMap(
+                        (Function<Metadata, Stream<Metadata>>) metadata -> migrateDefaultMetadataToEnvironments(environments, metadata)
+                    )
+                    .toList();
+                log.info("Migrating metadata: {} for environments {}", metadataList.size(), environments);
+                return true;
+            });
     }
 
     private Stream<Metadata> migrateDefaultMetadataToEnvironments(Set<Environment> environments, Metadata metadata) {

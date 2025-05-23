@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
@@ -65,18 +66,11 @@ public class ApiV4CategoriesUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            migrateV4ApiCategories();
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::migrateV4ApiCategories);
     }
 
-    private void migrateV4ApiCategories() throws TechnicalException {
+    private boolean migrateV4ApiCategories() throws TechnicalException {
         Set<Category> categories;
         try {
             categories = categoryRepository.findAll();
@@ -87,7 +81,7 @@ public class ApiV4CategoriesUpgrader implements Upgrader {
 
         // If there are no categories, then upgrade is not necessary
         if (Objects.isNull(categories) || categories.isEmpty()) {
-            return;
+            return false;
         }
 
         // Two different maps so that we can look up the key or the id of a category
@@ -149,5 +143,6 @@ public class ApiV4CategoriesUpgrader implements Upgrader {
                 }
             });
         log.info("{} v4 APIs have been migrated to use category ids instead of keys", modelCounter.get());
+        return true;
     }
 }

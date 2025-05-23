@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -82,19 +83,16 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            Set<Organization> organizations = organizationRepository.findAll();
-            for (Organization org : organizations) {
-                if (!checkOrganization(org.getId())) {
-                    return false;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                Set<Organization> organizations = organizationRepository.findAll();
+                for (Organization org : organizations) {
+                    if (!checkOrganization(org.getId())) {
+                        return false;
+                    }
                 }
-            }
-            return true;
-        } catch (Exception e) {
-            log.error("Failed to fix APIs Primary Owner removal", e);
-            return false;
-        }
+                return true;
+            });
     }
 
     private boolean checkOrganization(String organizationId) throws TechnicalException {

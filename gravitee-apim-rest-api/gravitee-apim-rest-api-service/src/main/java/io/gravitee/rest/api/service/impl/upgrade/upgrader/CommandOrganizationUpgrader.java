@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -49,28 +50,24 @@ public class CommandOrganizationUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            environmentRepository.findAll().forEach(this::updateCommands);
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                for (Environment environment : environmentRepository.findAll()) {
+                    updateCommands(environment);
+                }
+                return true;
+            });
     }
 
-    private void updateCommands(Environment environment) {
+    private void updateCommands(Environment environment) throws TechnicalException {
         CommandCriteria criteria = new CommandCriteria.Builder().environmentId(environment.getId()).build();
-        commandRepository.search(criteria).forEach(command -> updateOrganizationId(command, environment.getOrganizationId()));
+        for (Command command : commandRepository.search(criteria)) {
+            updateOrganizationId(command, environment.getOrganizationId());
+        }
     }
 
-    private void updateOrganizationId(Command command, String organizationId) {
-        try {
-            command.setOrganizationId(organizationId);
-            commandRepository.update(command);
-        } catch (TechnicalException e) {
-            log.error("An error as occurred while trying to update command organization", e);
-        }
+    private void updateOrganizationId(Command command, String organizationId) throws TechnicalException {
+        command.setOrganizationId(organizationId);
+        commandRepository.update(command);
     }
 }
