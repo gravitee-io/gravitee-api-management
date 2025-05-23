@@ -2,7 +2,7 @@
   {
     "id": "group-application-1",
     "environmentId": "group-application-1 environment-id",
-    "name": "group-application-1 name",
+    "name": "Group application 1",
     "lockApiRole": true,
     "lockApplicationRole": true,
     "systemInvitation": true,
@@ -22,31 +22,66 @@
   {
     "id": "group-api-to-delete",
     "environmentId": "DEFAULT",
-    "name": "group-api-to-delete name"
+    "name": "Group api to delete"
+  },
+  {
+    "id": "group-1",
+    "environmentId": "DEFAULT",
+    "name": "Group test 1"
+  },
+  {
+    "id": "group-2",
+    "environmentId": "DEFAULT_2",
+    "name": "Group test 2"
+  },
+  {
+    "id": "group-3",
+    "environmentId": "DEFAULT",
+    "name": "Group test 3"
+  },
+  {
+    "id": "group-4",
+    "environmentId": "DEFAULT",
+    "name": "Group test 4"
+  },
+  {
+    "id": "group-5",
+    "environmentId": "DEFAULT",
+    "name": "Test group 5"
+  },
+  {
+    "id": "group-6",
+    "environmentId": "DEFAULT",
+    "name": "6 - test group"
+  },
+  {
+    "id": "group-7",
+    "environmentId": "DEFAULT",
+    "name": "7th g. for testing"
   },
   {
     "id": "group_env_1_org_1",
     "environmentId": "ENV_ORG_1",
-    "name": "group env 1 org 1"
+    "name": "Group env 1 org 1"
   },
   {
     "id": "group_env_2_org_1",
     "environmentId": "SECOND_ENV_ORG_1",
-    "name": "group env 2 org 1"
+    "name": "Group env 2 org 1"
   },
   {
     "id": "group_env_org_2",
     "environmentId": "ENV_ORG_2",
-    "name": "group env org 1"
+    "name": "Group env org 1"
   },
   {
     "id": "group_env_to_delete_1",
     "environmentId": "ToBeDeleted",
-    "name": "group env to delete 1"
+    "name": "Group env to delete 1"
   },
   {
     "id": "group_env_to_delete_2",
     "environmentId": "ToBeDeleted",
-    "name": "group env to delete 2"
+    "name": "Group env to delete 2"
   }
 ]
