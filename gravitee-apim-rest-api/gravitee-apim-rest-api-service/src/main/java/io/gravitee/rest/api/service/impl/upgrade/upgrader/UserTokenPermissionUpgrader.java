@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -53,22 +53,19 @@ public class UserTokenPermissionUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    roleService
-                        .findByScope(RoleScope.ORGANIZATION, organization.getId())
-                        .stream()
-                        .filter(role -> !SystemRole.ADMIN.name().equalsIgnoreCase(role.getName()))
-                        .forEach(role -> processRolePermissions(role, organization));
-                });
-        } catch (TechnicalException e) {
-            log.error("An error occurs while trying to upgrade user token permissions", e);
-            return false;
-        }
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                organizationRepository
+                    .findAll()
+                    .forEach(organization ->
+                        roleService
+                            .findByScope(RoleScope.ORGANIZATION, organization.getId())
+                            .stream()
+                            .filter(role -> !SystemRole.ADMIN.name().equalsIgnoreCase(role.getName()))
+                            .forEach(role -> processRolePermissions(role, organization))
+                    );
+                return true;
+            });
     }
 
     private void processRolePermissions(RoleEntity role, Organization organization) {

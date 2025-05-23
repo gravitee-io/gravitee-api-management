@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_ENVIRONMENT_FEDERATION_AGENT;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -42,21 +43,17 @@ public class EnvironmentFederationAgentRoleUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            organizationRepository
-                .findAll()
-                .stream()
-                .filter(organization -> shouldCreateEnvironmentFederationAgentRole(organization.getId()))
-                .forEach(organization -> {
-                    roleService.create(new ExecutionContext(organization.getId()), ROLE_ENVIRONMENT_FEDERATION_AGENT);
-                });
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                organizationRepository
+                    .findAll()
+                    .stream()
+                    .filter(organization -> shouldCreateEnvironmentFederationAgentRole(organization.getId()))
+                    .forEach(organization -> {
+                        roleService.create(new ExecutionContext(organization.getId()), ROLE_ENVIRONMENT_FEDERATION_AGENT);
+                    });
+                return true;
+            });
     }
 
     private boolean shouldCreateEnvironmentFederationAgentRole(String organizationId) {

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -78,14 +79,11 @@ public class QualityRulesScopingUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            scopeExistingQualityRulesToEnvironments();
-            return isUpgradeSuccessful();
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                scopeExistingQualityRulesToEnvironments();
+                return isUpgradeSuccessful();
+            });
     }
 
     /**
@@ -149,13 +147,13 @@ public class QualityRulesScopingUpgrader implements Upgrader {
         log.info("Other environments are {}", otherEnvs.stream().map(Environment::getId).toList());
 
         // Scope the quality rules to the environments
-        qualityRules.forEach(qualityRule -> {
+        for (var qualityRule : qualityRules) {
             try {
                 scopeQualityRuleToEnvironments(qualityRule, defaultEnv, otherEnvs);
             } catch (TechnicalException e) {
-                log.error("Error while scoping quality rule [{}] to environments", qualityRule.getId(), e);
+                throw new TechnicalException("Error while scoping quality rule " + qualityRule.getId() + " to environments", e);
             }
-        });
+        }
     }
 
     /**

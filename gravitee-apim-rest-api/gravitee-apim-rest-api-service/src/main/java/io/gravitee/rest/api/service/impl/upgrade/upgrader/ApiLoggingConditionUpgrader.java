@@ -22,6 +22,8 @@ import static java.util.Comparator.comparing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -68,35 +70,33 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
     private List<String> apisFixed = new ArrayList<>();
 
     @Override
-    public boolean upgrade() {
-        try {
-            for (Environment environment : environmentRepository.findAll()) {
-                fixApis(new ExecutionContext(environment));
-            }
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::applyUpgrade);
+    }
 
-            if (!apisFixedAndDeployed.isEmpty()) {
-                log.info(
-                    "{} has updated and deployed {} API with the following identifiers: {}",
-                    this.getClass().getSimpleName(),
-                    apisFixedAndDeployed.size(),
-                    apisFixedAndDeployed
-                );
-            }
-
-            if (!apisFixed.isEmpty()) {
-                log.warn(
-                    "{} has updated {} API with the following identifiers: {}",
-                    this.getClass().getSimpleName(),
-                    apisFixed.size(),
-                    apisFixed
-                );
-                log.warn("They need to be redeployed manually to apply the patch.");
-            }
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
+    private boolean applyUpgrade() throws TechnicalException {
+        for (Environment environment : environmentRepository.findAll()) {
+            fixApis(new ExecutionContext(environment));
         }
 
+        if (!apisFixedAndDeployed.isEmpty()) {
+            log.info(
+                "{} has updated and deployed {} API with the following identifiers: {}",
+                this.getClass().getSimpleName(),
+                apisFixedAndDeployed.size(),
+                apisFixedAndDeployed
+            );
+        }
+
+        if (!apisFixed.isEmpty()) {
+            log.warn(
+                "{} has updated {} API with the following identifiers: {}",
+                this.getClass().getSimpleName(),
+                apisFixed.size(),
+                apisFixed
+            );
+            log.warn("They need to be redeployed manually to apply the patch.");
+        }
         return true;
     }
 
