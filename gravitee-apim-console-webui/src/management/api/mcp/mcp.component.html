@@ -17,7 +17,18 @@
 -->
 @if (api$ | async; as apiVM) {
   @if (apiVM.hasMCPEntrypoint) {
-    Woohoo! It's added.
+    <mat-card>
+      <mat-card-header class="mcp-header">
+        <div class="mcp-header__title">
+          <mat-card-title>MCP Entrypoint</mat-card-title>
+          <mat-card-subtitle>API enabled as a MCP server</mat-card-subtitle>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <configure-mcp-entrypoint [formGroup]="form" />
+      </mat-card-content>
+    </mat-card>
+    <gio-save-bar [form]="form" [formInitialValues]="formInitialValues" (submitted)="onSubmit()" />
   } @else {
     <no-mcp-entrypoint [canEnableMcp]="canEnableMcp$ | async" (enableMcpEntrypoint)="addMcpEntrypoint()" />
   }

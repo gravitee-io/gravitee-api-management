@@ -21,8 +21,11 @@
   overflow: visible;
 }
 
-.mcp {
-  &__headerRightBtn {
-    margin-left: auto;
+.mcp-header {
+  margin-bottom: 16px;
+  display: flex;
+
+  &__title {
+    flex: 1;
   }
 }
