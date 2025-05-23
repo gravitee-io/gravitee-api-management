@@ -177,7 +177,7 @@
   </ng-container>
 </ng-container>
 
-@if (api?.type !== 'NATIVE') {
+@if (api?.type !== 'NATIVE' && !isA2ASelcted) {
   <button
     *gioPermission="{ anyOf: ['api-definition-u'] }"
     mat-flat-button

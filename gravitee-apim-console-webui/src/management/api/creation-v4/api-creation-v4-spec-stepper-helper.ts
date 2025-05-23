@@ -28,6 +28,7 @@ import { Step4Security1PlansHarness } from './steps/step-4-security/step-4-secur
 import { Step3EndpointListHarness } from './steps/step-3-endpoints/step-3-endpoints-1-list.harness';
 
 import { ConnectorPlugin, fakeConnectorPlugin } from '../../../entities/management-api-v2';
+import { AGENT_TO_AGENT } from '../../../entities/management-api-v2/api/v4/agentToAgent';
 
 export class ApiCreationV4SpecStepperHelper {
   private ossLicense: License = { tier: 'oss', features: [], packs: [] };
@@ -50,7 +51,7 @@ export class ApiCreationV4SpecStepperHelper {
     await apiDetails.fillAndValidate(name, version, description);
   }
 
-  async fillAndValidateStep2_0_EntrypointsArchitecture(type: 'PROXY' | 'MESSAGE' | 'KAFKA' = 'MESSAGE') {
+  async fillAndValidateStep2_0_EntrypointsArchitecture(type: 'PROXY' | 'MESSAGE' | 'A2A' | 'KAFKA' = 'MESSAGE') {
     const architecture = await this.harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
     if (type === 'MESSAGE' || type === 'KAFKA') {
       expect(await architecture.isLicenseBannerShown()).toEqual(true);
@@ -73,6 +74,24 @@ export class ApiCreationV4SpecStepperHelper {
           supportedApiType: 'NATIVE',
           name: 'Native Kafka Endpoint',
           supportedListenerType: 'KAFKA',
+        }),
+      );
+    } else if (type === 'A2A') {
+      this.httpExpects.expectEntrypointGetRequest(
+        fakeConnectorPlugin({
+          id: AGENT_TO_AGENT.id,
+          supportedApiType: 'MESSAGE',
+          name: AGENT_TO_AGENT.name,
+          supportedListenerType: 'HTTP',
+          deployed: true,
+        }),
+      );
+      this.httpExpects.expectEndpointGetRequest(
+        fakeConnectorPlugin({
+          id: AGENT_TO_AGENT.id,
+          supportedApiType: 'MESSAGE',
+          name: AGENT_TO_AGENT.name,
+          supportedListenerType: 'HTTP',
         }),
       );
     }

@@ -151,7 +151,7 @@
         </div>
 
         <button
-          *ngIf="!isReadOnly"
+          *ngIf="!isReadOnly && !isA2ASelected"
           mat-stroked-button
           type="button"
           [disabled]="entrypointAvailableForAdd.length < 1"
