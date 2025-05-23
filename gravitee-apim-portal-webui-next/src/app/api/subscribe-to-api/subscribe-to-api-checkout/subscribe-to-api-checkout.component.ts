@@ -20,6 +20,7 @@ import { MatInput } from '@angular/material/input';
 
 import { ApiAccessComponent } from '../../../../components/api-access/api-access.component';
 import { RadioCardComponent } from '../../../../components/radio-card/radio-card.component';
+import { ConsumerConfigurationValues } from '../../../../components/subscription/webhook/consumer-configuration/consumer-configuration.models';
 import { SubscriptionInfoComponent } from '../../../../components/subscription-info/subscription-info.component';
 import { Api } from '../../../../entities/api/api';
 import { Application } from '../../../../entities/application/application';
@@ -50,7 +51,10 @@ export class SubscribeToApiCheckoutComponent implements OnInit {
   apiKeyMode!: WritableSignal<'EXCLUSIVE' | 'SHARED' | 'UNSPECIFIED' | null>;
 
   @Input()
-  application?: Application;
+  application: Application | undefined;
+
+  @Input()
+  consumerConfigurationValues: Partial<ConsumerConfigurationValues> | undefined;
 
   showApiKeyModeSelection: InputSignal<boolean> = input(false);
 

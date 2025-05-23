@@ -70,7 +70,7 @@
         @if (consumerConfiguration().entrypointConfiguration.auth) {
           <div class="configuration__block configuration__field">
             <span class="m3-title-small" i18n="@@subscriptionConfigurationAuthType">Authentification type:</span>
-            <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.auth.type }}</span>
+            <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.auth?.type }}</span>
           </div>
         }
 
@@ -79,28 +79,28 @@
             <span class="m3-title-medium" i18n="@@subscriptionConfigurationRetry">Retry</span>
             <div class="configuration__field">
               <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryOption">Option:</span>
-              <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry.retryOption }}</span>
+              <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry?.retryOption }}</span>
             </div>
 
-            @if (consumerConfiguration().entrypointConfiguration.retry.retryOption === 'Retry On Fail') {
+            @if (consumerConfiguration().entrypointConfiguration.retry?.retryOption === 'Retry On Fail') {
               <div class="configuration__field">
                 <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryType">Strategy:</span>
-                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry.retryStrategy }}</span>
+                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry?.retryStrategy }}</span>
               </div>
 
               <div class="configuration__field">
                 <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryInitialDelay">Initial delay in seconds:</span>
-                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry.initialDelaySeconds }}</span>
+                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry?.initialDelaySeconds }}</span>
               </div>
 
               <div class="configuration__field">
                 <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryMaxAttempts">Maximum attempts:</span>
-                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry.maxAttempts }}</span>
+                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry?.maxAttempts }}</span>
               </div>
 
               <div class="configuration__field">
                 <span class="m3-title-small" i18n="@@subscriptionConfigurationRetryMaxDelaySeconds">Maximum delay:</span>
-                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry.maxDelaySeconds }}</span>
+                <span class="m3-body-medium">{{ consumerConfiguration().entrypointConfiguration.retry?.maxDelaySeconds }}</span>
               </div>
             }
           </div>
