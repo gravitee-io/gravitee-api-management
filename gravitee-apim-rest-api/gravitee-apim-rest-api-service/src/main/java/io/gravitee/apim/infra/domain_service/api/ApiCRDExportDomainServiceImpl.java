@@ -17,7 +17,9 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
@@ -29,7 +31,9 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import jakarta.ws.rs.NotFoundException;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -52,6 +56,7 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
     private final UserCrudService userCrudService;
 
     private final GroupQueryService groupQueryService;
+    private final ApiQueryService apiQueryService;
 
     @Override
     public ApiCRDSpec export(String apiId, AuditInfo auditInfo) {
@@ -66,6 +71,16 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
             spec.setGroups(getGroupNames(spec.getGroups()));
         }
         return ensureCrossId(spec);
+    }
+
+    @Override
+    public ApiCRDSpec exportWithHRID(String hrid, AuditInfo auditInfo) {
+        Optional<Api> api = apiQueryService.findByEnvironmentIdAndHRID(auditInfo.environmentId(), hrid);
+        if (api.isPresent()) {
+            return export(api.get().getId(), auditInfo);
+        } else {
+            throw new NotFoundException("No API found with hrid: " + hrid);
+        }
     }
 
     private ApiCRDSpec ensureCrossId(ApiCRDSpec spec) {

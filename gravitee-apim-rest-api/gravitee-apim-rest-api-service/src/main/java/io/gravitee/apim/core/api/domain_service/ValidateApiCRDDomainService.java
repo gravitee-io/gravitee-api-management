@@ -65,6 +65,21 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
+
+        if (input.spec.getCrossId() == null && input.spec.getHrid() == null) {
+            errors.add(Error.severe("when no hrid is set in the payload a cross ID should be passed to identify the resource"));
+            return Result.ofErrors(errors);
+        }
+
+        if (input.spec.getCrossId() != null && input.spec.getHrid() != null) {
+            errors.add(Error.severe("cross ID should only be passed to identify the resource if no hrid has been set"));
+            return Result.ofErrors(errors);
+        }
+
+        if (input.spec.getCrossId() != null && input.spec.getHrid() == null) {
+            input.spec.setHrid(input.spec.getCrossId());
+        }
+
         var sanitizedBuilder = input.spec().toBuilder();
 
         if (input.spec.isNative()) {

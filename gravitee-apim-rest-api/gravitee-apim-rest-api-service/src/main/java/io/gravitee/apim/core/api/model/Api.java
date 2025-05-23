@@ -58,6 +58,10 @@ public class Api {
      * Apis promoted between environments will share the same crossId.
      */
     private String crossId;
+    /*
+     * The API HRID
+     */
+    private String hrid;
     /**
      * The api name.
      */
