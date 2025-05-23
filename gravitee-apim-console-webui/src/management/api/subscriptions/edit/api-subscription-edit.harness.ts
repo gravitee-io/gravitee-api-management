@@ -49,6 +49,10 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
     return this.getSubscriptionDetailText('consumer-status');
   }
 
+  public async getFailureCause(): Promise<string> {
+    return this.getSubscriptionDetailText('failure-cause');
+  }
+
   public async getSubscribedBy(): Promise<string> {
     return this.getSubscriptionDetailText('subscribed-by');
   }
@@ -67,6 +71,10 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
 
   public async getCreatedAt(): Promise<string> {
     return this.getSubscriptionDetailText('created-at');
+  }
+
+  public async getUpdatedAt(): Promise<string> {
+    return this.getSubscriptionDetailText('updated-at');
   }
 
   public async getProcessedAt(): Promise<string> {

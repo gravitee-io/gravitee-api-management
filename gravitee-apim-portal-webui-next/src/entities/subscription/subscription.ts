@@ -21,11 +21,13 @@ export interface Subscription {
   application: string;
   closed_at?: string;
   created_at?: string;
+  updated_at?: string;
   plan: string;
   reason?: string;
   request?: string;
   status: SubscriptionStatusEnum;
   consumerStatus: SubscriptionConsumerStatusEnum;
+  failureCause?: string;
   subscribed_by?: string;
   keys?: SubscriptionDataKeys[];
   consumerConfiguration?: SubscriptionConsumerConfiguration;
