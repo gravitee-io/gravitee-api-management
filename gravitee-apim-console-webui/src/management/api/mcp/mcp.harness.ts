@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { NoMcpEntrypointHarness } from './no-mcp-entrypoint/no-mcp-entrypoint.harness';
+import { ConfigureMcpEntrypointHarness } from './components/configure-mcp-entrypoint/configure-mcp-entrypoint.harness';
 
 export class McpHarness extends ComponentHarness {
   static readonly hostSelector = 'mcp';
 
   protected locateMcpEntryPointNotFound = this.locatorForOptional(NoMcpEntrypointHarness);
+  protected locateConfigureMcpEntrypoint = this.locatorForOptional(ConfigureMcpEntrypointHarness);
+  protected locateSaveBar = this.locatorForOptional(GioSaveBarHarness);
 
   async getMcpEntryPointNotFound(): Promise<NoMcpEntrypointHarness | null> {
     return this.locateMcpEntryPointNotFound();
+  }
+
+  async getConfigureMcpEntrypoint(): Promise<ConfigureMcpEntrypointHarness> {
+    return this.locateConfigureMcpEntrypoint();
+  }
+
+  async getSaveBar(): Promise<GioSaveBarHarness | null> {
+    return this.locateSaveBar();
   }
 }
