@@ -16,7 +16,14 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpMethod;
@@ -41,6 +48,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.verification.VerificationMode;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -264,5 +272,95 @@ class LoggingHookTest {
     @Test
     void shouldReturnId() {
         assertEquals("hook-logging", cut.id());
+    }
+
+    @Test
+    void shouldUnwrapLogHeadersCaptorInPost() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        LogEndpointResponse endpointResponse = new LogEndpointResponse(loggingContext, response);
+        log.setEndpointResponse(endpointResponse);
+        HttpHeaders delegateHeaders = HttpHeaders.create();
+        LogHeadersCaptor wrappedHeaders = new LogHeadersCaptor(delegateHeaders);
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.endpointResponse()).thenReturn(true);
+        when(response.headers()).thenReturn(wrappedHeaders);
+        TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.RESPONSE).test();
+        obs.assertComplete();
+        verify(response).setHeaders(delegateHeaders);
+    }
+
+    @Test
+    void shouldWrapHeadersInPreWhenRequestHeadersOrResponseLoggingEnabled() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+
+        when(metrics.getLog()).thenReturn(log);
+        when(ctx.response()).thenReturn(response);
+        when(loggingContext.endpointRequest()).thenReturn(false);
+        when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+
+        TestObserver<Void> obs = cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
+        obs.assertComplete();
+        verify(response, never()).setHeaders(any());
+
+        when(loggingContext.endpointRequest()).thenReturn(false);
+        when(loggingContext.endpointResponseHeaders()).thenReturn(true);
+        TestObserver<Void> obs2 = cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
+        obs2.assertComplete();
+        verify(response, times(1)).setHeaders(argThat(headers -> headers instanceof LogHeadersCaptor));
+    }
+
+    @Test
+    void shouldSetMethodAndHeadersInPostWhenEndpointRequestAndHeadersEnabled() {
+        LogEndpointRequest logEndpointRequest = mock(LogEndpointRequest.class);
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).endpointRequest(logEndpointRequest).build();
+        when(metrics.getLog()).thenReturn(log);
+        HttpHeaders mockRequestHeaders = mock(HttpHeaders.class);
+        when(ctx.request().headers()).thenReturn(mockRequestHeaders);
+        when(ctx.request().method()).thenReturn(HttpMethod.GET);
+        when(loggingContext.endpointRequest()).thenReturn(true);
+        when(loggingContext.endpointRequestHeaders()).thenReturn(true);
+        TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        obs.assertComplete();
+        verify(logEndpointRequest).setHeaders(eq(mockRequestHeaders));
+    }
+
+    @Test
+    void shouldWrapHeadersInPreWhenOnlyEndpointResponseEnabled() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+
+        when(metrics.getLog()).thenReturn(log);
+        when(ctx.response()).thenReturn(response);
+        when(loggingContext.endpointRequest()).thenReturn(false);
+        when(loggingContext.endpointResponseHeaders()).thenReturn(true);
+
+        TestObserver<Void> obs = cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
+        obs.assertComplete();
+
+        verify(response).setHeaders(argThat(headers -> headers instanceof LogHeadersCaptor));
+    }
+
+    @Test
+    void shouldWrapHeadersInPreWhenBothEndpointRequestHeadersAndResponseEnabled() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+
+        when(metrics.getLog()).thenReturn(log);
+        when(ctx.response()).thenReturn(response);
+        when(loggingContext.endpointRequest()).thenReturn(false);
+        when(loggingContext.endpointResponseHeaders()).thenReturn(true);
+        TestObserver<Void> obs = cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
+        obs.assertComplete();
+
+        verify(response).setHeaders(argThat(headers -> headers instanceof LogHeadersCaptor));
+    }
+
+    @Test
+    void shouldNotWrapHeadersInPreWhenNeitherEndpointRequestHeadersNorResponseEnabled() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.endpointRequest()).thenReturn(false);
+        TestObserver<Void> obs = cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
+        obs.assertComplete();
+        verify(response, never()).setHeaders(any());
     }
 }
