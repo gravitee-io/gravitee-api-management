@@ -15,11 +15,16 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.GroupSimpleEntity;
+import io.gravitee.rest.api.model.NewGroupEntity;
+import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -35,6 +40,7 @@ public interface GroupService {
     void delete(ExecutionContext executionContext, String groupId);
     void deleteUserFromGroup(ExecutionContext executionContext, String groupId, String username);
     List<GroupEntity> findAll(ExecutionContext executionContext);
+    Page<GroupEntity> search(ExecutionContext executionContext, Pageable pageable, String query);
     List<GroupSimpleEntity> findAllByOrganization(String organizationId);
     GroupEntity findById(ExecutionContext executionContext, String groupId);
     Set<GroupEntity> findByIds(Set<String> groupIds);
