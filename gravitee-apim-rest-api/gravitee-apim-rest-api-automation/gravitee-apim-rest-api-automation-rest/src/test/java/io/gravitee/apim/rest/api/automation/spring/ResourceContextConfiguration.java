@@ -52,9 +52,12 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
@@ -71,7 +74,6 @@ import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessCont
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
-import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
@@ -423,6 +425,26 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ValidateApiCRDDomainService validateApiCRDDomainService() {
+        return mock(ValidateApiCRDDomainService.class);
+    }
+
+    @Bean
+    public ImportApiCRDUseCase importApiCRDUseCase() {
+        return mock(ImportApiCRDUseCase.class);
+    }
+
+    @Bean
+    public ApiQueryService apiQueryService() {
+        return mock(ApiQueryService.class);
+    }
+
+    @Bean
+    public ExportApiCRDUseCase exportApiCRDUseCase() {
+        return mock(ExportApiCRDUseCase.class);
+    }
+
+    @Bean
     public ApiMetadataDecoderDomainService apiMetadataDecoderDomainService() {
         return mock(ApiMetadataDecoderDomainService.class);
     }
@@ -497,43 +519,6 @@ public class ResourceContextConfiguration {
     @Bean
     public CRDMembersDomainServiceInMemory crdMembersDomainService() {
         return new CRDMembersDomainServiceInMemory();
-    }
-
-    @Bean
-    public ValidateApiCRDUseCase validateApiCRDUseCase(
-        CategoryQueryServiceInMemory categoryQueryService,
-        UserDomainServiceInMemory userDomainService,
-        VerifyApiPathDomainService verifyApiPathDomainService,
-        GroupQueryService groupQueryService,
-        ValidateResourceDomainService validateResourceDomainService,
-        ValidatePageSourceDomainService validatePageSourceDomainService,
-        ValidatePageAccessControlsDomainService validatePageAccessControlsDomainService,
-        DocumentationValidationDomainService validationDomainService,
-        RoleQueryServiceInMemory roleQueryService,
-        ApiQueryServiceInMemory apiQueryService,
-        ParametersQueryService parametersQueryService,
-        PolicyValidationDomainService policyValidationDomainService,
-        PageCrudService pageCrudService
-    ) {
-        return new ValidateApiCRDUseCase(
-            new ValidateApiCRDDomainService(
-                new ValidateCategoryIdsDomainService(categoryQueryService),
-                verifyApiPathDomainService,
-                new VerifyApiHostsDomainService(apiQueryService),
-                new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-                new ValidateGroupsDomainService(groupQueryService),
-                validateResourceDomainService,
-                new ValidatePagesDomainService(
-                    validatePageSourceDomainService,
-                    validatePageAccessControlsDomainService,
-                    validationDomainService
-                ),
-                new ValidatePlanDomainService(
-                    new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService)
-                ),
-                new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService))
-            )
-        );
     }
 
     @Bean

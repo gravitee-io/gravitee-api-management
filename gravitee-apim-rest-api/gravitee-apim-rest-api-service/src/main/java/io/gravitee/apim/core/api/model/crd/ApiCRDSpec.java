@@ -72,6 +72,8 @@ public class ApiCRDSpec {
 
     private String crossId;
 
+    private String hrid;
+
     private String name;
 
     private String description;
@@ -145,6 +147,7 @@ public class ApiCRDSpec {
             .builder()
             .id(id)
             .crossId(crossId)
+            .hrid(hrid)
             .name(name)
             .version(version)
             .definitionVersion(DefinitionVersion.V4)

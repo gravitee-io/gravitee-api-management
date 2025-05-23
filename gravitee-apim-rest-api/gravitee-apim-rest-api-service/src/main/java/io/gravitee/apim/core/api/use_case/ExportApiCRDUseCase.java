@@ -33,9 +33,13 @@ public class ExportApiCRDUseCase {
 
     public record Output(ApiCRDSpec spec) {}
 
-    public record Input(String apiId, AuditInfo auditInfo) {}
+    public record Input(String apiId, String hrid, AuditInfo auditInfo) {}
 
     public Output execute(Input input) {
-        return new Output(exportDomainService.export(input.apiId, input.auditInfo));
+        if (input.apiId != null) {
+            return new Output(exportDomainService.export(input.apiId, input.auditInfo));
+        }
+
+        return new Output(exportDomainService.exportWithHRID(input.hrid, input.auditInfo));
     }
 }

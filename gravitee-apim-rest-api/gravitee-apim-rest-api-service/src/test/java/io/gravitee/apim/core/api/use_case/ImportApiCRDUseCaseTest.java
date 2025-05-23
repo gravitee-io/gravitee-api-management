@@ -634,6 +634,7 @@ class ImportApiCRDUseCaseTest {
         @Test
         void should_create_and_index_a_new_api() {
             var expected = expectedApi().setPlans(List.of());
+            expected.setHrid(expected.getCrossId());
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of()).build()));
 

@@ -22,10 +22,12 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,9 +44,9 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
     private final ValidatePageAccessControlsDomainService accessControlsValidator;
     private final DocumentationValidationDomainService validationDomainService;
 
-    public record Input(AuditInfo auditInfo, String apiId, Map<String, PageCRD> pages) implements Validator.Input {
+    public record Input(AuditInfo auditInfo, String apiId, String hrid, Map<String, PageCRD> pages) implements Validator.Input {
         ValidatePagesDomainService.Input sanitized(Map<String, PageCRD> sanitizedPages) {
-            return new ValidatePagesDomainService.Input(auditInfo, apiId, sanitizedPages);
+            return new ValidatePagesDomainService.Input(auditInfo, apiId, hrid, sanitizedPages);
         }
     }
 
@@ -63,6 +65,9 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
             try {
                 Page page = PageModelFactory.fromCRDSpec(v);
                 page.setReferenceId(input.apiId());
+                if (page.getId() == null && input.hrid() != null) {
+                    page.setId(UuidString.generateFrom(k, input.hrid()));
+                }
 
                 pageSourceValidator
                     .validateAndSanitize(new ValidatePageSourceDomainService.Input(k, page.getSource()))
