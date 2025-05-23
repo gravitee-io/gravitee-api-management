@@ -15,12 +15,6 @@
     limitations under the License.
 
 -->
-<h5>Tool Definitions</h5>
+<gio-monaco-editor [languageConfig]="languageOptions" [formControl]="formControl"></gio-monaco-editor>
 
-@for (tool of tools(); track $index) {
-  <div class="tool-item">
-    {{ tool | json }}
-  </div>
-} @empty {
-  <div class="empty-state">No tools are configured. Add tools by importing from an OpenAPI specification.</div>
-}
+{{ formControl.value | json }}

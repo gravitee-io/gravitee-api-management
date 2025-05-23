@@ -29,6 +29,7 @@ import {
   ConfigurationMCPForm,
   ConfigureMcpEntrypointComponent,
 } from './components/configure-mcp-entrypoint/configure-mcp-entrypoint.component';
+import { OpenApiToMcpToolsComponent } from './components/open-api-to-mcp-tools/open-api-to-mcp-tools.component';
 
 import { ApiV4, HttpListener } from '../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
@@ -57,6 +58,7 @@ interface ApiVM extends ApiV4 {
     GioPermissionModule,
     ConfigureMcpEntrypointComponent,
     GioSaveBarModule,
+    OpenApiToMcpToolsComponent,
   ],
 })
 export class McpComponent implements OnInit {

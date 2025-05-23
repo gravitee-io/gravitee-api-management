@@ -53,6 +53,8 @@ export class ConfigureMcpEntrypointHarness extends ComponentHarness {
   }
 
   async hasTools(): Promise<boolean> {
-    return this.locateToolDisplay().then((tools) => tools.hasTools());
+    return this.locateToolDisplay()
+      .then((tools) => tools.getToolCount())
+      .then((toolCount) => toolCount > 0);
   }
 }
