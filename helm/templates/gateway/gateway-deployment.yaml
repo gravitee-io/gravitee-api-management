@@ -186,7 +186,7 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             httpGet:
-              path: /_node/health?probes=http-server
+              path: /_node/health?probes=http-server{{- if and (hasKey .Values.gateway "kafka") .Values.gateway.kafka.enabled }},kafka-server{{- end}}
               scheme: HTTP
               port: 18082
               {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
@@ -204,7 +204,7 @@ spec:
             successThreshold: 1
             failureThreshold: 2
             httpGet:
-              path: /_node/health?probes=http-server
+              path: /_node/health?probes=http-server{{- if and (hasKey .Values.gateway "kafka") .Values.gateway.kafka.enabled }},kafka-server{{- end}}
               scheme: HTTP
               port: 18082
               {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
@@ -223,7 +223,7 @@ spec:
             successThreshold: 1
             failureThreshold: 29
             httpGet:
-              path: /_node/health?probes=http-server,sync-process
+              path: /_node/health?probes=http-server,sync-process{{- if and (hasKey .Values.gateway "kafka") .Values.gateway.kafka.enabled }},kafka-server{{- end}}
               scheme: HTTP
               port: 18082
               {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}

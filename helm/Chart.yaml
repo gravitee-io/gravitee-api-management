@@ -38,3 +38,5 @@ annotations:
       description: 'bump mongodb helm release to 13.18.5'
     - kind: added
       description: 'Allow users to set allowed source ranges for the gateway LoadBalancer service'
+    - kind: added
+      description: 'If kafka gateway is enabled then startupProbe, readinessProbe and livenessProbe are configured to take the kafka-server probe into account'
