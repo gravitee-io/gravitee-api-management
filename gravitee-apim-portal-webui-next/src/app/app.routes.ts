@@ -50,7 +50,15 @@ import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { categoriesResolver } from '../resolvers/categories.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
+<<<<<<< HEAD
+<<<<<<< HEAD
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
+=======
+import {ApiTabToolsComponent} from "./api/api-details/api-tab-tools/api-tab-tools.component";
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
+=======
+import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
+>>>>>>> 47db69a114 (style: apply prettier)
 
 const apiRoutes: Routes = [
   {
@@ -109,8 +117,18 @@ const apiRoutes: Routes = [
           {
             path: 'tools',
             component: ApiTabToolsComponent,
+<<<<<<< HEAD
+<<<<<<< HEAD
             data: { breadcrumb: { label: 'Tools' } },
           },
+=======
+            data: { breadcrumb: { label: 'Tools'}}
+          }
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
+=======
+            data: { breadcrumb: { label: 'Tools' } },
+          },
+>>>>>>> 47db69a114 (style: apply prettier)
         ],
       },
       {

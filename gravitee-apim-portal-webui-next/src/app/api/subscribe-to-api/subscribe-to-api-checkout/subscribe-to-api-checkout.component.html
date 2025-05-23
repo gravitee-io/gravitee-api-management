@@ -89,3 +89,7 @@
     </div>
   }
 </div>
+
+@if (api.mcp?.enabled && plan.security === 'KEY_LESS') {
+  <app-mcp-use-with-claude />
+}

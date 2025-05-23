@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
 /*
  * Copyright (C) 2021 The Gravitee team (http://gravitee.io)
  *
@@ -14,10 +16,13 @@
  * limitations under the License.
  */
 
+=======
+>>>>>>> 3219f16fd8 (feat(console): import tools via openapi spec and delete)
 @use '../../../scss/gio-layout' as gio-layout;
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
+<<<<<<< HEAD
   overflow: visible;
 }
 
@@ -25,4 +30,32 @@
   &__headerRightBtn {
     margin-left: auto;
   }
+=======
+=======
+}
+
+>>>>>>> 3219f16fd8 (feat(console): import tools via openapi spec and delete)
+.no-tools-content {
+  display: flex;
+  flex-flow: column;
+  gap: 24px;
+  align-items: center;
+  height: 70px;
+  justify-content: center;
+}
+.title-and-subtitle {
+  flex: 1;
+}
+mat-card-header {
+  align-items: center;
+}
+mat-card-content {
+  padding-top: 16px;
+<<<<<<< HEAD
+>>>>>>> 4fd3c69d69 (feat(console): manage mcp tools)
+=======
+  display: flex;
+  flex-flow: column;
+  gap: 24px;
+>>>>>>> 3219f16fd8 (feat(console): import tools via openapi spec and delete)
 }

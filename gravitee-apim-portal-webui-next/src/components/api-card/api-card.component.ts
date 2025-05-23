@@ -16,14 +16,22 @@
 import { Component, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+<<<<<<< HEAD
 import { MatChipsModule } from '@angular/material/chips';
+=======
+import { MatChip } from '@angular/material/chips';
+>>>>>>> 47db69a114 (style: apply prettier)
 import { RouterModule } from '@angular/router';
 
 import { PictureComponent } from '../picture/picture.component';
 
 @Component({
   selector: 'app-api-card',
+<<<<<<< HEAD
   imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule, MatChipsModule],
+=======
+  imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule, MatChip],
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })
@@ -40,4 +48,6 @@ export class ApiCardComponent {
   isEnabledMcpServer: boolean = false;
   @Input()
   content?: string;
+  @Input()
+  mcpEnabled: boolean = false;
 }

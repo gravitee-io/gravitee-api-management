@@ -18,7 +18,11 @@ import { Component, inject, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+<<<<<<< HEAD
 import { MatChipsModule } from '@angular/material/chips';
+=======
+import { MatChip } from '@angular/material/chips';
+>>>>>>> 47db69a114 (style: apply prettier)
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
@@ -44,7 +48,11 @@ import { PlanService } from '../../../services/plan.service';
     AsyncPipe,
     RouterModule,
     FormsModule,
+<<<<<<< HEAD
     MatChipsModule,
+=======
+    MatChip,
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
   ],
   templateUrl: './api-details.component.html',
   styleUrl: './api-details.component.scss',

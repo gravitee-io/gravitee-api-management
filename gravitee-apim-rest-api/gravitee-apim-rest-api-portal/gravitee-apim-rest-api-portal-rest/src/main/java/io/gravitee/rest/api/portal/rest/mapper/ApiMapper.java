@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.v4.mcp.Tool;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -31,7 +32,13 @@ import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.ApiType;
 import io.gravitee.rest.api.portal.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.portal.rest.model.ListenerType;
+<<<<<<< HEAD
 import io.gravitee.rest.api.portal.rest.model.Mcp;
+=======
+import io.gravitee.rest.api.portal.rest.model.MCP;
+import io.gravitee.rest.api.portal.rest.model.MCPInputSchema;
+import io.gravitee.rest.api.portal.rest.model.MCPTool;
+>>>>>>> 5559b8d249 (--wip-- [skip ci])
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.CategoryService;
@@ -152,7 +159,41 @@ public class ApiMapper {
             apiItem.setCategories(new ArrayList<>());
         }
 
+        if (api instanceof ApiEntity apiEntity && io.gravitee.definition.model.v4.ApiType.PROXY.equals(apiEntity.getType())) {
+            apiItem.setMcp(convert(apiEntity.getMcp()));
+        }
+
         return apiItem;
+    }
+
+    public MCP convert(io.gravitee.definition.model.v4.mcp.MCP mcp) {
+        MCP mcpItem = new MCP();
+        if (mcp != null) {
+            mcpItem.setEnabled(mcp.isEnabled());
+            if (mcp.getTools() != null) {
+                mcpItem.setTools(mcp.getTools().stream().map(this::convert).collect(Collectors.toList()));
+            }
+        }
+        return mcpItem;
+    }
+
+    public MCPTool convert(io.gravitee.definition.model.v4.mcp.Tool tool) {
+        MCPTool mcpTool = new MCPTool();
+        if (tool != null) {
+            mcpTool.setDescription(tool.getDescription());
+            mcpTool.setName(tool.getName());
+            mcpTool.setInputSchema(convert(tool.getInputSchema()));
+        }
+        return mcpTool;
+    }
+
+    public MCPInputSchema convert(Tool.InputSchema inputSchema) {
+        MCPInputSchema mcpInputSchema = new MCPInputSchema();
+        if (inputSchema != null) {
+            mcpInputSchema.setType(inputSchema.getType());
+            mcpInputSchema.setProperties(inputSchema.getProperties());
+        }
+        return mcpInputSchema;
     }
 
     public ApiLinks computeApiLinks(String basePath, Date updateDate) {

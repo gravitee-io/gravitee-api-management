@@ -15,7 +15,11 @@
  */
 import { ApiLinks } from './api-links';
 import { ListenerType } from './listener-type';
+<<<<<<< HEAD
 import { Mcp } from './mcp';
+=======
+import { MCP } from './mcp';
+>>>>>>> 47db69a114 (style: apply prettier)
 import { User } from '../user/user';
 
 /**
@@ -74,6 +78,7 @@ export interface Api {
   categories?: Array<string>;
   mcp?: Mcp;
   _links?: ApiLinks;
+  mcp?: MCP;
 }
 
 export type ApiType = 'NATIVE' | 'MESSAGE' | 'PROXY';
