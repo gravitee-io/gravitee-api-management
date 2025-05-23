@@ -91,6 +91,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .builder(Api.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("cross_id", Types.NVARCHAR, String.class)
+            .addColumn("hrid", Types.NVARCHAR, String.class)
             .addColumn("origin", Types.NVARCHAR, String.class)
             .addColumn("mode", Types.NVARCHAR, String.class)
             .addColumn("sync_from", Types.NVARCHAR, String.class)
@@ -320,6 +321,35 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
 
         LOGGER.debug("JdbcApiRepository.findByEnvironmentIdAndCrossId({}, {}) = {}", environmentId, crossId, result);
+        return result;
+    }
+
+    @Override
+    public Optional<Api> findByEnvironmentIdAndHRID(String environmentId, String hrid) throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.findByEnvironmentIdAndHRID({}, {})", environmentId, hrid);
+        JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+        jdbcTemplate.query(
+            getOrm().getSelectAllSql() +
+            " a left join " +
+            API_CATEGORIES +
+            " ac on a.id = ac.api_id where a.environment_id = ? and a.hrid = ?",
+            rowMapper,
+            environmentId,
+            hrid
+        );
+
+        if (rowMapper.getRows().size() > 1) {
+            throw new TechnicalException("More than one API was found for environmentId " + environmentId + " and hrid " + hrid);
+        }
+
+        Optional<Api> result = rowMapper.getRows().stream().findFirst();
+
+        if (result.isPresent()) {
+            addLabels(result.get());
+            addGroups(result.get());
+        }
+
+        LOGGER.debug("JdbcApiRepository.findByEnvironmentIdAndHRID({}, {}) = {}", environmentId, hrid, result);
         return result;
     }
 

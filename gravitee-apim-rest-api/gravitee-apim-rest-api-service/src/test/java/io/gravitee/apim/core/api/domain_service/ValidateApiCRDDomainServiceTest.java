@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import static fixtures.core.model.ApiCRDFixtures.API_CROSS_ID;
 import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -91,6 +92,24 @@ class ValidateApiCRDDomainServiceTest {
     }
 
     @Test
+    void should_return_input_with_cross_id_error() {
+        var spec = ApiCRDFixtures.BASE_SPEC.crossId(null).hrid(null).build();
+        var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).build(), spec);
+
+        cut
+            .validateAndSanitize(input)
+            .peek(
+                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(spec.toBuilder().build()),
+                errors -> {
+                    Assertions.assertThat(errors).isNotEmpty();
+                    Assertions
+                        .assertThat(errors.getFirst().getMessage())
+                        .isEqualTo("when no hrid is set in the payload a cross ID should be passed to identify the resource");
+                }
+            );
+    }
+
+    @Test
     void should_return_input_with_categories_and_no_warnings() {
         var spec = ApiCRDFixtures.BASE_SPEC
             .categories(Set.of("key-1", "id-2"))
@@ -114,7 +133,7 @@ class ValidateApiCRDDomainServiceTest {
         when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
@@ -127,7 +146,7 @@ class ValidateApiCRDDomainServiceTest {
         )
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        var expected = spec.toBuilder().categories(Set.of("id-1", "id-2")).build();
+        var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(spec.getCrossId()).categories(Set.of("id-1", "id-2")).build();
 
         cut
             .validateAndSanitize(input)
@@ -160,7 +179,7 @@ class ValidateApiCRDDomainServiceTest {
         when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
@@ -173,7 +192,7 @@ class ValidateApiCRDDomainServiceTest {
         )
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        var expected = spec.toBuilder().build();
+        var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(spec.getCrossId()).build();
 
         cut
             .validateAndSanitize(input)

@@ -79,6 +79,15 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
     }
 
     @Override
+    public Optional<Api> findByEnvironmentIdAndHRID(String environmentId, String hrid) {
+        try {
+            return apiRepository.findByEnvironmentIdAndHRID(environmentId, hrid).map(ApiAdapter.INSTANCE::toCoreModel);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
+    }
+
+    @Override
     public Page<Api> findByIntegrationId(String integrationId, Pageable pageable) {
         var searchCriteria = new ApiCriteria.Builder().integrationId(integrationId).build();
         var sortable = SortableAdapter.INSTANCE.toSortableForRepository(

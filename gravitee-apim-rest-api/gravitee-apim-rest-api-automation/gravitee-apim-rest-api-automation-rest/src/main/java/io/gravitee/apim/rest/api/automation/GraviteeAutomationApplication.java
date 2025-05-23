@@ -17,6 +17,7 @@ package io.gravitee.apim.rest.api.automation;
 
 import io.gravitee.apim.rest.api.automation.exception.mapping.HRIDNotFoundMapper;
 import io.gravitee.apim.rest.api.automation.exception.mapping.ValidationDomainMapper;
+import io.gravitee.apim.rest.api.automation.resource.ApisResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentsResource;
 import io.gravitee.apim.rest.api.automation.resource.OpenAPIResource;
@@ -40,6 +41,7 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(OrganizationResource.class);
         register(EnvironmentsResource.class);
         register(EnvironmentResource.class);
+        register(ApisResource.class);
         register(SharedPolicyGroupsResource.class);
 
         register(ValidationDomainMapper.class);
