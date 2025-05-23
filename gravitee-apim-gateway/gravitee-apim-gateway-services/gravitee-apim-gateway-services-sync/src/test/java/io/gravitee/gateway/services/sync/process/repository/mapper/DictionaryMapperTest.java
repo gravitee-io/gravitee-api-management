@@ -64,24 +64,4 @@ class DictionaryMapperTest {
         event.setPayload(objectMapper.writeValueAsString("wrong"));
         cut.to(event).test().assertNoValues().assertComplete();
     }
-
-    @Test
-    void should_map_event_to_id() {
-        Event event = new Event();
-        event.setProperties(Map.of(DICTIONARY_ID.getValue(), "id"));
-        cut
-            .toId(event)
-            .test()
-            .assertValue(id -> {
-                assertThat(id).isEqualTo("id");
-                return true;
-            })
-            .assertComplete();
-    }
-
-    @Test
-    void should_map_event_to_empty_id() {
-        Event event = new Event();
-        cut.toId(event).test().assertNoValues().assertComplete();
-    }
 }

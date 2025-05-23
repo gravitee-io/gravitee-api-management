@@ -175,14 +175,53 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         EventType type,
         Dictionary dictionary
     ) {
+        //hack to enable backward compatibility for dictionaries with and without multi environment support on the GW
+        try {
+            Optional<Event> byId = eventLatestRepository.findById(dictionary.getKey());
+            if (byId.isPresent()) {
+                if (byId.get().getEnvironments().containsAll(environmentsIds)) {
+                    //backward compatible event to support legacy GW
+                    return createLegacyDictionaryEvent(executionContext, environmentsIds, organizationId, type, dictionary);
+                }
+                //new type of event with multi environment support
+                return createNewDictionaryEvent(executionContext, environmentsIds, organizationId, type, dictionary);
+            } else {
+                //backward compatible event to support legacy GW
+                return createLegacyDictionaryEvent(executionContext, environmentsIds, organizationId, type, dictionary);
+            }
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(String.format("Failed to create event [%s]", type), e);
+        }
+    }
+
+    private EventEntity createLegacyDictionaryEvent(
+        ExecutionContext executionContext,
+        Set<String> environmentsIds,
+        String organizationId,
+        EventType type,
+        Dictionary dictionary
+    ) {
+        Dictionary oldDictionary = new Dictionary(dictionary);
+        oldDictionary.setId(dictionary.getKey());
+        oldDictionary.setKey(null);
         Map<String, String> eventProperties = new HashMap<>();
-        if (dictionary != null) {
-            eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary.getId());
-        }
+        eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), oldDictionary.getId());
+        EventEntity event = createEvent(executionContext, environmentsIds, organizationId, type, oldDictionary, eventProperties);
+        createOrPatchLatestEvent(oldDictionary.getId(), organizationId, event);
+        return event;
+    }
+
+    private EventEntity createNewDictionaryEvent(
+        ExecutionContext executionContext,
+        Set<String> environmentsIds,
+        String organizationId,
+        EventType type,
+        Dictionary dictionary
+    ) {
+        Map<String, String> eventProperties = new HashMap<>();
+        eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary.getKey());
         EventEntity event = createEvent(executionContext, environmentsIds, organizationId, type, dictionary, eventProperties);
-        if (dictionary != null) {
-            createOrPatchLatestEvent(dictionary.getId(), organizationId, event);
-        }
+        createOrPatchLatestEvent(dictionary.getId(), organizationId, event);
         return event;
     }
 

@@ -40,7 +40,7 @@ public class DictionaryAlreadyExistsException extends AbstractManagementExceptio
 
     @Override
     public String getMessage() {
-        return "A dictionary with name [" + dictionaryName + "] already exists.";
+        return "A dictionary with name [" + dictionaryName + "] already exists in this environment.";
     }
 
     @Override

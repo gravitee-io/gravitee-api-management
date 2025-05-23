@@ -244,4 +244,12 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             throw new TechnicalException("Failed to delete dictionaries by environmentId");
         }
     }
+
+    @Override
+    public Optional<Dictionary> findByKeyAndEnvironment(String key, String environmentId) throws TechnicalException {
+        LOGGER.debug("Find dictionary by key and environmentId");
+        DictionaryMongo dictionaryMongo = internalDictionaryRepo.findByKeyAndEnvironmentId(key, environmentId);
+
+        return Optional.ofNullable(dictionaryMongo).map(mapper::map);
+    }
 }

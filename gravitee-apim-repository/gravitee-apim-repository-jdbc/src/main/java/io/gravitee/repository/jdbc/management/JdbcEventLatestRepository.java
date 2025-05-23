@@ -27,6 +27,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.sql.Connection;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +55,7 @@ import org.springframework.util.CollectionUtils;
  */
 @Slf4j
 @Repository
-public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> implements EventLatestRepository {
+public class JdbcEventLatestRepository extends JdbcAbstractCrudRepository<Event, String> implements EventLatestRepository {
 
     private final JdbcTemplate jdbcTemplate;
     private final String EVENT_PROPERTIES;
@@ -253,6 +255,13 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
     }
 
     @Override
+    public Optional<Event> findById(String eventId) throws TechnicalException {
+        log.debug("JdbcEventLatestRepository.findById({})", eventId);
+
+        return super.findById(eventId);
+    }
+
+    @Override
     public Event createOrUpdate(Event event) {
         if (event == null || event.getId() == null || event.getType() == null) {
             throw new IllegalStateException("Event to create or update must have an id and a type");
@@ -271,5 +280,10 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             storeOrganizations(event, true);
         }
         return event;
+    }
+
+    @Override
+    protected String getId(Event event) {
+        return event.getId();
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import lombok.NoArgsConstructor;
 import java.util.Date;
 import java.util.Map;
 
@@ -22,12 +23,29 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
 public class Dictionary {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
         DICTIONARY_CREATED,
         DICTIONARY_UPDATED,
         DICTIONARY_DELETED,
+    }
+
+    public Dictionary(Dictionary other) {
+        this.id = other.id;
+        this.environmentId = other.environmentId;
+        this.name = other.name;
+        this.key = other.key;
+        this.description = other.description;
+        this.type = other.type;
+        this.createdAt = other.createdAt;
+        this.updatedAt = other.updatedAt;
+        this.deployedAt = other.deployedAt;
+        this.state = other.state;
+        this.properties = other.properties;
+        this.provider = other.provider;
+        this.trigger = other.trigger;
     }
 
     /**
@@ -44,6 +62,11 @@ public class Dictionary {
      * Dictionary name
      */
     private String name;
+
+    /**
+     * Dictionary key
+     */
+    private String key;
 
     /**
      * Dictionary description
@@ -104,6 +127,14 @@ public class Dictionary {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public DictionaryType getType() {

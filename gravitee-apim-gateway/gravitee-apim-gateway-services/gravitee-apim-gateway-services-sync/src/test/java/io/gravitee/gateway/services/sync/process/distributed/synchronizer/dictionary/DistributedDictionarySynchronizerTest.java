@@ -129,7 +129,7 @@ class DistributedDictionarySynchronizerTest {
         @BeforeEach
         public void init() {
             dictionary = new Dictionary();
-            dictionary.setId("id");
+            dictionary.setKey("id");
         }
 
         @Test

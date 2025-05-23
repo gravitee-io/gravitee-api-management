@@ -23,6 +23,7 @@ import io.gravitee.repository.mongodb.management.internal.eventLatest.event.Even
 import io.gravitee.repository.mongodb.management.internal.model.EventLatestMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +75,12 @@ public class MongoEventLatestRepository implements EventLatestRepository {
     public List<Event> findByOrganizationId(String organizationId) {
         List<EventLatestMongo> eventsLatestMongo = internalEventRepo.findByOrganizationsIn(Set.of(organizationId));
         return mapper.mapEventLatests(eventsLatestMongo);
+    }
+
+    @Override
+    public Optional<Event> findById(String eventId) throws TechnicalException {
+        Optional<EventLatestMongo> event = internalEventRepo.findById(eventId);
+        return event.map(mapper::map);
     }
 
     @Override

@@ -34,6 +34,8 @@ public class DictionaryMongo extends Auditable {
 
     private String name;
 
+    private String key;
+
     private String description;
 
     private String type;
@@ -70,6 +72,14 @@ public class DictionaryMongo extends Auditable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getType() {

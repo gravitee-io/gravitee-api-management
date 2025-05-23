@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -49,5 +50,10 @@ public class NoOpEventLatestRepository implements EventLatestRepository {
     @Override
     public List<Event> findByOrganizationId(String organizationId) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public Optional<Event> findById(String eventId) throws TechnicalException {
+        return Optional.empty();
     }
 }

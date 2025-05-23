@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -69,4 +70,11 @@ public interface EventLatestRepository {
      * @return List of events
      */
     List<Event> findByOrganizationId(String organizationId);
+
+    /**
+     * Find event by id
+     * @param eventId
+     * @return optional event
+     */
+    Optional<Event> findById(String eventId) throws TechnicalException;
 }

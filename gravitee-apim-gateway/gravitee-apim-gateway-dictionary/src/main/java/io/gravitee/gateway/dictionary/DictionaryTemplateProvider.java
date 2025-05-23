@@ -20,9 +20,12 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.el.annotations.TemplateVariable;
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
+import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,34 +38,66 @@ public class DictionaryTemplateProvider implements DictionaryManager, TemplateVa
 
     private final Logger LOGGER = LoggerFactory.getLogger(DictionaryTemplateProvider.class);
 
-    private final Map<String, Dictionary> dictionaries = new HashMap<>();
-    private final Map<String, Map<String, String>> values = new HashMap<>();
+    private final Map<String, Map<String, Dictionary>> dictionaries = new HashMap<>();
+    private final Map<String, Map<String, Map<String, String>>> values = new HashMap<>();
 
     @Override
-    public void provide(TemplateContext context) {
-        context.setVariable("dictionaries", values);
+    public <T extends HttpExecutionContext> void provide(T ctx) {
+        String environmentId = ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT);
+        TemplateContext templateContext = ctx.getTemplateEngine().getTemplateContext();
+        templateContext.setVariable("dictionaries", values.get(environmentId));
     }
 
     @Override
     public void deploy(Dictionary dictionary) {
-        Dictionary oldDictionary = dictionaries.get(dictionary.getId());
-        if (oldDictionary == null || dictionary.getDeployedAt().after(oldDictionary.getDeployedAt())) {
+        String environmentId = dictionary.getEnvironmentId();
+        //fallback on legacy events
+        String key = dictionary.getKey() == null ? dictionary.getId() : dictionary.getKey();
+
+        dictionaries.putIfAbsent(environmentId, new HashMap<>());
+        values.putIfAbsent(environmentId, new HashMap<>());
+
+        Dictionary existing = dictionaries.get(environmentId).get(key);
+        if (existing == null || dictionary.getDeployedAt().after(existing.getDeployedAt())) {
             if (dictionary.getProperties() == null) {
                 dictionary.setProperties(Collections.emptyMap());
             }
 
             LOGGER.info("Dictionary {} has been deployed with {} properties", dictionary, dictionary.getProperties().size());
-            dictionaries.put(dictionary.getId(), dictionary);
-            values.put(dictionary.getId(), dictionary.getProperties());
+            dictionaries.get(environmentId).put(key, dictionary);
+            values.get(environmentId).put(key, dictionary.getProperties());
         }
     }
 
     @Override
-    public void undeploy(String dictionaryId) {
-        Dictionary dictionary = dictionaries.remove(dictionaryId);
-        if (dictionary != null) {
-            values.remove(dictionaryId);
-            LOGGER.info("A dictionary has been undeployed: {}", dictionaryId);
+    public void undeploy(Dictionary dictionary) {
+        String environmentId = dictionary.getEnvironmentId();
+        //fallback on legacy events
+        String key = dictionary.getKey() == null ? dictionary.getId() : dictionary.getKey();
+        Map<String, Dictionary> envDictionaries = dictionaries.get(environmentId);
+        if (envDictionaries != null) {
+            Dictionary removed = envDictionaries.remove(key);
+
+            if (envDictionaries.isEmpty()) {
+                dictionaries.remove(environmentId);
+            }
+
+            if (removed != null) {
+                Map<String, Map<String, String>> envValues = values.get(environmentId);
+                if (envValues != null) {
+                    envValues.remove(key);
+                    if (envValues.isEmpty()) {
+                        values.remove(environmentId);
+                    }
+                }
+
+                LOGGER.info("A dictionary has been undeployed: {}", removed);
+            }
         }
+    }
+
+    @Override
+    public void provide(TemplateContext templateContext) {
+        //overridden default method to enable http context access
     }
 }

@@ -35,6 +35,12 @@ public class Dictionary {
     @EqualsAndHashCode.Include
     private String id;
 
+    private String key;
+
+    @ToString.Include
+    @EqualsAndHashCode.Include
+    private String environmentId;
+
     @ToString.Include
     private String name;
 

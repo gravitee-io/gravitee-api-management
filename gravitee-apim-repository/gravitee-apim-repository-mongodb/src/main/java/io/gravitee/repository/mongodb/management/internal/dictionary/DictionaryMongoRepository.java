@@ -33,4 +33,6 @@ public interface DictionaryMongoRepository extends MongoRepository<DictionaryMon
 
     @Query(value = "{ environmentId: ?0 }", fields = "{ _id : 1 }", delete = true)
     List<DictionaryMongo> deleteByEnvironmentId(String environmentId);
+
+    DictionaryMongo findByKeyAndEnvironmentId(String key, String environmentId);
 }

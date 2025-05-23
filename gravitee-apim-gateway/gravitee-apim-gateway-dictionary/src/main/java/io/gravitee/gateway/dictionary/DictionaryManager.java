@@ -24,5 +24,5 @@ import io.gravitee.gateway.dictionary.model.Dictionary;
 public interface DictionaryManager {
     void deploy(Dictionary dictionary);
 
-    void undeploy(String dictionaryId);
+    void undeploy(Dictionary dictionary);
 }
