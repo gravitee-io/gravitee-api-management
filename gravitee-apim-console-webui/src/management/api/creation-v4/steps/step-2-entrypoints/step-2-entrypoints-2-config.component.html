@@ -69,7 +69,7 @@
           ></gio-form-json-schema>
 
           <gio-form-qos
-            *ngIf="entrypoint"
+            *ngIf="entrypoint && !isA2ASelected"
             [id]="entrypoint.id"
             [supportedQos]="entrypoint.supportedQos"
             [formControlName]="entrypoint.id + '-qos'"

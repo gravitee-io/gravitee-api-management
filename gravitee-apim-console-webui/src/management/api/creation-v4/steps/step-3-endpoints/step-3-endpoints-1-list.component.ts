@@ -18,12 +18,13 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, of, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.component';
 
+import { AGENT_TO_AGENT } from '../../../../../entities/management-api-v2/api/v4/agentToAgent';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { ConnectorVM, mapAndFilterBySupportedQos } from '../../../../../entities/management-api-v2';
@@ -78,7 +79,14 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
     this.connectorPluginsV2Service
       .listEndpointPluginsByApiType('MESSAGE')
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(
+        map((endpointPlugins) =>
+          currentStepPayload.isA2ASelected
+            ? endpointPlugins.filter((p) => p.id === AGENT_TO_AGENT.id)
+            : endpointPlugins.filter((p) => p.id !== AGENT_TO_AGENT.id),
+        ),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe((endpointPlugins) => {
         const requiredQoS = this.stepService.payload.selectedEntrypoints.map((e) => e.selectedQos);
         this.endpoints = mapAndFilterBySupportedQos(endpointPlugins, requiredQoS, this.iconService);

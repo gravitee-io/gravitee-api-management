@@ -30,6 +30,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData } from './edit/api-entrypoints-v4-add-dialog.component';
 
+import { AGENT_TO_AGENT } from '../../../entities/management-api-v2/api/v4/agentToAgent';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import {
   Api,
@@ -81,7 +82,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public hostFormControl: UntypedFormControl;
   public displayedColumns = ['type', 'qos', 'actions'];
   public dataSource: EntrypointVM[] = [];
-  private allEntrypoints: ConnectorPlugin[];
+  public allEntrypoints: ConnectorPlugin[];
   public enableVirtualHost = false;
   public apiExistingPaths: PathV4[] = [];
   public apiExistingHosts: TcpHost[] = [];
@@ -122,9 +123,14 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
         this.domainRestrictions = restrictedDomains.map((value) => value.domain) || [];
 
         this.isReadOnly = api.definitionContext?.origin === 'KUBERNETES' || !this.permissionService.hasAnyMatching(['api-definition-u']);
-
         if (api.definitionVersion === 'V4') {
-          this.allEntrypoints = availableEntrypoints.filter((entrypoint) => entrypoint.supportedApiType === api.type);
+          const isA2ASelected = api.listeners?.some((listener) => listener.entrypoints?.some((ep) => ep.type === AGENT_TO_AGENT.id));
+          this.allEntrypoints = availableEntrypoints.filter(
+            ({ supportedApiType, id }) =>
+              supportedApiType === api.type &&
+              // only exclude the agent-to-agent id when agent to agent is not selcted
+              (isA2ASelected || id !== AGENT_TO_AGENT.id),
+          );
           this.initForm(api);
         }
       });
