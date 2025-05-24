@@ -99,6 +99,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private static final String FIELD_TENANT = "tenant";
     private static final String FIELD_PLAN = "plan";
     private static final String FIELD_GEOIP_COUNTRY_ISO_CODE = "geoip.country_iso_code";
+    private static final String CUSTOM_FIELD_NAME = "custom.";
     /**
      * Logger.
      */
@@ -325,6 +326,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     private TopHitsAnalytics convert(final ExecutionContext executionContext, GroupByResponse groupByResponse) {
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
+        final String fieldName = groupByResponse.getField();
 
         // Set results
         topHitsAnalytics.setValues(
@@ -335,7 +337,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     Collectors.toMap(
                         // https://stackoverflow.com/questions/5525795/does-javascript-guarantee-object-property-order/5525820#5525820
                         // because javascript does not preserve the order, we have to convert all "1" keys to a non int value
-                        bucket -> UNKNOWN_SERVICE.equals(bucket.name()) ? UNKNOWN_SERVICE_MAPPED : bucket.name(),
+                        bucket ->
+                            (UNKNOWN_SERVICE.equals(bucket.name()) && !fieldName.startsWith(CUSTOM_FIELD_NAME))
+                                ? UNKNOWN_SERVICE_MAPPED
+                                : bucket.name(),
                         GroupByResponse.Bucket::value,
                         (v1, v2) -> {
                             throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
@@ -344,8 +349,6 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     )
                 )
         );
-
-        String fieldName = groupByResponse.getField();
 
         if (fieldName != null && !fieldName.isEmpty()) {
             // Prepare metadata
