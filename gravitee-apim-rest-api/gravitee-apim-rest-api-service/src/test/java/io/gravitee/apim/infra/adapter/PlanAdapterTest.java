@@ -570,6 +570,9 @@ class PlanAdapterTest {
             .map(plan -> Map.entry(plan.getId(), adapterSpy.toApiDefinition(plan)))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        Map<String, io.gravitee.definition.model.v4.plan.Plan> expected = PlanAdapter.INSTANCE.toApiDefinition(source);
+
+        Assertions.assertEquals(2, expected.size());
         Assertions.assertEquals(2, result.size());
         Assertions.assertEquals(apiPlan1, result.get("id1"));
         Assertions.assertEquals(apiPlan2, result.get("id2"));
