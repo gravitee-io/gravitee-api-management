@@ -522,6 +522,11 @@ class PlanAdapterTest {
     }
 
     @Test
+    void testDefaultMap_withNullInput_returnsNull() {
+        Assertions.assertNull(PlanAdapter.INSTANCE.map((GenericPlanEntity) null));
+    }
+
+    @Test
     void testMap_withPlanEntity_returnsSameInstance() {
         io.gravitee.rest.api.model.PlanEntity plan = mock(io.gravitee.rest.api.model.PlanEntity.class);
         Assertions.assertSame(plan, PlanAdapter.INSTANCE.map(plan));
@@ -539,6 +544,7 @@ class PlanAdapterTest {
         io.gravitee.rest.api.model.PlanEntity result = adapterSpy.map(v4Plan);
 
         Assertions.assertSame(expected, result);
+        Assertions.assertNotNull(PlanAdapter.INSTANCE.map((GenericPlanEntity) v4Plan));
         verify(adapterSpy).map(v4Plan);
     }
 
