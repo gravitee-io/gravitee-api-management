@@ -130,6 +130,7 @@ import io.gravitee.rest.api.service.FetcherService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.InvitationService;
 import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.LogsService;
 import io.gravitee.rest.api.service.MediaService;
@@ -883,5 +884,10 @@ public class ResourceContextConfiguration {
         ApiExposedEntrypointDomainServiceInMemory apiExposedEntrypointDomainServiceInMemory
     ) {
         return new GetExposedEntrypointsUseCase(apiCrudServiceInMemory, apiExposedEntrypointDomainServiceInMemory);
+    }
+
+    @Bean
+    public InvitationService invitationService() {
+        return mock(InvitationService.class);
     }
 }

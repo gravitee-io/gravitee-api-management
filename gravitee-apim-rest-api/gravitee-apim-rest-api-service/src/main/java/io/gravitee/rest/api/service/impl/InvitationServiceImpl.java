@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.service.notification.NotificationParamsBuilde
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.repository.management.model.Invitation;
@@ -86,9 +87,9 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
         }
         try {
             // First check if user exists
-            final Optional<UserEntity> existingUser = userService.findByEmail(executionContext, invitation.getEmail());
-            if (existingUser.isPresent()) {
-                final UserEntity user = existingUser.get();
+            final List<UserEntity> existingUsers = userService.findByEmail(executionContext, invitation.getEmail());
+            if (CollectionUtils.isNotEmpty(existingUsers)) {
+                final UserEntity user = existingUsers.getFirst();
 
                 Set<String> groupUsers = membershipService
                     .getMembershipsByReference(MembershipReferenceType.GROUP, invitation.getReferenceId())
