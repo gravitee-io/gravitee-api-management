@@ -2403,6 +2403,84 @@ public class SubscriptionServiceTest {
         assertEquals(expectedResult, result);
     }
 
+    @Test
+    public void shouldNotifyError() throws TechnicalException {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setId(SUBSCRIPTION_ID);
+        final long yesterday = Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli();
+        final Date initialUpdateDate = new Date(yesterday);
+        subscription.setUpdatedAt(initialUpdateDate);
+
+        EnvironmentEntity environmentEntity = new EnvironmentEntity();
+        environmentEntity.setId("DEFAULT");
+        environmentEntity.setOrganizationId("DEFAULT");
+
+        PlanEntity planEntity = new PlanEntity();
+        planEntity.setId("A");
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+
+        ApplicationEntity applicationEntity = mock(ApplicationEntity.class);
+
+        PrimaryOwnerEntity primaryOwnerEntity = mock(PrimaryOwnerEntity.class);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(environmentService.findById(any())).thenReturn(environmentEntity);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(any(), any())).thenReturn(applicationEntity);
+        when(applicationEntity.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
+
+        final String failureCause = "💥 Endpoint not available";
+        subscriptionService.notifyError(SUBSCRIPTION_ID, failureCause);
+
+        verify(subscriptionRepository).findById(SUBSCRIPTION_ID);
+        ArgumentCaptor<Subscription> subscriptionCaptor = ArgumentCaptor.forClass(Subscription.class);
+        verify(subscriptionRepository).update(subscriptionCaptor.capture());
+
+        final Subscription subscriptionCaptured = subscriptionCaptor.getValue();
+        assertThat(subscriptionCaptured.getConsumerPausedAt()).isNull();
+        assertThat(subscriptionCaptured.getFailureCause()).isEqualTo(failureCause);
+        assertThat(subscriptionCaptured.getUpdatedAt()).isAfter(initialUpdateDate);
+        verify(notifierService)
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.SUBSCRIPTION_FAILED), nullable(String.class), anyMap());
+        verify(notifierService)
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApplicationHook.SUBSCRIPTION_FAILED), nullable(String.class), anyMap());
+    }
+
+    @Test
+    public void shouldNotNotifyErrorBecauseSubscriptionDoesNotExist() throws TechnicalException {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setId(SUBSCRIPTION_ID);
+        final Date initialUpdateDate = new Date();
+        subscription.setUpdatedAt(initialUpdateDate);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+
+        Assertions
+            .assertThatThrownBy(() -> subscriptionService.notifyError(SUBSCRIPTION_ID, "💥 Endpoint not available"))
+            .isInstanceOf(SubscriptionNotFoundException.class);
+
+        verify(subscriptionRepository, never()).update(any());
+    }
+
+    @Test
+    public void shouldNotNotifyErrorBecauseTechnicalException() throws TechnicalException {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setId(SUBSCRIPTION_ID);
+        final Date initialUpdateDate = new Date();
+        subscription.setUpdatedAt(initialUpdateDate);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        final TechnicalException exceptionThrown = new TechnicalException("🛠 Technical exception");
+        when(subscriptionRepository.update(subscription)).thenThrow(exceptionThrown);
+
+        assertThatThrownBy(() -> subscriptionService.notifyError(SUBSCRIPTION_ID, "💥 Endpoint not available"))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageStartingWith("An error occurs while trying to fail subscription ")
+            .hasMessageEndingWith(SUBSCRIPTION_ID)
+            .hasCause(exceptionThrown);
+    }
+
     private Map<String, Map<String, Object>> prepareMetadata() {
         return Map.of("plan", Map.of("name", "Example plan"), "application", Map.of("name", "Example application"));
     }
