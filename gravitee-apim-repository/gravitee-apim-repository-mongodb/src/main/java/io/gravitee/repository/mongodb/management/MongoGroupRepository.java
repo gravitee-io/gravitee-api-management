@@ -28,6 +28,7 @@ import io.gravitee.repository.mongodb.management.internal.group.GroupMongoReposi
 import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.LookupOperation;
+import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -133,22 +135,30 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Page<Group> search(GroupCriteria groupCriteria, Pageable pageable) {
         Query query = new Query();
-        if (StringUtils.hasText(groupCriteria.getEnvironmentId())) {
-            query.addCriteria(where("environmentId").is(groupCriteria.getEnvironmentId()));
+
+        if (groupCriteria != null) {
+            if (StringUtils.hasText(groupCriteria.getEnvironmentId())) {
+                query.addCriteria(where("environmentId").is(groupCriteria.getEnvironmentId()));
+            }
+            if (!CollectionUtils.isEmpty(groupCriteria.getIdIn())) {
+                query.addCriteria(where("id").in(groupCriteria.getIdIn()));
+            }
+            if (StringUtils.hasText(groupCriteria.getQuery())) {
+                query.addCriteria(where("name").regex(groupCriteria.getQuery(), "i"));
+            }
         }
-        if (!CollectionUtils.isEmpty(groupCriteria.getIdIn())) {
-            query.addCriteria(where("id").in(groupCriteria.getIdIn()));
-        }
-        if (StringUtils.hasText(groupCriteria.getQuery())) {
-            query.addCriteria(where("name").regex(groupCriteria.getQuery(), "i"));
-        }
+
         org.springframework.data.domain.Pageable dbPageable = PageRequest.of(
             pageable.pageNumber(),
             pageable.pageSize(),
             Sort.by(Sort.Order.asc("name"))
         );
+
         long total = mongoTemplate.count(Query.of(query), GroupMongo.class);
-        List<Group> groups = mongoTemplate.find(query.with(dbPageable), GroupMongo.class).stream().map(mapper::map).toList();
+
+        query = query.with(dbPageable).collation(Collation.of(Locale.ENGLISH).strength(Collation.ComparisonLevel.secondary()));
+        List<Group> groups = mongoTemplate.find(query, GroupMongo.class).stream().map(mapper::map).toList();
+
         return new Page<>(groups, pageable.pageNumber() + 1, pageable.pageSize(), total);
     }
 
