@@ -53,7 +53,6 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
@@ -574,8 +573,8 @@ public class ApiResource extends AbstractResource {
         GenericApiEntity duplicate;
         var definitionVersion = currentEntity.getDefinitionVersion();
 
-        if (definitionVersion == DefinitionVersion.V1) {
-            return Response
+        return switch (currentEntity.getDefinitionVersion()) {
+            case V1 -> Response
                 .status(Response.Status.BAD_REQUEST)
                 .entity(
                     new Error()
@@ -584,10 +583,7 @@ public class ApiResource extends AbstractResource {
                         .technicalCode("api.duplicate.v1")
                 )
                 .build();
-        }
-
-        if (definitionVersion == DefinitionVersion.FEDERATED) {
-            return Response
+            case FEDERATED -> Response
                 .status(Response.Status.BAD_REQUEST)
                 .entity(
                     new Error()
@@ -596,25 +592,34 @@ public class ApiResource extends AbstractResource {
                         .technicalCode("api.duplicate.federated")
                 )
                 .build();
-        }
-
-        if (definitionVersion == DefinitionVersion.V4) {
-            duplicate =
-                duplicateApiService.duplicate(
-                    GraviteeContext.getExecutionContext(),
-                    (ApiEntity) currentEntity,
-                    DuplicateApiMapper.INSTANCE.map(duplicateOptions)
-                );
-        } else {
-            duplicate =
-                apiDuplicatorService.duplicate(
-                    GraviteeContext.getExecutionContext(),
-                    (io.gravitee.rest.api.model.api.ApiEntity) currentEntity,
-                    DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions)
-                );
-        }
-
-        return apiResponse(duplicate);
+            case V4 -> {
+                duplicate =
+                    duplicateApiService.duplicate(
+                        GraviteeContext.getExecutionContext(),
+                        (ApiEntity) currentEntity,
+                        DuplicateApiMapper.INSTANCE.map(duplicateOptions)
+                    );
+                yield apiResponse(duplicate);
+            }
+            case V2 -> {
+                duplicate =
+                    apiDuplicatorService.duplicate(
+                        GraviteeContext.getExecutionContext(),
+                        (io.gravitee.rest.api.model.api.ApiEntity) currentEntity,
+                        DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions)
+                    );
+                yield apiResponse(duplicate);
+            }
+            case FEDERATED_AGENT -> Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new Error()
+                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                        .message("Duplicating FEDERATED Agent is not supported")
+                        .technicalCode("api.duplicate.federated")
+                )
+                .build();
+        };
     }
 
     @POST

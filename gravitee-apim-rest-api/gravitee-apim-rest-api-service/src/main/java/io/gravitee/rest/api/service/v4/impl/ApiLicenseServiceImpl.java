@@ -15,19 +15,16 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plugin;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import java.util.Collections;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -51,28 +48,7 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
     @Override
     public void checkLicense(ExecutionContext executionContext, String apiId) {
         var repositoryApi = apiSearchService.findRepositoryApiById(executionContext, apiId);
-        List<Plugin> plugins;
-        try {
-            if (DefinitionVersion.V4.equals(repositoryApi.getDefinitionVersion())) {
-                if (repositoryApi.getType() == ApiType.NATIVE) {
-                    var apiDefinition = objectMapper.readValue(
-                        repositoryApi.getDefinition(),
-                        io.gravitee.definition.model.v4.nativeapi.NativeApi.class
-                    );
-                    plugins = apiDefinition.getPlugins();
-                } else {
-                    var apiDefinition = objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class);
-                    plugins = apiDefinition.getPlugins();
-                }
-            } else if (repositoryApi.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
-                var apiDefinition = objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class);
-                plugins = apiDefinition.getPlugins();
-            } else {
-                plugins = Collections.emptyList();
-            }
-        } catch (Exception e) {
-            throw new TechnicalManagementException(e.getMessage());
-        }
+        List<Plugin> plugins = getPlugins(repositoryApi);
 
         try {
             var licensePlugins = plugins.stream().map(p -> new LicenseManager.Plugin(p.type(), p.id())).toList();
@@ -81,6 +57,26 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
             throw new ForbiddenFeatureException(ffe.getFeatures().stream().map(LicenseManager.ForbiddenFeature::plugin).toList());
         } catch (io.gravitee.node.api.license.InvalidLicenseException e) {
             throw new InvalidLicenseException(e.getMessage());
+        }
+    }
+
+    private List<Plugin> getPlugins(Api repositoryApi) {
+        try {
+            return switch (repositoryApi.getDefinitionVersion()) {
+                case V4 -> switch (repositoryApi.getType()) {
+                    case NATIVE -> objectMapper
+                        .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.nativeapi.NativeApi.class)
+                        .getPlugins();
+                    case PROXY, MESSAGE -> objectMapper
+                        .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class)
+                        .getPlugins();
+                };
+                case V1, V2 -> objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class).getPlugins();
+                case FEDERATED, FEDERATED_AGENT -> List.of();
+                case null -> objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class).getPlugins();
+            };
+        } catch (Exception e) {
+            throw new TechnicalManagementException(e.getMessage());
         }
     }
 }

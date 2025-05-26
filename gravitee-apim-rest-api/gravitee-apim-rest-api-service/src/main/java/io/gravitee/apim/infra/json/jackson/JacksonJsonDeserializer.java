@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.json.jackson;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.gravitee.apim.core.json.JsonDeserializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
@@ -25,16 +26,29 @@ public class JacksonJsonDeserializer implements JsonDeserializer {
 
     private final JsonMapper mapper;
 
+    private final JsonMapper mapperNonStrict;
+
     public JacksonJsonDeserializer() {
         this(JsonMapperFactory.build());
     }
 
     public JacksonJsonDeserializer(JsonMapper mapper) {
         this.mapper = mapper;
+        this.mapperNonStrict = mapper.copy();
+        this.mapperNonStrict.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
     @Override
     public <T> T deserialize(String json, Class<T> clazz) throws JsonProcessingException {
+        return deserialize(mapper, json, clazz);
+    }
+
+    @Override
+    public <T> T deserializeNonStrict(String json, Class<T> clazz) throws JsonProcessingException {
+        return deserialize(mapperNonStrict, json, clazz);
+    }
+
+    private <T> T deserialize(JsonMapper mapper, String json, Class<T> clazz) throws JsonProcessingException {
         try {
             return mapper.readValue(json, clazz);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {

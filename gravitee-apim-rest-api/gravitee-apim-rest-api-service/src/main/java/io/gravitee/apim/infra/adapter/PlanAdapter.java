@@ -259,7 +259,7 @@ public interface PlanAdapter {
         return switch (source.getDefinitionVersion()) {
             case V4 -> source.getPlanDefinitionV4().getSelectionRule();
             case V1, V2 -> source.getPlanDefinitionV2().getSelectionRule();
-            case FEDERATED -> null;
+            case FEDERATED, FEDERATED_AGENT -> null;
         };
     }
 
@@ -268,7 +268,7 @@ public interface PlanAdapter {
         return switch (source.getDefinitionVersion()) {
             case V4 -> source.getPlanDefinitionV4().getTags();
             case V1, V2 -> source.getPlanDefinitionV2().getTags();
-            case FEDERATED -> null;
+            case FEDERATED, FEDERATED_AGENT -> null;
         };
     }
 

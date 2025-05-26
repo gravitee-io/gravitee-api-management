@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api.model.property.DynamicApiProperties;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -28,11 +29,9 @@ import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -84,6 +83,7 @@ public class Api {
     private io.gravitee.definition.model.v4.nativeapi.NativeApi apiDefinitionNativeV4;
     private io.gravitee.definition.model.Api apiDefinition;
     private io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition;
+    private FederatedAgent federatedAgent;
 
     /**
      * The api type.
@@ -168,14 +168,9 @@ public class Api {
 
     public Set<String> getTags() {
         return switch (definitionVersion) {
-            case V4 -> {
-                if (type == ApiType.NATIVE) {
-                    yield apiDefinitionNativeV4.getTags();
-                }
-                yield apiDefinitionHttpV4.getTags();
-            }
+            case V4 -> type == ApiType.NATIVE ? apiDefinitionNativeV4.getTags() : apiDefinitionHttpV4.getTags();
             case V1, V2 -> apiDefinition.getTags();
-            case FEDERATED -> Collections.emptySet();
+            case FEDERATED, FEDERATED_AGENT -> Set.of();
         };
     }
 
@@ -233,8 +228,8 @@ public class Api {
                     apiDefinitionHttpV4.setPlans(plans.stream().map(Plan::getPlanDefinitionHttpV4).toList());
                 }
             }
-            case V1, V2 -> apiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionV2).collect(Collectors.toList()));
-            case FEDERATED -> {
+            case V1, V2 -> apiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionV2).toList());
+            case FEDERATED, FEDERATED_AGENT -> {
                 // do nothing
             }
         }
@@ -252,20 +247,21 @@ public class Api {
             }
             case V1, V2 -> throw new IllegalArgumentException("Cannot set V4 flows on a V1 or V2 API");
             case FEDERATED -> throw new IllegalArgumentException("Cannot set V4 flows on a Federated API");
+            case FEDERATED_AGENT -> throw new IllegalArgumentException("Cannot set V4 flows on a Federated Agent");
         }
         return this;
     }
 
     public List<? extends AbstractListener<? extends AbstractEntrypoint>> getApiListeners() {
         if (definitionVersion != DefinitionVersion.V4) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         if (type == ApiType.NATIVE) {
-            return Optional.ofNullable(apiDefinitionNativeV4.getListeners()).orElse(Collections.emptyList());
+            return Optional.ofNullable(apiDefinitionNativeV4.getListeners()).orElse(List.of());
         }
 
-        return Optional.ofNullable(apiDefinitionHttpV4.getListeners()).orElse(Collections.emptyList());
+        return Optional.ofNullable(apiDefinitionHttpV4.getListeners()).orElse(List.of());
     }
 
     public boolean isNative() {

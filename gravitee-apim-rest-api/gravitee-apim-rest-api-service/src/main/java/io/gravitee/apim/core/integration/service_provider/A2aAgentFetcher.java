@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.json;
+package io.gravitee.apim.core.integration.service_provider;
 
-public interface JsonDeserializer {
-    <T> T deserialize(String json, Class<T> clazz) throws JsonProcessingException;
-    <T> T deserializeNonStrict(String json, Class<T> clazz) throws JsonProcessingException;
+import io.gravitee.definition.model.federation.FederatedAgent;
+import io.reactivex.rxjava3.core.Single;
+
+public interface A2aAgentFetcher {
+    /**
+     * Fetch an A2A agent card.
+     * @param url of agent card
+     * @return the {@link FederatedAgent}
+     */
+    Single<FederatedAgent> fetchAgentCard(String url);
 }

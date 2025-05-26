@@ -28,6 +28,7 @@ import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class CreatePlanUseCase {
 
     public Output execute(Input input) {
         var api = apiCrudService.get(input.apiId());
-        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+        if (EnumSet.of(DefinitionVersion.FEDERATED, DefinitionVersion.FEDERATED_AGENT).contains(api.getDefinitionVersion())) {
             throw new PlanInvalidException("Can't manually create Federated Plan");
         }
 

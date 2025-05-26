@@ -96,6 +96,10 @@ export class IntegrationOverviewComponent implements OnInit {
     this.filters$.next(this.filters);
   }
 
+  public a2aDiscover(): void {
+    this.integrationsService.ingest(this.integration.id).subscribe({ complete: () => this.ngOnInit() });
+  }
+
   private getIntegration() {
     return timer(0, 1000).pipe(
       switchMap(() => this.integrationsService.getIntegration(this.integrationId)),

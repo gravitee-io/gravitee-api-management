@@ -2781,6 +2781,7 @@ components:
                 - $ref: "#/components/schemas/ApiV2"
                 - $ref: "#/components/schemas/ApiV4"
                 - $ref: "#/components/schemas/ApiFederated"
+                - $ref: "#/components/schemas/ApiFederatedAgent"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
@@ -2788,6 +2789,7 @@ components:
                     V2: "#/components/schemas/ApiV2"
                     V4: "#/components/schemas/ApiV4"
                     FEDERATED: "#/components/schemas/ApiFederated"
+                    FEDERATED_AGENT: "#/components/schemas/ApiFederatedAgent"
 
         BaseApi:
             type: object
@@ -2927,6 +2929,7 @@ components:
                     V2: "#/components/schemas/ApiV2"
                     V4: "#/components/schemas/ApiV4"
                     FEDERATED: "#/components/schemas/ApiFederated"
+                    FEDERATED_AGENT: "#/components/schemas/ApiFederatedAgent"
         ApiV1:
             type: object
             title: "ApiV1"
@@ -3037,6 +3040,71 @@ components:
             title: "ApiFederated"
             allOf:
                 - $ref: "#/components/schemas/GenericApi"
+        ApiFederatedAgent:
+            type: object
+            title: "ApiFederatedAgent"
+            allOf:
+                - $ref: "#/components/schemas/GenericApi"
+                - properties:
+                    url:
+                      type: string
+                    documentationUrl:
+                      type: string
+                    provider:
+                      type: object
+                      properties:
+                        organization:
+                          type: string
+                        url:
+                          type: string
+                    defaultInputModes:
+                      type: array
+                      items:
+                        type: string
+                    defaultOutputModes:
+                      type: array
+                      items:
+                        type: string
+                    capabilities:
+                      type: array
+                      items:
+                        type: string
+                    securitySchemes:
+                      type: object
+                      description: Security scheme details used for authenticating with this agent.
+                    security:
+                      type: object
+                      description: Security requirements for contacting the agent.
+                    skills:
+                      type: array
+                      description: The list of listeners associated with this API.
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: Unique skill identifier within this agent.
+                          name:
+                            type: string
+                          description:
+                            type: string
+                          tags:
+                            type: array
+                            items: 
+                              type: string
+                          examples:
+                            type: array
+                            items:
+                              type: string
+                          inputModes:
+                            type: array
+                            items:
+                              type: string
+                          outputModes:
+                            type: array
+                            items:
+                              type: string
+                        required: ["id", "name", "description", "tags"]
 
         DebugHttpRequest:
           type: object
@@ -3812,6 +3880,7 @@ components:
                 - V2
                 - V4
                 - FEDERATED
+                - FEDERATED_AGENT
         EndpointV4:
             type: object
             properties:

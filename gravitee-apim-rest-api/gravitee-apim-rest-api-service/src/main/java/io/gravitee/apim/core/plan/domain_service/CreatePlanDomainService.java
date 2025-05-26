@@ -66,8 +66,9 @@ public class CreatePlanDomainService {
     public PlanWithFlows create(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
         return switch (api.getDefinitionVersion()) {
             case V4 -> createV4ApiPlan(plan, flows, api, auditInfo);
-            case FEDERATED -> createFederatedApiPlan(plan, auditInfo);
-            default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
+            case FEDERATED, FEDERATED_AGENT -> createFederatedApiPlan(plan, auditInfo);
+            case V1, V2 -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
+            case null -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
         };
     }
 

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -69,120 +68,122 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
     public GenericApiModel findByIdForTemplates(ExecutionContext executionContext, String apiId, boolean decodeTemplate) {
         final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
 
-        if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
-            final io.gravitee.rest.api.model.v4.api.ApiModel apiModelEntity = new io.gravitee.rest.api.model.v4.api.ApiModel();
+        return switch (genericApiEntity.getDefinitionVersion()) {
+            case FEDERATED, FEDERATED_AGENT -> {
+                var apiModelEntity = new io.gravitee.rest.api.model.v4.api.ApiModel();
 
-            apiModelEntity.setId(genericApiEntity.getId());
-            apiModelEntity.setDefinitionVersion(genericApiEntity.getDefinitionVersion());
-            apiModelEntity.setName(genericApiEntity.getName());
-            apiModelEntity.setDescription(genericApiEntity.getDescription());
-            apiModelEntity.setCreatedAt(genericApiEntity.getCreatedAt());
-            apiModelEntity.setDeployedAt(genericApiEntity.getDeployedAt());
-            apiModelEntity.setUpdatedAt(genericApiEntity.getUpdatedAt());
-            apiModelEntity.setGroups(genericApiEntity.getGroups());
-            apiModelEntity.setVisibility(genericApiEntity.getVisibility());
-            apiModelEntity.setCategories(genericApiEntity.getCategories());
-            apiModelEntity.setApiVersion(genericApiEntity.getApiVersion());
-            apiModelEntity.setState(genericApiEntity.getState());
-            apiModelEntity.setTags(genericApiEntity.getTags());
-            apiModelEntity.setPicture(genericApiEntity.getPicture());
-            apiModelEntity.setPrimaryOwner(genericApiEntity.getPrimaryOwner());
-            apiModelEntity.setLifecycleState(genericApiEntity.getLifecycleState());
-            apiModelEntity.setDisableMembershipNotifications(genericApiEntity.isDisableMembershipNotifications());
+                apiModelEntity.setId(genericApiEntity.getId());
+                apiModelEntity.setDefinitionVersion(genericApiEntity.getDefinitionVersion());
+                apiModelEntity.setName(genericApiEntity.getName());
+                apiModelEntity.setDescription(genericApiEntity.getDescription());
+                apiModelEntity.setCreatedAt(genericApiEntity.getCreatedAt());
+                apiModelEntity.setDeployedAt(genericApiEntity.getDeployedAt());
+                apiModelEntity.setUpdatedAt(genericApiEntity.getUpdatedAt());
+                apiModelEntity.setGroups(genericApiEntity.getGroups());
+                apiModelEntity.setVisibility(genericApiEntity.getVisibility());
+                apiModelEntity.setCategories(genericApiEntity.getCategories());
+                apiModelEntity.setApiVersion(genericApiEntity.getApiVersion());
+                apiModelEntity.setState(genericApiEntity.getState());
+                apiModelEntity.setTags(genericApiEntity.getTags());
+                apiModelEntity.setPicture(genericApiEntity.getPicture());
+                apiModelEntity.setPrimaryOwner(genericApiEntity.getPrimaryOwner());
+                apiModelEntity.setLifecycleState(genericApiEntity.getLifecycleState());
+                apiModelEntity.setDisableMembershipNotifications(genericApiEntity.isDisableMembershipNotifications());
 
-            apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
-            return apiModelEntity;
-        }
+                apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
+                yield apiModelEntity;
+            }
+            case V4 -> {
+                if (genericApiEntity instanceof NativeApiEntity apiEntity) {
+                    var apiModelEntity = new NativeApiModel();
+                    apiModelEntity.setId(apiEntity.getId());
+                    apiModelEntity.setDefinitionVersion(apiEntity.getDefinitionVersion());
+                    apiModelEntity.setName(apiEntity.getName());
+                    apiModelEntity.setDescription(apiEntity.getDescription());
+                    apiModelEntity.setCreatedAt(apiEntity.getCreatedAt());
+                    apiModelEntity.setDeployedAt(apiEntity.getDeployedAt());
+                    apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
+                    apiModelEntity.setGroups(apiEntity.getGroups());
+                    apiModelEntity.setVisibility(apiEntity.getVisibility());
+                    apiModelEntity.setCategories(apiEntity.getCategories());
+                    apiModelEntity.setApiVersion(apiEntity.getApiVersion());
+                    apiModelEntity.setState(apiEntity.getState());
+                    apiModelEntity.setTags(apiEntity.getTags());
+                    apiModelEntity.setPicture(apiEntity.getPicture());
+                    apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
+                    apiModelEntity.setProperties(apiEntity.getProperties());
+                    apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
+                    apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
 
-        if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
-            ApiEntity apiEntity = (ApiEntity) genericApiEntity;
-            final ApiModel apiModelEntity = new ApiModel();
+                    apiModelEntity.setServices(apiEntity.getServices());
+                    apiModelEntity.setListeners(apiEntity.getListeners());
+                    apiModelEntity.setEndpointGroups(apiEntity.getEndpointGroups());
 
-            apiModelEntity.setId(apiEntity.getId());
-            apiModelEntity.setDefinitionVersion(apiEntity.getDefinitionVersion());
-            apiModelEntity.setName(apiEntity.getName());
-            apiModelEntity.setDescription(apiEntity.getDescription());
-            apiModelEntity.setCreatedAt(apiEntity.getCreatedAt());
-            apiModelEntity.setDeployedAt(apiEntity.getDeployedAt());
-            apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
-            apiModelEntity.setGroups(apiEntity.getGroups());
-            apiModelEntity.setVisibility(apiEntity.getVisibility());
-            apiModelEntity.setCategories(apiEntity.getCategories());
-            apiModelEntity.setVersion(apiEntity.getVersion());
-            apiModelEntity.setState(apiEntity.getState());
-            apiModelEntity.setTags(apiEntity.getTags());
-            apiModelEntity.setPicture(apiEntity.getPicture());
-            apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
-            apiModelEntity.setProperties(apiEntity.getProperties());
-            apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
-            apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+                    apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
+                    yield apiModelEntity;
+                } else {
+                    io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
+                    final io.gravitee.rest.api.model.v4.api.ApiModel apiModelEntity = new io.gravitee.rest.api.model.v4.api.ApiModel();
 
-            apiModelEntity.setServices(apiEntity.getServices());
-            apiModelEntity.setExecutionMode(apiEntity.getExecutionMode());
-            apiModelEntity.setPaths(apiEntity.getPaths());
-            apiModelEntity.setProxy(apiEntity.getProxy());
+                    apiModelEntity.setId(apiEntity.getId());
+                    apiModelEntity.setDefinitionVersion(apiEntity.getDefinitionVersion());
+                    apiModelEntity.setName(apiEntity.getName());
+                    apiModelEntity.setDescription(apiEntity.getDescription());
+                    apiModelEntity.setCreatedAt(apiEntity.getCreatedAt());
+                    apiModelEntity.setDeployedAt(apiEntity.getDeployedAt());
+                    apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
+                    apiModelEntity.setGroups(apiEntity.getGroups());
+                    apiModelEntity.setVisibility(apiEntity.getVisibility());
+                    apiModelEntity.setCategories(apiEntity.getCategories());
+                    apiModelEntity.setApiVersion(apiEntity.getApiVersion());
+                    apiModelEntity.setState(apiEntity.getState());
+                    apiModelEntity.setTags(apiEntity.getTags());
+                    apiModelEntity.setPicture(apiEntity.getPicture());
+                    apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
+                    apiModelEntity.setProperties(apiEntity.getProperties());
+                    apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
+                    apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
 
-            apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
-            return apiModelEntity;
-        } else if (
-            genericApiEntity.getDefinitionVersion() == DefinitionVersion.V4 && genericApiEntity instanceof NativeApiEntity apiEntity
-        ) {
-            var apiModelEntity = new NativeApiModel();
-            apiModelEntity.setId(apiEntity.getId());
-            apiModelEntity.setDefinitionVersion(apiEntity.getDefinitionVersion());
-            apiModelEntity.setName(apiEntity.getName());
-            apiModelEntity.setDescription(apiEntity.getDescription());
-            apiModelEntity.setCreatedAt(apiEntity.getCreatedAt());
-            apiModelEntity.setDeployedAt(apiEntity.getDeployedAt());
-            apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
-            apiModelEntity.setGroups(apiEntity.getGroups());
-            apiModelEntity.setVisibility(apiEntity.getVisibility());
-            apiModelEntity.setCategories(apiEntity.getCategories());
-            apiModelEntity.setApiVersion(apiEntity.getApiVersion());
-            apiModelEntity.setState(apiEntity.getState());
-            apiModelEntity.setTags(apiEntity.getTags());
-            apiModelEntity.setPicture(apiEntity.getPicture());
-            apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
-            apiModelEntity.setProperties(apiEntity.getProperties());
-            apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
-            apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+                    apiModelEntity.setServices(apiEntity.getServices());
+                    apiModelEntity.setListeners(apiEntity.getListeners());
+                    apiModelEntity.setEndpointGroups(apiEntity.getEndpointGroups());
 
-            apiModelEntity.setServices(apiEntity.getServices());
-            apiModelEntity.setListeners(apiEntity.getListeners());
-            apiModelEntity.setEndpointGroups(apiEntity.getEndpointGroups());
+                    apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
+                    yield apiModelEntity;
+                }
+            }
+            case null, default -> {
+                ApiEntity apiEntity = (ApiEntity) genericApiEntity;
+                final ApiModel apiModelEntity = new ApiModel();
 
-            apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
-            return apiModelEntity;
-        } else {
-            io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
-            final io.gravitee.rest.api.model.v4.api.ApiModel apiModelEntity = new io.gravitee.rest.api.model.v4.api.ApiModel();
+                apiModelEntity.setId(apiEntity.getId());
+                apiModelEntity.setDefinitionVersion(apiEntity.getDefinitionVersion());
+                apiModelEntity.setName(apiEntity.getName());
+                apiModelEntity.setDescription(apiEntity.getDescription());
+                apiModelEntity.setCreatedAt(apiEntity.getCreatedAt());
+                apiModelEntity.setDeployedAt(apiEntity.getDeployedAt());
+                apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
+                apiModelEntity.setGroups(apiEntity.getGroups());
+                apiModelEntity.setVisibility(apiEntity.getVisibility());
+                apiModelEntity.setCategories(apiEntity.getCategories());
+                apiModelEntity.setVersion(apiEntity.getVersion());
+                apiModelEntity.setState(apiEntity.getState());
+                apiModelEntity.setTags(apiEntity.getTags());
+                apiModelEntity.setPicture(apiEntity.getPicture());
+                apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
+                apiModelEntity.setProperties(apiEntity.getProperties());
+                apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
+                apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
 
-            apiModelEntity.setId(apiEntity.getId());
-            apiModelEntity.setDefinitionVersion(apiEntity.getDefinitionVersion());
-            apiModelEntity.setName(apiEntity.getName());
-            apiModelEntity.setDescription(apiEntity.getDescription());
-            apiModelEntity.setCreatedAt(apiEntity.getCreatedAt());
-            apiModelEntity.setDeployedAt(apiEntity.getDeployedAt());
-            apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
-            apiModelEntity.setGroups(apiEntity.getGroups());
-            apiModelEntity.setVisibility(apiEntity.getVisibility());
-            apiModelEntity.setCategories(apiEntity.getCategories());
-            apiModelEntity.setApiVersion(apiEntity.getApiVersion());
-            apiModelEntity.setState(apiEntity.getState());
-            apiModelEntity.setTags(apiEntity.getTags());
-            apiModelEntity.setPicture(apiEntity.getPicture());
-            apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
-            apiModelEntity.setProperties(apiEntity.getProperties());
-            apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
-            apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+                apiModelEntity.setServices(apiEntity.getServices());
+                apiModelEntity.setExecutionMode(apiEntity.getExecutionMode());
+                apiModelEntity.setPaths(apiEntity.getPaths());
+                apiModelEntity.setProxy(apiEntity.getProxy());
 
-            apiModelEntity.setServices(apiEntity.getServices());
-            apiModelEntity.setListeners(apiEntity.getListeners());
-            apiModelEntity.setEndpointGroups(apiEntity.getEndpointGroups());
-
-            apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
-            return apiModelEntity;
-        }
+                apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
+                yield apiModelEntity;
+            }
+        };
     }
 
     private Map<String, String> getApiMetadata(

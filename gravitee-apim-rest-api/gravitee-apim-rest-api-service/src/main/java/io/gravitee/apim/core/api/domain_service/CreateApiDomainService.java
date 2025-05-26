@@ -144,7 +144,7 @@ public class CreateApiDomainService {
     private void createDefaultMailNotification(Api api) {
         switch (api.getDefinitionVersion()) {
             case V4 -> notificationConfigCrudService.create(NotificationConfig.defaultMailNotificationConfigFor(api.getId()));
-            case V1, V2, FEDERATED -> {
+            case V1, V2, FEDERATED, FEDERATED_AGENT -> {
                 // nothing to do
             }
         }
@@ -153,7 +153,7 @@ public class CreateApiDomainService {
     private void createDefaultMetadata(Api api, AuditInfo auditInfo) {
         switch (api.getDefinitionVersion()) {
             case V4 -> apiMetadataDomainService.createDefaultApiMetadata(api.getId(), auditInfo);
-            case V1, V2, FEDERATED -> {
+            case V1, V2, FEDERATED, FEDERATED_AGENT -> {
                 // nothing to do
             }
         }
@@ -165,7 +165,7 @@ public class CreateApiDomainService {
                 case PROXY, MESSAGE -> flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionHttpV4().getFlows());
                 case NATIVE -> flowCrudService.saveNativeApiFlows(api.getId(), api.getApiDefinitionNativeV4().getFlows());
             };
-            case V1, V2, FEDERATED -> null;
+            case V1, V2, FEDERATED, FEDERATED_AGENT -> null;
         };
     }
 
@@ -175,7 +175,7 @@ public class CreateApiDomainService {
                 Key.API_REVIEW_ENABLED,
                 new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
             );
-            case FEDERATED -> false;
+            case FEDERATED, FEDERATED_AGENT -> false;
         };
     }
 }
