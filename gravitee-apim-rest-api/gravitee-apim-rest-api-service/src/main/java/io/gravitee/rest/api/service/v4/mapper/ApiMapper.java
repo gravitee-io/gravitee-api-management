@@ -24,9 +24,9 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiAdapterDecorator;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.management.model.Api;
@@ -38,6 +38,7 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -304,6 +305,22 @@ public class ApiMapper {
     ) {
         api.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
         return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
+    }
+
+    public FederatedApiAgentEntity federatedAgentToEntity(
+        final ExecutionContext executionContext,
+        final Api api,
+        final PrimaryOwnerEntity primaryOwner
+    ) {
+        try {
+            api.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+            var agent = objectMapper.readValue(api.getDefinition(), FederatedAgent.class);
+            OriginContext.Integration a2a = new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
+            return ApiAdapter.INSTANCE.toFederatedAgentEntity(api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
+        } catch (JsonProcessingException e) {
+            log.warn("Unable to parse api definition for agent {}", api.getId(), e);
+            return null;
+        }
     }
 
     public Api toRepository(final ExecutionContext executionContext, final NewApiEntity newApiEntity) {

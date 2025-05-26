@@ -21,6 +21,7 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -288,6 +289,34 @@ public class ApiFixtures {
             .apiDefinition(null)
             .originContext(new OriginContext.Integration("integration-id"))
             .federatedApiDefinition(FederatedApi.builder().id(MY_API).providerId("provider-id").name("My Api").apiVersion("1.0.0").build())
+            .build();
+    }
+
+    public static Api aFederatedAgent() {
+        return BASE
+            .get()
+            .crossId(null)
+            .lifecycleState(null)
+            .apiDefinitionHttpV4(null)
+            .apiDefinition(null)
+            .originContext(new OriginContext.Integration("integration-id"))
+            .federatedAgent(
+                new FederatedAgent(
+                    "My agent",
+                    "a fake agent",
+                    "https://example.net",
+                    "1.0.0",
+                    "https://example.net",
+                    null,
+                    null,
+                    List.of(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                )
+            )
             .build();
     }
 

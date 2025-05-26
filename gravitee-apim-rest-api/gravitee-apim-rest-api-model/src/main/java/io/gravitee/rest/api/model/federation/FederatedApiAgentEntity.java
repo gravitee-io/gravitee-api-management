@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.gravitee.rest.api.model.federation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -25,6 +25,9 @@ import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import jakarta.annotation.Nullable;
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -34,16 +37,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Read model for Federated API.
- *
- * <p>This model should only be used for read use cases (search, getById)</p>
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class FederatedApiEntity implements GenericApiEntity {
+public class FederatedApiAgentEntity implements GenericApiEntity {
 
     private String id;
 
@@ -54,7 +52,7 @@ public class FederatedApiEntity implements GenericApiEntity {
     private String apiVersion;
 
     @Builder.Default
-    private DefinitionVersion definitionVersion = DefinitionVersion.FEDERATED;
+    private DefinitionVersion definitionVersion = DefinitionVersion.FEDERATED_AGENT;
 
     private Date deployedAt;
 
@@ -88,8 +86,6 @@ public class FederatedApiEntity implements GenericApiEntity {
 
     private String backgroundUrl;
 
-    private String provider;
-
     private String integrationName;
 
     @JsonIgnore
@@ -97,6 +93,28 @@ public class FederatedApiEntity implements GenericApiEntity {
 
     @JsonIgnore
     private String referenceId;
+
+    private String url;
+    private String documentationUrl;
+    private Provider provider;
+    private Collection<String> defaultInputModes;
+    private Collection<String> defaultOutputModes;
+    private Collection<String> capabilities;
+    private Collection<Skill> skills;
+    private JsonNode securitySchemes;
+    private JsonNode security;
+
+    public record Provider(String organization, String url) implements Serializable {}
+
+    public record Skill(
+        String id,
+        String name,
+        Collection<String> tags,
+        @Nullable Collection<String> examples,
+        @Nullable Collection<String> inputModes,
+        @Nullable Collection<String> outputModes
+    )
+        implements Serializable {}
 
     @Override
     public Lifecycle.State getState() {

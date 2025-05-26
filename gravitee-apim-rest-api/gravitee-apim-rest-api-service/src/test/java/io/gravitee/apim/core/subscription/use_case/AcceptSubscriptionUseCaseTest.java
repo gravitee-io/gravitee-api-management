@@ -612,6 +612,7 @@ class AcceptSubscriptionUseCaseTest {
                 case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
             };
             case FEDERATED -> ApiFixtures.aFederatedApi().setId(API_ID);
+            case FEDERATED_AGENT -> ApiFixtures.aFederatedAgent().setId(API_ID);
         };
     }
 
@@ -634,7 +635,7 @@ class AcceptSubscriptionUseCaseTest {
                 case MESSAGE -> PlanFixtures.HttpV4.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED);
                 case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
             };
-            case FEDERATED -> PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED);
+            case FEDERATED, FEDERATED_AGENT -> PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED);
         };
     }
 

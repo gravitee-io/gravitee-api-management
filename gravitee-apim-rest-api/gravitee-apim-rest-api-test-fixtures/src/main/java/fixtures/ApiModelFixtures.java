@@ -169,6 +169,7 @@ public class ApiModelFixtures {
             case V2 -> aModelApiV2();
             case V4 -> aModelHttpApiV4();
             case FEDERATED -> BASE_MODEL_API_FEDERATED.build();
+            case FEDERATED_AGENT -> null; // TODO
         };
     }
 }

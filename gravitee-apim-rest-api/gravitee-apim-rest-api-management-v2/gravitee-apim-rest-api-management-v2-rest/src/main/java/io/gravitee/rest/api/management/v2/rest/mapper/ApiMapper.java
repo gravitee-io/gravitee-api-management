@@ -33,6 +33,7 @@ import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.service.AbstractApiServices;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
+import io.gravitee.rest.api.management.v2.rest.model.ApiFederatedAgent;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
@@ -54,11 +55,13 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.ReviewEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
+import jakarta.annotation.Nullable;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,6 +115,7 @@ public interface ApiMapper {
         return null;
     }
 
+    @Nullable
     default Api map(GenericApiEntity apiEntity, UriInfo uriInfo, Boolean isSynchronized) {
         GenericApi.DeploymentStateEnum state = null;
 
@@ -119,30 +123,21 @@ public interface ApiMapper {
             state = isSynchronized ? GenericApi.DeploymentStateEnum.DEPLOYED : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
         }
 
-        if (apiEntity == null) {
-            return null;
-        }
-        if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.FEDERATED) {
-            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToFederated((FederatedApiEntity) apiEntity, uriInfo));
-        }
-        if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
-            if (apiEntity instanceof ApiEntity asApiEntity) {
-                return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4(asApiEntity, uriInfo, state));
-            } else if (apiEntity instanceof NativeApiEntity asNativeApiEntity) {
-                return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4(asNativeApiEntity, uriInfo, state));
-            }
-        }
-        if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V2) {
-            return new io.gravitee.rest.api.management.v2.rest.model.Api(
-                this.mapToV2((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo, state)
+        return switch (apiEntity) {
+            case FederatedApiAgentEntity federatedAgent -> new io.gravitee.rest.api.management.v2.rest.model.Api(
+                mapToFederatedAgent(federatedAgent, uriInfo)
             );
-        }
-        if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V1) {
-            return new io.gravitee.rest.api.management.v2.rest.model.Api(
-                this.mapToV1((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo, state)
+            case FederatedApiEntity federatedApi -> new io.gravitee.rest.api.management.v2.rest.model.Api(
+                mapToFederated(federatedApi, uriInfo)
             );
-        }
-        return null;
+            case ApiEntity asApiEntity -> new Api(mapToV4(asApiEntity, uriInfo, state));
+            case NativeApiEntity asNativeApiEntity -> new Api(mapToV4(asNativeApiEntity, uriInfo, state));
+            case io.gravitee.rest.api.model.api.ApiEntity legacy -> legacy.getDefinitionVersion() ==
+                io.gravitee.definition.model.DefinitionVersion.V1
+                ? new io.gravitee.rest.api.management.v2.rest.model.Api(mapToV1(legacy, uriInfo, state))
+                : new io.gravitee.rest.api.management.v2.rest.model.Api(mapToV2(legacy, uriInfo, state));
+            case null, default -> null;
+        };
     }
 
     default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo, Function<GenericApiEntity, Boolean> isSynchronized) {
@@ -162,6 +157,20 @@ public interface ApiMapper {
     @Mapping(target = "originContext", expression = "java(computeOriginContext(apiEntity))")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiFederated mapToFederated(FederatedApiEntity apiEntity, UriInfo uriInfo);
+
+    @Mapping(target = "originContext", expression = "java(computeOriginContext(apiEntity))")
+    @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    @Mapping(target = "url", source = "apiEntity.url")
+    @Mapping(target = "documentationUrl", source = "apiEntity.documentationUrl")
+    @Mapping(target = "provider", source = "apiEntity.provider")
+    @Mapping(target = "defaultInputModes", source = "apiEntity.defaultInputModes")
+    @Mapping(target = "defaultOutputModes", source = "apiEntity.defaultOutputModes")
+    @Mapping(target = "capabilities", source = "apiEntity.capabilities")
+    @Mapping(target = "skills", source = "apiEntity.skills")
+    @Mapping(target = "securitySchemes", source = "apiEntity.securitySchemes")
+    @Mapping(target = "security", source = "apiEntity.security")
+    @Mapping(target = "definitionVersion", source = "apiEntity.definitionVersion")
+    ApiFederatedAgent mapToFederatedAgent(FederatedApiAgentEntity apiEntity, UriInfo uriInfo);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
@@ -421,31 +430,30 @@ public interface ApiMapper {
 
     @Named("computeOriginContext")
     default BaseOriginContext computeOriginContext(GenericApiEntity api) {
-        if (api.getOriginContext() == null) {
-            return null;
-        }
-        if (api.getOriginContext() instanceof OriginContext.Kubernetes kube) {
-            var ctx = new KubernetesOriginContext();
-            ctx.origin(BaseOriginContext.OriginEnum.KUBERNETES);
-            if (kube.mode() == OriginContext.Kubernetes.Mode.FULLY_MANAGED) {
-                ctx.mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED);
+        return switch (api.getOriginContext()) {
+            case OriginContext.Kubernetes kube -> {
+                var ctx = new KubernetesOriginContext();
+                ctx.origin(BaseOriginContext.OriginEnum.KUBERNETES);
+                if (kube.mode() == OriginContext.Kubernetes.Mode.FULLY_MANAGED) {
+                    ctx.mode(KubernetesOriginContext.ModeEnum.FULLY_MANAGED);
+                }
+                switch (kube.syncFrom().toUpperCase()) {
+                    case "KUBERNETES" -> ctx.setSyncFrom(KubernetesOriginContext.SyncFromEnum.KUBERNETES);
+                    case "MANAGEMENT" -> ctx.setSyncFrom(KubernetesOriginContext.SyncFromEnum.MANAGEMENT);
+                }
+                yield ctx;
             }
-            switch (kube.syncFrom().toUpperCase()) {
-                case "KUBERNETES" -> ctx.setSyncFrom(KubernetesOriginContext.SyncFromEnum.KUBERNETES);
-                case "MANAGEMENT" -> ctx.setSyncFrom(KubernetesOriginContext.SyncFromEnum.MANAGEMENT);
+            case OriginContext.Management ignored -> new ManagementOriginContext().origin(BaseOriginContext.OriginEnum.MANAGEMENT);
+            case OriginContext.Integration inte -> {
+                var ctx = new IntegrationOriginContext();
+                ctx.origin(BaseOriginContext.OriginEnum.INTEGRATION);
+                ctx.integrationId(inte.integrationId());
+                ctx.integrationName(inte.integrationName());
+                ctx.provider(inte.provider());
+                yield ctx;
             }
-            return ctx;
-        } else if (api.getOriginContext() instanceof OriginContext.Management) {
-            return new ManagementOriginContext().origin(BaseOriginContext.OriginEnum.MANAGEMENT);
-        } else if (api.getOriginContext() instanceof OriginContext.Integration inte) {
-            var ctx = new IntegrationOriginContext();
-            ctx.origin(BaseOriginContext.OriginEnum.INTEGRATION);
-            ctx.integrationId(inte.integrationId());
-            ctx.integrationName(inte.integrationName());
-            ctx.provider(inte.provider());
-            return ctx;
-        }
-        return null;
+            case null -> null;
+        };
     }
 
     BaseApi map(GenericApiEntity apiEntity);

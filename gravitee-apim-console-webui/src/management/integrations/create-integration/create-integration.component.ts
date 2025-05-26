@@ -104,4 +104,11 @@ export class CreateIntegrationComponent implements OnInit {
       );
     }
   }
+
+  public removeWellKnownUrl(idx: number): void {
+    const wellKnownUrls = this.addInformationForm.get('wellKnownUrls') as FormArray<FormGroup<{ url: FormControl<string> }>>;
+    if (wellKnownUrls?.enabled) {
+      wellKnownUrls.removeAt(idx);
+    }
+  }
 }

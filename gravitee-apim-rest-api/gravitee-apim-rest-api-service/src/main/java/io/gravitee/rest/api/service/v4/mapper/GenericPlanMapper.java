@@ -60,7 +60,7 @@ public class GenericPlanMapper {
                 case PROXY, MESSAGE -> planMapper.toEntity(plan, flowService.findByReference(FlowReferenceType.PLAN, plan.getId()));
                 case NATIVE -> planMapper.toNativeEntity(plan, flowCrudService.getNativePlanFlows(plan.getId()));
             };
-            case FEDERATED -> planMapper.toEntity(plan, null);
+            case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
             default -> planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
         };
     }

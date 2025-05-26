@@ -2080,12 +2080,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Search paged APIs by {}", query);
 
-            Collection<String> apiIds = apiSearchService.searchIds(
+            var apiIds = apiSearchService.searchIds(
                 executionContext,
                 query,
                 filters,
                 sortable,
-                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.FEDERATED)
+                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.FEDERATED, DefinitionVersion.FEDERATED_AGENT)
             );
 
             if (apiIds.isEmpty()) {

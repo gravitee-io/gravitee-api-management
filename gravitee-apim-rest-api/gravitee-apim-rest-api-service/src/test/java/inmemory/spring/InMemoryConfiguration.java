@@ -15,6 +15,7 @@
  */
 package inmemory.spring;
 
+import inmemory.A2aAgentFetcherInMemory;
 import inmemory.AccessPointQueryServiceInMemory;
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiCRDExportDomainServiceInMemory;
@@ -100,6 +101,7 @@ import inmemory.UserDomainServiceInMemory;
 import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
+import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
 import io.gravitee.apim.core.specgen.crud_service.ApiSpecGenCrudService;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.OasProvider;
@@ -544,5 +546,10 @@ public class InMemoryConfiguration {
     @Bean
     NotificationCRDDomainService notificationCRDDomainServiceInMemory() {
         return new NotificationCRDDomainServiceInMemory();
+    }
+
+    @Bean
+    public A2aAgentFetcher a2aAgentFetcher() {
+        return new A2aAgentFetcherInMemory();
     }
 }

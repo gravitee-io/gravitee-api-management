@@ -19,9 +19,12 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -29,6 +32,8 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
@@ -121,6 +126,37 @@ public interface ApiAdapter {
     @Mapping(source = "source.apiLifecycleState", target = "lifecycleState")
     FederatedApiEntity toFederatedApiEntity(io.gravitee.repository.management.model.Api source, PrimaryOwnerEntity primaryOwnerEntity);
 
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    @Mapping(target = "apiVersion", source = "source.version")
+    @Mapping(target = "id", source = "source.id")
+    @Mapping(target = "primaryOwner", source = "primaryOwnerEntity")
+    @Mapping(target = "referenceId", source = "source.environmentId")
+    @Mapping(target = "referenceType", constant = "ENVIRONMENT")
+    @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
+    @Mapping(target = "provider", source = "agent.provider")
+    @Mapping(target = "defaultInputModes", source = "agent.defaultInputModes")
+    @Mapping(target = "defaultOutputModes", source = "agent.defaultOutputModes")
+    @Mapping(target = "capabilities", expression = "java(capabilities(agent))")
+    @Mapping(target = "skills", source = "agent.skills")
+    @Mapping(target = "securitySchemes", source = "agent.securitySchemes")
+    @Mapping(target = "security", source = "agent.security")
+    @Mapping(target = "name", source = "source.name")
+    @Mapping(target = "definitionVersion", source = "source.definitionVersion")
+    @Mapping(target = "description", source = "source.description")
+    @Mapping(target = "originContext", source = "originContext")
+    FederatedApiAgentEntity toFederatedAgentEntity(
+        io.gravitee.repository.management.model.Api source,
+        FederatedAgent agent,
+        PrimaryOwnerEntity primaryOwnerEntity,
+        OriginContext.Integration originContext
+    );
+
+    default Collection<String> capabilities(FederatedAgent agent) {
+        return agent == null || agent.getCapabilities() == null
+            ? null
+            : agent.getCapabilities().entrySet().stream().filter(Map.Entry::getValue).map(Map.Entry::getKey).toList();
+    }
+
     @Mapping(source = "state", target = "lifecycleState")
     @Mapping(source = "lifecycleState", target = "apiLifecycleState")
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
@@ -147,7 +183,7 @@ public interface ApiAdapter {
     }
 
     default io.gravitee.definition.model.Api deserializeApiDefinitionV2(io.gravitee.repository.management.model.Api api) {
-        return api.getDefinitionVersion() != DefinitionVersion.V4 && api.getDefinitionVersion() != DefinitionVersion.FEDERATED
+        return api.getDefinitionVersion() == DefinitionVersion.V2 || api.getDefinitionVersion() == null
             ? deserialize(api, io.gravitee.definition.model.Api.class)
             : null;
     }
@@ -172,6 +208,7 @@ public interface ApiAdapter {
                 case PROXY, MESSAGE -> serialize(api.getApiDefinitionHttpV4(), "V4 API");
             };
             case FEDERATED -> serialize(api.getFederatedApiDefinition(), "Federated API");
+            case FEDERATED_AGENT -> serialize(api.getFederatedAgent(), "Federated Agent");
         };
     }
 

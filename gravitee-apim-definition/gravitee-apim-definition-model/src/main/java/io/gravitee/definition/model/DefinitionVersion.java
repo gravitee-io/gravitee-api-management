@@ -33,7 +33,8 @@ public enum DefinitionVersion {
     V1("1.0.0"),
     V2("2.0.0"),
     V4("4.0.0"),
-    FEDERATED("FEDERATED");
+    FEDERATED("FEDERATED"),
+    FEDERATED_AGENT("FEDERATED_AGENT");
 
     private static final Map<String, DefinitionVersion> BY_LABEL = new HashMap<>();
 

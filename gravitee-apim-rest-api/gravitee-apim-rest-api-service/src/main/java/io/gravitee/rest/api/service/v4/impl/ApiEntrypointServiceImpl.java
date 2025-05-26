@@ -52,6 +52,10 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
     // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
     private static final String URI_PATH_SEPARATOR = "/";
+    public static final Set<DefinitionVersion> APIS_WITHOUT_ENTRYPOINT = EnumSet.of(
+        DefinitionVersion.FEDERATED,
+        DefinitionVersion.FEDERATED_AGENT
+    );
 
     private final ParameterService parameterService;
     private final EntrypointService entrypointService;
@@ -71,7 +75,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     public List<ApiEntrypointEntity> getApiEntrypoints(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity) {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
-        if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+        if (APIS_WITHOUT_ENTRYPOINT.contains(genericApiEntity.getDefinitionVersion())) {
             return apiEntrypoints;
         }
 

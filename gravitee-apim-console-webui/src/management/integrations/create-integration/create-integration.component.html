@@ -162,18 +162,25 @@
                     <h5>Well-known URLs</h5>
                     <p class="info">To find your agents.</p>
                   </div>
-                  @for (url of addInformationForm.controls.wellKnownUrls.controls; track url; let count = $count) {
-                    <mat-form-field appearance="outline" class="form-field">
-                      <input
-                        [id]="'url' + count"
-                        type="text"
-                        matInput
-                        [formControl]="url.controls.url"
-                        required="true"
-                        data-testid="create-integration-name-input"
-                      />
-                      <mat-label>Well-known URL</mat-label>
-                    </mat-form-field>
+                  @for (url of addInformationForm.controls.wellKnownUrls.controls; track url; let idx = $index) {
+                    <div style="display: flex; align-items: center">
+                      <mat-form-field appearance="outline" class="form-field">
+                        <input
+                          [id]="'url' + idx"
+                          type="text"
+                          matInput
+                          [formControl]="url.controls.url"
+                          required="true"
+                          data-testid="create-integration-name-input"
+                        />
+                        <mat-label>Well-known URL</mat-label>
+                      </mat-form-field>
+                      @if (addInformationForm.controls.wellKnownUrls.length > 1) {
+                        <button mat-button type="button" (click)="removeWellKnownUrl(idx)">
+                          <mat-icon svgIcon="gio:trash" />
+                        </button>
+                      }
+                    </div>
                   }
                 </mat-card-content>
                 <button mat-raised-button data-testid="create-integration-add-url" (click)="addWellKnownUrl()" type="button">

@@ -82,7 +82,11 @@ public class ApiTagServiceImpl implements ApiTagService {
         try {
             Api previousApi = new Api(api);
             Api updated = null;
-            if (api.getDefinitionVersion() != DefinitionVersion.V4 && api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
+            if (
+                api.getDefinitionVersion() != DefinitionVersion.V4 &&
+                api.getDefinitionVersion() != DefinitionVersion.FEDERATED &&
+                api.getDefinitionVersion() != DefinitionVersion.FEDERATED_AGENT
+            ) {
                 final io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                     api.getDefinition(),
                     io.gravitee.definition.model.Api.class
