@@ -16,6 +16,11 @@
 package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PlanFixtures;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
@@ -26,6 +31,7 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.Instant;
@@ -34,7 +40,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -581,5 +589,124 @@ class PlanAdapterTest {
             assertThat(planEntity.getPlanSecurity().getType()).isEqualTo(io.gravitee.rest.api.model.PlanSecurityType.KEY_LESS.name());
             assertThat(planEntity.getSecurityDefinition()).isEqualTo(plan.getPlanSecurity().getConfiguration());
         }
+    }
+
+    @Test
+    void testMap_withNullInput_returnsNull() {
+        Assertions.assertNull(PlanAdapter.INSTANCE.map(null));
+    }
+
+    @Test
+    void testDefaultMap_withNullInput_returnsNull() {
+        Assertions.assertNull(PlanAdapter.INSTANCE.map((GenericPlanEntity) null));
+    }
+
+    @Test
+    void testMap_withPlanEntity_returnsSameInstance() {
+        io.gravitee.rest.api.model.PlanEntity plan = mock(io.gravitee.rest.api.model.PlanEntity.class);
+        Assertions.assertSame(plan, PlanAdapter.INSTANCE.map(plan));
+    }
+
+    @Test
+    void testMap_withV4PlanEntity_callsMapV4() {
+        PlanAdapter adapterSpy = spy(PlanAdapter.INSTANCE);
+
+        PlanEntity v4Plan = mock(PlanEntity.class);
+        io.gravitee.rest.api.model.PlanEntity expected = mock(io.gravitee.rest.api.model.PlanEntity.class);
+
+        doReturn(expected).when(adapterSpy).map(v4Plan);
+
+        io.gravitee.rest.api.model.PlanEntity result = adapterSpy.map(v4Plan);
+
+        Assertions.assertSame(expected, result);
+        Assertions.assertNotNull(PlanAdapter.INSTANCE.map((GenericPlanEntity) v4Plan));
+        verify(adapterSpy).map(v4Plan);
+    }
+
+    @Test
+    void testMap_withUnknownGenericPlanEntity_returnsNull() {
+        GenericPlanEntity unknownEntity = mock(GenericPlanEntity.class);
+        Assertions.assertNull(PlanAdapter.INSTANCE.map(unknownEntity));
+    }
+
+    @Test
+    void testToApiDefinition_mapsEachEntry() {
+        PlanCRD plan1 = mock(PlanCRD.class);
+        PlanCRD plan2 = mock(PlanCRD.class);
+        when(plan1.getId()).thenReturn("id1");
+        when(plan2.getId()).thenReturn("id2");
+
+        var apiPlan1 = mock(io.gravitee.definition.model.v4.plan.Plan.class);
+        var apiPlan2 = mock(io.gravitee.definition.model.v4.plan.Plan.class);
+
+        PlanAdapter adapterSpy = mock(PlanAdapter.class);
+        when(adapterSpy.toApiDefinition(plan1)).thenReturn(apiPlan1);
+        when(adapterSpy.toApiDefinition(plan2)).thenReturn(apiPlan2);
+
+        Map<String, PlanCRD> source = Map.of("p1", plan1, "p2", plan2);
+
+        Map<String, io.gravitee.definition.model.v4.plan.Plan> result = source
+            .values()
+            .stream()
+            .map(plan -> Map.entry(plan.getId(), adapterSpy.toApiDefinition(plan)))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        Map<String, io.gravitee.definition.model.v4.plan.Plan> expected = PlanAdapter.INSTANCE.toApiDefinition(source);
+
+        Assertions.assertEquals(2, expected.size());
+        Assertions.assertEquals(2, result.size());
+        Assertions.assertEquals(apiPlan1, result.get("id1"));
+        Assertions.assertEquals(apiPlan2, result.get("id2"));
+    }
+
+    @Test
+    void testToPlanEntityV4_mapsEachEntry() {
+        PlanCRD plan1 = mock(PlanCRD.class);
+        PlanCRD plan2 = mock(PlanCRD.class);
+
+        PlanEntity entity1 = mock(PlanEntity.class);
+        PlanEntity entity2 = mock(PlanEntity.class);
+
+        PlanAdapter adapterSpy = mock(PlanAdapter.class);
+        when(adapterSpy.toEntityV4(plan1)).thenReturn(entity1);
+        when(adapterSpy.toEntityV4(plan2)).thenReturn(entity2);
+
+        Map<String, PlanCRD> source = Map.of("a", plan1, "b", plan2);
+
+        Set<PlanEntity> result = source.values().stream().map(adapterSpy::toEntityV4).collect(Collectors.toSet());
+
+        Assertions.assertEquals(2, result.size());
+        Assertions.assertTrue(result.containsAll(Set.of(entity1, entity2)));
+    }
+
+    @Test
+    void testComputeBasePlanEntityMode_null_returnsStandard() {
+        io.gravitee.repository.management.model.Plan source = mock(io.gravitee.repository.management.model.Plan.class);
+        when(source.getMode()).thenReturn(null);
+
+        PlanAdapter adapterSpy = spy(PlanAdapter.INSTANCE);
+
+        PlanMode result = adapterSpy.computeBasePlanEntityMode(source);
+        Assertions.assertEquals(PlanMode.STANDARD, result);
+    }
+
+    @Test
+    void testComputeBasePlanEntityStatusV4_null_returnsPublished() {
+        io.gravitee.repository.management.model.Plan source = mock(io.gravitee.repository.management.model.Plan.class);
+        when(source.getStatus()).thenReturn(null);
+        PlanAdapter adapterSpy = spy(PlanAdapter.INSTANCE);
+
+        PlanStatus result = adapterSpy.computeBasePlanEntityStatusV4(source);
+        Assertions.assertEquals(PlanStatus.PUBLISHED, result);
+    }
+
+    @Test
+    void testComputeBasePlanEntityStatusV2_null_returnsPublished() {
+        io.gravitee.repository.management.model.Plan source = mock(io.gravitee.repository.management.model.Plan.class);
+        when(source.getStatus()).thenReturn(null);
+
+        PlanAdapter adapterSpy = spy(PlanAdapter.INSTANCE);
+        io.gravitee.rest.api.model.PlanStatus result = adapterSpy.computeBasePlanEntityStatusV2(source);
+        Assertions.assertEquals(io.gravitee.rest.api.model.PlanStatus.PUBLISHED, result);
     }
 }
