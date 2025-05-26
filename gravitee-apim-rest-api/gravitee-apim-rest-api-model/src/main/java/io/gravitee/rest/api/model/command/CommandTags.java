@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public enum CommandTags {
     DATA_TO_INDEX(MULTICAST),
     SUBSCRIPTION_FAILURE(UNICAST),
+    SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY(UNICAST),
     EMAIL_TEMPLATE_UPDATE(MULTICAST);
 
     private final CommandCastMode castMode;

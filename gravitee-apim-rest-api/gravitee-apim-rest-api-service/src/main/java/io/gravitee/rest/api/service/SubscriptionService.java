@@ -89,6 +89,8 @@ public interface SubscriptionService {
 
     SubscriptionEntity fail(String subscriptionId, String failureCause);
 
+    SubscriptionEntity notifyError(String subscriptionId, String failureCause);
+
     void delete(ExecutionContext executionContext, String subscription);
 
     Collection<SubscriptionEntity> search(ExecutionContext executionContext, SubscriptionQuery query);
