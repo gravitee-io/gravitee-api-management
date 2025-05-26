@@ -160,7 +160,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
-        return (PlanEntity) planSearchService.findById(executionContext, plan);
+        return PlanAdapter.INSTANCE.map(planSearchService.findById(executionContext, plan));
     }
 
     @Override
