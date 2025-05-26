@@ -19,6 +19,7 @@ import static java.util.function.Predicate.not;
 
 import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.template.TemplateProcessorException;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.EmailRecipientsService;
 import io.gravitee.rest.api.service.UserService;
@@ -74,10 +75,10 @@ public class EmailRecipientsServiceImpl implements EmailRecipientsService {
     public Set<String> filterRegisteredUser(ExecutionContext executionContext, Collection<String> recipientsEmail) {
         return recipientsEmail
             .stream()
-            .map(email -> userService.findByEmail(executionContext, email))
-            .flatMap(Optional::stream)
-            .filter(UserEntity::optedIn)
-            .map(UserEntity::getEmail)
+            .filter(email -> {
+                List<UserEntity> users = userService.findByEmail(executionContext, email);
+                return CollectionUtils.isNotEmpty(users) && users.size() == 1 && users.getFirst().optedIn();
+            })
             .collect(Collectors.toSet());
     }
 }

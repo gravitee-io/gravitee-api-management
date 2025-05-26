@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit, signal } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -64,7 +64,7 @@ export class DeleteMemberDialogComponent implements OnInit {
     searchTerm: FormControl<string>;
   }>;
   ownershipTransferMessage: string = null;
-  disableSubmit = signal<boolean>(false);
+  disableSubmit = false;
 
   private members: Member[] = [];
   private primaryOwnerMembership: GroupMembership = null;
@@ -95,7 +95,7 @@ export class DeleteMemberDialogComponent implements OnInit {
     if (isPrimaryOwner) {
       this.deleteMemberForm.controls.searchTerm.enable();
       this.deleteMemberForm.controls.searchTerm.addValidators(Validators.required);
-      this.disableSubmit.set(true);
+      this.disableSubmit = true;
     }
   }
 
@@ -128,7 +128,7 @@ export class DeleteMemberDialogComponent implements OnInit {
     this.deleteMemberForm.controls.searchTerm.removeValidators(Validators.required);
     this.ownershipTransferMessage = `${this.member.displayName} is the API primary owner. Primary ownership of the group will be transferred from ${this.member.displayName} to ${this.newPrimaryOwner.displayName}.`;
     this.mapGroupMembership();
-    this.disableSubmit.set(false);
+    this.disableSubmit = false;
   }
 
   deselectPrimaryOwner() {
@@ -138,7 +138,7 @@ export class DeleteMemberDialogComponent implements OnInit {
     this.deleteMemberForm.controls.searchTerm.setValue('');
     this.deleteMemberForm.controls.searchTerm.enable();
     this.deleteMemberForm.controls.searchTerm.addValidators(Validators.required);
-    this.disableSubmit.set(true);
+    this.disableSubmit = true;
   }
 
   private mapGroupMembership() {

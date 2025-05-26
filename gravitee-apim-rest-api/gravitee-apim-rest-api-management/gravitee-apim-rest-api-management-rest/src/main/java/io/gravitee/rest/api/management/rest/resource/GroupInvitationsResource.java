@@ -17,32 +17,50 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.rest.api.model.InvitationReferenceType.GROUP;
 import static io.gravitee.rest.api.model.permissions.RolePermission.GROUP_INVITATION;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException.Type.EMAIL;
 
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.InvitationEntity;
 import io.gravitee.rest.api.model.NewInvitationEntity;
 import io.gravitee.rest.api.model.UpdateInvitationEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InvitationService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 /**
@@ -57,6 +75,9 @@ public class GroupInvitationsResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
+
+    @Inject
+    private UserService userService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("group")
@@ -92,7 +113,24 @@ public class GroupInvitationsResource extends AbstractResource {
             @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.CREATE),
         }
     )
-    public InvitationEntity createGroupInvitation(@Valid @NotNull final NewInvitationEntity invitationEntity) {
+    @ApiResponses(
+        {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Invitation sent successfully",
+                content = @Content(schema = @Schema(implementation = InvitationEntity.class))
+            ),
+            @ApiResponse(
+                responseCode = "202",
+                description = "Request is accepted and list of users to select and invite sent successfully",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    array = @ArraySchema(schema = @Schema(implementation = UserEntity.class))
+                )
+            ),
+        }
+    )
+    public Response createGroupInvitation(@Valid @NotNull final NewInvitationEntity invitationEntity) {
         // Check that group exists
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GroupEntity groupEntity = groupService.findById(executionContext, group);
@@ -117,9 +155,16 @@ public class GroupInvitationsResource extends AbstractResource {
             }
         }
 
+        // If there are multiple users holding the same email id, we send back the list of users to select one and send an invitation
+        List<UserEntity> userEntities = userService.findByEmail(executionContext, invitationEntity.getEmail());
+
+        if (CollectionUtils.isNotEmpty(userEntities) && userEntities.size() > 1) {
+            return Response.accepted(userEntities).build();
+        }
+
         invitationEntity.setReferenceType(GROUP);
         invitationEntity.setReferenceId(group);
-        return invitationService.create(executionContext, invitationEntity);
+        return Response.ok(invitationService.create(executionContext, invitationEntity)).build();
     }
 
     @Path("{invitation}")
