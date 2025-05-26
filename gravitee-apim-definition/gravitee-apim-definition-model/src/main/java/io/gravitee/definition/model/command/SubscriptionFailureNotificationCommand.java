@@ -13,15 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management;
+package io.gravitee.definition.model.command;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum CommandTags {
-    DATA_TO_INDEX,
-    SUBSCRIPTION_FAILURE,
-    SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY,
-    EMAIL_TEMPLATE_UPDATE,
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Data
+public class SubscriptionFailureNotificationCommand {
+
+    private String subscriptionId;
+    private String failureCause;
 }

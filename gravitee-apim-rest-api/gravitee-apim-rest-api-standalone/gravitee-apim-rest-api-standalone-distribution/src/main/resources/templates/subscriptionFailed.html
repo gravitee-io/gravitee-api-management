@@ -7,9 +7,9 @@
 			<h3>Hi,</h3>
 			<p>The subscription to the API <code>${api.name}</code> with plan <code>${plan.name}</code> has failed.</p>
 
-			<#if subscription.reason??>
+			<#if subscription.failureCause??>
             Message
-			<p style="border: 1px solid grey; margin: 0 32px; padding: 16px; font-style: italic;">${subscription.reason}</p>
+			<p style="border: 1px solid grey; margin: 0 32px; padding: 16px; font-style: italic;">${subscription.failureCause}</p>
 			</#if>
 		</div>
 	</body>
