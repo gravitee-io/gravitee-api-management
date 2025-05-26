@@ -288,7 +288,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         Integer totalCount = jdbcTemplate.queryForObject(countQuery, Integer.class, countParams.toArray());
         List<Group> rows = jdbcTemplate.query(query, preparedStatementSetter, getOrm().getRowMapper());
 
-        return new Page<>(rows, pageable.pageNumber(), pageable.pageSize(), totalCount);
+        return new Page<>(rows, pageable.pageNumber() + 1, pageable.pageSize(), totalCount);
     }
 
     @Override
