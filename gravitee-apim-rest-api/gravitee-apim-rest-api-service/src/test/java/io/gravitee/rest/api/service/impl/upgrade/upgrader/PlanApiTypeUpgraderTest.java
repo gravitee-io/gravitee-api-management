@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
@@ -92,13 +92,11 @@ public class PlanApiTypeUpgraderTest {
         verify(planRepository, never()).update(any());
     }
 
-    @Test
+    @Test(expected = UpgraderException.class)
     public void shouldHandleExceptionDuringUpgrade() throws Exception {
         when(apiRepository.search(any(), any(), any())).thenThrow(new RuntimeException());
 
-        boolean result = planApiTypeUpgrader.upgrade();
-
-        assertFalse(result);
+        planApiTypeUpgrader.upgrade();
     }
 
     @Test
@@ -115,8 +113,8 @@ public class PlanApiTypeUpgraderTest {
         verify(planRepository, never()).update(any());
     }
 
-    @Test
-    public void shouldLogErrorWhenUpdatingPlanFails() throws Exception {
+    @Test(expected = UpgraderException.class)
+    public void shouldThrowErrorWhenUpdatingPlanFails() throws Exception {
         Api api = new Api();
         api.setId("api1");
         api.setType(ApiType.MESSAGE);

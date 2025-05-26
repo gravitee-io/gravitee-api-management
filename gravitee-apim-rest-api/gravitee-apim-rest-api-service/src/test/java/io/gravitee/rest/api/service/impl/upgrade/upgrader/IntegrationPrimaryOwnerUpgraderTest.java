@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -86,18 +87,19 @@ public class IntegrationPrimaryOwnerUpgraderTest {
     @InjectMocks
     private IntegrationPrimaryOwnerUpgrader upgrader;
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll()).thenThrow(new RuntimeException());
 
-        assertThat(upgrader.upgrade()).isFalse();
+        upgrader.upgrade();
 
         verify(environmentRepository, times(1)).findAll();
         verifyNoMoreInteractions(environmentRepository);
     }
 
     @Test
-    public void upgrade_should_set_integration_primary_owner_based_on_associated_api_ownership() throws TechnicalException {
+    public void upgrade_should_set_integration_primary_owner_based_on_associated_api_ownership()
+        throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll()).thenReturn(Set.of(environment()));
         when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
         when(apiRepository.search(any(), any())).thenReturn(List.of(api()));
@@ -137,7 +139,7 @@ public class IntegrationPrimaryOwnerUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_delete_all_integrations_with_no_associated_apis() throws TechnicalException {
+    public void upgrade_should_delete_all_integrations_with_no_associated_apis() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll()).thenReturn(Set.of(environment()));
         when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
         when(apiRepository.search(any(), any())).thenReturn(List.of());
@@ -149,7 +151,7 @@ public class IntegrationPrimaryOwnerUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_handle_list_of_integrations_with_multiple_pages() throws TechnicalException {
+    public void upgrade_should_handle_list_of_integrations_with_multiple_pages() throws TechnicalException, UpgraderException {
         List<Integration> integrations = new ArrayList<>();
         for (int i = 0; i < 102; i++) {
             integrations.add(new Integration().toBuilder().id(INTEGRATION_ID).build());
@@ -189,8 +191,8 @@ public class IntegrationPrimaryOwnerUpgraderTest {
         verify(membershipRepository, times(102)).create(any());
     }
 
-    @Test
-    public void upgrade_should_fail_if_no_primary_owner_role_exist_for_integration() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_fail_if_no_primary_owner_role_exist_for_integration() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll()).thenReturn(Set.of(environment()));
         when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
         when(apiRepository.search(any(), any())).thenReturn(List.of(api()));
@@ -213,12 +215,12 @@ public class IntegrationPrimaryOwnerUpgraderTest {
         )
             .thenReturn(Optional.empty());
 
-        assertThat(upgrader.upgrade()).isFalse();
+        upgrader.upgrade();
         verify(membershipRepository, never()).create(any());
     }
 
-    @Test
-    public void upgrade_should_fail_if_no_primary_owner_found_for_api() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_fail_if_no_primary_owner_found_for_api() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll()).thenReturn(Set.of(environment()));
         when(integrationRepository.findAllByEnvironment(any(), any())).thenReturn(new Page<>(List.of(integration()), 0, 1, 1));
         when(apiRepository.search(any(), any())).thenReturn(List.of(api()));
@@ -232,7 +234,7 @@ public class IntegrationPrimaryOwnerUpgraderTest {
         )
             .thenReturn(Optional.empty());
 
-        assertThat(upgrader.upgrade()).isFalse();
+        upgrader.upgrade();
         verify(membershipRepository, never()).create(any());
     }
 

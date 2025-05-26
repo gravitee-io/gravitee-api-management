@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
@@ -50,18 +51,18 @@ public class OrphanCategoryUpgraderTest {
     @Mock
     private CategoryRepository categoryRepository;
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(categoryRepository.findAll()).thenThrow(new RuntimeException());
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(categoryRepository, times(1)).findAll();
         verifyNoMoreInteractions(categoryRepository);
     }
 
     @Test
-    public void upgrade_should_remove_orphan_categories() throws TechnicalException {
+    public void upgrade_should_remove_orphan_categories() throws TechnicalException, UpgraderException {
         final String orphanCategoryId = UuidString.generateRandom();
 
         Category existingCategory = new Category();

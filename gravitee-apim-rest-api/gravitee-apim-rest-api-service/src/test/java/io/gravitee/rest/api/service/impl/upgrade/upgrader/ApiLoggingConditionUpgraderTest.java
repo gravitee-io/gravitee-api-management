@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -77,30 +78,28 @@ public class ApiLoggingConditionUpgraderTest {
         when(environmentRepository.findAll()).thenReturn(Collections.singleton(environment));
     }
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll()).thenThrow(new RuntimeException());
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(environmentRepository, times(1)).findAll();
         verifyNoMoreInteractions(environmentRepository);
     }
 
     @Test
-    public void upgrade_should_not_run_cause_already_executed_successfully() {
+    public void upgrade_should_not_run_cause_already_executed_successfully() throws UpgraderException {
         boolean success = upgrader.upgrade();
 
         assertTrue(success);
     }
 
-    @Test
-    public void upgrade_should_run_and_set_failure_status_on_exception() {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_run_and_set_failure_status_on_exception() throws UpgraderException {
         doThrow(new RuntimeException("test exception")).when(upgrader).fixApis(any());
 
-        boolean success = upgrader.upgrade();
-
-        assertFalse(success);
+        upgrader.upgrade();
     }
 
     @Test

@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Subscription;
@@ -43,18 +43,18 @@ public class ClientIdInApiKeySubscriptionsUpgraderTest {
     @Mock
     SubscriptionRepository subscriptionRepository;
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(subscriptionRepository.search(any())).thenThrow(new RuntimeException());
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(subscriptionRepository, times(1)).search(any());
         verifyNoMoreInteractions(subscriptionRepository);
     }
 
     @Test
-    public void testUpgrade_shouldRemoveClientIdFromApiKeySubscriptionsOnly() throws TechnicalException {
+    public void testUpgrade_shouldRemoveClientIdFromApiKeySubscriptionsOnly() throws TechnicalException, UpgraderException {
         Subscription apiKeySubscriptionWithoutClientId = apiKeySubscription(null);
         Subscription apiKeySubscriptionWithClientId = apiKeySubscription("client-id");
 
