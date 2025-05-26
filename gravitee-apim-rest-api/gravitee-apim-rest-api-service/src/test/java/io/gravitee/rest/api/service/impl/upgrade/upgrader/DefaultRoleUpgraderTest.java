@@ -17,9 +17,9 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.model.permissions.RoleScope.API;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_REVIEWER;
-import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
@@ -52,18 +52,18 @@ public class DefaultRoleUpgraderTest {
     @Mock
     OrganizationRepository organizationRepository;
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(organizationRepository.findAll()).thenThrow(new RuntimeException());
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(organizationRepository, times(1)).findAll();
         verifyNoMoreInteractions(organizationRepository);
     }
 
     @Test
-    public void shouldInitializeDefaultRoles() throws TechnicalException {
+    public void shouldInitializeDefaultRoles() throws TechnicalException, UpgraderException {
         final Organization organization = mock(Organization.class);
         when(organization.getId()).thenReturn(GraviteeContext.getDefaultOrganization());
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
@@ -78,7 +78,7 @@ public class DefaultRoleUpgraderTest {
     }
 
     @Test
-    public void shouldCreateApiReviewerRole() throws TechnicalException {
+    public void shouldCreateApiReviewerRole() throws TechnicalException, UpgraderException {
         final Organization organization = mock(Organization.class);
         when(organization.getId()).thenReturn(GraviteeContext.getDefaultOrganization());
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));

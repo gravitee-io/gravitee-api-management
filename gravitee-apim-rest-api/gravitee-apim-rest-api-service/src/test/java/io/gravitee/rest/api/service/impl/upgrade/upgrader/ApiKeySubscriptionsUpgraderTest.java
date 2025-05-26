@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
@@ -45,18 +45,18 @@ public class ApiKeySubscriptionsUpgraderTest {
     @Mock
     ApiKeyRepository apiKeyRepository;
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(apiKeyRepository.findAll()).thenThrow(new RuntimeException());
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(apiKeyRepository, times(1)).findAll();
         verifyNoMoreInteractions(apiKeyRepository);
     }
 
     @Test
-    public void testUpgrade_shouldCreateListOfSubscriptionsFromSubscription() throws TechnicalException {
+    public void testUpgrade_shouldCreateListOfSubscriptionsFromSubscription() throws TechnicalException, UpgraderException {
         ApiKey key1 = apiKeyWithSubscription("subscription-1");
         ApiKey key2 = apiKeyWithSubscription("subscription-2");
         ApiKey key3 = apiKeyWithSubscription("subscription-3");

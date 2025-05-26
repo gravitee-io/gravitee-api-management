@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Origin;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -60,7 +61,7 @@ public class PortalNotificationConfigOriginUpgraderTest {
     }
 
     @Test
-    public void should_upgrade_only_portal_with_no_origin() throws TechnicalException {
+    public void should_upgrade_only_portal_with_no_origin() throws TechnicalException, UpgraderException {
         Set<PortalNotificationConfig> portalNotificationConfigs = Set.of(
             // to be upgraded
             aPortalNotificationConfig("api#1", NotificationReferenceType.API, "user#1", null),

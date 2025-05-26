@@ -24,6 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
@@ -58,7 +59,7 @@ public class DefaultSharedPolicyGroupRolesUpgraderTest {
     }
 
     @Test
-    public void upgrade_add_default_shared_policy_groups_roles() throws TechnicalException {
+    public void upgrade_add_default_shared_policy_groups_roles() throws TechnicalException, UpgraderException {
         when(organizationRepository.findAll()).thenReturn(Set.of(Organization.builder().id("DEFAULT").build()));
 
         when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), any(), eq("DEFAULT")))
@@ -102,7 +103,7 @@ public class DefaultSharedPolicyGroupRolesUpgraderTest {
     }
 
     @Test
-    public void do_nothing_if_role_not_found() throws TechnicalException {
+    public void do_nothing_if_role_not_found() throws TechnicalException, UpgraderException {
         when(organizationRepository.findAll()).thenReturn(Set.of(Organization.builder().id("DEFAULT").build()));
 
         when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), any(), eq("DEFAULT")))

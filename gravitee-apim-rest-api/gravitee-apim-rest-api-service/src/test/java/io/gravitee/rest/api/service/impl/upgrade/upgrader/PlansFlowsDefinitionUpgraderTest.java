@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -66,11 +66,11 @@ public class PlansFlowsDefinitionUpgraderTest {
         ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
     }
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(apiRepository.search(any(), any(), any())).thenThrow(new RuntimeException());
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(apiRepository, times(1)).search(any(), any(), any());
         verifyNoMoreInteractions(apiRepository);
@@ -96,6 +96,7 @@ public class PlansFlowsDefinitionUpgraderTest {
         verify(upgrader).migrateApiFlows(eq("api2"), argThat(api -> api.getId().equals("api2")));
         verify(upgrader).migrateApiFlows(eq("api4"), argThat(api -> api.getId().equals("api4")));
         verify(upgrader).upgrade();
+        verify(upgrader).wrapException(any());
         verifyNoMoreInteractions(upgrader);
     }
 

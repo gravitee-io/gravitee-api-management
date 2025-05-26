@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.mockito.Mockito.*;
 
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.rest.api.service.OrganizationService;
 import org.junit.Assert;
 import org.junit.Test;
@@ -38,14 +39,14 @@ public class DefaultOrganizationUpgraderTest {
     private final DefaultOrganizationUpgrader upgrader = new DefaultOrganizationUpgrader();
 
     @Test
-    public void shouldInitializeOrganisation() {
+    public void shouldInitializeOrganisation() throws UpgraderException {
         when(organizationService.count()).thenReturn(0L);
         upgrader.upgrade();
         verify(organizationService, times(1)).initialize();
     }
 
     @Test
-    public void shouldNotInitializeOrganisation() {
+    public void shouldNotInitializeOrganisation() throws UpgraderException {
         when(organizationService.count()).thenReturn(1L);
         upgrader.upgrade();
         verify(organizationService, never()).initialize();

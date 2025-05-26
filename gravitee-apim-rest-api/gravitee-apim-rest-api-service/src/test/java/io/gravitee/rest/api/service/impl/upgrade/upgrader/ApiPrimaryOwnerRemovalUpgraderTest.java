@@ -23,6 +23,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -94,18 +95,18 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         logger.addAppender(appender);
     }
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(organizationRepository.findAll()).thenThrow(new RuntimeException());
 
-        Assert.assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(organizationRepository, times(1)).findAll();
         verifyNoMoreInteractions(organizationRepository);
     }
 
     @Test
-    public void shouldWarnAndStopWithPrimaryOwnerMissingAndNoConfigurationProperty() throws TechnicalException {
+    public void shouldWarnAndStopWithPrimaryOwnerMissingAndNoConfigurationProperty() throws TechnicalException, UpgraderException {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization()));
 
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
@@ -131,7 +132,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
     }
 
     @Test
-    public void shouldFixWithUserWithPrimaryOwnerMissingAndConfigurationProperty() throws TechnicalException {
+    public void shouldFixWithUserWithPrimaryOwnerMissingAndConfigurationProperty() throws TechnicalException, UpgraderException {
         ReflectionTestUtils.setField(upgrader, "defaultPrimaryOwnerId", DEFAULT_PRIMARY_OWNER_ID);
 
         when(organizationRepository.findAll()).thenReturn(Set.of(organization()));
@@ -163,7 +164,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
     }
 
     @Test
-    public void shouldFixWithGroupWithPrimaryOwnerMissingAndConfigurationProperty() throws TechnicalException {
+    public void shouldFixWithGroupWithPrimaryOwnerMissingAndConfigurationProperty() throws TechnicalException, UpgraderException {
         ReflectionTestUtils.setField(upgrader, "defaultPrimaryOwnerId", DEFAULT_PRIMARY_OWNER_ID);
 
         when(organizationRepository.findAll()).thenReturn(Set.of(organization()));
@@ -191,7 +192,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
     }
 
     @Test
-    public void shouldNotFixWithoutPrimaryOwnerMissing() throws TechnicalException {
+    public void shouldNotFixWithoutPrimaryOwnerMissing() throws TechnicalException, UpgraderException {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization()));
 
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))

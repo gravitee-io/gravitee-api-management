@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,6 +22,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.shared_policy_group.use_case.InitializeSharedPolicyGroupUseCase;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
@@ -54,11 +54,11 @@ public class InitializeSharedPolicyGroupUpgraderTest {
     @InjectMocks
     private final InitializeSharedPolicyGroupUpgrader upgrader = new InitializeSharedPolicyGroupUpgrader();
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(organizationService.findAll()).thenThrow(new RuntimeException());
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(organizationService, times(1)).findAll();
         verifyNoMoreInteractions(environmentService);
@@ -66,7 +66,7 @@ public class InitializeSharedPolicyGroupUpgraderTest {
     }
 
     @Test
-    public void should_initialize_shared_policy_group() throws TechnicalException {
+    public void should_initialize_shared_policy_group() throws TechnicalException, UpgraderException {
         when(organizationService.findAll()).thenReturn(List.of(new OrganizationEntity()));
         when(environmentService.findByOrganization(any())).thenReturn(List.of(new EnvironmentEntity()));
 

@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -63,7 +63,7 @@ public class MetadataDefaultReferenceUpgraderTest {
     }
 
     @Test
-    public void should_upgrade_only_default_metadata() throws TechnicalException {
+    public void should_upgrade_only_default_metadata() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll())
             .thenReturn(Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build()));
 
@@ -94,7 +94,7 @@ public class MetadataDefaultReferenceUpgraderTest {
     }
 
     @Test
-    public void should_upgrade_if_key_exist() throws TechnicalException {
+    public void should_upgrade_if_key_exist() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll())
             .thenReturn(Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build()));
 
@@ -128,7 +128,7 @@ public class MetadataDefaultReferenceUpgraderTest {
     }
 
     @Test
-    public void should_not_create_if_not_find_default_metadata() throws TechnicalException {
+    public void should_not_create_if_not_find_default_metadata() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll())
             .thenReturn(Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build()));
 
@@ -140,18 +140,18 @@ public class MetadataDefaultReferenceUpgraderTest {
         verify(metadataRepository, never()).delete(any(), any(), any());
     }
 
-    @Test
-    public void should_stop_if_cannot_find_all_env() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void should_stop_if_cannot_find_all_env() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll()).thenThrow(new TechnicalException("Cannot find all env"));
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(metadataRepository, never()).create(any());
         verify(metadataRepository, never()).delete(any(), any(), any());
     }
 
-    @Test
-    public void should_stop_if_cannot_create_env() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void should_stop_if_cannot_create_env() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll())
             .thenReturn(Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build()));
 
@@ -166,7 +166,7 @@ public class MetadataDefaultReferenceUpgraderTest {
         when(metadataRepository.findAll()).thenReturn(metadataList);
         when(metadataRepository.create(any())).thenThrow(new TechnicalException("Cannot create metadata"));
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(metadataRepository).create(any());
     }

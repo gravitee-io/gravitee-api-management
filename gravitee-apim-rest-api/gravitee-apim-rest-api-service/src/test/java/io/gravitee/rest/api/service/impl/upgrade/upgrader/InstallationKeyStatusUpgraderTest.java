@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.upgrader.UpgradeRecord;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.node.api.upgrader.UpgraderRepository;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
@@ -52,20 +53,19 @@ public class InstallationKeyStatusUpgraderTest {
     @Mock
     private UpgraderRepository upgraderRepository;
 
-    @Test
-    public void should_not_upgrade_when_there_is_exception() {
+    @Test(expected = UpgraderException.class)
+    public void should_not_upgrade_when_there_is_exception() throws UpgraderException {
         when(installationService.get()).thenReturn(new InstallationEntity());
         when(installationService.get().getAdditionalInformation()).thenThrow(new RuntimeException());
 
-        boolean upgraded = cut.upgrade();
-        assertFalse(upgraded);
+        cut.upgrade();
 
         verify(installationService, times(1)).get();
         verify(upgraderRepository, times(0)).create(any());
     }
 
     @Test
-    public void should_upgrade() {
+    public void should_upgrade() throws UpgraderException {
         Map<String, String> additionalInformation = new HashMap<>();
         additionalInformation.put(InstallationKeyStatusUpgrader.ORPHAN_CATEGORY_UPGRADER_STATUS, "SUCCESS");
         additionalInformation.put(InstallationKeyStatusUpgrader.APPLICATION_API_KEY_MODE_UPGRADER_STATUS, "SUCCESS");
@@ -86,7 +86,7 @@ public class InstallationKeyStatusUpgraderTest {
     }
 
     @Test
-    public void should_not_create_record_when_already_exist() {
+    public void should_not_create_record_when_already_exist() throws UpgraderException {
         Map<String, String> additionalInformation = new HashMap<>();
         additionalInformation.put(InstallationKeyStatusUpgrader.ORPHAN_CATEGORY_UPGRADER_STATUS, "SUCCESS");
         additionalInformation.put(InstallationKeyStatusUpgrader.APPLICATION_API_KEY_MODE_UPGRADER_STATUS, "SUCCESS");
