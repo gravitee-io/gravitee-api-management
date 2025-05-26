@@ -23,10 +23,12 @@ import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotF
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.service.common.UuidString;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -59,6 +61,8 @@ public class ValidateSharedPolicyGroupCRDDomainService implements Validator<Vali
 
         if (input.crd().getHrid() == null) {
             input.crd().setHrid(input.crd().getCrossId());
+        } else {
+            input.crd().setCrossId(UuidString.generateForEnvironment(input.auditInfo.organizationId(), input.crd.getHrid()));
         }
 
         sharedPolicyGroupCrudService
