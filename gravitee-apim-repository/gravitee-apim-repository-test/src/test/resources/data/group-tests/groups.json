@@ -22,12 +22,12 @@
   {
     "id": "group-api-to-delete",
     "environmentId": "DEFAULT",
-    "name": "Group api to delete"
+    "name": "Group API to delete"
   },
   {
     "id": "group-1",
     "environmentId": "DEFAULT",
-    "name": "Group test 1"
+    "name": "group test 1"
   },
   {
     "id": "group-2",
@@ -37,12 +37,12 @@
   {
     "id": "group-3",
     "environmentId": "DEFAULT",
-    "name": "Group test 3"
+    "name": "Group Test 3"
   },
   {
     "id": "group-4",
     "environmentId": "DEFAULT",
-    "name": "Group test 4"
+    "name": "GROUP TEST 4"
   },
   {
     "id": "group-5",
