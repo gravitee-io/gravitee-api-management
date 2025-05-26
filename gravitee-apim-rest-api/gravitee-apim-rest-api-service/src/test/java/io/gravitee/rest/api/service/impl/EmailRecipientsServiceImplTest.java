@@ -152,7 +152,7 @@ class EmailRecipientsServiceImplTest {
 
         @Test
         void should_return_empty_collection_if_no_user_found_for_a_mail() {
-            when(userService.findByEmail(executionContext, "no-user@mail.gio")).thenReturn(Optional.empty());
+            when(userService.findByEmail(executionContext, "no-user@mail.gio")).thenReturn(List.of());
             final Set<String> result = cut.filterRegisteredUser(executionContext, List.of("no-user@mail.gio"));
             assertThat(result).isEmpty();
         }
@@ -160,7 +160,7 @@ class EmailRecipientsServiceImplTest {
         @Test
         void should_return_empty_collection_if_no_user_has_not_opted_in() {
             final UserEntity userEntity = UserEntity.builder().source("gravitee").email("user@mail.gio").build();
-            when(userService.findByEmail(executionContext, "user@mail.gio")).thenReturn(Optional.of(userEntity));
+            when(userService.findByEmail(executionContext, "user@mail.gio")).thenReturn(List.of(userEntity));
             final Set<String> result = cut.filterRegisteredUser(executionContext, List.of("user@mail.gio"));
             assertThat(result).isEmpty();
         }
@@ -168,7 +168,7 @@ class EmailRecipientsServiceImplTest {
         @ParameterizedTest
         @MethodSource("provideOptedInUser")
         void should_return_opted_in_user_email(UserEntity optedInUser) {
-            when(userService.findByEmail(executionContext, optedInUser.getEmail())).thenReturn(Optional.of(optedInUser));
+            when(userService.findByEmail(executionContext, optedInUser.getEmail())).thenReturn(List.of(optedInUser));
             final Set<String> result = cut.filterRegisteredUser(executionContext, List.of(optedInUser.getEmail()));
             assertThat(result).containsExactly(optedInUser.getEmail());
         }

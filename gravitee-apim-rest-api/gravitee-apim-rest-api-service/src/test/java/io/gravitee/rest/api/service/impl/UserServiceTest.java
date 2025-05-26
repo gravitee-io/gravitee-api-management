@@ -230,11 +230,11 @@ public class UserServiceTest {
         when(user.getFirstname()).thenReturn(FIRST_NAME);
         when(user.getLastname()).thenReturn(LAST_NAME);
         when(user.getPassword()).thenReturn(PASSWORD);
-        when(userRepository.findByEmail(EMAIL, ORGANIZATION)).thenReturn(of(user));
+        when(userRepository.findByEmail(EMAIL, ORGANIZATION)).thenReturn(List.of(user));
 
-        final Optional<UserEntity> optUserEntity = userService.findByEmail(EXECUTION_CONTEXT, EMAIL);
+        final List<UserEntity> optUserEntity = userService.findByEmail(EXECUTION_CONTEXT, EMAIL);
 
-        UserEntity userEntity = optUserEntity.get();
+        UserEntity userEntity = optUserEntity.getFirst();
         assertNotNull(userEntity);
 
         assertEquals(USER_NAME, userEntity.getId());

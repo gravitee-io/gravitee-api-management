@@ -85,8 +85,10 @@ export class GroupService {
     return this.http.get<Member[]>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members`);
   }
 
-  inviteMember(groupId: string, invitation: Invitation) {
-    return this.http.post<Invitation>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/invitations`, invitation);
+  inviteMember(groupId: string, invitation: Invitation): Observable<any> {
+    return this.http.post<Invitation>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/invitations`, invitation, {
+      observe: 'response',
+    });
   }
 
   deleteMember(groupId: string, memberId: string): Observable<void> {

@@ -416,11 +416,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public Optional<UserEntity> findByEmail(ExecutionContext executionContext, String email) {
+    public List<UserEntity> findByEmail(ExecutionContext executionContext, String email) {
         try {
             LOGGER.debug("Find user by Email: {}", email);
-            Optional<User> optionalUser = userRepository.findByEmail(email, executionContext.getOrganizationId());
-            return optionalUser.map(user -> convert(optionalUser.get(), false));
+            List<User> users = userRepository.findByEmail(email, executionContext.getOrganizationId());
+            return users.stream().map(user -> convert(user, false)).toList();
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find user using its email", ex);
             throw new TechnicalManagementException("An error occurs while trying to find user using its email", ex);
