@@ -23,10 +23,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.core.api.PluginDocumentation;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
-import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.FlowPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
@@ -215,7 +215,7 @@ public class PolicyPluginServiceImplTest {
     public void should_get_documentation_with_ApiProtocolType() throws IOException {
         when(pluginManager.getDocumentation("my-policy", "native_kafka.documentation", true, true)).thenReturn("documentation");
 
-        String documentation = cut.getDocumentation("my-policy", ApiProtocolType.NATIVE_KAFKA);
-        assertEquals("documentation", documentation);
+        PluginDocumentation documentation = cut.getDocumentation("my-policy", ApiProtocolType.NATIVE_KAFKA);
+        assertEquals("documentation", documentation.content());
     }
 }

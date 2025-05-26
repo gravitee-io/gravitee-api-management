@@ -65,11 +65,7 @@ export class PolicyStudioDesignService {
   }
 
   getDocumentation(policyId: string): Observable<PolicyDocumentation> {
-    return this.http
-      .get(`${this.constants.env.baseURL}/policies/${policyId}/documentation`, {
-        responseType: 'text',
-      })
-      .pipe(map((buffer) => buffer.toString()));
+    return this.http.get(`${this.constants.env.baseURL}/policies/${policyId}/documentation`).pipe(map((buffer) => buffer.toString()));
   }
 
   getFlowSchemaForm(): Observable<FlowSchema> {

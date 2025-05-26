@@ -30,6 +30,7 @@ import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.debug.DebugApiV4;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
+import io.gravitee.plugin.core.api.PluginDocumentation;
 import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
@@ -502,7 +503,7 @@ class ApiPolicyValidatorDomainServiceTest {
         }
 
         @Override
-        public String getDocumentation(String policyPluginId, ApiProtocolType apiProtocolType) {
+        public PluginDocumentation getDocumentation(String policyPluginId, ApiProtocolType apiProtocolType) {
             throw new IllegalStateException("should not be called");
         }
 

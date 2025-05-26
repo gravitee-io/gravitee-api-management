@@ -46,7 +46,9 @@ class PolicyService {
   }
 
   getDocumentation(policyId) {
-    return this.$http.get(`${this.Constants.env.baseURL}/policies/${policyId}/documentation`);
+    return this.$http.get(`${this.Constants.env.baseURL}/policies/${policyId}/documentation`, {
+      responseType: 'text',
+    });
   }
 }
 PolicyService.$inject = ['$http', 'Constants'];

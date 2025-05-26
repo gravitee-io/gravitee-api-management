@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginDocumentation;
 import io.gravitee.plugin.core.internal.PluginManifestProperties;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
@@ -33,7 +34,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -163,17 +163,17 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         return this.getSchema(policyPluginId);
     }
 
-    public String getDocumentation(String policyPluginId, ApiProtocolType apiProtocolType) {
+    public PluginDocumentation getDocumentation(String policyPluginId, ApiProtocolType apiProtocolType) {
         try {
             if (apiProtocolType != null) {
-                return this.pluginManager.getDocumentation(
+                return this.pluginManager.getPluginDocumentation(
                         policyPluginId,
                         apiProtocolType.name().toLowerCase() + "." + PluginManifestProperties.DOCUMENTATION_PROPERTY,
                         true,
                         true
                     );
             }
-            return this.getDocumentation(policyPluginId);
+            return this.pluginManager.getPluginDocumentation(policyPluginId);
         } catch (IOException ioex) {
             throw new TechnicalManagementException(
                 "An error occurs while trying to get plugin documentation for plugin " + policyPluginId,
