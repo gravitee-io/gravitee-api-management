@@ -33,7 +33,6 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
@@ -79,7 +78,6 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeExcep
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import jakarta.ws.rs.BadRequestException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -162,7 +160,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
-        return (PlanEntity) planSearchService.findById(executionContext, plan);
+        return PlanAdapter.INSTANCE.map(planSearchService.findById(executionContext, plan));
     }
 
     @Override
