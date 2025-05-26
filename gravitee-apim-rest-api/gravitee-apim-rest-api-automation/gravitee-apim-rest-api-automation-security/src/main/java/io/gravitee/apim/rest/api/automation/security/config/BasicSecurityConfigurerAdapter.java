@@ -187,16 +187,15 @@ public class BasicSecurityConfigurerAdapter {
         authorizations(http);
         hsts(http);
         csrf(http);
-        cors(http);
 
         http.addFilterBefore(
             new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
             BasicAuthenticationFilter.class
         );
-        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
+        // http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
         http.addFilterBefore(
             new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
-            CorsFilter.class
+            CsrfFilter.class
         );
         http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
 
@@ -322,9 +321,5 @@ public class BasicSecurityConfigurerAdapter {
             // deepcode ignore DisablesCSRFProtection: CSRF Protection is disabled here to match configuration set by the user (via gravitee.yml)
             return security.csrf(AbstractHttpConfigurer::disable);
         }
-    }
-
-    private HttpSecurity cors(HttpSecurity security) throws Exception {
-        return security.cors().and();
     }
 }
