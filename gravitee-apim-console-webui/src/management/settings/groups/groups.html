@@ -46,7 +46,7 @@
                 <ng-md-icon ng-if="$ctrl.hasEvent(group, 'APPLICATION_CREATE')" icon="done"></ng-md-icon>
               </td>
               <td md-cell ng-click="$event.stopPropagation()" layout="row" style="padding: 10px 0">
-                <span ng-if="group.manageable && !group.primary_owner && $ctrl.canRemoveGroup">
+                <span ng-if="!group.primary_owner && $ctrl.canRemoveGroup">
                   <md-tooltip md-direction="top">Delete</md-tooltip>
                   <ng-md-icon
                     icon="delete"
