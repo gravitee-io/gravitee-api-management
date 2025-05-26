@@ -153,7 +153,7 @@ describe('SharedPolicyGroupStudioComponent', () => {
       waitForInitHttpRequestCompletionCb: async () => {
         httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/schema`).flush({});
         httpTestingController
-          .expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/documentation`)
+          .expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/documentation-ext`)
           .flush('');
       },
     });
@@ -246,7 +246,7 @@ describe('SharedPolicyGroupStudioComponent', () => {
       waitForInitHttpRequestCompletionCb: async () => {
         httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/schema`).flush({});
         httpTestingController
-          .expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/documentation`)
+          .expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${fakePolicyPlugin().id}/documentation-ext`)
           .flush('');
       },
     });
