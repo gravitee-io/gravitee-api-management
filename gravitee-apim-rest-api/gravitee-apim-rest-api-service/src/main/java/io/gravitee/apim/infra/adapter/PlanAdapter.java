@@ -87,6 +87,7 @@ public interface PlanAdapter {
     PlanCRD toCRD(Plan source);
 
     PlanEntity toEntityV4(PlanCRD source);
+
     io.gravitee.definition.model.v4.plan.Plan toApiDefinition(PlanCRD source);
 
     @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV4(source))")
@@ -261,6 +262,9 @@ public interface PlanAdapter {
     }
 
     default io.gravitee.rest.api.model.PlanEntity map(GenericPlanEntity entity) {
+        if (entity == null) {
+            return null;
+        }
         if (entity instanceof io.gravitee.rest.api.model.PlanEntity p) {
             return p;
         } else if (entity instanceof io.gravitee.rest.api.model.v4.plan.PlanEntity v4) {
