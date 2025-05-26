@@ -15,13 +15,14 @@ openapi: 3.1.0
 info:
   title: Gravitee.io GKO - Automation API
   description: |-
-    The APIM automation APIi.
+    The APIM automation API. 
+
   contact:
     email: team-gko@graviteesource.com
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-  version: 4.7.0
+  version: 1.0.0
 security:
   - BearerAuth: []
   - BasicAuth: []
@@ -75,7 +76,7 @@ paths:
           description: Shared Policy Group successfully deleted
         default:
           $ref: "#/components/responses/Error"
-  /organizations/{orgId}/environments/{envId}/shared-policy-groups/:
+  /organizations/{orgId}/environments/{envId}/shared-policy-groups:
     put:
       operationId: createOrUpdatePolicyGroup
       tags:
@@ -935,6 +936,7 @@ components:
           $ref: "#/components/schemas/ApiType"
         hrid:
           type: string
+          pattern: '^[a-zA-Z][a-zA-Z0-9_-]{2,}$'
           description: A unique human readable id identifying the shared policy group
           examples:
             - "products"
@@ -2104,7 +2106,7 @@ components:
       name: envId
       in: path
       required: true
-      description: Id or Hrid (Human readable Id) of an environment.
+      description: Id of an environment.
       schema:
         type: string
         default: DEFAULT
@@ -2112,7 +2114,7 @@ components:
       name: orgId
       in: path
       required: true
-      description: Id or Hrid (Human readable Id) of an organization.
+      description: Id of an organization.
       schema:
         type: string
         default: DEFAULT
@@ -2121,7 +2123,7 @@ components:
       in: query
       description: |
         For modifying requests, this parameter allow you to test the result of an endpoint without actually persisting 
-        the state of the underlying resource.
+        the state of the underlying spec.
       schema:
         type: boolean
         default: false
@@ -2136,7 +2138,7 @@ components:
       name: hrid
       in: path
       required: true
-      description: Human-readable ID of a resource
+      description: Human-readable ID of a spec
       schema:
         type: string
     pageParam:
