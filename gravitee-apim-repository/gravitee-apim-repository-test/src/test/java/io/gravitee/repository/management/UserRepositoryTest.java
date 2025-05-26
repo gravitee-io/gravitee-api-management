@@ -70,7 +70,7 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Invalid saved user status.", user.getStatus(), userFound.getStatus());
         assertEquals("Invalid saved user login count.", user.getLoginCount(), userFound.getLoginCount());
         assertEquals("Invalid saved user first connection at.", user.getFirstConnectionAt(), userFound.getFirstConnectionAt());
-        assertEquals("Invalid saved user newsletter.", user.getNewsletterSubscribed(), false);
+        assertEquals("Invalid saved user newsletter.", false, user.getNewsletterSubscribed());
     }
 
     @Test
@@ -137,7 +137,7 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(users);
         assertEquals("Invalid user numbers in search", 1, users.size());
-        assertEquals("user0", users.get(0).getId());
+        assertEquals("user0", users.getFirst().getId());
     }
 
     @Test
@@ -192,11 +192,11 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void findUserByEmail() throws Exception {
-        Optional<User> user1 = userRepository.findByEmail("user0@gravitee.io", "DEFAULT");
-        Optional<User> user1Upper = userRepository.findByEmail("usER0@gravitee.io", "DEFAULT");
-        assertTrue(user1.isPresent());
-        assertTrue(user1Upper.isPresent());
-        assertEquals(user1.get().getId(), user1Upper.get().getId());
+        List<User> user1 = userRepository.findByEmail("user0@gravitee.io", "DEFAULT");
+        List<User> user1Upper = userRepository.findByEmail("usER0@gravitee.io", "DEFAULT");
+        assertFalse(user1.isEmpty());
+        assertFalse(user1Upper.isEmpty());
+        assertEquals(user1.getFirst().getId(), user1Upper.getFirst().getId());
     }
 
     @Test
@@ -262,7 +262,7 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(users);
         assertEquals(2, users.size());
-        assertTrue(users.stream().map(User::getId).collect(toList()).containsAll(asList("user1", "user5")));
+        assertTrue(users.stream().map(User::getId).toList().containsAll(asList("user1", "user5")));
     }
 
     @Test
