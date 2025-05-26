@@ -19,7 +19,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
-import { PolicyDocumentation, PolicyListItem, PolicySchema } from '../entities/policy';
+import { PolicyListItem, PolicySchema } from '../entities/policy';
 
 interface ListParams {
   expandSchema?: boolean;
@@ -62,7 +62,7 @@ export class PolicyService {
     return this.http.get<PolicySchema>(`${this.constants.env.baseURL}/policies/${policyId}/schema`);
   }
 
-  getDocumentation(policyId: string): Observable<PolicyDocumentation> {
+  getDocumentation(policyId: string): Observable<string> {
     return this.http
       .get(`${this.constants.env.baseURL}/policies/${policyId}/documentation`, {
         responseType: 'text',

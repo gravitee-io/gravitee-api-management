@@ -111,7 +111,7 @@ describe('PolicyService', () => {
   describe('getDocumentation', () => {
     it('should call the API', (done) => {
       const policyId = 'policy#1';
-      const policySchema = fakePolicyDocumentation();
+      const policySchema = fakePolicyDocumentation().content;
 
       policyService.getDocumentation(policyId).subscribe((response) => {
         expect(response).toStrictEqual(policySchema);
