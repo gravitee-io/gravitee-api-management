@@ -43,8 +43,10 @@ class GroupService {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/groups`);
   }
 
-  listPaginated(page: number = 1, size: number = 20, query: string = ''): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/groups/_paged?page=${page}&size=${size}&query=${query}`);
+  listPaginated(page: number = 1, size: number = 20, sortOrder: string = 'ASC', query: string = ''): ng.IPromise<any> {
+    return this.$http.get(
+      `${this.Constants.env.baseURL}/configuration/groups/_paged?page=${page}&size=${size}&sortOrder=${sortOrder}&query=${query}`,
+    );
   }
 
   listByOrganization(): ng.IPromise<any> {
