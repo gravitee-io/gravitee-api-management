@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
@@ -93,8 +94,12 @@ public class GroupsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     @Path("/_paged")
-    public Response getGroupsPaged(@Valid @BeanParam Pageable pageable, @QueryParam("query") String query) {
-        Page<GroupEntity> page = groupService.search(GraviteeContext.getExecutionContext(), pageable.toPageable(), query);
+    public Response getGroupsPaged(
+        @Valid @BeanParam Pageable pageable,
+        @QueryParam("query") String query,
+        @QueryParam("sortOrder") Order.Direction sortOrder
+    ) {
+        Page<GroupEntity> page = groupService.search(GraviteeContext.getExecutionContext(), pageable.toPageable(), sortOrder, query);
         PagedResult<GroupEntity> pagedResult = new PagedResult<>(page, pageable.getSize());
         return Response.ok(pagedResult).build();
     }

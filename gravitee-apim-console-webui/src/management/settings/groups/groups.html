@@ -20,21 +20,25 @@
     <div class="gv-form-content" layout="column">
       <md-input-container class="md-block" flex-gt-sm flex="20">
         <label>Search</label>
-        <input ng-model="$ctrl.searchTerm" ng-change="$ctrl.loadGroups()" />
+        <input ng-model="$ctrl.searchTerm" ng-change="$ctrl.loadGroups(1)" />
       </md-input-container>
 
       <md-table-container ng-if="$ctrl.groups.length > 0">
-        <table md-table ng-init="orderGrp = 'name'" class="gv-table-dense">
-          <thead md-head md-order="orderGrp">
+        <table md-table class="gv-table-dense">
+          <thead md-head>
             <tr md-row>
-              <th md-column width="30%" md-order-by="name">Name</th>
+              <th md-column width="30%">
+                Name
+                <md-icon ng-if="$ctrl.isSortingAsc" ng-click="$ctrl.toggleSort()">arrow_upward</md-icon>
+                <md-icon ng-if="!$ctrl.isSortingAsc" ng-click="$ctrl.toggleSort()">arrow_downward</md-icon>
+              </th>
               <th md-column width="30%" style="text-align: center">Associated to new API</th>
               <th md-column width="30%" style="text-align: center">Associated to new application</th>
               <th md-column width="10%"></th>
             </tr>
           </thead>
           <tbody md-body>
-            <tr md-row ng-repeat="group in $ctrl.groups | orderBy: orderGrp">
+            <tr md-row ng-repeat="group in $ctrl.groups">
               <td md-cell>
                 <a ng-click="$ctrl.selectGroupUrl(group)"> {{group.name}} </a>
                 <span ng-if="group.primary_owner" flex class="badge" style="background-color: #039be5">Primary Owner</span>

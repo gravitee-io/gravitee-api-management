@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.GroupCriteria;
@@ -28,7 +29,11 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface GroupRepository extends CrudRepository<Group, String> {
-    Page<Group> search(GroupCriteria groupCriteria, Pageable pageable);
+    default Page<Group> search(GroupCriteria criteria, Pageable pageable) {
+        return search(criteria, pageable, null);
+    }
+
+    Page<Group> search(GroupCriteria groupCriteria, Pageable pageable, Order.Direction orderDirection);
 
     Set<Group> findAllByEnvironment(String environmentId) throws TechnicalException;
 
