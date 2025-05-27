@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
@@ -40,7 +41,7 @@ public interface GroupService {
     void delete(ExecutionContext executionContext, String groupId);
     void deleteUserFromGroup(ExecutionContext executionContext, String groupId, String username);
     List<GroupEntity> findAll(ExecutionContext executionContext);
-    Page<GroupEntity> search(ExecutionContext executionContext, Pageable pageable, String query);
+    Page<GroupEntity> search(ExecutionContext executionContext, Pageable pageable, Order.Direction orderDirection, String query);
     List<GroupSimpleEntity> findAllByOrganization(String organizationId);
     GroupEntity findById(ExecutionContext executionContext, String groupId);
     Set<GroupEntity> findByIds(Set<String> groupIds);

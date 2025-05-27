@@ -23,6 +23,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -220,7 +221,12 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    public io.gravitee.common.data.domain.Page<GroupEntity> search(ExecutionContext executionContext, Pageable pageable, String query) {
+    public io.gravitee.common.data.domain.Page<GroupEntity> search(
+        ExecutionContext executionContext,
+        Pageable pageable,
+        Order.Direction orderDirection,
+        String query
+    ) {
         String environmentId = executionContext.getEnvironmentId();
         GroupCriteria.GroupCriteriaBuilder groupCriteriaBuilder = GroupCriteria.builder().environmentId(environmentId).query(query);
         if (
@@ -252,7 +258,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 groupCriteriaBuilder.idIn(groupIds);
             }
         }
-        io.gravitee.common.data.domain.Page<Group> groups = groupRepository.search(groupCriteriaBuilder.build(), convert(pageable));
+        io.gravitee.common.data.domain.Page<Group> groups = groupRepository.search(
+            groupCriteriaBuilder.build(),
+            convert(pageable),
+            orderDirection
+        );
         return groups.map(this::map);
     }
 
