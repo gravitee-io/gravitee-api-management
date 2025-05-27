@@ -43,6 +43,7 @@ const GroupsComponentAjs: ng.IComponentOptions = {
     ) {
       this.$rootScope = $rootScope;
       this.ngRouter = ngRouter;
+      this.isSortingAsc = true;
 
       this.$onInit = () => {
         GroupService.listPaginated().then((response) => {
@@ -52,8 +53,14 @@ const GroupsComponentAjs: ng.IComponentOptions = {
         this.canRemoveGroup = UserService.isUserHasPermissions(['environment-group-d']);
       };
 
-      this.loadGroups = () => {
-        GroupService.listPaginated(this.page.current, this.page.per_page, this.searchTerm ?? '').then((response) => {
+      this.toggleSort = function () {
+        this.isSortingAsc = !this.isSortingAsc;
+        this.loadGroups(1);
+      };
+
+      this.loadGroups = (pageNumber = this.page.current, perPage = this.page.per_page) => {
+        const sortOrder = this.isSortingAsc ? 'ASC' : 'DESC';
+        GroupService.listPaginated(pageNumber, perPage, sortOrder, this.searchTerm ?? '').then((response) => {
           this.groups = response.data.data;
           this.page = response.data.page;
         });
