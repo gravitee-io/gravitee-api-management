@@ -17,7 +17,7 @@
 -->
 <mat-card>
   <mat-card-header class="groups__card-header-with-btn">
-    <mat-card-title>Groups</mat-card-title>
+    <mat-card-title><h2>Groups</h2></mat-card-title>
     <button
       mat-raised-button
       [routerLink]="['.', 'new']"
@@ -54,14 +54,17 @@
           <td mat-cell *matCellDef="let row">
             <div>
               {{ row.name }}
+              @if (row.apiPrimaryOwner) {
+                <span class="gio-badge-primary" tooltip="Group has a member with API role primary owner">Primary Owner</span>
+              }
               @if (row.shouldAddToNewAPIs) {
-                <span class="gio-badge-primary" tooltip="Group will be automatically added to new applications"
+                <span class="gio-badge-warning" tooltip="Group will be automatically added to new applications"
                   >Automatically associated to APIs</span
                 >
               }
 
               @if (row.shouldAddToNewApplications) {
-                <span tooltip="Group will be automatically added to new APIs" class="gio-badge-primary"
+                <span tooltip="Group will be automatically added to new APIs" class="gio-badge-warning"
                   >Automatically associated to Applications</span
                 >
               }
@@ -78,7 +81,7 @@
             <button
               mat-button
               (click)="deleteGroup(row)"
-              [disabled]="deleteGroupDisabled"
+              [disabled]="protectedGroups.has(row.id)"
               matTooltip="Delete group"
               aria-hidden="false"
               aria-label="Click to delete group"
