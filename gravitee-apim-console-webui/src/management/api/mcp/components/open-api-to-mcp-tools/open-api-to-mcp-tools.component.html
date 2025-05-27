@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,12 +15,21 @@
     limitations under the License.
 
 -->
-<h5>Tool Definitions</h5>
-
-@for (tool of tools(); track $index) {
-  <div>
-    {{ tool | json }}
+<div class="open-api-to-mcp-tools__container">
+  <gio-monaco-editor [languageConfig]="languageOptions()" [formControl]="formControl" [disableMiniMap]="true" />
+  <div class="open-api-to-mcp-tools__container__tools">
+    <div class="open-api-to-mcp-tools__container__tools__list">
+      @for (tool of toolDefinitions; track $index) {
+        <tool-display [tool]="tool" />
+      } @empty {
+        <div class="open-api-to-mcp-tools__container__tools__empty">No tools are configured.</div>
+      }
+    </div>
   </div>
-} @empty {
-  <div>No tools are configured. Add tools by importing from an OpenAPI specification.</div>
+</div>
+
+@for (error of errorMessages; track $index) {
+  <div class="open-api-to-mcp-tools__error">
+    {{ error }}
+  </div>
 }
