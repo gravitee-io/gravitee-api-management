@@ -19,6 +19,7 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -245,7 +246,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
     }
 
     @Override
-    public Page<Group> search(GroupCriteria groupCriteria, Pageable pageable) {
+    public Page<Group> search(GroupCriteria groupCriteria, Pageable pageable, Order.Direction orderDirection) {
         String querySuffix = "";
         List<Object> countParams = new ArrayList<>();
 
@@ -267,7 +268,12 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         String countQuery = getOrm().getCountSql() + " WHERE 1=1" + querySuffix;
 
         String query = getOrm().getSelectAllSql() + " WHERE 1=1" + querySuffix;
-        query += " ORDER BY name " + createPagingClause(pageable.pageSize(), pageable.pageNumber());
+
+        query += " ORDER BY name ";
+        if (orderDirection != null && orderDirection == Order.Direction.DESC) {
+            query += "DESC ";
+        }
+        query += createPagingClause(pageable.pageSize(), pageable.pageNumber());
 
         PreparedStatementSetter preparedStatementSetter = (PreparedStatement ps) -> {
             int lastIndex = 1;
