@@ -15,15 +15,16 @@
  */
 import { Component, input } from '@angular/core';
 import { JsonPipe } from '@angular/common';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 import { MCPToolDefinition } from '../../../../../entities/entrypoint/mcp';
 
 @Component({
-  selector: 'tools-display',
-  imports: [JsonPipe],
-  templateUrl: './tools-display.component.html',
-  styleUrl: './tools-display.component.scss',
+  selector: 'tool-display',
+  imports: [JsonPipe, MatExpansionModule],
+  templateUrl: './tool-display.component.html',
+  styleUrl: './tool-display.component.scss',
 })
-export class ToolsDisplayComponent {
-  tools = input<MCPToolDefinition[]>([]);
+export class ToolDisplayComponent {
+  tool = input.required<MCPToolDefinition>();
 }
