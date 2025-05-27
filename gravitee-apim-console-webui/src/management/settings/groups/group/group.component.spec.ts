@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SearchableUser } from 'src/entities/user/searchableUser';
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -45,6 +44,7 @@ import { Role } from '../../../../entities/role/role';
 import { EnvironmentSettingsService } from '../../../../services-ngx/environment-settings.service';
 import { UsersService } from '../../../../services-ngx/users.service';
 import { GroupMembership, GroupMembershipMemberRoleEntity } from '../../../../entities/group/groupMember';
+import { SearchableUser } from '../../../../entities/user/searchableUser';
 
 describe('GroupComponent', () => {
   let fixture: ComponentFixture<GroupComponent>;
@@ -307,7 +307,7 @@ describe('GroupComponent', () => {
       const buttonHarness = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add Group To Existing APIs' }));
       await buttonHarness.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
-      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Add' }));
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Continue' }));
       await confirmButtonHarness.click();
       const req = httpTestingController.expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/memberships?type=api`,
@@ -325,7 +325,7 @@ describe('GroupComponent', () => {
       const buttonHarness = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add Group To Existing Applications' }));
       await buttonHarness.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
-      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Add' }));
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Continue' }));
       await confirmButtonHarness.click();
       const req = httpTestingController.expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/memberships?type=application`,
@@ -449,7 +449,7 @@ describe('GroupComponent', () => {
       const deleteButton = await cell.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Delete invitation"]' }));
       await deleteButton.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
-      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Delete' }));
+      const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Continue' }));
       await confirmButtonHarness.click();
       expectDeleteInvitation('1');
     });

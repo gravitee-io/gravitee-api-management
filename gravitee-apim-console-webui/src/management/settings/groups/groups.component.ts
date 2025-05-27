@@ -42,8 +42,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { BehaviorSubject, EMPTY, Observable, of, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { RoleName } from './group/membershipState';
-
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -118,7 +116,7 @@ export class GroupsComponent implements OnInit {
   filteredData: GroupsResponse[] = [];
   noOfRecords: number = 0;
   isLoading: boolean = false;
-  deleteGroupDisabled = false;
+  protectedGroups = new Set<string>();
   addGroupDisabled = false;
 
   private groups = new BehaviorSubject<Group[]>([]);
@@ -270,14 +268,10 @@ export class GroupsComponent implements OnInit {
   }
 
   private disableDeleteGroup() {
-    const groups = this.groups.value;
-    const isOnlyGroupWithAPIRolePrimaryOwner = groups.length === 1 && groups[0].roles.API === RoleName.PRIMARY_OWNER;
-    const canDeleteGroup = this.permissionService.hasAnyMatching(['environment-group-d']);
-
-    if (isOnlyGroupWithAPIRolePrimaryOwner) {
-      this.deleteGroupDisabled = true;
-    } else if (!canDeleteGroup) {
-      this.deleteGroupDisabled = true;
+    if (!this.permissionService.hasAnyMatching(['environment-group-d'])) {
+      this.protectedGroups = new Set(this.groups.value.map((group) => group.id));
+    } else {
+      this.protectedGroups = new Set(this.groups.value.filter((group) => group.apiPrimaryOwner).map((group) => group.id));
     }
   }
 

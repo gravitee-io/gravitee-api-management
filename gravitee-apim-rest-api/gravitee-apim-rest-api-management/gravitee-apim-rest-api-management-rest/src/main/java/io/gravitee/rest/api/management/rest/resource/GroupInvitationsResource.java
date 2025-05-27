@@ -155,7 +155,9 @@ public class GroupInvitationsResource extends AbstractResource {
             }
         }
 
-        // If there are multiple users holding the same email id, we send back the list of users to select one and send an invitation
+        /*If there is more than one user holding the same email id, we send back the list of users.
+        We can do the same for the case when one user is found with the given email. This will keep POST invitation dedicated to sending
+        invitations for external emails, and we can get rid of adding members in invitation service - looks clean.*/
         List<UserEntity> userEntities = userService.findByEmail(executionContext, invitationEntity.getEmail());
 
         if (CollectionUtils.isNotEmpty(userEntities) && userEntities.size() > 1) {

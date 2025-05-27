@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -147,7 +146,7 @@ describe('GroupsComponent', () => {
 
     it('should not delete when API role is primary owner', async () => {
       expectGetGroupsList(
-        fakePagedResult([{ id: '1', name: 'Group 1', manageable: true, roles: { API: 'PRIMARY_OWNER' } }], {
+        fakePagedResult([{ id: '1', name: 'Group 1', manageable: true, roles: { API: 'PRIMARY_OWNER' }, apiPrimaryOwner: true }], {
           current: 1,
           per_page: 10,
           size: 2,
