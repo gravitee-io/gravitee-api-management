@@ -114,7 +114,7 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
             (this.policyDocumentation = {
               id: policy.id,
               image: policy.icon,
-              content: documentation,
+              content: documentation.content,
             }),
         ),
       )

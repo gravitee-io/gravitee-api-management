@@ -17,7 +17,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 import { Constants } from '../../../entities/Constants';
 import { FlowSchema } from '../../../entities/flow/flowSchema';
@@ -66,11 +65,7 @@ export class OrgSettingsPlatformPoliciesService {
   }
 
   getDocumentation(policyId: string): Observable<PolicyDocumentation> {
-    return this.http
-      .get(`${this.constants.env.baseURL}/policies/${policyId}/documentation`, {
-        responseType: 'text',
-      })
-      .pipe(map((buffer) => buffer.toString()));
+    return this.http.get<PolicyDocumentation>(`${this.constants.env.baseURL}/policies/${policyId}/documentation-ext`);
   }
 
   getFlowSchemaForm(): Observable<FlowSchema> {

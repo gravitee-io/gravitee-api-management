@@ -19,7 +19,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { PolicyDocumentation, PolicyListItem, PolicySchema } from '../../../../entities/policy';
+import { PolicyListItem, PolicySchema } from '../../../../entities/policy';
 import { FlowSchema } from '../../../../entities/flow/flowSchema';
 import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
 import { ApiService } from '../../../../services-ngx/api.service';
@@ -64,8 +64,12 @@ export class PolicyStudioDesignService {
     return this.http.get<PolicySchema>(`${this.constants.env.baseURL}/policies/${policyId}/schema`);
   }
 
-  getDocumentation(policyId: string): Observable<PolicyDocumentation> {
-    return this.http.get(`${this.constants.env.baseURL}/policies/${policyId}/documentation`).pipe(map((buffer) => buffer.toString()));
+  getDocumentation(policyId: string): Observable<string> {
+    return this.http
+      .get(`${this.constants.env.baseURL}/policies/${policyId}/documentation`, {
+        responseType: 'text',
+      })
+      .pipe(map((buffer) => buffer.toString()));
   }
 
   getFlowSchemaForm(): Observable<FlowSchema> {
