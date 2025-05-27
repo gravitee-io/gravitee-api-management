@@ -1604,6 +1604,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>io.gravitee.policy</groupId>
+                    <artifactId>gravitee-policy-ai-prompt-token-tracking</artifactId>
+                    <version>${gravitee-policy-ai-prompt-token-tracking.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
             </dependencies>
         </profile>
         <!-- Developer profile, to add all available plugins not already added in default bundle. Useful to deploy on our dev & test environments-->

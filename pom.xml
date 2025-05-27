@@ -272,6 +272,7 @@
         <gravitee-resource-oauth2-provider-keycloak.version>2.1.0</gravitee-resource-oauth2-provider-keycloak.version>
         <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
         <gravitee-secretprovider-kubernetes.version>2.0.0</gravitee-secretprovider-kubernetes.version>
+        <gravitee-policy-ai-prompt-token-tracking.version>1.0.0-alpha.1</gravitee-policy-ai-prompt-token-tracking.version>
 
         <!-- Enterprise plugins -->
         <gravitee-entrypoint-http-get.version>2.1.0</gravitee-entrypoint-http-get.version>
