@@ -17,8 +17,11 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.UserCriteria;
@@ -70,7 +73,7 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("Invalid saved user status.", user.getStatus(), userFound.getStatus());
         assertEquals("Invalid saved user login count.", user.getLoginCount(), userFound.getLoginCount());
         assertEquals("Invalid saved user first connection at.", user.getFirstConnectionAt(), userFound.getFirstConnectionAt());
-        assertEquals("Invalid saved user newsletter.", false, user.getNewsletterSubscribed());
+        assertEquals("Invalid saved user newsletter.", user.getNewsletterSubscribed(), false);
     }
 
     @Test
