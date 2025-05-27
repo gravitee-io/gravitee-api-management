@@ -65,10 +65,10 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Value("${http.api.management.entrypoint:${http.api.entrypoint:/}management}")
     private String managementEntrypoint;
 
-    @Value("${http.api.management.enabled:true}")
+    @Value("${http.api.automation.enabled:true}")
     private boolean startAutomationAPI;
 
-    @Value("${http.api.management.entrypoint:${http.api.entrypoint:/}automation}")
+    @Value("${http.api.automation.entrypoint:${http.api.entrypoint:/}automation}")
     private String automationEntrypoint;
 
     @Value("${http.api.portal.enabled:true}")
