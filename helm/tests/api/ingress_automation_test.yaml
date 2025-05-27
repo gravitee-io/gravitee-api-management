@@ -1,0 +1,187 @@
+suite: Test Automation API - Ingress
+templates:
+  - "api/api-ingress-automation.yaml"
+tests:
+  - it: Check Ingress extensions/v1beta1
+    set:
+      global:
+        kubeVersion: 1.13.0
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: extensions/v1beta1
+      - notExists:
+          path: spec.ingressClassName
+
+  - it: Check Ingress networking.k8s.io/v1beta1
+    set:
+      global:
+        kubeVersion: 1.15.0
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - notExists:
+          path: spec.ingressClassName
+
+  - it: Check Ingress networking.k8s.io/v1 without IngressClassName
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - notExists:
+          path: spec.ingressClassName
+
+  - it: Check Ingress networking.k8s.io/v1 with IngressClassName
+    set:
+      api:
+        ingress:
+          automation:
+            ingressClassName: nginx
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+
+  - it: Check Ingress networking.k8s.io/v1 with IngressClassName as none
+    set:
+      api:
+        ingress:
+          automation:
+            ingressClassName: none
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - notExists:
+          path: spec.ingressClassName
+
+  - it: Check Ingress pathType and path
+    set:
+      api:
+        ingress:
+          automation:
+            pathType: Exact
+            path: /test-automation
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Exact
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /test-automation
+
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Check Ingress host with wildcard
+    set:
+      api:
+        ingress:
+          automation:
+            hosts:
+              - "*.apim.example.com"
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: "*.apim.example.com"
+
+  - it: Check Ingress annotations with nginx ingress class
+    set:
+      api:
+        ingress:
+          automation:
+            annotations:
+              kubernetes.io/ingress.class: nginx
+              my-annotation: my-annotation-value
+              nginx.ingress.kubernetes.io/rewrite-target: /$1
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - notExists:
+          path: spec.ingressClassName
+      - isNotEmpty:
+          path: metadata.annotations["kubernetes.io/ingress.class"]
+      - isNotEmpty:
+          path: metadata.annotations["my-annotation"]
+      - isNotEmpty:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"]
+
+  - it: Check Ingress annotations with nginx-internal ingress class
+    set:
+      api:
+        ingress:
+          automation:
+            annotations:
+              kubernetes.io/ingress.class: nginx-internal
+              my-annotation: my-annotation-value
+              nginx.ingress.kubernetes.io/rewrite-target: /$1
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - notExists:
+          path: spec.ingressClassName
+      - isNotEmpty:
+          path: metadata.annotations["kubernetes.io/ingress.class"]
+      - isNotEmpty:
+          path: metadata.annotations["my-annotation"]
+      - isNotEmpty:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"]
+
+  - it: Check Ingress annotations with other ingress class
+    set:
+      api:
+        ingress:
+          automation:
+            annotations:
+              kubernetes.io/ingress.class: other
+              my-annotation: my-annotation-value
+              nginx.ingress.kubernetes.io/rewrite-target: /$1
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - notExists:
+          path: spec.ingressClassName
+      - isNotEmpty:
+          path: metadata.annotations["kubernetes.io/ingress.class"]
+      - isNotEmpty:
+          path: metadata.annotations["my-annotation"]
+      - notExists:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"]
