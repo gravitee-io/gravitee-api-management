@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import static io.gravitee.repository.mongodb.utils.CollectionUtils.stream;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
@@ -133,7 +134,7 @@ public class MongoGroupRepository implements GroupRepository {
     }
 
     @Override
-    public Page<Group> search(GroupCriteria groupCriteria, Pageable pageable) {
+    public Page<Group> search(GroupCriteria groupCriteria, Pageable pageable, Order.Direction orderDirection) {
         Query query = new Query();
 
         if (groupCriteria != null) {
@@ -148,13 +149,15 @@ public class MongoGroupRepository implements GroupRepository {
             }
         }
 
-        org.springframework.data.domain.Pageable dbPageable = PageRequest.of(
-            pageable.pageNumber(),
-            pageable.pageSize(),
-            Sort.by(Sort.Order.asc("name"))
-        );
-
         long total = mongoTemplate.count(Query.of(query), GroupMongo.class);
+
+        Sort.Direction sortDirection = Sort.Direction.ASC;
+        if (orderDirection != null && orderDirection == Order.Direction.DESC) {
+            sortDirection = Sort.Direction.DESC;
+        }
+        Sort sort = Sort.by(sortDirection, "name");
+
+        org.springframework.data.domain.Pageable dbPageable = PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sort);
 
         query = query.with(dbPageable).collation(Collation.of(Locale.ENGLISH).strength(Collation.ComparisonLevel.secondary()));
         List<Group> groups = mongoTemplate.find(query, GroupMongo.class).stream().map(mapper::map).toList();
