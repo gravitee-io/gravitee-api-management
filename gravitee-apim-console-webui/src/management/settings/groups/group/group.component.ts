@@ -616,9 +616,9 @@ export class GroupComponent implements OnInit {
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         data: {
           title: 'Delete Invitation',
-          content: `Are you sure you want to delete an invitation sent to ${email}?`,
-          confirmButton: 'Delete',
-          cancelButton: 'No',
+          content: `You are trying to delete an invitation sent to ${email}. Do you want to continue?`,
+          confirmButton: 'Continue',
+          cancelButton: 'Cancel',
         },
         role: 'alertdialog',
         id: 'deleteInvitationDialog',
@@ -651,9 +651,9 @@ export class GroupComponent implements OnInit {
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         data: {
           title: 'Add group to existing APIs',
-          content: `Are you sure you want to add the group to all existing APIs?`,
-          confirmButton: 'Add',
-          cancelButton: 'No',
+          content: `You are trying to add the group to all the existing APIs. Do you want to continue?`,
+          confirmButton: 'Continue',
+          cancelButton: 'Cancel',
         },
         role: 'alertdialog',
         id: 'confirmDialog',
@@ -683,9 +683,9 @@ export class GroupComponent implements OnInit {
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         data: {
           title: 'Add group to existing applications',
-          content: `Are you sure you want to add the group to all existing applications?`,
-          confirmButton: 'Add',
-          cancelButton: 'No',
+          content: `You are trying to add the group to all the existing applications. Do you want to continue?`,
+          confirmButton: 'Continue',
+          cancelButton: 'Cancel',
         },
         role: 'alertdialog',
         id: 'confirmDialog',
