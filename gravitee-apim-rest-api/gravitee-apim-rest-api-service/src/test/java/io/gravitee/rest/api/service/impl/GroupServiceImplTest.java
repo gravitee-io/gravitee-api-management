@@ -119,9 +119,9 @@ public class GroupServiceImplTest {
             .build();
         List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
         Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 13);
-        when(groupRepository.search(groupCriteria, convert(pageable))).thenReturn(groupsPage);
+        when(groupRepository.search(groupCriteria, convert(pageable), null)).thenReturn(groupsPage);
 
-        Page<GroupEntity> searchResult = service.search(executionContext, pageable, "test");
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, null, "test");
 
         assertAll(
             () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
@@ -154,11 +154,11 @@ public class GroupServiceImplTest {
         GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
         List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
         Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 13);
-        when(groupRepository.search(groupCriteria, convert(pageable))).thenReturn(groupsPage);
+        when(groupRepository.search(groupCriteria, convert(pageable), null)).thenReturn(groupsPage);
 
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
 
-        Page<GroupEntity> searchResult = service.search(executionContext, pageable, "test");
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, null, "test");
 
         assertAll(
             () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
