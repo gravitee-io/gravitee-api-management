@@ -232,7 +232,7 @@
         <gravitee-policy-xml-validation.version>1.2.1</gravitee-policy-xml-validation.version>
         <gravitee-policy-xslt.version>3.1.1</gravitee-policy-xslt.version>
         <gravitee-policy-wssecurity-authentication.version>2.0.2</gravitee-policy-wssecurity-authentication.version>
-        <gravitee-policy-http-redirect.version>1.0.0</gravitee-policy-http-redirect.version>
+        <gravitee-policy-http-redirect.version>1.0.1</gravitee-policy-http-redirect.version>
 
         <gravitee-resource-cache.version>3.0.0</gravitee-resource-cache.version>
         <gravitee-resource-oauth2-provider-am.version>3.0.0</gravitee-resource-oauth2-provider-am.version>
