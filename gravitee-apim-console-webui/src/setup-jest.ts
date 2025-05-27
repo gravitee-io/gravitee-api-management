@@ -26,6 +26,19 @@ jest.mock('swagger-ui', () => jest.fn());
 // This means we will not be able to test Asciidoctor in our components tests
 jest.mock('@asciidoctor/core', () => jest.fn());
 
+// mocking openapi-parser for tests
+jest.mock('@scalar/openapi-parser', () => {
+  const mockDereference = jest.fn().mockImplementation(async (spec) => ({
+    schema: spec,
+  }));
+  const mockValidate = jest.fn().mockImplementation(async () => true);
+
+  return {
+    dereference: mockDereference,
+    validate: mockValidate,
+  };
+});
+
 // Mocking the Range object to avoid errors in tests (policy-studio-debug.component.spec.ts)
 document.createRange = () => {
   const range = new Range();
