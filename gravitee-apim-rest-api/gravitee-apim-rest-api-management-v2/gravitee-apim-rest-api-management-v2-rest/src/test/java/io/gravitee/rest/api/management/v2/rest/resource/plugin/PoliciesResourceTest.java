@@ -44,9 +44,12 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PoliciesResourceTest extends AbstractResourceTest {
 
     @Override
@@ -71,7 +74,7 @@ class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void shouldReturnSortedPolicies() {
+    void should_return_sorted_policies() {
         policyPluginQueryServiceInMemory.initWith(
             List.of(
                 io.gravitee.apim.core.plugin.model.PolicyPlugin
@@ -149,7 +152,7 @@ class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void shouldGetPolicySchema() {
+    void should_get_policy_schema() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");
@@ -167,7 +170,7 @@ class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void shouldGetPolicySchemaWithDisplay() {
+    void should_get_policy_schema_with_display() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");
@@ -201,7 +204,7 @@ class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void shouldNotGetPolicySchemaWhenPluginNotFound() {
+    void should_not_get_policy_schema_when_plugin_not_found() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");
@@ -225,7 +228,7 @@ class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void shouldGetPolicyDocumentation() {
+    void should_get_policy_documentation() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");
@@ -279,7 +282,7 @@ class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void shouldNotGetPolicyDocumentationWhenPluginNotFound() {
+    void should_not_get_policy_documentation_when_plugin_not_found() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");
@@ -304,7 +307,7 @@ class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void shouldGetPolicyById() {
+    void should_get_policy_by_id() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");

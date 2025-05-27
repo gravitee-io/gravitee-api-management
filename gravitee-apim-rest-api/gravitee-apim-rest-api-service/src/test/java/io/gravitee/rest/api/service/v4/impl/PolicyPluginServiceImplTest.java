@@ -213,9 +213,11 @@ public class PolicyPluginServiceImplTest {
 
     @Test
     public void should_get_documentation_with_ApiProtocolType() throws IOException {
-        when(pluginManager.getDocumentation("my-policy", "native_kafka.documentation", true, true)).thenReturn("documentation");
+        when(pluginManager.getPluginDocumentation("my-policy", "native_kafka.documentation", true, true))
+            .thenReturn(new PluginDocumentation("documentation", PluginDocumentation.Language.ASCIIDOC));
 
         PluginDocumentation documentation = cut.getDocumentation("my-policy", ApiProtocolType.NATIVE_KAFKA);
         assertEquals("documentation", documentation.content());
+        assertEquals(PluginDocumentation.Language.ASCIIDOC, documentation.language());
     }
 }
