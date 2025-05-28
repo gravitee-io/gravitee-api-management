@@ -667,7 +667,7 @@ public class ApisResource extends AbstractResource {
         }
 
         // Issue https://github.com/gravitee-io/issues/issues/3356
-        if (api.getProxy().getVirtualHosts() != null && !api.getProxy().getVirtualHosts().isEmpty()) {
+        if (api.getProxy() != null && api.getProxy().getVirtualHosts() != null && !api.getProxy().getVirtualHosts().isEmpty()) {
             apiItem.setContextPath(api.getProxy().getVirtualHosts().get(0).getPath());
         }
 
