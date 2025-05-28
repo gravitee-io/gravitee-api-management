@@ -75,8 +75,8 @@ export class ApiV2Service {
     );
   }
 
-  delete(apiId: string, closePlan = false): Observable<void> {
-    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}${closePlan ? '?closePlan=true' : ''}`);
+  delete(apiId: string, closePlans = false): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}${closePlans ? '?closePlans=true' : ''}`);
   }
 
   start(apiId: string): Observable<void> {

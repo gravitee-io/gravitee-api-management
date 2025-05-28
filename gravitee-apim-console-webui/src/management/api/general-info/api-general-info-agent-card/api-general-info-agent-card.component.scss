@@ -1,0 +1,216 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+@use '../../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.federated-agent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.capabilities {
+  &__header {
+    gap: 5px;
+    border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  }
+
+  &__items {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: row;
+    column-gap: 1em;
+  }
+}
+
+.security_scheme {
+  &__header {
+    gap: 5px;
+    border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  }
+
+  &__card {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  &__row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__prop {
+    min-width: 160px;
+    font-weight: 600;
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker60');
+    margin-right: 1rem;
+  }
+
+  &__value {
+    font-weight: 500;
+    color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker80');
+    flex: 1;
+    white-space: pre-wrap;
+  }
+}
+
+.integration_link {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+
+  &__text {
+    opacity: 0.7;
+    text-decoration: none;
+  }
+
+  &__text:hover {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  &__icon {
+    opacity: 0.5;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.federation_agent_basic_info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-bottom: 15px;
+
+  &__description {
+    opacity: 0.7;
+  }
+}
+
+.federated_agent_skill {
+  display: flex;
+  flex-direction: row;
+
+  &__icon {
+    border: 5px;
+    width: 24px;
+    height: 24px;
+  }
+
+  &__overview {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.border-right {
+  padding-right: 20px;
+  border-right: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+}
+
+.head-card {
+  display: grid;
+  grid-template-columns: 1fr fit-content(15em);
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    text-align: right;
+  }
+}
+
+.skills-header {
+  gap: 5px;
+  border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+}
+
+.skills-list {
+  margin-top: 16px;
+}
+
+.skill-panel {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  .mat-expansion-panel-header {
+    padding: 1.25rem 1.5rem;
+    min-height: 100px;
+
+    .skill-panel__header {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      width: 100%;
+
+      &-icon {
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+        box-sizing: border-box;
+        flex-shrink: 0;
+      }
+
+      &-text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        &-title {
+          font-size: 14px;
+          font-weight: 700;
+          line-height: 1.2;
+          white-space: normal;
+        }
+
+        &-description {
+          font-size: 12px;
+          line-height: 1.4;
+          opacity: 0.7;
+          white-space: normal;
+        }
+      }
+    }
+  }
+
+  .mat-expansion-panel-content {
+    padding: 1rem 1.5rem;
+    font-size: 13px;
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 10px;
+  }
+
+  &__examples {
+    margin-top: 20px;
+
+    .example-line {
+      margin: 0 0 6px 0;
+      font-size: 13px;
+      opacity: 0.7;
+    }
+  }
+}

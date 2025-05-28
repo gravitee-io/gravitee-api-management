@@ -17,4 +17,4 @@
 /**
  * API's gravitee definition version.
  */
-export type DefinitionVersion = 'V1' | 'V2' | 'V4' | 'FEDERATED';
+export type DefinitionVersion = 'V1' | 'V2' | 'V4' | 'FEDERATED' | 'FEDERATED_AGENT';

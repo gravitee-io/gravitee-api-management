@@ -76,7 +76,7 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
               api,
               entrypointsSupportingCors.map((entrypoint) => entrypoint.id),
             );
-          } else if (api.definitionVersion !== 'FEDERATED') {
+          } else if (api.definitionVersion !== 'FEDERATED' && api.definitionVersion !== 'FEDERATED_AGENT') {
             this.hasEntrypointsSupportingCors = true;
             cors = api.proxy?.cors ?? {
               enabled: false,

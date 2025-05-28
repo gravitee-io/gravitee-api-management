@@ -15,128 +15,141 @@
     limitations under the License.
 
 -->
+@if (api && api.definitionVersion === 'FEDERATED_AGENT') {
+  <api-general-info-agent-card
+    [api]="api"
+    [integrationId]="integrationId"
+    [integrationName]="integrationName"
+  ></api-general-info-agent-card>
+}
 <form *ngIf="apiDetailsForm" [formGroup]="parentForm" autocomplete="off" gioFormFocusInvalid>
   <mat-card class="details-card" [formGroup]="apiDetailsForm">
-    <mat-card-content>
-      <div class="details-card__header">
-        <div class="details-card__header__info-inputs">
-          <div class="details-card__header__info-inputs__first-row">
-            <mat-form-field class="details-card__header__info-inputs__first-row__name-field">
-              <mat-label>Name</mat-label>
-              <input #apiName matInput formControlName="name" data-testid="api_info_namefield" required />
-              @if (apiDetailsForm.controls.name.hasError('required')) {
-                <mat-error>Name is required.</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field class="details-card__header__info-inputs__first-row__version-field">
-              <mat-label>Version</mat-label>
-              <input #apiVersion matInput formControlName="version" data-testid="api_info_versionfield" required maxlength="32" />
-              @if (apiDetailsForm.controls.version.hasError('required')) {
-                <mat-error>Version is required.</mat-error>
-              }
-              @if (apiDetailsForm.controls.version.hasError('version')) {
-                <mat-error>{{ apiDetailsForm.controls.version.getError('version') }}</mat-error>
-              }
-            </mat-form-field>
-          </div>
-          <div class="details-card__header__info-inputs__second-row">
-            <mat-form-field class="details-card__header__info-inputs__second-row__description-field">
-              <mat-label>Description</mat-label>
-              <textarea matInput formControlName="description" data-testid="api_info_descriptionfield"></textarea>
-            </mat-form-field>
-
-            <mat-form-field class="details-card__header__info-inputs__second-row__labels-field">
-              <mat-label>Labels</mat-label>
-              <gio-form-tags-input
-                formControlName="labels"
-                data-testid="api_info_labelsfield"
-                [addOnBlur]="false"
-                [autocompleteOptions]="labelsAutocompleteOptions"
-              />
-            </mat-form-field>
-
-            <mat-form-field class="details-card__header__info-inputs__second-row__categories-field">
-              <mat-label>Categories</mat-label>
-              <mat-select formControlName="categories" data-testid="api_info_categoriesdropdown" multiple>
-                @for (category of apiCategories; track category) {
-                  <mat-option [value]="category.key">
-                    {{ category.name }}
-                    @if (category.description) {
-                      <em>- {{ category.description }}</em>
-                    }
-                  </mat-option>
-                } @empty {
-                  <mat-option data-testid="api_info_categorieslist-unavailable" disabled> No categories available </mat-option>
+    @if (api.definitionVersion !== 'FEDERATED_AGENT') {
+      <mat-card-content>
+        <div class="details-card__header">
+          <div class="details-card__header__info-inputs">
+            <div class="details-card__header__info-inputs__first-row">
+              <mat-form-field class="details-card__header__info-inputs__first-row__name-field">
+                <mat-label>Name</mat-label>
+                <input #apiName matInput formControlName="name" data-testid="api_info_namefield" required />
+                @if (apiDetailsForm.controls.name.hasError('required')) {
+                  <mat-error>Name is required.</mat-error>
                 }
-              </mat-select>
-            </mat-form-field>
+              </mat-form-field>
 
-            @if (canDisplayV4EmulationEngineToggle) {
-              <gio-form-slide-toggle class="details-card__header__info-inputs__second-row__emulate-v4-engine-field">
-                Emulate v4 engine
-                <mat-slide-toggle
-                  gioFormSlideToggle
-                  formControlName="emulateV4Engine"
-                  aria-label="Emulate v4 engine"
-                  name="emulateV4Engine"
+              <mat-form-field class="details-card__header__info-inputs__first-row__version-field">
+                <mat-label>Version</mat-label>
+                <input #apiVersion matInput formControlName="version" data-testid="api_info_versionfield" required maxlength="32" />
+                @if (apiDetailsForm.controls.version.hasError('required')) {
+                  <mat-error>Version is required.</mat-error>
+                }
+                @if (apiDetailsForm.controls.version.hasError('version')) {
+                  <mat-error>{{ apiDetailsForm.controls.version.getError('version') }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
+            <div class="details-card__header__info-inputs__second-row">
+              <mat-form-field class="details-card__header__info-inputs__second-row__description-field">
+                <mat-label>Description</mat-label>
+                <textarea matInput formControlName="description" data-testid="api_info_descriptionfield"></textarea>
+              </mat-form-field>
+
+              <mat-form-field class="details-card__header__info-inputs__second-row__labels-field">
+                <mat-label>Labels</mat-label>
+                <gio-form-tags-input
+                  formControlName="labels"
+                  data-testid="api_info_labelsfield"
+                  [addOnBlur]="false"
+                  [autocompleteOptions]="labelsAutocompleteOptions"
                 />
-              </gio-form-slide-toggle>
-            }
-          </div>
-        </div>
-        <div class="details-card__header__right-coll">
-          <div class="details-card__header__right-coll__media" [formGroup]="apiImagesForm">
-            <gio-form-file-picker class="details-card__header__right-coll__media__picture" formControlName="picture" accept="image/*">
-              <gio-form-file-picker-label>API picture</gio-form-file-picker-label>
-              <gio-form-file-picker-add-button class="details-card__header__right-coll__media__picture__btn">
-                <span class="details-card__header__right-coll__media__picture__btn__text">
-                  Click here or drag an image <br />Max 500KB</span
-                >
-                <gio-avatar
-                  class="details-card__header__right-coll__media__picture__btn__default-avatar"
-                  [size]="108"
-                  [name]="apiName.value + ' ' + apiVersion.value"
-                />
-              </gio-form-file-picker-add-button>
-              <gio-form-file-picker-empty>
-                <gio-avatar [size]="108" [name]="apiName.value + ' ' + apiVersion.value" />
-              </gio-form-file-picker-empty>
-            </gio-form-file-picker>
-            <gio-form-file-picker class="details-card__header__right-coll__media__background" formControlName="background" accept="image/*">
-              <gio-form-file-picker-label>API background</gio-form-file-picker-label>
-              <gio-form-file-picker-add-button class="details-card__header__right-coll__media__background__btn">
-                <span class="details-card__header__right-coll__media__background__btn__text">
-                  Click here or drag an image <br />Max 500KB</span
-                >
-              </gio-form-file-picker-add-button>
-              <gio-form-file-picker-empty><span>No background defined</span></gio-form-file-picker-empty>
-            </gio-form-file-picker>
-          </div>
+              </mat-form-field>
 
-          <div class="details-card__header__right-coll__info">
-            <dl class="gio-description-list">
-              <dt>Owner</dt>
-              <dd gioClipboardCopyWrapper [contentToCopy]="apiOwner">{{ apiOwner }}</dd>
+              <mat-form-field class="details-card__header__info-inputs__second-row__categories-field">
+                <mat-label>Categories</mat-label>
+                <mat-select formControlName="categories" data-testid="api_info_categoriesdropdown" multiple>
+                  @for (category of apiCategories; track category) {
+                    <mat-option [value]="category.key">
+                      {{ category.name }}
+                      @if (category.description) {
+                        <em>- {{ category.description }}</em>
+                      }
+                    </mat-option>
+                  } @empty {
+                    <mat-option data-testid="api_info_categorieslist-unavailable" disabled> No categories available </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
 
-              <dt>Created</dt>
-              <dd>{{ apiCreatedAt | date: 'medium' }}</dd>
-
-              @if (integrationId) {
-                <dt>From integration</dt>
-                <dd>
-                  <a [routerLink]="'../../integrations/' + integrationId"> {{ integrationName }}</a>
-                </dd>
+              @if (canDisplayV4EmulationEngineToggle) {
+                <gio-form-slide-toggle class="details-card__header__info-inputs__second-row__emulate-v4-engine-field">
+                  Emulate v4 engine
+                  <mat-slide-toggle
+                    gioFormSlideToggle
+                    formControlName="emulateV4Engine"
+                    aria-label="Emulate v4 engine"
+                    name="emulateV4Engine"
+                  />
+                </gio-form-slide-toggle>
               }
+            </div>
+          </div>
+          <div class="details-card__header__right-coll">
+            <div class="details-card__header__right-coll__media" [formGroup]="apiImagesForm">
+              <gio-form-file-picker class="details-card__header__right-coll__media__picture" formControlName="picture" accept="image/*">
+                <gio-form-file-picker-label>API picture</gio-form-file-picker-label>
+                <gio-form-file-picker-add-button class="details-card__header__right-coll__media__picture__btn">
+                  <span class="details-card__header__right-coll__media__picture__btn__text">
+                    Click here or drag an image <br />Max 500KB</span
+                  >
+                  <gio-avatar
+                    class="details-card__header__right-coll__media__picture__btn__default-avatar"
+                    [size]="108"
+                    [name]="apiName.value + ' ' + apiVersion.value"
+                  />
+                </gio-form-file-picker-add-button>
+                <gio-form-file-picker-empty>
+                  <gio-avatar [size]="108" [name]="apiName.value + ' ' + apiVersion.value" />
+                </gio-form-file-picker-empty>
+              </gio-form-file-picker>
+              <gio-form-file-picker
+                class="details-card__header__right-coll__media__background"
+                formControlName="background"
+                accept="image/*"
+              >
+                <gio-form-file-picker-label>API background</gio-form-file-picker-label>
+                <gio-form-file-picker-add-button class="details-card__header__right-coll__media__background__btn">
+                  <span class="details-card__header__right-coll__media__background__btn__text">
+                    Click here or drag an image <br />Max 500KB</span
+                  >
+                </gio-form-file-picker-add-button>
+                <gio-form-file-picker-empty><span>No background defined</span></gio-form-file-picker-empty>
+              </gio-form-file-picker>
+            </div>
 
-              <dt>Last connection</dt>
-              <dd>{{ apiLastDeploymentAt | date: 'medium' }}</dd>
-            </dl>
+            <div class="details-card__header__right-coll__info">
+              <dl class="gio-description-list">
+                <dt>Owner</dt>
+                <dd gioClipboardCopyWrapper [contentToCopy]="apiOwner">{{ apiOwner }}</dd>
+
+                <dt>Created</dt>
+                <dd>{{ apiCreatedAt | date: 'medium' }}</dd>
+
+                @if (integrationId) {
+                  <dt>From integration</dt>
+                  <dd>
+                    <a [routerLink]="'../../integrations/' + integrationId"> {{ integrationName }}</a>
+                  </dd>
+                }
+
+                <dt>Last connection</dt>
+                <dd>{{ apiLastDeploymentAt | date: 'medium' }}</dd>
+              </dl>
+            </div>
           </div>
         </div>
-      </div>
-    </mat-card-content>
-    @if (api.definitionVersion !== 'FEDERATED') {
+      </mat-card-content>
+    }
+    @if (api.definitionVersion !== 'FEDERATED' && api.definitionVersion !== 'FEDERATED_AGENT') {
       <mat-card-actions class="details-card__actions">
         <button
           *gioPermission="{ anyOf: ['api-definition-r'] }"
@@ -145,7 +158,8 @@
           data-testid="api_info_export_menu"
           (click)="exportApi()"
         >
-          <mat-icon svgIcon="gio:upload" /> Export
+          <mat-icon svgIcon="gio:upload" />
+          Export
         </button>
         <button
           *gioPermission="{ anyOf: ['api-definition-c'] }"
@@ -154,7 +168,8 @@
           [disabled]="isKubernetesOrigin || api.definitionVersion === 'V4' || api.definitionVersion === 'V1'"
           (click)="importApi()"
         >
-          <mat-icon svgIcon="gio:download" /> Import
+          <mat-icon svgIcon="gio:download" />
+          Import
         </button>
         <button
           *gioPermission="{ anyOf: ['api-definition-c'] }"
@@ -164,7 +179,8 @@
           data-testid="api_info_duplicate_menu"
           (click)="duplicateApi()"
         >
-          <mat-icon svgIcon="gio:copy" /> Duplicate
+          <mat-icon svgIcon="gio:copy" />
+          Duplicate
         </button>
         <button
           *gioPermission="{ anyOf: ['api-definition-u'] }"
@@ -174,7 +190,8 @@
           data-testid="api_info_promote"
           (click)="promoteApi()"
         >
-          <mat-icon svgIcon="gio:language" /> Promote
+          <mat-icon svgIcon="gio:language" />
+          Promote
         </button>
       </mat-card-actions>
     }
