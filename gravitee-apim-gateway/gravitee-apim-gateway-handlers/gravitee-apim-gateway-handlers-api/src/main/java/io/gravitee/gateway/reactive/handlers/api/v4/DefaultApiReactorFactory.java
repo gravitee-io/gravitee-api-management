@@ -94,7 +94,6 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
     protected final FlowResolverFactory v4FlowResolverFactory;
     protected final RequestTimeoutConfiguration requestTimeoutConfiguration;
     protected final ReporterService reporterService;
-    protected final DictionaryManager dictionaryManager;
     private final Logger logger = LoggerFactory.getLogger(DefaultApiReactorFactory.class);
 
     public DefaultApiReactorFactory(
@@ -117,7 +116,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final List<InstrumenterTracerFactory> instrumenterTracerFactories,
         final DictionaryManager dictionaryManager
     ) {
-        super(applicationContext, policyFactoryManager, configuration);
+        super(applicationContext, policyFactoryManager, configuration, dictionaryManager);
         this.node = node;
         this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
@@ -134,7 +133,6 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         this.reporterService = reporterService;
         this.openTelemetryFactory = openTelemetryFactory;
         this.instrumenterTracerFactories = instrumenterTracerFactories;
-        this.dictionaryManager = dictionaryManager;
     }
 
     // FIXME: this constructor is here to keep compatibility with Message Reactor plugin. it will be deleted when Message Reactor has been updated
@@ -158,7 +156,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final List<InstrumenterTracerFactory> instrumenterTracerFactories,
         final DictionaryManager dictionaryManager
     ) {
-        super(applicationContext, new PolicyFactoryManager(new HashSet<>(Set.of(policyFactory))), configuration);
+        super(applicationContext, new PolicyFactoryManager(new HashSet<>(Set.of(policyFactory))), configuration, dictionaryManager);
         this.node = node;
         this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
@@ -172,7 +170,6 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = flowResolverFactory();
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
-        this.dictionaryManager = dictionaryManager;
         this.reporterService = reporterService;
         this.openTelemetryFactory = openTelemetryFactory;
         this.instrumenterTracerFactories = instrumenterTracerFactories;
@@ -349,7 +346,6 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
 
     private List<TemplateVariableProvider> ctxTemplateVariableProviders(Api api) {
         final List<TemplateVariableProvider> requestTemplateVariableProviders = commonTemplateVariableProviders(api);
-        requestTemplateVariableProviders.add(dictionaryManager.createTemplateVariableProvider(api.getEnvironmentId()));
         if (api.getDefinition().getType() == ApiType.PROXY) {
             requestTemplateVariableProviders.add(new ContentTemplateVariableProvider());
         }
