@@ -36,17 +36,12 @@
           <gio-form-headers formControlName="headers"></gio-form-headers>
         </mat-tab>
         <mat-tab label="Request body">
-          <gv-code
+          <gio-monaco-editor
             class="debug-mode-request__content__body"
-            [options]="{
-              placeholder: 'Put request body here',
-              lineWrapping: true,
-              lineNumbers: true,
-              allowDropFileTypes: true,
-              autoCloseTags: true,
-            }"
-            (:gv-code:input)="onBodyChange($any($event).detail)"
-          ></gv-code>
+            gioMonacoEditorFormField
+            [disableMiniMap]="true"
+            formControlName="body"
+          ></gio-monaco-editor>
         </mat-tab>
       </mat-tab-group>
     </div>
