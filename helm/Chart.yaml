@@ -2,7 +2,7 @@ apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
 version: 4.8.0
-appVersion: 4.8.0
+appVersion: 4.8.998
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
