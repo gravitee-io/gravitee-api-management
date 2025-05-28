@@ -25,11 +25,8 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-<<<<<<< HEAD
 import io.gravitee.rest.api.model.v4.nativeapi.NativePlanEntity;
-=======
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
->>>>>>> 1ab9f5b0a8 (fix:Alert trigger issue due to v4plancasting issue)
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
