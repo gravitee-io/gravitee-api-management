@@ -27,6 +27,7 @@
         [apiLifecycleState]="currentApi.lifecycleState"
         [apiDeploymentState]="currentApi.deploymentState"
         [apiOrigin]="currentApi.originContext.origin"
+        [definitionVersion]="currentApi.definitionVersion"
       ></api-navigation-title>
       <ng-container *ngFor="let menuItem of subMenuItems">
         <ng-container *ngIf="!menuItem?.routerLink && menuItem?.tabs?.length > 0">

@@ -61,7 +61,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
     ])
       .pipe(
         tap(([api, resourceTypes]) => {
-          if (api.definitionVersion !== 'V1' && api.definitionVersion !== 'FEDERATED') {
+          if (api.definitionVersion !== 'V1' && api.definitionVersion !== 'FEDERATED' && api.definitionVersion !== 'FEDERATED_AGENT') {
             this.api = api;
             this.initialApiDefinition = this.api;
             this.isReadonly = this.api.definitionContext.origin === 'KUBERNETES' ? true : null;

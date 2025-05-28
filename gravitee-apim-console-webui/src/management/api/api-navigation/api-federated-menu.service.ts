@@ -23,7 +23,7 @@ import { ApiMenuService } from './ApiMenuService';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
-import { ApiFederated } from '../../../entities/management-api-v2';
+import { ApiFederated, ApiFederatedAgent } from '../../../entities/management-api-v2';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 
@@ -37,21 +37,21 @@ export class ApiFederatedMenuService implements ApiMenuService {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  public getMenu(api: ApiFederated): {
+  public getMenu(api: ApiFederated | ApiFederatedAgent): {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   } {
     const subMenuItems: MenuItem[] = [
-      this.addConfigurationMenuEntry(),
-      ...(this.environmentSettingsService.getSnapshot().apiScore.enabled ? [this.addApiScoreMenuEntry()] : []),
-      this.addConsumersMenuEntry(),
+      this.addConfigurationMenuEntry(api),
+      ...(this.environmentSettingsService.getSnapshot().apiScore.enabled ? this.addApiScoreMenuEntry(api) : []),
+      ...this.addConsumersMenuEntry(api),
       this.addDocumentationMenuEntry(api),
     ];
 
     return { subMenuItems, groupItems: [] };
   }
 
-  private addConfigurationMenuEntry(): MenuItem {
+  private addConfigurationMenuEntry(api: ApiFederated | ApiFederatedAgent): MenuItem {
     const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
     const iconRight$ = this.gioLicenseService
       .isMissingFeature$(license.feature)
@@ -72,7 +72,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
       });
     }
 
-    if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
+    if (this.permissionService.hasAnyMatching(['api-audit-r']) && api.definitionVersion !== 'FEDERATED_AGENT') {
       tabs.push({
         displayName: 'Audit Logs',
         routerLink: 'v4/audit',
@@ -93,19 +93,28 @@ export class ApiFederatedMenuService implements ApiMenuService {
     };
   }
 
-  private addApiScoreMenuEntry(): MenuItem {
-    return {
-      displayName: 'API Score',
-      icon: 'shield-check',
-      routerLink: 'api-score',
-      header: {
-        title: 'API Score',
+  private addApiScoreMenuEntry(api: ApiFederated | ApiFederatedAgent): MenuItem[] {
+    if (api.definitionVersion === 'FEDERATED_AGENT') {
+      return [];
+    }
+    return [
+      {
+        displayName: 'API Score',
+        icon: 'shield-check',
+        routerLink: 'api-score',
+        header: {
+          title: 'API Score',
+        },
       },
-    };
+    ];
   }
 
-  private addConsumersMenuEntry(): MenuItem {
+  private addConsumersMenuEntry(api: ApiFederated | ApiFederatedAgent): MenuItem[] {
     const tabs: MenuItem[] = [];
+
+    if (api.definitionVersion === 'FEDERATED_AGENT') {
+      return [];
+    }
 
     if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
       tabs.push({
@@ -121,19 +130,21 @@ export class ApiFederatedMenuService implements ApiMenuService {
       });
     }
 
-    return {
-      displayName: 'Consumers',
-      icon: 'cloud-consumers',
-      routerLink: '',
-      header: {
-        title: 'Consumers',
-        subtitle: 'Manage how your API is consumed',
+    return [
+      {
+        displayName: 'Consumers',
+        icon: 'cloud-consumers',
+        routerLink: '',
+        header: {
+          title: 'Consumers',
+          subtitle: 'Manage how your API is consumed',
+        },
+        tabs: [...tabs, { displayName: 'Broadcasts', routerLink: 'messages' }],
       },
-      tabs: [...tabs, { displayName: 'Broadcasts', routerLink: 'messages' }],
-    };
+    ];
   }
 
-  private addDocumentationMenuEntry(api: ApiFederated): MenuItem {
+  private addDocumentationMenuEntry(api: ApiFederated | ApiFederatedAgent): MenuItem {
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {

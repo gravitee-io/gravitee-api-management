@@ -20,3 +20,27 @@ export interface ApiFederated extends GenericApi {
   definitionVersion: 'FEDERATED';
   originContext: IntegrationContext;
 }
+
+export interface ApiFederatedAgent extends GenericApi {
+  definitionVersion: 'FEDERATED_AGENT';
+  originContext: IntegrationContext;
+  url: string;
+  documentationUrl: string;
+  provider: { organization: string; url: string };
+  defaultInputModes: string[];
+  defaultOutputModes: string[];
+  capabilities: string[];
+  securitySchemes?: { [key: string]: any };
+  security: { [key: string]: string[] }[];
+  skills: Skill[];
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  description: string;
+  tags: string[];
+  examples?: string[];
+  inputModes?: string[];
+  outputModes?: string[];
+}

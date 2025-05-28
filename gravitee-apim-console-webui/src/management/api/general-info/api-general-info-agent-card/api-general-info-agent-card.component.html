@@ -1,0 +1,125 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+            http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="federated-agent">
+  <mat-card class="head-card">
+    <mat-card-content>
+      <h3>{{ api.name }}</h3>
+      <div class="federation_agent_basic_info">
+        <div class="federation_agent_basic_info__description">{{ api.description }}</div>
+        <div><b>Version:</b> {{ api.apiVersion }}</div>
+      </div>
+    </mat-card-content>
+    <mat-card-content>
+      <ul class="header">
+        <li style="text-align: right"><b>Input:</b> {{ api.defaultInputModes[0] }}</li>
+        <li style="text-align: right"><b>Output:</b> {{ api.defaultOutputModes[0] }}</li>
+      </ul>
+    </mat-card-content>
+    <mat-card-content style="width: 100%; grid-column: 1 / 3; display: flex; flex-flow: row; column-gap: 10px">
+      <div class="border-right">
+        <h5>URL</h5>
+        <div class="status">
+          <span class="gio-badge-neutral id-badge">
+            <div gioClipboardCopyWrapper [alwaysVisible]="true" [contentToCopy]="api.url" data-testid="agent-url">
+              {{ api.url }}
+            </div>
+          </span>
+        </div>
+      </div>
+      <div>
+        <h5>Integration</h5>
+        <span class="integration_link gio-badge-neutral id-badge">
+          <span class="integration_link__text" [routerLink]="'../../integrations/' + integrationId">
+            {{ integrationName }}
+          </span>
+          <mat-icon class="gio-left integration_link__icon" style="opacity: 0.7" svgIcon="gio:external-link"></mat-icon>
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="capabilities">
+    <mat-card-header class="capabilities__header"><h3>Capabilities</h3></mat-card-header>
+    <mat-card-content>
+      <div class="capabilities__items">
+        @for (
+          cap of [
+            ['streaming', 'Streaming'],
+            ['pushNotifications', 'Push Notification'],
+            ['stateTransitionHistory', 'State Transition History'],
+          ];
+          track cap
+        ) {
+          <mat-icon svgIcon="gio:{{ api.capabilities.includes(cap[0]) ? 'check' : 'cancel' }}" />
+          {{ cap[1] }}
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card>
+    <mat-card-header class="security_scheme__header"><h3>Security Scheme</h3></mat-card-header>
+    <mat-card-content>
+      @for (schemeKey of getSecuritySchemesKeys(); track schemeKey) {
+        <div class="security_scheme__card">
+          <h3>{{ schemeKey }}</h3>
+
+          @for (propKey of getSecuritySchemesProps(schemeKey); track propKey) {
+            <div class="security_scheme__row">
+              <div class="security_scheme__prop">{{ propKey }}</div>
+              <div class="security_scheme__value">
+                <b>{{ getSecuritySchemesValue(schemeKey, propKey) }}</b>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+  <mat-card>
+    <mat-card-header class="skills-header">
+      <h3>Skills ({{ api.skills.length }})</h3>
+    </mat-card-header>
+    <mat-card-content class="skills-list">
+      @for (skill of api.skills; track skill) {
+        <mat-expansion-panel class="skill-panel">
+          <mat-expansion-panel-header>
+            <div class="skill-panel__header">
+              <img class="skill-panel__header-icon" src="assets/federated_agent_skill_icon.png" alt="Icon" />
+              <div class="skill-panel__header-text">
+                <span class="skill-panel__header-text-title">{{ skill.name }}</span>
+                <span class="skill-panel__header-text-description">{{ skill.description }}</span>
+              </div>
+            </div>
+          </mat-expansion-panel-header>
+          <mat-divider></mat-divider>
+          <div class="skill-panel__details">
+            <span><strong>ID:</strong> {{ skill.id }}</span>
+            <span><strong>Input:</strong> {{ skill.inputModes }}</span>
+            <span><strong>Output:</strong> {{ skill.outputModes }}</span>
+          </div>
+          <div class="skill-panel__examples" *ngIf="skill.examples?.length">
+            @for (ex of skill.examples; track ex) {
+              <p class="example-line">Example: {{ ex }}</p>
+            }
+          </div>
+        </mat-expansion-panel>
+      } @empty {
+        <gio-card-empty-state icon="search" title="No ruleset, yet" class="skills-empty"></gio-card-empty-state>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

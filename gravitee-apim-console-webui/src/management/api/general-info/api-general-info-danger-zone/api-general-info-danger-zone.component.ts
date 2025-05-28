@@ -72,6 +72,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
   public shouldUpgrade: boolean;
+  public subject = 'API';
 
   constructor(
     private readonly router: Router,
@@ -90,6 +91,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
 
+    this.subject = this.api.definitionVersion === 'FEDERATED_AGENT' ? 'Federated Agent' : 'API';
     if (this.api.definitionVersion !== 'V4' || (this.api as ApiV4).type === 'PROXY') {
       this.shouldUpgrade = false;
     } else {
@@ -115,12 +117,19 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
           this.api.state === 'STARTED',
 
         canChangeApiLifecycle: this.canChangeApiLifecycle(this.api),
-        canPublish: !this.api.lifecycleState || this.api.lifecycleState === 'CREATED' || this.api.lifecycleState === 'UNPUBLISHED',
+        canPublish:
+          (!this.api.lifecycleState || this.api.lifecycleState === 'CREATED' || this.api.lifecycleState === 'UNPUBLISHED') &&
+          this.api.definitionVersion !== 'FEDERATED_AGENT',
         canUnpublish: this.api.lifecycleState === 'PUBLISHED',
 
-        canChangeVisibilityToPublic: this.api.lifecycleState !== 'DEPRECATED' && this.api.visibility === 'PRIVATE',
-        canChangeVisibilityToPrivate: this.api.lifecycleState !== 'DEPRECATED' && this.api.visibility === 'PUBLIC',
-        canDeprecate: this.api.lifecycleState !== 'DEPRECATED' && this.api.definitionVersion !== 'FEDERATED',
+        canChangeVisibilityToPublic:
+          this.api.lifecycleState !== 'DEPRECATED' && this.api.visibility === 'PRIVATE' && this.api.definitionVersion !== 'FEDERATED_AGENT',
+        canChangeVisibilityToPrivate:
+          this.api.lifecycleState !== 'DEPRECATED' && this.api.visibility === 'PUBLIC' && this.api.definitionVersion !== 'FEDERATED_AGENT',
+        canDeprecate:
+          this.api.lifecycleState !== 'DEPRECATED' &&
+          this.api.definitionVersion !== 'FEDERATED' &&
+          this.api.definitionVersion !== 'FEDERATED_AGENT',
         canDelete: !(this.api.state === 'STARTED' || this.api.lifecycleState === 'PUBLISHED'),
       };
     }
@@ -266,6 +275,8 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
   }
 
   delete() {
+    const shouldClosePlans = this.api.definitionVersion === 'FEDERATED_AGENT';
+
     this.matDialog
       .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
         width: '500px',
@@ -283,7 +294,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.delete(this.api.id)),
+        switchMap(() => this.apiService.delete(this.api.id, shouldClosePlans)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -297,7 +308,9 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
   }
 
   private canChangeApiLifecycle(api: Api): boolean {
-    if (this.constants.env?.settings?.apiReview?.enabled) {
+    if (this.api.definitionVersion === 'FEDERATED_AGENT') {
+      return false;
+    } else if (this.constants.env?.settings?.apiReview?.enabled) {
       return !api.workflowState || api.workflowState === 'REVIEW_OK';
     } else {
       return api.lifecycleState === 'CREATED' || api.lifecycleState === 'PUBLISHED' || api.lifecycleState === 'UNPUBLISHED';
