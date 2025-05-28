@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import '@gravitee/ui-components/wc/gv-schema-form';
@@ -27,7 +27,7 @@ import { DebugRequest } from '../../models/DebugRequest';
   styleUrls: ['./debug-mode-request.component.scss'],
   standalone: false,
 })
-export class DebugModeRequestComponent implements OnInit {
+export class DebugModeRequestComponent implements OnInit, OnDestroy {
   @Input()
   public debugInProgress = false;
 
@@ -41,7 +41,7 @@ export class DebugModeRequestComponent implements OnInit {
 
   public requestFormGroup: UntypedFormGroup;
 
-  private unsubscribe$ = new Subject<boolean>();
+  private readonly unsubscribe$ = new Subject<boolean>();
 
   ngOnInit() {
     this.requestFormGroup = new UntypedFormGroup({
@@ -55,10 +55,6 @@ export class DebugModeRequestComponent implements OnInit {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  onBodyChange(value: string) {
-    this.requestFormGroup.get('body').setValue(value ?? '');
   }
 
   onSendRequest() {
