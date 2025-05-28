@@ -69,7 +69,8 @@ public class ApiDeserializerTest extends AbstractTest {
 
     @Test
     public void definition_noProxyPart() throws Exception {
-        assertThrows(JsonMappingException.class, () -> load("/io/gravitee/definition/jackson/api-noproxy-part.json", Api.class));
+        Api api = load("/io/gravitee/definition/jackson/api-noproxy-part.json", Api.class);
+        assertNull(api.getProxy());
     }
 
     @Test

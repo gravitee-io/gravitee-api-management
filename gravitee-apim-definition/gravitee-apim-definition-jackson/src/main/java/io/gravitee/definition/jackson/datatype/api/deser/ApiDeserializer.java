@@ -81,7 +81,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
         JsonNode proxyNode = node.get("proxy");
         if (proxyNode != null) {
             api.setProxy(proxyNode.traverse(jp.getCodec()).readValueAs(Proxy.class));
-        } else {
+        } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             logger.error("A proxy property is required for {}", api.getName());
             throw JsonMappingException.from(ctxt, "A proxy property is required for " + api.getName());
         }
