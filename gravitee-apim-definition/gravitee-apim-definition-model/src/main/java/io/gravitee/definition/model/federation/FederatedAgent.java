@@ -72,6 +72,7 @@ public class FederatedAgent implements Serializable {
     public record Skill(
         String id,
         String name,
+        String description,
         Collection<String> tags,
         @Nullable Collection<String> examples,
         @Nullable Collection<String> inputModes,

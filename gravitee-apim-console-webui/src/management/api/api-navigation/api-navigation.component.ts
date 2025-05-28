@@ -445,7 +445,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   public computeMenu(api: Api): ApiMenuService {
     if (api.definitionVersion === 'V4') {
       return this.apiNgV4MenuService;
-    } else if (api.definitionVersion === 'FEDERATED') {
+    } else if (api.definitionVersion === 'FEDERATED' || api.definitionVersion === 'FEDERATED_AGENT') {
       return this.apiFederatedMenuService;
     }
     return this.apiNgV1V2MenuService;
