@@ -7,6 +7,9 @@
 {{- $apiVersion := include "common.capabilities.ingress.apiVersion" . -}}
 apiVersion: {{ $apiVersion }}
 kind: Ingress
+{{- if .Values.api.federation.customFederationIngress -}}
+{{ toYaml .Values.api.federation.customFederationIngress | nindent 0 }}
+{{- else }}
 metadata:
   name: {{ template "gravitee.api.fullname" . }}-integration-controller
   labels:
@@ -67,3 +70,4 @@ spec:
   {{- end -}}
 {{- end -}}
 {{- end -}}
+{{- end }}

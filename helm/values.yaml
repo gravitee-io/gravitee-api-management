@@ -868,6 +868,9 @@ api:
 #        - hosts:
 #            - apim.example.com
 #          secretName: api-custom-cert
+    # You can define here a custom ingress dedicated to federation that will overwrite the default computed one above.
+    customFederationIngress: {}
+
     service:
       externalPort: 72
 

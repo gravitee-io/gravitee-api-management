@@ -40,3 +40,5 @@ annotations:
       description: 'Allow users to set allowed source ranges for the gateway LoadBalancer service'
     - kind: added
       description: 'If kafka gateway is enabled then startupProbe, readinessProbe and livenessProbe are configured to take the kafka-server probe into account'
+    - kind: added
+      description: 'Allow customization on federation ingress'

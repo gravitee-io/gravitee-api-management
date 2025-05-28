@@ -10,6 +10,8 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - bump elastisearch helm release to 19.21.2
 - bump mongodb helm release to 13.18.5
 - allow users to set allowed source ranges for the gateway LoadBalancer service
+- If kafka gateway is enabled then startupProbe, readinessProbe and livenessProbe are configured to take the kafka-server probe into account
+- Allow customization on federation ingress
 
 ### 4.7.0
 
