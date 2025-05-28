@@ -238,7 +238,16 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Create dictionary {}", newDictionaryEntity);
 
+<<<<<<< HEAD
             Optional<Dictionary> optDictionary = dictionaryRepository.findById(IdGenerator.generate(newDictionaryEntity.getName()));
+=======
+            String key = IdGenerator.generate(newDictionaryEntity.getName());
+            Optional<Dictionary> idDictionary = dictionaryRepository.findById(key);
+            if (idDictionary.isPresent() && idDictionary.get().getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId())) {
+                throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
+            }
+            Optional<Dictionary> optDictionary = dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId());
+>>>>>>> 301e2030af (fix(mapi): check if old dictionary type already exits)
             if (optDictionary.isPresent()) {
                 throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
             }
