@@ -32,9 +32,14 @@ type JsonSchema = {
   required: string[];
 };
 
-type OpenApiToMcpToolsResult = {
+type ErrorObject = {
+  key: string;
+  message: string;
+}
+
+export type OpenApiToMcpToolsResult = {
   result: MCPTool[];
-  errors: string[];
+  errors: ErrorObject[];
 };
 
 function prefixPropertyNames(properties: Record<string, SchemaObject>, prefix: string): Record<string, SchemaObject> {
@@ -158,14 +163,13 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
   try {
     parsedSpec = yaml.load(specString) as OpenAPIObject;
   } catch {
-    return { result: [], errors: ['Failed to parse specification'] };
+    return { result: [], errors: [{key: 'invalidFormat' ,message:'Failed to parse specification'}] };
   }
 
   try {
-    // await SwaggerParser.validate(parsedSpec as any);
     await validate(parsedSpec);
   } catch (e) {
-    return { result: [], errors: [(e as Error).message] };
+    return { result: [], errors: [{ key: 'invalidSpec', message: (e as Error).message}] };
   }
 
   if (!parsedSpec) {
@@ -178,15 +182,14 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
 
   let api: OpenAPIObject;
   try {
-    // api = (await SwaggerParser.dereference(parsedSpec)) as OpenAPIObject;
     const { schema } = await dereference(parsedSpec);
     api = schema as OpenAPIObject;
   } catch (e) {
-    return { result: [], errors: ['Failed to dereference OpenAPI spec: ' + (e as Error).message] };
+    return { result: [], errors: [{key: 'invalidRefs', message: 'Failed to dereference OpenAPI spec: ' +(e as Error).message}] };
   }
 
   const tools: MCPTool[] = [];
-  const errors: string[] = [];
+  const errors: ErrorObject[] = [];
   const usedNames = new Set<string>();
 
   for (const [path, pathItem] of Object.entries(api.paths || {})) {
@@ -198,7 +201,8 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
       const toolName = `${method}_${baseName}`;
 
       if (usedNames.has(toolName)) {
-        errors.push(`Duplicate tool name detected: ${toolName}`);
+        errors.push({ key: 'duplicateName', message: `Duplicate tool name detected: ${toolName}`
+      });
       } else {
         usedNames.add(toolName);
       }

@@ -1,0 +1,10 @@
+<mat-expansion-panel expanded="true">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      {{ tool().name }}
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <div class="tool-details">
+    <pre>{{ tool() | json }}</pre>
+  </div>
+</mat-expansion-panel>

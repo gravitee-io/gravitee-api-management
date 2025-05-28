@@ -417,7 +417,7 @@ paths:
       const { result, errors } = await convertOpenApiToMcpTools(invalidSpec);
 
       expect(errors).not.toHaveLength(0);
-      expect(errors[0]).toEqual('Failed to parse specification');
+      expect(errors[0]).toEqual({key: 'invalidFormat', message: 'Failed to parse specification'});
       expect(result).toHaveLength(0);
     });
 
@@ -470,7 +470,7 @@ paths:
       const { result, errors } = await convertOpenApiToMcpTools(invalidSpec);
 
       expect(errors).not.toHaveLength(0);
-      expect(errors[0]).toEqual('Invalid OpenAPI spec');
+      expect(errors[0]).toEqual({key: 'invalidSpec', message: 'Invalid OpenAPI spec'});
       expect(result).toHaveLength(0);
 
       // Verify that validate was called but dereference was not
@@ -549,7 +549,7 @@ paths:
       const { result, errors } = await convertOpenApiToMcpTools(invalidSpec);
 
       expect(errors).not.toHaveLength(0);
-      expect(errors[0]).toMatch(/Duplicate tool name detected: get_duplicateTool/);
+      expect(errors[0]).toEqual({key: 'duplicateName', message: 'Duplicate tool name detected: get_duplicateTool'});
       expect(result).toHaveLength(2);
 
       // Verify that the mock functions were called

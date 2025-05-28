@@ -92,9 +92,7 @@ export class McpComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (!this.gioPermissionService.hasAnyMatching(['api-definition-u'])) {
-      this.form.disable();
-    }
+
 
     this.api$ = this.apiV2Service.get(this.apiId).pipe(
       filter((api) => api.definitionVersion === 'V4'),
@@ -105,6 +103,11 @@ export class McpComponent implements OnInit {
         }
       }),
     );
+
+    // this.form.valueChanges.subscribe((formValues) => {
+    //   console.log('Form values changed:', formValues);
+    //   console.log('Values different from initial:', formValues !== this.formInitialValues);
+    // })
   }
 
   addMcpEntrypoint() {

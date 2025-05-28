@@ -1,0 +1,46 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+.open-api-to-mcp-tools {
+  &__container {
+    display: flex;
+    flex-flow: row;
+    height: 500px;
+
+    gio-monaco-editor {
+      min-width: 50%;
+    }
+
+    tools-display {
+
+    }
+
+    &__tools {
+      display: block;
+      overflow-y: scroll;
+      padding: 12px;
+      width: 50%;
+
+      &__header {
+        padding-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      &__list {
+        display: flex;
+        flex-flow: column;
+        gap: 16px;
+      }
+    }
+  }
+  &__error {
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
+  }
+}

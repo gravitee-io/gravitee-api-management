@@ -1,0 +1,17 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.tools-display {
+  &__header {
+    padding-bottom: 12px;
+  }
+  &__list {
+    display: flex;
+    flex-flow: column;
+    gap: 16px
+  }
+}
+
+

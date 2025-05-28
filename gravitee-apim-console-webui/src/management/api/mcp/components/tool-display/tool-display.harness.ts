@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
-import { JsonPipe } from '@angular/common';
+import { ComponentHarness } from '@angular/cdk/testing';
+import {MatExpansionPanelHarness} from "@angular/material/expansion/testing";
 
-import { MCPToolDefinition } from '../../../../../entities/entrypoint/mcp';
-import {MatExpansionModule} from "@angular/material/expansion";
+export class ToolDisplayHarness extends ComponentHarness {
+  static hostSelector = 'tool-display';
 
-@Component({
-  selector: 'tools-display',
-  imports: [JsonPipe, MatExpansionModule],
-  templateUrl: './tools-display.component.html',
-  styleUrl: './tools-display.component.scss',
-})
-export class ToolsDisplayComponent {
-  tools = input<MCPToolDefinition[]>([]);
+  private getToolPanel = this.locatorFor(MatExpansionPanelHarness);
+
+  /**
+   * Gets all tool elements displayed in the component
+   */
+  async getToolSchema(): Promise<string> {
+    return this.getToolPanel().then(tool => tool.getTextContent());
+  }
 }

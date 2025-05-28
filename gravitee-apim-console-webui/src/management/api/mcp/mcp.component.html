@@ -16,7 +16,7 @@
 
 -->
 @if (api$ | async; as apiVM) {
-  @if (apiVM.hasMCPEntrypoint) {
+  @if (!apiVM.hasMCPEntrypoint) {
     <mat-card>
       <mat-card-header class="mcp-header">
         <div class="mcp-header__title">

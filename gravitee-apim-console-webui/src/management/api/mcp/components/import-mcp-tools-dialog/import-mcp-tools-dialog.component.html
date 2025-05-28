@@ -15,21 +15,15 @@
     limitations under the License.
 
 -->
-<h5 class="tools-display__header">Tool Definitions</h5>
+<span mat-dialog-title>Import MCP Tools</span>
 
-<div class="tools-display__list">
-  @for (tool of tools(); track $index) {
-    <mat-expansion-panel expanded="true">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          {{ tool.name }}
-        </mat-panel-title>
-      </mat-expansion-panel-header>
-      <div class="tool-details">
-        <pre>{{ tool | json }}</pre>
-      </div>
-    </mat-expansion-panel>
-  } @empty {
-    <div class="empty-state">No tools are configured. Add tools by importing from an OpenAPI specification.</div>
-  }
-</div>
+<mat-dialog-content>
+  <div>Create MCP Tools from an OpenAPI specification.</div>
+  <open-api-to-mcp-tools [formControl]="formControl" />
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-flat-button [mat-dialog-close]="{tools: []}">Close</button>
+    <button mat-raised-button color="primary" (click)="importMcpTools()" [disabled]="canImportMcpTools()" >Import Tools</button>
+</mat-dialog-actions>
+

@@ -14,44 +14,50 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import {MatExpansionPanelHarness} from "@angular/material/expansion/testing";
 
 export class ToolsDisplayHarness extends ComponentHarness {
-  static readonly hostSelector = 'tools-display';
+  static hostSelector = 'tools-display';
 
-  private locateTitle = this.locatorFor('h5');
-  private locateToolElements = this.locatorForAll('div:not(:empty)');
-  private locateEmptyMessage = this.locatorFor('div:contains("No tools are configured")');
+  private getEmptyStateText = this.locatorFor('.empty-state');
+  private getToolPanels = this.locatorForAll(MatExpansionPanelHarness);
 
-  async getTitle(): Promise<string> {
-    const title = await this.locateTitle();
-    return title.text();
-  }
-
-  async getTools(): Promise<string[]> {
-    const toolElements = await this.locateToolElements();
-    const tools: string[] = [];
-
-    for (const element of toolElements) {
-      const text = await element.text();
-      if (!text.includes('No tools are configured')) {
-        tools.push(text.trim());
-      }
-    }
-
-    return tools;
-  }
-
-  async hasTools(): Promise<boolean> {
-    const tools = await this.getTools();
-    return tools.length > 0;
-  }
-
-  async getEmptyMessage(): Promise<string | null> {
+  /**
+   * Gets the empty state message when no tools are configured
+   */
+  async getEmptyStateMessage(): Promise<string | null> {
     try {
-      const emptyMessage = await this.locateEmptyMessage();
-      return emptyMessage.text();
+      const emptyState = await this.getEmptyStateText();
+      return emptyState.text();
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Gets all tool elements displayed in the component
+   */
+  async getTools(): Promise<string[]> {
+    const tools = await this.getToolPanels();
+    return Promise.all(tools.map(async (tool) => {
+      return await tool.getTextContent()
+    })
+    );
+  }
+
+  /**
+   * Checks if the component is in empty state
+   */
+  async isEmptyState(): Promise<boolean> {
+    const message = await this.getEmptyStateMessage();
+    return message !== null && message.includes('No tools are configured');
+  }
+
+  /**
+   * Gets the number of tools displayed
+   */
+  async getToolCount(): Promise<number> {
+    const tools = await this.getTools();
+    return tools.length;
   }
 }
