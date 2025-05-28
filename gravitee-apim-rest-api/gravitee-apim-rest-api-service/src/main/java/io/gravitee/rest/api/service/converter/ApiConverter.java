@@ -128,7 +128,11 @@ public class ApiConverter {
                 }
 
                 // Issue https://github.com/gravitee-io/issues/issues/3356
-                if (apiDefinition.getProxy().getVirtualHosts() != null && !apiDefinition.getProxy().getVirtualHosts().isEmpty()) {
+                if (
+                    apiDefinition.getProxy() != null &&
+                    apiDefinition.getProxy().getVirtualHosts() != null &&
+                    !apiDefinition.getProxy().getVirtualHosts().isEmpty()
+                ) {
                     apiEntity.setContextPath(apiDefinition.getProxy().getVirtualHosts().get(0).getPath());
                 }
 
