@@ -96,6 +96,49 @@ describe('IntegrationGeneralConfigurationComponent', (): void => {
       init();
     });
 
+    it('should send well-known-urls in payload', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ provider: 'A2A', wellKnownUrls: [{ url: 'http://test.pl' }] }));
+      expectFederatedAPIsGetRequest();
+
+      await componentHarness.setName('Test Name 2');
+
+      fixture.detectChanges();
+
+      await componentHarness.clickOnSubmit();
+
+      expectIntegrationPutRequest(fakeIntegration(), {
+        description: 'test_description',
+        name: 'Test Name 2',
+        groups: [],
+        wellKnownUrls: [{ url: 'http://test.pl' }],
+      });
+      expectIntegrationGetRequest(fakeIntegration());
+    });
+
+    it('should validate well-known-urls input', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ provider: 'A2A', wellKnownUrls: [{ url: 'http://test.pl' }] }));
+      expectFederatedAPIsGetRequest();
+
+      await componentHarness.fillWellKnownUrlInput('wrongURLpattern.com');
+
+      const errorToLongName: MatErrorHarness = await componentHarness.matErrorMessage();
+      expect(await errorToLongName.getText()).toEqual('Callback URL should respect URLs patter (starts with http|https://*")');
+
+      await componentHarness.fillWellKnownUrlInput('http://addValidURL.com');
+
+      fixture.detectChanges();
+
+      await componentHarness.clickOnSubmit();
+
+      expectIntegrationPutRequest(fakeIntegration(), {
+        description: 'test_description',
+        name: 'test_name',
+        groups: [],
+        wellKnownUrls: [{ url: 'http://test.pl' }, { url: 'http://addValidURL.com' }],
+      });
+      expectIntegrationGetRequest(fakeIntegration());
+    });
+
     it('should show validation error when name is not valid', async () => {
       expectIntegrationGetRequest(fakeIntegration());
       expectFederatedAPIsGetRequest();
