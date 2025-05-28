@@ -83,6 +83,7 @@ class A2aAgentFetcherImplTest {
                     {
                         "id": "skill-1",
                         "name": "Test Skill",
+                        "description": "Skill Description",
                         "tags": ["test", "example"],
                         "examples": ["example command"],
                         "inputModes": ["text"],
@@ -136,6 +137,7 @@ class A2aAgentFetcherImplTest {
                 new FederatedAgent.Skill(
                     "skill-1",
                     "Test Skill",
+                    "Skill Description",
                     List.of("test", "example"),
                     List.of("example command"),
                     List.of("text"),

@@ -124,7 +124,7 @@ describe('ApiV2Service', () => {
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}?closePlan=true`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}?closePlans=true`,
         method: 'DELETE',
       });
       req.flush(null);
