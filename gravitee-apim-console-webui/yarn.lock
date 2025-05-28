@@ -3119,9 +3119,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:15.0.0":
-  version: 15.0.0
-  resolution: "@gravitee/ui-particles-angular@npm:15.0.0"
+"@gravitee/ui-particles-angular@npm:15.0.0-handle-md-doc-72328ab":
+  version: 15.0.0-handle-md-doc-72328ab
+  resolution: "@gravitee/ui-particles-angular@npm:15.0.0-handle-md-doc-72328ab"
   dependencies:
     "@fontsource/fira-mono": "npm:5.0.14"
     "@fontsource/kanit": "npm:^5.2.6"
@@ -3150,13 +3150,13 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/56bcee269e16ac0c035c611e39c750f25cecae3157cd46243994216b3bfdb871f81cec834e60cc55a0a3fb34aec85713214e90e170e780d5e21af73f9281fe84
+  checksum: 10c0/be6a0cebbc3c2cb32f63c3ffbe45af49b8d1d356171bdabc0b288fbcc2b2bb9c4ccef15b2b8d75cae7d60098f9a9658c269b34629e77013f1ffc64ae8910e6c7
   languageName: node
   linkType: hard
 
-"@gravitee/ui-policy-studio-angular@npm:15.0.0-handle-md-doc-a429b5c":
-  version: 15.0.0-handle-md-doc-a429b5c
-  resolution: "@gravitee/ui-policy-studio-angular@npm:15.0.0-handle-md-doc-a429b5c"
+"@gravitee/ui-policy-studio-angular@npm:15.0.0-handle-md-doc-72328ab":
+  version: 15.0.0-handle-md-doc-72328ab
+  resolution: "@gravitee/ui-policy-studio-angular@npm:15.0.0-handle-md-doc-72328ab"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -3169,19 +3169,19 @@ __metadata:
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
     ngx-markdown: ^19.1.1
-  checksum: 10c0/f395878deb5d3e357fa552d79a04a5e0899a8c71f2848b84349080735b81a84705eacbfc3e3abbed6bff371b031e978e0f0437eb8701755d06a062b826702e3e
+  checksum: 10c0/deb9b534d50d350df85d038dcd78df7438496009f689bc41e6215d0f66e907260ac0fcc0a1702232e06901a0c678dce670a9fafa113a0f402784fd4b013edfe3
   languageName: node
   linkType: hard
 
-"@gravitee/ui-schematics@npm:15.0.0":
-  version: 15.0.0
-  resolution: "@gravitee/ui-schematics@npm:15.0.0"
+"@gravitee/ui-schematics@npm:15.0.0-handle-md-doc-72328ab":
+  version: 15.0.0-handle-md-doc-72328ab
+  resolution: "@gravitee/ui-schematics@npm:15.0.0-handle-md-doc-72328ab"
   dependencies:
     tslib: "npm:^2.6.3"
   peerDependencies:
     "@angular/common": ^17.2.0
     "@angular/core": ^17.2.0
-  checksum: 10c0/ad7ae910c39feeb01adec58eb9209a6b39ebd9087585e54a5233dac4cb20ce527db6cef9e97f9a60e85c2ca55fd64e32bbd67ef12d0407af68a69100f650f990
+  checksum: 10c0/6624da43f9b018b5c2eed8685c3dc6aacfd74c6df4c857b5bbcedf527c9cb3b108661072a0c878d4b07915585bf6c6eccd03818a2b9e36fec31a4cd72c6968df
   languageName: node
   linkType: hard
 
@@ -12068,9 +12068,9 @@ __metadata:
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/ui-analytics": "npm:15.0.0"
     "@gravitee/ui-components": "npm:4.3.3"
-    "@gravitee/ui-particles-angular": "npm:15.0.0"
-    "@gravitee/ui-policy-studio-angular": "npm:15.0.0-handle-md-doc-a429b5c"
-    "@gravitee/ui-schematics": "npm:15.0.0"
+    "@gravitee/ui-particles-angular": "npm:15.0.0-handle-md-doc-72328ab"
+    "@gravitee/ui-policy-studio-angular": "npm:15.0.0-handle-md-doc-72328ab"
+    "@gravitee/ui-schematics": "npm:15.0.0-handle-md-doc-72328ab"
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.12"
     "@ngx-formly/material": "npm:6.3.12"
