@@ -20,6 +20,8 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatDialog } from '@angular/material/dialog';
+import { of } from 'rxjs';
 
 import { ApiGeneralGroupsHarness } from './api-general-groups.harness';
 
@@ -91,36 +93,47 @@ describe('ApiGeneralGroupsComponent', () => {
     });
 
     it('should pre-select groups found in user + save new groups', async () => {
-      const api = fakeApiV4({ id: apiId, groups: [groupId1] });
-      await expectGetRequests(api, [groupId1, groupId2]);
-      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      const api = fakeApiV4({ id: apiId, groups: [groupId1, groupId2] });
 
-      await harness.manageGroupsClick();
-      const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
-      expect(await groupsHarness.isFillFormControlDirty()).toEqual(false);
+      const mockedReturnedGroups = [groupId1, groupId2, 'group-3'];
+      const dialogRefSpy = {
+        afterClosed: () => of({ groups: mockedReturnedGroups }),
+      };
+      const matDialogSpy = {
+        open: jest.fn().mockReturnValue(dialogRefSpy),
+      };
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioTestingModule, ApiUserGroupModule, MatIconTestingModule],
+        declarations: [ApiGeneralMembersComponent],
+        providers: [
+          { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
+          { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-member-u'] },
+          { provide: MatDialog, useValue: matDialogSpy },
+        ],
+      }).compileComponents();
+      fixture = TestBed.createComponent(ApiGeneralMembersComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiGeneralMembersHarness);
+      fixture.detectChanges();
 
-      const allGroups = await groupsHarness.getGroups();
-      expect(allGroups.length).toEqual(2);
-
-      const selectedGroups = await groupsHarness.getSelectedGroups();
-      expect(selectedGroups.length).toEqual(1);
-      expect(await selectedGroups[0].getText()).toEqual(`${groupId1}-name`);
-
-      await groupsHarness.selectGroups({ text: `${groupId2}-name` });
-      expect(await groupsHarness.getGroupsListValueText()).toEqual(`${groupId1}-name, ${groupId2}-name`);
-      await groupsHarness.closeGroupsList();
-
-      expect(await groupsHarness.isFillFormControlDirty()).toEqual(true);
-      expect(await groupsHarness.isSaveButtonVisible()).toEqual(true);
-      expect(await groupsHarness.isSaveButtonDisabled()).toEqual(false);
-
-      await groupsHarness.clickSave();
-
-      // expect save and after that reload of the component.
-      // MatDialog close is not called in the unit test context, so we do the PUT request with the real saved data
       expectApiGetRequest(api);
-      expectApiPutRequest({ ...api, groups: [] });
-      expectGetRequests({ ...api, groups: [] });
+      expectGetGroupsListRequest([groupId1, groupId2]);
+      expectApiMembersGetRequest(api);
+      expectApiRoleGetRequest();
+
+      [groupId1, groupId2].forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      await harness.manageGroupsClick();
+      expectApiGetRequest({ ...api, groups: mockedReturnedGroups });
+      expectApiPutRequest({ ...api, groups: mockedReturnedGroups });
+      expectApiGetRequest({ ...api, groups: mockedReturnedGroups });
+      expectGetGroupsListRequest(mockedReturnedGroups);
+      expectApiMembersGetRequest({ ...api, groups: mockedReturnedGroups });
+      expectApiRoleGetRequest();
+      mockedReturnedGroups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      fixture.detectChanges();
+      expect(matDialogSpy.open).toHaveBeenCalled();
     });
 
     it('should be read-only for V1 API', async () => {
@@ -135,6 +148,22 @@ describe('ApiGeneralGroupsComponent', () => {
       expect(await groupsHarness.getReadOnlyGroupsText()).toContain(`${groupId1}-name`);
       expect(await groupsHarness.isFillFormPresent()).toEqual(false);
       expect(await groupsHarness.isSaveButtonVisible()).toEqual(false);
+    });
+
+    it('should not apply group changes if dialog is closed without saving', async () => {
+      const api = fakeApiV4({ id: apiId, groups: [groupId1] });
+      await expectGetRequests(api, [groupId1, groupId2]);
+      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+      await harness.manageGroupsClick();
+      const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
+      await groupsHarness.selectGroups({ text: `${groupId2}-name` });
+      expect(await groupsHarness.getGroupsListValueText()).toEqual(`${groupId1}-name, ${groupId2}-name`);
+      await groupsHarness.closeGroupsList();
+      await harness.manageGroupsClick();
+      const reopenedHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
+      const selectedGroups = await reopenedHarness.getSelectedGroups();
+      expect(selectedGroups.length).toEqual(1);
+      expect(await selectedGroups[0].getText()).toEqual(`${groupId1}-name`);
     });
   });
 
