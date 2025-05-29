@@ -242,7 +242,7 @@ export class ApiGeneralMembersComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter(() => !this.isKubernetesOrigin),
+        filter((apiDialogResult): apiDialogResult is ApiGroupsDialogResult => !!apiDialogResult && !this.isKubernetesOrigin),
         switchMap((apiDialogResult) => {
           return combineLatest([of(apiDialogResult), this.apiService.get(this.activatedRoute.snapshot.params.apiId)]);
         }),
