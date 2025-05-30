@@ -25,7 +25,6 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Category;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,7 +39,6 @@ import org.springframework.stereotype.Component;
 /**
  * Before this upgrader runs :
  *  - categories attached to V4 APIs are not ids but keys
- *
  * For each V4 APIS, this upgrader will :
  *  - update its categories list to store ids instead of keys
  *
@@ -81,7 +79,7 @@ public class ApiV4CategoriesUpgrader implements Upgrader {
 
         // If there are no categories, then upgrade is not necessary
         if (Objects.isNull(categories) || categories.isEmpty()) {
-            return false;
+            return true;
         }
 
         // Two different maps so that we can look up the key or the id of a category
