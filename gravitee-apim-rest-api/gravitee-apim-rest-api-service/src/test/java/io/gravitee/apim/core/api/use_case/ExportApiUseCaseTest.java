@@ -31,6 +31,7 @@ import inmemory.MediaQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
+import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -101,6 +102,7 @@ class ExportApiUseCaseTest {
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
+    PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
 
     ApiExportDomainService apiExportDomainService;
 
@@ -131,6 +133,7 @@ class ExportApiUseCaseTest {
                 roleQueryService,
                 metadataCrudService,
                 pageQueryService,
+                pageCrudService,
                 apiCrudService,
                 apiPrimaryOwnerDomainService,
                 planCrudService,

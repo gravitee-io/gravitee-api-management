@@ -36,6 +36,7 @@ import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
+import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
@@ -66,6 +67,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.UuidString;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +99,7 @@ class ApiExportDomainServiceImplTest {
     public static final PageExport EXPECTED_MARKDOWN_PAGE = PageExport
         .builder()
         .id("page")
+        .crossId("UUID")
         .type(Page.Type.MARKDOWN)
         .referenceId(API_ID)
         .referenceType(Page.ReferenceType.API)
@@ -152,12 +155,16 @@ class ApiExportDomainServiceImplTest {
     @Mock
     IntegrationCrudService integrationCrudService;
 
+    @Mock
+    PageCrudService pageCrudService;
+
     @InjectMocks
     ApiExportDomainServiceImpl sut;
 
     @BeforeEach
     void setUp() {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
+        UuidString.overrideGenerator(str -> "UUID");
         lenient()
             .when(
                 permissionService.hasPermission(
@@ -475,10 +482,18 @@ class ApiExportDomainServiceImplTest {
         // Then
         assertThat(export.pages())
             .containsOnly(
-                PageExport.builder().name("My Folder").order(1).type(Page.Type.FOLDER).visibility(Page.Visibility.PUBLIC).build(),
+                PageExport
+                    .builder()
+                    .name("My Folder")
+                    .crossId("UUID")
+                    .order(1)
+                    .type(Page.Type.FOLDER)
+                    .visibility(Page.Visibility.PUBLIC)
+                    .build(),
                 PageExport
                     .builder()
                     .name("My Title")
+                    .crossId("UUID")
                     .order(1)
                     .type(Page.Type.MARKDOWN)
                     .visibility(Page.Visibility.PUBLIC)
@@ -488,6 +503,7 @@ class ApiExportDomainServiceImplTest {
                 PageExport
                     .builder()
                     .name("My Swagger")
+                    .crossId("UUID")
                     .order(1)
                     .type(Page.Type.SWAGGER)
                     .visibility(Page.Visibility.PUBLIC)
@@ -496,6 +512,7 @@ class ApiExportDomainServiceImplTest {
                 PageExport
                     .builder()
                     .name("Aside")
+                    .crossId("UUID")
                     .order(1)
                     .type(Page.Type.SYSTEM_FOLDER)
                     .visibility(Page.Visibility.PUBLIC)
@@ -504,6 +521,7 @@ class ApiExportDomainServiceImplTest {
                 PageExport
                     .builder()
                     .name("My Link")
+                    .crossId("UUID")
                     .order(1)
                     .type(Page.Type.LINK)
                     .visibility(Page.Visibility.PUBLIC)
@@ -512,6 +530,7 @@ class ApiExportDomainServiceImplTest {
                 PageExport
                     .builder()
                     .name("My Translation")
+                    .crossId("UUID")
                     .order(1)
                     .type(Page.Type.TRANSLATION)
                     .visibility(Page.Visibility.PUBLIC)
@@ -520,6 +539,7 @@ class ApiExportDomainServiceImplTest {
                 PageExport
                     .builder()
                     .name("My Template")
+                    .crossId("UUID")
                     .order(1)
                     .type(Page.Type.MARKDOWN_TEMPLATE)
                     .visibility(Page.Visibility.PUBLIC)
@@ -528,6 +548,7 @@ class ApiExportDomainServiceImplTest {
                 PageExport
                     .builder()
                     .name("My asciidoc")
+                    .crossId("UUID")
                     .order(1)
                     .type(Page.Type.ASCIIDOC)
                     .visibility(Page.Visibility.PUBLIC)

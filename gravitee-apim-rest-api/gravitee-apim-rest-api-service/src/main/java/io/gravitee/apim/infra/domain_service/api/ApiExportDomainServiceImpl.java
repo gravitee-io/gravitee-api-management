@@ -36,6 +36,7 @@ import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
+import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
@@ -63,6 +64,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import jakarta.annotation.Nullable;
 import java.util.Collection;
@@ -88,6 +90,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
     private final RoleQueryService roleQueryService;
     private final MetadataCrudService metadataCrudService;
     private final PageQueryService pageQueryService;
+    private final PageCrudService pageCrudService;
     private final ApiCrudService apiCrudService;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final PlanCrudService planCrudService;
@@ -192,7 +195,17 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
 
     private List<PageExport> exportApiPages(String apiId) {
         return permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_DOCUMENTATION, apiId, READ)
-            ? DEFINITION_ADAPTER.mapPage(pageQueryService.searchByApiId(apiId))
+            ? pageQueryService
+                .searchByApiId(apiId)
+                .stream()
+                .peek(page -> {
+                    if (page.getCrossId() == null) {
+                        page.setCrossId(UuidString.generateRandom());
+                        pageCrudService.updateDocumentationPage(page);
+                    }
+                })
+                .map(DEFINITION_ADAPTER::mapPage)
+                .toList()
             : null;
     }
 
@@ -238,7 +251,16 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
     private <T> Collection<T> mapPlan(String apiId, Function<Plan, T> mapper, Collection<Excludable> excluded) {
         return excluded.contains(Excludable.PLANS)
             ? null
-            : stream(planCrudService.findByApiId(apiId)).filter(not(Plan::isClosed)).map(mapper).toList();
+            : stream(planCrudService.findByApiId(apiId))
+                .filter(not(Plan::isClosed))
+                .peek(plan -> {
+                    if (plan.getCrossId() == null) {
+                        plan.setCrossId(UuidString.generateRandom());
+                        planCrudService.update(plan);
+                    }
+                })
+                .map(mapper)
+                .toList();
     }
 
     private PlanDescriptor.V4 planWithFlowV4(PlanDescriptor.V4 planV4) {

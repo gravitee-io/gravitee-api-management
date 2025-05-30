@@ -51,7 +51,7 @@ public interface GraviteeDefinitionAdapter {
     GraviteeDefinitionAdapter INSTANCE = Mappers.getMapper(GraviteeDefinitionAdapter.class);
     Logger logger = LoggerFactory.getLogger(GraviteeDefinitionAdapter.class);
 
-    List<PageExport> mapPage(Collection<Page> source);
+    PageExport mapPage(Page source);
 
     @Mapping(
         target = "security",
