@@ -99,7 +99,7 @@ export class CreateIntegrationComponent implements OnInit {
     if (wellKnownUrls.enabled) {
       wellKnownUrls.push(
         this.formBuilder.group({
-          url: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(1)]],
+          url: ['', [Validators.required, Validators.minLength(1)]],
         }),
       );
     }
