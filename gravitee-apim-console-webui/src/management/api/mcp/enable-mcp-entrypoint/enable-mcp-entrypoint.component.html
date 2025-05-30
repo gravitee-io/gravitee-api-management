@@ -24,7 +24,9 @@
     <mat-card-subtitle>Configure the new MCP entrypoint</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content class="configure-mcp-entrypoint__content">
-    <configure-mcp-entrypoint [formGroup]="form" />
+    <form [formGroup]="form">
+      <configure-mcp-entrypoint formControlName="mcpConfig" />
+    </form>
   </mat-card-content>
 </mat-card>
 <gio-save-bar [creationMode]="true" [form]="form" [formInitialValues]="formInitialValues" (submitted)="onSubmit()" />

@@ -27,11 +27,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV4, HttpListener } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import {
-  ConfigurationMCPForm,
-  ConfigureMcpEntrypointComponent,
-} from '../components/configure-mcp-entrypoint/configure-mcp-entrypoint.component';
-import { DEFAULT_MCP_ENTRYPOINT_PATH, MCP_ENTRYPOINT_ID, MCPConfiguration, MCPTool } from '../../../../entities/entrypoint/mcp';
+import { ConfigureMcpEntrypointComponent } from '../components/configure-mcp-entrypoint/configure-mcp-entrypoint.component';
+import { DEFAULT_MCP_ENTRYPOINT_PATH, MCP_ENTRYPOINT_ID, MCPConfiguration } from '../../../../entities/entrypoint/mcp';
 
 @Component({
   selector: 'enable-mcp-entrypoint',
@@ -53,12 +50,14 @@ import { DEFAULT_MCP_ENTRYPOINT_PATH, MCP_ENTRYPOINT_ID, MCPConfiguration, MCPTo
 export class EnableMcpEntrypointComponent implements OnInit {
   apiId: string = this.activatedRoute.snapshot.params['apiId'];
 
-  form: FormGroup<ConfigurationMCPForm> = new FormGroup<ConfigurationMCPForm>({
-    tools: new FormControl<MCPTool[]>([]),
-    mcpPath: new FormControl<string>(DEFAULT_MCP_ENTRYPOINT_PATH),
+  form = new FormGroup({
+    mcpConfig: new FormControl<MCPConfiguration>({
+      tools: [],
+      mcpPath: DEFAULT_MCP_ENTRYPOINT_PATH,
+    }),
   });
 
-  formInitialValues: { tools: MCPTool[]; mcpPath: string };
+  formInitialValues: { mcpConfig: MCPConfiguration };
 
   private destroyRef = inject(DestroyRef);
 
@@ -74,7 +73,7 @@ export class EnableMcpEntrypointComponent implements OnInit {
   }
 
   onSubmit() {
-    const configuration: MCPConfiguration = this.form.getRawValue();
+    const configuration: MCPConfiguration = this.form.value.mcpConfig;
 
     this.apiV2Service
       .get(this.apiId)

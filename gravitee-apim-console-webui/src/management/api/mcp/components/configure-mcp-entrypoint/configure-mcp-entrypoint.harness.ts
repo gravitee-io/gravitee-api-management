@@ -16,8 +16,9 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { ToolsDisplayHarness } from '../tools-display/tools-display.harness';
+import { ToolDisplayHarness } from '../tool-display/tool-display.harness';
 
 export class ConfigureMcpEntrypointHarness extends ComponentHarness {
   static readonly hostSelector = 'configure-mcp-entrypoint';
@@ -26,7 +27,8 @@ export class ConfigureMcpEntrypointHarness extends ComponentHarness {
     MatFormFieldHarness.with({ selector: '.configure-mcp-entrypoint__content__mcp-path' }),
   );
   protected locateMcpPathInput = this.locatorFor(MatInputHarness.with({ selector: 'input[formControlName="mcpPath"]' }));
-  protected locateToolDisplay = this.locatorFor(ToolsDisplayHarness);
+  protected locateToolDisplays = this.locatorForAll(ToolDisplayHarness);
+  protected locateImportToolsButton = this.locatorFor(MatButtonHarness.with({ text: /Import Tools/ }));
 
   async getMcpPathFormField(): Promise<MatFormFieldHarness> {
     return this.locateMcpPathFormField();
@@ -53,6 +55,11 @@ export class ConfigureMcpEntrypointHarness extends ComponentHarness {
   }
 
   async hasTools(): Promise<boolean> {
-    return this.locateToolDisplay().then((tools) => tools.hasTools());
+    return this.locateToolDisplays().then((tools) => tools.length > 0);
+  }
+
+  async openImportToolsDialog(): Promise<void> {
+    const importToolsButton = await this.locateImportToolsButton();
+    await importToolsButton.click();
   }
 }

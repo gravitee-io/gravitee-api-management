@@ -25,17 +25,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NoMcpEntrypointComponent } from './no-mcp-entrypoint/no-mcp-entrypoint.component';
-import {
-  ConfigurationMCPForm,
-  ConfigureMcpEntrypointComponent,
-} from './components/configure-mcp-entrypoint/configure-mcp-entrypoint.component';
+import { ConfigureMcpEntrypointComponent } from './components/configure-mcp-entrypoint/configure-mcp-entrypoint.component';
 
 import { ApiV4, HttpListener } from '../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { DEFAULT_MCP_ENTRYPOINT_PATH, MCP_ENTRYPOINT_ID, MCPConfiguration, MCPTool } from '../../../entities/entrypoint/mcp';
+import { DEFAULT_MCP_ENTRYPOINT_PATH, MCP_ENTRYPOINT_ID, MCPConfiguration } from '../../../entities/entrypoint/mcp';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 interface ApiVM extends ApiV4 {
@@ -71,12 +68,14 @@ export class McpComponent implements OnInit {
       ),
     );
 
-  form: FormGroup<ConfigurationMCPForm> = new FormGroup<ConfigurationMCPForm>({
-    tools: new FormControl<MCPTool[]>([]),
-    mcpPath: new FormControl<string>(DEFAULT_MCP_ENTRYPOINT_PATH),
+  form = new FormGroup({
+    mcpConfig: new FormControl<MCPConfiguration>({
+      tools: [],
+      mcpPath: DEFAULT_MCP_ENTRYPOINT_PATH,
+    }),
   });
 
-  formInitialValues: { tools: MCPTool[]; mcpPath: string };
+  formInitialValues: { mcpConfig: MCPConfiguration };
 
   private destroyRef = inject(DestroyRef);
 
@@ -92,16 +91,14 @@ export class McpComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (!this.gioPermissionService.hasAnyMatching(['api-definition-u'])) {
-      this.form.disable();
-    }
-
     this.api$ = this.apiV2Service.get(this.apiId).pipe(
       filter((api) => api.definitionVersion === 'V4'),
       map((api) => ({ ...api, hasMCPEntrypoint: api.listeners?.[0].entrypoints.some((e) => e.type === MCP_ENTRYPOINT_ID) }) as ApiVM),
       tap((api) => {
         if (api.hasMCPEntrypoint) {
           this.updateFormValues(api);
+        } else {
+          this.formInitialValues = this.form.getRawValue();
         }
       }),
     );
@@ -112,7 +109,7 @@ export class McpComponent implements OnInit {
   }
 
   onSubmit() {
-    const configuration: MCPConfiguration = this.form.getRawValue();
+    const configuration: MCPConfiguration = this.form.getRawValue().mcpConfig;
 
     this.apiV2Service
       .get(this.apiId)
@@ -139,9 +136,8 @@ export class McpComponent implements OnInit {
 
   private updateFormValues(api: ApiV4): void {
     const mcpConfiguration = api.listeners[0].entrypoints.find((e) => e.type === MCP_ENTRYPOINT_ID).configuration as MCPConfiguration;
-    this.form.reset({
-      mcpPath: mcpConfiguration.mcpPath,
-      tools: mcpConfiguration.tools,
+    this.form.patchValue({
+      mcpConfig: mcpConfiguration,
     });
     this.formInitialValues = this.form.getRawValue();
   }
