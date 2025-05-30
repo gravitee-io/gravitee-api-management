@@ -25,7 +25,9 @@
         </div>
       </mat-card-header>
       <mat-card-content>
-        <configure-mcp-entrypoint [formGroup]="form" />
+        <form [formGroup]="form">
+          <configure-mcp-entrypoint formControlName="mcpConfig" />
+        </form>
       </mat-card-content>
     </mat-card>
     <gio-save-bar [form]="form" [formInitialValues]="formInitialValues" (submitted)="onSubmit()" />

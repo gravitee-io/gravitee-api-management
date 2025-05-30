@@ -13,29 +13,140 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input, Signal } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatInput, MatLabel } from '@angular/material/input';
+import { Component, DestroyRef, forwardRef, inject, OnInit } from '@angular/core';
+import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { map, tap } from 'rxjs/operators';
+import { MatButtonModule } from '@angular/material/button';
+import { GIO_DIALOG_WIDTH, GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { ToolsDisplayComponent } from '../tools-display/tools-display.component';
-import { MCPTool, MCPToolDefinition } from '../../../../../entities/entrypoint/mcp';
+import { DEFAULT_MCP_ENTRYPOINT_PATH, MCPConfiguration, MCPTool, MCPToolDefinition } from '../../../../../entities/entrypoint/mcp';
+import { ToolDisplayComponent } from '../tool-display/tool-display.component';
+import {
+  ImportMcpToolsDialogComponent,
+  ImportMcpToolsDialogData,
+  ImportMcpToolsDialogResult,
+} from '../import-mcp-tools-dialog/import-mcp-tools-dialog.component';
+import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
-export interface ConfigurationMCPForm {
+interface ConfigurationMCPForm {
   tools: FormControl<MCPTool[]>;
   mcpPath: FormControl<string>;
 }
 
 @Component({
   selector: 'configure-mcp-entrypoint',
-  imports: [FormsModule, MatInput, MatLabel, ReactiveFormsModule, ToolsDisplayComponent, MatFormFieldModule],
+  imports: [
+    ReactiveFormsModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatButtonModule,
+    GioIconsModule,
+    ToolDisplayComponent,
+    GioPermissionModule,
+  ],
   templateUrl: './configure-mcp-entrypoint.component.html',
   styleUrl: './configure-mcp-entrypoint.component.scss',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => ConfigureMcpEntrypointComponent),
+      multi: true,
+    },
+  ],
 })
-export class ConfigureMcpEntrypointComponent {
-  formGroup = input<FormGroup<ConfigurationMCPForm>>();
+export class ConfigureMcpEntrypointComponent implements OnInit, ControlValueAccessor {
+  private onChange: (value: MCPConfiguration) => void = () => {};
+  private onTouched: () => void = () => {};
 
-  toolDefinitions: Signal<MCPToolDefinition[]> = computed(() => {
-    return this.formGroup()?.controls.tools.value.map((tool) => tool.toolDefinition) ?? [];
+  formGroup = new FormGroup<ConfigurationMCPForm>({
+    tools: new FormControl<MCPTool[]>([]),
+    mcpPath: new FormControl<string>(DEFAULT_MCP_ENTRYPOINT_PATH),
   });
+
+  toolDefinitions: MCPToolDefinition[] = [];
+
+  private destroyRef = inject(DestroyRef);
+
+  constructor(
+    private readonly matDialog: MatDialog,
+    private readonly gioPermissionService: GioPermissionService,
+  ) {}
+
+  ngOnInit(): void {
+    // Subscribe to form changes to emit values
+    this.formGroup.valueChanges
+      .pipe(
+        tap((value) => {
+          this.onChange({
+            tools: value.tools || [],
+            mcpPath: value.mcpPath || DEFAULT_MCP_ENTRYPOINT_PATH,
+          });
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
+    if (!this.gioPermissionService.hasAnyMatching(['api-definition-u'])) {
+      this.formGroup.disable();
+    }
+  }
+
+  // ControlValueAccessor implementation
+  writeValue(value: MCPConfiguration | null): void {
+    if (value) {
+      const tools = value.tools || [];
+      this.formGroup.patchValue(
+        {
+          tools,
+          mcpPath: value.mcpPath || DEFAULT_MCP_ENTRYPOINT_PATH,
+        },
+        { emitEvent: false },
+      );
+
+      this.toolDefinitions = tools.map((tool) => tool.toolDefinition);
+    }
+  }
+
+  registerOnChange(fn: (value: MCPConfiguration) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    if (isDisabled) {
+      this.formGroup.disable();
+    } else {
+      this.formGroup.enable();
+    }
+  }
+
+  importTools(): void {
+    this.matDialog
+      .open<ImportMcpToolsDialogComponent, ImportMcpToolsDialogData, ImportMcpToolsDialogResult>(ImportMcpToolsDialogComponent, {
+        data: {},
+        width: GIO_DIALOG_WIDTH.LARGE,
+      })
+      .afterClosed()
+      .pipe(
+        map((result) => result?.tools || []),
+        tap((tools: MCPTool[]) => {
+          this.formGroup.patchValue({ tools });
+          this.formGroup.markAsDirty();
+          this.onTouched();
+
+          // Update tool definitions based on imported tools
+          this.toolDefinitions = tools.map((tool) => tool.toolDefinition);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
 }
