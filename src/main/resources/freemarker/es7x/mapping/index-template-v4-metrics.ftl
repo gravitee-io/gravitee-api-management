@@ -202,7 +202,7 @@
             },
             {
                 "additional_long_metrics": {
-                    "path_match": "policy-metrics.long_*",
+                    "path_match": "additional-metrics.long_*",
                     "match_mapping_type": "long",
                     "mapping": {
                         "type": "long"
@@ -211,7 +211,7 @@
             },
             {
                 "additional_keyword_metrics": {
-                    "path_match": "policy-metrics.keyword_*",
+                    "path_match": "additional-metrics.keyword_*",
                     "match_mapping_type": "string",
                     "mapping": {
                         "type": "keyword"
@@ -219,8 +219,8 @@
                 }
             },
             {
-                "policies_boolean_metrics": {
-                    "path_match": "policy-metrics.bool_*",
+                "additional_boolean_metrics": {
+                    "path_match": "additional-metrics.bool_*",
                     "mapping": {
                         "type": "boolean"
                     }
@@ -228,7 +228,7 @@
             },
             {
                 "additional_double_metrics": {
-                    "path_match": "policy-metrics.double_*",
+                    "path_match": "additional-metrics.double_*",
                     "mapping": {
                         "type": "double"
                     }
