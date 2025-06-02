@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.0...1.6.1) (2025-06-02)
+
+
+### Bug Fixes
+
+* **deps:** update gravitee-reporter-api to 1.33.1 ([b94476e](https://github.com/gravitee-io/gravitee-reporter-common/commit/b94476e7db86dedb0d8d36c511e9bd44367960ee))
+
 # [1.6.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.5.2...1.6.0) (2025-05-13)
 
 
