@@ -1,3 +1,10 @@
+## [5.9.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.9.1...5.9.2) (2025-06-02)
+
+
+### Bug Fixes
+
+* rename policy metric to additional metric ([f20eeee](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/f20eeeed32eaf933c20c13ed842de4b40053d529))
+
 ## [5.9.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.9.0...5.9.1) (2025-05-22)
 
 
