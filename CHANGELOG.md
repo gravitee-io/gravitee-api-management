@@ -1,3 +1,10 @@
+## [3.5.1](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.5.0...3.5.1) (2025-06-02)
+
+
+### Bug Fixes
+
+* **deps:** update io.gravitee.reporter:gravitee-reporter-api to v1.33.1 ([#113](https://github.com/gravitee-io/gravitee-reporter-file/issues/113)) ([95f163b](https://github.com/gravitee-io/gravitee-reporter-file/commit/95f163bbcb63f5fdef904c8e55f65df56c5b60d2))
+
 # [3.5.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.4.1...3.5.0) (2025-05-13)
 
 
