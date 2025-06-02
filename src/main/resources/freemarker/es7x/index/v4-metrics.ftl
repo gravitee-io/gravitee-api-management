@@ -118,7 +118,7 @@
   }
   </#if>
   <#if (metrics.longAdditionalMetrics)()?? || (metrics.doubleAdditionalMetrics)()?? || (metrics.keywordAdditionalMetrics)()?? || (metrics.boolAdditionalMetrics)()??>
-    ,"policy-metrics": {
+    ,"additional-metrics": {
     <#if (metrics.longAdditionalMetrics)()??>
       <#list metrics.longAdditionalMetrics() as propKey, propValue>
         "${propKey}":${propValue}<#sep>,
