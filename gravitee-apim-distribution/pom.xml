@@ -906,6 +906,19 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-ai-prompt-guard-rails</artifactId>
+            <version>${gravitee-policy-ai-prompt-guard-rails.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- Reporters -->
         <dependency>
@@ -1046,6 +1059,19 @@
             <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-content-provider-inline</artifactId>
             <version>${gravitee-resource-content-provider-inline.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-ai-model-text-classification</artifactId>
+            <version>${gravitee-resource-ai-model-text-classification.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
