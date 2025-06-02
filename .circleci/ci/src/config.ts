@@ -22,7 +22,7 @@ const artifactoryUrl = 'https://odbxikk7vo-artifactory.services.clever-cloud.com
 const awsCliVersion = '2.22.35';
 
 const cache = {
-  prefix: 'gravitee-api-management-v11',
+  prefix: 'gravitee-api-management-v12',
 };
 
 const components = {
