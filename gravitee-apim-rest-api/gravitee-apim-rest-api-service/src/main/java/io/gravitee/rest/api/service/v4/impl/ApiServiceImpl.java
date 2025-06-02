@@ -46,6 +46,7 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
@@ -373,6 +374,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return update(executionContext, apiId, api, false, userId);
     }
 
+    void updateGroups(ExecutionContext executionContext, ApiEntity existingApiEntity, UpdateApiEntity updateApiEntity) {
+        MembershipEntity primaryOwnerMembership = membershipService.getPrimaryOwner(
+            executionContext.getOrganizationId(),
+            MembershipReferenceType.API,
+            existingApiEntity.getId()
+        );
+        // If the API's PO is a group we should keep it in the list of the API's groups
+        if (primaryOwnerMembership.getMemberType() == MembershipMemberType.GROUP) {
+            if (updateApiEntity.getGroups() == null) {
+                updateApiEntity.setGroups(new HashSet<>());
+            }
+            updateApiEntity.getGroups().add(primaryOwnerMembership.getMemberId());
+        }
+    }
+
     @Override
     public ApiEntity update(
         final ExecutionContext executionContext,
@@ -455,6 +471,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         }
                     });
             }
+
+            updateGroups(executionContext, existingApiEntity, updateApiEntity);
 
             Api api = apiMapper.toRepository(executionContext, updateApiEntity);
 

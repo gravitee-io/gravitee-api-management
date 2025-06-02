@@ -96,6 +96,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
@@ -162,10 +163,12 @@ import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -1194,6 +1197,57 @@ public class ApiServiceImplTest {
         assertThat(result.get().getId()).isEqualTo(api.getId());
     }
 
+    @Test
+    public void updateGroups_primaryOwnerMemberNotGroup() {
+        String existingApiEntityId = "api1";
+        ExecutionContext executionContext = new ExecutionContext();
+        ApiEntity existingApiEntity = ApiEntity.builder().id(existingApiEntityId).build();
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        MembershipEntity primaryOwnerMembership = MembershipEntity.builder().build();
+        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, existingApiEntityId))
+            .thenReturn(primaryOwnerMembership);
+        ((ApiServiceImpl) apiService).updateGroups(executionContext, existingApiEntity, updateApiEntity);
+        Assertions.assertThat(updateApiEntity.getGroups()).isNull();
+    }
+
+    @Test
+    public void updateGroups_primaryOwnerMemberGroup_currentGroupNull() {
+        String existingApiEntityId = "api1";
+        ExecutionContext executionContext = new ExecutionContext();
+        ApiEntity existingApiEntity = ApiEntity.builder().id(existingApiEntityId).build();
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        String memberId = "member1";
+        MembershipEntity primaryOwnerMembership = MembershipEntity
+            .builder()
+            .memberType(MembershipMemberType.GROUP)
+            .memberId(memberId)
+            .build();
+        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, existingApiEntityId))
+            .thenReturn(primaryOwnerMembership);
+        ((ApiServiceImpl) apiService).updateGroups(executionContext, existingApiEntity, updateApiEntity);
+        Assertions.assertThat(updateApiEntity.getGroups()).isEqualTo(Set.of(memberId));
+    }
+
+    @Test
+    public void updateGroups_primaryOwnerMemberGroup_currentGroupNotNull() {
+        String existingApiEntityId = "api1";
+        ExecutionContext executionContext = new ExecutionContext();
+        ApiEntity existingApiEntity = ApiEntity.builder().id(existingApiEntityId).build();
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        String existingGroup = "group1";
+        updateApiEntity.setGroups(new HashSet<>(Set.of(existingGroup)));
+        String memberId = "member1";
+        MembershipEntity primaryOwnerMembership = MembershipEntity
+            .builder()
+            .memberType(MembershipMemberType.GROUP)
+            .memberId(memberId)
+            .build();
+        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, existingApiEntityId))
+            .thenReturn(primaryOwnerMembership);
+        ((ApiServiceImpl) apiService).updateGroups(executionContext, existingApiEntity, updateApiEntity);
+        Assertions.assertThat(updateApiEntity.getGroups()).isEqualTo(Set.of(existingGroup, memberId));
+    }
+
     private void prepareUpdate() throws TechnicalException {
         prepareUpdate("endpointGroupName", "endpointName", "/context");
     }
@@ -1202,6 +1256,9 @@ public class ApiServiceImplTest {
         prepareUpdateApiEntity(endpointGroupName, endpointName, path);
 
         when(apiRepository.update(any())).thenReturn(updatedApi);
+
+        when(membershipService.getPrimaryOwner(any(), eq(MembershipReferenceType.API), eq(updatedApi.getId())))
+            .thenReturn(MembershipEntity.builder().build());
 
         api.setName(API_NAME);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
