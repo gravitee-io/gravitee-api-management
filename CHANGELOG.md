@@ -1,3 +1,11 @@
+## [1.6.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.1...1.6.2) (2025-06-02)
+
+
+### Bug Fixes
+
+* customize additional information seralisation ([4290f7b](https://github.com/gravitee-io/gravitee-reporter-common/commit/4290f7b2085caef52fcadbc90a2998092e7cfe4c))
+* rename policy-metrics to additional information ([1b7b11b](https://github.com/gravitee-io/gravitee-reporter-common/commit/1b7b11bbe397eb7f8c4e645644a5657db26ebdb6))
+
 ## [1.6.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.0...1.6.1) (2025-06-02)
 
 
