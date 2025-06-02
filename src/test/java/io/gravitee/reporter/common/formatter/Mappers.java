@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.gravitee.gateway.api.http.DefaultHttpHeaders;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.reporter.api.jackson.AdditionalMetricDeserialization;
+import io.gravitee.reporter.api.v4.metric.AdditionalMetric;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,6 +43,10 @@ public class Mappers {
     var resolver = new SimpleAbstractTypeResolver();
     resolver.addMapping(HttpHeaders.class, DefaultHttpHeaders.class);
     var module = new SimpleModule();
+    module.addDeserializer(
+      AdditionalMetric.class,
+      new AdditionalMetricDeserialization()
+    );
     module.setAbstractTypes(resolver);
     JSON.registerModule(module);
     JSON.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

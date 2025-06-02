@@ -36,9 +36,9 @@
   "errorKey": null,
   "customMetrics": null,
   "log": null,
-  "additionalMetrics": {
-    "long_tokenCount": 12,
-    "double_valueAvg": 12.6,
-    "keyword_name": "the name"
-  }
+  "additionalMetrics": [
+    { "name": "long_tokenCount", "value": 12 },
+    { "name": "double_valueAvg", "value": 12.6 },
+    { "name": "keyword_name", "value": "the name" }
+  ]
 }

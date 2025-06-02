@@ -15,20 +15,11 @@
  */
 package io.gravitee.reporter.common.formatter.json;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.reporter.api.Reportable;
-import io.gravitee.reporter.api.common.Request;
-import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.configuration.Rules;
-import io.gravitee.reporter.api.health.EndpointStatus;
-import io.gravitee.reporter.api.health.Step;
-import io.gravitee.reporter.api.jackson.FieldFilterMixin;
-import io.gravitee.reporter.api.jackson.FieldFilterProvider;
-import io.gravitee.reporter.api.jackson.HttpHeadersSerializer;
+import io.gravitee.reporter.api.jackson.*;
 import io.gravitee.reporter.common.formatter.AbstractFormatter;
 import io.vertx.core.buffer.Buffer;
 import org.slf4j.Logger;
@@ -44,23 +35,10 @@ public class JsonFormatter<T extends Reportable> extends AbstractFormatter<T> {
     JsonFormatter.class
   );
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper;
 
   public JsonFormatter(final Rules rules) {
-    if (rules != null && rules.containsRules()) {
-      mapper.addMixIn(Reportable.class, FieldFilterMixin.class);
-      mapper.addMixIn(Request.class, FieldFilterMixin.class);
-      mapper.addMixIn(Response.class, FieldFilterMixin.class);
-      mapper.addMixIn(EndpointStatus.class, FieldFilterMixin.class);
-      mapper.addMixIn(Step.class, FieldFilterMixin.class);
-      mapper.setFilterProvider(new FieldFilterProvider(rules));
-    }
-
-    SimpleModule module = new SimpleModule();
-    module.addSerializer(HttpHeaders.class, new HttpHeadersSerializer(rules));
-    mapper.registerModule(module);
-
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    mapper = JacksonUtils.mapper(rules);
   }
 
   @Override

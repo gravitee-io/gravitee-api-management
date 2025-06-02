@@ -26,9 +26,8 @@ import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.configuration.Rules;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
-import io.gravitee.reporter.api.jackson.FieldFilterMixin;
-import io.gravitee.reporter.api.jackson.FieldFilterProvider;
-import io.gravitee.reporter.api.jackson.HttpHeadersSerializer;
+import io.gravitee.reporter.api.jackson.*;
+import io.gravitee.reporter.api.v4.metric.AdditionalMetric;
 import io.gravitee.reporter.common.formatter.AbstractFormatter;
 import io.vertx.core.buffer.Buffer;
 import org.msgpack.jackson.dataformat.MessagePackMapper;
@@ -60,6 +59,10 @@ public class MsgPackFormatter<T extends Reportable>
 
     SimpleModule module = new SimpleModule();
     module.addSerializer(HttpHeaders.class, new HttpHeadersSerializer(rules));
+    module.addDeserializer(
+      AdditionalMetric.class,
+      new AdditionalMetricDeserialization()
+    );
     mapper.registerModule(module);
 
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
