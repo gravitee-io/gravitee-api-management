@@ -86,6 +86,12 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
             sanitizedGroups.add(primaryOwnerEntity.getId());
         }
 
+        // In case groups is null we should still return null if no groups have been added because during the update process a null field
+        // means I want to keep the current value
+        if (sanitizedGroups.isEmpty()) {
+            return groups;
+        }
+
         return sanitizedGroups;
     }
 
