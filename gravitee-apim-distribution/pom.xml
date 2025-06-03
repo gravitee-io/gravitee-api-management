@@ -919,6 +919,19 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-ai-prompt-token-tracking</artifactId>
+            <version>${gravitee-policy-ai-prompt-token-tracking.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- Reporters -->
         <dependency>
@@ -1621,19 +1634,6 @@
                     <groupId>io.gravitee.secretprovider</groupId>
                     <artifactId>gravitee-secret-provider-kubernetes</artifactId>
                     <version>${gravitee-secretprovider-kubernetes.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>io.gravitee.policy</groupId>
-                    <artifactId>gravitee-policy-ai-prompt-token-tracking</artifactId>
-                    <version>${gravitee-policy-ai-prompt-token-tracking.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
