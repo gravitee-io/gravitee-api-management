@@ -38,6 +38,7 @@ import io.gravitee.node.plugins.service.spring.ServicePluginConfiguration;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
@@ -173,6 +174,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public SubscriptionRepository subscriptionRepository() {
             return Mockito.mock(SubscriptionRepository.class);
+        }
+
+        @Bean
+        public CommandRepository commandRepository() {
+            return Mockito.mock(CommandRepository.class);
         }
 
         @Bean
