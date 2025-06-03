@@ -19,6 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { ConfigureTestingGioMonacoEditor } from '@gravitee/ui-particles-angular';
 
 import { McpComponent } from './mcp.component';
 import { McpHarness } from './mcp.harness';
@@ -127,6 +128,9 @@ describe('McpComponent', () => {
       ],
     }).compileComponents();
 
+    // Configure Monaco Editor for testing
+    ConfigureTestingGioMonacoEditor();
+
     fixture = TestBed.createComponent(McpComponent);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, McpHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
@@ -195,14 +199,17 @@ describe('McpComponent', () => {
           updatedAt: DATE,
           deployedAt: DATE,
         });
+
       beforeEach(() => {
         expectGetApi(API());
       });
+
       it('should display the mcp entrypoint edit form', async () => {
         const mcpConfigurationForm = await componentHarness.getConfigureMcpEntrypoint();
         expect(await mcpConfigurationForm.getMcpPathValue()).toEqual('/cats-rule');
         expect(await mcpConfigurationForm.hasTools()).toEqual(false);
       });
+
       it('should edit mcp entrypoint form and submit', async () => {
         const mcpConfigurationForm = await componentHarness.getConfigureMcpEntrypoint();
         await mcpConfigurationForm.setMcpPathValue('/dogs-drool');
@@ -220,8 +227,7 @@ describe('McpComponent', () => {
         expectUpdateApiCalls(API(), newApi);
       });
 
-      // TODO: Fix test so that 'input' appears in the GioMonacoEditorHarness
-      it.skip('should add tools to the mcp entrypoint', async () => {
+      it('should add tools to the mcp entrypoint', async () => {
         const mcpConfigurationForm = await componentHarness.getConfigureMcpEntrypoint();
         expect(await mcpConfigurationForm.hasTools()).toEqual(false);
 
@@ -315,8 +321,7 @@ describe('McpComponent', () => {
         expectUpdateApiCalls(API(), newApi);
       });
 
-      // TODO: Fix test so that 'input' appears in the GioMonacoEditorHarness
-      it.skip('should discard tools to the mcp entrypoint', async () => {
+      it('should discard tools to the mcp entrypoint', async () => {
         const mcpConfigurationForm = await componentHarness.getConfigureMcpEntrypoint();
         expect(await mcpConfigurationForm.hasTools()).toEqual(false);
 
