@@ -406,4 +406,16 @@ public class GroupValidationServiceImplTest {
         Assertions.assertThat(validatedGroups).isEmpty();
         Assertions.assertThat(validatedGroups).isEqualTo(emptyGroups);
     }
+
+    @Test
+    public void shouldReturnNull() {
+        Set<String> validatedGroups = groupValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            null,
+            null,
+            null,
+            false
+        );
+        assertThat(validatedGroups).isNull();
+    }
 }
