@@ -799,6 +799,7 @@ paths:
     /environments/{envId}/apis/{apiId}/primaryowner:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
         get:
             tags:
                 - API Members
@@ -2666,6 +2667,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
+            summary: List APIs within a Category
             description: Page of APIs within a Category
             operationId: getCategoryApisPage
             responses:
@@ -2682,6 +2684,7 @@ paths:
         post:
             tags:
                 - Categories
+            summary: Update API in a Category
             description: Update a specified API within a Category
             operationId: updateCategoryApi
             requestBody:
@@ -3186,16 +3189,6 @@ components:
                 eventId:
                     type: string
                     description: The event ID to rollback to.
-
-        CreateApi:
-            oneOf:
-                - $ref: "#/components/schemas/CreateApiV2"
-                - $ref: "#/components/schemas/CreateApiV4"
-            discriminator:
-                propertyName: definitionVersion
-                mapping:
-                    V2: "#/components/schemas/CreateApiV2"
-                    V4: "#/components/schemas/CreateApiV4"
 
         CreateGenericApi:
             type: object
@@ -3751,17 +3744,6 @@ components:
                 endpoint:
                     type: string
                     description: The endpoint of the DLQ.
-        OriginContext:
-            oneOf:
-                - $ref: "#/components/schemas/ManagementOriginContext"
-                - $ref: "#/components/schemas/KubernetesOriginContext"
-                - $ref: "#/components/schemas/IntegrationOriginContext"
-            discriminator:
-                propertyName: origin
-                mapping:
-                    MANAGEMENT: "#/components/schemas/ManagementOriginContext"
-                    KUBERNETES: "#/components/schemas/KubernetesOriginContext"
-                    INTEGRATION: "#/components/schemas/IntegrationOriginContext"
         BaseOriginContext:
             type: object
             properties:
@@ -4385,22 +4367,6 @@ components:
         ResponseMetadata:
             description: Generic object to handle additional information about an entity. Can also be used for pagination data.
             type: object
-        MoreInformation:
-            type: object
-            properties:
-                description:
-                    type: string
-                    description: Plugin's description.
-                    example: Let your consumers send synchronous, on-demand requests for events via a standard HTTP GET requests. Use a standard HTTP proxy to mediate between client applications as data consumers and event brokers such as Kafka.
-                documentationUrl:
-                    type: string
-                    description: Plugin's documentation URL.
-                    example: https://documentation.gravitee.io
-                schemaImg:
-                    type: string
-                    description: Plugin's schema image as base64.
-                    format: base64
-                    example: data:image/png;base64,aFDqfda
         Operator:
             type: string
             description: The path operator of the selector
@@ -5477,7 +5443,7 @@ components:
                 mapping:
                     HTTP: "#/components/schemas/HttpSelector"
                     CHANNEL: "#/components/schemas/ChannelSelector"
-                    CONDITION: ConditionSelector
+                    CONDITION: "#/components/schemas/ConditionSelector"
         BaseSelector:
             properties:
                 type:
@@ -6542,30 +6508,6 @@ components:
                 metadata:
                     type: object
                     description: The list of Message's metadata.
-        ApiLogHeader:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: The name of the header
-                    example: my-header
-                value:
-                    type: array
-                    description: The values of the header
-                    example: [my-value]
-                    items:
-                        type: string
-        ApiLogMetadata:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: The name of the metadata
-                    example: my-metadata
-                value:
-                    type: string
-                    description: The value of the metadata
-                    example: [my-value]
 
         # Audits
         Audit:
@@ -7669,14 +7611,6 @@ components:
         #############
         # PathParam #
         #############
-        orgIdParam:
-            name: orgId
-            in: path
-            required: true
-            description: Id of an organization.
-            schema:
-                type: string
-                default: DEFAULT
         envIdParam:
             name: envId
             in: path
@@ -7746,27 +7680,6 @@ components:
             in: path
             required: true
             description: Id of an API Key.
-            schema:
-                type: string
-        endpointIdParam:
-            name: endpointId
-            in: path
-            required: true
-            description: Id of an endpoint.
-            schema:
-                type: string
-        entrypointIdParam:
-            name: entrypointId
-            in: path
-            required: true
-            description: Id of an entrypoint.
-            schema:
-                type: string
-        policyIdParam:
-            name: policyId
-            in: path
-            required: true
-            description: Id of a policy.
             schema:
                 type: string
         integrationIdParam:
@@ -7951,15 +7864,6 @@ components:
                 type: array
                 items:
                     $ref: "#/components/schemas/HttpMethod"
-        statuses:
-            name: statuses
-            description: List of http statuses to filter on.
-            in: query
-            explode: false
-            schema:
-                type: array
-                items:
-                    type: integer
         eventIdParam:
             name: eventId
             in: path
@@ -8177,12 +8081,6 @@ components:
                                 $ref: "#/components/schemas/ResponseMetadata"
                             pagination:
                                 $ref: "#/components/schemas/Pagination"
-        SchemaFormResponse:
-            description: Schema form of a plugin
-            content:
-                application/json:
-                    schema:
-                        type: object
         Error:
             description: Generic error response
             content:
