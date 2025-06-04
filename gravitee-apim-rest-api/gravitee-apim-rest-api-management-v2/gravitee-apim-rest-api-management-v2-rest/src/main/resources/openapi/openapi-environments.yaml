@@ -902,17 +902,6 @@ components:
                 - MESSAGE
                 - PROXY
                 - NATIVE
-        OriginContext:
-            oneOf:
-                - $ref: "#/components/schemas/ManagementOriginContext"
-                - $ref: "#/components/schemas/KubernetesOriginContext"
-                - $ref: "#/components/schemas/IntegrationOriginContext"
-            discriminator:
-                propertyName: origin
-                mapping:
-                    MANAGEMENT: "#/components/schemas/ManagementOriginContext"
-                    KUBERNETES: "#/components/schemas/KubernetesOriginContext"
-                    INTEGRATION: "#/components/schemas/IntegrationOriginContext"
         BaseOriginContext:
             type: object
             properties:
@@ -1211,12 +1200,6 @@ components:
                 $ref: "#/components/schemas/ScoringFunctionName"
 
     responses:
-        SchemaFormResponse:
-            description: Schema form of a plugin
-            content:
-                application/json:
-                    schema:
-                        type: object
         SharedPolicyGroupsResponse:
             description: Page of shared policy groups
             content:

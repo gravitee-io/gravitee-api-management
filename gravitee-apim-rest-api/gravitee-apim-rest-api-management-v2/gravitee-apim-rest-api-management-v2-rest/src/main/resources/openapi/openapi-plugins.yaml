@@ -425,9 +425,9 @@ paths:
                                     $ref: "#/components/schemas/ResourcePlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/resources/{resrouceId}:
+    /plugins/resources/{resourceId}:
         parameters:
-            - $ref: "#/components/parameters/policyIdParam"
+            - $ref: "#/components/parameters/resourceIdParam"
         get:
             tags:
                 - Plugins - Resources
@@ -709,6 +709,13 @@ components:
             in: path
             required: true
             description: Id of a policy.
+            schema:
+                type: string
+        resourceIdParam:
+            name: resourceId
+            in: path
+            required: true
+            description: Id of a resource.
             schema:
                 type: string
     responses:

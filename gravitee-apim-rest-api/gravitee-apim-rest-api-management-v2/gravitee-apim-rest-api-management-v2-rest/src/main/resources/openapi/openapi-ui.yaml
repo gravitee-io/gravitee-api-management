@@ -10,6 +10,8 @@ info:
         url: http://www.apache.org/licenses/LICENSE-2.0.html
     version: 2.0.0
 
+security: []
+
 servers:
     - url: "/management/v2/environments/{envId}"
       description: APIM Management API v2 - Default base URL
@@ -468,8 +470,8 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    PORTAL: ThemePortal
-                    PORTAL_NEXT: ThemePortalNext
+                    PORTAL: "#/components/schemas/ThemePortal"
+                    PORTAL_NEXT: "#/components/schemas/ThemePortalNext"
 
         GenericUpdateTheme:
             type: object
@@ -501,8 +503,8 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    PORTAL: UpdateThemePortal
-                    PORTAL_NEXT: UpdateThemePortalNext
+                    PORTAL: "#/components/schemas/UpdateThemePortal"
+                    PORTAL_NEXT: "#/components/schemas/UpdateThemePortalNext"
 
         Links:
             description: List of links for pagination
@@ -691,8 +693,8 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    PORTAL: ThemePortal
-                    PORTAL_NEXT: ThemePortalNext
+                    PORTAL: "#/components/schemas/ThemePortal"
+                    PORTAL_NEXT: "#/components/schemas/ThemePortalNext"
 
         UpdatePortalMenuLink:
             type: object
@@ -724,8 +726,8 @@ components:
             discriminator:
                 propertyName: type
                 mapping:
-                    PORTAL: UpdateThemePortal
-                    PORTAL_NEXT: UpdateThemePortalNext
+                    PORTAL: "#/components/schemas/UpdateThemePortal"
+                    PORTAL_NEXT: "#/components/schemas/UpdateThemePortalNext"
 
         ThemePortal:
             title: "ThemePortal"
