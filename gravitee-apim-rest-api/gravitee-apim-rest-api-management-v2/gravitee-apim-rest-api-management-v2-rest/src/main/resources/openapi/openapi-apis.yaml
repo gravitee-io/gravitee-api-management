@@ -691,17 +691,17 @@ paths:
 
     /environments/{envId}/apis/{apiId}/exposedEntrypoints:
         parameters:
-          - $ref: "#/components/parameters/envIdParam"
-          - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
         get:
             tags:
-              - APIs
+                - APIs
             summary: Get Exposed API Entrypoints
             description: |-
-              Get the list of exposed API entry points. This list represents the API's usable entrypoints that can be used 
-              by a client. It takes into account tags associated with the API or configured AccessPoint.
-              
-              User must have the API_DEFINITION[READ] permission.
+                Get the list of exposed API entry points. This list represents the API's usable entrypoints that can be used 
+                by a client. It takes into account tags associated with the API or configured AccessPoint.
+
+                User must have the API_DEFINITION[READ] permission.
             operationId: exposedEntrypoints
             responses:
                 "200":
@@ -797,29 +797,29 @@ paths:
 
     # API Members
     /environments/{envId}/apis/{apiId}/primaryowner:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-      get:
-        tags:
-          - API Members
-        summary: Get the API's primary owner userId
-        description: |
-          Get the API Primary Owner userId. 
-          If the primary owner is a group, then the userId of the primary owner user within that group will be returned, not the groupId.
-          
-          The userId is wrapper into a Member object, but no other properties are returned.
-          
-          User must have the API_MEMBER[READ] permission.
-        operationId: getApiPrimaryOwner
-        responses:
-          "200":
-            description: Primary owner returned successfully
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/Member"
-          default:
-            $ref: "#/components/responses/Error"
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - API Members
+            summary: Get the API's primary owner userId
+            description: |
+                Get the API Primary Owner userId. 
+                If the primary owner is a group, then the userId of the primary owner user within that group will be returned, not the groupId.
+
+                The userId is wrapper into a Member object, but no other properties are returned.
+
+                User must have the API_MEMBER[READ] permission.
+            operationId: getApiPrimaryOwner
+            responses:
+                "200":
+                    description: Primary owner returned successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Member"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/members:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -2209,86 +2209,86 @@ paths:
 
     # API Health
     /environments/{envId}/apis/{apiId}/health/average-response-time:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-        - $ref: "#/components/parameters/healthField"
-      get:
-        tags:
-          - API Health
-        summary: Get API Health Check average response time
-        description: |-
-          Get API Health Check average response time. 
-          
-          User must have the API_HEALTH[READ] permission.
-        operationId: getApiHealthAverageResponseTime
-        responses:
-          "200":
-            $ref: "#/components/responses/ApiHealthAverageResponseTimeResponse"
-          default:
-            $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/health/average-response-time-overtime:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-        - $ref: "#/components/parameters/from"
-        - $ref: "#/components/parameters/to"
-      get:
-        tags:
-          - API Health
-        summary: Get API Health Check average response time overtime
-        description: |-
-          Get API Health Check average response time overtime. 
-          
-          User must have the API_HEALTH[READ] permission.
-        operationId: getApiHealthAverageResponseTimeOvertime
-        responses:
-          "200":
-            $ref: "#/components/responses/ApiHealthAverageResponseTimeOvertimeResponse"
-          default:
-            $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/health/availability:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-        - $ref: "#/components/parameters/healthField"
-      get:
-        tags:
-          - API Health
-        summary: Get API availability by endpoint or by gateway
-        description: |-
-          Get API Health availability. 
-          
-          User must have the API_HEALTH[READ] permission.
-        operationId: getApiAvailability
-        responses:
-          "200":
-            $ref: "#/components/responses/ApiHealthAvailabilityResponse"
-          default:
-            $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/health/logs:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-        - in: query
-          name: success
-          schema:
-            type: boolean
-          description: Filter logs by success status
-      get:
-        tags:
-          - API Health
-        summary: Get API Health Check logs
-        description: |-
-          Get API Health Check average response time overtime. 
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/healthField"
+        get:
+            tags:
+                - API Health
+            summary: Get API Health Check average response time
+            description: |-
+                Get API Health Check average response time. 
 
-          User must have the API_HEALTH[READ] permission.
-        operationId: getApiHealthLogs
-        responses:
-          "200":
-            $ref: "#/components/responses/ApiHealthLogsResponse"
-          default:
-            $ref: "#/components/responses/Error"
+                User must have the API_HEALTH[READ] permission.
+            operationId: getApiHealthAverageResponseTime
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiHealthAverageResponseTimeResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/health/average-response-time-overtime:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
+        get:
+            tags:
+                - API Health
+            summary: Get API Health Check average response time overtime
+            description: |-
+                Get API Health Check average response time overtime. 
+
+                User must have the API_HEALTH[READ] permission.
+            operationId: getApiHealthAverageResponseTimeOvertime
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiHealthAverageResponseTimeOvertimeResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/health/availability:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/healthField"
+        get:
+            tags:
+                - API Health
+            summary: Get API availability by endpoint or by gateway
+            description: |-
+                Get API Health availability. 
+
+                User must have the API_HEALTH[READ] permission.
+            operationId: getApiAvailability
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiHealthAvailabilityResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/health/logs:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - in: query
+              name: success
+              schema:
+                  type: boolean
+              description: Filter logs by success status
+        get:
+            tags:
+                - API Health
+            summary: Get API Health Check logs
+            description: |-
+                Get API Health Check average response time overtime. 
+
+                User must have the API_HEALTH[READ] permission.
+            operationId: getApiHealthLogs
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiHealthLogsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API Audits
     /environments/{envId}/apis/{apiId}/audits:
@@ -2641,7 +2641,7 @@ paths:
             summary: Get API Scoring
             description: |-
                 Get API Scoring.
-                
+
                 Return a 404 HTTP Response status if API was never evaluated.
             operationId: getApiScoring
             responses:
@@ -2734,31 +2734,31 @@ paths:
 
     # DebugMode
     /environments/{envId}/apis/{apiId}/debug:
-      parameters:
-        - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiIdParam"
-      post:
-        tags:
-          - APIs
-        summary: Debug an API on gateway instances
-        description: |-
-          User must have the UPDATE permission on API_DEFINITION to use this service
-        operationId: debugApi
-        requestBody:
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DebugHttpRequest"
-          required: true
-        responses:
-          "202":
-            description: API Debug request successfully sent
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/DebugEvent"
-          default:
-            $ref: "#/components/responses/Error"
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Debug an API on gateway instances
+            description: |-
+                User must have the UPDATE permission on API_DEFINITION to use this service
+            operationId: debugApi
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DebugHttpRequest"
+                required: true
+            responses:
+                "202":
+                    description: API Debug request successfully sent
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DebugEvent"
+                default:
+                    $ref: "#/components/responses/Error"
 
 components:
     schemas:
@@ -3046,114 +3046,114 @@ components:
             allOf:
                 - $ref: "#/components/schemas/GenericApi"
                 - properties:
-                    url:
-                      type: string
-                    documentationUrl:
-                      type: string
-                    provider:
-                      type: object
-                      properties:
-                        organization:
+                      url:
                           type: string
-                        url:
+                      documentationUrl:
                           type: string
-                    defaultInputModes:
-                      type: array
-                      items:
-                        type: string
-                    defaultOutputModes:
-                      type: array
-                      items:
-                        type: string
-                    capabilities:
-                      type: array
-                      items:
-                        type: string
-                    securitySchemes:
-                      type: object
-                      description: Security scheme details used for authenticating with this agent.
-                    security:
-                      type: object
-                      description: Security requirements for contacting the agent.
-                    skills:
-                      type: array
-                      description: The list of listeners associated with this API.
-                      items:
-                        type: object
-                        properties:
-                          id:
-                            type: string
-                            description: Unique skill identifier within this agent.
-                          name:
-                            type: string
-                          description:
-                            type: string
-                          tags:
-                            type: array
-                            items: 
+                      provider:
+                          type: object
+                          properties:
+                              organization:
+                                  type: string
+                              url:
+                                  type: string
+                      defaultInputModes:
+                          type: array
+                          items:
                               type: string
-                          examples:
-                            type: array
-                            items:
+                      defaultOutputModes:
+                          type: array
+                          items:
                               type: string
-                          inputModes:
-                            type: array
-                            items:
+                      capabilities:
+                          type: array
+                          items:
                               type: string
-                          outputModes:
-                            type: array
-                            items:
-                              type: string
-                        required: ["id", "name", "description", "tags"]
+                      securitySchemes:
+                          type: object
+                          description: Security scheme details used for authenticating with this agent.
+                      security:
+                          type: object
+                          description: Security requirements for contacting the agent.
+                      skills:
+                          type: array
+                          description: The list of listeners associated with this API.
+                          items:
+                              type: object
+                              properties:
+                                  id:
+                                      type: string
+                                      description: Unique skill identifier within this agent.
+                                  name:
+                                      type: string
+                                  description:
+                                      type: string
+                                  tags:
+                                      type: array
+                                      items:
+                                          type: string
+                                  examples:
+                                      type: array
+                                      items:
+                                          type: string
+                                  inputModes:
+                                      type: array
+                                      items:
+                                          type: string
+                                  outputModes:
+                                      type: array
+                                      items:
+                                          type: string
+                              required: ["id", "name", "description", "tags"]
 
         DebugHttpRequest:
-          type: object
-          title: "DebugHttpRequest"
-          properties:
-            path:
-              type: string
-              description: The path of the request.
-              example: /my-api
-            method:
-              type: string
-              description: The HTTP method of the request.
-              example: GET
-            body:
-              type: string
-              description: The body of the request.
-              example: '{"key":"value"}'
-            headers:
-              type: object
-              description: The headers of the request.
-              additionalProperties:
-                type: array
-                items:
-                  type: string
-        DebugEvent:
-          type: object
-          title: "DebugEvent"
-          properties:
-            id:
-              type: string
-              description: The ID of the event.
-              example: 59327494-7258-4cd0-8715-144abe903531
-            type:
-              type: string
-              description: The type of the event.
-              example: DEBUG_API
-            createdAt:
-              type: string
-              format: date-time
-              description: The date (as timestamp) when the event was created.
-              example: 1581256457163
-            payload:
-              type: string
-              description: The payload of the event.
+            type: object
+            title: "DebugHttpRequest"
             properties:
-              type: object
-              description: Properties of the event
-              additionalProperties:
-                type: string
+                path:
+                    type: string
+                    description: The path of the request.
+                    example: /my-api
+                method:
+                    type: string
+                    description: The HTTP method of the request.
+                    example: GET
+                body:
+                    type: string
+                    description: The body of the request.
+                    example: '{"key":"value"}'
+                headers:
+                    type: object
+                    description: The headers of the request.
+                    additionalProperties:
+                        type: array
+                        items:
+                            type: string
+        DebugEvent:
+            type: object
+            title: "DebugEvent"
+            properties:
+                id:
+                    type: string
+                    description: The ID of the event.
+                    example: 59327494-7258-4cd0-8715-144abe903531
+                type:
+                    type: string
+                    description: The type of the event.
+                    example: DEBUG_API
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The date (as timestamp) when the event was created.
+                    example: 1581256457163
+                payload:
+                    type: string
+                    description: The payload of the event.
+                properties:
+                    type: object
+                    description: Properties of the event
+                    additionalProperties:
+                        type: string
 
         ApiLinks:
             type: object
@@ -3323,16 +3323,16 @@ components:
             type: object
             properties:
                 export:
-                  type: object
-                  properties:
-                    date:
-                      type: string
-                      format: date-time
-                      description: The datetime of export.
-                      example: 2023-05-25T12:40:46.184Z
-                    apimVersion:
-                      type: string
-                      description: API management version of export.
+                    type: object
+                    properties:
+                        date:
+                            type: string
+                            format: date-time
+                            description: The datetime of export.
+                            example: 2023-05-25T12:40:46.184Z
+                        apimVersion:
+                            type: string
+                            description: API management version of export.
                 api:
                     $ref: "#/components/schemas/ApiV4"
                 members:
@@ -4158,51 +4158,51 @@ components:
                               $ref: "#/components/schemas/HttpMethod"
                           uniqueItems: true
         Integration:
-          type: object
-          properties:
-            id:
-              type: string
-              description: Id of the integration
-            name:
-              type: string
-              description: Name of the integration
-            description:
-              type: string
-              description: Description of the integration
-            provider:
-              type: string
-              description: Provider of this integration
-            primaryOwner:
-              $ref: "#/components/schemas/PrimaryOwner"
-            groups:
-              type: array
-              description: A list of group ids
-              example:
-                - 3dc1bc32-1411-4262-b3a2-058222569670
-                - 63cd7036-694f-4c40-833f-84c4a5d39544
-              items:
-                type: string
-            agentStatus:
-                type: string
-                description: Agent connection status (not for A2A)
-                example: DISCONNECTED
-                enum:
-                    - CONNECTED
-                    - DISCONNECTED
-            pendingJob:
-                $ref: "#/components/schemas/IngestionJob"
-            wellKnownUrls:
-              type: array
-              description: A2A well-known URLs (only for A2A provider)
-              items:
-                $ref: "#/components/schemas/IntegrationWellKnownUrl"
-                
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Id of the integration
+                name:
+                    type: string
+                    description: Name of the integration
+                description:
+                    type: string
+                    description: Description of the integration
+                provider:
+                    type: string
+                    description: Provider of this integration
+                primaryOwner:
+                    $ref: "#/components/schemas/PrimaryOwner"
+                groups:
+                    type: array
+                    description: A list of group ids
+                    example:
+                        - 3dc1bc32-1411-4262-b3a2-058222569670
+                        - 63cd7036-694f-4c40-833f-84c4a5d39544
+                    items:
+                        type: string
+                agentStatus:
+                    type: string
+                    description: Agent connection status (not for A2A)
+                    example: DISCONNECTED
+                    enum:
+                        - CONNECTED
+                        - DISCONNECTED
+                pendingJob:
+                    $ref: "#/components/schemas/IngestionJob"
+                wellKnownUrls:
+                    type: array
+                    description: A2A well-known URLs (only for A2A provider)
+                    items:
+                        $ref: "#/components/schemas/IntegrationWellKnownUrl"
+
         IntegrationWellKnownUrl:
-          type: object
-          properties:
-            url:
-              type: string
-              description: URL for well-known endpoint
+            type: object
+            properties:
+                url:
+                    type: string
+                    description: URL for well-known endpoint
         IngestionJob:
             type: object
             properties:
@@ -4215,7 +4215,7 @@ components:
                     description: The last datetime when the job was started.
                     example: 2023-05-25T12:40:46.184Z
                 status:
-                  $ref: "#/components/schemas/AsyncJobStatus"
+                    $ref: "#/components/schemas/AsyncJobStatus"
 
         IngestionPreviewResponse:
             type: object
@@ -4237,21 +4237,21 @@ components:
                     description: number of new APIs found to ingest
                     items:
                         allOf:
-                          - $ref: "#/components/schemas/IngestedApi"
-                          - type: object
-                            properties:
-                              state:
-                                type: string
-                                description: "'NEW' if it's new API or 'UPDATE' if we maybe have update"
-                                enum:
-                                  - NEW
-                                  - UPDATE
+                            - $ref: "#/components/schemas/IngestedApi"
+                            - type: object
+                              properties:
+                                  state:
+                                      type: string
+                                      description: "'NEW' if it's new API or 'UPDATE' if we maybe have update"
+                                      enum:
+                                          - NEW
+                                          - UPDATE
 
         IntegrationIngestionResponse:
             type: object
             properties:
                 status:
-                  $ref: "#/components/schemas/AsyncJobStatus"
+                    $ref: "#/components/schemas/AsyncJobStatus"
                 message:
                     type: string
                     description: Integration Ingestion message.
@@ -4374,14 +4374,14 @@ components:
                 response:
                     type: boolean
         TracingV4:
-          type: object
-          properties:
-            enabled:
-              type: boolean
-              description: Enable OpenTelemetry tracing
-            verbose:
-              type: boolean
-              description: Enable technical tracing to get more details on request execution. Be careful this settings would generate more noise and would impact performance.
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: Enable OpenTelemetry tracing
+                verbose:
+                    type: boolean
+                    description: Enable technical tracing to get more details on request execution. Be careful this settings would generate more noise and would impact performance.
         ResponseMetadata:
             description: Generic object to handle additional information about an entity. Can also be used for pagination data.
             type: object
@@ -4958,8 +4958,8 @@ components:
                           example: KUBERNETES
                           description: The origin of the subscription.
                           enum:
-                            - KUBERNETES
-                            - MANAGEMENT
+                              - KUBERNETES
+                              - MANAGEMENT
         SubscriptionStatus:
             type: string
             description: The status of the subscription manageable by the api publisher.
@@ -5578,10 +5578,10 @@ components:
                           description: A hostname for which the API will match against SNI.
                           type: string
                       port:
-                        type: integer
-                        minimum: 0
-                        description: The port of the listener
-                        example: 8080
+                          type: integer
+                          minimum: 0
+                          description: The port of the listener
+                          example: 8080
                   required:
                       - "host"
         VerifyApiPaths:
@@ -5601,7 +5601,7 @@ components:
                 apiId:
                     type: string
                 listenerType:
-                  $ref: "#/components/schemas/ListenerType"
+                    $ref: "#/components/schemas/ListenerType"
                 hosts:
                     type: array
                     example:
@@ -7049,16 +7049,16 @@ components:
             allOf:
                 - $ref: "#/components/schemas/CreateDocumentation"
                 - properties:
-                    content:
-                        type: string
-                        description: Page's content.
-                        example: My Page content
-                    homepage:
-                        type: boolean
-                        description: Page's homepage status.
-                        example: true
-                    source:
-                        $ref: "#/components/schemas/SourceConfiguration"
+                      content:
+                          type: string
+                          description: Page's content.
+                          example: My Page content
+                      homepage:
+                          type: boolean
+                          description: Page's homepage status.
+                          example: true
+                      source:
+                          $ref: "#/components/schemas/SourceConfiguration"
             required:
                 - name
                 - type
@@ -7529,10 +7529,10 @@ components:
                     description: The date when the job has been created.
                     example: 2023-05-18T12:40:46.184Z
                 updatedAt:
-                  type: string
-                  format: date-time
-                  description: The date when the job has been updated.
-                  example: 2023-05-18T12:40:46.184Z
+                    type: string
+                    format: date-time
+                    description: The date when the job has been updated.
+                    example: 2023-05-18T12:40:46.184Z
         AsyncJobStatus:
             type: string
             description: Status of the job.
@@ -7545,116 +7545,116 @@ components:
 
         # Analytics
         AnalyticTimeRange:
-          type: object
-          description: A Time range
-          properties:
-            from:
-              type: integer
-              format: int64
-              description: The timestamp starting the time range
-              example: 1621339200000
-            to:
-              type: integer
-              format: int64
-              description: The timestamp ending the time range
-              example: 1621425600000
-            interval:
-              type: integer
-              format: int64
-              description: The interval in milliseconds splitting the data
-              example: 120000
+            type: object
+            description: A Time range
+            properties:
+                from:
+                    type: integer
+                    format: int64
+                    description: The timestamp starting the time range
+                    example: 1621339200000
+                to:
+                    type: integer
+                    format: int64
+                    description: The timestamp ending the time range
+                    example: 1621425600000
+                interval:
+                    type: integer
+                    format: int64
+                    description: The interval in milliseconds splitting the data
+                    example: 120000
 
         # API Health
         HealthCheckLog:
-          type: object
-          description: A healh check log
-          properties:
-            id:
-              type: string
-              description: The id of the log
-              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-            timestamp:
-              type: string
-              format: date-time
-              description: The date of the log
-              example: 2023-05-18T12:40:46.184Z
-            endpointName:
-              type: string
-              description: The name of the endpoint
-              example: default
-            gatewayId:
-              type: string
-              description: The id of the gateway that called the health check
-              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-            responseTime:
-              type: integer
-              format: int64
-              description: The response time in ms
-              example: 12
-            success:
-              type: boolean
-              description: The success of the health check
-              example: true
-            steps:
-              type: array
-              items:
-                  $ref: "#/components/schemas/HealthCheckLogStep"
+            type: object
+            description: A healh check log
+            properties:
+                id:
+                    type: string
+                    description: The id of the log
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                timestamp:
+                    type: string
+                    format: date-time
+                    description: The date of the log
+                    example: 2023-05-18T12:40:46.184Z
+                endpointName:
+                    type: string
+                    description: The name of the endpoint
+                    example: default
+                gatewayId:
+                    type: string
+                    description: The id of the gateway that called the health check
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                responseTime:
+                    type: integer
+                    format: int64
+                    description: The response time in ms
+                    example: 12
+                success:
+                    type: boolean
+                    description: The success of the health check
+                    example: true
+                steps:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/HealthCheckLogStep"
 
         HealthCheckLogStep:
-          type: object
-          description: A healh check log step
-          properties:
-            name:
-              type: string
-              description: The step name
-              example: default-step
-            success:
-              type: boolean
-              description: The status of the step
-              example: true
-            message:
-              type: string
-              description: The failure message when step failed
-              example: Assertions failed
-            request:
-              $ref: "#/components/schemas/HealthCheckLogRequest"
-            response:
-              $ref: "#/components/schemas/HealthCheckLogResponse"
+            type: object
+            description: A healh check log step
+            properties:
+                name:
+                    type: string
+                    description: The step name
+                    example: default-step
+                success:
+                    type: boolean
+                    description: The status of the step
+                    example: true
+                message:
+                    type: string
+                    description: The failure message when step failed
+                    example: Assertions failed
+                request:
+                    $ref: "#/components/schemas/HealthCheckLogRequest"
+                response:
+                    $ref: "#/components/schemas/HealthCheckLogResponse"
 
         HealthCheckLogRequest:
-          type: object
-          description: A health check request
-          properties:
-            uri:
-              type: string
-              description: The uri called
-              example: https://api.gravitee.io/
-            method:
-              type: string
-              description: The http method
-              example: GET
-            headers:
-              type: object
-              description: The request headers
-              additionalProperties:
-                type: string
+            type: object
+            description: A health check request
+            properties:
+                uri:
+                    type: string
+                    description: The uri called
+                    example: https://api.gravitee.io/
+                method:
+                    type: string
+                    description: The http method
+                    example: GET
+                headers:
+                    type: object
+                    description: The request headers
+                    additionalProperties:
+                        type: string
         HealthCheckLogResponse:
-          type: object
-          description: A health check response
-          properties:
-            status:
-              type: integer
-              description: The response status
-              example: 200/
-            body:
-              type: string
-              description: The response body
-              example: OK
-            headers:
-              type: object
-              description: The response headers
-              additionalProperties:
-                type: string
+            type: object
+            description: A health check response
+            properties:
+                status:
+                    type: integer
+                    description: The response status
+                    example: 200/
+                body:
+                    type: string
+                    description: The response body
+                    example: OK
+                headers:
+                    type: object
+                    description: The response headers
+                    additionalProperties:
+                        type: string
 
         # API ExposedEntrypoints
         ExposedEntrypoint:
@@ -7664,7 +7664,6 @@ components:
                     type: string
                     description: The url or host of the entrypoint depending on the API type
                     example: https://my-api.domain.com/echo
-
 
     parameters:
         #############
@@ -7970,17 +7969,17 @@ components:
                 type: string
 
         healthField:
-          name: field
-          in: query
-          required: false
-          description: |
-            The field to group response time and availability.
-          schema:
-            type: string
-            default: endpoint
-            enum:
-              - endpoint
-              - gateway
+            name: field
+            in: query
+            required: false
+            description: |
+                The field to group response time and availability.
+            schema:
+                type: string
+                default: endpoint
+                enum:
+                    - endpoint
+                    - gateway
 
     responses:
         ApisResponse:
@@ -8293,7 +8292,7 @@ components:
                         description: API Analytics integer data point on a period.
                         properties:
                             timeRange:
-                              $ref: "#/components/schemas/AnalyticTimeRange"
+                                $ref: "#/components/schemas/AnalyticTimeRange"
                             data:
                                 type: array
                                 description: Response time average (in milliseconds) over time
@@ -8446,85 +8445,85 @@ components:
 
         # API Health
         ApiHealthAverageResponseTimeResponse:
-          description: Average response time of an API Health-Check
-          content:
-            application/json:
-              schema:
-                title: "ApiHealthAverageResponseTimeResponse"
-                description: Average response time of an API Health-Check.
-                properties:
-                  global:
-                    type: integer
-                    format: int64
-                    description: Average response time of the API Health-Check for all endpoint combined
-                  group:
-                    type: object
-                    description: Average response time by endpoint or by gateway
-                    additionalProperties:
-                      description: Average response time
-                      type: integer
-                      format: int64
-                    example:
-                      default: 30
+            description: Average response time of an API Health-Check
+            content:
+                application/json:
+                    schema:
+                        title: "ApiHealthAverageResponseTimeResponse"
+                        description: Average response time of an API Health-Check.
+                        properties:
+                            global:
+                                type: integer
+                                format: int64
+                                description: Average response time of the API Health-Check for all endpoint combined
+                            group:
+                                type: object
+                                description: Average response time by endpoint or by gateway
+                                additionalProperties:
+                                    description: Average response time
+                                    type: integer
+                                    format: int64
+                                example:
+                                    default: 30
         ApiHealthAverageResponseTimeOvertimeResponse:
-          description: Average response time overtime of an API Health-Check
-          content:
-            application/json:
-              schema:
-                title: "ApiHealthAverageResponseTimeOvertimeResponse"
-                description: Average response time of an API Health-Check.
-                properties:
-                  timeRange:
-                    $ref: "#/components/schemas/AnalyticTimeRange"
-                  data:
-                    type: array
-                    description: Average response time buckets
-                    items:
-                      type: integer
-                      format: int64
+            description: Average response time overtime of an API Health-Check
+            content:
+                application/json:
+                    schema:
+                        title: "ApiHealthAverageResponseTimeOvertimeResponse"
+                        description: Average response time of an API Health-Check.
+                        properties:
+                            timeRange:
+                                $ref: "#/components/schemas/AnalyticTimeRange"
+                            data:
+                                type: array
+                                description: Average response time buckets
+                                items:
+                                    type: integer
+                                    format: int64
         ApiHealthAvailabilityResponse:
-          description: Availability of an API
-          content:
-            application/json:
-              schema:
-                title: "ApiHealthAvailabilityResponse"
-                description: Availability of an API.
-                properties:
-                  global:
-                    type: number
-                    format: float
-                    minimum: 0
-                    maximum: 1
-                    multipleOf: 0.0001
-                    description: Availability of the API for all endpoint combined
-                  group:
-                    type: object
-                    description: Availability by endpoint or by gateway
-                    additionalProperties:
-                      description: Average response time
-                      type: number
-                      format: float
-                      minimum: 0
-                      maximum: 1
-                      multipleOf: 0.0001
-                    example:
-                      default: 0.7504
+            description: Availability of an API
+            content:
+                application/json:
+                    schema:
+                        title: "ApiHealthAvailabilityResponse"
+                        description: Availability of an API.
+                        properties:
+                            global:
+                                type: number
+                                format: float
+                                minimum: 0
+                                maximum: 1
+                                multipleOf: 0.0001
+                                description: Availability of the API for all endpoint combined
+                            group:
+                                type: object
+                                description: Availability by endpoint or by gateway
+                                additionalProperties:
+                                    description: Average response time
+                                    type: number
+                                    format: float
+                                    minimum: 0
+                                    maximum: 1
+                                    multipleOf: 0.0001
+                                example:
+                                    default: 0.7504
         ApiHealthLogsResponse:
-          description: Page of HealthCheck logs
-          content:
-            application/json:
-              schema:
-                title: "ApiHealthLogsResponse"
-                properties:
-                  data:
-                    description: List of health check logs.
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/HealthCheckLog"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
-                  links:
-                    $ref: "#/components/schemas/Links"
+            description: Page of HealthCheck logs
+            content:
+                application/json:
+                    schema:
+                        title: "ApiHealthLogsResponse"
+                        properties:
+                            data:
+                                description: List of health check logs.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/HealthCheckLog"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
 
         # Audit
         AuditsResponse:
