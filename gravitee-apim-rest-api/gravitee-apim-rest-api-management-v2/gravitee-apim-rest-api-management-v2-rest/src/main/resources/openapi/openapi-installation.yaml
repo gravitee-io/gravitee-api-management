@@ -17,19 +17,15 @@ security:
 servers:
     - url: "/management/v2"
       description: APIM Management API v2 - Default base URL
-    - url: "/management/v2/organizations/{orgId}"
-      description: APIM Management API v2 - Base URL to target specific organizations
-      variables:
-          orgId:
-              description: The unique ID of your organization
-              default: DEFAULT
 
 tags:
     - name: Installation
       description: Base resources about the installation
 
 paths:
-    /environments:
+    /organizations/{orgId}/environments:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
         get:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
@@ -47,8 +43,9 @@ paths:
                     $ref: "#/components/responses/EnvironmentsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}:
+    /organizations/{orgId}/environments/{envId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
         get:
             tags:
@@ -69,9 +66,6 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}:
-        servers:
-            - url: /management/v2
-              description: Gravitee.io APIM - Management API - v2
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
         get:
@@ -93,9 +87,6 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/license:
-        servers:
-            - url: /management/v2
-              description: Gravitee.io APIM - Management API -v2
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
         get:

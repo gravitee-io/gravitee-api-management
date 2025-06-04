@@ -13,77 +13,15 @@ info:
 security: []
 
 servers:
-    - url: "/management/v2/environments/{envId}"
-      description: APIM Management API v2 - Default base URL
-      variables:
-          envId:
-              description: Id or Hrid (Human readable Id) of an environment
-              default: DEFAULT
-    - url: "/management/v2/organizations/{orgId}/environments/{envId}"
-      description: APIM Management API v2 - Base URL to target specific organizations
-      variables:
-          orgId:
-              description: The unique ID of your organization
-              default: DEFAULT
-          envId:
-              description: Id or Hrid (Human readable Id) of an environment
-              default: DEFAULT
+    - url: "/management/v2"
+      description: APIM Management API v2 - Base URL
 
 tags:
     - name: Management UI
       description: Everything about Management UI
 
 paths:
-    /ui/customization:
-        servers:
-            - url: "{protocol}://{managementAPIHost}/management/v2"
-              description: APIM Management API v2 - Default base URL
-              variables:
-                  protocol:
-                      description: The protocol you want to use to communicate with the mAPI
-                      default: https
-                      enum:
-                          - https
-                          - http
-                  managementAPIHost:
-                      description: The domain of the server hosting your Management API
-                      default: localhost:8083
-
-        get:
-            tags:
-                - Management UI
-            summary: Get customization of Console by default organization
-            description: |
-                Get the customization settings of Console by default organization.
-
-                No authentication necessary.
-                An empty response is returned if the OEM Customization is missing from the Gravitee License.
-            operationId: getConsoleCustomization
-            responses:
-                "200":
-                    description: The customization settings for the console.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ConsoleCustomization"
-                "204":
-                    description: The license does not contain OEM Customization
-                default:
-                    $ref: "#/components/responses/Error"
     /organizations/{orgId}/ui/customization:
-        servers:
-            - url: "{protocol}://{managementAPIHost}/management/v2"
-              description: APIM Management API v2 - Default base URL
-              variables:
-                  protocol:
-                      description: The protocol you want to use to communicate with the mAPI
-                      default: https
-                      enum:
-                          - https
-                          - http
-                  managementAPIHost:
-                      description: The domain of the server hosting your Management API
-                      default: localhost:8083
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
         get:
@@ -108,7 +46,10 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /ui/themes:
+    /organizations/{orgId}/environments/{envId}/ui/themes:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
@@ -130,7 +71,10 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /ui/themes/_default:
+    /organizations/{orgId}/environments/{envId}/ui/themes/_default:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             tags:
                 - Management UI
@@ -153,7 +97,10 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /ui/themes/_current:
+    /organizations/{orgId}/environments/{envId}/ui/themes/_current:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             tags:
                 - Management UI
@@ -175,8 +122,10 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /ui/themes/{themeId}:
+    /organizations/{orgId}/environments/{envId}/ui/themes/{themeId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/themeIdParam"
         put:
             tags:
@@ -203,7 +152,10 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /ui/portal-menu-links:
+    /organizations/{orgId}/environments/{envId}/ui/portal-menu-links:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
@@ -248,8 +200,10 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /ui/portal-menu-links/{portalMenuLinkId}:
+    /organizations/{orgId}/environments/{envId}/ui/portal-menu-links/{portalMenuLinkId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/portalMenuLinkIdParam"
         get:
             parameters:
@@ -791,6 +745,14 @@ components:
             in: path
             required: true
             description: Id of an organization.
+            schema:
+                type: string
+                default: DEFAULT
+        envIdParam:
+            name: envId
+            in: path
+            required: true
+            description: Id of an environment.
             schema:
                 type: string
                 default: DEFAULT
