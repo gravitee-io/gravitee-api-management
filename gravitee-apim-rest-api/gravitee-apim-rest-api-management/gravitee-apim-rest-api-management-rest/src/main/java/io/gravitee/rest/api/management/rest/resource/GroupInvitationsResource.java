@@ -128,6 +128,7 @@ public class GroupInvitationsResource extends AbstractResource {
                     array = @ArraySchema(schema = @Schema(implementation = UserEntity.class))
                 )
             ),
+            @ApiResponse(responseCode = "204", description = "Only one user with the provided email exists and added to group directly"),
         }
     )
     public Response createGroupInvitation(@Valid @NotNull final NewInvitationEntity invitationEntity) {
