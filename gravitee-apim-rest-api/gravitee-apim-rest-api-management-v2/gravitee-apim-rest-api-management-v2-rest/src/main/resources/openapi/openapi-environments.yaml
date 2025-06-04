@@ -15,21 +15,8 @@ security:
     - CookieAuth: []
 
 servers:
-    - url: "/management/v2/environments/{envId}"
+    - url: "/management/v2"
       description: APIM Management API v2 - Default base URL
-      variables:
-          envId:
-              description: The unique ID of your environment
-              default: DEFAULT
-    - url: "/management/v2/organizations/{orgId}/environments/{envId}"
-      description: APIM Management API v2 - Base URL to target specific organizations
-      variables:
-          orgId:
-              description: The unique ID of your organization
-              default: DEFAULT
-          envId:
-              description: The unique ID of your environment
-              default: DEFAULT
 
 tags:
     - name: SharedPolicyGroups
@@ -37,7 +24,10 @@ tags:
 
 paths:
     # Environment Analytics
-    /analytics/response-status-ranges:
+    /organizations/{orgId}/environments/{envId}/analytics/response-status-ranges:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             parameters:
                 - $ref: "#/components/parameters/from"
@@ -54,7 +44,10 @@ paths:
                     $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusRangesResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /analytics/top-hits:
+    /organizations/{orgId}/environments/{envId}/analytics/top-hits:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             parameters:
                 - $ref: "#/components/parameters/from"
@@ -71,7 +64,10 @@ paths:
                     $ref: "#/components/responses/EnvironmentAnalyticsTopHitsApisResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /analytics/request-response-time:
+    /organizations/{orgId}/environments/{envId}/analytics/request-response-time:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             parameters:
                 - $ref: "#/components/parameters/from"
@@ -89,11 +85,14 @@ paths:
                     $ref: "#/components/responses/EnvironmentAnalyticsRequestResponseTimeResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /analytics/response-time-over-time:
+    /organizations/{orgId}/environments/{envId}/analytics/response-time-over-time:
         parameters:
-            - $ref: "#/components/parameters/from"
-            - $ref: "#/components/parameters/to"
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
             tags:
                 - Environment Analytics
             summary: Get Environment Analytics average response time over time
@@ -105,11 +104,14 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentAnalyticsOverPeriodResponse"
-    /analytics/response-status-overtime:
+    /organizations/{orgId}/environments/{envId}/analytics/response-status-overtime:
         parameters:
-            - $ref: "#/components/parameters/from"
-            - $ref: "#/components/parameters/to"
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
             tags:
                 - API Analytics
             summary: Get Environment Analytics response status counts over time
@@ -123,11 +125,14 @@ paths:
                     $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusOvertimeResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /analytics/top-apps-by-request-count:
+    /organizations/{orgId}/environments/{envId}/analytics/top-apps-by-request-count:
         parameters:
-            - $ref: "#/components/parameters/from"
-            - $ref: "#/components/parameters/to"
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
             tags:
                 - API Analytics
             summary: Get Environment Analytics for top applications by the request count
@@ -141,11 +146,14 @@ paths:
                     $ref: "#/components/responses/EnvironmentAnalyticsTopAppsByRequestCountResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /analytics/top-failed-apis:
+    /organizations/{orgId}/environments/{envId}/analytics/top-failed-apis:
         parameters:
-            - $ref: "#/components/parameters/from"
-            - $ref: "#/components/parameters/to"
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
             tags:
                 - API Analytics
             summary: Get Environment Analytics for top failed v2 and v4 APIs
@@ -160,7 +168,10 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     # Shared policy group
-    /shared-policy-groups:
+    /organizations/{orgId}/environments/{envId}/shared-policy-groups:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
                 - SharedPolicyGroups
@@ -196,7 +207,10 @@ paths:
                     $ref: "#/components/responses/SharedPolicyGroupsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /shared-policy-groups/policy-plugins:
+    /organizations/{orgId}/environments/{envId}/shared-policy-groups/policy-plugins:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             tags:
                 - SharedPolicyGroups
@@ -213,7 +227,10 @@ paths:
                                     $ref: "#/components/schemas/SharedPolicyGroupPolicyPlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /shared-policy-groups/{sharedPolicyGroupId}:
+    /organizations/{orgId}/environments/{envId}/shared-policy-groups/{sharedPolicyGroupId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             tags:
                 - SharedPolicyGroups
@@ -264,7 +281,10 @@ paths:
                     description: Shared policy group deleted
                 default:
                     $ref: "#/components/responses/Error"
-    /shared-policy-groups/{sharedPolicyGroupId}/histories:
+    /organizations/{orgId}/environments/{envId}/shared-policy-groups/{sharedPolicyGroupId}/histories:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             tags:
                 - SharedPolicyGroups
@@ -280,7 +300,10 @@ paths:
                     $ref: "#/components/responses/SharedPolicyGroupHistoriesResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /shared-policy-groups/{sharedPolicyGroupId}/_deploy:
+    /organizations/{orgId}/environments/{envId}/shared-policy-groups/{sharedPolicyGroupId}/_deploy:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
                 - SharedPolicyGroups
@@ -297,7 +320,10 @@ paths:
                                 $ref: "#/components/schemas/SharedPolicyGroup"
                 default:
                     $ref: "#/components/responses/Error"
-    /shared-policy-groups/{sharedPolicyGroupId}/_undeploy:
+    /organizations/{orgId}/environments/{envId}/shared-policy-groups/{sharedPolicyGroupId}/_undeploy:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
                 - SharedPolicyGroups
@@ -316,7 +342,10 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # Scoring
-    /scoring/apis:
+    /organizations/{orgId}/environments/{envId}/scoring/apis:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             tags:
                 - Scoring
@@ -330,7 +359,10 @@ paths:
                     $ref: "#/components/responses/EnvironmentApisScoringResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /scoring/overview:
+    /organizations/{orgId}/environments/{envId}/scoring/overview:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         get:
             tags:
                 - Scoring
@@ -345,7 +377,10 @@ paths:
                                 $ref: "#/components/schemas/EnvironmentScoringOverview"
                 default:
                     $ref: "#/components/responses/Error"
-    /scoring/rulesets:
+    /organizations/{orgId}/environments/{envId}/scoring/rulesets:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
                 - Scoring
@@ -374,7 +409,10 @@ paths:
                     $ref: "#/components/responses/ScoringRulesetsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /scoring/rulesets/{rulesetId}:
+    /organizations/{orgId}/environments/{envId}/scoring/rulesets/{rulesetId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         delete:
             tags:
                 - Scoring
@@ -428,7 +466,10 @@ paths:
                                 $ref: "#/components/schemas/ScoringRuleset"
                 default:
                     $ref: "#/components/responses/Error"
-    /scoring/functions:
+    /organizations/{orgId}/environments/{envId}/scoring/functions:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
                 - Scoring
@@ -457,7 +498,10 @@ paths:
                     $ref: "#/components/responses/ScoringFunctionsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /scoring/functions/{scoringFunctionName}:
+    /organizations/{orgId}/environments/{envId}/scoring/functions/{scoringFunctionName}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
         delete:
             tags:
                 - Scoring
@@ -1091,6 +1135,22 @@ components:
                     description: In a paginated response, link to the next page. Maybe null if current is the last page
 
     parameters:
+        orgIdParam:
+            name: orgId
+            in: path
+            required: true
+            description: Id of an organization.
+            schema:
+                type: string
+                default: DEFAULT
+        envIdParam:
+            name: envId
+            in: path
+            required: true
+            description: Id or Hrid (Human readable Id) of an environment.
+            schema:
+                type: string
+                default: DEFAULT
         pageParam:
             name: page
             in: query

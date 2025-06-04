@@ -15,12 +15,8 @@ security:
     - CookieAuth: []
 
 servers:
-    - url: "/management/v2/organizations/{orgId}"
+    - url: "/management/v2"
       description: APIM Management API v2 - Base URL to target specific organizations
-      variables:
-          orgId:
-              description: The unique ID of your organization
-              default: DEFAULT
 
 tags:
     - name: Plugins - Endpoints
@@ -32,7 +28,9 @@ tags:
 
 paths:
     # Plugins - Endpoints
-    /plugins/endpoints:
+    /organizations/{orgId}/plugins/endpoints:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
         get:
             tags:
                 - Plugins - Endpoints
@@ -53,8 +51,9 @@ paths:
                                     $ref: "#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}:
+    /organizations/{orgId}/plugins/endpoints/{endpointId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
@@ -74,8 +73,9 @@ paths:
                                 $ref: "#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}/documentation:
+    /organizations/{orgId}/plugins/endpoints/{endpointId}/documentation:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
@@ -95,8 +95,9 @@ paths:
                                 type: string
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}/more-information:
+    /organizations/{orgId}/plugins/endpoints/{endpointId}/more-information:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
@@ -116,8 +117,9 @@ paths:
                                 $ref: "#/components/schemas/MoreInformation"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}/schema:
+    /organizations/{orgId}/plugins/endpoints/{endpointId}/schema:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
@@ -133,8 +135,9 @@ paths:
                     $ref: "#/components/responses/SchemaFormResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}/shared-configuration-schema:
+    /organizations/{orgId}/plugins/endpoints/{endpointId}/shared-configuration-schema:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
@@ -152,7 +155,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # Plugins - Entrypoints
-    /plugins/entrypoints:
+    /organizations/{orgId}/plugins/entrypoints:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
         get:
             tags:
                 - Plugins - Entrypoints
@@ -173,8 +178,9 @@ paths:
                                     $ref: "#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}:
+    /organizations/{orgId}/plugins/entrypoints/{entrypointId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
@@ -194,8 +200,9 @@ paths:
                                 $ref: "#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}/documentation:
+    /organizations/{orgId}/plugins/entrypoints/{entrypointId}/documentation:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
@@ -215,8 +222,9 @@ paths:
                                 type: string
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}/more-information:
+    /organizations/{orgId}/plugins/entrypoints/{entrypointId}/more-information:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
@@ -236,8 +244,9 @@ paths:
                                 $ref: "#/components/schemas/MoreInformation"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}/schema:
+    /organizations/{orgId}/plugins/entrypoints/{entrypointId}/schema:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
@@ -253,8 +262,9 @@ paths:
                     $ref: "#/components/responses/SchemaFormResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}/subscription-schema:
+    /organizations/{orgId}/plugins/entrypoints/{entrypointId}/subscription-schema:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             parameters:
@@ -283,8 +293,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # Plugins - ApiServices
-    /plugins/api-services/{apiServiceId}/schema:
+    /organizations/{orgId}/plugins/api-services/{apiServiceId}/schema:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/apiServiceIdParam"
         get:
             tags:
@@ -302,7 +313,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # Plugins - Policies
-    /plugins/policies:
+    /organizations/{orgId}/plugins/policies:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
         get:
             tags:
                 - Plugins - Policies
@@ -323,8 +336,9 @@ paths:
                                     $ref: "#/components/schemas/PolicyPlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/policies/{policyId}:
+    /organizations/{orgId}/plugins/policies/{policyId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/policyIdParam"
         get:
             tags:
@@ -344,8 +358,9 @@ paths:
                                 $ref: "#/components/schemas/PolicyPlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/policies/{policyId}/documentation:
+    /organizations/{orgId}/plugins/policies/{policyId}/documentation:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/policyIdParam"
         get:
             tags:
@@ -365,8 +380,9 @@ paths:
                                 type: string
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/policies/{policyId}/schema:
+    /organizations/{orgId}/plugins/policies/{policyId}/schema:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/policyIdParam"
         get:
             parameters:
@@ -404,7 +420,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # Plugins - Resources
-    /plugins/resources:
+    /organizations/{orgId}/plugins/resources:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
         get:
             tags:
                 - Plugins - Resources
@@ -425,8 +443,9 @@ paths:
                                     $ref: "#/components/schemas/ResourcePlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/resources/{resourceId}:
+    /organizations/{orgId}/plugins/resources/{resourceId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/resourceIdParam"
         get:
             tags:
@@ -446,8 +465,9 @@ paths:
                                 $ref: "#/components/schemas/ResourcePlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/resources/{policyId}/schema:
+    /organizations/{orgId}/plugins/resources/{policyId}/schema:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/policyIdParam"
         get:
             parameters:
@@ -683,6 +703,14 @@ components:
                             invalidValue:
                                 description: The invalid value.
     parameters:
+        orgIdParam:
+            name: orgId
+            in: path
+            required: true
+            description: Id of an organization.
+            schema:
+                type: string
+                default: DEFAULT
         endpointIdParam:
             name: endpointId
             in: path

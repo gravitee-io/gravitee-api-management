@@ -17,12 +17,6 @@ security:
 servers:
     - url: "/management/v2"
       description: APIM Management API v2 - Default base URL
-    - url: "/management/v2/organizations/{orgId}"
-      description: APIM Management API v2 - Base URL to target specific organizations
-      variables:
-          orgId:
-              description: The unique ID of your organization
-              default: DEFAULT
 tags:
     - name: APIs
       description: Everything about APIs
@@ -53,8 +47,9 @@ tags:
 
 paths:
     # APIs
-    /environments/{envId}/apis:
+    /organizations/{orgId}/environments/{envId}/apis:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
         get:
             parameters:
@@ -101,8 +96,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/_import/swagger:
+    /organizations/{orgId}/environments/{envId}/apis/_import/swagger:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
@@ -131,8 +127,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/_import/definition:
+    /organizations/{orgId}/environments/{envId}/apis/_import/definition:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
@@ -160,8 +157,9 @@ paths:
                                 $ref: "#/components/schemas/ApiV4"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/_search:
+    /organizations/{orgId}/environments/{envId}/apis/_search:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
         post:
             parameters:
@@ -190,8 +188,9 @@ paths:
                     $ref: "#/components/responses/ApisResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/_verify/paths:
+    /organizations/{orgId}/environments/{envId}/apis/_verify/paths:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
         post:
             parameters:
@@ -216,8 +215,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/_verify/hosts:
+    /organizations/{orgId}/environments/{envId}/apis/_verify/hosts:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
         post:
             parameters:
@@ -242,8 +242,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -311,8 +312,9 @@ paths:
                     description: API successfully deleted
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/background:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/background:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -363,8 +365,9 @@ paths:
                     description: API background successfully deleted.
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/deployments:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/deployments:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -387,8 +390,9 @@ paths:
                     description: API deployment request received
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/deployments/current:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/deployments/current:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -409,8 +413,9 @@ paths:
                                 type: object
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/deployments/_verify:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/deployments/_verify:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -431,8 +436,9 @@ paths:
                                 $ref: "#/components/schemas/VerifyApiDeploymentResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/picture:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/picture:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -484,8 +490,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/metadata:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/metadata:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -508,8 +515,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/_export/definition:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/_export/definition:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -559,8 +567,9 @@ paths:
                                 $ref: "#/components/schemas/ExportApiV4"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/_start:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/_start:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -582,8 +591,9 @@ paths:
                     description: API successfully started
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/_stop:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/_stop:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -604,8 +614,9 @@ paths:
                     description: API successfully stopped
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/_transfer-ownership:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/_transfer-ownership:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -635,8 +646,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/_duplicate:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/_duplicate:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -664,8 +676,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/_rollback:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/_rollback:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -689,8 +702,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/exposedEntrypoints:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/exposedEntrypoints:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -710,8 +724,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Reviews
-    /environments/{envId}/apis/{apiId}/reviews/_ask:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/reviews/_ask:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -738,8 +753,9 @@ paths:
                     description: API successfully change review state
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/reviews/_accept:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/reviews/_accept:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -766,8 +782,9 @@ paths:
                     description: API successfully change review state
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/reviews/_reject:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/reviews/_reject:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -796,8 +813,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Members
-    /environments/{envId}/apis/{apiId}/primaryowner:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/primaryowner:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -821,8 +839,9 @@ paths:
                                 $ref: "#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/members:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/members:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -869,8 +888,9 @@ paths:
                                 $ref: "#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/members/{memberId}:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/members/{memberId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/memberIdParam"
@@ -920,8 +940,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Plans
-    /environments/{envId}/apis/{apiId}/plans:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/plans:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -997,8 +1018,9 @@ paths:
                                 $ref: "#/components/schemas/Plan"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/plans/{planId}:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/plans/{planId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
@@ -1058,8 +1080,9 @@ paths:
                     description: API's plan successfully deleted
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/plans/{planId}/_close:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/plans/{planId}/_close:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
@@ -1081,8 +1104,9 @@ paths:
                                 $ref: "#/components/schemas/Plan"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/plans/{planId}/_deprecate:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/plans/{planId}/_deprecate:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
@@ -1104,8 +1128,9 @@ paths:
                                 $ref: "#/components/schemas/Plan"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/plans/{planId}/_publish:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/plans/{planId}/_publish:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
@@ -1129,8 +1154,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # Group
-    /environments/{envId}/groups:
+    /organizations/{orgId}/environments/{envId}/groups:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
         get:
             parameters:
@@ -1149,8 +1175,9 @@ paths:
                     $ref: "#/components/responses/GroupsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/groups/{groupId}/members:
+    /organizations/{orgId}/environments/{envId}/groups/{groupId}/members:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/groupIdParam"
         get:
@@ -1172,8 +1199,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # Integration
-    /environments/{envId}/integrations:
+    /organizations/{orgId}/environments/{envId}/integrations:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
         get:
             parameters:
@@ -1218,8 +1246,9 @@ paths:
                                 $ref: "#/components/schemas/Integration"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/integrations/{integrationId}:
+    /organizations/{orgId}/environments/{envId}/integrations/{integrationId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/integrationIdParam"
         get:
@@ -1280,8 +1309,9 @@ paths:
                     description: Integration deleted
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/integrations/{integrationId}/_ingest:
+    /organizations/{orgId}/environments/{envId}/integrations/{integrationId}/_ingest:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/integrationIdParam"
         post:
@@ -1305,8 +1335,9 @@ paths:
                                 $ref: "#/components/schemas/IntegrationIngestionResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/integrations/{integrationId}/_preview:
+    /organizations/{orgId}/environments/{envId}/integrations/{integrationId}/_preview:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/integrationIdParam"
         get:
@@ -1328,8 +1359,9 @@ paths:
                                 $ref: "#/components/schemas/IngestionPreviewResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/integrations/{integrationId}/apis:
+    /organizations/{orgId}/environments/{envId}/integrations/{integrationId}/apis:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/integrationIdParam"
         get:
@@ -1365,8 +1397,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     # Integration Members
-    /environments/{envId}/integrations/{integrationId}/members:
+    /organizations/{orgId}/environments/{envId}/integrations/{integrationId}/members:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/integrationIdParam"
         get:
@@ -1413,8 +1446,9 @@ paths:
                                 $ref: "#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/integrations/{integrationId}/members/{memberId}:
+    /organizations/{orgId}/environments/{envId}/integrations/{integrationId}/members/{memberId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/integrationIdParam"
             - $ref: "#/components/parameters/memberIdParam"
@@ -1463,8 +1497,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     # API Subscriptions
-    /environments/{envId}/apis/{apiId}/subscribers:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscribers:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -1493,8 +1528,9 @@ paths:
                     $ref: "#/components/responses/SubscribersResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -1581,8 +1617,9 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/_export:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/_export:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -1639,8 +1676,9 @@ paths:
                         text/csv: {}
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/_verify:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/_verify:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -1668,8 +1706,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1728,8 +1767,9 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_close:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_close:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1751,8 +1791,9 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_pause:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_pause:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1774,8 +1815,9 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_resume:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_resume:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1797,8 +1839,9 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_accept:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_accept:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1826,8 +1869,9 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_reject:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_reject:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1855,8 +1899,9 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_transfer:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_transfer:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1886,8 +1931,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1905,8 +1951,9 @@ paths:
                     $ref: "#/components/responses/SubscriptionApiKeysResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/_renew:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/_renew:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1935,8 +1982,9 @@ paths:
                                 $ref: "#/components/schemas/ApiKey"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1965,8 +2013,9 @@ paths:
                                 $ref: "#/components/schemas/ApiKey"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_revoke:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_revoke:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -1990,8 +2039,9 @@ paths:
                                 $ref: "#/components/schemas/ApiKey"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_reactivate:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_reactivate:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/subscriptionIdParam"
@@ -2016,8 +2066,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Analytics
-    /environments/{envId}/apis/{apiId}/analytics/requests-count:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/requests-count:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/from"
@@ -2037,8 +2088,9 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsRequestsCountResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/analytics/average-messages-per-request:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/average-messages-per-request:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/from"
@@ -2057,8 +2109,9 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsAverageMessagesPerRequestResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/analytics/average-connection-duration:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/average-connection-duration:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/from"
@@ -2078,8 +2131,9 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/analytics/response-status-ranges:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/response-status-ranges:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/from"
@@ -2098,8 +2152,9 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsResponseStatusRangesResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/analytics/response-time-over-time:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/response-time-over-time:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/from"
@@ -2118,8 +2173,9 @@ paths:
                     $ref: "#/components/responses/ApiAnalyticsOverPeriodResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/analytics/response-status-overtime:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/response-status-overtime:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/from"
@@ -2140,8 +2196,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Analytics - Logs
-    /environments/{envId}/apis/{apiId}/logs:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/logs:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -2166,8 +2223,9 @@ paths:
                     $ref: "#/components/responses/ApiLogsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/logs/{requestId}:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/logs/{requestId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/requestIdParam"
@@ -2185,8 +2243,9 @@ paths:
                     $ref: "#/components/responses/ApiLogResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/logs/{requestId}/messages:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/logs/{requestId}/messages:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/requestIdParam"
@@ -2209,8 +2268,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Health
-    /environments/{envId}/apis/{apiId}/health/average-response-time:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/health/average-response-time:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/healthField"
@@ -2228,8 +2288,9 @@ paths:
                     $ref: "#/components/responses/ApiHealthAverageResponseTimeResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/health/average-response-time-overtime:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/health/average-response-time-overtime:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/from"
@@ -2248,8 +2309,9 @@ paths:
                     $ref: "#/components/responses/ApiHealthAverageResponseTimeOvertimeResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/health/availability:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/health/availability:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/healthField"
@@ -2267,8 +2329,9 @@ paths:
                     $ref: "#/components/responses/ApiHealthAvailabilityResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/health/logs:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/health/logs:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - in: query
@@ -2292,8 +2355,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Audits
-    /environments/{envId}/apis/{apiId}/audits:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/audits:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -2316,9 +2380,10 @@ paths:
                     $ref: "#/components/responses/AuditsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/audits/events:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/audits/events:
         get:
             parameters:
+                - $ref: "#/components/parameters/orgIdParam"
                 - $ref: "#/components/parameters/envIdParam"
                 - $ref: "#/components/parameters/apiIdParam"
             tags:
@@ -2336,8 +2401,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Events
-    /environments/{envId}/apis/{apiId}/events:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/events:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -2360,8 +2426,9 @@ paths:
                     $ref: "#/components/responses/EventsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/events/{eventId}:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/events/{eventId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/eventIdParam"
@@ -2380,8 +2447,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     # API Documentation
-    /environments/{envId}/apis/{apiId}/pages:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/pages:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -2430,8 +2498,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/pages/{pageId}:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/pages/{pageId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/pageIdParam"
@@ -2492,8 +2561,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/pages/{pageId}/_publish:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/pages/{pageId}/_publish:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/pageIdParam"
@@ -2516,8 +2586,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/pages/{pageId}/_unpublish:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/pages/{pageId}/_unpublish:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/pageIdParam"
@@ -2540,8 +2611,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/pages/{pageId}/_fetch:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/pages/{pageId}/_fetch:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/pageIdParam"
@@ -2566,8 +2638,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API SpecGen
-    /environments/{envId}/apis/{apiId}/spec-gen/_state:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/spec-gen/_state:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -2589,8 +2662,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/apis/{apiId}/spec-gen/_start:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/spec-gen/_start:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -2612,8 +2686,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     # API Scoring
-    /environments/{envId}/apis/{apiId}/scoring/_evaluate:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/scoring/_evaluate:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -2632,8 +2707,9 @@ paths:
                                 $ref: "#/components/schemas/ApiScoringTriggerResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/scoring:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/scoring:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -2657,8 +2733,9 @@ paths:
 
     # Categories
 
-    /environments/{envId}/categories/{categoryIdOrKey}/apis:
+    /organizations/{orgId}/environments/{envId}/categories/{categoryIdOrKey}/apis:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/categoryIdOrKeyParam"
         get:
@@ -2676,8 +2753,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /environments/{envId}/categories/{categoryIdOrKey}/apis/{apiId}:
+    /organizations/{orgId}/environments/{envId}/categories/{categoryIdOrKey}/apis/{apiId}:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/categoryIdOrKeyParam"
             - $ref: "#/components/parameters/apiIdParam"
@@ -2704,8 +2782,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # Async Job
-    /environments/{envId}/async-jobs:
+    /organizations/{orgId}/environments/{envId}/async-jobs:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
         get:
             parameters:
@@ -2736,8 +2815,9 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # DebugMode
-    /environments/{envId}/apis/{apiId}/debug:
+    /organizations/{orgId}/environments/{envId}/apis/{apiId}/debug:
         parameters:
+            - $ref: "#/components/parameters/orgIdParam"
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -7611,6 +7691,14 @@ components:
         #############
         # PathParam #
         #############
+        orgIdParam:
+            name: orgId
+            in: path
+            required: true
+            description: Id of an organization.
+            schema:
+                type: string
+                default: DEFAULT
         envIdParam:
             name: envId
             in: path
