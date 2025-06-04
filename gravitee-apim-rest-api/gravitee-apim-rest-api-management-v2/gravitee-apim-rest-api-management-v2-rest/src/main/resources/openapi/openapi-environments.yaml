@@ -205,8 +205,8 @@ paths:
             summary: Search shared policy groups
             operationId: searchSharedPolicyGroups
             parameters:
-                - $ref: "./openapi-apis.yaml#/components/parameters/pageParam"
-                - $ref: "./openapi-apis.yaml#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
                 - $ref: "#/components/parameters/sharedPolicyGroupSortByParam"
                 - $ref: "#/components/parameters/sharedPolicyGroupSearchParam"
             responses:
@@ -290,8 +290,8 @@ paths:
             operationId: getSharedPolicyGroupHistories
             parameters:
                 - $ref: "#/components/parameters/sharedPolicyGroupId"
-                - $ref: "./openapi-apis.yaml#/components/parameters/pageParam"
-                - $ref: "./openapi-apis.yaml#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
                 - $ref: "#/components/parameters/sharedPolicyGroupHistoriesSortByParam"
             responses:
                 "200":
@@ -599,16 +599,16 @@ components:
                     example: The resource cache "my-cache" is required
                     maxLength: 1024
                 apiType:
-                    $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                    $ref: "#/components/schemas/ApiType"
                 originContext:
-                    $ref: "./openapi-apis.yaml#/components/schemas/BaseOriginContext"
+                    $ref: "#/components/schemas/BaseOriginContext"
                 phase:
-                    $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
+                    $ref: "#/components/schemas/FlowPhase"
                 steps:
                     type: array
                     description: The list of steps (policies) in the shared policy group
                     items:
-                        $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+                        $ref: "#/components/schemas/StepV4"
             required: ["name", "apiType", "phase"]
         UpdateSharedPolicyGroup:
             type: object
@@ -637,7 +637,7 @@ components:
                     type: array
                     description: The list of steps (policies) in the shared policy group
                     items:
-                        $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+                        $ref: "#/components/schemas/StepV4"
         SharedPolicyGroup:
             type: object
             description: A shared policy group
@@ -669,16 +669,16 @@ components:
                     description: The version of the shared policy group
                     example: 1
                 apiType:
-                    $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                    $ref: "#/components/schemas/ApiType"
                 originContext:
-                    $ref: "./openapi-apis.yaml#/components/schemas/BaseOriginContext"
+                    $ref: "#/components/schemas/BaseOriginContext"
                 steps:
                     type: array
                     description: The list of steps (policies) in the shared policy group
                     items:
-                        $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+                        $ref: "#/components/schemas/StepV4"
                 phase:
-                    $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
+                    $ref: "#/components/schemas/FlowPhase"
                 deployedAt:
                     type: string
                     format: date-time
@@ -722,9 +722,9 @@ components:
                     example: The resource cache "my-cache" is required
                     maxLength: 1024
                 apiType:
-                    $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                    $ref: "#/components/schemas/ApiType"
                 phase:
-                    $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
+                    $ref: "#/components/schemas/FlowPhase"
         SharedPolicyGroupLifecycleState:
             type: string
             description: The lifecycle state of a shared policy group
@@ -911,6 +911,137 @@ components:
             type: string
             pattern: '^[^/]+\.js$'
             description: The name of ruleset
+
+        ApiType:
+            type: string
+            description: API's type.
+            example: MESSAGE
+            enum:
+                - MESSAGE
+                - PROXY
+                - NATIVE
+        OriginContext:
+            oneOf:
+                - $ref: "#/components/schemas/ManagementOriginContext"
+                - $ref: "#/components/schemas/KubernetesOriginContext"
+                - $ref: "#/components/schemas/IntegrationOriginContext"
+            discriminator:
+                propertyName: origin
+                mapping:
+                    MANAGEMENT: "#/components/schemas/ManagementOriginContext"
+                    KUBERNETES: "#/components/schemas/KubernetesOriginContext"
+                    INTEGRATION: "#/components/schemas/IntegrationOriginContext"
+        BaseOriginContext:
+            type: object
+            properties:
+                origin:
+                    type: string
+                    description: The origin of the API.
+                    example: MANAGEMENT
+                    enum:
+                        - MANAGEMENT
+                        - KUBERNETES
+                        - INTEGRATION
+            discriminator:
+                propertyName: origin
+                mapping:
+                    MANAGEMENT: "#/components/schemas/ManagementOriginContext"
+                    KUBERNETES: "#/components/schemas/KubernetesOriginContext"
+                    INTEGRATION: "#/components/schemas/IntegrationOriginContext"
+        ManagementOriginContext:
+            type: object
+            title: "ManagementOriginContext"
+            description: Indicates the API has been created by the Management API
+            allOf:
+                - $ref: "#/components/schemas/BaseOriginContext"
+        KubernetesOriginContext:
+            type: object
+            title: "KubernetesOriginContext"
+            description: Indicates the API has been created by the Gravitee Kubernetes Operator
+            allOf:
+                - $ref: "#/components/schemas/BaseOriginContext"
+                - properties:
+                      mode:
+                          type: string
+                          description: |-
+                              The mode of the API.
+                              fully_managed: Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
+                          example: FULLY_MANAGED
+                          enum:
+                              - FULLY_MANAGED
+                      syncFrom:
+                          type: string
+                          description: |-
+                              syncFrom stands for where the Gateway should source the API definition from. 
+                              If the value is KUBERNETES, then the gateway will sync the definition by listening to changes
+                              issued on a kubernetes config map. If the value is MANAGEMENT, then the gateway will sync
+                              the definition using the same datastore as APIM. 
+                              Defining MANAGEMENT as source for sync is useful e.g. when a single operator should operate
+                              on gateways deployed on multiple kubernetes clusters.
+                          example: MANAGEMENT
+                          enum:
+                              - MANAGEMENT
+                              - KUBERNETES
+        IntegrationOriginContext:
+            type: object
+            title: "IntegrationOriginContext"
+            description: Indicates the API has been created through an Integration
+            allOf:
+                - $ref: "#/components/schemas/BaseOriginContext"
+                - properties:
+                      integrationId:
+                          type: string
+                          description: |-
+                              The id of the integration that created the API.
+                          example: b300b445-8bbb-4034-865c-d2113ba5b768
+                      provider:
+                          type: string
+                          description: Provider of this Federated API.
+                          example: solace
+                      integrationName:
+                          type: string
+                          description: Name of integration of this Federated API.
+                          example: My Solace env
+        FlowPhase:
+            type: string
+            description: The execution phase of a policy.
+            example: REQUEST
+            enum:
+                - REQUEST
+                - RESPONSE
+                - INTERACT
+                - CONNECT
+                - PUBLISH
+                - SUBSCRIBE
+        BaseStep:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: The name of the step
+                description:
+                    type: string
+                    description: The description of the step
+                enabled:
+                    type: boolean
+                    description: Is the step enabled or not.
+                    default: true
+                policy:
+                    type: string
+                    description: The policy of the step
+                configuration:
+                    type: object
+                    description: The configuration of the step
+                condition:
+                    type: string
+                    description: The condition of the step
+        StepV4:
+            allOf:
+                - $ref: "#/components/schemas/BaseStep"
+                - properties:
+                      messageCondition:
+                          type: string
+                          description: The message condition of the step
 
         Error:
             type: object
@@ -1117,9 +1248,9 @@ components:
                                 items:
                                     $ref: "#/components/schemas/SharedPolicyGroup"
                             pagination:
-                                $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+                                $ref: "#/components/schemas/Pagination"
                             links:
-                                $ref: "./openapi-apis.yaml#/components/schemas/Links"
+                                $ref: "#/components/schemas/Links"
         SharedPolicyGroupHistoriesResponse:
             description: Page of shared policy group histories
             content:
@@ -1133,9 +1264,9 @@ components:
                                 items:
                                     $ref: "#/components/schemas/SharedPolicyGroup"
                             pagination:
-                                $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+                                $ref: "#/components/schemas/Pagination"
                             links:
-                                $ref: "./openapi-apis.yaml#/components/schemas/Links"
+                                $ref: "#/components/schemas/Links"
         Error:
             description: Generic error response
             content:
