@@ -588,13 +588,15 @@ export class GroupComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((dialogResult: InviteMemberDialogResult) => !!dialogResult.invitation),
+        filter((dialogResult: InviteMemberDialogResult) => !!dialogResult && !!dialogResult.invitation),
         switchMap((dialogResult) =>
           this.groupService.inviteMember(this.groupId, dialogResult.invitation).pipe(
             tap((response) => {
               if (response.status === 200) {
                 this.snackBarService.success('Successfully invited user to the group.');
                 this.initializeInvitations();
+              } else if (response.status === 204) {
+                this.snackBarService.success('Successfully added user to the group.');
                 this.initializeGroupMembers();
               } else if (response.status === 202) {
                 this.openTooManyUsersDialog(dialogResult.invitation.email);
