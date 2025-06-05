@@ -53,7 +53,7 @@ public class LoggingHook implements InvokerHook {
                     ((LogEndpointRequest) log.getEndpointRequest()).capture();
                 }
 
-                if (loggingContext.endpointResponseHeaders()) {
+                if (loggingContext.endpointResponseHeaders() || loggingContext.endpointResponse()) {
                     ((MutableExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
                 }
             }
