@@ -1186,6 +1186,19 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.inference.service</groupId>
+            <artifactId>gravitee-inference-service</artifactId>
+            <version>${gravitee-inference-service.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- Tracers -->
         <dependency>
