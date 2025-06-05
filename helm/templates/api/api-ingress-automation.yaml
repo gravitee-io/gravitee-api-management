@@ -1,10 +1,10 @@
 {{- if and (.Values.api.enabled) (not .Values.apim.dbLess) -}}
-  {{- if .Values.api.ingress.automation.enabled -}}
-  {{- $serviceAPIName := include "gravitee.api.fullname" . -}}
-  {{- $serviceAPIPort := .Values.api.service.externalPort -}}
-  {{- $ingressPath   := .Values.api.ingress.automation.path -}}
-  {{- $ingressPathType   := .Values.api.ingress.automation.pathType -}}
-  {{- $apiVersion := include "common.capabilities.ingress.apiVersion" . -}}
+{{- if .Values.api.ingress.automation.enabled -}}
+{{- $serviceAPIName := include "gravitee.api.fullname" . -}}
+{{- $serviceAPIPort := .Values.api.service.externalPort -}}
+{{- $ingressPath   := .Values.api.ingress.automation.path -}}
+{{- $ingressPathType   := .Values.api.ingress.automation.pathType -}}
+{{- $apiVersion := include "common.capabilities.ingress.apiVersion" . -}}
 apiVersion: {{ $apiVersion }}
 kind: Ingress
 metadata:
@@ -23,13 +23,13 @@ metadata:
     {{- end }}
   annotations:
     {{- if .Values.api.ingress.automation.annotations }}
-      {{- include "common.ingress.annotations.render" (dict "annotations" .Values.api.ingress.automation.annotations "ingressClassName" .Values.api.ingress.automation.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
-      {{- end }}
-      {{- if and .Values.common .Values.common.annotations }}
-      {{- range $key, $value := .Values.common.annotations }}
-      {{ $key }}: {{ $value | quote }}
-      {{- end }}
-      {{- end }}
+    {{- include "common.ingress.annotations.render" (dict "annotations" .Values.api.ingress.automation.annotations "ingressClassName" .Values.api.ingress.automation.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
 spec:
   {{- if and (eq (include "common.ingress.supportsIngressClassname" .) "true") (.Values.api.ingress.automation.ingressClassName) (ne .Values.api.ingress.automation.ingressClassName "none") }}
   ingressClassName: {{ .Values.api.ingress.automation.ingressClassName | quote }}
@@ -39,22 +39,22 @@ spec:
   - host: {{ $host | quote }}
     http:
       paths:
-        - pathType: {{ $ingressPathType }}
-          path: {{ $ingressPath }}
-          backend:
-            {{- if (eq $apiVersion "networking.k8s.io/v1") }}
-            service:
-              name: {{ $serviceAPIName }}
-              port:
-                number: {{ $serviceAPIPort }}
-            {{ else }}
-            serviceName: {{ $serviceAPIName }}
-            servicePort: {{ $serviceAPIPort }}
-            {{- end -}}
+      - pathType: {{ $ingressPathType }}
+        path: {{ $ingressPath }}
+        backend:
+          {{- if (eq $apiVersion "networking.k8s.io/v1") }}
+          service:
+            name: {{ $serviceAPIName }}
+            port:
+              number: {{ $serviceAPIPort }}
+          {{ else }}
+          serviceName: {{ $serviceAPIName }}
+          servicePort: {{ $serviceAPIPort }}
+          {{- end -}}
   {{- end -}}
   {{- if .Values.api.ingress.automation.tls }}
   tls:
-  {{ toYaml .Values.api.ingress.automation.tls | indent 4 }}
+{{ toYaml .Values.api.ingress.automation.tls | indent 4 }}
   {{- end -}}
-  {{- end -}}
-  {{- end -}}
+{{- end -}}
+{{- end -}}
