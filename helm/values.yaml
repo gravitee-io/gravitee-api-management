@@ -869,8 +869,8 @@ api:
       ingressClassName: ""
       path: /integration-controller(/.*)?
       pathType: Prefix
-#      hosts:
-#        - apim.example.com
+      hosts:
+        - apim.example.com
       annotations:
         kubernetes.io/ingress.class: nginx
         nginx.ingress.kubernetes.io/proxy-read-timeout: 3600                                                                                                                                              │
