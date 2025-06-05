@@ -6428,6 +6428,32 @@ components:
                     type: boolean
                     description: The flag indicating if the request has ended.
                     example: true
+                failure:
+                  $ref: "#/components/schemas/ApiLogDiagnostic"
+                warnings:
+                  type: array
+                  description: The warning diagnotics
+                  items:
+                    $ref: "#/components/schemas/ApiLogDiagnostic"
+
+        ApiLogDiagnostic:
+          type: object
+          properties:
+            componentType:
+              type: string
+              description: The type of the component from where the diagnostic has been emitted
+              example: POLICY
+            componentId:
+              type: string
+              description: The id of the component from where the diagnostic has been emitted
+              example: transform-header
+            key:
+              type: string
+              description: The diagnostic key.
+              example: TRANSFORM_HEADERS_FAILURE
+            message:
+              type: string
+              description: The diagnostic message.
         ApiMessageLog:
             type: object
             properties:

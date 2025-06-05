@@ -16,8 +16,10 @@
 package io.gravitee.gateway.reactive.policy;
 
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.reporter.api.diagnostic.Diagnostic;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
+import io.gravitee.gateway.reactive.core.context.diagnostic.DiagnosticReportHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import jakarta.annotation.Nonnull;
@@ -67,7 +69,11 @@ public abstract class AbstractPolicyChain<T extends BasePolicy> implements Polic
      */
     @Override
     public Completable execute(BaseExecutionContext ctx) {
-        return policies.concatMapCompletable(policy -> executePolicy(ctx, policy));
+        return policies.concatMapCompletable(policy -> {
+            ctx.setInternalAttribute("component-type", Diagnostic.ComponentType.POLICY);
+            ctx.setInternalAttribute("component-name", policy.id());
+            return executePolicy(ctx, policy).doFinally(() -> ctx.removeInternalAttribute("component-type"));
+        });
     }
 
     protected abstract Completable executePolicy(final BaseExecutionContext ctx, final T policy);

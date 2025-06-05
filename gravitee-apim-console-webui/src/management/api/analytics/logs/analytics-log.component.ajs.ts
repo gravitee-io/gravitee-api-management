@@ -87,6 +87,7 @@ class ApiAnalyticsLogControllerAjs {
       this.activatedRoute.snapshot.queryParams.timestamp,
     ).then((response) => {
       this.log = response.data;
+      console.log(JSON.stringify(this.log))
       if (this.log.clientRequest != null) {
         ApiAnalyticsLogControllerAjs.headersAsList(this.log.clientRequest);
         this.log.clientRequest = {

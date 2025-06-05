@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.elasticsearch.log;
 
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrNull;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.common.http.HttpHeaders;
@@ -22,6 +24,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchHit;
 import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.log.model.Log;
+import io.gravitee.repository.log.model.LogDiagnostic;
 import io.gravitee.repository.log.model.Request;
 import io.gravitee.repository.log.model.Response;
 import java.text.ParseException;
@@ -29,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +51,7 @@ final class LogBuilder {
     private static final Logger logger = LoggerFactory.getLogger(LogBuilder.class);
 
     /** Document simple date format **/
-    private static SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    private static final SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     private static final String FIELD_TRANSACTION_ID = "transaction";
     private static final String FIELD_TIMESTAMP = "@timestamp";
@@ -77,13 +81,19 @@ final class LogBuilder {
     private static final String FIELD_PLAN = "plan";
     private static final String FIELD_HOST = "host";
 
-    private static final String FIELD_MESSAGE = "message";
     private static final String FIELD_USER = "user";
 
     private static final String FIELD_SECURITY_TYPE = "security-type";
     private static final String FIELD_SECURITY_TOKEN = "security-token";
 
     private static final String FIELD_ERROR_KEY = "error-key";
+
+    private static final String FIELD_FAILURE = "failure";
+    public static final String FIELD_WARNINGS = "warnings";
+    public static final String FIELD_COMPONENT_TYPE = "component-type";
+    public static final String FIELD_COMPONENT_NAME = "component-name";
+    private static final String FIELD_MESSAGE = "message";
+    public static final String FIELD_KEY = "key";
 
     static Log createLog(final SearchHit hit) {
         return createLog(hit, new Log());
@@ -189,6 +199,16 @@ final class LogBuilder {
             log.setErrorKey(errorKeyNode.asText());
         }
 
+        final JsonNode failureNode = source.get(FIELD_FAILURE);
+        if (failureNode != null && !failureNode.isNull()) {
+            log.setFailure(createDiagnosticOrNull(failureNode));
+        }
+
+        final JsonNode warningsNode = source.get(FIELD_WARNINGS);
+        if (warningsNode != null && !warningsNode.isNull() && warningsNode.isArray()) {
+            log.setWarnings(createDiagnosticsOrNull(warningsNode));
+        }
+
         return log;
     }
 
@@ -247,5 +267,27 @@ final class LogBuilder {
         final List<String> result = new ArrayList<>(values.size());
         values.forEach(jsonNode -> result.add(jsonNode.asText()));
         return result;
+    }
+
+    private static LogDiagnostic createDiagnosticOrNull(JsonNode json) {
+        if (json == null) {
+            return null;
+        }
+
+        return LogDiagnostic
+            .builder()
+            .key(asTextOrNull(json.get(FIELD_KEY)))
+            .message(asTextOrNull(json.get(FIELD_MESSAGE)))
+            .componentType(asTextOrNull(json.get(FIELD_COMPONENT_TYPE)))
+            .componentName(asTextOrNull(json.get(FIELD_COMPONENT_NAME)))
+            .build();
+    }
+
+    private static List<LogDiagnostic> createDiagnosticsOrNull(JsonNode json) {
+        if (json == null) {
+            return null;
+        }
+
+        return StreamSupport.stream(json.spliterator(), false).map(LogBuilder::createDiagnosticOrNull).toList();
     }
 }

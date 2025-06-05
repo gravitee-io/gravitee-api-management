@@ -36,6 +36,14 @@ public class InterruptionFailureException extends RuntimeException {
     }
 
     @Override
+    public synchronized Throwable getCause() {
+        if(executionFailure.cause() != null) {
+            return executionFailure.cause();
+        }
+        return super.getCause();
+    }
+
+    @Override
     public String getMessage() {
         return executionFailure.message();
     }

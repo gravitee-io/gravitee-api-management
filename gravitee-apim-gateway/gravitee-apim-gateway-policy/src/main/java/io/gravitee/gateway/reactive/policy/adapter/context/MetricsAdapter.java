@@ -16,10 +16,12 @@
 package io.gravitee.gateway.reactive.policy.adapter.context;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.reporter.api.diagnostic.Diagnostic;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.http.SecurityType;
 import io.gravitee.reporter.api.log.Log;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,7 +30,7 @@ import java.util.Map;
  */
 public class MetricsAdapter extends Metrics {
 
-    private io.gravitee.reporter.api.v4.metric.Metrics metrics;
+    private final io.gravitee.reporter.api.v4.metric.Metrics metrics;
 
     public MetricsAdapter(final io.gravitee.reporter.api.v4.metric.Metrics metrics) {
         super(metrics.getTimestamp());
@@ -382,5 +384,15 @@ public class MetricsAdapter extends Metrics {
     @Override
     public void addCustomMetric(final String key, final String value) {
         metrics.addCustomMetric(key, value);
+    }
+
+    @Override
+    public void setFailureDiagnostic(Diagnostic failureDiagnostic) {
+        metrics.setFailureDiagnostic(failureDiagnostic);
+    }
+
+    @Override
+    public void setWarningDiagnostics(List<Diagnostic> warningDiagnostics) {
+        metrics.setWarningDiagnostics(warningDiagnostics);
     }
 }

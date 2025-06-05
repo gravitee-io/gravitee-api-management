@@ -30,6 +30,15 @@
     <artifactId>gravitee-apim-gateway-standalone-container</artifactId>
     <name>Gravitee.io APIM - Gateway - Standalone - Container</name>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-rx-java3</artifactId>
+                <version>4.5.1</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <!-- Gravitee.io -->
         <dependency>
@@ -418,7 +427,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>

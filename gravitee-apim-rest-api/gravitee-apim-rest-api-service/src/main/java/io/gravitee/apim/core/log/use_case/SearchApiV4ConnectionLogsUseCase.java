@@ -87,6 +87,8 @@ public class SearchApiV4ConnectionLogsUseCase {
             .requestEnded(connectionLog.isRequestEnded())
             .transactionId(connectionLog.getTransactionId())
             .status(connectionLog.getStatus())
+            .failure(connectionLog.getFailure())
+            .warnings(connectionLog.getWarnings())
             .build();
     }
 
@@ -111,6 +113,7 @@ public class SearchApiV4ConnectionLogsUseCase {
         public Input(String apiId, SearchLogsFilters logsFilters) {
             this(apiId, logsFilters, Optional.empty());
         }
+
         public Input(String apiId, SearchLogsFilters logsFilters, Pageable pageable) {
             this(apiId, logsFilters, Optional.of(pageable));
         }

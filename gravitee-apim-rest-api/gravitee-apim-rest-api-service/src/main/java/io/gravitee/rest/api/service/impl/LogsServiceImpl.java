@@ -29,6 +29,7 @@ import io.gravitee.repository.analytics.query.SortBuilder;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
+import io.gravitee.repository.log.model.LogDiagnostic;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InstanceEntity;
@@ -39,6 +40,7 @@ import io.gravitee.rest.api.model.log.ApiRequest;
 import io.gravitee.rest.api.model.log.ApiRequestItem;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
+import io.gravitee.rest.api.model.log.DiagnoticItem;
 import io.gravitee.rest.api.model.log.PlatformRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.log.extended.Request;
@@ -65,6 +67,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -479,8 +482,9 @@ public class LogsServiceImpl implements LogsService {
             return null;
         }
 
-        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType =
-            io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
+        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType = io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(
+            plan.getPlanSecurity().getType()
+        );
         if (
             io.gravitee.rest.api.model.v4.plan.PlanSecurityType.API_KEY == planSecurityType ||
             io.gravitee.rest.api.model.v4.plan.PlanSecurityType.KEY_LESS == planSecurityType
@@ -690,6 +694,9 @@ public class LogsServiceImpl implements LogsService {
         req.setTimestamp(log.getTimestamp());
         req.setEndpoint(log.getEndpoint() != null);
         req.setUser(log.getUser());
+        req.setFailure(toDiagnosticItem(log.getFailure()));
+        req.setWarnings(toDiagnosticItems(log.getWarnings()));
+
         return req;
     }
 
@@ -758,6 +765,9 @@ public class LogsServiceImpl implements LogsService {
 
         req.setMetadata(metadata);
         req.setUser(log.getUser());
+
+        req.setFailure(toDiagnosticItem(log.getFailure()));
+        req.setWarnings(toDiagnosticItems(log.getWarnings()));
 
         return req;
     }
@@ -829,5 +839,27 @@ public class LogsServiceImpl implements LogsService {
         req.setUser(log.getUser());
 
         return req;
+    }
+
+    private DiagnoticItem toDiagnosticItem(LogDiagnostic logDiagnostic) {
+        if (logDiagnostic == null) {
+            return null;
+        }
+
+        return DiagnoticItem
+            .builder()
+            .componentType(logDiagnostic.getComponentType())
+            .componentName(logDiagnostic.getComponentName())
+            .key(logDiagnostic.getKey())
+            .message(logDiagnostic.getMessage())
+            .build();
+    }
+
+    private List<DiagnoticItem> toDiagnosticItems(List<LogDiagnostic> warnings) {
+        if (warnings == null) {
+            return null;
+        }
+
+        return warnings.stream().map(this::toDiagnosticItem).toList();
     }
 }

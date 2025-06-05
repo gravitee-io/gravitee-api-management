@@ -55,6 +55,12 @@
           <div class="value">{{ log.clientIdentifier }}</div>
         </div>
 
+        <div *ngIf="log.failure != null" class="log-row__line-2__data">
+          <div class="value">
+            <span class="gio-badge-error">{{ log.failure.key }}</span>
+          </div>
+        </div>
+
         <div class="log-row__line-2__data">
           <div class="property"></div>
           <div class="value"></div>

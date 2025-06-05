@@ -31,6 +31,7 @@ export function fakeConnectionLog(modifier?: Partial<ConnectionLog> | ((base: Co
     method: 'GET',
     status: 200,
     requestEnded: true,
+    failure: null,
     plan: fakePlanV4(),
     application: fakeBaseApplication(),
   };

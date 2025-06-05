@@ -27,9 +27,17 @@ export interface ConnectionLog {
   method: HttpMethod;
   status: number;
   requestEnded: boolean;
+  failure: ConnectionLogDiagnostic,
 
   application: BaseApplication;
   plan: BasePlan;
+}
+
+export interface ConnectionLogDiagnostic {
+  componentType: string,
+  componentName: string,
+  key: string,
+  message: string
 }
 
 export interface ConnectionLogDetail {

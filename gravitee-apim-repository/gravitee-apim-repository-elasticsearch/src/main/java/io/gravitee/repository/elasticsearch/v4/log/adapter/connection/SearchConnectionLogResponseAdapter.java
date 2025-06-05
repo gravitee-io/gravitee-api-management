@@ -18,12 +18,19 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asBooleanOrFalse;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asIntOr;
 import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrNull;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.connection.ConnectionLogField.COMPONENT_NAME;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.connection.ConnectionLogField.COMPONENT_TYPE;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.connection.ConnectionLogField.FAILURE;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.connection.ConnectionLogField.KEY;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.connection.ConnectionLogField.MESSAGE;
+import static io.gravitee.repository.elasticsearch.v4.log.adapter.connection.ConnectionLogField.TIMESTAMP;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.log.v4.model.LogResponse;
+import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import java.util.List;
 
@@ -46,12 +53,14 @@ public class SearchConnectionLogResponseAdapter {
     private static ConnectionLog buildFromSource(String index, String id, JsonNode json) {
         var connectionLog = ConnectionLog
             .builder()
-            .timestamp(asTextOrNull(json.get(ConnectionLogField.TIMESTAMP)))
+            .timestamp(asTextOrNull(json.get(TIMESTAMP)))
             .status(asIntOr(json.get(ConnectionLogField.STATUS), 0))
             .gateway(asTextOrNull(json.get(ConnectionLogField.GATEWAY)))
             .uri(asTextOrNull(json.get(ConnectionLogField.URI)))
             .requestContentLength(asIntOr(json.get(ConnectionLogField.REQUEST_CONTENT_LENGTH), 0))
-            .responseContentLength(asIntOr(json.get(ConnectionLogField.RESPONSE_CONTENT_LENGTH), 0));
+            .responseContentLength(asIntOr(json.get(ConnectionLogField.RESPONSE_CONTENT_LENGTH), 0))
+            .uri(asTextOrNull(json.get(ConnectionLogField.URI)))
+            .failure(asDiagnosticOrNull(json.get(FAILURE)));
 
         if (index.contains(Type.REQUEST.getType())) {
             return connectionLog
@@ -78,6 +87,20 @@ public class SearchConnectionLogResponseAdapter {
             .requestEnded(asBooleanOrFalse(json.get(ConnectionLogField.REQUEST_ENDED.v4Metrics())))
             .entrypointId(asTextOrNull(json.get(ConnectionLogField.ENTRYPOINT_ID.v4Metrics())))
             .gatewayResponseTime(asIntOr(json.get(ConnectionLogField.GATEWAY_RESPONSE_TIME.v4Metrics()), 0))
+            .build();
+    }
+
+    static ConnectionDiagnostic asDiagnosticOrNull(JsonNode json) {
+        if (json == null) {
+            return null;
+        }
+
+        return ConnectionDiagnostic
+            .builder()
+            .key(asTextOrNull(json.get(KEY)))
+            .message(asTextOrNull(json.get(MESSAGE)))
+            .componentType(asTextOrNull(json.get(COMPONENT_TYPE)))
+            .componentName(asTextOrNull(json.get(COMPONENT_NAME)))
             .build();
     }
 }

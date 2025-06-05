@@ -157,8 +157,9 @@ public class MockEndpointConnector extends HttpEndpointAsyncConnector {
                     return state + 1;
                 }
             )
-            .delay(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
-            .rebatchRequests(1);
+            //.delay(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
+            .rebatchRequests(1)
+                .doOnRequest(request -> log.info("request: {}", request));
 
         if (messagesLimitDurationMs != null) {
             messageFlow = messageFlow.take(messagesLimitDurationMs, TimeUnit.MILLISECONDS);

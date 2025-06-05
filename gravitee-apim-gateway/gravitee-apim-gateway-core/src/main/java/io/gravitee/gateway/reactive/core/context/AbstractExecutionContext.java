@@ -20,6 +20,7 @@ import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.TlsSession;
@@ -28,8 +29,10 @@ import io.gravitee.gateway.reactive.api.el.EvaluableMessage;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.core.context.diagnostic.DiagnosticReportHelper;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
+import io.gravitee.reporter.api.diagnostic.Diagnostic;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -49,6 +52,8 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     private EvaluableRequest evaluableRequest;
     private EvaluableResponse evaluableResponse;
     private EvaluableExecutionContext evaluableExecutionContext;
+    private Diagnostic errorReport;
+    private List<Diagnostic> warningReports;
 
     public AbstractExecutionContext(final RQ request, final RS response) {
         this.request = request;
@@ -79,8 +84,25 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     public Completable interruptWith(ExecutionFailure executionFailure) {
         return Completable.defer(() -> {
             internalAttributes.put(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+            error(
+                DiagnosticReportHelper.fromExecutionFailure(
+                    getInternalAttribute("component-type"),
+                    getInternalAttribute("component-name"),
+                    executionFailure
+                )
+            );
             return Completable.error(new InterruptionFailureException(executionFailure));
         });
+    }
+
+    private void error(Diagnostic diagnostic) {
+        metrics.setFailureDiagnostic(diagnostic);
+    }
+
+    public void warnWith(ExecutionWarn warn) {
+        metrics.addWarningDiagnostic(
+            DiagnosticReportHelper.fromExecutionWarn(getInternalAttribute("component-type"), getInternalAttribute("component-name"), warn)
+        );
     }
 
     @Override

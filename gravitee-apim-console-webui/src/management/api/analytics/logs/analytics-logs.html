@@ -60,6 +60,7 @@
         >
           <thead md-head md-order="$ctrl.query.field">
             <tr md-row>
+              <th md-column width="15px" nowrap>&nbsp;</th>
               <th md-column width="1%" md-order-by="@timestamp" nowrap>Date</th>
               <th md-column width="1%" md-order-by="status" nowrap>Status</th>
               <th md-column width="1%" nowrap>Application</th>
@@ -81,6 +82,10 @@
               md-select-id="key"
               ng-class="{'log-error': log.status >= 400}"
             >
+              <td md-cell nowrap>
+                <span ng-if="log.failure != null">❌<md-tooltip md-direction="bottom">{{log.failure.key}}</md-tooltip></span>
+                <span ng-if="log.failure == null && log.warnings != null">⚠️️<md-tooltip md-direction="bottom">{{log.warnings[0].key}}</md-tooltip></span>
+              </td>
               <td md-cell nowrap>
                 <a ng-href="{{$ctrl.goToLog(log)}}"> {{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}} </a>
               </td>

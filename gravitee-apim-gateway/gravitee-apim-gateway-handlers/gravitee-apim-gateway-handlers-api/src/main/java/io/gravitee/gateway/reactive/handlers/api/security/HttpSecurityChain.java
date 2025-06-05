@@ -61,7 +61,7 @@ public class HttpSecurityChain
                     .map(plan -> HttpSecurityPlanFactory.forPlan(plan, policyManager))
                     .filter(Objects::nonNull)
                     .sorted(Comparator.comparingInt(HttpSecurityPlan::order))
-                    .collect(Collectors.toList())
+                    .toList()
             )
         );
         this.executionPhase = executionPhase;

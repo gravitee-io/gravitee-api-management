@@ -125,8 +125,10 @@
       ng-click="$ctrl.displayContext=!$ctrl.displayContext"
     >
       <a>
-        <p ng-if="!$ctrl.displayContext">Show context</p>
-        <p ng-if="$ctrl.displayContext">Hide context</p>
+        <span ng-if="$ctrl.log.failure != null">❌</span>
+        <span ng-if="$ctrl.log.failure == null && $ctrl.log.warnings != null">⚠️️</span>
+        <span ng-if="!$ctrl.displayContext"> Show context</span>
+        <span ng-if="$ctrl.displayContext"> Hide context</span>
       </a>
     </div>
 
@@ -205,16 +207,91 @@
     </div>
   </div>
 
-  <div class="gv-form gv-form-danger" ng-if="$ctrl.log.message">
-    <h2>Error</h2>
-    <gv-code
-      flex
-      readonly
-      ng-attr-value="{{$ctrl.log.message}}"
-      ng-attr-options="{{$ctrl.codeMirrorOptions()}}"
-      ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
-    ></gv-code>
+  <div ng-if="$ctrl.displayContext && $ctrl.log.failure != null" style="background: white; border: 1px solid var(--gv-theme-color-danger); margin-bottom: 10px" layout-padding>
+    <h3 style="color: var(--gv-theme-color-danger)">Failure</h3>
+    <div layout="row" class="log-table">
+      <div layout="column" style="width: 100%">
+        <md-table-container>
+          <table md-table class="gv-table-dense">
+            <tbody md-body>
+            <tr md-row ng-if="$ctrl.log.failure.key">
+              <td md-cell style="width: 1%; font-weight: bold" nowrap>
+                Failure Key
+              </td>
+              <td md-cell>{{$ctrl.log.failure.key}}</td>
+            </tr>
+            <tr md-row ng-if="$ctrl.log.failure.componentType">
+              <td md-cell style="width: 1%; font-weight: bold" nowrap>
+                Component type
+              </td>
+              <td md-cell>{{$ctrl.log.failure.componentType}}</td>
+            </tr>
+            <tr md-row ng-if="$ctrl.log.failure.componentName">
+              <td md-cell style="width: 1%; font-weight: bold" nowrap>
+                Component type
+              </td>
+              <td md-cell>{{$ctrl.log.failure.componentName}}</td>
+            </tr>
+            <tr md-row ng-if="$ctrl.log.failure.message">
+              <td md-cell nowrap colspan="2">
+                <gv-code
+                  flex
+                  readonly
+                  ng-attr-value="{{$ctrl.log.failure.message}}"
+                  ng-attr-options="{{$ctrl.codeMirrorOptions()}}"
+                  ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
+                ></gv-code>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+      </div>
+    </div>
   </div>
+
+  <div ng-if="$ctrl.displayContext && $ctrl.log.warnings != null" style="background: white; border: 1px solid var(--gv-theme-color-warning);" layout-padding>
+    <h3 style="color: var(--gv-theme-color-danger)">Warnings</h3>
+      <div layout="row" class="log-table">
+        <div layout="column" ng-repeat="warning in $ctrl.log.warnings" style="width: 100%">
+          <md-table-container>
+            <table md-table class="gv-table-dense">
+              <tbody md-body>
+              <tr md-row ng-if="warning.key">
+                <td md-cell style="width: 1%; font-weight: bold" nowrap>
+                  Warning Key
+                </td>
+                <td md-cell>{{warning.key}}</td>
+              </tr>
+              <tr md-row ng-if="warning.componentType">
+                <td md-cell style="width: 1%; font-weight: bold" nowrap>
+                  Component type
+                </td>
+                <td md-cell>{{warning.componentType}}</td>
+              </tr>
+              <tr md-row ng-if="warning.componentName">
+                <td md-cell style="width: 1%; font-weight: bold" nowrap>
+                  Component type
+                </td>
+                <td md-cell>{{warning.componentName}}</td>
+              </tr>
+              <tr md-row ng-if="warning.message">
+                <td md-cell nowrap colspan="2">
+                  <gv-code
+                    flex
+                    readonly
+                    ng-attr-value="{{warning.message}}"
+                    ng-attr-options="{{$ctrl.codeMirrorOptions()}}"
+                    ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
+                  ></gv-code>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+        </div>
+      </div>
+    </div>
 
   <div>
     <div class="log-table" layout="column">
