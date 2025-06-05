@@ -39,3 +39,5 @@ annotations:
       description: 'The `portal.entrypoint` env var is used to configure the entrypoint used to expose APIs. It is used mainly on the developer portal. The value is automatically set with the ingress of the gateway. Now, if the gateway is configured with  a list of servers (http, tcp...) the `portal.entrypoint` is set accordingly'
     - kind: changed
       description: 'Changed default behavior to enable multi-tenant support in dictionaries'
+    - kind: added
+      description: 'Allow customization on federation ingress. BREAKING CHANGE: now the federation ingress will not inherit anymore some management-api ingress definition (annotation, hosts, and tls)'
