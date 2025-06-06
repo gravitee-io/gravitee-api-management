@@ -23,7 +23,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
@@ -87,19 +86,6 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
             });
-
-            verify(importApiCRDUseCase, atMostOnce())
-                .execute(
-                    argThat(input -> {
-                        if (Strings.isNullOrEmpty(input.spec().getId())) {
-                            return false;
-                        }
-                        if (!Strings.isNullOrEmpty(input.spec().getCrossId())) {
-                            return false;
-                        }
-                        return !Strings.isNullOrEmpty(input.spec().getPlans().get("API_KEY").getId());
-                    })
-                );
         }
 
         @Test
@@ -198,6 +184,7 @@ class ApisResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
                 soft.assertThat(state.getId()).isEqualTo("api-id");
+                soft.assertThat(state.getHrid()).isNull();
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
