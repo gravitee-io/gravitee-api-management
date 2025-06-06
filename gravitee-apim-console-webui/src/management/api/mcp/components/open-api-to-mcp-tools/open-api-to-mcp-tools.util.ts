@@ -16,6 +16,7 @@
 import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types';
 import * as yaml from 'js-yaml';
 import { dereference, validate } from '@scalar/openapi-parser';
+import { isEmpty, snakeCase } from 'lodash';
 
 import { MCPTool, MCPToolDefinition, MCPToolGatewayMapping } from '../../../../../entities/entrypoint/mcp';
 
@@ -32,6 +33,13 @@ type JsonSchema = {
   required: string[];
 };
 
+type ParameterSchema = {
+  pathParams: Record<string, SchemaObject>;
+  queryParams: Record<string, SchemaObject>;
+  headers: Record<string, SchemaObject>;
+  required: string[];
+};
+
 type ErrorObject = {
   key: string;
   message: string;
@@ -41,14 +49,6 @@ export type OpenApiToMcpToolsResult = {
   result: MCPTool[];
   errors: ErrorObject[];
 };
-
-function prefixPropertyNames(properties: Record<string, SchemaObject>, prefix: string): Record<string, SchemaObject> {
-  const newProps: Record<string, SchemaObject> = {};
-  for (const [key, value] of Object.entries(properties)) {
-    newProps[`${prefix}${key}`] = value as SchemaObject;
-  }
-  return newProps;
-}
 
 function transformSwagger2ToOpenApi3(parsedSpec: any): void {
   for (const pathItem of Object.values(parsedSpec.paths || {})) {
@@ -79,7 +79,7 @@ function determineContentType(operation: OperationObject): string | null {
   return types.length > 0 ? types[0] : 'application/json';
 }
 
-function generateGatewayMapping(op: OperationObject, method: string, path: string): MCPToolGatewayMapping {
+function generateGatewayMapping(op: OperationObject, method: string, path: string, paramSchema: ParameterSchema): MCPToolGatewayMapping {
   const transformedPath = path.replace(/{([a-zA-Z0-9_-]+)}/g, ':$1');
   const contentType = determineContentType(op);
 
@@ -87,74 +87,65 @@ function generateGatewayMapping(op: OperationObject, method: string, path: strin
     http: {
       method: method.toUpperCase(),
       path: transformedPath,
+      ...(!isEmpty(paramSchema.pathParams) ? { pathParams: Object.keys(paramSchema.pathParams) } : {}),
       ...(contentType ? { contentType } : {}),
+      ...(!isEmpty(paramSchema.queryParams) ? { queryParams: Object.keys(paramSchema.queryParams) } : {}),
+      ...(!isEmpty(paramSchema.headers) ? { headers: Object.keys(paramSchema.headers) } : {}),
     },
   };
 }
 
-function extractParameterSchema(parameters: (ParameterObject | ReferenceObject)[]): JsonSchema {
-  const schema: JsonSchema = {
-    type: 'object',
-    properties: {},
-    required: [],
-  };
+function extractParameterSchema(parameters: (ParameterObject | ReferenceObject)[]): ParameterSchema {
+  const pathParams: ParameterSchema['pathParams'] = {};
+  const queryParams: ParameterSchema['queryParams'] = {};
+  const headers: ParameterSchema['headers'] = {};
+  const required: ParameterSchema['required'] = [];
 
   for (const param of parameters as ParameterObject[]) {
-    let prefix = '';
+    const name = `${param.name}`;
+    if (param.required) {
+      required.push(name);
+    }
+
+    let property: SchemaObject;
+    if (param.schema) {
+      property = { ...(param.schema as SchemaObject), description: param.description };
+    } else {
+      property = { description: param.description };
+    }
+
     switch (param.in) {
       case 'path':
-        prefix = 'p_';
+        pathParams[name] = property;
         break;
       case 'query':
-        prefix = 'q_';
+        queryParams[name] = property;
         break;
       case 'header':
-        prefix = 'h_';
+        headers[name] = property;
+        break;
+      default:
+        // Ignore other parameter types for now
         break;
     }
-
-    const name = `${prefix}${param.name}`;
-    if (param.schema) {
-      schema.properties[name] = { ...(param.schema as SchemaObject), description: param.description };
-    } else {
-      schema.properties[name] = { description: param.description };
-    }
-
-    if (param.required) {
-      schema.required.push(name);
-    }
-  }
-
-  return schema;
-}
-
-function extractBodySchema(requestBody?: RequestBodyObject | ReferenceObject): Partial<JsonSchema> {
-  if (!requestBody) return {};
-
-  const typedRequestBody = requestBody as RequestBodyObject;
-  const jsonSchema = typedRequestBody.content?.['application/json']?.schema as SchemaObject;
-  if (!jsonSchema) return {};
-
-  const additionalProps: Record<string, SchemaObject> = {};
-  const required: string[] = [];
-
-  if (jsonSchema.type === 'object' && jsonSchema.properties) {
-    const newProps = prefixPropertyNames(jsonSchema.properties as Record<string, SchemaObject>, 'b_');
-    Object.assign(additionalProps, newProps);
-    if (jsonSchema.required) {
-      for (const r of jsonSchema.required) {
-        required.push(`b_${r}`);
-      }
-    }
-  } else {
-    additionalProps['b_body'] = jsonSchema;
-    required.push('b_body');
   }
 
   return {
-    properties: additionalProps,
+    pathParams,
+    queryParams,
+    headers,
     required,
   };
+}
+
+function extractBodySchema(requestBody?: RequestBodyObject | ReferenceObject): SchemaObject | null {
+  if (!requestBody) return null;
+
+  const typedRequestBody = requestBody as RequestBodyObject;
+  const jsonSchema = typedRequestBody.content?.['application/json']?.schema as SchemaObject;
+  if (!jsonSchema) return null;
+
+  return jsonSchema;
 }
 
 async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMcpToolsResult> {
@@ -197,9 +188,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
       const op = operation as OperationObject;
       if (!op) continue;
 
-      const baseName = op.operationId || path.replace(/[/{}]/g, '_');
-      const toolName = `${method}_${baseName}`;
-
+      const toolName = op.operationId || snakeCase(`${method}_${path}`);
       if (usedNames.has(toolName)) {
         errors.push({ key: 'duplicateName', message: `Duplicate tool name detected: ${toolName}` });
       } else {
@@ -213,10 +202,12 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
       const mergedParameters: JsonSchema = {
         type: 'object',
         properties: {
-          ...paramSchema.properties,
-          ...bodySchema.properties,
+          ...paramSchema.pathParams,
+          ...paramSchema.queryParams,
+          ...paramSchema.headers,
+          ...(bodySchema ? { bodySchema } : {}),
         },
-        required: [...paramSchema.required, ...(bodySchema.required || [])],
+        required: paramSchema.required,
       };
 
       const toolDefinition: MCPToolDefinition = {
@@ -225,7 +216,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
         inputSchema: mergedParameters,
       };
 
-      const gatewayMapping: MCPToolGatewayMapping = generateGatewayMapping(op, method, path);
+      const gatewayMapping: MCPToolGatewayMapping = generateGatewayMapping(op, method, path, paramSchema);
 
       tools.push({
         toolDefinition,

@@ -28,7 +28,7 @@ export class ConfigureMcpEntrypointHarness extends ComponentHarness {
   );
   protected locateMcpPathInput = this.locatorFor(MatInputHarness.with({ selector: 'input[formControlName="mcpPath"]' }));
   protected locateToolDisplays = this.locatorForAll(ToolDisplayHarness);
-  protected locateImportToolsButton = this.locatorFor(MatButtonHarness.with({ text: /Import Tools/ }));
+  protected locateImportToolsButton = this.locatorFor(MatButtonHarness.with({ text: /Generate Tools from OpenAPI/ }));
 
   async getMcpPathFormField(): Promise<MatFormFieldHarness> {
     return this.locateMcpPathFormField();

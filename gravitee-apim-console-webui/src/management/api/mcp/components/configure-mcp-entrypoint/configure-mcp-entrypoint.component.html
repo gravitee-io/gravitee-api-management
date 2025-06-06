@@ -37,14 +37,14 @@
       (click)="importTools()"
     >
       <mat-icon svgIcon="gio:plus" />
-      Import Tools
+      Generate Tools from OpenAPI
     </button>
   </div>
   @for (tool of toolDefinitions; track $index) {
     <tool-display [tool]="tool" />
   } @empty {
     <div class="open-api-to-mcp-tools__container__tools__empty">
-      No tools are configured. Add tools by importing from an OpenAPI specification.
+      No tools are configured. Add tools by generating them from an OpenAPI specification.
     </div>
   }
 </form>

@@ -46,7 +46,7 @@ export class ImportMcpToolsDialogHarness extends ComponentHarness {
   }
 
   public async importTools(): Promise<void> {
-    const confirmButton = await this.locatorFor(MatButtonHarness.with({ text: /Import Tools/ }))();
+    const confirmButton = await this.locatorFor(MatButtonHarness.with({ text: /(Generate|Regenerate) Tools/ }))();
     await confirmButton.click();
   }
 }

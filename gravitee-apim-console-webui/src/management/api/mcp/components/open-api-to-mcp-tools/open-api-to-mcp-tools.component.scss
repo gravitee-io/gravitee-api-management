@@ -10,20 +10,16 @@
   &__container {
     display: flex;
     flex-flow: row;
-    height: 500px;
+    gap: 16px;
 
-    gio-monaco-editor {
-      min-width: 50%;
-    }
-
-    tools-display {
+    &__field {
+      flex: 1 1 50%;
     }
 
     &__tools {
+      flex: 1 1 50%;
       display: block;
       overflow-y: scroll;
-      padding: 12px;
-      width: 50%;
 
       &__header {
         padding-bottom: 12px;
@@ -36,6 +32,14 @@
         display: flex;
         flex-flow: column;
         gap: 16px;
+      }
+
+      &__empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding-top: 20px;
       }
     }
   }

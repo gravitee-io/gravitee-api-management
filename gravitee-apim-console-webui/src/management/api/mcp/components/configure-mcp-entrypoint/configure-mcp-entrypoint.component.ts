@@ -17,7 +17,7 @@ import { Component, DestroyRef, forwardRef, inject, OnInit } from '@angular/core
 import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { map, tap } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { GIO_DIALOG_WIDTH, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
@@ -131,11 +131,14 @@ export class ConfigureMcpEntrypointComponent implements OnInit, ControlValueAcce
   importTools(): void {
     this.matDialog
       .open<ImportMcpToolsDialogComponent, ImportMcpToolsDialogData, ImportMcpToolsDialogResult>(ImportMcpToolsDialogComponent, {
-        data: {},
+        data: {
+          hasPreviousTools: !!this.toolDefinitions,
+        },
         width: GIO_DIALOG_WIDTH.LARGE,
       })
       .afterClosed()
       .pipe(
+        filter((result) => !!result),
         map((result) => result?.tools || []),
         tap((tools: MCPTool[]) => {
           this.formGroup.patchValue({ tools });
