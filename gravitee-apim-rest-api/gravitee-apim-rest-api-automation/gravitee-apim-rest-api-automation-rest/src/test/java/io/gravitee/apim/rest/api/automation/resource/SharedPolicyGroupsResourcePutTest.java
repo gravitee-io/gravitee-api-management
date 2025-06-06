@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupResourceGetTest.HRID;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -24,6 +25,8 @@ import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGrou
 import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
 import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import org.assertj.core.api.SoftAssertions;
@@ -59,19 +62,28 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
         @BeforeEach
         void setUp() {
             when(createSharedPolicyGroupUseCase.execute(any(CreateSharedPolicyGroupUseCase.Input.class)))
-                .thenReturn(
-                    new CreateSharedPolicyGroupUseCase.Output(
-                        SharedPolicyGroup.builder().id("spg-id").crossId("spg-cross-id").environmentId(ENVIRONMENT).build()
-                    )
-                );
+                .thenAnswer(invocation -> {
+                    CreateSharedPolicyGroupUseCase.Input argument = invocation.getArgument(0);
+                    var spgToCreate = argument.sharedPolicyGroupToCreate();
+                    return new CreateSharedPolicyGroupUseCase.Output(
+                        SharedPolicyGroup
+                            .builder()
+                            .id(spgToCreate.getId())
+                            .crossId(spgToCreate.getCrossId())
+                            .hrid(spgToCreate.getHrid())
+                            .environmentId(ENVIRONMENT)
+                            .build()
+                    );
+                });
         }
 
         @Test
         void should_return_state_from_hrid() {
             var state = expectEntity("shared-policy-group.json");
+            IdBuilder builder = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), HRID);
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getCrossId()).isEqualTo("spg-cross-id");
-                soft.assertThat(state.getId()).isEqualTo("spg-id");
+                soft.assertThat(state.getCrossId()).isEqualTo(builder.buildCrossId());
+                soft.assertThat(state.getId()).isEqualTo(builder.buildId());
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 soft.assertThat(state.getHrid()).isEqualTo("spg-foo");
@@ -83,7 +95,7 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
             var state = expectEntity("shared-policy-group-with-cross-id-and-no-hrid.json");
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(state.getCrossId()).isEqualTo("spg-cross-id");
-                soft.assertThat(state.getId()).isEqualTo("spg-id");
+                soft.assertThat(state.getId()).isNotBlank();
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 soft.assertThat(state.getHrid()).isNull();
@@ -110,8 +122,8 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
         void should_return_state_from_hrid() {
             var state = expectEntity("shared-policy-group.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getCrossId()).isNull();
-                soft.assertThat(state.getId()).isNull();
+                soft.assertThat(state.getCrossId()).isNotBlank();
+                soft.assertThat(state.getId()).isNotBlank();
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 soft.assertThat(state.getHrid()).isEqualTo("spg-foo");
@@ -122,8 +134,9 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
         void should_return_state_from_cross_id() {
             var state = expectEntity("shared-policy-group-with-cross-id-and-no-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getCrossId()).isEqualTo("spg-foo");
-                soft.assertThat(state.getId()).isNull();
+                soft.assertThat(state.getCrossId()).isEqualTo("spg-cross-id");
+                soft.assertThat(state.getId()).isNotBlank();
+                soft.assertThat(state.getHrid()).isNull();
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });

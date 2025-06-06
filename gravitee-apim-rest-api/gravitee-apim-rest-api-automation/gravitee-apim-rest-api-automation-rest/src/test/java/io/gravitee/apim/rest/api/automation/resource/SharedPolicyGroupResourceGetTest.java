@@ -22,6 +22,8 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
@@ -35,7 +37,7 @@ import org.junit.jupiter.api.Test;
  */
 class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
 
-    private static final String HRID = "spg-foo";
+    static final String HRID = "spg-foo";
 
     @Inject
     SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService;
@@ -47,12 +49,13 @@ class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
 
     @BeforeEach
     void setUp() {
+        IdBuilder builder = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), HRID);
         sharedPolicyGroupCrudService.initWith(
             List.of(
                 SharedPolicyGroup
                     .builder()
-                    .id("spg-id")
-                    .crossId("spg-cross-id")
+                    .id(builder.buildId())
+                    .crossId(builder.buildCrossId())
                     .hrid(HRID)
                     .environmentId(ENVIRONMENT)
                     .organizationId(ORGANIZATION)
@@ -71,9 +74,9 @@ class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
     void should_get_shared_policy_group_from_known_hrid() {
         var state = expectEntity(HRID);
         SoftAssertions.assertSoftly(soft -> {
-            assertThat(state.getId()).isEqualTo("spg-id");
+            assertThat(state.getId()).isNotBlank();
+            assertThat(state.getCrossId()).isNotBlank();
             assertThat(state.getHrid()).isEqualTo(HRID);
-            assertThat(state.getCrossId()).isEqualTo("spg-cross-id");
             assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
             assertThat(state.getSteps()).isNotEmpty();

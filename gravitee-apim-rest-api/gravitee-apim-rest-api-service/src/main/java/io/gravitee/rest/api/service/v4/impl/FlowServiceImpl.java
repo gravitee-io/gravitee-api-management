@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin.SHARED_POLICY_GROUP_POLICY;
+import static io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin.SHARED_POLICY_GROUP_POLICY_ID;
 import static java.nio.charset.Charset.defaultCharset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -133,7 +133,7 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
     private void enrichFlow(io.gravitee.repository.management.model.flow.Flow flow) {
         String envId = GraviteeContext.getCurrentEnvironment();
         for (var flowRequest : flow.getRequest()) {
-            if (SHARED_POLICY_GROUP_POLICY.equals(flowRequest.getPolicy())) {
+            if (SHARED_POLICY_GROUP_POLICY_ID.equals(flowRequest.getPolicy())) {
                 try {
                     String crossId = new ObjectMapper()
                         .readValue(flowRequest.getConfiguration(), SharedPolicyGroupPolicyConfiguration.class)

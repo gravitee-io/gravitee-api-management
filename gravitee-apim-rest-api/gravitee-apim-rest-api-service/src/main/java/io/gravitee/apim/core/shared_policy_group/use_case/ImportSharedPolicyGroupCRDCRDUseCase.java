@@ -57,13 +57,12 @@ public class ImportSharedPolicyGroupCRDCRDUseCase {
                 );
             });
 
-        Optional<SharedPolicyGroup> sharedPolicyGroup = sharedPolicyGroupCrudService.findByEnvironmentIdAndHRID(
+        Optional<SharedPolicyGroup> sharedPolicyGroup = sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(
             input.auditInfo.environmentId(),
-            input.crd.getHrid()
+            input.crd.getCrossId()
         );
 
         if (sharedPolicyGroup.isPresent()) {
-            input.crd.setSharedPolicyGroupId(sharedPolicyGroup.get().getId());
             return updateSharedPolicyGroup(input);
         } else {
             return createSharedPolicyGroup(input);

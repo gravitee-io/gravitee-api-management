@@ -125,22 +125,6 @@ public class SharedPolicyGroupCrudServiceImpl implements SharedPolicyGroupCrudSe
         }
     }
 
-    @Override
-    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid) {
-        try {
-            return sharedPolicyGroupRepository.findByEnvironmentIdAndHRID(environmentId, hrid).map(sharedPolicyGroupAdapter::toEntity);
-        } catch (TechnicalException e) {
-            throw new TechnicalManagementException(
-                String.format(
-                    "An error occurs while trying to find a SharedPolicyGroup with environmentId: %s and hrid: %s",
-                    environmentId,
-                    hrid
-                ),
-                e
-            );
-        }
-    }
-
     public Optional<SharedPolicyGroup> getLastDeployedByEnvironmentIdAndCrossId(String environmentId, String crossId) {
         try {
             var sharedPolicyGroupOpt = sharedPolicyGroupRepository.findByEnvironmentIdAndCrossId(environmentId, crossId);

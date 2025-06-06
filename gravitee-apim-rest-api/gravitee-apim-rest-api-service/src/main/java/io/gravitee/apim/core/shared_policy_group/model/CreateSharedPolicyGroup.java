@@ -32,7 +32,12 @@ import lombok.NoArgsConstructor;
 public class CreateSharedPolicyGroup {
 
     /**
-     * The shared policy group human-readable id uniquely identifies a shared policy group across environments.
+     * The shared policy group  id uniquely identifies a shared policy group across environments.
+     */
+    private String id;
+
+    /**
+     * The shared policy group human-readable id uniquely identifies a shared policy group across organizations.
      */
     private String hrid;
 
