@@ -171,9 +171,9 @@ export class ApiV4MenuService implements ApiMenuService {
       },
     ];
 
-    if (api.type === 'PROXY') {
+    if (api.type === 'PROXY' && !hasTcpListeners) {
       tabs.push({
-        displayName: 'MCP',
+        displayName: 'MCP Entrypoint',
         routerLink: 'v4/mcp',
       });
     }
