@@ -155,13 +155,25 @@
             </exclusions>
             <type>zip</type>
         </dependency>
-
         <dependency>
             <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
             <artifactId>gravitee-apim-plugin-entrypoint-tcp-proxy</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-mcp</artifactId>
+            <version>${gravitee-entrypoint-mcp.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Endpoints -->
