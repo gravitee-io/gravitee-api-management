@@ -72,8 +72,24 @@
                 "banner": {
                     "title": "Propagate client Accept-Encoding header (no decompression if any)",
                     "text": "If the client request header includes a value for Accept-Encoding, the gateway will propagate it to the backend. The gateway will NEVER attempt to decompress the body content if the backend response is compressed (gzip, deflate). Therefore, transformation policies cannot be applied if the content body is compressed. If logging is enabled for the API, the compressed content body will be logged as is without any transformation applied. DO NOT activate this option if you plan to interact with body responses."
+                },
+              "disableIf": {
+                "$eq": {
+                  "value.http.useCompression": true
                 }
+              }
             }
+        },
+        "propagateClientHost": {
+          "title": "Propagate client Host header",
+          "type": "boolean",
+          "default": false,
+          "gioConfig": {
+            "banner": {
+              "title": "Propagate client Host header",
+              "text": "<ul><li>If not activated (default), the Gateway uses the endpoint target host if the host header value of the original request is unchanged after policy execution else use changed value.</li><li>If activated, the host header propagated by the gateway to the backend is the value specified by the client request, possibly changed by the policies execution.</li></ul> <i>If the host header is null, the Gateway uses the endpoint target host.</i>"
+            }
+          }
         },
         "idleTimeout": {
             "type": "integer",
@@ -145,6 +161,9 @@
                         "propagateClientAcceptEncoding": {
                             "$ref": "#/definitions/propagateClientAcceptEncoding"
                         },
+                        "propagateClientHost": {
+                            "$ref": "#/definitions/propagateClientHost"
+                        },
                         "idleTimeout": {
                             "$ref": "#/definitions/idleTimeout"
                         },
@@ -187,6 +206,9 @@
                         },
                         "propagateClientAcceptEncoding": {
                             "$ref": "#/definitions/propagateClientAcceptEncoding"
+                        },
+                        "propagateClientHost": {
+                          "$ref": "#/definitions/propagateClientHost"
                         },
                         "idleTimeout": {
                             "$ref": "#/definitions/idleTimeout"
