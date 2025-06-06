@@ -2,8 +2,8 @@
 {{- if .Values.api.ingress.automation.enabled -}}
 {{- $serviceAPIName := include "gravitee.api.fullname" . -}}
 {{- $serviceAPIPort := .Values.api.service.externalPort -}}
-{{- $ingressPath   := .Values.api.ingress.automation.path -}}
-{{- $ingressPathType   := .Values.api.ingress.automation.pathType -}}
+{{- $ingressPath := .Values.api.ingress.automation.path -}}
+{{- $ingressPathType := .Values.api.ingress.automation.pathType -}}
 {{- $apiVersion := include "common.capabilities.ingress.apiVersion" . -}}
 apiVersion: {{ $apiVersion }}
 kind: Ingress
@@ -39,7 +39,7 @@ spec:
   - host: {{ $host | quote }}
     http:
       paths:
-      - pathType: {{ $ingressPathType }}
+      - pathType: "{{ $ingressPathType }}"
         path: {{ $ingressPath }}
         backend:
           {{- if (eq $apiVersion "networking.k8s.io/v1") }}
