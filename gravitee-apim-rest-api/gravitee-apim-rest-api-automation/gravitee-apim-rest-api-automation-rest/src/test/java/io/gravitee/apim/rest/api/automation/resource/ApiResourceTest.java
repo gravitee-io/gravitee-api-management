@@ -18,20 +18,23 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
-import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.MediaType;
-import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -43,11 +46,12 @@ class ApiResourceTest extends AbstractResourceTest {
     private ExportApiCRDUseCase exportApiCRDUseCase;
 
     @Inject
-    private ApiQueryService apiQueryService;
+    private ApiService apiService;
 
-    private static final String API_ID = "api-id";
-    private static final String API_CROSS_ID = "api-cross-id";
-    private static final String HRID = "api-hrid";
+    static final String API_ID = "api-id";
+    static final String API_CROSS_ID = "api-cross-id";
+    static final String HRID = "api-hrid";
+    static final AuditInfo auditInfo = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
 
     @AfterEach
     void tearDown() {
@@ -60,22 +64,13 @@ class ApiResourceTest extends AbstractResourceTest {
         @Test
         void should_get_api_from_known_hrid() {
             when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
-                .thenReturn(
-                    new ExportApiCRDUseCase.Output(
-                        ApiCRDSpec
-                            .builder()
-                            .id(UuidString.generateForEnvironment(ENVIRONMENT, HRID))
-                            .crossId(UuidString.generateFrom(ORGANIZATION, HRID))
-                            .hrid(HRID)
-                            .build()
-                    )
-                );
+                .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(HRID).build()));
 
             var state = expectEntity(HRID);
             SoftAssertions.assertSoftly(soft -> {
-                assertThat(state.getId()).isEqualTo(UuidString.generateForEnvironment(ENVIRONMENT, HRID));
+                assertThat(state.getId()).isEqualTo(API_ID);
                 assertThat(state.getHrid()).isEqualTo(HRID);
-                assertThat(state.getCrossId()).isEqualTo(UuidString.generateFrom(ORGANIZATION, HRID));
+                assertThat(state.getCrossId()).isEqualTo(API_CROSS_ID);
             });
         }
 
@@ -105,14 +100,14 @@ class ApiResourceTest extends AbstractResourceTest {
 
         @Test
         void should_delete_shared_policy_group_and_return_no_content() {
-            when(apiQueryService.findByEnvironmentIdAndHRID(any(), eq(HRID))).thenReturn(Optional.of(Api.builder().id(API_ID).build()));
-
             expectNoContent(HRID);
+
+            verify(apiService, atLeastOnce()).delete(any(), eq(IdBuilder.builder(auditInfo, HRID).buildId()), eq(true));
         }
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
-            when(apiQueryService.findByEnvironmentIdAndHRID(any(), eq(HRID))).thenReturn(Optional.empty());
+            doThrow(new ApiNotFoundException("unknown")).when(apiService).delete(any(), any(), eq(true));
 
             expectNotFound("unknown");
         }

@@ -15,12 +15,15 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupResourceGetTest.HRID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -33,8 +36,6 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 class SharedPolicyGroupResourceDeleteTest extends AbstractResourceTest {
-
-    private static final String HRID = "spg-foo";
 
     @Inject
     SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService;
@@ -49,12 +50,13 @@ class SharedPolicyGroupResourceDeleteTest extends AbstractResourceTest {
 
     @BeforeEach
     void setUp() {
+        IdBuilder builder = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), HRID);
         sharedPolicyGroupCrudService.initWith(
             List.of(
                 SharedPolicyGroup
                     .builder()
-                    .id("spg-id")
-                    .crossId("spg-cross-id")
+                    .id(builder.buildId())
+                    .crossId(builder.buildCrossId())
                     .hrid(HRID)
                     .environmentId(ENVIRONMENT)
                     .organizationId(ORGANIZATION)

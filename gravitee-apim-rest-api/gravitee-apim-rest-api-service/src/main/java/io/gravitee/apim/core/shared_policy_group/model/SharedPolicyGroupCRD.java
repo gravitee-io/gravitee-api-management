@@ -96,6 +96,7 @@ public class SharedPolicyGroupCRD {
     public CreateSharedPolicyGroup toCreateSharedPolicyGroup() {
         return CreateSharedPolicyGroup
             .builder()
+            .id(sharedPolicyGroupId)
             .hrid(hrid)
             .crossId(crossId)
             .name(name)

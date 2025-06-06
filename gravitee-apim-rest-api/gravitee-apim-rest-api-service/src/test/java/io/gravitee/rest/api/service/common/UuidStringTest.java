@@ -13,17 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.common;
+package io.gravitee.rest.api.service.common;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.rest.api.service.common.UuidString;
 import org.junit.Test;
 
 /**
  * @author GraviteeSource Team
  */
 public class UuidStringTest {
+
+    @Test
+    public void generate_from_string_should_generate_same_uuids_if_called_with_same_fields() {
+        String firstUuid = UuidString.generateFrom("environmentId", "field1", "field2", "field3");
+        String secondUuid = UuidString.generateFrom("environmentId", "field1", "field2", "field3");
+
+        assertEquals(firstUuid, secondUuid);
+    }
+
+    @Test
+    public void generate_from_string_should_generate_different_uuids_if_called_with_same_fields() {
+        String firstUuid = UuidString.generateFrom("environmentId", "field1", "field2", "field3");
+        String secondUuid = UuidString.generateFrom("environmentId", "field1", "field2", "field4");
+
+        assertNotEquals(firstUuid, secondUuid);
+    }
 
     @Test
     public void generateForEnvironment_should_generate_same_uuids_if_called_with_same_fields() {
@@ -37,22 +52,6 @@ public class UuidStringTest {
     public void generateForEnvironment_should_generate_different_uuids_if_called_with_different_fields() {
         String firstUuid = UuidString.generateForEnvironment("environmentId", "field1", "field2", "field3");
         String secondUuid = UuidString.generateForEnvironment("environmentId", "field1", "field2", "field4");
-
-        assertNotEquals(firstUuid, secondUuid);
-    }
-
-    @Test
-    public void generate_should_generate_same_uuids_if_called_with_same_fields() {
-        String firstUuid = UuidString.generateFrom("field1", "field2", "field3");
-        String secondUuid = UuidString.generateFrom("field1", "field2", "field3");
-
-        assertEquals(firstUuid, secondUuid);
-    }
-
-    @Test
-    public void generate_should_generate_different_uuids_if_called_with_different_fields() {
-        String firstUuid = UuidString.generateFrom("field1", "field2", "field3");
-        String secondUuid = UuidString.generateFrom("field1", "field2", "field4");
 
         assertNotEquals(firstUuid, secondUuid);
     }

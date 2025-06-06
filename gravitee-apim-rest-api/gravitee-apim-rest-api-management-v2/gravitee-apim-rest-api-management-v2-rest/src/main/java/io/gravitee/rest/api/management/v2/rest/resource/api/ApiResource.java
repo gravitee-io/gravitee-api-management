@@ -532,7 +532,6 @@ public class ApiResource extends AbstractResource {
         var userDetails = getAuthenticatedUserDetails();
         var input = new ExportApiCRDUseCase.Input(
             apiId,
-            null,
             AuditInfo
                 .builder()
                 .organizationId(executionContext.getOrganizationId())

@@ -80,16 +80,6 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
             .findFirst();
     }
 
-    @Override
-    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid) {
-        return storage
-            .stream()
-            .filter(sharedPolicyGroup ->
-                environmentId.equals(sharedPolicyGroup.getEnvironmentId()) && hrid.equals(sharedPolicyGroup.getHrid())
-            )
-            .findFirst();
-    }
-
     public Optional<SharedPolicyGroup> getLastDeployedByEnvironmentIdAndCrossId(String environmentId, String crossId) {
         return storage
             .stream()

@@ -30,7 +30,7 @@ import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainServi
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
-import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -66,22 +66,23 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
-
-        if (input.spec.getCrossId() == null && input.spec.getHrid() == null) {
-            errors.add(Error.severe("when no hrid is set in the payload a cross ID should be passed to identify the resource"));
-            return Result.ofErrors(errors);
+        IdBuilder idBuilder = null;
+        if (input.spec.getCrossId() == null) {
+            if (input.spec.getHrid() == null) {
+                errors.add(Error.severe("when no hrid is set in the payload a cross ID should be passed to identify the resource"));
+                return Result.ofErrors(errors);
+            } else {
+                idBuilder = IdBuilder.builder(input.auditInfo, input.spec.getHrid());
+                input.spec.setCrossId(idBuilder.buildCrossId());
+            }
         }
 
         if (input.spec.getCrossId() != null && input.spec.getHrid() == null) {
             input.spec.setHrid(input.spec.getCrossId());
         }
 
-        if (input.spec.getCrossId() == null && input.spec.getHrid() != null) {
-            input.spec.setCrossId(UuidString.generateFrom(input.auditInfo.organizationId(), input.spec.getHrid()));
-        }
-
-        if (input.spec.getId() == null && input.spec.getHrid() != null) {
-            input.spec.setId(UuidString.generateForEnvironment(input.auditInfo.environmentId(), input.spec.getHrid()));
+        if (input.spec.getId() == null && idBuilder != null) {
+            input.spec.setId(idBuilder.buildId());
         }
 
         var sanitizedBuilder = input.spec().toBuilder();
