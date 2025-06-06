@@ -18,11 +18,21 @@ import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { filter, map, switchMap, tap } from 'rxjs/operators';
-import { GioFormJsonSchemaModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import {
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  GioFormJsonSchemaModule,
+  GioFormSlideToggleModule,
+  GioIconsModule,
+  GioSaveBarModule,
+} from '@gravitee/ui-particles-angular';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSlideToggle, MatSlideToggleChange } from '@angular/material/slide-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
 
 import { NoMcpEntrypointComponent } from './no-mcp-entrypoint/no-mcp-entrypoint.component';
 import { ConfigureMcpEntrypointComponent } from './components/configure-mcp-entrypoint/configure-mcp-entrypoint.component';
@@ -54,6 +64,9 @@ interface ApiVM extends ApiV4 {
     GioPermissionModule,
     ConfigureMcpEntrypointComponent,
     GioSaveBarModule,
+    GioFormSlideToggleModule,
+    MatSlideToggle,
+    MatTooltip,
   ],
 })
 export class McpComponent implements OnInit {
@@ -86,6 +99,7 @@ export class McpComponent implements OnInit {
     private gioPermissionService: GioPermissionService,
     private connectorPluginsV2Service: ConnectorPluginsV2Service,
     private snackBarService: SnackBarService,
+    private matDialog: MatDialog,
   ) {
     this.apiId = this.activatedRoute.snapshot.params['apiId'] || '';
   }
@@ -134,11 +148,54 @@ export class McpComponent implements OnInit {
       .subscribe();
   }
 
+  disableMcpEntrypoint($event: MatSlideToggleChange) {
+    const removeMcpEntrypoint$ = this.apiV2Service.get(this.apiId).pipe(
+      switchMap((api: ApiV4) => {
+        const listeners = api.listeners;
+        const httpListener = listeners[0] as HttpListener;
+
+        // Remove MCP entrypoint
+        httpListener.entrypoints = httpListener.entrypoints.filter((entrypoint) => entrypoint.type !== MCP_ENTRYPOINT_ID);
+
+        return this.apiV2Service.update(this.apiId, { ...api, listeners });
+      }),
+      tap(() => {
+        this.snackBarService.success('MCP has been disabled successfully.');
+        this.ngOnInit();
+      }),
+    );
+
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Disable MCP entrypoint',
+          content: 'Do you really want to disable the MCP entrypoint? This will remove all tools and configurations.',
+          confirmButton: 'Disable',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((confirmed) => {
+          if (confirmed) {
+            return removeMcpEntrypoint$;
+          }
+          // If not confirmed, return an empty observable to avoid further actions
+          // Revert the toggle state if the user cancels
+          $event.checked = true;
+          $event.source.checked = true;
+          return of(false);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
   private updateFormValues(api: ApiV4): void {
     const mcpConfiguration = api.listeners[0].entrypoints.find((e) => e.type === MCP_ENTRYPOINT_ID).configuration as MCPConfiguration;
     this.form.patchValue({
       mcpConfig: mcpConfiguration,
     });
+    this.form.markAsPristine();
     this.formInitialValues = this.form.getRawValue();
   }
 }

@@ -17,6 +17,8 @@ import { dereference, validate } from '@scalar/openapi-parser';
 
 import { convertOpenApiToMcpTools } from './open-api-to-mcp-tools.util';
 
+import { MCPToolGatewayMapping } from '../../../../../entities/entrypoint/mcp';
+
 // Cast the imported functions as jest.Mock to access mock methods
 const mockValidate = validate as jest.Mock;
 const mockDereference = dereference as jest.Mock;
@@ -200,7 +202,6 @@ paths:
   /user:
     post:
       summary: Create a new user
-      operationId: createUser
       parameters:
         - name: body
           in: body
@@ -295,19 +296,20 @@ paths:
       // Tool Definition
 
       // Check the GET method (getUser)
-      expect(getTool.toolDefinition.name).toBe('get_getUser');
+      expect(getTool.toolDefinition.name).toBe('getUser');
       const getToolProperties = getTool.toolDefinition.inputSchema['properties'];
-      expect(getToolProperties).toHaveProperty('p_id');
-      expect(getToolProperties).toHaveProperty('q_verbose');
-      expect(getToolProperties).toHaveProperty('h_X-Custom-Header'); // Check if header is serialized
-      expect(getToolProperties['h_X-Custom-Header'].description).toBe('A custom header for the request'); // Check description
+      expect(getToolProperties).toHaveProperty('id');
+      expect(getToolProperties).toHaveProperty('verbose');
+      expect(getToolProperties).toHaveProperty('X-Custom-Header'); // Check if header is serialized
+      expect(getToolProperties['X-Custom-Header'].description).toBe('A custom header for the request'); // Check description
 
       // Check the POST method (create user)
-      expect(postTool.toolDefinition.name).toMatch(/^post_/);
+      expect(postTool.toolDefinition.name).toEqual('post_user');
 
       const postToolProperties = postTool.toolDefinition.inputSchema['properties'];
-      expect(postToolProperties).toHaveProperty('b_username');
-      expect(postToolProperties).toHaveProperty('b_email');
+      expect(postToolProperties).toHaveProperty('bodySchema');
+      expect(postToolProperties['bodySchema'].properties).toHaveProperty('username');
+      expect(postToolProperties['bodySchema'].properties).toHaveProperty('email');
 
       // Verify that the mock functions were called
       expect(mockValidate).toHaveBeenCalled();
@@ -323,7 +325,7 @@ info:
   title: Test API
   version: 1.0.0
 paths:
-  /user/{userId}:
+  /user:
     post:
       summary: Create user
       requestBody:
@@ -341,7 +343,7 @@ paths:
 `,
         {
           method: 'POST',
-          path: '/user/:userId',
+          path: '/user',
           contentType: 'application/json',
           summary: 'Create user',
         },
@@ -400,6 +402,7 @@ paths:
         {
           method: 'PUT',
           path: '/upload/:fileId',
+          pathParams: ['fileId'],
           contentType: 'application/json',
           summary: 'Upload file',
         },
@@ -461,6 +464,7 @@ paths:
         {
           method: 'PUT',
           path: '/upload/:fileId',
+          pathParams: ['fileId'],
           contentType: 'application/json',
           summary: 'Upload file',
         },
@@ -539,7 +543,46 @@ paths:
           summary: 'List pets',
         },
       ],
-    ])('creates gateway mapping for %s', async (_label, spec, expected) => {
+      [
+        'OpenAPI 3.0 with query, header parameters',
+        `
+openapi: 3.0.0
+info:
+  title: Test API
+  version: 1.0.0
+paths:
+  /user/{userId}:
+    get:
+      summary: Get user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: verbose
+          in: query
+          schema:
+            type: boolean
+        - name: X-Custom-Header
+          in: header
+          schema:
+            type: string
+          description: A custom header for the request
+      responses:
+        '200':
+          description: Successful response
+`,
+        {
+          method: 'GET',
+          path: '/user/:userId',
+          pathParams: ['userId'],
+          summary: 'Create user',
+          queryParams: ['verbose'],
+          headers: ['X-Custom-Header'],
+        },
+      ],
+    ])('creates gateway mapping for %s', async (_label, spec, expected: MCPToolGatewayMapping['http']) => {
       const { result, errors } = await convertOpenApiToMcpTools(spec);
       expect(errors).toHaveLength(0);
       expect(result.length).toBeGreaterThan(0);
@@ -548,6 +591,9 @@ paths:
 
       expect(toolGatewayMapping.http.method).toEqual(expected.method);
       expect(toolGatewayMapping.http.path).toEqual(expected.path);
+      expect(toolGatewayMapping.http.pathParams).toEqual(expected.pathParams);
+      expect(toolGatewayMapping.http.queryParams).toEqual(expected.queryParams);
+      expect(toolGatewayMapping.http.headers).toEqual(expected.headers);
 
       if (expected.contentType) {
         expect(toolGatewayMapping.http.contentType).toEqual(expected.contentType);
@@ -721,7 +767,7 @@ paths:
       const { result, errors } = await convertOpenApiToMcpTools(invalidSpec);
 
       expect(errors).not.toHaveLength(0);
-      expect(errors[0]).toEqual({ key: 'duplicateName', message: 'Duplicate tool name detected: get_duplicateTool' });
+      expect(errors[0]).toEqual({ key: 'duplicateName', message: 'Duplicate tool name detected: duplicateTool' });
       expect(result).toHaveLength(2);
 
       // Verify that the mock functions were called
