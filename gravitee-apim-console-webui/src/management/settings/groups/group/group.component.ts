@@ -595,8 +595,6 @@ export class GroupComponent implements OnInit {
               if (response.status === 200) {
                 this.snackBarService.success('Successfully invited user to the group.');
                 this.initializeInvitations();
-              } else if (response.status === 204) {
-                this.snackBarService.success('Successfully added user to the group.');
                 this.initializeGroupMembers();
               } else if (response.status === 202) {
                 this.openTooManyUsersDialog(dialogResult.invitation.email);
