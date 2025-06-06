@@ -39,6 +39,8 @@ public class HttpClientOptions implements Serializable {
     @Serial
     private static final long serialVersionUID = -7061411805967594667L;
 
+    private static final boolean DEFAULT_PROPAGATE_CLIENT_HOST = false;
+
     @Builder.Default
     private int http2MultiplexingLimit = -1;
 
@@ -68,6 +70,9 @@ public class HttpClientOptions implements Serializable {
 
     @Builder.Default
     private boolean propagateClientAcceptEncoding = DEFAULT_PROPAGATE_CLIENT_ACCEPT_ENCODING;
+
+    @Builder.Default
+    private boolean propagateClientHost = DEFAULT_PROPAGATE_CLIENT_HOST;
 
     @Builder.Default
     private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
