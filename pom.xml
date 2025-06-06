@@ -293,7 +293,7 @@
         <gravitee-resource-schema-registry-confluent.version>4.0.0-alpha.2</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-storage-azure-blob.version>1.0.0-alpha.1</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>7.0.0-alpha.4</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>3.0.0-alpha.3</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-native-kafka.version>3.0.0-alpha.4</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>7.0.0-alpha.1</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
