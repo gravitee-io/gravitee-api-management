@@ -28,6 +28,7 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupAuditEve
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Map;
+import java.util.Optional;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -43,7 +44,7 @@ public class CreateSharedPolicyGroupUseCase {
         var sharedPolicyGroupToCreate = SharedPolicyGroup
             .from(input.sharedPolicyGroupToCreate())
             .toBuilder()
-            .id(UuidString.generateRandom())
+            .id(Optional.ofNullable(input.sharedPolicyGroupToCreate.getId()).orElse(UuidString.generateRandom()))
             .environmentId(input.auditInfo().environmentId())
             .organizationId(input.auditInfo().organizationId())
             .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.UNDEPLOYED)
