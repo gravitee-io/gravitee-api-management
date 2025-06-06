@@ -42,3 +42,8 @@ annotations:
       description: 'If kafka gateway is enabled then startupProbe, readinessProbe and livenessProbe are configured to take the kafka-server probe into account'
     - kind: added
       description: 'allow users to enable dictionary multi-tenant support'
+    - kind: fixed
+      description: 'updated the default log file path'
+      links:
+       - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10524
