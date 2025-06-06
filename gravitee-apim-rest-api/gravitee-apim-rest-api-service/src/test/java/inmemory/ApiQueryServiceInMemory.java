@@ -127,11 +127,6 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
     }
 
     @Override
-    public Optional<Api> findByEnvironmentIdAndHRID(String environmentId, String hrid) {
-        return storage.stream().filter(api -> api.getEnvironmentId().equals(environmentId) && hrid.equals(api.getHrid())).findFirst();
-    }
-
-    @Override
     public Page<Api> findByIntegrationId(String integrationId, Pageable pageable) {
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();

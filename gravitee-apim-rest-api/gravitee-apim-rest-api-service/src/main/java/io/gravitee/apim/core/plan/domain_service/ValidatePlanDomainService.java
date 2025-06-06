@@ -65,7 +65,7 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
             try {
                 Plan plan = PlanModelFactory.fromCRDSpec(v, input.apiCRDSpec);
                 if (plan.getId() == null && input.apiCRDSpec.getHrid() != null) {
-                    plan.setId(UuidString.generateFrom(k, input.apiCRDSpec.getHrid()));
+                    plan.setId(new UuidString.CrossId(input.auditInfo, input.apiCRDSpec.getHrid()).toID(input.auditInfo, k));
                 }
 
                 planValidator.validatePlanSecurity(

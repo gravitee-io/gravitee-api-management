@@ -30,9 +30,4 @@ public class ApiCRDExportDomainServiceInMemory implements ApiCRDExportDomainServ
     public ApiCRDSpec export(String apiId, AuditInfo auditInfo) {
         return ApiCRDFixtures.anApiCRD();
     }
-
-    @Override
-    public ApiCRDSpec exportWithHRID(String hrid, AuditInfo auditInfo) {
-        return ApiCRDFixtures.anApiCRD();
-    }
 }

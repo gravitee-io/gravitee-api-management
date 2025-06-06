@@ -67,21 +67,23 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
 
-        if (input.spec.getCrossId() == null && input.spec.getHrid() == null) {
-            errors.add(Error.severe("when no hrid is set in the payload a cross ID should be passed to identify the resource"));
-            return Result.ofErrors(errors);
+        UuidString.CrossId crossIder = null;
+        if (input.spec.getCrossId() == null) {
+            if (input.spec.getHrid() == null) {
+                errors.add(Error.severe("when no hrid is set in the payload a cross ID should be passed to identify the resource"));
+                return Result.ofErrors(errors);
+            } else {
+                crossIder = new UuidString.CrossId(input.auditInfo, input.spec.getHrid());
+                input.spec.setCrossId(crossIder.toString());
+            }
         }
 
         if (input.spec.getCrossId() != null && input.spec.getHrid() == null) {
             input.spec.setHrid(input.spec.getCrossId());
         }
 
-        if (input.spec.getCrossId() == null && input.spec.getHrid() != null) {
-            input.spec.setCrossId(UuidString.generateFrom(input.auditInfo.organizationId(), input.spec.getHrid()));
-        }
-
-        if (input.spec.getId() == null && input.spec.getHrid() != null) {
-            input.spec.setId(UuidString.generateForEnvironment(input.auditInfo.environmentId(), input.spec.getHrid()));
+        if (input.spec.getId() == null && crossIder != null) {
+            input.spec.setId(crossIder.toID(input.auditInfo));
         }
 
         var sanitizedBuilder = input.spec().toBuilder();

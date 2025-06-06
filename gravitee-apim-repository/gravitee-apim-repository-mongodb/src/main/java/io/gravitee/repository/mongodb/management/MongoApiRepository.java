@@ -139,13 +139,6 @@ public class MongoApiRepository implements ApiRepository {
         return internalApiRepo.findByEnvironmentIdAndCrossId(environmentId, crossId).map(this::mapApi);
     }
 
-    @Override
-    public Optional<Api> findByEnvironmentIdAndHRID(String environmentId, String hrid) throws TechnicalException {
-        LOGGER.debug("Find API by environment ID [{}] and HRID [{}]", environmentId, hrid);
-
-        return internalApiRepo.findByEnvironmentIdAndHRID(environmentId, hrid).map(this::mapApi);
-    }
-
     private ApiMongo mapApi(Api api) {
         return (api == null) ? null : mapper.map(api);
     }

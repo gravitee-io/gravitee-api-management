@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.o
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import com.google.common.base.Strings;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
@@ -173,10 +174,7 @@ public class ImportApiCRDUseCase {
         var warnings = validationResult.warning().orElseGet(List::of);
         var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
-        var api = apiQueryService.findByEnvironmentIdAndHRID(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec.getHrid());
-        if (api.isEmpty()) {
-            api = apiQueryService.findByEnvironmentIdAndCrossId(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec.getCrossId());
-        }
+        var api = apiQueryService.findByEnvironmentIdAndCrossId(sanitizedInput.auditInfo.environmentId(), sanitizedInput.spec.getCrossId());
 
         var status = api.map(exiting -> this.update(sanitizedInput, exiting)).orElseGet(() -> this.create(sanitizedInput));
         status.setErrors(ApiCRDStatus.Errors.fromErrorList(warnings));

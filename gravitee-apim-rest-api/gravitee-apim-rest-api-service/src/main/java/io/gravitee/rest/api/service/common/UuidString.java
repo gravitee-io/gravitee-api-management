@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.service.common;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.utils.UUID;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
@@ -29,14 +32,14 @@ import java.util.stream.Stream;
  */
 public class UuidString {
 
-    private static final Function<String, String> DEFAULT_GENERATOR = (String seed) -> {
+    private static final UnaryOperator<String> DEFAULT_GENERATOR = (String seed) -> {
         if (seed == null) {
             return UUID.toString(UUID.random());
         }
         return UUID.toString(java.util.UUID.nameUUIDFromBytes(seed.getBytes()));
     };
 
-    private static Function<String, String> uuidGenerator = DEFAULT_GENERATOR;
+    private static UnaryOperator<String> uuidGenerator = DEFAULT_GENERATOR;
 
     private UuidString() {}
 
@@ -48,7 +51,7 @@ public class UuidString {
         return uuidGenerator.apply(null);
     }
 
-    public static String generateFrom(String... seeds) {
+    private static String generateFrom(String... seeds) {
         if (Stream.of(seeds).anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("Seeds must not be null");
         }
@@ -67,24 +70,65 @@ public class UuidString {
             return generateRandom();
         }
 
-        StringBuilder b = new StringBuilder();
-        b.append(environmentId);
-        for (String f : fields) {
-            b.append(f);
-        }
+        LinkedList<String> strings = new LinkedList<>(Arrays.asList(fields));
+        strings.addFirst(environmentId);
 
-        return uuidGenerator.apply(b.toString());
+        return generateFrom(strings.toArray(new String[0]));
     }
 
-    public static void overrideGenerator(Function<String, String> newGenerator) {
+    // For test only
+    public static void overrideGenerator(UnaryOperator<String> newGenerator) {
         UuidString.uuidGenerator = newGenerator;
     }
 
+    // For test only
     public static void overrideGenerator(Supplier<String> newGenerator) {
         UuidString.uuidGenerator = (String seed) -> newGenerator.get();
     }
 
+    // For test only
     public static void reset() {
         UuidString.uuidGenerator = DEFAULT_GENERATOR;
+    }
+
+    /**
+     * Represents a Cross-ID.     *
+     */
+    public static final class CrossId {
+
+        private final String id;
+
+        /**
+         * Build a crossId
+         * @param auditInfo API audit information used to read organization ID
+         * @param hrid the hrid to turn into a UUID
+         */
+        public CrossId(AuditInfo auditInfo, String hrid) {
+            this.id = generateFrom(auditInfo.organizationId(), hrid);
+        }
+
+        /**
+         * Generate an ID from this CrossId using the environment
+         * @param auditInfo API audit info
+         * @param extra an extra token to be added to this id
+         * @return an ID generated from this params
+         */
+        public String toID(AuditInfo auditInfo, String extra) {
+            return generateFrom(this.id, auditInfo.environmentId(), extra);
+        }
+
+        /**
+         * Generate an ID from this CrossId using the environment
+         * @param auditInfo API audit info
+         * @return an ID generated from this params
+         */
+        public String toID(AuditInfo auditInfo) {
+            return generateFrom(this.id, auditInfo.environmentId());
+        }
+
+        @Override
+        public String toString() {
+            return id;
+        }
     }
 }

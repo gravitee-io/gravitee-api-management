@@ -66,7 +66,7 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
                 Page page = PageModelFactory.fromCRDSpec(v);
                 page.setReferenceId(input.apiId());
                 if (page.getId() == null && input.hrid() != null) {
-                    page.setId(UuidString.generateFrom(k, input.hrid()));
+                    page.setId(new UuidString.CrossId(input.auditInfo, input.hrid).toID(input.auditInfo, k));
                 }
 
                 pageSourceValidator

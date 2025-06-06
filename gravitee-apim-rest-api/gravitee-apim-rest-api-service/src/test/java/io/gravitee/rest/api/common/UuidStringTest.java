@@ -17,6 +17,7 @@ package io.gravitee.rest.api.common;
 
 import static org.junit.Assert.*;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.UuidString;
 import org.junit.Test;
 
@@ -42,17 +43,41 @@ public class UuidStringTest {
     }
 
     @Test
-    public void generate_should_generate_same_uuids_if_called_with_same_fields() {
-        String firstUuid = UuidString.generateFrom("field1", "field2", "field3");
-        String secondUuid = UuidString.generateFrom("field1", "field2", "field3");
+    public void generate_should_generate_same_cross_id() {
+        AuditInfo audit = AuditInfo.builder().organizationId("org").environmentId("env").build();
+        assertEquals(new UuidString.CrossId(audit, "foo").toString(), new UuidString.CrossId(audit, "foo").toString());
+    }
+
+    @Test
+    public void generate_should_generate_different_cross_id() {
+        AuditInfo audit = AuditInfo.builder().organizationId("org").environmentId("env").build();
+        assertNotEquals(new UuidString.CrossId(audit, "foo").toString(), new UuidString.CrossId(audit, "bar").toString());
+    }
+
+    @Test
+    public void generate_should_generate_same_id_from_cross_id() {
+        AuditInfo auditInfo = AuditInfo.builder().organizationId("org").environmentId("env").build();
+        String firstUuid = new UuidString.CrossId(auditInfo, "foo").toID(auditInfo);
+        String secondUuid = new UuidString.CrossId(auditInfo, "foo").toID(auditInfo);
+
+        assertEquals(firstUuid, secondUuid);
+
+        firstUuid = new UuidString.CrossId(auditInfo, "foo").toID(auditInfo, "bar");
+        secondUuid = new UuidString.CrossId(auditInfo, "foo").toID(auditInfo, "bar");
 
         assertEquals(firstUuid, secondUuid);
     }
 
     @Test
-    public void generate_should_generate_different_uuids_if_called_with_different_fields() {
-        String firstUuid = UuidString.generateFrom("field1", "field2", "field3");
-        String secondUuid = UuidString.generateFrom("field1", "field2", "field4");
+    public void generate_should_generate_different_from_cross_id() {
+        AuditInfo auditInfo = AuditInfo.builder().organizationId("org").environmentId("env").build();
+        String firstUuid = new UuidString.CrossId(auditInfo, "foo").toID(auditInfo);
+        String secondUuid = new UuidString.CrossId(auditInfo, "bar").toID(auditInfo);
+
+        assertNotEquals(firstUuid, secondUuid);
+
+        firstUuid = new UuidString.CrossId(auditInfo, "foo").toID(auditInfo, "bar");
+        secondUuid = new UuidString.CrossId(auditInfo, "foo").toID(auditInfo, "baz");
 
         assertNotEquals(firstUuid, secondUuid);
     }

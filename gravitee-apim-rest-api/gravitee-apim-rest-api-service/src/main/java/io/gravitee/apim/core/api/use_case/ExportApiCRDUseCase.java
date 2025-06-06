@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.rest.api.service.common.UuidString;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -36,10 +37,10 @@ public class ExportApiCRDUseCase {
     public record Input(String apiId, String hrid, AuditInfo auditInfo) {}
 
     public Output execute(Input input) {
-        if (input.apiId != null) {
-            return new Output(exportDomainService.export(input.apiId, input.auditInfo));
+        String apiId = input.apiId;
+        if (apiId == null) {
+            apiId = new UuidString.CrossId(input.auditInfo, input.hrid).toID(input.auditInfo);
         }
-
-        return new Output(exportDomainService.exportWithHRID(input.hrid, input.auditInfo));
+        return new Output(exportDomainService.export(apiId, input.auditInfo));
     }
 }
