@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
@@ -24,14 +23,17 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
 import io.gravitee.apim.rest.api.automation.mapper.ApiMapper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
-import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiCRDMapper;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -50,9 +52,6 @@ public class ApiResource extends AbstractResource {
     private ExportApiCRDUseCase exportApiCRDUseCase;
 
     @Inject
-    private ApiQueryService apiQueryService;
-
-    @Inject
     protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
 
     @PathParam("hrid")
@@ -67,38 +66,45 @@ public class ApiResource extends AbstractResource {
         var userDetails = getAuthenticatedUserDetails();
 
         var input = new ExportApiCRDUseCase.Input(
-            null,
-            hrid,
-            AuditInfo
-                .builder()
-                .organizationId(executionContext.getOrganizationId())
-                .environmentId(executionContext.getEnvironmentId())
-                .actor(
-                    AuditActor
-                        .builder()
-                        .userId(userDetails.getUsername())
-                        .userSource(userDetails.getSource())
-                        .userSourceId(userDetails.getSourceId())
-                        .build()
-                )
-                .build()
+            IdBuilder.builder(executionContext, hrid).buildId(),
+            buildAuditInfo(executionContext, userDetails)
         );
 
-        ApiCRDSpec apiCRDSpec = exportApiCRDUseCase.execute(input).spec();
-        ApiV4Spec apiV4Spec = ApiMapper.INSTANCE.apiCRDSpecToApiV4Spec(ApiCRDMapper.INSTANCE.map(apiCRDSpec));
-
-        return Response.ok(ApiMapper.INSTANCE.apiV4SpecToApiV4State(apiV4Spec, apiCRDSpec.getId(), apiCRDSpec.getCrossId())).build();
+        try {
+            ApiCRDSpec apiCRDSpec = exportApiCRDUseCase.execute(input).spec();
+            ApiV4Spec apiV4Spec = ApiMapper.INSTANCE.apiCRDSpecToApiV4Spec(ApiCRDMapper.INSTANCE.map(apiCRDSpec));
+            return Response.ok(ApiMapper.INSTANCE.apiV4SpecToApiV4State(apiV4Spec, apiCRDSpec.getId(), apiCRDSpec.getCrossId())).build();
+        } catch (ApiNotFoundException e) {
+            throw new HRIDNotFoundException(hrid);
+        }
     }
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteApi() {
         var executionContext = GraviteeContext.getExecutionContext();
-        Api api = apiQueryService
-            .findByEnvironmentIdAndHRID(executionContext.getEnvironmentId(), hrid)
-            .orElseThrow(() -> new HRIDNotFoundException(hrid));
 
-        apiServiceV4.delete(GraviteeContext.getExecutionContext(), api.getId(), true);
+        try {
+            apiServiceV4.delete(GraviteeContext.getExecutionContext(), IdBuilder.builder(executionContext, hrid).buildId(), true);
+        } catch (ApiNotFoundException e) {
+            throw new HRIDNotFoundException(hrid);
+        }
         return Response.noContent().build();
+    }
+
+    private static AuditInfo buildAuditInfo(ExecutionContext executionContext, UserDetails userDetails) {
+        return AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
     }
 }

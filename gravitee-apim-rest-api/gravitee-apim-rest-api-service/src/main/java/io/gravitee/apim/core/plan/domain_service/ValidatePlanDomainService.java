@@ -24,6 +24,7 @@ import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,7 +66,7 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
             try {
                 Plan plan = PlanModelFactory.fromCRDSpec(v, input.apiCRDSpec);
                 if (plan.getId() == null && input.apiCRDSpec.getHrid() != null) {
-                    plan.setId(UuidString.generateFrom(k, input.apiCRDSpec.getHrid()));
+                    plan.setId(IdBuilder.builder(input.auditInfo, input.apiCRDSpec.getHrid()).withExtraId(k).buildId());
                 }
 
                 planValidator.validatePlanSecurity(

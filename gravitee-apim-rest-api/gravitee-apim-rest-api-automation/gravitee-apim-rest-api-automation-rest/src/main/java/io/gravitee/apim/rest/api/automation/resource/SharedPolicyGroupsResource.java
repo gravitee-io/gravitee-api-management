@@ -85,6 +85,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
                 .peek(
                     sanitized ->
                         statusBuilder
+                            .id(sanitized.crd().getSharedPolicyGroupId())
                             .crossId(sanitized.crd().getCrossId())
                             .organizationId(audit.organizationId())
                             .environmentId(audit.environmentId()),

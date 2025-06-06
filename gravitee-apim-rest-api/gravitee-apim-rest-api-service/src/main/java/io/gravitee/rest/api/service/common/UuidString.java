@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.service.common;
 
 import io.gravitee.common.utils.UUID;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
@@ -29,14 +31,14 @@ import java.util.stream.Stream;
  */
 public class UuidString {
 
-    private static final Function<String, String> DEFAULT_GENERATOR = (String seed) -> {
+    private static final UnaryOperator<String> DEFAULT_GENERATOR = (String seed) -> {
         if (seed == null) {
             return UUID.toString(UUID.random());
         }
         return UUID.toString(java.util.UUID.nameUUIDFromBytes(seed.getBytes()));
     };
 
-    private static Function<String, String> uuidGenerator = DEFAULT_GENERATOR;
+    private static UnaryOperator<String> uuidGenerator = DEFAULT_GENERATOR;
 
     private UuidString() {}
 
@@ -48,7 +50,7 @@ public class UuidString {
         return uuidGenerator.apply(null);
     }
 
-    public static String generateFrom(String... seeds) {
+    static String generateFrom(String... seeds) {
         if (Stream.of(seeds).anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("Seeds must not be null");
         }
@@ -67,23 +69,23 @@ public class UuidString {
             return generateRandom();
         }
 
-        StringBuilder b = new StringBuilder();
-        b.append(environmentId);
-        for (String f : fields) {
-            b.append(f);
-        }
+        LinkedList<String> strings = new LinkedList<>(Arrays.asList(fields));
+        strings.addFirst(environmentId);
 
-        return uuidGenerator.apply(b.toString());
+        return generateFrom(strings.toArray(new String[0]));
     }
 
-    public static void overrideGenerator(Function<String, String> newGenerator) {
+    // For test only
+    public static void overrideGenerator(UnaryOperator<String> newGenerator) {
         UuidString.uuidGenerator = newGenerator;
     }
 
+    // For test only
     public static void overrideGenerator(Supplier<String> newGenerator) {
         UuidString.uuidGenerator = (String seed) -> newGenerator.get();
     }
 
+    // For test only
     public static void reset() {
         UuidString.uuidGenerator = DEFAULT_GENERATOR;
     }

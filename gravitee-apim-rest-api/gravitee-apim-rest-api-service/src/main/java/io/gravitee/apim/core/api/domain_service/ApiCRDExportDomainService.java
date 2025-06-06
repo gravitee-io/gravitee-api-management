@@ -24,5 +24,4 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  */
 public interface ApiCRDExportDomainService {
     ApiCRDSpec export(String apiId, AuditInfo auditInfo);
-    ApiCRDSpec exportWithHRID(String hrid, AuditInfo auditInfo);
 }
