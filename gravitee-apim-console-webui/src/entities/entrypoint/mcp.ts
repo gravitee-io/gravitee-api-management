@@ -33,7 +33,10 @@ export interface MCPToolGatewayMapping {
   http: {
     method: string;
     path: string;
+    pathParams?: string[];
     contentType?: string;
+    queryParams?: string[];
+    headers?: string[];
   };
 }
 

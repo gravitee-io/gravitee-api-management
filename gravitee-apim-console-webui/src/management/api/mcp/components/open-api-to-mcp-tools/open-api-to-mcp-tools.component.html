@@ -16,13 +16,17 @@
 
 -->
 <div class="open-api-to-mcp-tools__container">
-  <gio-monaco-editor [languageConfig]="languageOptions()" [formControl]="formControl" [disableMiniMap]="true" />
+  <mat-form-field class="open-api-to-mcp-tools__container__field">
+    <mat-label>OpenAPI Specification</mat-label>
+    <gio-monaco-editor gioMonacoEditorFormField [formControl]="formControl" [languageConfig]="languageOptions()"></gio-monaco-editor>
+  </mat-form-field>
+
   <div class="open-api-to-mcp-tools__container__tools">
     <div class="open-api-to-mcp-tools__container__tools__list">
       @for (tool of toolDefinitions; track $index) {
         <tool-display [tool]="tool" />
       } @empty {
-        <div class="open-api-to-mcp-tools__container__tools__empty">No tools are configured.</div>
+        <div class="open-api-to-mcp-tools__container__tools__empty">Add OpenAPI specification on the left to generate tools.</div>
       }
     </div>
   </div>

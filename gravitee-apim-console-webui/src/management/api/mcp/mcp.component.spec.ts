@@ -19,7 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { ConfigureTestingGioMonacoEditor } from '@gravitee/ui-particles-angular';
+import { ConfigureTestingGioMonacoEditor, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { McpComponent } from './mcp.component';
 import { McpHarness } from './mcp.harness';
@@ -264,27 +264,30 @@ describe('McpComponent', () => {
                     http: {
                       method: 'GET',
                       path: '/user/:id',
+                      pathParams: ['id'],
+                      queryParams: ['verbose'],
+                      headers: ['X-Custom-Header'],
                     },
                   },
                   toolDefinition: {
                     description: 'Get user by ID',
                     inputSchema: {
                       properties: {
-                        'h_X-Custom-Header': {
+                        'X-Custom-Header': {
                           description: 'A custom header for the request',
                           type: 'string',
                         },
-                        p_id: {
+                        id: {
                           type: 'string',
                         },
-                        q_verbose: {
+                        verbose: {
                           type: 'boolean',
                         },
                       },
-                      required: ['p_id'],
+                      required: ['id'],
                       type: 'object',
                     },
-                    name: 'get_getUser',
+                    name: 'getUser',
                   },
                 },
                 {
@@ -299,17 +302,19 @@ describe('McpComponent', () => {
                     description: 'Create a new user',
                     inputSchema: {
                       properties: {
-                        b_email: {
-                          type: 'string',
-                        },
-                        b_username: {
-                          type: 'string',
+                        bodySchema: {
+                          type: 'object',
+                          properties: {
+                            username: { type: 'string' },
+                            email: { type: 'string' },
+                          },
+                          required: ['username', 'email'],
                         },
                       },
-                      required: ['b_username', 'b_email'],
+                      required: [],
                       type: 'object',
                     },
-                    name: 'post__user',
+                    name: 'post_user',
                   },
                 },
               ],
@@ -343,6 +348,23 @@ describe('McpComponent', () => {
         fixture.detectChanges();
         const refreshedToolDisplays = await componentHarness.getToolDisplays();
         expect(refreshedToolDisplays.length).toEqual(0);
+      });
+
+      it('should disable MCP entrypoint', async () => {
+        const mcpConfigurationForm = await componentHarness.getConfigureMcpEntrypoint();
+        expect(await mcpConfigurationForm.hasTools()).toEqual(false);
+
+        await componentHarness.disableMcpEntryPoint();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.confirm();
+
+        const newApi = { ...API() };
+        newApi.listeners[0].entrypoints = [newApi.listeners[0].entrypoints[0]]; // Remove MCP entrypoint
+
+        expectUpdateApiCalls(API(), newApi);
+        // NgOnInit will be called after the update, so we need to get the API again
+        expectGetApi(API());
       });
     });
   });
