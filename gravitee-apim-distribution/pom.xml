@@ -1344,6 +1344,20 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-agent-to-agent</artifactId>
+                    <version>${gravitee-entrypoint-agent-to-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
 
                 <!-- Endpoints -->
                 <dependency>
@@ -1402,6 +1416,19 @@
                     <groupId>com.graviteesource.connector</groupId>
                     <artifactId>gravitee-endpoint-native-kafka</artifactId>
                     <version>${gravitee-reactor-native-kafka.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-agent-to-agent</artifactId>
+                    <version>${gravitee-endpoint-agent-to-agent.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -1667,39 +1694,11 @@
                 </property>
             </activation>
             <dependencies>
-                <!-- Entrypoints -->
-                <dependency>
-                    <groupId>com.graviteesource.entrypoint</groupId>
-                    <artifactId>gravitee-entrypoint-agent-to-agent</artifactId>
-                    <version>${gravitee-entrypoint-agent-to-agent.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-
                 <!-- Endpoints -->
                 <dependency>
                     <groupId>com.graviteesource.endpoint</groupId>
                     <artifactId>gravitee-endpoint-solace</artifactId>
                     <version>${gravitee-endpoint-solace.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.endpoint</groupId>
-                    <artifactId>gravitee-endpoint-agent-to-agent</artifactId>
-                    <version>${gravitee-endpoint-agent-to-agent.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
