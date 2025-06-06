@@ -19,22 +19,27 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
+import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
 import { OpenApiToMcpToolsComponent } from '../open-api-to-mcp-tools/open-api-to-mcp-tools.component';
 import { MCPTool } from '../../../../../entities/entrypoint/mcp';
 
-export interface ImportMcpToolsDialogData {}
-
-export interface ImportMcpToolsDialogResult {
-  tools: MCPTool[];
+export interface ImportMcpToolsDialogData {
+  hasPreviousTools: boolean;
 }
+
+export type ImportMcpToolsDialogResult =
+  | {
+      tools: MCPTool[];
+    }
+  | undefined;
 
 @Component({
   selector: 'import-mcp-tools-dialog',
   templateUrl: './import-mcp-tools-dialog.component.html',
   styleUrls: ['./import-mcp-tools-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatDialogModule, MatButtonModule, OpenApiToMcpToolsComponent, ReactiveFormsModule],
+  imports: [MatDialogModule, MatButtonModule, OpenApiToMcpToolsComponent, ReactiveFormsModule, GioBannerModule],
 })
 export class ImportMcpToolsDialogComponent {
   formControl = new FormControl<MCPTool[]>([]);
