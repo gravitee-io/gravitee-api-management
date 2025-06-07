@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.api;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
@@ -52,6 +53,7 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
     private final UserCrudService userCrudService;
 
     private final GroupQueryService groupQueryService;
+    private final ApiQueryService apiQueryService;
 
     @Override
     public ApiCRDSpec export(String apiId, AuditInfo auditInfo) {

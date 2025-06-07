@@ -50,6 +50,11 @@ public class ApiMongo extends Auditable {
     private String crossId;
 
     /**
+     * The api human-readable ID that uniquely identifies an API across environments.
+     */
+    private String hrid;
+
+    /**
      * The origin of the api (management, kubernetes, ...).
      */
     private String origin;

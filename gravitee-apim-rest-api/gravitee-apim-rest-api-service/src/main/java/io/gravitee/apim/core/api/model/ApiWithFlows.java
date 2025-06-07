@@ -39,6 +39,7 @@ public class ApiWithFlows extends Api {
             api.getId(),
             api.getEnvironmentId(),
             api.getCrossId(),
+            api.getHrid(),
             api.getName(),
             api.getDescription(),
             api.getVersion(),

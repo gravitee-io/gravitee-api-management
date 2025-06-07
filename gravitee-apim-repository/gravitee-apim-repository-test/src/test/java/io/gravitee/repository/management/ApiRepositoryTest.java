@@ -61,6 +61,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
         Api api = new Api();
         api.setId(apiId);
+        api.setHrid("test-hrid");
         api.setEnvironmentId("DEFAULT");
         api.setOrigin(Api.ORIGIN_KUBERNETES);
         api.setMode(Api.MODE_API_DEFINITION_ONLY);
@@ -82,6 +83,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         Api apiSaved = optional.get();
         assertEquals("Invalid saved environment id.", api.getEnvironmentId(), apiSaved.getEnvironmentId());
         assertEquals("Invalid saved api origin.", api.getOrigin(), apiSaved.getOrigin());
+        assertEquals("Invalid saved hrid.", api.getHrid(), apiSaved.getHrid());
         assertEquals("Invalid saved api mode.", api.getMode(), apiSaved.getMode());
         assertEquals("Invalid saved api syncFrom.", api.getSyncFrom(), apiSaved.getSyncFrom());
         assertEquals("Invalid saved api version.", api.getVersion(), apiSaved.getVersion());
@@ -612,7 +614,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldStreamSearch() {
-        List<Api> apis = apiRepository.search(null, null, ApiFieldFilter.allFields(), 2).collect(toList());
+        List<Api> apis = apiRepository.search(null, null, ApiFieldFilter.allFields(), 2).toList();
 
         assertNotNull(apis);
         assertFalse(apis.isEmpty());

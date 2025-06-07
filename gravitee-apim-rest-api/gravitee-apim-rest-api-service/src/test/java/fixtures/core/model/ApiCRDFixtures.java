@@ -44,72 +44,76 @@ public class ApiCRDFixtures {
     public static final String PLAN_NAME = "plan-name";
     public static final String PLAN_ID = "plan-id";
 
-    public static ApiCRDSpecBuilder BASE_SPEC = ApiCRDSpec
-        .builder()
-        .id(API_ID)
-        .crossId(API_CROSS_ID)
-        .name(API_NAME)
-        .listeners(List.of(HttpListener.builder().paths(List.of(new Path(API_PATH))).build()))
-        .plans(Map.of(PLAN_NAME, PlanCRD.builder().name(PLAN_NAME).id(PLAN_ID).security(new PlanSecurity("key-less", "{}")).build()))
-        .state("STARTED")
-        .endpointGroups(
-            List.of(
-                EndpointGroup
-                    .builder()
-                    .name("default-group")
-                    .type("http-proxy")
-                    .sharedConfiguration("{}")
-                    .endpoints(
-                        List.of(
-                            Endpoint
-                                .builder()
-                                .name("default-endpoint")
-                                .type("http-proxy")
-                                .inheritConfiguration(true)
-                                .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                                .build()
+    public static ApiCRDSpecBuilder newBaseSpec() {
+        return ApiCRDSpec
+            .builder()
+            .id(API_ID)
+            .crossId(API_CROSS_ID)
+            .name(API_NAME)
+            .listeners(List.of(HttpListener.builder().paths(List.of(new Path(API_PATH))).build()))
+            .plans(Map.of(PLAN_NAME, PlanCRD.builder().name(PLAN_NAME).id(PLAN_ID).security(new PlanSecurity("key-less", "{}")).build()))
+            .state("STARTED")
+            .endpointGroups(
+                List.of(
+                    EndpointGroup
+                        .builder()
+                        .name("default-group")
+                        .type("http-proxy")
+                        .sharedConfiguration("{}")
+                        .endpoints(
+                            List.of(
+                                Endpoint
+                                    .builder()
+                                    .name("default-endpoint")
+                                    .type("http-proxy")
+                                    .inheritConfiguration(true)
+                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                    .build()
+                            )
                         )
-                    )
-                    .build()
-            )
-        );
+                        .build()
+                )
+            );
+    }
 
-    public static ApiCRDSpecBuilder BASE_NATIVE_SPEC = ApiCRDSpec
-        .builder()
-        .id(API_ID)
-        .type("native")
-        .crossId(API_CROSS_ID)
-        .name(API_NAME)
-        .listeners(List.of(KafkaListener.builder().host("local.kafka").port(9092).build()))
-        .plans(Map.of(PLAN_NAME, PlanCRD.builder().name(PLAN_NAME).id(PLAN_ID).security(new PlanSecurity("key-less", "{}")).build()))
-        .state("STARTED")
-        .endpointGroups(
-            List.of(
-                NativeEndpointGroup
-                    .builder()
-                    .name("default-group")
-                    .type("native-kafka")
-                    .sharedConfiguration("{\"security\":{\"protocol\":\"PLAINTEXT\"}}")
-                    .endpoints(
-                        List.of(
-                            NativeEndpoint
-                                .builder()
-                                .name("default-endpoint")
-                                .type("native-kafka")
-                                .inheritConfiguration(true)
-                                .configuration("{}")
-                                .build()
+    public static ApiCRDSpecBuilder newBaseNaticeSpec() {
+        return ApiCRDSpec
+            .builder()
+            .id(API_ID)
+            .type("native")
+            .crossId(API_CROSS_ID)
+            .name(API_NAME)
+            .listeners(List.of(KafkaListener.builder().host("local.kafka").port(9092).build()))
+            .plans(Map.of(PLAN_NAME, PlanCRD.builder().name(PLAN_NAME).id(PLAN_ID).security(new PlanSecurity("key-less", "{}")).build()))
+            .state("STARTED")
+            .endpointGroups(
+                List.of(
+                    NativeEndpointGroup
+                        .builder()
+                        .name("default-group")
+                        .type("native-kafka")
+                        .sharedConfiguration("{\"security\":{\"protocol\":\"PLAINTEXT\"}}")
+                        .endpoints(
+                            List.of(
+                                NativeEndpoint
+                                    .builder()
+                                    .name("default-endpoint")
+                                    .type("native-kafka")
+                                    .inheritConfiguration(true)
+                                    .configuration("{}")
+                                    .build()
+                            )
                         )
-                    )
-                    .build()
-            )
-        );
+                        .build()
+                )
+            );
+    }
 
     public static ApiCRDSpec anApiCRD() {
-        return BASE_SPEC.build();
+        return newBaseSpec().crossId(API_CROSS_ID).build();
     }
 
     public static ApiCRDSpec aNativeApiCRD() {
-        return BASE_NATIVE_SPEC.build();
+        return newBaseSpec().crossId(API_CROSS_ID).build();
     }
 }
