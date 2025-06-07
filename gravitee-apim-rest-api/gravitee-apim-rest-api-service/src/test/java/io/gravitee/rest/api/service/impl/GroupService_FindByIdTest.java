@@ -67,8 +67,8 @@ public class GroupService_FindByIdTest extends TestCase {
         groupService.findById(null, GROUP_ID);
     }
 
-    @Test(expected = GroupNotFoundException.class)
-    public void shouldNotFindGroupBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+    @Test
+    public void shouldFindGroupEvenIfDoesNotBelongToEnvironment() throws TechnicalException {
         final Group group = new Group();
         group.setId(GROUP_ID);
         group.setEnvironmentId("Another_environment");
@@ -76,7 +76,9 @@ public class GroupService_FindByIdTest extends TestCase {
 
         ExecutionContext executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
 
-        groupService.findById(executionContext, GROUP_ID);
+        var result = groupService.findById(executionContext, GROUP_ID);
+
+        assertThat(result).isNotNull().extracting(GroupEntity::getId, GroupEntity::isManageable).containsExactly(GROUP_ID, false);
     }
 
     @Test

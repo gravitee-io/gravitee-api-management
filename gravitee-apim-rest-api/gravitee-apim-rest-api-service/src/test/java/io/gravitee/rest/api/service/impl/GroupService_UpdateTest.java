@@ -165,8 +165,8 @@ public class GroupService_UpdateTest {
         verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
     }
 
-    @Test(expected = GroupNotFoundException.class)
-    public void shouldNotUpdateGroupBecauseDoesNotBelongToEnvironment() throws Exception {
+    @Test
+    public void shouldUpdateGroupEvenIfDoesNotBelongToEnvironment() throws Exception {
         UpdateGroupEntity updatedGroupEntity = new UpdateGroupEntity();
         updatedGroupEntity.setRoles(
             Maps.<RoleScope, String>builder().put(RoleScope.API, "PRIMARY_OWNER").put(RoleScope.APPLICATION, "PRIMARY_OWNER").build()
