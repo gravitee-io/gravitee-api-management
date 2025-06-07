@@ -31,6 +31,7 @@ import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
 import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
+import io.gravitee.definition.model.v4.listener.http.Path;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -70,6 +71,9 @@ public class ApiModule extends GraviteeModule {
         addDeserializer(Flow.class, new FlowDeserializer(Flow.class));
         addDeserializer(Step.class, new StepDeserializer(Step.class));
         addDeserializer(Consumer.class, new ConsumerDeserializer(Consumer.class));
+
+        // API V4 deserializers
+        addDeserializer(Path.class, new PathDeserializer(Path.class));
 
         // then serializers:
         addSerializer(Api.class, new ApiSerializer(Api.class));
