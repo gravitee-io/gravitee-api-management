@@ -22,6 +22,10 @@
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
+        <!--Organization ID and environment ID are both available in the MDC. Use the following pattern to add these in log statements.-->
+        <!--<encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [%X{orgId} %X{envId}] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>-->
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -35,8 +39,12 @@
         </rollingPolicy>
 
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%n</pattern>
         </encoder>
+        <!--Organization ID and environment ID are both available in the MDC. Use the following pattern to add these in log statements.-->
+        <!--<encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [%X{orgId} %X{envId}] %-5level %logger{36} - %msg%n%n</pattern>
+        </encoder>-->
     </appender>
 
     <appender name="FILE-UPGRADERS" class="ch.qos.logback.core.rolling.RollingFileAppender">
