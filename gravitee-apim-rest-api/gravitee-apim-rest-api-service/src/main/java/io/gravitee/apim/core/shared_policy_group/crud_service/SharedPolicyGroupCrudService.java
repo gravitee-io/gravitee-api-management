@@ -30,4 +30,6 @@ public interface SharedPolicyGroupCrudService {
     Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
 
     Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid);
+
+    Optional<SharedPolicyGroup> getLastDeployedByEnvironmentIdAndCrossId(String environmentId, String crossId);
 }

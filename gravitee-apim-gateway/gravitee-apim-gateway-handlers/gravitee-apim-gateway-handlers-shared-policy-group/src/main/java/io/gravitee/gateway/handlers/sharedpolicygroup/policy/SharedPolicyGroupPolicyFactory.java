@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.sharedpolicygroup.policy;
 
+import io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration;
 import io.gravitee.gateway.policy.PolicyManifest;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.PolicyPluginFactory;

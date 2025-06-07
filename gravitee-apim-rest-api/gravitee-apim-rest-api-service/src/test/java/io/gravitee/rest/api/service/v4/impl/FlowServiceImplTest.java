@@ -17,22 +17,30 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.infra.crud_service.flow.FlowCrudServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.mapper.FlowMapper;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,9 +64,21 @@ public class FlowServiceImplTest {
     @Mock
     private TagService tagService;
 
+    private SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
+
     @Before
     public void before() {
-        flowService = new FlowServiceImpl(flowRepository, tagService, new FlowMapper());
+        List<SharedPolicyGroup> sharedPolicyGroups = List.of(
+            SharedPolicyGroup
+                .builder()
+                .environmentId(GraviteeContext.getCurrentEnvironment())
+                .crossId("spg1")
+                .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.DEPLOYED)
+                .name("spg-name-1")
+                .build()
+        );
+        sharedPolicyGroupCrudService = new SharedPolicyGroupCrudServiceInMemory(sharedPolicyGroups);
+        flowService = new FlowServiceImpl(flowRepository, tagService, sharedPolicyGroupCrudService, new FlowMapper());
         flowCrudService = new FlowCrudServiceImpl(flowRepository);
     }
 
@@ -136,5 +156,57 @@ public class FlowServiceImplTest {
 
         verify(flowRepository, never()).deleteByReferenceIdAndReferenceType("apiId", FlowReferenceType.API);
         verify(flowRepository, times(2)).create(any());
+    }
+
+    @Test
+    public void findByReference() throws TechnicalException {
+        FlowReferenceType flowReferenceType = FlowReferenceType.API;
+        String referenceId = "refId";
+        String crossId = "spg1";
+        when(flowRepository.findByReference(flowReferenceType, referenceId))
+            .thenReturn(
+                List.of(
+                    Flow
+                        .builder()
+                        .request(
+                            List.of(
+                                FlowStep
+                                    .builder()
+                                    .policy("shared-policy-group-policy")
+                                    .name("old-spg-name-1")
+                                    .configuration("{\"sharedPolicyGroupId\":\"" + crossId + "\"}")
+                                    .build(),
+                                FlowStep.builder().policy("other-policy-1").name("op-1").build()
+                            )
+                        )
+                        .response(List.of())
+                        .publish(List.of())
+                        .subscribe(List.of())
+                        .selectors(List.of())
+                        .order(2)
+                        .build(),
+                    Flow
+                        .builder()
+                        .request(
+                            List.of(
+                                FlowStep.builder().policy("other-policy-2").name("op-2").build(),
+                                FlowStep.builder().policy("other-policy-3").name("op-3").build()
+                            )
+                        )
+                        .response(List.of())
+                        .publish(List.of())
+                        .subscribe(List.of())
+                        .selectors(List.of())
+                        .order(1)
+                        .build()
+                )
+            );
+        List<io.gravitee.definition.model.v4.flow.Flow> flows = flowService.findByReference(flowReferenceType, referenceId);
+        assertAll(
+            () -> assertThat(flows.get(0).getRequest().get(0).getName()).isEqualTo("op-2"),
+            () -> assertThat(flows.get(0).getRequest().get(1).getName()).isEqualTo("op-3"),
+            () -> assertThat(flows.get(1).getRequest().get(0).getName()).isEqualTo("spg-name-1"),
+            () -> assertThat(flows.get(1).getRequest().get(1).getName()).isEqualTo("op-1")
+        );
     }
 }
