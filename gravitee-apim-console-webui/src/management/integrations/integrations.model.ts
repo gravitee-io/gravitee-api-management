@@ -98,6 +98,7 @@ export interface UpdateIntegrationPayload {
   name: string;
   description: string;
   groups: string[];
+  wellKnownUrls?: A2aIntegration['wellKnownUrls'];
 }
 
 export interface IntegrationProvider {

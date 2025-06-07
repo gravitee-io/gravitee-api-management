@@ -25,7 +25,7 @@ export class RulesetFormatPipe implements PipeTransform {
   transform(value: RulesetFormat): string {
     switch (value) {
       case RulesetFormat.GRAVITEE_FEDERATION:
-        return 'Gravitee Federation API';
+        return 'Gravitee Federated API';
       case RulesetFormat.GRAVITEE_MESSAGE:
         return 'Gravitee Message API';
       case RulesetFormat.GRAVITEE_PROXY:

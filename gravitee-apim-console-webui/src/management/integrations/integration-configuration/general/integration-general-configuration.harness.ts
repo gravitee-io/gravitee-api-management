@@ -23,6 +23,10 @@ import { MatCardHarness } from '@angular/material/card/testing';
 export class IntegrationGeneralConfigurationHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-integration-general-configuration';
 
+  private wellKnownUrlInputLocator: AsyncFactoryFn<MatInputHarness> = this.locatorForOptional(
+    MatInputHarness.with({ selector: '[data-testid=well-known-ulr-input]' }),
+  );
+
   private nameInputLocator: AsyncFactoryFn<MatInputHarness> = this.locatorForOptional(
     MatInputHarness.with({ selector: '[data-testid=update-integration-name-input]' }),
   );
@@ -51,6 +55,10 @@ export class IntegrationGeneralConfigurationHarness extends ComponentHarness {
 
   public async setName(name: string) {
     return this.nameInputLocator().then((input: MatInputHarness) => input.setValue(name));
+  }
+
+  public async fillWellKnownUrlInput(url: string) {
+    return this.wellKnownUrlInputLocator().then((input: MatInputHarness) => input.setValue(url));
   }
 
   public async setDescription(description: string) {

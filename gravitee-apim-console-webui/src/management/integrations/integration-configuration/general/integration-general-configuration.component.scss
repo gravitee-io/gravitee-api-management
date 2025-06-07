@@ -30,30 +30,44 @@ $typography: map.get(gio.$mat-theme, typography);
 .card-header {
   padding: 16px;
   border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  margin-bottom: 16px;
 
   &__title {
     h3 {
       @include mat.m2-typography-level($typography, subtitle-1);
       margin: 0;
     }
+
+    .description {
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      margin-bottom: 0;
+    }
   }
 }
 
 .form {
-  grid-column-start: 2;
   margin: 16px 0;
+}
 
-  .form-field {
-    width: 100%;
-  }
+.form-field {
+  width: 100%;
+}
 
-  textarea {
-    resize: none;
-  }
+textarea {
+  resize: none;
+}
 
-  .hint {
-    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-  }
+.hint {
+  color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+}
+
+.url-bin {
+  cursor: pointer;
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker60');
+}
+
+.url-bin-disabled {
+  color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
 }
 
 .loadingTemplate {

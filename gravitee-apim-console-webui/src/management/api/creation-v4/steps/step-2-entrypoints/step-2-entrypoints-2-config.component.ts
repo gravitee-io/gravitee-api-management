@@ -20,7 +20,6 @@ import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { debounceTime, map, takeUntil, tap } from 'rxjs/operators';
 import { omitBy } from 'lodash';
-import { ActivatedRoute } from '@angular/router';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
@@ -67,7 +66,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
     private readonly portalConfigurationService: PortalConfigurationService,
-    private readonly activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
