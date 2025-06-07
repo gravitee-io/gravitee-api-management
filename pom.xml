@@ -33,7 +33,7 @@
     <version>1.6.2</version>
 
     <properties>
-        <gravitee-bom.version>8.3.9</gravitee-bom.version>
+        <gravitee-bom.version>8.3.10</gravitee-bom.version>
         <gravitee-apim.version>4.7.6</gravitee-apim.version>
         <gravitee-reporter-api.version>1.34.0</gravitee-reporter-api.version>
         <gravitee-node.version>4.8.9</gravitee-node.version>
