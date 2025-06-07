@@ -393,14 +393,19 @@ class DocumentationManagementComponentController implements IController {
       })
       .then((response) => {
         if (response) {
-          this.DocumentationService.remove(page.id, this.apiId).then(() => {
-            this.NotificationService.show('Page ' + page.name + ' has been removed');
-            this.refresh();
-            this.refreshCurrentFolder();
-            if (this.currentTranslation.id === page.id) {
-              delete this.currentTranslation;
-            }
-          });
+          this.DocumentationService.remove(page.id, this.apiId)
+            .then(() => {
+              this.NotificationService.show('Page ' + page.name + ' has been removed');
+              this.refresh();
+              this.refreshCurrentFolder();
+              if (this.currentTranslation?.id === page.id) {
+                delete this.currentTranslation;
+              }
+            })
+            .catch((err) => {
+              const errorMessage = err?.data?.message || 'An unexpected error occurred while removing the page/folder.';
+              this.NotificationService.showError(errorMessage);
+            });
         }
       });
   }
