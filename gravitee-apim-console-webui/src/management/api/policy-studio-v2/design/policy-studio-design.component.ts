@@ -58,7 +58,7 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
   policies: PolicyListItem[];
   resourceTypes: ResourceListItem[];
   readonlyPlans = false;
-  policyDocumentation!: { id: string; image: string; content: string };
+  policyDocumentation!: { id: string; image: string; content: string; type: string };
   selectedFlowsIds: Array<string> = [];
 
   private unsubscribe$ = new Subject<boolean>();
@@ -134,7 +134,8 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
             (this.policyDocumentation = {
               id: policy.id,
               image: policy.icon,
-              content: documentation,
+              content: documentation.content,
+              type: documentation.language === 'ASCIIDOC' ? 'adoc' : 'md',
             }),
         ),
       )

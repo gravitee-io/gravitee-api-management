@@ -23,6 +23,7 @@ import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.node.plugins.service.ServiceManager;
 import io.gravitee.plugin.core.api.AbstractPluginManager;
 import io.gravitee.plugin.core.api.PluginContextFactory;
+import io.gravitee.plugin.core.api.PluginDocumentation;
 import io.gravitee.plugin.core.api.PluginMoreInformation;
 import java.io.IOException;
 import java.util.Map;
@@ -98,13 +99,28 @@ public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPl
     }
 
     @Override
+    public PluginDocumentation getPluginDocumentation(String s) throws IOException {
+        return null;
+    }
+
+    @Override
     public String getDocumentation(String pluginId, boolean includeNotDeployed) throws IOException {
+        return null;
+    }
+
+    @Override
+    public PluginDocumentation getPluginDocumentation(String s, boolean b) throws IOException {
         return null;
     }
 
     @Override
     public String getDocumentation(String s, String s1, boolean b, boolean b1) throws IOException {
         return "";
+    }
+
+    @Override
+    public PluginDocumentation getPluginDocumentation(String s, String s1, boolean b, boolean b1) throws IOException {
+        return null;
     }
 
     @Override

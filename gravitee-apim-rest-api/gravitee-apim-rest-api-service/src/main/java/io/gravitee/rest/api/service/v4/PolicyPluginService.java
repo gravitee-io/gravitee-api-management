@@ -15,11 +15,11 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.plugin.core.api.PluginDocumentation;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.policy.ApiProtocolType;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.PluginService;
-import java.util.Set;
 
 public interface PolicyPluginService extends PluginService<PolicyPluginEntity> {
     /**
@@ -49,9 +49,10 @@ public interface PolicyPluginService extends PluginService<PolicyPluginEntity> {
 
     /**
      * Get the documentation for the given policy plugin
-     * @param policyPluginId is the id of the policy
+     *
+     * @param policyPluginId  is the id of the policy
      * @param apiProtocolType the protocol type to get the documentation for
      * @return the documentation
      */
-    String getDocumentation(String policyPluginId, ApiProtocolType apiProtocolType);
+    PluginDocumentation getDocumentation(String policyPluginId, ApiProtocolType apiProtocolType);
 }

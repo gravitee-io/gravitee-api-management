@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { PolicyDocumentation, PolicyListItem, PolicySchema } from '../entities/policy';
@@ -49,11 +48,13 @@ export class PolicyV2Service {
     if (apiProtocolType) {
       params = params.append('apiProtocolType', apiProtocolType);
     }
-    return this.http
-      .get(`${this.constants.org.v2BaseURL}/plugins/policies/${policyId}/documentation`, {
-        responseType: 'text',
-        params,
-      })
-      .pipe(map((buffer) => buffer.toString()));
+
+    const headers = new HttpHeaders();
+    headers.set('Accept', 'application/json');
+
+    return this.http.get<PolicyDocumentation>(`${this.constants.org.v2BaseURL}/plugins/policies/${policyId}/documentation-ext`, {
+      params,
+      headers,
+    });
   }
 }
