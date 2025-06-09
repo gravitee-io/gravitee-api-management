@@ -21,6 +21,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltip } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { catchError, map, Observable } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -45,6 +46,7 @@ import { PlanService } from '../../../services/plan.service';
     RouterModule,
     FormsModule,
     MatChipsModule,
+    MatTooltip,
   ],
   templateUrl: './api-details.component.html',
   styleUrl: './api-details.component.scss',

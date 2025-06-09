@@ -113,7 +113,7 @@ export class ApisListComponent {
               version: api.version,
               title: api.name,
               picture: api._links?.picture,
-              isEnabledMcpServer: !!api.mcp?.enabled,
+              isEnabledMcpServer: !!api.mcp,
             }))
           : [];
 
