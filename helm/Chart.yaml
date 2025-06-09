@@ -29,3 +29,5 @@ annotations:
       links:
        - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/10524
+    - kind: fixed
+      description: 'The `portal.entrypoint` env var is used to configure the entrypoint used to expose APIs. It is used mainly on the developer portal. The value is automatically set with the ingress of the gateway. Now, if the gateway is configured with  a list of servers (http, tcp...) the `portal.entrypoint` is set accordingly'
