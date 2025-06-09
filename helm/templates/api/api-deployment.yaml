@@ -194,8 +194,18 @@ spec:
               value: "{{ .Values.cockpit.ssl.verifyHostname }}"
             {{- end }}
             {{- if .Values.gateway.enabled }}
+            {{- if .Values.gateway.servers }}
+            {{- range $i, $server := .Values.gateway.servers }}
+            {{- if and (eq $server.type "http") $server.ingress $server.ingress.enabled }}
+            - name: portal.entrypoint
+              value: "https://{{ index $server.ingress.hosts 0 }}{{ $server.ingress.path }}"
+            {{ break }}
+            {{- end }}
+            {{- end }}
+            {{- else }}
             - name: portal.entrypoint
               value: "https://{{ index .Values.gateway.ingress.hosts 0 }}{{ .Values.gateway.ingress.path }}"
+            {{- end }}
             {{- end }}
 {{- if .Values.api.env | default .Values.api.deployment.extraEnvs }}
 {{ toYaml ( .Values.api.env | default .Values.api.deployment.extraEnvs ) | indent 12 }}
