@@ -1920,6 +1920,11 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-message-filtering</artifactId>
+                    <version>${gravitee-policy-kafka-message-filtering.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-kafka-offloading</artifactId>
                     <version>${gravitee-policy-offloading.version}</version>
                     <type>zip</type>
