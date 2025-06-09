@@ -140,6 +140,14 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
             - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+  job-validate-workflow-status:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - run:
+          name: Check workflow jobs
+          command: echo "Congratulations! If you can read this, everything is OK"
 workflows:
   pull_requests:
     jobs:
@@ -178,6 +186,10 @@ workflows:
             - cicd-orchestrator
           requires:
             - Validate backend
+      - job-validate-workflow-status:
+          name: Validate workflow status
+          requires:
+            - Build backend
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.5
