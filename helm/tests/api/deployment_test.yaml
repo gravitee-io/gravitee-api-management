@@ -301,3 +301,25 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].volumeMounts[0].name
           value: vault-token
+
+  - it: Auto configure portal entrypoint from servers list
+    template: api/api-deployment.yaml
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            ingress:
+              enabled: true
+              pathType: Prefix
+              path: /
+              hosts:
+                - my.custom.gateway.host
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: portal.entrypoint
+              value: https://my.custom.gateway.host/
