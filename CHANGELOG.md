@@ -1,3 +1,11 @@
+## [5.9.3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.9.2...5.9.3) (2025-06-09)
+
+
+### Bug Fixes
+
+* ensure compatibility with APIM 4.7 ([a1ca0d5](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/a1ca0d5e5269d393ecf7cbb4541d92a505184cc0))
+* fix dependencies management ([e5e0fab](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/e5e0fabe6e8a19dfc02b5223cd4cd779644d1eb3))
+
 ## [5.9.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.9.1...5.9.2) (2025-06-02)
 
 
