@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2025 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,8 +15,15 @@
     limitations under the License.
 
 -->
+@if (mcpEntrypoint()) {
+  <div class="api-tab-tools__mcp-entrypoint">
+    <div class="m3-title-medium" i18n="@@mcpToolsEntrypoint">MCP entrypoint</div>
+    <app-copy-code class="m3-body-medium" [text]="mcpEntrypoint() ?? ''" />
+  </div>
+}
+<div class="m3-title-medium" i18n="@@mcpToolDefinitions">Tool Definitions</div>
 @for (mcpTool of mcpTools(); track $index) {
-  <app-mcp-tool [tool]="mcpTool" />
+  <app-mcp-tool [tool]="mcpTool.toolDefinition" />
 } @empty {
   <div class="api-tab-tools__empty">
     <div class="m3-body-large" i18n="@@mcpToolsNotAvailable">No tools available</div>

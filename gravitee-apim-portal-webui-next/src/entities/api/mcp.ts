@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 export interface Mcp {
-  /**
-   * Whether the API is a Mcp server.
-   */
-  enabled: boolean;
-  tools?: McpTool[];
+  mcpPath: string;
+  tools?: {
+    toolDefinition: McpTool;
+  }[];
 }
 
 /**

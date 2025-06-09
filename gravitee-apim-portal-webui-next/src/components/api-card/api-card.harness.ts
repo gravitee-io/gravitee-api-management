@@ -20,7 +20,7 @@ export class ApiCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-api-card';
   protected locateHeaderContent = this.locatorFor('.api-card__header__content');
   protected locateDescription = this.locatorFor('.api-card__description');
-  protected locateMcpServerChip = this.locatorForOptional(MatChipHarness.with({ text: 'MCP Server' }));
+  protected locateMcpServerChip = this.locatorForOptional(MatChipHarness.with({ text: /MCP/ }));
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<ApiCardHarness> {
     return new HarnessPredicate(ApiCardHarness, options);

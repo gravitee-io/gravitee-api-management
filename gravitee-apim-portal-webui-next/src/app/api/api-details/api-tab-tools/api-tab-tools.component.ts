@@ -16,12 +16,13 @@
 import { JsonPipe } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 
+import { CopyCodeComponent } from '../../../../components/copy-code/copy-code.component';
 import { McpToolComponent } from '../../../../components/mcp-tool/mcp-tool.component';
 import { Api } from '../../../../entities/api/api';
 
 @Component({
   selector: 'app-api-tab-tools',
-  imports: [McpToolComponent, JsonPipe],
+  imports: [McpToolComponent, JsonPipe, CopyCodeComponent],
   templateUrl: './api-tab-tools.component.html',
   styleUrl: './api-tab-tools.component.scss',
 })
@@ -30,5 +31,12 @@ export class ApiTabToolsComponent {
 
   mcpTools = computed(() => {
     return this.api().mcp?.tools ?? [];
+  });
+
+  mcpEntrypoint = computed(() => {
+    if (this.api().entrypoints[0]) {
+      return this.api().entrypoints[0].replace(/\/$/, '') + this.api().mcp?.mcpPath;
+    }
+    return undefined;
   });
 }

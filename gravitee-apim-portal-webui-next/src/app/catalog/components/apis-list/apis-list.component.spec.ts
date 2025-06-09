@@ -101,7 +101,10 @@ describe('ApisListComponent', () => {
               version: 'v.2.0',
               description:
                 'Access enterprise-level financial data, reports, and analytics to empower your applications with financial insights.',
-              mcp: { enabled: true, tools: [{ name: 'MCP Tool', description: 'MCP Tool Description', inputSchema: {} }] },
+              mcp: {
+                mcpPath: '/mcp',
+                tools: [{ toolDefinition: { name: 'MCP Tool', description: 'MCP Tool Description', inputSchema: {} } }],
+              },
             }),
           ],
           metadata: {

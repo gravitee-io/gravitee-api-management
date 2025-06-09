@@ -43,7 +43,7 @@ describe('ApiTabToolsComponent', () => {
     await init(
       fakeApi({
         mcp: {
-          enabled: true,
+          mcpPath: '/mcp',
           tools: [],
         },
       }),
@@ -59,28 +59,32 @@ describe('ApiTabToolsComponent', () => {
     await init(
       fakeApi({
         mcp: {
-          enabled: true,
+          mcpPath: '/mcp',
           tools: [
             {
-              name: 'Cats rule tool',
-              description: 'MCP Tool Description',
-              inputSchema: {
-                type: 'object',
-                properties: {
-                  name: {
-                    type: 'string',
-                    description: 'Tool Name',
+              toolDefinition: {
+                name: 'Cats rule tool',
+                description: 'MCP Tool Description',
+                inputSchema: {
+                  type: 'object',
+                  properties: {
+                    name: {
+                      type: 'string',
+                      description: 'Tool Name',
+                    },
+                    arguments: {
+                      type: 'string',
+                    },
                   },
-                  arguments: {
-                    type: 'string',
-                  },
+                  required: ['name'],
                 },
-                required: ['name'],
               },
             },
             {
-              foo: 'bar',
-              bar: 'foo',
+              toolDefinition: {
+                foo: 'bar',
+                bar: 'foo',
+              },
             },
           ],
         },
