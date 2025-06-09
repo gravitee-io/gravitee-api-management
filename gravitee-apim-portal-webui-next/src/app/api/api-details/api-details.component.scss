@@ -26,6 +26,16 @@
       flex-flow: column;
       gap: 4px;
     }
+
+    &__mcp-badge {
+      display: flex;
+      align-items: center;
+      border-width: var(--mdc-chip-outline-width, 1px);
+      border-style: solid;
+      border-radius: var(--mdc-chip-container-shape-radius, 8px);
+      margin-left: 8px;
+      gap: 4px;
+    }
   }
 
   &__header-button {

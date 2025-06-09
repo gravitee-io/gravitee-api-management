@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -31,7 +35,6 @@ import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.ApiType;
 import io.gravitee.rest.api.portal.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.portal.rest.model.ListenerType;
-import io.gravitee.rest.api.portal.rest.model.Mcp;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.CategoryService;
@@ -46,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +61,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ApiMapper {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Autowired
     private RatingService ratingService;
@@ -179,16 +185,26 @@ public class ApiMapper {
         return null;
     }
 
-    private static Mcp computeMcp(GenericApiEntity api) {
+    private static Map<String, Object> computeMcp(GenericApiEntity api) {
         if (api instanceof ApiEntity asHttpApiEntity) {
-            var mcp = new Mcp();
-            mcp.setEnabled(
-                asHttpApiEntity.getListeners().getFirst().getEntrypoints().stream().anyMatch(e -> Objects.equals(e.getType(), "mcp"))
-            );
+            Entrypoint mcpEntrypoint = asHttpApiEntity
+                .getListeners()
+                .getFirst()
+                .getEntrypoints()
+                .stream()
+                .filter(e -> Objects.equals(e.getType(), "mcp"))
+                .findFirst()
+                .orElse(null);
 
-            // TODO - MCP: Add list of tools once entrypoint configuration is determined
-            mcp.setTools(Collections.emptyList());
-            return mcp;
+            if (mcpEntrypoint == null) {
+                return null;
+            }
+
+            try {
+                return MAPPER.readValue(mcpEntrypoint.getConfiguration(), new TypeReference<>() {});
+            } catch (JsonProcessingException e) {
+                return null;
+            }
         }
         return null;
     }

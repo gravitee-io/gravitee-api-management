@@ -23,8 +23,10 @@
         <div class="m3-headline-small">{{ api.name }}</div>
         <div class="m3-body-medium">{{ api.version }}</div>
       </div>
-      @if (!!api.mcp?.enabled) {
-        <mat-chip>MCP Server</mat-chip>
+      @if (!!api.mcp) {
+        <mat-chip i18n="@@apiCardMcpEnabled" i18n-matTooltip matTooltip="MCP available for this API">
+          <img matChipAvatar alt="" [src]="'assets/images/mcp.svg'" />MCP</mat-chip
+        >
       }
       @if (plans$ | async; as plans) {
         <div class="api-details__header-button">
@@ -69,7 +71,7 @@
         i18n="@@apiDocumentation"
         >Documentation</a
       >
-      @if (!!api.mcp?.enabled) {
+      @if (!!api.mcp) {
         <a
           mat-tab-link
           [routerLink]="['.', 'tools']"
@@ -77,7 +79,7 @@
           #toolsActive="routerLinkActive"
           [active]="toolsActive.isActive"
           i18n="@@apiMCPTools"
-          >Tools</a
+          >MCP Tools</a
         >
       }
       @if (isAuthenticated()) {
