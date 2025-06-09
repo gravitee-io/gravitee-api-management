@@ -199,6 +199,40 @@
                         "type": "keyword"
                     }
                 }
+            },
+            {
+                "additional_long_metrics": {
+                    "path_match": "additional-metrics.long_*",
+                    "match_mapping_type": "long",
+                    "mapping": {
+                        "type": "long"
+                    }
+                }
+            },
+            {
+                "additional_keyword_metrics": {
+                    "path_match": "additional-metrics.keyword_*",
+                    "match_mapping_type": "string",
+                    "mapping": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            {
+                "additional_boolean_metrics": {
+                    "path_match": "additional-metrics.bool_*",
+                    "mapping": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            {
+                "additional_double_metrics": {
+                    "path_match": "additional-metrics.double_*",
+                    "mapping": {
+                        "type": "double"
+                    }
+                }
             }
         ]
     }

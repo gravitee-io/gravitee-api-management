@@ -19,6 +19,7 @@ This reporter writes access logs to an Elasticsearch instance
 |===
 |Plugin version    | APIM version       | ES version    | JDK version
 
+| 6.x              | 4.8.x              | 7.x and later | 17
 | 5.x              | 4.0.x              | 7.x and later | 17
 | 4.x              | 3.20.x to 4.0.x    | 5.x and later | 11
 | 3.x              | 3.18.x to 3.19.x   | 5.x to 7.x    | 8
