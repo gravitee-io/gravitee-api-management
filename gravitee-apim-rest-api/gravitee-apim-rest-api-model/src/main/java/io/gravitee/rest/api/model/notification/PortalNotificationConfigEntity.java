@@ -18,11 +18,23 @@ package io.gravitee.rest.api.model.notification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
 public class PortalNotificationConfigEntity {
 
     @JsonProperty("config_type")
@@ -35,46 +47,7 @@ public class PortalNotificationConfigEntity {
     private String referenceId;
     private String user;
     private List<String> hooks;
-
-    public NotificationConfigType getConfigType() {
-        return configType;
-    }
-
-    public void setConfigType(NotificationConfigType configType) {
-        this.configType = configType;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public List<String> getHooks() {
-        return hooks;
-    }
-
-    public void setHooks(List<String> hooks) {
-        this.hooks = hooks;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
+    private String organizationId;
 
     @Override
     public boolean equals(Object o) {
@@ -91,28 +64,5 @@ public class PortalNotificationConfigEntity {
     @Override
     public int hashCode() {
         return Objects.hash(user);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "PortalNotificationConfigEntity{" +
-            "user='" +
-            user +
-            '\'' +
-            ", configType='" +
-            configType +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", hooks='" +
-            hooks +
-            '\'' +
-            '}'
-        );
     }
 }

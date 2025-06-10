@@ -708,7 +708,7 @@ public class ApiResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_NOTIFICATION, acls = RolePermissionAction.READ) })
     public List<NotifierEntity> getApiNotifiers() {
-        return notifierService.list(NotificationReferenceType.API, api);
+        return notifierService.list();
     }
 
     @POST

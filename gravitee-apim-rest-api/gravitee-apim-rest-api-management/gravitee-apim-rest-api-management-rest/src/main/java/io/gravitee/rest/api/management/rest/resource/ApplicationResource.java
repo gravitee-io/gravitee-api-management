@@ -261,7 +261,7 @@ public class ApplicationResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ) })
     public List<NotifierEntity> getApplicationNotifiers() {
-        return notifierService.list(NotificationReferenceType.APPLICATION, application);
+        return notifierService.list();
     }
 
     @Path("members")
