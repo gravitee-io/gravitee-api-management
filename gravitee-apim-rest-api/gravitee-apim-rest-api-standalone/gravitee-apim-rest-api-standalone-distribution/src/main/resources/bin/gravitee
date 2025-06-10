@@ -62,17 +62,20 @@ if [ ! -f "$runjar" ]; then
 fi
 GRAVITEE_BOOT_CLASSPATH="$runjar"
 
-if [ "x$GIO_MIN_MEM" = "x" ]; then
-    GIO_MIN_MEM=256m
-fi
-if [ "x$GIO_MAX_MEM" = "x" ]; then
-    GIO_MAX_MEM=256m
-fi
+# enable skip Xms and Xmx to use percentage of resources in k8s
+if [ "x$GIO_DISABLE_STARTING_MEMORY" = "x" ]; then
+  if [ "x$GIO_MIN_MEM" = "x" ]; then
+      GIO_MIN_MEM=256m
+  fi
+  if [ "x$GIO_MAX_MEM" = "x" ]; then
+      GIO_MAX_MEM=256m
+  fi
 
-# min and max heap sizes should be set to the same value to avoid
-# stop-the-world GC pauses during resize
-JAVA_OPTS="$JAVA_OPTS -Xms${GIO_MIN_MEM}"
-JAVA_OPTS="$JAVA_OPTS -Xmx${GIO_MAX_MEM}"
+  # min and max heap sizes should be set to the same value to avoid
+  # stop-the-world GC pauses during resize
+  JAVA_OPTS="$JAVA_OPTS -Xms${GIO_MIN_MEM}"
+  JAVA_OPTS="$JAVA_OPTS -Xmx${GIO_MAX_MEM}"
+fi
 
 # set to headless, just in case
 JAVA_OPTS="$JAVA_OPTS -Djava.awt.headless=true"
