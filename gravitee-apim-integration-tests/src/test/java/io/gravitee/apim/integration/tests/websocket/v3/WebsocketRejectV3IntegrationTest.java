@@ -16,7 +16,6 @@
 package io.gravitee.apim.integration.tests.websocket.v3;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.integration.tests.websocket.v4Emulation.WebsocketRejectV4EmulationIntegrationTest;
 import io.gravitee.definition.model.ExecutionMode;
 

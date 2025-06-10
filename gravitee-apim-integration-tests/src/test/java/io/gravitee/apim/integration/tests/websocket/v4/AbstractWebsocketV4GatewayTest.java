@@ -16,7 +16,6 @@
 package io.gravitee.apim.integration.tests.websocket.v4;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
