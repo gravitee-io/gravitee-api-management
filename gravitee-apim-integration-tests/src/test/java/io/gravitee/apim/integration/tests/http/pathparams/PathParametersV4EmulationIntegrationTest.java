@@ -16,7 +16,6 @@
 package io.gravitee.apim.integration.tests.http.pathparams;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
