@@ -37,10 +37,8 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.dynamicrouting.DynamicRoutingPolicy;
 import io.gravitee.policy.dynamicrouting.configuration.DynamicRoutingPolicyConfiguration;
 import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.net.NetServerOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
@@ -227,12 +225,12 @@ public class FailoverV3IntegrationTest {
             netServer.rxClose().subscribe();
         }
 
-        @Test
-        @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
-        @Order(4)
         /**
          * This test ensures the retries are done with the body each time, as body is normally consumable only once.
          */
+        @Test
+        @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
+        @Order(4)
         void should_retry_and_fail_on_slow_call_posting_payload(HttpClient client) {
             // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
             // and only one group with one endpoint

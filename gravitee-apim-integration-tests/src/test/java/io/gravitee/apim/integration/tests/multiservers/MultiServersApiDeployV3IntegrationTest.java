@@ -17,12 +17,8 @@ package io.gravitee.apim.integration.tests.multiservers;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.vertx.rxjava3.core.http.HttpClient;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
