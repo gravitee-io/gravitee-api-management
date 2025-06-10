@@ -569,8 +569,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             } else {
                 final String username = subject.toString();
                 LOGGER.debug("Create an internal user {}", username);
-                Optional<User> checkUser = userRepository.findById(username);
-                user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
+                user = userRepository.findById(username).orElseThrow(() -> new UserNotFoundException(username));
                 if (StringUtils.isNotBlank(user.getPassword())) {
                     throw new UserAlreadyFinalizedException(executionContext.getOrganizationId());
                 }
@@ -619,6 +618,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             final UserEntity userEntity = convert(user, true);
             searchEngineService.index(executionContext, userEntity, false);
+            notifierService.trigger(executionContext, PortalHook.USER_REGISTERED, Map.of("user", userEntity));
             return userEntity;
         } catch (AbstractManagementException ex) {
             throw ex;
