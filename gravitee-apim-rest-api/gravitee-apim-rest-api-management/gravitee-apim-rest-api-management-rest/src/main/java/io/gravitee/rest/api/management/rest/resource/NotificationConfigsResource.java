@@ -43,8 +43,8 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "Portal Notifications")
-public class PortalNotificationSettingsResource extends AbstractResource {
+@Tag(name = "Notifications Configs")
+public class NotificationConfigsResource extends AbstractResource {
 
     @Inject
     private PortalNotificationConfigService portalNotificationConfigService;
@@ -56,19 +56,22 @@ public class PortalNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Get notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = ENVIRONMENT_NOTIFICATION, acls = READ) })
-    public List<Object> getPortalNotificationSettings() {
+    public List<Object> getNotificationConfigs() {
         List<Object> settings = new ArrayList<>();
         settings.add(
             portalNotificationConfigService.findById(
                 getAuthenticatedUser(),
-                NotificationReferenceType.PORTAL,
+                NotificationReferenceType.ENVIRONMENT,
                 GraviteeContext.getCurrentEnvironment()
             )
         );
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, executionContext.getEnvironmentId(), CREATE, UPDATE, DELETE)) {
             settings.addAll(
-                genericNotificationConfigService.findByReference(NotificationReferenceType.PORTAL, GraviteeContext.getCurrentEnvironment())
+                genericNotificationConfigService.findByReference(
+                    NotificationReferenceType.ENVIRONMENT,
+                    GraviteeContext.getCurrentEnvironment()
+                )
             );
         }
         return settings;
@@ -78,11 +81,12 @@ public class PortalNotificationSettingsResource extends AbstractResource {
     @Operation(summary = "Create notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Object createPortalNotificationSetting(GenericNotificationConfigEntity config) {
-        if (!NotificationReferenceType.PORTAL.name().equals(config.getReferenceType())) {
+    public Object createGenericNotificationSetting(GenericNotificationConfigEntity config) {
+        if (!NotificationReferenceType.ENVIRONMENT.name().equals(config.getReferenceType())) {
             throw new ForbiddenAccessException();
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        config.setOrganizationId(executionContext.getOrganizationId());
         if (
             config.getConfigType().equals(NotificationConfigType.GENERIC) &&
             hasPermission(executionContext, ENVIRONMENT_NOTIFICATION, executionContext.getEnvironmentId(), CREATE)
@@ -109,7 +113,7 @@ public class PortalNotificationSettingsResource extends AbstractResource {
     ) {
         if (
             !GraviteeContext.getCurrentEnvironment().equals(config.getReferenceId()) ||
-            !NotificationReferenceType.PORTAL.name().equals(config.getReferenceType()) ||
+            !NotificationReferenceType.ENVIRONMENT.name().equals(config.getReferenceType()) ||
             !config.getConfigType().equals(NotificationConfigType.GENERIC) ||
             !notificationId.equals(config.getId())
         ) {
@@ -126,12 +130,13 @@ public class PortalNotificationSettingsResource extends AbstractResource {
     public PortalNotificationConfigEntity updatePortalNotificationSettings(PortalNotificationConfigEntity config) {
         if (
             !GraviteeContext.getCurrentEnvironment().equals(config.getReferenceId()) ||
-            !NotificationReferenceType.PORTAL.name().equals(config.getReferenceType()) ||
+            !NotificationReferenceType.ENVIRONMENT.name().equals(config.getReferenceType()) ||
             !config.getConfigType().equals(NotificationConfigType.PORTAL)
         ) {
             throw new ForbiddenAccessException();
         }
         config.setUser(getAuthenticatedUser());
+        config.setOrganizationId(GraviteeContext.getExecutionContext().getOrganizationId());
         return portalNotificationConfigService.save(config);
     }
 
@@ -146,13 +151,14 @@ public class PortalNotificationSettingsResource extends AbstractResource {
         return Response.noContent().build();
     }
 
-    private PortalNotificationConfigEntity convert(GenericNotificationConfigEntity generic) {
+    PortalNotificationConfigEntity convert(GenericNotificationConfigEntity generic) {
         PortalNotificationConfigEntity portalNotificationConfigEntity = new PortalNotificationConfigEntity();
         portalNotificationConfigEntity.setConfigType(generic.getConfigType());
         portalNotificationConfigEntity.setReferenceType(generic.getReferenceType());
         portalNotificationConfigEntity.setReferenceId(generic.getReferenceId());
         portalNotificationConfigEntity.setUser(getAuthenticatedUser());
         portalNotificationConfigEntity.setHooks(generic.getHooks());
+        portalNotificationConfigEntity.setOrganizationId(generic.getOrganizationId());
         return portalNotificationConfigEntity;
     }
 }

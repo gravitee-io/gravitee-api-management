@@ -13,42 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.repository.management.api.search;
 
-import java.util.Date;
-import java.util.List;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-/**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Builder(toBuilder = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
-@Setter
-@ToString
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class GenericNotificationConfig {
+@AllArgsConstructor
+@Builder
+public class PortalNotificationCriteria {
 
-    @EqualsAndHashCode.Include
-    private String id;
-
-    private String name;
-    private String notifier;
-    private String config;
-    private boolean useSystemProxy;
-    private List<String> hooks;
+    private String hook;
     private NotificationReferenceType referenceType;
     private String referenceId;
     private String organizationId;
-    private Date createdAt;
-    private Date updatedAt;
 }

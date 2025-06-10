@@ -31,6 +31,7 @@ public interface PortalNotificationConfigRepository extends FindAllRepository<Po
     void delete(PortalNotificationConfig portalNotificationConfig) throws TechnicalException;
     Optional<PortalNotificationConfig> findById(String user, NotificationReferenceType referenceType, String referenceId)
         throws TechnicalException;
+    List<PortalNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) throws TechnicalException;
     List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
         throws TechnicalException;
     void deleteByUser(String user) throws TechnicalException;
