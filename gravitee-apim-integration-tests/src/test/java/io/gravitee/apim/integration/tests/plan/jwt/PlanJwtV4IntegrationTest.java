@@ -15,14 +15,8 @@
  */
 package io.gravitee.apim.integration.tests.plan.jwt;
 
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.JWT_SECRET;
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_JWT_ID;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
-import static io.gravitee.policy.jwt.alg.Signature.HMAC_HS256;
-import static io.gravitee.policy.v3.jwt.resolver.KeyResolver.GIVEN_KEY;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -31,10 +25,6 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.plan.Plan;
-import io.gravitee.definition.model.v4.plan.PlanMode;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -42,8 +32,6 @@ import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
-import io.gravitee.policy.jwt.configuration.JWTPolicyConfiguration;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;

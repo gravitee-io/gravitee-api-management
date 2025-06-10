@@ -13,21 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package testcases;/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package testcases;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +27,7 @@ import io.gravitee.apim.gateway.tests.sdk.policy.fakes.Header2Policy;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -59,7 +46,7 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
         httpClient
             .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> request.rxSend())
+            .flatMap(HttpClientRequest::rxSend)
             .test()
             .await()
             .assertValue(response -> {
@@ -79,7 +66,7 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
         httpClient
             .rxRequest(HttpMethod.GET, "/test2")
-            .flatMap(request -> request.rxSend())
+            .flatMap(HttpClientRequest::rxSend)
             .test()
             .await()
             .assertValue(response -> {
@@ -101,8 +88,8 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
         super.updateOrganization(
             "ORGA-1",
             organization -> {
-                organization.getFlows().get(0).getPre().get(0).setPolicy("header-policy2");
-                organization.getFlows().get(0).getPost().get(0).setPolicy("header-policy2");
+                organization.getFlows().getFirst().getPre().getFirst().setPolicy("header-policy2");
+                organization.getFlows().getFirst().getPost().getFirst().setPolicy("header-policy2");
             }
         );
 
@@ -110,7 +97,7 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
         httpClient
             .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(request -> request.rxSend())
+            .flatMap(HttpClientRequest::rxSend)
             .test()
             .await()
             .assertValue(response -> {

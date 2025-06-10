@@ -28,9 +28,7 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.apikey.ApiKeyPolicy;
 import io.gravitee.policy.apikey.ApiKeyPolicyInitializer;
 import io.gravitee.policy.apikey.configuration.ApiKeyPolicyConfiguration;
-import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class AbstractCorsIntegrationTest extends AbstractGatewayTest {
 
