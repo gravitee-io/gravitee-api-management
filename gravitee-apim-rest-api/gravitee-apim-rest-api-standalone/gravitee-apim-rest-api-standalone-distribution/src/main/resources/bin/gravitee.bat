@@ -18,17 +18,20 @@ for /f %%i in ('dir ..\lib\gravitee-apim-rest-api-standalone-bootstrap-*.jar /s 
 
 set GRAVITEE_BOOT_CLASSPATH=%runjar%
 
-if "%GIO_MIN_MEM%" == "" (
-set GIO_MIN_MEM=256m
-)
+REM enable skip Xms and Xmx to use percentage of resources
+if "%GIO_DISABLE_STARTING_MEMORY%" == "" (
+    if "%GIO_MIN_MEM%" == "" (
+    set GIO_MIN_MEM=256m
+    )
 
-if "%GIO_MAX_MEM%" == "" (
-set GIO_MAX_MEM=256m
-)
+    if "%GIO_MAX_MEM%" == "" (
+    set GIO_MAX_MEM=256m
+    )
 
-REM min and max heap sizes should be set to the same value to avoid
-REM stop-the-world GC pauses during resize
-set JAVA_OPTS=%JAVA_OPTS% -Xms%GIO_MIN_MEM% -Xmx%GIO_MAX_MEM%
+    REM min and max heap sizes should be set to the same value to avoid
+    REM stop-the-world GC pauses during resize
+    set JAVA_OPTS=%JAVA_OPTS% -Xms%GIO_MIN_MEM% -Xmx%GIO_MAX_MEM%
+)
 
 REM set to headless, just in case
 set JAVA_OPTS=%JAVA_OPTS% -Djava.awt.headless=true
