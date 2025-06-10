@@ -30,6 +30,7 @@ public interface GenericNotificationConfigRepository extends FindAllRepository<G
     GenericNotificationConfig update(GenericNotificationConfig genericNotificationConfig) throws TechnicalException;
     void delete(String id) throws TechnicalException;
     Optional<GenericNotificationConfig> findById(String id) throws TechnicalException;
+    List<GenericNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) throws TechnicalException;
     List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
         throws TechnicalException;
     List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException;
