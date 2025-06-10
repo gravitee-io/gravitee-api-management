@@ -50,6 +50,7 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -76,7 +77,7 @@ public class ManuallyRedeployTestCase extends AbstractGatewayTest {
 
         httpClient
             .rxRequest(HttpMethod.GET, "/test/my_team")
-            .flatMap(request -> request.rxSend())
+            .flatMap(HttpClientRequest::rxSend)
             .flatMapPublisher(response -> {
                 assertThat(response.statusCode()).isEqualTo(200);
                 assertThat(response.headers().contains("X-Gravitee-Policy")).isFalse();

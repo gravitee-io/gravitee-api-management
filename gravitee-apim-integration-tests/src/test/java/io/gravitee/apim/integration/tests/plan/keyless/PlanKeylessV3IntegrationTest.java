@@ -15,10 +15,7 @@
  */
 package io.gravitee.apim.integration.tests.plan.keyless;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static io.gravitee.definition.model.ExecutionMode.V3;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 

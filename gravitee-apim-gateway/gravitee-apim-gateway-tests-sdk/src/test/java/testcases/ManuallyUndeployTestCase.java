@@ -13,24 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package testcases;/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package testcases;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -59,7 +43,7 @@ public class ManuallyUndeployTestCase extends AbstractGatewayTest {
     @Test
     @DisplayName("Should undeploy one api")
     @DeployApi({ "/apis/success-flow.json", "/apis/teams.json" })
-    void shouldUndeployOneApi() throws InterruptedException {
+    void shouldUndeployOneApi() {
         assertThat(deployedApis).hasSize(2);
         undeploy("api-test");
         assertThat(deployedApis).hasSize(1);

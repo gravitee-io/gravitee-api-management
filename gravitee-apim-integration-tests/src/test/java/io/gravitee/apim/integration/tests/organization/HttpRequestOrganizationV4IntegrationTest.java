@@ -15,10 +15,8 @@
  */
 package io.gravitee.apim.integration.tests.organization;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
@@ -35,7 +33,6 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
-import io.vertx.core.json.JsonObject;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;

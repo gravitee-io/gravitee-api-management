@@ -17,7 +17,6 @@ package io.gravitee.apim.integration.tests.plan.multiple;
 
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.createTrustedHttpClient;
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.getUrl;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
