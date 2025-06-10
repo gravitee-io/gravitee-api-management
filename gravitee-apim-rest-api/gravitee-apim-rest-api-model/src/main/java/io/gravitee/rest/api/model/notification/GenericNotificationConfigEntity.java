@@ -23,6 +23,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -33,6 +34,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class GenericNotificationConfigEntity {
 
     @JsonProperty("config_type")
@@ -48,6 +50,7 @@ public class GenericNotificationConfigEntity {
     private List<String> groups;
     private List<String> hooks;
     private boolean useSystemProxy;
+    private String organizationId;
 
     @Override
     public boolean equals(Object o) {
@@ -60,40 +63,5 @@ public class GenericNotificationConfigEntity {
     @Override
     public int hashCode() {
         return Objects.hash(notifier);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "GenericNotificationConfigEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", configType='" +
-            configType +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", notifier='" +
-            notifier +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", hooks='" +
-            hooks +
-            '\'' +
-            ", useSystemProxy='" +
-            useSystemProxy +
-            '\'' +
-            ", config='" +
-            config +
-            '\'' +
-            '}'
-        );
     }
 }

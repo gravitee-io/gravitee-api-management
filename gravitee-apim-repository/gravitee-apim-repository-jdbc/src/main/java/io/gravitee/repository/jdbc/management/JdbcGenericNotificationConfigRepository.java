@@ -21,11 +21,14 @@ import io.gravitee.repository.management.api.GenericNotificationConfigRepository
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -63,6 +66,7 @@ public class JdbcGenericNotificationConfigRepository
             .addColumn("reference_type", Types.NVARCHAR, NotificationReferenceType.class)
             .addColumn("use_system_proxy", Types.BOOLEAN, boolean.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
     }
@@ -143,6 +147,45 @@ public class JdbcGenericNotificationConfigRepository
             LOGGER.error("Failed to delete generic notification config for refId: {}/{}", referenceId, referenceType, ex);
             throw new TechnicalException("Failed to delete generic notification config by reference", ex);
         }
+    }
+
+    @Override
+    public List<GenericNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) {
+        String sql =
+            "SELECT gc.*, gch.hook FROM " +
+            getOrm().getTableName() +
+            " gc " +
+            "INNER JOIN " +
+            GENERIC_NOTIFICATION_CONFIG_HOOKS +
+            " gch ON gc.id = gch.id " +
+            "WHERE gc.id IN (select id FROM " +
+            GENERIC_NOTIFICATION_CONFIG_HOOKS +
+            " WHERE hook = ?) AND gc.organization_id = ?";
+
+        var configs = jdbcTemplate.query(
+            sql,
+            (ResultSet rs) -> {
+                Map<String, GenericNotificationConfig> configsById = new HashMap<>();
+                while (rs.next()) {
+                    String id = rs.getString("id");
+                    String rsHook = rs.getString("hook");
+                    if (configsById.containsKey(id)) {
+                        configsById.get(id).getHooks().add(rsHook);
+                    } else {
+                        GenericNotificationConfig genericNotificationConfig = new GenericNotificationConfig();
+                        getOrm().setFromResultSet(genericNotificationConfig, rs);
+                        List<String> hooks = new ArrayList<>();
+                        hooks.add(rsHook);
+                        genericNotificationConfig.setHooks(hooks);
+                        configsById.put(id, genericNotificationConfig);
+                    }
+                }
+                return new ArrayList<>(configsById.values());
+            },
+            hook,
+            orgId
+        );
+        return configs;
     }
 
     @Override

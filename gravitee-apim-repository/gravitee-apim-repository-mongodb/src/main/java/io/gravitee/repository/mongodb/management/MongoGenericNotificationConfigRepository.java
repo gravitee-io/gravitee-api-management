@@ -86,6 +86,12 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
     }
 
     @Override
+    public List<GenericNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) {
+        LOGGER.debug("Find GenericNotificationConfig by hook and organizationId [{}, {}]", hook, orgId);
+        return internalRepo.findByHookAndOrganizationId(hook, orgId).stream().map(this::map).collect(Collectors.toList());
+    }
+
+    @Override
     public List<GenericNotificationConfig> findByReferenceAndHook(
         String hook,
         NotificationReferenceType referenceType,
@@ -143,6 +149,7 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
         mongo.setHooks(genericNotificationConfig.getHooks());
         mongo.setCreatedAt(genericNotificationConfig.getCreatedAt());
         mongo.setUpdatedAt(genericNotificationConfig.getUpdatedAt());
+        mongo.setOrganizationId(genericNotificationConfig.getOrganizationId());
 
         return mongo;
     }
@@ -159,6 +166,7 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
         cfg.setHooks(mongo.getHooks());
         cfg.setCreatedAt(mongo.getCreatedAt());
         cfg.setUpdatedAt(mongo.getUpdatedAt());
+        cfg.setOrganizationId(mongo.getOrganizationId());
 
         return cfg;
     }

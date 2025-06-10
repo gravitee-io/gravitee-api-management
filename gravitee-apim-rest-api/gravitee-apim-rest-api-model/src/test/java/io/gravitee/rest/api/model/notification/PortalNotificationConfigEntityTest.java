@@ -35,13 +35,18 @@ class PortalNotificationConfigEntityTest {
     @ParameterizedTest
     @CsvSource(value = { "foo,'',''", "'',foo,''", "'',foo,''", "null,'',''", "'',null,''", "'',null,''" }, nullValues = "null")
     void should_fail_to_create_default_notification_settings(String user, String referenceType, String referenceId) {
-        assertThatThrownBy(() -> PortalNotificationConfigEntity.newDefaultEmpty(user, referenceType, referenceId))
+        assertThatThrownBy(() -> PortalNotificationConfigEntity.newDefaultEmpty(user, referenceType, referenceId, null))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void should_create_empty_default_config() {
-        PortalNotificationConfigEntity portalNotificationConfigEntity = PortalNotificationConfigEntity.newDefaultEmpty("foo", "API", "bar");
+        PortalNotificationConfigEntity portalNotificationConfigEntity = PortalNotificationConfigEntity.newDefaultEmpty(
+            "foo",
+            "API",
+            "bar",
+            "org1"
+        );
         assertThat(portalNotificationConfigEntity.isDefaultEmpty()).isTrue();
     }
 
@@ -53,6 +58,7 @@ class PortalNotificationConfigEntityTest {
         empty.setUser("user");
         empty.setReferenceId("123");
         empty.setReferenceType("API");
+        empty.setOrganizationId("org1");
         assertThat(empty.isDefaultEmpty()).isTrue();
 
         empty.setHooks(Arrays.asList("A", "B", "C"));

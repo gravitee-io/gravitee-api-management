@@ -82,6 +82,12 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
     }
 
     @Override
+    public List<PortalNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) {
+        log.debug("Find PortalNotificationConfigs by hook and orgId [{}, {}]", hook, orgId);
+        return internalRepo.findByHookAndOrganizationId(hook, orgId).stream().map(this::map).collect(Collectors.toList());
+    }
+
+    @Override
     public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) {
         log.debug("Find PortalNotificationConfigs [{}, {}, {}]", hook, referenceType, referenceId);
         return internalRepo.findByReferenceAndHook(hook, referenceType.name(), referenceId).stream().map(this::map).toList();
@@ -112,6 +118,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
         mongo.setCreatedAt(portalNotificationConfig.getCreatedAt());
         mongo.setUpdatedAt(portalNotificationConfig.getUpdatedAt());
         mongo.setOrigin(portalNotificationConfig.getOrigin());
+        mongo.setOrganizationId(portalNotificationConfig.getOrganizationId());
 
         return mongo;
     }
@@ -127,6 +134,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
             .createdAt(mongo.getCreatedAt())
             .updatedAt(mongo.getUpdatedAt())
             .origin(mongo.getOrigin())
+            .organizationId(mongo.getOrganizationId())
             .build();
     }
 
