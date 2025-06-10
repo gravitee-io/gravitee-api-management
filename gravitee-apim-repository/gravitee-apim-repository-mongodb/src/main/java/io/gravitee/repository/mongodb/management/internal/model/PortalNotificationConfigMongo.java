@@ -42,4 +42,5 @@ public class PortalNotificationConfigMongo {
     private List<String> hooks;
     private Date createdAt;
     private Date updatedAt;
+    private String organizationId;
 }

@@ -17,13 +17,13 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -32,53 +32,24 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
+@Getter
+@Setter
 public class PortalNotificationConfig {
 
+    @EqualsAndHashCode.Include
     private String user;
+
     private List<String> hooks;
+
+    @EqualsAndHashCode.Include
     private NotificationReferenceType referenceType;
+
+    @EqualsAndHashCode.Include
     private String referenceId;
+
+    private String organizationId;
     private Date createdAt;
     private Date updatedAt;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        PortalNotificationConfig portalNotificationConfig = (PortalNotificationConfig) o;
-        return (
-            Objects.equals(referenceType, portalNotificationConfig.referenceType) &&
-            Objects.equals(referenceId, portalNotificationConfig.referenceId) &&
-            Objects.equals(user, portalNotificationConfig.user)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(referenceType, referenceId, user);
-    }
-
-    public String toString() {
-        return (
-            "PortalNotificationConfig{" +
-            "user='" +
-            user +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", hooks='" +
-            hooks +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
-    }
 }

@@ -1,35 +1,12 @@
 [
   {
-    "user": "userid",
-    "referenceType": "API",
-    "referenceId": "config-to-delete",
-    "hooks": ["A", "B"],
-    "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
-  },
-  {
-    "user": "userid",
-    "referenceType": "API",
-    "referenceId": "config-to-update",
-    "hooks": ["A", "B"],
-    "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
-  },
-  {
-    "user": "userid",
-    "referenceType": "API",
-    "referenceId": "config-to-find",
-    "hooks": ["A", "B"],
-    "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
-  },
-  {
     "user": "userA",
     "referenceType": "APPLICATION",
     "referenceId": "search",
     "hooks": ["A", "B"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "organizationId": "org1"
   },
   {
     "user": "userB",
@@ -37,7 +14,8 @@
     "referenceId": "search",
     "hooks": ["B", "C"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "organizationId": "org1"
   },
   {
     "user": "userC",
@@ -45,7 +23,38 @@
     "referenceId": "search",
     "hooks": ["A", "C"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "organizationId": "org2"
+  },
+  {
+    "user": "userD",
+    "referenceType": "API",
+    "referenceId": "config-to-delete",
+    "hooks": ["A", "B"],
+    "groups": ["1", "2"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883,
+    "organizationId": "org3"
+  },
+  {
+    "user": "userE",
+    "referenceType": "API",
+    "referenceId": "config-to-update",
+    "hooks": ["A", "B"],
+    "groups": ["1", "2"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883,
+    "organizationId": "org3"
+  },
+  {
+    "user": "userF",
+    "referenceType": "API",
+    "referenceId": "config-to-find",
+    "hooks": ["A", "B"],
+    "groups": ["1", "2"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883,
+    "organizationId": "org1"
   },
   {
     "user": "useridToDelete",
@@ -53,7 +62,8 @@
     "referenceId": "config",
     "hooks": ["A", "C"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "organizationId": "org2"
   },
   {
     "user": "apiToDelete-1",
@@ -61,7 +71,8 @@
     "referenceId": "apiToDelete",
     "hooks": ["D"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "organizationId": "org1"
   },
   {
     "user": "apiToDelete-2",
@@ -69,6 +80,7 @@
     "referenceId": "apiToDelete",
     "hooks": ["D"],
     "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
+    "updatedAt": 1439022010883,
+    "organizationId": "org3"
   }
 ]
