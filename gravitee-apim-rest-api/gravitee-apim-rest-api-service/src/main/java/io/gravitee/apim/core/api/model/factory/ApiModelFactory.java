@@ -84,7 +84,8 @@ public class ApiModelFactory {
         if (api.isNative()) {
             api.setApiDefinitionNativeV4(crd.toNativeApiDefinitionBuilder().id(id).build());
         } else {
-            api.setApiDefinitionHttpV4(crd.toApiDefinitionBuilder().id(id).build());
+            io.gravitee.definition.model.v4.Api build = crd.toApiDefinitionBuilder().id(id).build();
+            api.setApiDefinitionHttpV4(build);
         }
 
         return api;

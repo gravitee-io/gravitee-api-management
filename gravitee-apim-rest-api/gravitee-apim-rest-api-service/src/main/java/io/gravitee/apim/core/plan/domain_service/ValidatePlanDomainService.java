@@ -62,11 +62,11 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
         List<Error> errors = new ArrayList<>();
         Map<String, PlanCRD> sanitizedPlans = new HashMap<>();
 
-        input.plans.forEach((k, v) -> {
+        input.plans.forEach((k, planCRD) -> {
             try {
-                Plan plan = PlanModelFactory.fromCRDSpec(v, input.apiCRDSpec);
-                if (plan.getId() == null && input.apiCRDSpec.getHrid() != null) {
-                    plan.setId(IdBuilder.builder(input.auditInfo, input.apiCRDSpec.getHrid()).withExtraId(k).buildId());
+                Plan plan = PlanModelFactory.fromCRDSpec(planCRD, input.apiCRDSpec);
+                if (planCRD.getId() == null && input.apiCRDSpec.getHrid() != null) {
+                    planCRD.setId(IdBuilder.builder(input.auditInfo, input.apiCRDSpec.getHrid()).withExtraId(k).buildId());
                 }
 
                 planValidator.validatePlanSecurity(
@@ -82,7 +82,7 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
                     input.apiCRDSpec.getListeners().stream().map(AbstractListener::getType).toList()
                 );
 
-                sanitizedPlans.put(k, v);
+                sanitizedPlans.put(k, planCRD);
             } catch (Exception e) {
                 errors.add(Error.severe("invalid plan [%s]. Error: %s", k, e.getMessage()));
             }
