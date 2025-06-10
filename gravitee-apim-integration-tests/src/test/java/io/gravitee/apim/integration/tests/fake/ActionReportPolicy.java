@@ -15,20 +15,9 @@
  */
 package io.gravitee.apim.integration.tests.fake;
 
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.policy.api.PolicyChain;
-import io.gravitee.policy.api.annotations.OnRequest;
-import io.gravitee.policy.api.annotations.OnRequestContent;
-import io.gravitee.policy.api.annotations.OnResponse;
-import io.gravitee.policy.api.annotations.OnResponseContent;
-import io.gravitee.reporter.api.log.Log;
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.core.Vertx;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Allow to add some actions that will be executed just before reporting metrics.

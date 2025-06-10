@@ -26,7 +26,6 @@ import io.gravitee.gateway.grpc.helloworld.HelloReply;
 import io.gravitee.gateway.grpc.helloworld.HelloRequest;
 import io.vertx.core.http.HttpServer;
 import io.vertx.grpc.common.GrpcReadStream;
-import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
 import io.vertx.grpcio.server.GrpcIoServer;
 import java.util.concurrent.CountDownLatch;
@@ -45,7 +44,7 @@ import org.junit.jupiter.api.Test;
 public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
 
     @Test
-    void should_request_and_get_response() throws InterruptedException {
+    void should_request_and_get_response() {
         // create the backend
         GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
         grpcServer.callHandler(
