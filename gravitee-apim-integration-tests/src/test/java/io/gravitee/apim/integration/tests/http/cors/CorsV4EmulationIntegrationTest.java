@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.integration.tests.fake.AddHeaderPolicy;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
