@@ -15,11 +15,17 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.common.data.domain.Order;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.GroupSimpleEntity;
+import io.gravitee.rest.api.model.NewGroupEntity;
+import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;

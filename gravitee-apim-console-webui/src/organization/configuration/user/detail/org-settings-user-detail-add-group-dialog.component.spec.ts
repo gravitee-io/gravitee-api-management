@@ -105,7 +105,7 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
     httpTestingController
       .expectOne({
         method: 'GET',
-        url: `${CONSTANTS_TESTING.org.baseURL}/groups`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/groups`,
       })
       .flush(groups);
   }

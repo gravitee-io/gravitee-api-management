@@ -34,6 +34,8 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.GroupCriteria;
+import io.gravitee.repository.management.api.search.GroupCriteria;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
@@ -416,7 +418,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     public GroupEntity findById(ExecutionContext executionContext, String groupId) {
         try {
             logger.debug("findById {}", groupId);
-            Optional<Group> group = groupRepository.findById(groupId);
+            Optional<Group> group = groupRepository
+                .findById(groupId)
+                .filter(g ->
+                    !executionContext.hasEnvironmentId() || g.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                );
             if (!group.isPresent()) {
                 throw new GroupNotFoundException(groupId);
             }
@@ -961,7 +967,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         return entity;
     }
 
-    private GroupEntity map(Group group) {
+    GroupEntity map(Group group) {
         return map(null, group);
     }
 
