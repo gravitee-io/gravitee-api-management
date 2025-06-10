@@ -19,7 +19,6 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.grpc.client.GrpcClient;
 import io.vertx.grpcio.client.GrpcIoClient;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
