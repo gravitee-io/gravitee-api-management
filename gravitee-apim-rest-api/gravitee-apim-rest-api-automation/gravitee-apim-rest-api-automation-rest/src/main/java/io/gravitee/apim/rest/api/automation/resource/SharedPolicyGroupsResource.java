@@ -56,7 +56,6 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     private ValidateSharedPolicyGroupCRDDomainService validateSharedPolicyGroupCRDDomainService;
 
     @PUT
-    @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })

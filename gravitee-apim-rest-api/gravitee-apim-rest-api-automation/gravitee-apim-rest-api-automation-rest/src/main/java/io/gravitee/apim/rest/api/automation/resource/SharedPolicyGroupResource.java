@@ -52,7 +52,6 @@ public class SharedPolicyGroupResource extends AbstractResource {
     private DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase;
 
     @GET
-    @Path("/")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
     public Response get() {
         var executionContext = GraviteeContext.getExecutionContext();
@@ -69,7 +68,6 @@ public class SharedPolicyGroupResource extends AbstractResource {
     }
 
     @DELETE
-    @Path("/")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.DELETE }) })
     public Response delete(@QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
