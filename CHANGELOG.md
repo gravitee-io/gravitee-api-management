@@ -1,3 +1,13 @@
+# [6.0.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.9.3...6.0.0) (2025-06-10)
+
+
+* feat!: support additional metrics ([8fb7654](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/8fb7654152c731cee1920112c32837a61e9b3e9a))
+
+
+### BREAKING CHANGES
+
+* need reporter-api 1.34 or later
+
 ## [5.9.3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.9.2...5.9.3) (2025-06-09)
 
 
