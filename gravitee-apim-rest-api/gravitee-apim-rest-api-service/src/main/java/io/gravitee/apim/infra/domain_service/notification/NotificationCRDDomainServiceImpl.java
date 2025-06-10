@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -62,7 +63,14 @@ public class NotificationCRDDomainServiceImpl implements NotificationCRDDomainSe
         // there was a notification, need to delete the old one
         if (!existing.isDefaultEmpty()) {
             // this will discard all notifications for that API
-            portalNotificationConfigService.save(PortalNotificationConfigEntity.newDefaultEmpty(user, referenceType.name(), referenceId));
+            portalNotificationConfigService.save(
+                PortalNotificationConfigEntity.newDefaultEmpty(
+                    user,
+                    referenceType.name(),
+                    referenceId,
+                    GraviteeContext.getExecutionContext().getOrganizationId()
+                )
+            );
         }
     }
 }
