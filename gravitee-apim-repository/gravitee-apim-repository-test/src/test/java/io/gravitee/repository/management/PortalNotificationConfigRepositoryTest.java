@@ -17,6 +17,9 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -44,6 +47,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .user("userid")
             .hooks(Arrays.asList("A", "B", "C"))
             .groups(Set.of("1", "2", "3"))
+            .organizationId("org1")
             .updatedAt(new Date(1439022010883L))
             .createdAt(new Date(1439022010883L))
             .origin(Origin.MANAGEMENT)
@@ -56,7 +60,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
 
     @Test
     public void shouldDelete() throws Exception {
-        assertThat(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete")).isPresent();
+        assertTrue(portalNotificationConfigRepository.findById("userD", NotificationReferenceType.API, "config-to-delete").isPresent());
 
         final PortalNotificationConfig cfg = PortalNotificationConfig
             .builder()
@@ -76,9 +80,10 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-to-update")
-            .user("userid")
+            .user("userE")
             .hooks(Arrays.asList("D", "B", "C"))
             .groups(Set.of("7", "8", "9"))
+            .organizationId("org1")
             .updatedAt(new Date(1479022010883L))
             .createdAt(new Date(1469022010883L))
             .origin(Origin.MANAGEMENT)
@@ -95,16 +100,17 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
             .builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-to-find")
-            .user("userid")
+            .user("userF")
             .hooks(Arrays.asList("A", "B"))
             .groups(Set.of("1", "2"))
             .updatedAt(new Date(1439022010883L))
             .createdAt(new Date(1439022010883L))
             .origin(Origin.MANAGEMENT)
+            .organizationId("org1")
             .build();
 
         Optional<PortalNotificationConfig> optNotificationFound = portalNotificationConfigRepository.findById(
-            "userid",
+            "userF",
             NotificationReferenceType.API,
             "config-to-find"
         );
@@ -174,6 +180,19 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
     }
 
     @Test
+    public void shouldFindByHookAndOrganizationId() throws Exception {
+        List<PortalNotificationConfig> configs = portalNotificationConfigRepository.findByHookAndOrganizationId("A", "org1");
+        List<String> userIds = configs.stream().map(PortalNotificationConfig::getUser).toList();
+        assertAll(() -> assertEquals("size", 2, configs.size()), () -> assertTrue(userIds.containsAll(List.of("userA", "userF"))));
+    }
+
+    @Test
+    public void shouldNotFindByHookAndOrganizationId() throws Exception {
+        List<PortalNotificationConfig> configs = portalNotificationConfigRepository.findByHookAndOrganizationId("A", "org4");
+        assertTrue("size", configs.isEmpty());
+    }
+
+    @Test
     public void shouldDeleteByUser() throws Exception {
         portalNotificationConfigRepository.deleteByUser("useridToDelete");
 
@@ -202,13 +221,16 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
     }
 
     private static void assertNotification(PortalNotificationConfig actual, PortalNotificationConfig expected) {
-        assertThat(actual.getReferenceType()).isEqualTo(expected.getReferenceType());
-        assertThat(actual.getReferenceId()).isEqualTo(expected.getReferenceId());
-        assertThat(actual.getUser()).isEqualTo(expected.getUser());
-        assertThat(actual.getHooks()).containsExactlyInAnyOrderElementsOf(expected.getHooks());
-        assertThat(actual.getGroups()).containsExactlyInAnyOrderElementsOf(expected.getGroups());
-        assertThat(actual.getOrigin()).isEqualTo(expected.getOrigin());
-        assertThat(compareDate(actual.getCreatedAt(), expected.getCreatedAt())).isTrue();
-        assertThat(compareDate(actual.getUpdatedAt(), expected.getUpdatedAt())).isTrue();
+        assertAll(
+            () -> assertThat(actual.getReferenceType()).isEqualTo(expected.getReferenceType()),
+            () -> assertThat(actual.getReferenceId()).isEqualTo(expected.getReferenceId()),
+            () -> assertThat(actual.getUser()).isEqualTo(expected.getUser()),
+            () -> assertThat(actual.getHooks()).containsExactlyInAnyOrderElementsOf(expected.getHooks()),
+            () -> assertThat(actual.getGroups()).containsExactlyInAnyOrderElementsOf(expected.getGroups()),
+            () -> assertThat(actual.getOrigin()).isEqualTo(expected.getOrigin()),
+            () -> assertThat(actual.getOrganizationId()).isEqualTo(expected.getOrganizationId()),
+            () -> assertThat(compareDate(actual.getCreatedAt(), expected.getCreatedAt())).isTrue(),
+            () -> assertThat(compareDate(actual.getUpdatedAt(), expected.getUpdatedAt())).isTrue()
+        );
     }
 }

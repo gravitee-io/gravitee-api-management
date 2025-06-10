@@ -136,11 +136,14 @@ class NotifierServiceImplTest {
 
             cut.triggerGenericNotifications(
                 executionContext,
-                ApiHook.API_STARTED,
-                NotificationReferenceType.API,
-                "api-id",
-                params,
-                List.of()
+                NotifierServiceImpl.TriggerNotificationsData
+                    .builder()
+                    .hook(ApiHook.API_STARTED)
+                    .referenceType(NotificationReferenceType.API)
+                    .referenceId("api-id")
+                    .params(params)
+                    .recipients(List.of())
+                    .build()
             );
 
             verify(emailRecipientsService, never()).filterRegisteredUser(any(), any());
@@ -190,11 +193,14 @@ class NotifierServiceImplTest {
 
             cut.triggerGenericNotifications(
                 executionContext,
-                ApiHook.API_STARTED,
-                NotificationReferenceType.API,
-                "api-id",
-                params,
-                List.of()
+                NotifierServiceImpl.TriggerNotificationsData
+                    .builder()
+                    .hook(ApiHook.API_STARTED)
+                    .referenceType(NotificationReferenceType.API)
+                    .referenceId("api-id")
+                    .params(params)
+                    .recipients(List.of())
+                    .build()
             );
 
             final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
@@ -245,11 +251,14 @@ class NotifierServiceImplTest {
 
             cut.triggerGenericNotifications(
                 executionContext,
-                ApiHook.API_STARTED,
-                NotificationReferenceType.API,
-                "api-id",
-                params,
-                List.of(new Recipient("default-email", "additional@gio.test"))
+                NotifierServiceImpl.TriggerNotificationsData
+                    .builder()
+                    .hook(ApiHook.API_STARTED)
+                    .referenceType(NotificationReferenceType.API)
+                    .referenceId("api-id")
+                    .params(params)
+                    .recipients(List.of(new Recipient("default-email", "additional@gio.test")))
+                    .build()
             );
 
             final ArgumentCaptor<Collection<String>> recipientsCaptor = ArgumentCaptor.forClass(Collection.class);
@@ -274,11 +283,14 @@ class NotifierServiceImplTest {
 
             cut.triggerGenericNotifications(
                 executionContext,
-                ApiHook.API_STARTED,
-                NotificationReferenceType.API,
-                "api-id",
-                params,
-                List.of()
+                NotifierServiceImpl.TriggerNotificationsData
+                    .builder()
+                    .hook(ApiHook.API_STARTED)
+                    .referenceType(NotificationReferenceType.API)
+                    .referenceId("api-id")
+                    .params(params)
+                    .recipients(List.of())
+                    .build()
             );
 
             verifyNoInteractions(emailNotifierService);

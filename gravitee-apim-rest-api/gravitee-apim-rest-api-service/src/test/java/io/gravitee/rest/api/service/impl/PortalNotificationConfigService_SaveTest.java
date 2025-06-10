@@ -76,6 +76,7 @@ public class PortalNotificationConfigService_SaveTest {
         when(cfgEntity.getReferenceId()).thenReturn("123");
         when(cfgEntity.getUser()).thenReturn("user");
         when(cfgEntity.getHooks()).thenReturn(Collections.emptyList());
+        when(cfgEntity.getOrganizationId()).thenReturn("org1");
 
         final PortalNotificationConfigEntity entity = underTest.save(cfgEntity);
 

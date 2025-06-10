@@ -84,12 +84,12 @@ describe('Notification settings tests', () => {
 
       const notification = JSON.parse(
         await succeed(
-          configurationResourceAsAdmin.createPortalNotificationSetting1Raw({
+          configurationResourceAsAdmin.createGenericNotificationSetting1Raw({
             envId,
             orgId,
             genericNotificationConfigEntity: {
               name: 'test',
-              referenceType: 'PORTAL',
+              referenceType: 'ENVIRONMENT',
               referenceId: 'DEFAULT',
               notifier: 'default-email',
               config_type: 'GENERIC',
