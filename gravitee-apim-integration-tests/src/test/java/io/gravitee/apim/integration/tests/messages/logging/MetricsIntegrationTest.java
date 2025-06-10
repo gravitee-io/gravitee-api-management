@@ -65,8 +65,8 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
 
         FakeReporter fakeReporter = getBean(FakeReporter.class);
         fakeReporter.setReportableHandler(reportable -> {
-            if (reportable instanceof Metrics) {
-                subject.onNext(((Metrics) reportable).toBuilder().build());
+            if (reportable instanceof Metrics metrics) {
+                subject.onNext(metrics.toBuilder().build());
             }
         });
     }

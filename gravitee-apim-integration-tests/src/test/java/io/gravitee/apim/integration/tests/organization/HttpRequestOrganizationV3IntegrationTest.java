@@ -15,13 +15,8 @@
  */
 package io.gravitee.apim.integration.tests.organization;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.integration.tests.fake.AddHeader2Policy;
-import io.gravitee.apim.integration.tests.fake.AddHeaderPolicy;
 import io.gravitee.definition.model.ExecutionMode;
-import io.vertx.rxjava3.core.http.HttpClientResponse;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

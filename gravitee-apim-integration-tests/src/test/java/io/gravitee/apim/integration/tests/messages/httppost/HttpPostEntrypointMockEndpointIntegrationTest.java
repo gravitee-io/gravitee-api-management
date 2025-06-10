@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
-import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
@@ -27,24 +26,14 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.fakes.MessageStorage;
 import io.gravitee.apim.gateway.tests.sdk.connector.fakes.PersistentMockEndpointConnectorFactory;
-import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
-import io.gravitee.apim.integration.tests.fake.InterruptMessageRequestPhasePolicy;
-import io.gravitee.apim.integration.tests.messages.AbstractMqtt5EndpointIntegrationTest;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
-import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.policy.assignattributes.AssignAttributesPolicy;
-import io.gravitee.policy.assignattributes.configuration.AssignAttributesPolicyConfiguration;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.subjects.ReplaySubject;
-import io.reactivex.rxjava3.subjects.Subject;
-import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.Set;
@@ -101,7 +90,7 @@ class HttpPostEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest 
             .take(1)
             .test()
             .assertValue(message -> {
-                assertThat(message.headers().size()).isEqualTo(0);
+                assertThat(message.headers()).isEmpty();
                 assertThat(new JsonObject(message.content().toString())).isEqualTo(requestBody);
                 return true;
             });
@@ -120,7 +109,7 @@ class HttpPostEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest 
             .take(1)
             .test()
             .assertValue(message -> {
-                assertThat(message.headers().size()).isGreaterThan(0);
+                assertThat(message.headers()).isNotEmpty();
                 assertThat(message.headers().get("X-Test-Header")).isEqualTo("header-value");
                 assertThat(new JsonObject(message.content().toString())).isEqualTo(requestBody);
                 return true;
