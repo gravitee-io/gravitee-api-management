@@ -17,7 +17,7 @@ tests:
           of: apps/v1
       - equal:
           path: spec.template.spec.containers[0].image
-          value: graviteeio/apim-management-api:1.0.0-app
+          value: graviteeio/apim-management-api:1.0.0-app-debian
       - equal:
           path: spec.template.spec.containers[0].env
           value:

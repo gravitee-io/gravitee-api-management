@@ -20,7 +20,7 @@ tests:
           of: Deployment
       - equal:
           path: spec.template.spec.containers[0].image
-          value: graviteeio/apim-gateway:3.15.2
+          value: graviteeio/apim-gateway:3.15.2-debian
       - equal:
           path: spec.template.spec.containers[0].volumeMounts[1].name
           value: graviteeio-apim-plugins
