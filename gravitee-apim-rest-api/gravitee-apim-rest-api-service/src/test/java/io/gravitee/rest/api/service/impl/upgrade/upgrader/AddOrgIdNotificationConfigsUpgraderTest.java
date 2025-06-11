@@ -31,6 +31,7 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -63,36 +64,24 @@ public class AddOrgIdNotificationConfigsUpgraderTest {
 
     @Test
     public void upgrade() throws TechnicalException {
-        when(environmentRepository.findAll())
-            .thenReturn(
-                Set.of(
-                    Environment.builder().id("env1").organizationId("org1").build(),
-                    Environment.builder().id("env2").organizationId("org1").build(),
-                    Environment.builder().id("env3").organizationId("org2").build(),
-                    Environment.builder().id("env4").organizationId("org2").build(),
-                    Environment.builder().id("env5").organizationId("org3").build()
-                )
-            );
-        when(apiRepository.findAll())
-            .thenReturn(
-                Set.of(
-                    Api.builder().id("api1").environmentId("env1").build(),
-                    Api.builder().id("api2").environmentId("env2").build(),
-                    Api.builder().id("api3").environmentId("env3").build(),
-                    Api.builder().id("api4").environmentId("env4").build(),
-                    Api.builder().id("api5").environmentId("env5").build()
-                )
-            );
-        when(applicationRepository.findAll())
-            .thenReturn(
-                Set.of(
-                    Application.builder().id("app1").environmentId("env1").build(),
-                    Application.builder().id("app2").environmentId("env2").build(),
-                    Application.builder().id("app3").environmentId("env3").build(),
-                    Application.builder().id("app4").environmentId("env4").build(),
-                    Application.builder().id("app5").environmentId("env5").build()
-                )
-            );
+        when(environmentRepository.findById("env1"))
+            .thenReturn(Optional.of(Environment.builder().id("env1").organizationId("org1").build()));
+        when(environmentRepository.findById("env2"))
+            .thenReturn(Optional.of(Environment.builder().id("env2").organizationId("org1").build()));
+        when(environmentRepository.findById("env3"))
+            .thenReturn(Optional.of(Environment.builder().id("env3").organizationId("org2").build()));
+        when(environmentRepository.findById("env4"))
+            .thenReturn(Optional.of(Environment.builder().id("env4").organizationId("org2").build()));
+        when(environmentRepository.findById("env5"))
+            .thenReturn(Optional.of(Environment.builder().id("env5").organizationId("org3").build()));
+        when(apiRepository.findById("api1")).thenReturn(Optional.of(Api.builder().id("api1").environmentId("env1").build()));
+        when(apiRepository.findById("api2")).thenReturn(Optional.of(Api.builder().id("api2").environmentId("env2").build()));
+        when(apiRepository.findById("api3")).thenReturn(Optional.of(Api.builder().id("api3").environmentId("env3").build()));
+        when(apiRepository.findById("api5")).thenReturn(Optional.of(Api.builder().id("api5").environmentId("env5").build()));
+        when(applicationRepository.findById("app2"))
+            .thenReturn(Optional.of(Application.builder().id("app2").environmentId("env2").build()));
+        when(applicationRepository.findById("app5"))
+            .thenReturn(Optional.of(Application.builder().id("app5").environmentId("env5").build()));
         var genericNotifConfigs = Set.of(
             GenericNotificationConfig.builder().id("gn1").referenceType(NotificationReferenceType.PORTAL).referenceId("env1").build(),
             GenericNotificationConfig.builder().id("gn2").referenceType(NotificationReferenceType.API).referenceId("api3").build(),
