@@ -17,18 +17,15 @@ package io.gravitee.apim.rest.api.automation.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiService;
@@ -63,15 +60,19 @@ class ApiResourceTest extends AbstractResourceTest {
 
         @Test
         void should_get_api_from_known_hrid() {
-            when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
-                .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(HRID).build()));
-
-            var state = expectEntity(HRID);
-            SoftAssertions.assertSoftly(soft -> {
-                assertThat(state.getId()).isEqualTo(API_ID);
-                assertThat(state.getHrid()).isEqualTo(HRID);
-                assertThat(state.getCrossId()).isEqualTo(API_CROSS_ID);
-            });
+            try (var ctx = mockStatic(GraviteeContext.class)) {
+                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
+                    .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(HRID).build()));
+                var state = expectEntity(HRID);
+                SoftAssertions.assertSoftly(soft -> {
+                    assertThat(state.getId()).isEqualTo(API_ID);
+                    assertThat(state.getHrid()).isEqualTo(HRID);
+                    assertThat(state.getCrossId()).isEqualTo(API_CROSS_ID);
+                    assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
+                    assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
+                });
+            }
         }
 
         @Test

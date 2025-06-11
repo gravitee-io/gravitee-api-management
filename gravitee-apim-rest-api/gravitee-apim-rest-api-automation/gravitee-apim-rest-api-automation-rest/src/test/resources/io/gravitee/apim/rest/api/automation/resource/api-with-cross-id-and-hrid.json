@@ -1,5 +1,7 @@
 {
     "name": "api-v4-with-apikey",
+    "id": "api-id",
+    "crossId": "api-cross-id",
     "hrid": "api-hrid",
     "definitionContext": {
         "origin": "KUBERNETES",
@@ -52,6 +54,7 @@
     "flows": [],
     "plans": {
         "API_KEY": {
+            "id": "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24",
             "name": "API Key plan",
             "description": "API key plan needs a key to authenticate",
             "type": "API",

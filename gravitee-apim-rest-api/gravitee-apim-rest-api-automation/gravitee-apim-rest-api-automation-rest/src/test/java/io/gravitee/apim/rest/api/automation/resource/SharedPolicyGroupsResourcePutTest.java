@@ -16,13 +16,11 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import static io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupResourceGetTest.HRID;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
-import io.gravitee.apim.core.shared_policy_group.use_case.ImportSharedPolicyGroupCRDCRDUseCase;
 import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -39,12 +37,6 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
 
     @Inject
     private CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase;
-
-    @Inject
-    private ImportSharedPolicyGroupCRDCRDUseCase importSharedPolicyGroupCRDCRDUseCase;
-
-    @Inject
-    private ValidateSharedPolicyGroupCRDDomainService validateSharedPolicyGroupCRDDomainService;
 
     @Override
     protected String contextPath() {
@@ -92,24 +84,26 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_cross_id() {
-            var state = expectEntity("shared-policy-group-with-cross-id-and-no-hrid.json");
+            var state = expectEntity("shared-policy-group-with-cross-id-and-hrid.json");
             SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(state.getHrid()).isEqualTo("spg-foo");
                 soft.assertThat(state.getCrossId()).isEqualTo("spg-cross-id");
                 soft.assertThat(state.getId()).isNotBlank();
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
-                soft.assertThat(state.getHrid()).isNull();
             });
         }
 
         @Test
-        void should_reject_with_no_cross_id_nor_hrid() {
-            expectBadRequest("shared-policy-group-with-no-cross-id-nor-hrid.json");
-        }
-
-        @Test
-        void should_reject_with_cross_id_and_hrid() {
-            expectBadRequest("shared-policy-group-with-cross-id-and-hrid.json");
+        void should_reject_with_cross_id_and_no_hrid() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .put(Entity.json(readJSON("shared-policy-group-with-cross-id-and-no-hrid.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
         }
     }
 
@@ -131,47 +125,15 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_state_from_cross_id() {
-            var state = expectEntity("shared-policy-group-with-cross-id-and-no-hrid.json", dryRun);
-            SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getCrossId()).isEqualTo("spg-cross-id");
-                soft.assertThat(state.getId()).isNotBlank();
-                soft.assertThat(state.getHrid()).isNull();
-                soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
-                soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
-            });
-        }
-
-        @Test
-        void should_reject_with_no_cross_id_nor_hrid() {
-            var state = expectEntity("shared-policy-group-with-no-cross-id-nor-hrid.json", dryRun);
-            var errors = state.getErrors();
-            assertThat(errors).isNotNull();
-            SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(errors.getSevere()).isNotNull();
-                soft
-                    .assertThat(errors.getSevere())
-                    .contains("when no hrid is set in the payload a cross ID should be passed to identify the resource");
-            });
-        }
-
-        @Test
-        void should_reject_with_cross_id_and_hrid() {
-            var state = expectEntity("shared-policy-group-with-cross-id-and-hrid.json", dryRun);
-            var errors = state.getErrors();
-            assertThat(errors).isNotNull();
-            SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(errors.getSevere()).isNotNull();
-                soft
-                    .assertThat(errors.getSevere())
-                    .contains("cross ID should only be passed to identify the resource if no hrid has been set");
-            });
-        }
-    }
-
-    private void expectBadRequest(String spec) {
-        try (var response = rootTarget().queryParam("dryRun", false).request().put(Entity.json(readJSON(spec)))) {
-            assertThat(response.getStatus()).isEqualTo(400);
+        void should_return_state_from_cross_id_no_hrid() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .put(Entity.json(readJSON("shared-policy-group-with-cross-id-and-no-hrid.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
         }
     }
 
