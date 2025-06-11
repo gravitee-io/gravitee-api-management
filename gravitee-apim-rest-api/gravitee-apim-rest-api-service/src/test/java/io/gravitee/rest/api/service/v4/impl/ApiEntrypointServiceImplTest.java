@@ -44,6 +44,9 @@ import java.util.List;
 import java.util.Set;
 import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,6 +58,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @ExtendWith(MockitoExtension.class)
 class ApiEntrypointServiceImplTest {
 
@@ -607,5 +611,18 @@ class ApiEntrypointServiceImplTest {
         assertThat(entrypoint.getHost()).isEqualTo("kafka-host");
         assertThat(entrypoint.getTarget()).isEqualTo("kafka-host.kafka.domain:9092");
         assertThat(entrypoint.getTags()).isNull();
+    }
+
+    @Nested
+    class createApiEntrypointEntity {
+
+        @Test
+        void should_remove_trailing_slash() {
+            String host = "https://localhost";
+            String path = "/path1/";
+            ApiEntrypointEntity apiEntrypoint =
+                ((ApiEntrypointServiceImpl) apiEntrypointService).createApiEntrypointEntity(null, host, path, null, null);
+            assertThat(apiEntrypoint.getTarget()).isEqualTo("https://localhost/path1");
+        }
     }
 }
