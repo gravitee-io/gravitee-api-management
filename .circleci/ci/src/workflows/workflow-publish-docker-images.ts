@@ -32,7 +32,7 @@ export class PublishDockerImagesWorkflow {
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
-    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
+    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, ['alpine', 'debian'], false);
     dynamicConfig.addJob(buildDockerImageJob);
 
     const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig, environment);

@@ -623,10 +623,17 @@ jobs:
       - cmd-create-docker-context
       - cmd-docker-login
       - run:
-          name: Build docker image for << parameters.apim-project >>
+          name: Build docker image for << parameters.apim-project >>-alpine
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-run-e2e-latest \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - run:
+          name: Build docker image for << parameters.apim-project >>-debian
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-run-e2e-latest-debian \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - cmd-docker-logout

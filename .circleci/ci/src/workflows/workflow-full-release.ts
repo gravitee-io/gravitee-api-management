@@ -48,7 +48,7 @@ export class FullReleaseWorkflow {
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
-    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, true);
+    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, ['alpine', 'debian'], true);
     dynamicConfig.addJob(buildDockerImageJob);
 
     const backendBuildAndPublishOnDownloadWebsiteJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, true);

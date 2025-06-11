@@ -26,6 +26,12 @@ tasks:
     cmds:
       - mvn clean install -DskipTests -Dskip.validation -Dbundle=dev -T 1C
 
+  docker-backend-debian:
+    desc: "Build backend 🐳 images using buildx"
+    cmds:
+      - docker buildx build --push -t ${DOCKER_REGISTRY}/apim-gateway:$DOCKER_TAG-debian -f gravitee-apim-gateway/docker/Dockerfile.debian ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+      - docker buildx build --push -t ${DOCKER_REGISTRY}/apim-management-api:$DOCKER_TAG-debian -f gravitee-apim-rest-api/docker/Dockerfile.debian ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+
   docker:
     desc: "Build all 🐳 images"
     cmds:

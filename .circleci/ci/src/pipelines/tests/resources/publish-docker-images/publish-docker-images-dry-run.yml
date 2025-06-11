@@ -254,10 +254,17 @@ jobs:
       - cmd-create-docker-context
       - cmd-docker-login
       - run:
-          name: Build docker image for << parameters.apim-project >>
+          name: Build docker image for << parameters.apim-project >>-alpine
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-latest \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - run:
+          name: Build docker image for << parameters.apim-project >>-debian
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-latest-debian \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - cmd-docker-logout
@@ -380,4 +387,5 @@ workflows:
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
+  aquasec: gravitee-io/aquasec@1.0.5
   gh: circleci/github-cli@1.0.5

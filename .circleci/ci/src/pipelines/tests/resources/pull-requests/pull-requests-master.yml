@@ -621,13 +621,6 @@ jobs:
           version: default
       - cmd-create-docker-context
       - cmd-docker-login
-      - run:
-          name: Build docker image for << parameters.apim-project >>
-          command: |-
-            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest \
-            << parameters.docker-context >>
-          working_directory: << parameters.apim-project >>
       - keeper/env-export:
           secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
           var-name: AQUA_KEY
@@ -648,10 +641,29 @@ jobs:
           var-name: GITHUB_TOKEN
       - aquasec/install_billy
       - aquasec/pull_aqua_scanner_image
+      - run:
+          name: Build docker image for << parameters.apim-project >>-alpine
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
       - aquasec/register_artifact:
           artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
+      - run:
+          name: Build docker image for << parameters.apim-project >>-debian
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest-debian \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest-debian
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest-debian
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - cmd-docker-logout
   job-portal-webui-build:

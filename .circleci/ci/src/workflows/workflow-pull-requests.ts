@@ -309,7 +309,7 @@ export class PullRequestsWorkflow {
       requires.push('Lint & test APIM Console', 'Build APIM Console');
 
       if (shouldBuildDockerImages) {
-        const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
+        const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, ['alpine', 'debian'], false);
         dynamicConfig.addJob(buildDockerImageJob);
 
         jobs.push(
@@ -375,7 +375,7 @@ export class PullRequestsWorkflow {
       requires.push('Lint & test APIM Portal', 'Lint & test APIM Portal Next', 'Build APIM Portal');
 
       if (shouldBuildDockerImages) {
-        const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
+        const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, ['alpine', 'debian'], false);
         dynamicConfig.addJob(buildDockerImageJob);
 
         jobs.push(
@@ -431,7 +431,7 @@ export class PullRequestsWorkflow {
   }
 
   private static getE2EJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
+    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, ['alpine', 'debian'], false);
     dynamicConfig.addJob(buildDockerImageJob);
 
     const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig, environment);

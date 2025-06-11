@@ -34,7 +34,7 @@ export class BuildDockerImagesWorkflow {
     dynamicConfig.addJob(portalWebuiBuildJob);
     const backendBuildJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(backendBuildJob);
-    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, true);
+    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, ['alpine', 'debian'], true);
     dynamicConfig.addJob(buildDockerImageJob);
 
     const jobs = [

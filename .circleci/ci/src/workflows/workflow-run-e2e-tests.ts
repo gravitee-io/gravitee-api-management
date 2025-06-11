@@ -42,7 +42,7 @@ export class RunE2ETestsWorkflow {
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
-    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
+    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, ['alpine'], false);
     dynamicConfig.addJob(buildDockerImageJob);
 
     const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig, environment);
