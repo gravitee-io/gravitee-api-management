@@ -23,7 +23,7 @@
         "validate:test": "find src/pipelines/tests/resources/* -name \"*.yml\" -exec circleci config validate {} \\;"
     },
     "devDependencies": {
-        "@circleci/circleci-config-sdk": "0.12.3",
+        "@circleci/circleci-config-sdk": "0.12.5",
         "@sucrase/jest-plugin": "3.0.0",
         "@types/jest": "29.5.14",
         "typescript-eslint": "8.26.1",
