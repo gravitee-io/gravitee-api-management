@@ -30,6 +30,7 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
+import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -62,31 +63,30 @@ public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
     }
 
-    private String getEnvironmentOrgId(String envId) {
-        return environments
-            .stream()
-            .filter(environment -> environment.getId().equals(envId))
-            .findFirst()
-            .map(Environment::getOrganizationId)
-            .orElse(null);
+    private String getEnvironmentOrgId(String envId) throws TechnicalException {
+        Optional<Environment> environment = environmentRepository.findById(envId);
+        return environment.map(Environment::getOrganizationId).orElse(null);
     }
 
-    private String getApiOrgId(String apiId) {
-        String envId = apis.stream().filter(api -> api.getId().equals(apiId)).findFirst().map(Api::getEnvironmentId).orElse(null);
-        return getEnvironmentOrgId(envId);
+    private String getApiOrgId(String apiId) throws TechnicalException {
+        Optional<Api> api = apiRepository.findById(apiId);
+        if (api.isPresent()) {
+            String envId = api.get().getEnvironmentId();
+            return getEnvironmentOrgId(envId);
+        }
+        return null;
     }
 
-    private String getApplicationOrgId(String apiId) {
-        String envId = applications
-            .stream()
-            .filter(app -> app.getId().equals(apiId))
-            .findFirst()
-            .map(Application::getEnvironmentId)
-            .orElse(null);
-        return getEnvironmentOrgId(envId);
+    private String getApplicationOrgId(String apiId) throws TechnicalException {
+        Optional<Application> application = applicationRepository.findById(apiId);
+        if (application.isPresent()) {
+            String envId = application.get().getEnvironmentId();
+            return getEnvironmentOrgId(envId);
+        }
+        return null;
     }
 
-    private String getOrgId(String refId, NotificationReferenceType referenceType) {
+    private String getOrgId(String refId, NotificationReferenceType referenceType) throws TechnicalException {
         if (referenceType == NotificationReferenceType.ENVIRONMENT) {
             return getEnvironmentOrgId(refId);
         }
@@ -102,9 +102,6 @@ public class AddOrgIdNotificationConfigsUpgrader implements Upgrader {
     @Override
     public boolean upgrade() {
         try {
-            this.environments = environmentRepository.findAll();
-            this.apis = apiRepository.findAll();
-            this.applications = applicationRepository.findAll();
             var genericNotificationConfigs = genericNotificationConfigRepository.findAll();
             for (GenericNotificationConfig genericNotificationConfig : genericNotificationConfigs) {
                 if (genericNotificationConfig.getReferenceType() == NotificationReferenceType.PORTAL) {

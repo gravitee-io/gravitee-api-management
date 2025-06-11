@@ -59,7 +59,7 @@ describe('Portal: Business Error - applications', () => {
         envId,
         portalSettingsEntity: { application: { registration: { enabled: true } } },
       });
-      const notificationSettingsAsString = await configurationManagementApiAsAdmin.createPortalNotificationSetting({
+      const notificationSettingsAsString = await configurationManagementApiAsAdmin.createGenericNotificationSetting({
         orgId,
         envId,
         genericNotificationConfigEntity: {
@@ -68,7 +68,7 @@ describe('Portal: Business Error - applications', () => {
           referenceId: 'DEFAULT',
           notifier: 'default-email',
           hooks: [],
-          referenceType: 'PORTAL',
+          referenceType: 'ENVIRONMENT',
         },
       });
       notificationSettings = JSON.parse(notificationSettingsAsString);
