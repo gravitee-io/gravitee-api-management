@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.dictionary;
+package io.gravitee.definition.model.sharedpolicygroup;
 
-import io.gravitee.gateway.dictionary.model.Dictionary;
-import java.util.Map;
+import io.gravitee.policy.api.PolicyConfiguration;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface DictionaryManager {
-    void deploy(Dictionary dictionary);
+@Getter
+@Setter
+public class SharedPolicyGroupPolicyConfiguration implements PolicyConfiguration {
 
-    void undeploy(Dictionary dictionary);
-
-    EnvironmentDictionaryTemplateVariableProvider createTemplateVariableProvider(String environmentId);
-
-    Map<String, Map<String, String>> getDictionaries(String environmentId);
+    String sharedPolicyGroupId;
 }

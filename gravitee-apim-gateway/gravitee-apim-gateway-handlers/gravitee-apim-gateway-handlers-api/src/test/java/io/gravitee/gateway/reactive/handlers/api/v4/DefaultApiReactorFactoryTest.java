@@ -36,6 +36,8 @@ import io.gravitee.el.TemplateVariableProviderFactory;
 import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
+import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.gateway.dictionary.EnvironmentDictionaryTemplateVariableProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -127,6 +129,9 @@ class DefaultApiReactorFactoryTest {
     private AccessPointManager accessPointManager;
 
     @Mock
+    private DictionaryManager dictionaryManager;
+
+    @Mock
     private EventManager eventManager;
 
     private DefaultApiReactorFactory cut;
@@ -169,7 +174,8 @@ class DefaultApiReactorFactoryTest {
                 openTelemetryConfiguration,
                 openTelemetryFactory,
                 List.of(),
-                gatewayConfiguration
+                gatewayConfiguration,
+                dictionaryManager
             );
     }
 
@@ -303,6 +309,8 @@ class DefaultApiReactorFactoryTest {
 
         @Test
         void should_create_api_reactor_with_TemplateVariableProviders() {
+            when(dictionaryManager.createTemplateVariableProvider(any()))
+                .thenReturn(mock(EnvironmentDictionaryTemplateVariableProvider.class));
             var api = anApi();
             var reactor = cut.create(api);
 
@@ -310,9 +318,11 @@ class DefaultApiReactorFactoryTest {
             var templateVariableProviders = ((DefaultApiReactor) reactor).getCtxTemplateVariableProviders();
 
             assertThat(templateVariableProviders)
-                .hasSize(2 + registeredApiTemplateVariableProvider.size())
+                .hasSize(3 + registeredApiTemplateVariableProvider.size())
                 .satisfies(list -> {
                     assertThat(list.stream().filter(p -> p instanceof ApiTemplateVariableProvider).findFirst()).isPresent();
+                    assertThat(list.stream().filter(p -> p instanceof EnvironmentDictionaryTemplateVariableProvider).findFirst())
+                        .isPresent();
                     assertThat(list.stream().filter(p -> registeredApiTemplateVariableProvider.contains(p)).findFirst()).isPresent();
                     assertThat(list.stream().filter(p -> p instanceof EndpointManager).findFirst()).isPresent();
                 });

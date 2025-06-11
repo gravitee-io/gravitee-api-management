@@ -151,6 +151,10 @@ public class SharedPolicyGroup {
         return Objects.hash(id);
     }
 
+    public boolean isDeployed() {
+        return lifecycleState == SharedPolicyGroupLifecycleState.DEPLOYED;
+    }
+
     public enum AuditEvent implements Audit.AuditEvent {
         SHARED_POLICY_GROUP_CREATED,
         SHARED_POLICY_GROUP_UPDATED,

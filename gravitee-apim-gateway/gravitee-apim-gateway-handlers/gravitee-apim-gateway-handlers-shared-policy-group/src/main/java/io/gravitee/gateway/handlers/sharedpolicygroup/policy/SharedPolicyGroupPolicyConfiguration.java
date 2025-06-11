@@ -19,6 +19,10 @@ import io.gravitee.policy.api.PolicyConfiguration;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @deprecated Use {@link io.gravitee.definition.model.sharedpolicygroup.SharedPolicyGroupPolicyConfiguration} instead.
+ */
+@Deprecated
 @Setter
 @Getter
 public class SharedPolicyGroupPolicyConfiguration implements PolicyConfiguration {

@@ -31,6 +31,7 @@ import io.gravitee.gateway.debug.reactor.DebugReactor;
 import io.gravitee.gateway.debug.reactor.processor.DebugResponseProcessorChainFactory;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
@@ -388,6 +389,7 @@ public class DebugConfiguration {
         FlowResolverFactory flowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         AccessPointManager accessPointManager,
+        DictionaryManager dictionaryManager,
         EventManager eventManager
     ) {
         return new DebugApiReactorHandlerFactory(
@@ -403,6 +405,7 @@ public class DebugConfiguration {
             flowResolverFactory,
             requestTimeoutConfiguration,
             accessPointManager,
+            dictionaryManager,
             eventManager
         );
     }

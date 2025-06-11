@@ -409,6 +409,12 @@ export class PullRequestsWorkflow {
       );
     }
 
+    // Force validation workflow in case only distribution pom.xml has changed
+    if (environment.changedFiles.some((file) => file.includes('gravitee-apim-distribution'))) {
+      addValidationJob = true;
+      requires.push('Build backend');
+    }
+
     // compute check-workflow job
     if (addValidationJob && requires.length > 0) {
       const checkWorkflowJob = new Job('job-validate-workflow-status', BaseExecutor.create('small'), [
