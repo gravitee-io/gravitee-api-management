@@ -247,18 +247,16 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         return entrypoints;
     }
 
-    private ApiEntrypointEntity createApiEntrypointEntity(
-        String defaultScheme,
-        String host,
-        String path,
-        Set<String> tags,
-        String originalHost
-    ) {
+    ApiEntrypointEntity createApiEntrypointEntity(String defaultScheme, String host, String path, Set<String> tags, String originalHost) {
         if (!host.toLowerCase().startsWith("http")) {
             host = defaultScheme + "://" + host;
         }
 
         String url = DUPLICATE_SLASH_REMOVER.matcher(host + URI_PATH_SEPARATOR + path).replaceAll(URI_PATH_SEPARATOR);
+        if (url.endsWith(URI_PATH_SEPARATOR)) {
+            url = url.substring(0, url.length() - URI_PATH_SEPARATOR.length());
+        }
+
         return new ApiEntrypointEntity(tags, url, originalHost);
     }
 
