@@ -120,11 +120,28 @@
       <mat-card-content>
         <h3 class="danger-card__title">Danger Zone</h3>
         <div class="danger-card__actions">
+          <div class="danger-action" *gioPermission="{ anyOf: ['environment-api-d'] }">
+            <span>Delete Federated {{ isA2A ? 'Agents' : 'APIs' }} associated with this integration.</span>
+            <span [matTooltipDisabled]="hasFederatedAPIs" matTooltip="There is no Federated {{ isA2A ? 'Agents' : 'APIs' }} to delete.">
+              <button
+                mat-button
+                color="warn"
+                (click)="deleteFederatedApis()"
+                data-testid="delete-federated-apis-button"
+                [disabled]="!hasFederatedAPIs"
+              >
+                Delete {{ isA2A ? 'Agents' : 'APIs' }}
+              </button>
+            </span>
+          </div>
           <div class="danger-action">
-            <span>Delete this integration. An integration with Federated APIs associated to it cannot be deleted.</span>
+            <span
+              >Delete this integration. An integration with Federated {{ isA2A ? 'Agents' : 'APIs' }} associated to it cannot be
+              deleted.</span
+            >
             <span
               [matTooltipDisabled]="!hasFederatedAPIs"
-              matTooltip="This Integration cannot be deleted because there are Federated APIs linked to it"
+              matTooltip="This Integration cannot be deleted because there are Federated {{ isA2A ? 'Agents' : 'APIs' }} linked to it"
             >
               <button
                 mat-button
@@ -135,20 +152,6 @@
                 [disabled]="hasFederatedAPIs"
               >
                 Delete Integration
-              </button>
-            </span>
-          </div>
-          <div class="danger-action" *gioPermission="{ anyOf: ['environment-api-d'] }">
-            <span>Delete Federated APIs associated with this integration.</span>
-            <span [matTooltipDisabled]="hasFederatedAPIs" matTooltip="There is no federated APIs to delete.">
-              <button
-                mat-button
-                color="warn"
-                (click)="deleteFederatedApis()"
-                data-testid="delete-federated-apis-button"
-                [disabled]="!hasFederatedAPIs"
-              >
-                Delete APIs
               </button>
             </span>
           </div>
