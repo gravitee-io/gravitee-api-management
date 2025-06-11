@@ -259,7 +259,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         return entrypoints;
     }
 
-    private ApiEntrypointEntity createHttpApiEntrypointEntity(
+    ApiEntrypointEntity createHttpApiEntrypointEntity(
         String defaultScheme,
         String host,
         String path,
@@ -271,6 +271,10 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         }
 
         String url = DUPLICATE_SLASH_REMOVER.matcher(host + URI_PATH_SEPARATOR + path).replaceAll(URI_PATH_SEPARATOR);
+        if (url.endsWith(URI_PATH_SEPARATOR)) {
+            url = url.substring(0, url.length() - URI_PATH_SEPARATOR.length());
+        }
+
         return new ApiEntrypointEntity(tags, url, originalHost);
     }
 
