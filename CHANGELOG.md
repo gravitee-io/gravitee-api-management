@@ -1,3 +1,10 @@
+## [3.5.3](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.5.2...3.5.3) (2025-06-11)
+
+
+### Bug Fixes
+
+* fix dependencies management ([b8fca18](https://github.com/gravitee-io/gravitee-reporter-file/commit/b8fca1809b0129401af395335d4d3e7148b99096))
+
 ## [3.5.2](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.5.1...3.5.2) (2025-06-03)
 
 
