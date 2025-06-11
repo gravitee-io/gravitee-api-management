@@ -47,11 +47,6 @@ public class ValidateSharedPolicyGroupCRDDomainService implements Validator<Vali
             return Result.ofErrors(errors);
         }
 
-        if (input.crd().getCrossId() != null && input.crd().getHrid() != null) {
-            errors.add(Error.severe("cross ID should only be passed to identify the resource if no hrid has been set"));
-            return Result.ofErrors(errors);
-        }
-
         if (input.crd().getHrid() == null) {
             input.crd().setHrid(input.crd().getCrossId());
             var idBuilder = IdBuilder.builder(input.auditInfo, input.crd.getCrossId());

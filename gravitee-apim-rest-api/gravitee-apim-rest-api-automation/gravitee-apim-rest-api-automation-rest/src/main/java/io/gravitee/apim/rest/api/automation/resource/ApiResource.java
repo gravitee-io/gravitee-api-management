@@ -73,7 +73,17 @@ public class ApiResource extends AbstractResource {
         try {
             ApiCRDSpec apiCRDSpec = exportApiCRDUseCase.execute(input).spec();
             ApiV4Spec apiV4Spec = ApiMapper.INSTANCE.apiCRDSpecToApiV4Spec(ApiCRDMapper.INSTANCE.map(apiCRDSpec));
-            return Response.ok(ApiMapper.INSTANCE.apiV4SpecToApiV4State(apiV4Spec, apiCRDSpec.getId(), apiCRDSpec.getCrossId())).build();
+            return Response
+                .ok(
+                    ApiMapper.INSTANCE.apiV4SpecToApiV4State(
+                        apiV4Spec,
+                        apiCRDSpec.getId(),
+                        apiCRDSpec.getCrossId(),
+                        executionContext.getOrganizationId(),
+                        executionContext.getEnvironmentId()
+                    )
+                )
+                .build();
         } catch (ApiNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
         }

@@ -54,9 +54,9 @@ public interface ApiMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "crossId", source = "crossId")
     @Mapping(target = "errors", ignore = true)
-    @Mapping(target = "organizationId", ignore = true)
-    @Mapping(target = "environmentId", ignore = true)
-    ApiV4State apiV4SpecToApiV4State(ApiV4Spec apiV4State, String id, String crossId);
+    @Mapping(target = "organizationId", source = "organizationId")
+    @Mapping(target = "environmentId", source = "environmentId")
+    ApiV4State apiV4SpecToApiV4State(ApiV4Spec apiV4State, String id, String crossId, String organizationId, String environmentId);
 
     @Mapping(target = "selectors", expression = "java(mapApiV4SpecSelectors(flowV4))")
     io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(FlowV4 flowV4);

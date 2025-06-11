@@ -17,11 +17,7 @@ package io.gravitee.apim.rest.api.automation.resource;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.atMostOnce;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
@@ -89,15 +85,28 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_state_from_cross_id() {
-            var state = expectEntity("api-with-cross-id-and-no-hrid.json");
+        void should_return_state_from_cross_id_hrid() {
+            var state = expectEntity("api-with-cross-id-and-hrid.json");
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
                 soft.assertThat(state.getId()).isEqualTo("api-id");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
-                soft.assertThat(state.getHrid()).isNull();
+                soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
             });
+        }
+
+        @Test
+        void should_return_state_from_cross_id_no_hrid() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-no-hrid.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
         }
 
         @Test
@@ -180,14 +189,27 @@ class ApisResourceTest extends AbstractResourceTest {
             when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
                 .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-            var state = expectEntity("api-with-cross-id-and-no-hrid.json", dryRun);
+            var state = expectEntity("api-with-cross-id-and-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
-                soft.assertThat(state.getId()).isEqualTo("api-id");
-                soft.assertThat(state.getHrid()).isNull();
+                soft.assertThat(state.getCrossId()).isNull();
+                soft.assertThat(state.getId()).isNull();
+                soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
             });
+        }
+
+        @Test
+        void should_return_state_from_cross_id_no_hrid() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-no-hrid.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
         }
     }
 

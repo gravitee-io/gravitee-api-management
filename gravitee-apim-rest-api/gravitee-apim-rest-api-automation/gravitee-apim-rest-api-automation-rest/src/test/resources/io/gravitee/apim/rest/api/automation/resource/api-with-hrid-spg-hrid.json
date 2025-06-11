@@ -3,7 +3,7 @@
     "hrid": "api-hrid",
     "definitionContext": {
         "origin": "KUBERNETES",
-        "syncFrom": "KUBERNETES"
+        "syncFrom": "MANAGEMENT"
     },
     "description": "API v4 CRD spec with unknown categories",
     "version": "1.0",
