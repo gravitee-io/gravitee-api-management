@@ -104,14 +104,14 @@ class ComponentCtrl implements ng.IComponentController {
             this.NotificationService.showError(
               `The uploaded file is too big, you are limited to ${this.Constants.env.settings.portal.uploadMedia.maxSizeInOctet} bytes`,
             );
-            return false;
+            return;
           }
 
           this.$http.post(mediaURL + 'upload', fd, { headers: { 'Content-Type': undefined } }).then((response) => {
             callback(mediaURL + response.data, (blob as File).name);
           });
 
-          return false;
+          return;
         },
       },
       plugins: [[codeSyntaxHighlightPlugin, { highlighter: Prism }]],
