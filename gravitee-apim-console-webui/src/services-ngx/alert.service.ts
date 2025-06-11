@@ -23,6 +23,7 @@ import { Installation } from '../entities/installation/installation';
 import { Scope } from '../entities/alert';
 import { AlertStatus } from '../entities/alerts/alertStatus';
 import { AlertTriggerEntity, NewAlertTriggerEntity, UpdateAlertTriggerEntity } from '../entities/alerts/alertTriggerEntity';
+import { AlertHistory } from '../entities/alerts/history';
 
 @Injectable({
   providedIn: 'root',
@@ -74,5 +75,9 @@ export class AlertService {
 
   updateAlert(apiId: string, alert: UpdateAlertTriggerEntity, alertId: string) {
     return this.http.put<NewAlertTriggerEntity>(`${this.constants.env.baseURL}/apis/${apiId}/alerts/${alertId}`, { ...alert });
+  }
+
+  alertHistory(apiId: string, alertId: string, index: number, size: number): Observable<AlertHistory> {
+    return this.http.get<AlertHistory>(`${this.constants.env.baseURL}/apis/${apiId}/alerts/${alertId}/events?&page=${index}&size=${size}`);
   }
 }
