@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ConnectorListItem;
 import io.gravitee.rest.api.model.ConnectorPluginEntity;
-import io.gravitee.rest.api.model.ResourceListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -38,6 +37,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,23 +72,13 @@ public class ConnectorsResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public Collection<ConnectorListItem> getConnectors(@QueryParam("expand") List<String> expand) {
-        Stream<ConnectorListItem> stream = connectorService.findAll().stream().map(this::convert);
-
-        if (expand != null && !expand.isEmpty()) {
-            for (String s : expand) {
-                switch (s) {
-                    case "schema":
-                        stream =
-                            stream.peek(connectorListItem ->
-                                connectorListItem.setSchema(connectorService.getSchema(connectorListItem.getId()))
-                            );
-                    case "icon":
-                        stream =
-                            stream.peek(connectorListItem -> connectorListItem.setIcon(connectorService.getIcon(connectorListItem.getId()))
-                            );
-                }
-            }
-        }
+        expand = expand == null ? Collections.emptyList() : expand;
+        boolean includeSchema = expand.contains("schema");
+        boolean includeIcon = expand.contains("icon");
+        Stream<ConnectorListItem> stream = connectorService
+            .findAll()
+            .stream()
+            .map(connector -> convert(connector, includeSchema, includeIcon));
 
         return stream.sorted(Comparator.comparing(ConnectorListItem::getName)).collect(Collectors.toList());
     }
@@ -98,7 +88,7 @@ public class ConnectorsResource {
         return resourceContext.getResource(ConnectorResource.class);
     }
 
-    private ConnectorListItem convert(ConnectorPluginEntity connector) {
+    private ConnectorListItem convert(ConnectorPluginEntity connector, boolean includeSchema, boolean includeIcon) {
         ConnectorListItem item = new ConnectorListItem();
 
         item.setId(connector.getId());
@@ -106,6 +96,14 @@ public class ConnectorsResource {
         item.setDescription(connector.getDescription());
         item.setVersion(connector.getVersion());
         item.setSupportedTypes(connector.getSupportedTypes());
+
+        if (includeSchema) {
+            item.setSchema(connectorService.getSchema(connector.getId()));
+        }
+
+        if (includeIcon) {
+            item.setIcon(connectorService.getIcon(connector.getId()));
+        }
 
         return item;
     }
