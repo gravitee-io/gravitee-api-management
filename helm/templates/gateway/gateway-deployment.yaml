@@ -2,6 +2,7 @@
 {{- $initContainers := .Values.initContainers -}}
 {{- $serviceAccount := include "apim.serviceAccount" . -}}
 {{- $logbackVolumeName := include "gateway.logbackVolumeName" . -}}
+{{- $dockerImageTag := include "gateway.dockerTag" . -}}
 apiVersion: apps/v1
 kind: {{ .Values.gateway.type }}
 metadata:
@@ -124,7 +125,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ template "gravitee.gateway.fullname" . }}
-          image: "{{ .Values.gateway.image.repository }}:{{ default .Chart.AppVersion .Values.gateway.image.tag }}"
+          image: "{{ .Values.gateway.image.repository }}:{{ $dockerImageTag }}"
           imagePullPolicy: {{ .Values.gateway.image.pullPolicy }}
           securityContext: {{ toYaml .Values.gateway.deployment.securityContext | nindent 12 }}
           ports:
