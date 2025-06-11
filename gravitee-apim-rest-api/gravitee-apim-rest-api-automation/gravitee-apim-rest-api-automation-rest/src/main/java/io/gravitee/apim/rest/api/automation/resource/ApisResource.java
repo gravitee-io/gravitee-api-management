@@ -149,7 +149,9 @@ public class ApisResource extends AbstractResource {
     private static void mapSharedPolicyGroupHrid(StepV4 stepV4, AuditInfo auditInfo) {
         if (Objects.equals(stepV4.getPolicy(), SharedPolicyGroupPolicyPlugin.SHARED_POLICY_GROUP_POLICY_ID)) {
             Object configuration = stepV4.getConfiguration();
-            if (configuration instanceof Map struct) {
+            if (configuration instanceof Map<?, ?> rawMap) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> struct = (Map<String, Object>) rawMap;
                 String hrid = (String) struct.get(HRID_FIELD);
                 if (hrid != null) {
                     struct.remove(HRID_FIELD);
