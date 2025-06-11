@@ -184,48 +184,43 @@ paths:
 
 components:
   schemas:
+    Hrid:
+      type: string
+      pattern: '^[a-zA-Z][a-zA-Z0-9_-]{2,}$'
+      description: A unique human readable id identifying this object
     ApiV4Spec:
       description: ApiV4DefinitionSpec defines the desired state of ApiDefinition.
       type: object
       properties:
-        id:
-          type: string
-          description: API's uuid.
-          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-          readOnly: true
-        crossId:
-          type: string
-          description: >-
-            When promoting an API from one environment to the other,
-            this ID identifies the API across those different
-            environments.
-          readOnly: true
         hrid:
-          type: string
-          description: A unique human readable id identifying the api
-          example: echo_api
+          $ref: "#/components/schemas/Hrid"
+          examples:
+            - echo_api
         definitionContext:
           $ref: "#/components/schemas/DefinitionContext"
         name:
           type: string
           description: API's name. Duplicate names can exists.
-          example: My Api
+          examples:
+            - My Api
           minLength: 1
         version:
           type: string
           description: API's version. It's a simple string only used in the portal.
-          example: 1.0.0
+          examples:
+            - 1.0.0
           minLength: 1
         type:
           $ref: "#/components/schemas/ApiType"
         description:
           type: string
           description: API's description. A short description of your API.
-          example: I can use many characters to describe this API.
+          examples:
+            - I can use many characters to describe this API.
         tags:
           type: array
           description: The list of sharding tags associated with this API.
-          example:
+          examples:
             - public
             - private
           items:
@@ -308,7 +303,7 @@ components:
         categories:
           type: array
           description: The list of category keys associated with this API.
-          example:
+          examples:
             - health
             - media
           items:
@@ -326,19 +321,19 @@ components:
             be notified when the API is synced with APIM.
           type: boolean
           writeOnly: true
-        originContext:
-          $ref: "#/components/schemas/BaseOriginContext"
         pages:
           $ref: '#/components/schemas/PagesMap'
         consoleNotificationConfiguration:
           $ref: '#/components/schemas/PortalNotificationConfig'
       required:
+        - hrid
         - name
         - type
         - listeners
         - endpointGroups
         - version
-
+        - definitionContext
+        - lifecycleState
     ApiV4State:
       allOf:
         - $ref: "#/components/schemas/ApiV4Spec"
@@ -391,7 +386,6 @@ components:
             type: string
           type: array
       type: object
-
     SharedPolicyGroupState:
       allOf:
         - $ref: "#/components/schemas/SharedPolicyGroupSpec"
@@ -401,14 +395,14 @@ components:
               $ref: "#/components/schemas/Errors"
         - type: object
           properties:
+            id:
+              description:
+                The id of the shared policy group.
+              type: string
             crossId:
               description:
                 The Cross ID is used to identify a shared policy group that has been promoted from
                 one environment to another.
-              type: string
-            id:
-              description:
-                The id of the shared policy group.
               type: string
             environmentId:
               description:
@@ -422,27 +416,29 @@ components:
       description: Shared Policy Group Spec
       type: object
       properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
+          examples:
+            - partner_config
         apiType:
           $ref: "#/components/schemas/ApiType"
-        hrid:
-          type: string
-          pattern: '^[a-zA-Z][a-zA-Z0-9_-]{2,}$'
-          description: A unique human readable id identifying the shared policy group
-          example: products
         description:
           type: string
           description: The description of the shared policy group
-          example: this is a shared policy group
+          examples:
+            - this is a shared policy group
           maxLength: 1024
         prerequisiteMessage:
           type: string
           description: The prerequisite message of the shared policy group. This message is displayed to the user to help understand the prerequisite to use the shared policy group.
-          example: the resource cache "my-cache" is required
+          examples:
+            - the resource cache "my-cache" is required
           maxLength: 1024
         name:
           type: string
           description: The name of the shared policy group
-          example: My Shared Policy Group
+          examples:
+            - My Shared Policy Group
           maxLength: 512
         phase:
           $ref: "#/components/schemas/FlowPhase"
@@ -452,6 +448,7 @@ components:
             $ref: "#/components/schemas/FlowStep"
           type: array
       required:
+        - hrid
         - apiType
         - name
         - phase
@@ -699,13 +696,15 @@ components:
     ApiLifecycleState:
       type: string
       description: The status of the API regarding the console.
-      example: CREATED
+      examples:
+        - CREATED
       enum:
         - ARCHIVED
         - CREATED
         - DEPRECATED
         - PUBLISHED
         - UNPUBLISHED
+      default: CREATED
     ApiServices:
       type: object
       properties:
@@ -717,13 +716,14 @@ components:
         query:
           type: string
           description: The query to search for.
-          example: my api
+          examples:
+            - my api
         ids:
           type: array
           items:
             type: string
           description: List of ids to find
-          example:
+          examples:
             - apiId-1
             - apiId-2
         definitionVersion:
@@ -735,7 +735,8 @@ components:
     ApiType:
       type: string
       description: API's type.
-      example: MESSAGE
+      examples:
+        - MESSAGE
       enum:
         - MESSAGE
         - PROXY
@@ -743,7 +744,8 @@ components:
     Visibility:
       type: string
       description: The visibility of the resource regarding the portal.
-      example: PUBLIC
+      examples:
+        - PUBLIC
       enum:
         - PUBLIC
         - PRIVATE
@@ -751,7 +753,8 @@ components:
     ApiWorkflowState:
       type: string
       description: The status of the API regarding the review feature.
-      example: DRAFT
+      examples:
+        - DRAFT
       enum:
         - DRAFT
         - IN_REVIEW
@@ -782,7 +785,8 @@ components:
             channel:
               type: string
               description: The channel of the selector
-              example: /my/channel
+              examples:
+                - /my/channel
               default: /
             channelOperator:
               $ref: "#/components/schemas/Operator"
@@ -804,7 +808,8 @@ components:
             condition:
               type: string
               description: The condition of the selector
-              example: ${#jsonPath(payload, '$.myField') == 'myValue'}
+              examples:
+                - ${#jsonPath(payload, '$.myField') == 'myValue'}
     Cors:
       type: object
       properties:
@@ -844,98 +849,15 @@ components:
         endpoint:
           type: string
           description: The endpoint of the DLQ.
-    OriginContext:
-      oneOf:
-        - $ref: "#/components/schemas/ManagementOriginContext"
-        - $ref: "#/components/schemas/KubernetesOriginContext"
-        - $ref: "#/components/schemas/IntegrationOriginContext"
-      discriminator:
-        propertyName: origin
-        mapping:
-          MANAGEMENT: "#/components/schemas/ManagementOriginContext"
-          KUBERNETES: "#/components/schemas/KubernetesOriginContext"
-          INTEGRATION: "#/components/schemas/IntegrationOriginContext"
-    BaseOriginContext:
-      type: object
-      properties:
-        origin:
-          type: string
-          description: The origin of the API.
-          example: MANAGEMENT
-          enum:
-            - MANAGEMENT
-            - KUBERNETES
-            - INTEGRATION
-      discriminator:
-        propertyName: origin
-        mapping:
-          MANAGEMENT: "#/components/schemas/ManagementOriginContext"
-          KUBERNETES: "#/components/schemas/KubernetesOriginContext"
-          INTEGRATION: "#/components/schemas/IntegrationOriginContext"
-    ManagementOriginContext:
-      type: object
-      title: "ManagementOriginContext"
-      description: Indicates the API has been created by the Management API
-      allOf:
-        - $ref: "#/components/schemas/BaseOriginContext"
-    KubernetesOriginContext:
-      type: object
-      title: "KubernetesOriginContext"
-      description: Indicates the API has been created by the Gravitee Kubernetes Operator
-      allOf:
-        - $ref: "#/components/schemas/BaseOriginContext"
-        - properties:
-            mode:
-              type: string
-              description: |-
-                The mode of the API.
-                fully_managed: Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
-              example: FULLY_MANAGED
-              enum:
-                - FULLY_MANAGED
-            syncFrom:
-              type: string
-              description: |-
-                syncFrom stands for where the Gateway should source the API definition from. 
-                If the value is KUBERNETES, then the gateway will sync the definition by listening to changes
-                issued on a kubernetes config map. If the value is MANAGEMENT, then the gateway will sync
-                the definition using the same datastore as APIM. 
-                Defining MANAGEMENT as source for sync is useful e.g. when a single operator should operate
-                on gateways deployed on multiple kubernetes clusters.
-              example: MANAGEMENT
-              enum:
-                - MANAGEMENT
-                - KUBERNETES
-    IntegrationOriginContext:
-      type: object
-      title: "IntegrationOriginContext"
-      description: Indicates the API has been created through an Integration
-      allOf:
-        - $ref: "#/components/schemas/BaseOriginContext"
-        - properties:
-            integrationId:
-              type: string
-              description: |-
-                The id of the integration that created the API.
-              example: b300b445-8bbb-4034-865c-d2113ba5b768
-            provider:
-              type: string
-              description: Provider of this Federated API.
-              example: solace
-            integrationName:
-              type: string
-              description: Name of integration of this Federated API.
-              example: My Solace env
-
     DefinitionContext:
       deprecated: true
       type: object
-      description: the context where the api definition was created. Deprecated in favor of OriginContext.
+      description: the context where the api definition was created.
       properties:
         origin:
           type: string
           description: The origin of the API.
-          example: MANAGEMENT
+          const: KUBERNETES
           enum:
             - MANAGEMENT
             - KUBERNETES
@@ -946,10 +868,12 @@ components:
             The mode of the API.
             fully_managed: Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
             api_definition_only: Mode indicating the api is partially managed by the origin and so, only the origin should be able to manage the api definition part of the api. This includes everything regarding the definition of the apis (plans, flows, metadata, ...)
-          example: FULLY_MANAGED
+          examples:
+            - FULLY_MANAGED
           enum:
             - FULLY_MANAGED
             - API_DEFINITION_ONLY
+          const: FULLY_MANAGED
         syncFrom:
           type: string
           description: |-
@@ -959,15 +883,15 @@ components:
             the definition using the same datastore as APIM. 
             Defining MANAGEMENT as source for sync is useful e.g. when a single operator should operate
             on gateways deployed on multiple kubernetes clusters.
-          example: MANAGEMENT
+          const: MANAGEMENT
           enum:
             - MANAGEMENT
             - KUBERNETES
-      readOnly: true
     DefinitionVersion:
       type: string
       description: API's gravitee definition version.
-      example: V4
+      examples:
+        - V4
       enum:
         - V1
         - V2
@@ -979,13 +903,13 @@ components:
         name:
           type: string
           description: The name of the endpoint
-          example: default-endpoint
-          nullable: false
+          examples:
+            - default-endpoint
         type:
           type: string
           description: The type of the endpoint
-          example: mock
-          nullable: false
+          examples:
+            - mock
         weight:
           type: integer
           format: int32
@@ -1018,13 +942,13 @@ components:
         name:
           type: string
           description: The name of the endpoint group
-          example: default-endpoint-group
-          nullable: false
+          examples:
+            - default-endpoint-group
         type:
           type: string
           description: The type of the endpoint group
-          example: default
-          nullable: false
+          examples:
+            - default
         loadBalancer:
           $ref: "#/components/schemas/LoadBalancer"
         sharedConfiguration:
@@ -1057,8 +981,8 @@ components:
         type:
           type: string
           description: The type of the entrypoint
-          example: http-get
-          nullable: false
+          examples:
+            - http-get
         qos:
           $ref: "#/components/schemas/Qos"
         dlq:
@@ -1072,15 +996,18 @@ components:
           type: integer
           format: int32
           description: The error code
-          example: 400
+          examples:
+            - 400
         message:
           type: string
           description: The error message
-          example: Bad request
+          examples:
+            - Bad request
         technicalCode:
           type: string
           description: A technical code to identify the error
-          example: invalid.import.definition
+          examples:
+            - invalid.import.definition
         parameters:
           type: object
           description: A map of parameters to be used in the error message
@@ -1095,11 +1022,13 @@ components:
               message:
                 type: string
                 description: The error message
-                example: Bad request
+                examples:
+                  - Bad request
               location:
                 type: string
                 description: The json path of the field in error.
-                example: updateApi.properties[0].key
+                examples:
+                  - updateApi.properties[0].key
               invalidValue:
                 description: The invalid value.
 
@@ -1109,12 +1038,14 @@ components:
         id:
           type: string
           description: Flow's uuid.
-          example: 4e6abbd2-c0c6-462d-be9e-6371209af34b
+          examples:
+            - 4e6abbd2-c0c6-462d-be9e-6371209af34b
           readOnly: true
         name:
           type: string
           description: Flow's name.
-          example: My Flow
+          examples:
+            - My Flow
         enabled:
           type: boolean
           description: Is the flow enabled.
@@ -1158,7 +1089,7 @@ components:
           items:
             type: string
           description: Flow's tags.
-          example:
+          examples:
             - tag1
             - tag2
           uniqueItems: true
@@ -1174,7 +1105,8 @@ components:
     FlowMode:
       type: string
       description: API's flow mode.
-      example: BEST_MATCH
+      examples:
+        - BEST_MATCH
       default: DEFAULT
       enum:
         - BEST_MATCH
@@ -1202,7 +1134,8 @@ components:
     HttpMethod:
       type: string
       description: The method of the selector
-      example: GET
+      examples:
+        - GET
       enum:
         - CONNECT
         - DELETE
@@ -1228,7 +1161,8 @@ components:
             path:
               type: string
               description: The path of the selector
-              example: /my/path
+              examples:
+                - /my/path
               default: /
             pathOperator:
               $ref: "#/components/schemas/Operator"
@@ -1295,7 +1229,8 @@ components:
     ListenerType:
       type: string
       description: Listener type.
-      example: HTTP
+      examples:
+        - HTTP
       enum:
         - HTTP
         - SUBSCRIPTION
@@ -1307,7 +1242,8 @@ components:
         type:
           type: string
           description: Load balancer type.
-          example: ROUND_ROBIN
+          examples:
+            - ROUND_ROBIN
           default: ROUND_ROBIN
           enum:
             - RANDOM
@@ -1372,20 +1308,24 @@ components:
         description:
           type: string
           description: Plugin's description.
-          example: Let your consumers send synchronous, on-demand requests for events via a standard HTTP GET requests. Use a standard HTTP proxy to mediate between client applications as data consumers and event brokers such as Kafka.
+          examples:
+            - Let your consumers send synchronous, on-demand requests for events via a standard HTTP GET requests. Use a standard HTTP proxy to mediate between client applications as data consumers and event brokers such as Kafka.
         documentationUrl:
           type: string
           description: Plugin's documentation URL.
-          example: https://documentation.gravitee.io
+          examples:
+            - https://documentation.gravitee.io
         schemaImg:
           type: string
           description: Plugin's schema image as base64.
           format: base64
-          example: data:image/png;base64,aFDqfda
+          examples:
+            - data:image/png;base64,aFDqfda
     Operator:
       type: string
       description: The path operator of the selector
-      example: EQUALS
+      examples:
+        - EQUALS
       default: STARTS_WITH
       enum:
         - EQUALS
@@ -1409,46 +1349,55 @@ components:
         id:
           type: string
           description: Page's uuid.
-          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          examples:
+            - 00f8c9e7-78fc-4907-b8c9-e778fc790750
           readOnly: true
         crossId:
           type: string
           description: Page's cross uuid.
-          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          examples:
+            - 00f8c9e7-78fc-4907-b8c9-e778fc790750
           readOnly: true
         name:
           type: string
           description: Page's name.
-          example: My Page
+          examples:
+            - My Page
         type:
           $ref: "#/components/schemas/PageType"
         content:
           type: string
           description: Page's content.
-          example: My Page content
+          examples:
+            - My Page content
         order:
           type: integer
           description: Page's order.
-          example: 1
+          examples:
+            - 1
         lastContributor:
           type: string
           description: Page's last contributor. Id of a user.
-          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          examples:
+            - 00f8c9e7-78fc-4907-b8c9-e778fc790750
         published:
           type: boolean
           description: Page's published status.
-          example: true
+          examples:
+            - true
         visibility:
           $ref: "#/components/schemas/Visibility"
         updatedAt:
           type: string
           format: date-time
           description: Page's last update date.
-          example: 2018-01-01T00:00:00.000Z
+          examples:
+            - 2018-01-01T00:00:00.000Z
         contentType:
           type: string
           description: Page's content type.
-          example: application/json
+          examples:
+            - application/json
         source:
           $ref: "#/components/schemas/PageSource"
         configuration:
@@ -1459,15 +1408,18 @@ components:
         homepage:
           type: boolean
           description: Page's homepage status.
-          example: true
+          examples:
+            - true
         parentId:
           type: string
           description: Page's parent id.
-          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          examples:
+            - 00f8c9e7-78fc-4907-b8c9-e778fc790750
         parentPath:
           type: string
           description: Page's parent path.
-          example: /parent
+          examples:
+            - /parent
         excludedAccessControls:
           type: boolean
           description: Flag to restrict access to user matching the restrictions.
@@ -1502,7 +1454,8 @@ components:
     PageType:
       type: string
       description: The type of the page.
-      example: MARKDOWN
+      examples:
+        - MARKDOWN
       enum:
         - ASCIIDOC
         - ASYNCAPI
@@ -1522,11 +1475,12 @@ components:
         referenceId:
           type: string
           description: The id of the resource used to check the access control
-          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          examples:
+            - 00f8c9e7-78fc-4907-b8c9-e778fc790750
         referenceType:
           type: string
           description: The type of the resource used to check the access control
-          example:
+          examples:
             - GROUP
             - ROLE
     PageSource:
@@ -1535,7 +1489,7 @@ components:
         type:
           type: string
           description: The type of the page source (=fetcher type).
-          example:
+          examples:
             - http-fetcher
             - git-fetcher
             - gitlab-fetcher
@@ -1550,27 +1504,32 @@ components:
         name:
           type: string
           description: Media's name.
-          example: My Media
+          examples:
+            - My Media
         hash:
           type: string
           description: Media's hash.
-          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          examples:
+            - 00f8c9e7-78fc-4907-b8c9-e778fc790750
         attachedAt:
           type: string
           format: date-time
           description: Media's attachment date.
-          example: 2018-01-01T00:00:00.000Z
+          examples:
+            - 2018-01-01T00:00:00.000Z
     Revision:
       type: object
       properties:
         id:
           type: string
           description: Id of the page used to fill the content attributes.
-          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          examples:
+            - 00f8c9e7-78fc-4907-b8c9-e778fc790750
         revision:
           type: integer
           description: Revision number.
-          example: 1
+          examples:
+            - 1
     Pagination:
       description: Generic object to handle pagination data.
       type: object
@@ -1635,7 +1594,8 @@ components:
     PlanSecurityType:
       type: string
       description: Plan security type.
-      example: KEY_LESS
+      examples:
+        - KEY_LESS
       enum:
         - KEY_LESS
         - API_KEY
@@ -1645,7 +1605,8 @@ components:
     PlanStatus:
       type: string
       description: Plan status.
-      example: STAGING
+      examples:
+        - STAGING
       enum:
         - STAGING
         - PUBLISHED
@@ -1654,21 +1615,24 @@ components:
     PlanType:
       type: string
       description: Plan type.
-      example: API
+      examples:
+        - API
       enum:
         - API
         - CATALOG
     PlanValidation:
       type: string
       description: Plan validation type.
-      example: AUTO
+      examples:
+        - AUTO
       enum:
         - AUTO
         - MANUAL
     PlanMode:
       type: string
       description: The behavioural mode of the Plan (Standard for classical plan, Push for subscription plan).
-      example: STANDARD
+      examples:
+        - STANDARD
       enum:
         - STANDARD
         - PUSH
@@ -1679,14 +1643,16 @@ components:
         id:
           type: string
           description: Owner's uuid.
-          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          examples:
+            - 00f8c9e7-78fc-4907-b8c9-e778fc790750
         email:
           type: string
           description: Owner's email. Can be null if owner is a group.
         displayName:
           type: string
           description: Owner's name.
-          example: John Doe
+          examples:
+            - John Doe
           minLength: 1
         type:
           $ref: "#/components/schemas/MembershipMemberType"
@@ -1710,7 +1676,8 @@ components:
     Qos:
       type: string
       description: Type of the quality of service.
-      example: NONE
+      examples:
+        - NONE
       default: AUTO
       enum:
         - NONE
@@ -1776,13 +1743,14 @@ components:
         mapping:
           HTTP: "#/components/schemas/HttpSelector"
           CHANNEL: "#/components/schemas/ChannelSelector"
-          CONDITION: ConditionSelector
+          CONDITION: "#/components/schemas/ConditionSelector"
     BaseSelector:
       properties:
         type:
           type: string
           description: Selector type.
-          example: HTTP
+          examples:
+            - HTTP
           enum:
             - HTTP
             - CHANNEL
@@ -1880,7 +1848,8 @@ components:
               type: integer
               minimum: 0
               description: The port of the listener
-              example: 8080
+              examples:
+                - 8080
           required:
             - "host"
     VerifyApiPaths:
@@ -1903,7 +1872,7 @@ components:
           $ref: "#/components/schemas/ListenerType"
         hosts:
           type: array
-          example:
+          examples:
             - foo.example.com
           items:
             type: string
@@ -1969,7 +1938,8 @@ components:
     MetadataFormat:
       type: string
       description: The format of the metadata.
-      example: DATE
+      examples:
+        - DATE
       enum:
         - STRING
         - NUMERIC
@@ -2002,7 +1972,8 @@ components:
     LifecycleState:
       type: string
       description: The state of the API regarding the gateway(s).
-      example: STARTED
+      examples:
+        - STARTED
       enum:
         - CLOSED
         - INITIALIZED
@@ -2033,7 +2004,7 @@ components:
       content:
         application/json:
           schema:
-            title: "SharedPolicyGroupsResponse"
+            title: "Shared Policy Groups Response"
             properties:
               data:
                 description: List of SharedPolicyGroup.
@@ -2056,15 +2027,18 @@ components:
                 type: integer
                 format: int32
                 description: The error code
-                example: "400"
+                examples:
+                  - "400"
               message:
                 type: string
                 description: The error message
-                example: Bad request
+                examples:
+                  - Bad request
               technicalCode:
                 type: string
                 description: A technical code to identify the error
-                example: invalid.import.definition
+                examples:
+                  - invalid.import.definition
               parameters:
                 type: object
                 description: A map of parameters to be used in the error message
@@ -2079,11 +2053,13 @@ components:
                     message:
                       type: string
                       description: The error message
-                      example: Bad request
+                      examples:
+                        - Bad request
                     location:
                       type: string
                       description: The json path of the field in error.
-                      example: updateApi.properties[0].key
+                      examples:
+                        - updateApi.properties[0].key
                     invalidValue:
                       type: string
                       description: The invalid value.
