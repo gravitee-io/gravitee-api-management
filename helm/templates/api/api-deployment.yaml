@@ -2,6 +2,7 @@
 {{- $initContainers := .Values.initContainers -}}
 {{- $serviceAccount := include "apim.serviceAccount" . -}}
 {{- $logbackVolumeName := include "api.logbackVolumeName" . -}}
+{{- $dockerImageTag := include "api.dockerTag" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -130,7 +131,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ template "gravitee.api.fullname" . }}
-          image: "{{ .Values.api.image.repository }}:{{ default .Chart.AppVersion .Values.api.image.tag }}"
+          image: "{{ .Values.api.image.repository }}:{{ $dockerImageTag }}"
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           securityContext: {{ toYaml .Values.api.deployment.securityContext | nindent 12 }}
           ports:
