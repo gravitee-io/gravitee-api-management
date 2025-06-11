@@ -20,7 +20,7 @@ ENV GRAVITEEIO_HOME=/opt/graviteeio-management-api
 
 # Second stage to add the folder and change the permissions and ownership
 FROM base AS builder
-ADD ./distribution ${GRAVITEEIO_HOME}/
+COPY ./distribution ${GRAVITEEIO_HOME}/
 
 USER root
 RUN chgrp -R graviteeio ${GRAVITEEIO_HOME} && \
