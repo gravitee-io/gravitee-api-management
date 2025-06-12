@@ -315,6 +315,14 @@ tests:
               path: /
               hosts:
                 - my.custom.gateway.host
+          - type: http
+            port: 8083
+            ingress:
+              enabled: true
+              pathType: Prefix
+              path: /
+              hosts:
+                - my.custom2.gateway.host
     asserts:
       - hasDocuments:
           count: 1
