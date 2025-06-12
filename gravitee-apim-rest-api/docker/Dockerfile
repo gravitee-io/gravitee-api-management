@@ -15,16 +15,14 @@
 #
 
 # First stage to share environment variable
-FROM graviteeio/java:21 AS base
+FROM graviteeio/java:21-alpine AS base
 ENV GRAVITEEIO_HOME=/opt/graviteeio-management-api
-
-RUN addgroup -g 1000 graviteeio \
-    && adduser -D -H -u 1001 graviteeio --ingroup graviteeio
 
 # Second stage to add the folder and change the permissions and ownership
 FROM base AS builder
 ADD ./distribution ${GRAVITEEIO_HOME}/
 
+USER root
 RUN chgrp -R graviteeio ${GRAVITEEIO_HOME} && \
     chmod -R g=u ${GRAVITEEIO_HOME}
 

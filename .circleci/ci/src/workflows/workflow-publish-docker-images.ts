@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
-import { BuildBackendJob, BuildDockerImageJob, ConsoleWebuiBuildJob, PortalWebuiBuildJob, PublishPrEnvUrlsJob, SetupJob } from '../jobs';
+import {
+  BuildBackendJob,
+  BuildDockerBackendImageJob,
+  BuildDockerWebUiImageJob,
+  ConsoleWebuiBuildJob,
+  PortalWebuiBuildJob,
+  PublishPrEnvUrlsJob,
+  SetupJob,
+} from '../jobs';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
 
@@ -32,8 +40,10 @@ export class PublishDockerImagesWorkflow {
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
-    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
-    dynamicConfig.addJob(buildDockerImageJob);
+    const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
+    dynamicConfig.addJob(buildDockerWebUiImageJob);
+    const buildDockerBackendImageJob = BuildDockerBackendImageJob.create(dynamicConfig, environment, false);
+    dynamicConfig.addJob(buildDockerBackendImageJob);
 
     const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishPrEnvUrlsJob);
@@ -42,7 +52,7 @@ export class PublishDockerImagesWorkflow {
       new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
       new workflow.WorkflowJob(buildBackendJob, { context: config.jobContext, requires: ['Setup'], name: 'Build backend' }),
 
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Management API docker image`,
         requires: ['Build backend'],
@@ -50,7 +60,7 @@ export class PublishDockerImagesWorkflow {
         'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
         'docker-image-name': config.components.managementApi.image,
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Gateway docker image`,
         requires: ['Build backend'],
@@ -64,7 +74,7 @@ export class PublishDockerImagesWorkflow {
         requires: ['Setup'],
         name: 'Build APIM Console',
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
         context: config.jobContext,
         name: `Build APIM Console docker image`,
         requires: ['Build APIM Console'],
@@ -78,7 +88,7 @@ export class PublishDockerImagesWorkflow {
         requires: ['Setup'],
         name: 'Build APIM Portal',
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
         context: config.jobContext,
         name: `Build APIM Portal docker image`,
         requires: ['Build APIM Portal'],
