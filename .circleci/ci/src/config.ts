@@ -157,6 +157,7 @@ const docker = {
   version: 'default',
 };
 
+export type Variant = 'alpine' | 'debian';
 export const config = {
   aqua,
   artifactoryUrl,
