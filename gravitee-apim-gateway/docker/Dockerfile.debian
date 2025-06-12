@@ -15,23 +15,24 @@
 #
 
 # First stage to share environment variable
-FROM graviteeio/java:21-alpine AS base
+FROM graviteeio/java:21-debian AS base-debian
 ENV GRAVITEEIO_HOME=/opt/graviteeio-gateway
 
 USER root
-RUN apk update  \
-    && apk add --no-cache libc6-compat jemalloc \
-    && if [ $(apk --print-arch) = "aarch64" ]; then ln -s /lib/libc.musl-aarch64.so.1 /lib/ld-linux-aarch64.so.2; fi
+RUN set -eux ;\
+    apt-get update && apt-get install --yes --no-install-recommends libjemalloc2 ;\
+    apt-get clean ;\
+    rm -rf /var/lib/apt/lists/*
 
 
 # Second stage to add the folder and change the permissions and ownership
-FROM base AS builder
-ADD ./distribution ${GRAVITEEIO_HOME}/
+FROM base-debian AS builder
+COPY ./distribution ${GRAVITEEIO_HOME}/
 RUN chgrp -R graviteeio ${GRAVITEEIO_HOME} && \
     chmod -R g=u ${GRAVITEEIO_HOME}
 
 # Third stage to build the final docker image. COPY preserves ownership & permissions
-FROM base
+FROM base-debian
 LABEL maintainer="contact@graviteesource.com"
 COPY --from=builder ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
 WORKDIR ${GRAVITEEIO_HOME}
