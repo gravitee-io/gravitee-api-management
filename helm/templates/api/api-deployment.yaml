@@ -195,11 +195,12 @@ spec:
             {{- end }}
             {{- if .Values.gateway.enabled }}
             {{- if .Values.gateway.servers }}
+            {{- $found := "false" -}}
             {{- range $i, $server := .Values.gateway.servers }}
-            {{- if and (eq $server.type "http") $server.ingress $server.ingress.enabled }}
+            {{- if and (eq $found "false") (eq $server.type "http") $server.ingress $server.ingress.enabled }}
             - name: portal.entrypoint
               value: "https://{{ index $server.ingress.hosts 0 }}{{ $server.ingress.path }}"
-            {{ break }}
+            {{- $found = "true" -}}
             {{- end }}
             {{- end }}
             {{- else }}
