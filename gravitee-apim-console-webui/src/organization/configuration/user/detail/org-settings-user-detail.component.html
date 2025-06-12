@@ -268,7 +268,7 @@
             <th mat-header-cell *matHeaderCellDef id="integrationRole" mat-sort-header>Integration Role</th>
             <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
               <mat-form-field>
-                <mat-label>Application role</mat-label>
+                <mat-label>Integration role</mat-label>
                 <mat-select [id]="group.id" [aria-label]="'Integration roles for ' + group.id" formControlName="INTEGRATION">
                   <mat-option>-- None --</mat-option>
                   <mat-option *ngFor="let role of integrationRoles$ | async" [disabled]="role.system" [value]="role.name">{{
