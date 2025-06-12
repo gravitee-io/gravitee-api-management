@@ -79,6 +79,7 @@
         <gravitee-secret-api.version>1.0.0</gravitee-secret-api.version>
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
         <gravitee-spec-gen-api.version>1.1.0</gravitee-spec-gen-api.version>
+        <gravitee-inference-service.version>1.1.2</gravitee-inference-service.version>
 
         <!-- Other dependencies version -->
         <angus-activation.version>2.0.2</angus-activation.version>
@@ -270,11 +271,11 @@
         <gravitee-resource-auth-provider-ldap.version>2.0.0</gravitee-resource-auth-provider-ldap.version>
         <gravitee-resource-cache-redis.version>4.0.1</gravitee-resource-cache-redis.version>
         <gravitee-resource-oauth2-provider-keycloak.version>2.1.0</gravitee-resource-oauth2-provider-keycloak.version>
-        <gravitee-resource-ai-model-text-classification.version>1.0.0-alpha.2</gravitee-resource-ai-model-text-classification.version>
+        <gravitee-resource-ai-model-text-classification.version>1.0.0-alpha.5</gravitee-resource-ai-model-text-classification.version>
         <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
         <gravitee-secretprovider-kubernetes.version>2.0.0</gravitee-secretprovider-kubernetes.version>
-        <gravitee-policy-ai-prompt-token-tracking.version>1.0.0-alpha.3</gravitee-policy-ai-prompt-token-tracking.version>
-        <gravitee-policy-ai-prompt-guard-rails.version>1.0.0-alpha.1</gravitee-policy-ai-prompt-guard-rails.version>
+        <gravitee-policy-ai-prompt-token-tracking.version>1.0.0-alpha.4</gravitee-policy-ai-prompt-token-tracking.version>
+        <gravitee-policy-ai-prompt-guard-rails.version>1.0.0-alpha.3</gravitee-policy-ai-prompt-guard-rails.version>
 
         <!-- Enterprise plugins -->
         <gravitee-entrypoint-http-get.version>2.1.0</gravitee-entrypoint-http-get.version>
