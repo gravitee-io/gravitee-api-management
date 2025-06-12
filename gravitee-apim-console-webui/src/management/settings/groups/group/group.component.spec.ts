@@ -69,7 +69,7 @@ describe('GroupComponent', () => {
     lock_application_role: false,
     max_invitation: 2,
     name: 'Group 1',
-    roles: {},
+    roles: { API: 'OWNER', APPLICATION: 'OWNER' },
     system_invitation: true,
     id: '1',
   };
@@ -238,8 +238,8 @@ describe('GroupComponent', () => {
       expect(component.groupForm.getRawValue()).toEqual({
         canAdminChangeAPIRole: !GROUP.lock_api_role,
         canAdminChangeApplicationRole: !GROUP.lock_application_role,
-        defaultAPIRole: null,
-        defaultApplicationRole: null,
+        defaultAPIRole: 'OWNER',
+        defaultApplicationRole: 'OWNER',
         maxNumberOfMembers: GROUP.max_invitation,
         name: GROUP.name,
         shouldAddToNewAPIs: false,
@@ -744,6 +744,45 @@ describe('GroupComponent', () => {
         { name: 'OWNER', scope: 'APPLICATION' },
         { name: 'OWNER', scope: 'INTEGRATION' },
       ]);
+    });
+
+    it('should initialize api and application default roles', async () => {
+      await init(GROUP.id);
+      expectGetGroup({
+        disable_membership_notifications: false,
+        email_invitation: true,
+        event_rules: [],
+        lock_api_role: false,
+        lock_application_role: false,
+        max_invitation: 10,
+        manageable: true,
+        name: 'Group 1',
+        roles: { API: 'USER', APPLICATION: 'OWNER' },
+        system_invitation: true,
+        id: '1',
+      });
+      expect(component.mode).toEqual('edit');
+      fixture.detectChanges();
+      expectGetDefaultRoles();
+      expectGetGroupMembers();
+      expectGetGroupAPIs();
+      expectGetGroupApplications();
+      const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
+      await buttonHarness.click();
+      const menuHarness = await harnessLoader.getHarness(MatMenuHarness);
+      const emailInvitationMenuItem = await menuHarness.getHarness(
+        MatMenuItemHarness.with({ selector: '[aria-label="Click to invite user via email"]' }),
+      );
+      await emailInvitationMenuItem.click();
+      const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
+      const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
+      expect(matSelectHarnesses.length).toEqual(2);
+      await matSelectHarnesses[0].open();
+      const apiRoleOptions = await matSelectHarnesses[0].getOptions();
+      expect(await apiRoleOptions[3].isSelected()).toEqual(true);
+      await matSelectHarnesses[1].open();
+      const applicationRoleOptions = await matSelectHarnesses[1].getOptions();
+      expect(await applicationRoleOptions[0].isSelected()).toEqual(true);
     });
 
     it('should invite by email', async () => {

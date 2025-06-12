@@ -80,8 +80,11 @@ export class InviteMemberDialogComponent implements OnInit {
 
   private initializeForm() {
     this.invitationForm = new FormGroup({
-      defaultAPIRole: new FormControl<string>('USER'),
-      defaultApplicationRole: new FormControl<string>('USER'),
+      defaultAPIRole: new FormControl({ value: this.data.group.roles['API'] ?? 'USER', disabled: false }),
+      defaultApplicationRole: new FormControl<string>({
+        value: this.data.group.roles['APPLICATION'] ?? 'USER',
+        disabled: false,
+      }),
       email: new FormControl<string>(null, [Validators.required, Validators.email]),
     });
   }
