@@ -3119,9 +3119,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:15.0.0":
-  version: 15.0.0
-  resolution: "@gravitee/ui-particles-angular@npm:15.0.0"
+"@gravitee/ui-particles-angular@npm:15.0.0-gio-el-poc-d6e22f4":
+  version: 15.0.0-gio-el-poc-d6e22f4
+  resolution: "@gravitee/ui-particles-angular@npm:15.0.0-gio-el-poc-d6e22f4"
   dependencies:
     "@fontsource/fira-mono": "npm:5.0.14"
     "@fontsource/kanit": "npm:^5.2.6"
@@ -3150,13 +3150,13 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/56bcee269e16ac0c035c611e39c750f25cecae3157cd46243994216b3bfdb871f81cec834e60cc55a0a3fb34aec85713214e90e170e780d5e21af73f9281fe84
+  checksum: 10c0/59b1cec4b7bf9f2ab74e7cbf83b93e58c22c7c1fe7d69de8737f322098600bf87557a2db4c3804cb45abbf26a1fd052146f3efa25a98b92a6f50552b78fb2524
   languageName: node
   linkType: hard
 
-"@gravitee/ui-policy-studio-angular@npm:15.0.0":
-  version: 15.0.0
-  resolution: "@gravitee/ui-policy-studio-angular@npm:15.0.0"
+"@gravitee/ui-policy-studio-angular@npm:15.0.0-gio-el-poc-d6e22f4":
+  version: 15.0.0-gio-el-poc-d6e22f4
+  resolution: "@gravitee/ui-policy-studio-angular@npm:15.0.0-gio-el-poc-d6e22f4"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -3168,7 +3168,7 @@ __metadata:
     "@angular/material": ^19.0.0
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
-  checksum: 10c0/247f7dbe3d2cc082aadd0cf7c703f9384230df75b247e0f4bdff4838a73a3b064fa6d3dd24ac9debf3afbe5fff66e44822c6fa6b1c73cbd362d16991a726ebe1
+  checksum: 10c0/85cae59a193eb9ae5dc592a8b8e5b9b281e0e6aee3d9da7636902ab2e908c3788cd6f63ece8ebf8ba585cf4981ae65b9bc471cf036c2e0b14be54112892a061b
   languageName: node
   linkType: hard
 
@@ -12103,8 +12103,8 @@ __metadata:
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/ui-analytics": "npm:15.0.0"
     "@gravitee/ui-components": "npm:4.3.3"
-    "@gravitee/ui-particles-angular": "npm:15.0.0"
-    "@gravitee/ui-policy-studio-angular": "npm:15.0.0"
+    "@gravitee/ui-particles-angular": "npm:15.0.0-gio-el-poc-d6e22f4"
+    "@gravitee/ui-policy-studio-angular": "npm:15.0.0-gio-el-poc-d6e22f4"
     "@gravitee/ui-schematics": "npm:15.0.0"
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.12"
