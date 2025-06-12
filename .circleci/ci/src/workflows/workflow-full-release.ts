@@ -16,7 +16,8 @@
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import {
   BackendBuildAndPublishOnDownloadWebsiteJob,
-  BuildDockerImageJob,
+  BuildDockerBackendImageJob,
+  BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
   NexusStagingJob,
   PackageBundleJob,
@@ -48,8 +49,10 @@ export class FullReleaseWorkflow {
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
-    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, true);
-    dynamicConfig.addJob(buildDockerImageJob);
+    const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, true);
+    dynamicConfig.addJob(buildDockerWebUiImageJob);
+    const buildDockerBackendImageJob = BuildDockerBackendImageJob.create(dynamicConfig, environment, true);
+    dynamicConfig.addJob(buildDockerBackendImageJob);
 
     const backendBuildAndPublishOnDownloadWebsiteJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(backendBuildAndPublishOnDownloadWebsiteJob);
@@ -90,7 +93,7 @@ export class FullReleaseWorkflow {
         name: 'Build APIM Portal',
         requires: ['Setup'],
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
         context: config.jobContext,
         name: `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         requires: ['Build APIM Portal'],
@@ -105,7 +108,7 @@ export class FullReleaseWorkflow {
         name: 'Build APIM Console',
         requires: ['Setup'],
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
         context: config.jobContext,
         name: `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         requires: ['Build APIM Console'],
@@ -120,7 +123,7 @@ export class FullReleaseWorkflow {
         name: 'Backend build and publish on download website',
         requires: ['Setup'],
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         requires: ['Backend build and publish on download website'],
@@ -128,7 +131,7 @@ export class FullReleaseWorkflow {
         'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
         'docker-image-name': config.components.managementApi.image,
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         requires: ['Backend build and publish on download website'],

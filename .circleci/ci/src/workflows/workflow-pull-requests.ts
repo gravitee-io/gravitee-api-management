@@ -21,8 +21,11 @@ import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import {
   BuildBackendJob,
+  BuildDockerBackendImageJob,
+  BuildDockerWebUiImageJob,
   ChromaticConsoleJob,
   CommunityBuildBackendJob,
+  ConsoleWebuiBuildJob,
   DangerJsJob,
   DeployOnAzureJob,
   E2ECypressJob,
@@ -30,6 +33,7 @@ import {
   E2ELintBuildJob,
   E2ETestJob,
   PerfLintBuildJob,
+  PortalWebuiBuildJob,
   PublishJob,
   ReleaseHelmJob,
   SetupJob,
@@ -42,12 +46,9 @@ import {
   TestPluginJob,
   TestRepositoryJob,
   TestRestApiJob,
-  ValidateJob,
-  ConsoleWebuiBuildJob,
-  PortalWebuiBuildJob,
-  WebuiLintTestJob,
   TriggerSaasDockerImagesJob,
-  BuildDockerImageJob,
+  ValidateJob,
+  WebuiLintTestJob,
 } from '../jobs';
 import { orbs } from '../orbs';
 
@@ -309,11 +310,11 @@ export class PullRequestsWorkflow {
       requires.push('Lint & test APIM Console', 'Build APIM Console');
 
       if (shouldBuildDockerImages) {
-        const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
-        dynamicConfig.addJob(buildDockerImageJob);
+        const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
+        dynamicConfig.addJob(buildDockerWebUiImageJob);
 
         jobs.push(
-          new workflow.WorkflowJob(buildDockerImageJob, {
+          new workflow.WorkflowJob(buildDockerWebUiImageJob, {
             context: config.jobContext,
             name: `Build APIM Console docker image`,
             requires: ['Build APIM Console'],
@@ -375,11 +376,11 @@ export class PullRequestsWorkflow {
       requires.push('Lint & test APIM Portal', 'Lint & test APIM Portal Next', 'Build APIM Portal');
 
       if (shouldBuildDockerImages) {
-        const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
-        dynamicConfig.addJob(buildDockerImageJob);
+        const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
+        dynamicConfig.addJob(buildDockerWebUiImageJob);
 
         jobs.push(
-          new workflow.WorkflowJob(buildDockerImageJob, {
+          new workflow.WorkflowJob(buildDockerWebUiImageJob, {
             context: config.jobContext,
             name: `Build APIM Portal docker image`,
             requires: ['Build APIM Portal'],
@@ -431,8 +432,8 @@ export class PullRequestsWorkflow {
   }
 
   private static getE2EJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
-    dynamicConfig.addJob(buildDockerImageJob);
+    const buildDockerBackendImageJob = BuildDockerBackendImageJob.create(dynamicConfig, environment, false);
+    dynamicConfig.addJob(buildDockerBackendImageJob);
 
     const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eGenerateSdkJob);
@@ -450,7 +451,7 @@ export class PullRequestsWorkflow {
     dynamicConfig.addJob(perfLintBuildJob);
 
     return [
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Management API docker image`,
         requires: ['Build backend'],
@@ -458,7 +459,7 @@ export class PullRequestsWorkflow {
         'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
         'docker-image-name': config.components.managementApi.image,
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Gateway docker image`,
         requires: ['Build backend'],

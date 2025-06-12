@@ -17,7 +17,8 @@ import { Config, Workflow, workflow } from '@circleci/circleci-config-sdk';
 import { CircleCIEnvironment } from '../pipelines';
 import {
   BackendBuildAndPublishOnDownloadWebsiteJob,
-  BuildDockerImageJob,
+  BuildDockerBackendImageJob,
+  BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
   PortalWebuiBuildJob,
   SetupJob,
@@ -34,8 +35,10 @@ export class BuildDockerImagesWorkflow {
     dynamicConfig.addJob(portalWebuiBuildJob);
     const backendBuildJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(backendBuildJob);
-    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, true);
-    dynamicConfig.addJob(buildDockerImageJob);
+    const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, true);
+    dynamicConfig.addJob(buildDockerWebUiImageJob);
+    const buildDockerBackendImageJob = BuildDockerBackendImageJob.create(dynamicConfig, environment, true);
+    dynamicConfig.addJob(buildDockerBackendImageJob);
 
     const jobs = [
       new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
@@ -45,7 +48,7 @@ export class BuildDockerImagesWorkflow {
         name: 'Build APIM Portal',
         requires: ['Setup'],
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
         context: config.jobContext,
         name: `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         requires: ['Build APIM Portal'],
@@ -60,7 +63,7 @@ export class BuildDockerImagesWorkflow {
         name: 'Build APIM Console',
         requires: ['Setup'],
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
         context: config.jobContext,
         name: `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         requires: ['Build APIM Console'],
@@ -75,7 +78,7 @@ export class BuildDockerImagesWorkflow {
         name: 'Backend build',
         requires: ['Setup'],
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         requires: ['Backend build'],
@@ -83,7 +86,7 @@ export class BuildDockerImagesWorkflow {
         'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
         'docker-image-name': config.components.managementApi.image,
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         requires: ['Backend build'],
