@@ -185,6 +185,11 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
 
   for (const [path, pathItem] of Object.entries(api.paths || {})) {
     for (const [method, operation] of Object.entries(pathItem || {})) {
+      // if method is not a valid HTTP method, skip it
+      if (!['get', 'post', 'put', 'delete', 'patch', 'options', 'head'].includes(method)) {
+        continue;
+      }
+
       const op = operation as OperationObject;
       if (!op) continue;
 
