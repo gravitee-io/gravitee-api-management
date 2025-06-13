@@ -151,7 +151,7 @@ services:
       - frontend
 
   redis:
-    image: docker.io/bitnami/redis:7.4.2
+    image: docker.io/bitnami/redis:7.4.3
     container_name: gio_apim_redis
     environment:
       - ALLOW_EMPTY_PASSWORD=true

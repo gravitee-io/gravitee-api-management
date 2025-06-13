@@ -72,7 +72,7 @@ services:
       - storage
 
   redis-rate-limit:
-    image: docker.io/bitnami/redis:7.4.2
+    image: docker.io/bitnami/redis:7.4.3
     container_name: gio_redis_ratelimit
     restart: always
     environment:
