@@ -123,20 +123,6 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>io.gravitee.inference.service</groupId>
-            <artifactId>gravitee-inference-service</artifactId>
-            <version>${gravitee-inference-service.version}</version>
-            <scope>runtime</scope>
-            <type>zip</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!-- Mapstruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
