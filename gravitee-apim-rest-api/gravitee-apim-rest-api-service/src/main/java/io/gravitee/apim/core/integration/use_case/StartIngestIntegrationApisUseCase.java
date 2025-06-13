@@ -27,6 +27,7 @@ import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.integration.exception.FederatedAgentIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
@@ -46,6 +47,7 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.time.Duration;
 import java.util.List;
@@ -119,21 +121,21 @@ public class StartIngestIntegrationApisUseCase {
         try (var bulk = apiIndexerDomainService.bulk(auditInfo)) {
             return Flowable
                 .fromIterable(a2aIntegration.wellKnownUrls())
-                .flatMapSingle(url ->
-                    a2aIngestion(bulk, url.url(), a2aIntegration, auditInfo)
-                        .onErrorReturn(throwable -> {
-                            log.warn("Fail to ingest A2A {}", url, throwable);
-                            return AsyncJob.Status.ERROR;
-                        })
-                )
-                .reduce((a, b) -> List.of(a, b).contains(AsyncJob.Status.ERROR) ? AsyncJob.Status.ERROR : AsyncJob.Status.SUCCESS)
-                .defaultIfEmpty(AsyncJob.Status.SUCCESS);
+                .flatMapMaybe(url -> a2aIngestion(bulk, url.url(), a2aIntegration, auditInfo))
+                .toList()
+                .flatMap(failedUrls -> {
+                    if (!failedUrls.isEmpty()) {
+                        return Single.error(new FederatedAgentIngestionException(failedUrls));
+                    } else {
+                        return Single.just(AsyncJob.Status.SUCCESS);
+                    }
+                });
         } catch (Exception e) {
-            return Single.just(AsyncJob.Status.ERROR);
+            return Single.error(new FederatedAgentIngestionException("Ingestion failed", e));
         }
     }
 
-    private Single<AsyncJob.Status> a2aIngestion(
+    private Maybe<String> a2aIngestion(
         ApiIndexerDomainService.Bulk bulk,
         String url,
         Integration.A2aIntegration a2aIntegration,
@@ -141,7 +143,8 @@ public class StartIngestIntegrationApisUseCase {
     ) {
         return a2aAgentFetcher
             .fetchAgentCard(url)
-            .map(federatedAgent -> {
+            .toMaybe()
+            .flatMap(federatedAgent -> {
                 var owner = apiPrimaryOwnerFactory.createForNewApi(
                     auditInfo.organizationId(),
                     a2aIntegration.environmentId(),
@@ -190,8 +193,10 @@ public class StartIngestIntegrationApisUseCase {
                         existingPlan -> updatePlanDomainService.update(plan, List.of(), Map.of(), api, bulk.auditInfo()),
                         () -> createPlanDomainService.create(plan, List.of(), api, bulk.auditInfo())
                     );
-                return AsyncJob.Status.SUCCESS;
-            });
+
+                return Maybe.<String>empty();
+            })
+            .onErrorReturnItem(url);
     }
 
     public AsyncJob newIngestJob(String id, Integration integration, String initiatorId, Long total) {
