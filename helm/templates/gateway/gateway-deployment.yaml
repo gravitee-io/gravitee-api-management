@@ -268,8 +268,6 @@ spec:
           {{- with .Values.gateway.extraVolumeMounts }}
           {{- tpl . $ | nindent 12 }}
           {{- end }}
-            - name: ai-models
-              mountPath: /opt/graviteeio-gateway/models
         {{- if .Values.gateway.extraContainers }}
         {{- with .Values.gateway.extraContainers }}
         {{- tpl . $ | nindent 8 }}
@@ -321,6 +319,4 @@ spec:
         {{- with .Values.gateway.extraVolumes }}
           {{- tpl . $ | nindent 8 }}
         {{- end }}
-        - name: ai-models
-          emptyDir: {}
 {{- end -}}
