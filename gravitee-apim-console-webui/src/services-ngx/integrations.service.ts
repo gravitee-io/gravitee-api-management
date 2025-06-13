@@ -59,7 +59,7 @@ export class IntegrationsService {
       catchError((error) => {
         return of({
           status: AsyncJobStatus.ERROR,
-          message: `Fail to ingest APIs: ${error.message}`,
+          message: `${error.error.message}`,
         });
       }),
     );
