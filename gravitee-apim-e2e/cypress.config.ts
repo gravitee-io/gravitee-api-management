@@ -17,6 +17,19 @@ export default defineConfig({
     videosFolder: 'ui-test/videos',
     video: false,
     screenshotOnRunFailure: false,
-    setupNodeEvents(on, config) {},
+    setupNodeEvents(on, config) {
+      on('task', {
+        log(message) {
+          console.log(message);
+
+          return null;
+        },
+        table(message) {
+          console.table(message);
+
+          return null;
+        },
+      });
+    },
   },
 });
