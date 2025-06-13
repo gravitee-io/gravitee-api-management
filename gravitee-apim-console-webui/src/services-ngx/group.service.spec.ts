@@ -61,7 +61,7 @@ describe('GroupService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/groups`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/groups`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(fakeGroups);

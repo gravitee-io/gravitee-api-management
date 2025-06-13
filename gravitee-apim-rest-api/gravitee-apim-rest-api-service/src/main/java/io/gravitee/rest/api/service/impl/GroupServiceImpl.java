@@ -35,6 +35,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.GroupCriteria;
+import io.gravitee.repository.management.api.search.GroupCriteria;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
@@ -239,11 +240,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    public List<GroupSimpleEntity> findAllByOrganization(String organizationId) {
+    public List<GroupSimpleEntity> findAllGroupByEnvironment(String environmentId) {
         try {
-            logger.debug("Find all groups for organization {}", organizationId);
-            Set<Group> groups = groupRepository.findAllByOrganization(organizationId);
-            logger.debug("Find all groups for organization {} - DONE", organizationId);
+            logger.debug("Find all groups for environment {}", environmentId);
+            Set<Group> groups = groupRepository.findAllByEnvironment(environmentId);
+            logger.debug("Find all groups for environment {} - DONE", environmentId);
             return groups
                 .stream()
                 .map(this::mapToSimple)
