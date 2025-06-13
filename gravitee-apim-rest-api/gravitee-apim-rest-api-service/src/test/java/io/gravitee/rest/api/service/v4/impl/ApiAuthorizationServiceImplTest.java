@@ -795,4 +795,47 @@ public class ApiAuthorizationServiceImplTest {
 
         assertThat(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USER_NAME, api)).isTrue();
     }
+
+    @Test
+    public void computeApiCriteriaForUser_oneSubscriptionDoesntHaveApi() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String userId = "userA";
+        ApiQuery apiQuery = new ApiQuery();
+        boolean manageOnly = false;
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API))
+            .thenReturn(Set.of());
+        when(roleService.findByScope(RoleScope.API, executionContext.getOrganizationId()))
+            .thenReturn(List.of(RoleEntity.builder().id("role1").scope(RoleScope.API).name(SystemRole.PRIMARY_OWNER.name()).build()));
+        when(applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE)).thenReturn(Set.of(userId));
+        when(subscriptionService.search(eq(executionContext), any()))
+            .thenReturn(
+                List.of(
+                    SubscriptionEntity.builder().api("api1").build(),
+                    SubscriptionEntity.builder().build(),
+                    SubscriptionEntity.builder().api("api2").build()
+                )
+            );
+        List<ApiCriteria> apiCriterias = apiAuthorizationService.computeApiCriteriaForUser(executionContext, userId, apiQuery, manageOnly);
+        assertThat(apiCriterias.stream().filter(apiCriteria -> apiCriteria.getVisibility() != Visibility.PUBLIC).findFirst().get().getIds())
+            .isEqualTo(Set.of("api1", "api2"));
+    }
+
+    @Test
+    public void computeApiCriteriaForUser_allSubscriptionsDontHaveApi() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String userId = "userA";
+        ApiQuery apiQuery = new ApiQuery();
+        boolean manageOnly = false;
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API))
+            .thenReturn(Set.of());
+        when(roleService.findByScope(RoleScope.API, executionContext.getOrganizationId()))
+            .thenReturn(List.of(RoleEntity.builder().id("role1").scope(RoleScope.API).name(SystemRole.PRIMARY_OWNER.name()).build()));
+        when(applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE)).thenReturn(Set.of(userId));
+        when(subscriptionService.search(eq(executionContext), any()))
+            .thenReturn(
+                List.of(SubscriptionEntity.builder().build(), SubscriptionEntity.builder().build(), SubscriptionEntity.builder().build())
+            );
+        List<ApiCriteria> apiCriterias = apiAuthorizationService.computeApiCriteriaForUser(executionContext, userId, apiQuery, manageOnly);
+        assertThat(apiCriterias.stream().filter(apiCriteria -> apiCriteria.getVisibility() != Visibility.PUBLIC).count()).isEqualTo(0);
+    }
 }
