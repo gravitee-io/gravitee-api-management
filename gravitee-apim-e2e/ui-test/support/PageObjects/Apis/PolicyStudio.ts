@@ -69,7 +69,7 @@ export default class PolicyStudio {
   }
 
   addOrUpdateHeaders(key: string, value: string) {
-    cy.get('textarea[formcontrolname="key"]').click().clear().type(key);
+    cy.get('textarea[formcontrolname="key"]').first().click().clear().type(key);
     cy.get('textarea[formcontrolname="value"]').first().click().clear().type(value);
     return this;
   }
