@@ -329,12 +329,16 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
                     );
 
                     final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, query);
-                    if (subscriptions != null && !subscriptions.isEmpty()) {
-                        apiCriteriaList.add(
-                            queryToCriteria(executionContext, apiQuery)
-                                .ids(subscriptions.stream().map(SubscriptionEntity::getApi).distinct().collect(toList()))
-                                .build()
-                        );
+                    if (subscriptions != null) {
+                        List<String> subscriptionsApis = subscriptions
+                            .stream()
+                            .map(SubscriptionEntity::getApi)
+                            .distinct()
+                            .filter(Objects::nonNull)
+                            .toList();
+                        if (!subscriptionsApis.isEmpty()) {
+                            apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).ids(subscriptionsApis).build());
+                        }
                     }
                 }
             }
