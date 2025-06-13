@@ -80,24 +80,12 @@ public class PoliciesResource {
                 ? GraviteeContext.getCurrentOrganization()
                 : GraviteeContext.getDefaultOrganization()
         );
-        Stream<PolicyListItem> stream = policyService.findAll(withResource).stream().map(policy -> convert(policy, license));
-        if (expand != null && !expand.isEmpty()) {
-            for (String s : expand) {
-                switch (s) {
-                    case "schema":
-                        stream =
-                            stream.peek(policyListItem ->
-                                policyListItem.setSchema(
-                                    policyService.getSchema(policyListItem.getId(), SchemaDisplayFormat.GV_SCHEMA_FORM)
-                                )
-                            );
-                    case "icon":
-                        stream = stream.peek(policyListItem -> policyListItem.setIcon(policyService.getIcon(policyListItem.getId())));
-                    default:
-                        break;
-                }
-            }
-        }
+        boolean includeSchema = expand != null && expand.contains("schema");
+        boolean includeIcon = expand != null && expand.contains("icon");
+        Stream<PolicyListItem> stream = policyService
+            .findAll(withResource)
+            .stream()
+            .map(policy -> convert(policy, license, includeSchema, includeIcon));
         return stream.sorted(Comparator.comparing(PolicyListItem::getName)).collect(Collectors.toList());
     }
 
@@ -129,7 +117,7 @@ public class PoliciesResource {
             .collect(Collectors.toList());
     }
 
-    private PolicyListItem convert(PolicyEntity policy, License license) {
+    private PolicyListItem convert(PolicyEntity policy, License license, boolean includeSchema, boolean includeIcon) {
         PolicyListItem item = new PolicyListItem();
         item.setId(policy.getId());
         item.setName(policy.getName());
@@ -146,6 +134,12 @@ public class PoliciesResource {
             item.setOnResponse(false);
         }
         item.setDeployed(policy.isDeployed() && license.isFeatureEnabled(policy.getFeature()));
+        if (includeSchema) {
+            item.setSchema(policyService.getSchema(item.getId(), SchemaDisplayFormat.GV_SCHEMA_FORM));
+        }
+        if (includeIcon) {
+            item.setIcon(policyService.getIcon(item.getId()));
+        }
         return item;
     }
 }
