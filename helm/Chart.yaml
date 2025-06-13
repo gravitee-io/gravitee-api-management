@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.6.13
-appVersion: 4.6.13
+version: 4.6.14
+appVersion: 4.6.14
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,11 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: fixed
-      description: 'updated the default log file path'
-      links:
-       - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10524
-    - kind: fixed
-      description: 'The `portal.entrypoint` env var is used to configure the entrypoint used to expose APIs. It is used mainly on the developer portal. The value is automatically set with the ingress of the gateway. Now, if the gateway is configured with  a list of servers (http, tcp...) the `portal.entrypoint` is set accordingly'
+  artifacthub.io/changes: 
