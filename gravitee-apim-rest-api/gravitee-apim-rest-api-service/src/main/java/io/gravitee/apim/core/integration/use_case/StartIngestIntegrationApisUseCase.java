@@ -27,6 +27,7 @@ import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.integration.exception.FederatedAgentIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
@@ -48,6 +49,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
@@ -117,19 +119,28 @@ public class StartIngestIntegrationApisUseCase {
 
     private Single<AsyncJob.Status> a2aIngestions(Integration.A2aIntegration a2aIntegration, AuditInfo auditInfo) {
         try (var bulk = apiIndexerDomainService.bulk(auditInfo)) {
+            List<String> failedUrls = new ArrayList<>();
             return Flowable
                 .fromIterable(a2aIntegration.wellKnownUrls())
                 .flatMapSingle(url ->
                     a2aIngestion(bulk, url.url(), a2aIntegration, auditInfo)
                         .onErrorReturn(throwable -> {
                             log.warn("Fail to ingest A2A {}", url, throwable);
+                            failedUrls.add(url.url());
                             return AsyncJob.Status.ERROR;
                         })
                 )
-                .reduce((a, b) -> List.of(a, b).contains(AsyncJob.Status.ERROR) ? AsyncJob.Status.ERROR : AsyncJob.Status.SUCCESS)
-                .defaultIfEmpty(AsyncJob.Status.SUCCESS);
+                .toList()
+                .flatMap(statuses -> {
+                    boolean hasError = statuses.contains(AsyncJob.Status.ERROR);
+                    if (hasError) {
+                        return Single.error(new FederatedAgentIngestionException(failedUrls));
+                    } else {
+                        return Single.just(AsyncJob.Status.SUCCESS);
+                    }
+                });
         } catch (Exception e) {
-            return Single.just(AsyncJob.Status.ERROR);
+            return Single.error(new FederatedAgentIngestionException("Ingestion failed", e));
         }
     }
 

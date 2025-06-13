@@ -64,6 +64,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.integration.exception.FederatedAgentIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
@@ -648,15 +649,18 @@ class StartIngestIntegrationApisUseCaseTest {
             var a2aIntegration = IntegrationFixture.anA2aIntegrationWithId("a2a-integration-id").withEnvironmentId(ENVIRONMENT_ID);
             givenAnIntegration(a2aIntegration);
 
-            // When
-            var result = useCase
+            //When, then
+            useCase
                 .execute(new StartIngestIntegrationApisUseCase.Input("a2a-integration-id", List.of(), AUDIT_INFO))
                 .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .values();
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertError(throwable -> {
+                    assertThat(throwable)
+                        .isInstanceOf(FederatedAgentIngestionException.class)
+                        .hasMessage("Failed to ingest data from the following URLs: https://example.com/.well-known/agent.json");
+                    return true;
+                });
 
-            // Then
-            assertThat(result).containsExactly(AsyncJob.Status.ERROR);
             assertThat(apiCrudService.storage()).isEmpty();
             assertThat(planCrudService.storage()).isEmpty();
         }
