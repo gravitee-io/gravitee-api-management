@@ -97,7 +97,12 @@ export class IntegrationOverviewComponent implements OnInit {
   }
 
   public a2aDiscover(): void {
-    this.integrationsService.ingest(this.integration.id).subscribe({ complete: () => this.ngOnInit() });
+    this.integrationsService.ingest(this.integrationId).subscribe((response) => {
+      if (response.status === 'ERROR') {
+        this.snackBarService.error(`Ingestion failed. Please check your settings and try again: ${response.message}`);
+      }
+      this.ngOnInit();
+    });
   }
 
   private getIntegration() {
