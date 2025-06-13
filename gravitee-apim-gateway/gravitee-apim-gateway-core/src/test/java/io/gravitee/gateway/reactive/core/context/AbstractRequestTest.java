@@ -111,6 +111,22 @@ class AbstractRequestTest {
             assertThat(cut.contextPath()).isEqualTo("/");
             assertThat(cut.pathInfo()).isEqualTo(initialPath);
         }
+
+        @Test
+        void path_info_should_be_empty() {
+            String initialPath = "/test";
+            cut.path = initialPath;
+            cut.contextPath(initialPath);
+            assertThat(cut.pathInfo()).isEmpty();
+        }
+
+        @Test
+        void path_info_should_not_be_empty_with_context_path_without_trailing_slash() {
+            String contextPath = "/test";
+            cut.path = contextPath + "/v1";
+            cut.contextPath(contextPath);
+            assertThat(cut.pathInfo()).isEqualTo("/v1");
+        }
     }
 
     @Nested
