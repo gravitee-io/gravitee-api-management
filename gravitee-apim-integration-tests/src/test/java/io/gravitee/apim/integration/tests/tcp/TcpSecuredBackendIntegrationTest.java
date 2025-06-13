@@ -32,25 +32,16 @@ import io.gravitee.apim.gateway.tests.sdk.utils.ResourceUtils;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.definition.model.v4.ssl.SslOptions;
-import io.gravitee.definition.model.v4.ssl.TrustStore;
-import io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.node.api.certificate.KeyStoreLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.tcp.proxy.TcpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.tcp.proxy.TcpProxyEntrypointConnectorFactory;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.net.JksOptions;
-import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
-import java.util.Base64;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Nested;
@@ -75,7 +66,7 @@ public class TcpSecuredBackendIntegrationTest {
                 throw new AssertionError("TCP api should only be v4 api");
             }
             final Api apiDefinition = (Api) reactableApi.getDefinition();
-            final Endpoint tcpEndpoint = apiDefinition.getEndpointGroups().get(0).getEndpoints().get(0);
+            final Endpoint tcpEndpoint = apiDefinition.getEndpointGroups().getFirst().getEndpoints().getFirst();
 
             tcpEndpoint.setConfiguration(tcpEndpoint.getConfiguration().replace("\"secured\":false", "\"secured\":true"));
 
@@ -146,7 +137,7 @@ public class TcpSecuredBackendIntegrationTest {
                 throw new AssertionError("TCP api should only be v4 api");
             }
             final Api apiDefinition = (Api) reactableApi.getDefinition();
-            final Endpoint tcpEndpoint = apiDefinition.getEndpointGroups().get(0).getEndpoints().get(0);
+            final Endpoint tcpEndpoint = apiDefinition.getEndpointGroups().getFirst().getEndpoints().getFirst();
 
             tcpEndpoint.setConfiguration(tcpEndpoint.getConfiguration().replace("\"secured\":false", "\"secured\":true"));
 

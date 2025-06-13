@@ -1,10 +1,3 @@
-package io.gravitee.apim.integration.tests.reporting;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static org.assertj.core.api.Assertions.assertThat;
-
 /*
  * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
@@ -20,12 +13,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.gravitee.apim.integration.tests.reporting;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
-import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.apim.integration.tests.fake.ActionReportPolicy;
@@ -36,10 +32,6 @@ import io.gravitee.definition.model.LoggingContent;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.LoggingScope;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
-import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
-import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
-import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.reporter.api.log.Log;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;

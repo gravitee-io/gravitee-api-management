@@ -27,7 +27,6 @@ import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
