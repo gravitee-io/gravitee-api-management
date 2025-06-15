@@ -43,6 +43,8 @@ import javax.net.ssl.SSLSession;
  */
 public abstract class AbstractRequest implements MutableRequest, HttpRequestInternal {
 
+    private static final String URI_PATH_SEPARATOR = "/";
+
     protected BufferFlow bufferFlow;
     protected MessageFlow<Message> messageFlow;
     protected String id;
@@ -204,7 +206,11 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
         if (contextPath == null || contextPath.isEmpty()) {
             this.pathInfo = path();
         } else {
-            this.pathInfo = path().substring(contextPath.length() - 1);
+            if (contextPath.endsWith(URI_PATH_SEPARATOR)) {
+                this.pathInfo = path().substring(contextPath.length() - 1);
+            } else {
+                this.pathInfo = path().substring(contextPath.length());
+            }
         }
         return this;
     }

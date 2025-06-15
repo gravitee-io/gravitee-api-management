@@ -32,24 +32,28 @@ class DefaultHttpAcceptorTest {
     @Test
     void should_accept_with_matching_path() {
         final DefaultHttpAcceptor cut = new DefaultHttpAcceptor("/test");
+        assertThat(cut.path()).isEqualTo("/test");
         assertThat(cut.accept("localhost", "/test", SERVER_ID)).isTrue();
     }
 
     @Test
     void should_not_accept_with_non_matching_path() {
         final DefaultHttpAcceptor cut = new DefaultHttpAcceptor("/test");
+        assertThat(cut.path()).isEqualTo("/test");
         assertThat(cut.accept("localhost", "/not_matching", SERVER_ID)).isFalse();
     }
 
     @Test
     void should_accept_with_matching_path_and_server() {
         final DefaultHttpAcceptor cut = new DefaultHttpAcceptor(null, "/test", List.of("a", "b", SERVER_ID));
+        assertThat(cut.path()).isEqualTo("/test");
         assertThat(cut.accept("localhost", "/test", SERVER_ID)).isTrue();
     }
 
     @Test
     void should_not_accept_with_matching_path_and_not_matching_server() {
         final DefaultHttpAcceptor cut = new DefaultHttpAcceptor(null, "/test", List.of("a", "b", "c"));
+        assertThat(cut.path()).isEqualTo("/test");
         assertThat(cut.accept("localhost", "/test", SERVER_ID)).isFalse();
     }
 
@@ -61,6 +65,7 @@ class DefaultHttpAcceptorTest {
             mock(ReactorHandler.class),
             List.of("a", "b", SERVER_ID)
         );
+        assertThat(cut.path()).isEqualTo("/test");
         assertThat(cut.accept("localhost", "/test", SERVER_ID)).isTrue();
     }
 
@@ -72,6 +77,7 @@ class DefaultHttpAcceptorTest {
             mock(ReactorHandler.class),
             List.of("a", "b", SERVER_ID)
         );
+        assertThat(cut.path()).isEqualTo("/test");
         assertThat(cut.accept("other", "/test", SERVER_ID)).isFalse();
     }
 
@@ -83,6 +89,7 @@ class DefaultHttpAcceptorTest {
             mock(ReactorHandler.class),
             List.of("a", "b", SERVER_ID)
         );
+        assertThat(cut.path()).isEqualTo("/test");
         assertThat(cut.accept("localhost", "/test", null)).isFalse();
     }
 }

@@ -56,6 +56,8 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
     @EqualsAndHashCode.Include
     private final String path;
 
+    private final String contextPath;
+
     @EqualsAndHashCode.Include
     private ReactorHandler reactor;
 
@@ -74,6 +76,7 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
 
     public DefaultHttpAcceptor(String host, String path, Collection<String> serverIds) {
         this.host = host;
+        this.contextPath = path;
 
         // Sanitize
         if (path == null || path.isEmpty()) {
@@ -107,7 +110,7 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
 
     @Override
     public String path() {
-        return path;
+        return contextPath;
     }
 
     @Override
