@@ -29,6 +29,7 @@ import lombok.EqualsAndHashCode;
 public class OverlappingHttpAcceptor extends AbstractHttpAcceptor implements HttpAcceptor {
 
     private static final String WILDCARD_MATCHER = "^\\*";
+    private static final String HOST_HEADER_PORT_MATCHER = ":(\\d{1,5})$";
 
     private boolean hasWildCardHost;
 
@@ -64,9 +65,19 @@ public class OverlappingHttpAcceptor extends AbstractHttpAcceptor implements Htt
         return null;
     }
 
+    /*
+     * From the Kubernetes gateway API specification:
+     *
+     * Implementations MUST ignore any port value specified in the HTTP Host header while
+     * performing a match.
+     */
     @Override
     boolean matchHost(String host) {
-        return this.host == null || (this.hasWildCardHost ? host.endsWith(this.host) : this.host.equalsIgnoreCase(host));
+        if (this.host == null) {
+            return true;
+        }
+        var hostWithoutPort = host.replaceAll(HOST_HEADER_PORT_MATCHER, "");
+        return (this.hasWildCardHost ? hostWithoutPort.endsWith(this.host) : this.host.equalsIgnoreCase(hostWithoutPort));
     }
 
     @Override
