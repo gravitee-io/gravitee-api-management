@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PARAMETER;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_CREATED;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_UPDATED;
+import static io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT;
+import static io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION;
 import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
@@ -280,24 +282,26 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             if (optionalParameter.isPresent()) {
                 return splitValue(optionalParameter.get().getValue(), mapper, filter);
             }
-            switch (referenceType) {
-                case ENVIRONMENT:
-                    optionalParameter = this.getEnvParameter(key, refIdToUse);
-                    if (optionalParameter.isPresent()) {
-                        return splitValue(optionalParameter.get().getValue(), mapper, filter);
-                    }
-                    //String organizationId = "DEFAULT";
-                    String organizationId = environmentService.findById(refIdToUse).getOrganizationId();
-                    optionalParameter = this.getOrgParameter(key, organizationId);
-                    if (optionalParameter.isPresent()) {
-                        return splitValue(optionalParameter.get().getValue(), mapper, filter);
-                    }
-                case ORGANIZATION:
-                    optionalParameter = this.getOrgParameter(key, refIdToUse);
-                    if (optionalParameter.isPresent()) {
-                        return splitValue(optionalParameter.get().getValue(), mapper, filter);
-                    }
+
+            if (referenceType == ENVIRONMENT) {
+                optionalParameter = this.getEnvParameter(key, refIdToUse);
+                if (optionalParameter.isPresent()) {
+                    return splitValue(optionalParameter.get().getValue(), mapper, filter);
+                }
+                String organizationId = environmentService.findById(refIdToUse).getOrganizationId();
+                optionalParameter = this.getOrgParameter(key, organizationId);
+                if (optionalParameter.isPresent()) {
+                    return splitValue(optionalParameter.get().getValue(), mapper, filter);
+                }
             }
+
+            if (referenceType == ORGANIZATION) {
+                optionalParameter = this.getOrgParameter(key, refIdToUse);
+                if (optionalParameter.isPresent()) {
+                    return splitValue(optionalParameter.get().getValue(), mapper, filter);
+                }
+            }
+
             return splitValue(this.getDefaultParameterValue(key), mapper, filter);
         } catch (final TechnicalException ex) {
             final String message = "An error occurs while trying to find parameter values with key: " + key;
@@ -383,7 +387,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         if (refIdToUse == null) {
             if (referenceType == io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION) {
                 refIdToUse = executionContext.getOrganizationId();
-            } else if (referenceType == io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT) {
+            } else if (referenceType == ENVIRONMENT) {
                 refIdToUse = executionContext.getEnvironmentId();
             }
         }
