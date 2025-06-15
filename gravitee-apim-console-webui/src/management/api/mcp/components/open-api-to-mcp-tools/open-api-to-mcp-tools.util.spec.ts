@@ -41,6 +41,8 @@ info:
   version: 1.0.0
 paths:
   /user/{id}:
+    server:
+      - url: https://api.example.com
     get:
       operationId: getUser
       summary: Get user by ID
