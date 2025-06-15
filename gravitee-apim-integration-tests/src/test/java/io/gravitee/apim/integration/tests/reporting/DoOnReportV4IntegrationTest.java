@@ -1,9 +1,3 @@
-package io.gravitee.apim.integration.tests.reporting;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static org.assertj.core.api.Assertions.assertThat;
-
 /*
  * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
@@ -19,6 +13,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.gravitee.apim.integration.tests.reporting;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;

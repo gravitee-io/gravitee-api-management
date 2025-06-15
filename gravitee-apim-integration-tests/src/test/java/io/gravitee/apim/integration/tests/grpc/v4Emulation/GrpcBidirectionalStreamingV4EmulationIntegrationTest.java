@@ -30,7 +30,6 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.vertx.core.http.HttpServer;
 import io.vertx.grpc.client.GrpcClientRequest;
 import io.vertx.grpc.common.GrpcStatus;
-import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
 import io.vertx.grpcio.server.GrpcIoServer;
 import java.util.ArrayList;

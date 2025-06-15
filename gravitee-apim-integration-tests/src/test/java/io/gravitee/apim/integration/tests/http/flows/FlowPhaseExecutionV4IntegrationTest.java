@@ -15,10 +15,6 @@
  */
 package io.gravitee.apim.integration.tests.http.flows;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;

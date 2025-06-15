@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.integration.tests.messages;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.graviteesource.endpoint.mqtt5.Mqtt5EndpointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import com.hivemq.client.mqtt.datatypes.MqttQos;

@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;

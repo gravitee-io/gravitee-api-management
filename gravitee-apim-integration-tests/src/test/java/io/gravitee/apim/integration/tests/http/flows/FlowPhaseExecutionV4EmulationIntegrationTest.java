@@ -27,7 +27,6 @@ import static io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionPa
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;

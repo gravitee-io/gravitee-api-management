@@ -21,7 +21,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.grpc.client.GrpcClient;
 import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpcio.client.GrpcIoClient;
 import java.util.function.Supplier;
