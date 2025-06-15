@@ -84,7 +84,7 @@
             <groupId>com.hivemq</groupId>
             <artifactId>hivemq-mqtt-client</artifactId>
             <scope>test</scope>
-            <version>1.3.5</version>
+            <version>1.3.7</version>
             <exclusions>
                 <exclusion>
                     <artifactId>reactive-streams</artifactId>
