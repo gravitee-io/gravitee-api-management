@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.model.GroupSimpleEntity;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -79,30 +80,8 @@ public class GroupService_FindAllTest extends TestCase {
     }
 
     @Test
-    public void shouldReturnGroupsByOrganization() throws TechnicalException {
-        Set<Group> groups = new HashSet<>();
-        Group group1 = new Group();
-        group1.setId("group-1");
-        group1.setName("Alpha");
-        Group group2 = new Group();
-        group2.setId("group-2");
-        group2.setName("Beta");
-        groups.add(group1);
-        groups.add(group2);
-
-        when(groupRepository.findAllByOrganization(ORGANIZATION_ID)).thenReturn(groups);
-
-        List<GroupSimpleEntity> result = groupService.findAllByOrganization(ORGANIZATION_ID);
-
-        assertThat(result).hasSize(2);
-        assertThat(result).extracting(GroupSimpleEntity::getName).containsExactlyInAnyOrder("Alpha", "Beta");
-    }
-
-    @Test
     public void shouldReturnEmptyListWhenNoGroupsFoundByOrganization() throws TechnicalException {
-        when(groupRepository.findAllByOrganization(ORGANIZATION_ID)).thenReturn(Collections.emptySet());
-
-        List<GroupSimpleEntity> result = groupService.findAllByOrganization(ORGANIZATION_ID);
+        List<GroupSimpleEntity> result = groupService.findAllGroupByEnvironment(ENVIRONMENT_ID);
 
         assertThat(result).isEmpty();
     }

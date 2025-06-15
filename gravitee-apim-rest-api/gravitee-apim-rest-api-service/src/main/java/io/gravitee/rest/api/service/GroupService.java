@@ -42,7 +42,7 @@ public interface GroupService {
     void deleteUserFromGroup(ExecutionContext executionContext, String groupId, String username);
     List<GroupEntity> findAll(ExecutionContext executionContext);
     Page<GroupEntity> search(ExecutionContext executionContext, Pageable pageable, Order.Direction orderDirection, String query);
-    List<GroupSimpleEntity> findAllByOrganization(String organizationId);
+    List<GroupSimpleEntity> findAllGroupByEnvironment(String environmentId);
     GroupEntity findById(ExecutionContext executionContext, String groupId);
     Set<GroupEntity> findByIds(Set<String> groupIds);
     void associate(final ExecutionContext executionContext, String groupId, String associationType);
