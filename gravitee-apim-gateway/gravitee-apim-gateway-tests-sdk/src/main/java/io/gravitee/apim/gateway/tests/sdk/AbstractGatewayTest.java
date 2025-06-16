@@ -102,6 +102,7 @@ public abstract class AbstractGatewayTest
      * The wiremock used by the deployed apis as a backend.
      */
     protected WireMockServer wiremock;
+    private final Map<String, Runnable> tearDownHandlers = new HashMap<>();
 
     protected ApplicationContext applicationContext;
 
