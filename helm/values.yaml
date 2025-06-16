@@ -1495,7 +1495,7 @@ gateway:
   #    param: api-key
 
   dictionaries:
-    multitenant:
+    multi-tenant:
       enabled: false
 
   image:
