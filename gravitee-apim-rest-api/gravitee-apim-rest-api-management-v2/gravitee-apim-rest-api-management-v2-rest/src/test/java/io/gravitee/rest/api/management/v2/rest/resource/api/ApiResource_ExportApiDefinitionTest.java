@@ -632,7 +632,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         assertThat(step.getPolicy()).isEqualTo("my-policy");
         assertThat(step.getCondition()).isEqualTo("my-condition");
 
-        assertThat(flow.getSelectors()).isNotNull().isEmpty();
+        assertThat(flow.getSelectors()).isNull();
     }
 
     private void testReturnedMembers(Set<Member> members) {
@@ -691,7 +691,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         assertThat(flowV4).isNotNull();
         assertThat(flowV4.getEnabled()).isTrue();
         assertThat(flowV4.getName()).isEqualTo("planFlowName");
-        assertThat(flowV4.getPublish()).isNotNull().isEmpty();
+        assertThat(flowV4.getPublish()).isNull();
 
         if (!nativeApi) {
             assertThat(flowV4.getRequest()).hasSize(1);
@@ -706,9 +706,9 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
             assertThat(step.getMessageCondition()).isEqualTo("stepMessageCondition");
         }
 
-        assertThat(flowV4.getResponse()).isNotNull().isEmpty();
-        assertThat(flowV4.getSubscribe()).isNotNull().isEmpty();
-        assertThat(flowV4.getTags()).isNotNull().isEmpty();
+        assertThat(flowV4.getResponse()).isNull();
+        assertThat(flowV4.getSubscribe()).isNull();
+        assertThat(flowV4.getTags()).isNull();
 
         if (!nativeApi) {
             assertThat(flowV4.getSelectors()).hasSize(1);

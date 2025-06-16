@@ -223,7 +223,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
             assertThat(body.getPages()).isEqualTo(List.of());
-            assertThat(body.getBreadcrumb()).isNotNull().isEmpty();
+            assertThat(body.getBreadcrumb()).isNull();
         }
 
         @Test
@@ -267,7 +267,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(200);
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
-            assertThat(body.getBreadcrumb()).isNotNull().isEmpty();
+            assertThat(body.getBreadcrumb()).isNull();
             assertThat(body.getPages())
                 .hasSize(4)
                 .containsAll(
@@ -279,8 +279,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .generalConditions(false),
                         new io.gravitee.rest.api.management.v2.rest.model.Page()
@@ -290,8 +288,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .generalConditions(false),
                         new io.gravitee.rest.api.management.v2.rest.model.Page()
@@ -301,8 +297,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .hidden(true)
                     )
@@ -314,8 +308,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .hasFieldOrPropertyWithValue("name", "page-1")
                         .hasFieldOrPropertyWithValue("order", 0)
                         .hasFieldOrPropertyWithValue("homepage", false)
-                        .hasFieldOrPropertyWithValue("configuration", Map.of())
-                        .hasFieldOrPropertyWithValue("metadata", Map.of())
+                        .hasFieldOrPropertyWithValue("configuration", null)
+                        .hasFieldOrPropertyWithValue("metadata", null)
                         .hasFieldOrPropertyWithValue("excludedAccessControls", true)
                         .satisfies(page -> {
                             assertThat(page.getAccessControls())
@@ -369,7 +363,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(200);
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
-            assertThat(body.getBreadcrumb()).isNotNull().isEmpty();
+            assertThat(body.getBreadcrumb()).isNull();
             assertThat(body.getPages())
                 .isEqualTo(
                     List.of(
@@ -380,8 +374,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .generalConditions(false),
                         new io.gravitee.rest.api.management.v2.rest.model.Page()
@@ -391,8 +383,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .generalConditions(false),
                         new io.gravitee.rest.api.management.v2.rest.model.Page()
@@ -402,8 +392,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .generalConditions(false),
                         new io.gravitee.rest.api.management.v2.rest.model.Page()
@@ -413,8 +401,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .hidden(true)
                     )
@@ -483,8 +469,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId("")
                             .generalConditions(false),
@@ -495,8 +479,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId("")
                             .generalConditions(false),
@@ -507,8 +489,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId("")
                             .generalConditions(false),
@@ -519,8 +499,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .hidden(true)
                     )
@@ -583,8 +561,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .order(0)
                         .published(false)
                         .homepage(false)
-                        .configuration(Map.of())
-                        .metadata(Map.of())
                         .excludedAccessControls(false)
                         .parentId("parent-id")
                         .generalConditions(false)
@@ -599,8 +575,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .order(0)
                         .published(false)
                         .homepage(false)
-                        .configuration(Map.of())
-                        .metadata(Map.of())
                         .excludedAccessControls(false)
                         .parentId("parent-id")
                         .generalConditions(false)
@@ -654,8 +628,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId("parent-id")
                             .published(true)
@@ -667,8 +639,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId("parent-id")
                             .published(true)
@@ -680,8 +650,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(page.getOrder())
                             .published(page.isPublished())
                             .homepage(page.isHomepage())
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId(page.getParentId())
                             .hidden(false)
@@ -726,8 +694,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId("parent-id")
                             .published(true)
@@ -739,8 +705,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(page.getOrder())
                             .published(page.isPublished())
                             .homepage(page.isHomepage())
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId(page.getParentId())
                             .hidden(false)
@@ -785,8 +749,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId("parent-id")
                             .published(true)
@@ -798,8 +760,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(page.getOrder())
                             .published(page.isPublished())
                             .homepage(page.isHomepage())
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId(page.getParentId())
                             .hidden(false)
@@ -859,7 +819,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(200);
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
-            assertThat(body.getBreadcrumb()).isNotNull().isEmpty();
+            assertThat(body.getBreadcrumb()).isNull();
             assertThat(body.getPages())
                 .isEqualTo(
                     List.of(
@@ -870,8 +830,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .generalConditions(true),
                         new io.gravitee.rest.api.management.v2.rest.model.Page()
@@ -881,8 +839,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .generalConditions(false),
                         new io.gravitee.rest.api.management.v2.rest.model.Page()
@@ -892,8 +848,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .generalConditions(false),
                         new io.gravitee.rest.api.management.v2.rest.model.Page()
@@ -903,8 +857,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .order(0)
                             .published(false)
                             .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
                             .excludedAccessControls(false)
                             .generalConditions(false)
                     )
@@ -1235,8 +1187,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .order(0)
                         .published(false)
                         .homepage(false)
-                        .configuration(Map.of())
-                        .metadata(Map.of())
                         .excludedAccessControls(false)
                         .generalConditions(false)
                 );

@@ -511,7 +511,6 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                                         .origin(BaseOriginContext.OriginEnum.INTEGRATION)
                                 )
                                 .disableMembershipNotifications(false)
-                                .responseTemplates(Collections.emptyMap())
                                 .links(
                                     new ApiLinks()
                                         .pictureUrl(

@@ -61,7 +61,7 @@ public interface IntegrationMapper {
     @Mapping(target = "name", expression = "java(source.name())")
     @Mapping(target = "description", expression = "java(source.description())")
     @Mapping(target = "provider", expression = "java(source.provider())")
-    @Mapping(target = "groups", expression = "java(List.copyOf(source.groups()))")
+    @Mapping(target = "groups", expression = "java(source.groups() == null ? null : List.copyOf(source.groups()))")
     io.gravitee.rest.api.management.v2.rest.model.Integration map(Integration source);
 
     default io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source) {
@@ -75,14 +75,14 @@ public interface IntegrationMapper {
     @Mapping(target = "name", expression = "java(integration.name())")
     @Mapping(target = "description", expression = "java(integration.description())")
     @Mapping(target = "provider", expression = "java(integration.provider())")
-    @Mapping(target = "groups", expression = "java(List.copyOf(integration.groups()))")
+    @Mapping(target = "groups", expression = "java(integration.groups() == null ? null : List.copyOf(integration.groups()))")
     io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source, Integration integration);
 
     @Mapping(target = "id", expression = "java(integration.id())")
     @Mapping(target = "name", expression = "java(integration.name())")
     @Mapping(target = "description", expression = "java(integration.description())")
     @Mapping(target = "provider", expression = "java(integration.provider())")
-    @Mapping(target = "groups", expression = "java(List.copyOf(integration.groups()))")
+    @Mapping(target = "groups", expression = "java(integration.groups() == null ? null : List.copyOf(integration.groups()))")
     io.gravitee.rest.api.management.v2.rest.model.Integration map(IntegrationView source, Integration.A2aIntegration integration);
 
     List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> source);

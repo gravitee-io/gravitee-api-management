@@ -316,7 +316,7 @@ public class EndpointMapperTest {
         assertThat(endpointGroupEntityV2.getHttpProxy()).isNull();
         assertThat(endpointGroupEntityV2.getHttpClientOptions()).isNull();
         assertThat(endpointGroupEntityV2.getHttpClientSslOptions()).isNull();
-        assertThat(endpointGroupEntityV2.getHeaders()).isNotNull().isEmpty();
+        assertThat(endpointGroupEntityV2.getHeaders()).isNull();
     }
 
     private static void assertV2EndpointsAreEquals(

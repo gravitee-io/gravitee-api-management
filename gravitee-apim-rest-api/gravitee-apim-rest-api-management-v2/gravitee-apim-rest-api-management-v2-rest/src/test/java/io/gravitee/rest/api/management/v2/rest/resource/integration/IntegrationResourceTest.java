@@ -270,7 +270,8 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_throw_error_when_integration_not_found() {
             //Given
-            var entity = Entity.entity(new ApisIngest(), MediaType.APPLICATION_JSON_TYPE);
+            ApisIngest apisIngest = new ApisIngest().apiIds(List.of());
+            var entity = Entity.entity(apisIngest, MediaType.APPLICATION_JSON_TYPE);
 
             //When
             Response response = target.request().post(entity);

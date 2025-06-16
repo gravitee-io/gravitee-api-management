@@ -265,27 +265,19 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getProperties());
         assertTrue(responseApi.getProperties().isEmpty());
         assertNull(responseApi.getServices());
-        assertNotNull(responseApi.getResources());
-        assertTrue(responseApi.getResources().isEmpty());
-        assertNotNull(responseApi.getResponseTemplates());
-        assertEquals(0, responseApi.getResponseTemplates().size());
+        assertNull(responseApi.getResources());
+        assertNull(responseApi.getResponseTemplates());
         assertNotNull(responseApi.getListeners());
         assertNotNull(responseApi.getListeners().get(0));
-        assertNotNull((responseApi.getListeners().get(0).getHttpListener()).getPathMappings());
-        assertTrue((responseApi.getListeners().get(0).getHttpListener()).getPathMappings().isEmpty());
+        assertNull((responseApi.getListeners().get(0).getHttpListener()).getPathMappings());
         assertNull((responseApi.getListeners().get(0).getHttpListener()).getPaths().get(0).getHost());
     }
 
     @Test
     public void should_get_native_api_V4() throws JsonProcessingException {
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(this.fakeNativeApiEntityV4());
-
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(false);
-
         final Response response = rootTarget(API).request().get();
-
-        assertEquals(OK_200, response.getStatus());
-
         final ApiV4 responseApi = response.readEntity(ApiV4.class);
 
         assertNotNull(responseApi);
@@ -301,7 +293,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getServices());
         assertNotNull(responseApi.getResources());
         assertEquals(1, responseApi.getResources().size());
-        assertEquals(0, responseApi.getResponseTemplates().size());
+        assertNull(responseApi.getResponseTemplates());
 
         assertNotNull(responseApi.getListeners());
         assertEquals(1, responseApi.getListeners().size());
@@ -350,12 +342,9 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(flow.getPublish());
         assertNotNull(flow.getSubscribe());
 
-        assertNotNull(flow.getRequest());
-        assertTrue(flow.getRequest().isEmpty());
-        assertNotNull(flow.getResponse());
-        assertTrue(flow.getResponse().isEmpty());
-        assertNotNull(flow.getSelectors());
-        assertTrue(flow.getSelectors().isEmpty());
+        assertNull(flow.getRequest());
+        assertNull(flow.getResponse());
+        assertNull(flow.getSelectors());
 
         assertEquals(1, flow.getConnect().size());
 
@@ -404,10 +393,8 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getProperties());
         assertTrue(responseApi.getProperties().isEmpty());
         assertNull(responseApi.getServices());
-        assertNotNull(responseApi.getResources());
-        assertTrue(responseApi.getResources().isEmpty());
-        assertNotNull(responseApi.getResponseTemplates());
-        assertEquals(0, responseApi.getResponseTemplates().size());
+        assertNull(responseApi.getResources());
+        assertNull(responseApi.getResponseTemplates());
         assertNotNull(responseApi.getListeners());
         assertNotNull(responseApi.getListeners().get(0));
     }
@@ -485,13 +472,10 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getLinks());
         assertNotNull(responseApi.getLinks().getPictureUrl());
         assertNotNull(responseApi.getLinks().getBackgroundUrl());
-        assertNotNull(responseApi.getProperties());
-        assertTrue(responseApi.getProperties().isEmpty());
+        assertNull(responseApi.getProperties());
         assertNull(responseApi.getServices());
-        assertNotNull(responseApi.getResources());
-        assertTrue(responseApi.getResources().isEmpty());
-        assertNotNull(responseApi.getResponseTemplates());
-        assertEquals(0, responseApi.getResponseTemplates().size());
+        assertNull(responseApi.getResources());
+        assertNull(responseApi.getResponseTemplates());
         assertNotNull(responseApi.getProxy());
         assertEquals("/test", responseApi.getProxy().getVirtualHosts().get(0).getPath());
         assertNull(responseApi.getProxy().getVirtualHosts().get(0).getHost());

@@ -45,7 +45,7 @@ import org.mapstruct.Named;
 import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class }, nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
+@Mapper(uses = { ConfigurationSerializationMapper.class }, nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_NULL)
 public interface FlowMapper {
     FlowMapper INSTANCE = Mappers.getMapper(FlowMapper.class);
     GraviteeMapper JSON_MAPPER = new GraviteeMapper();

@@ -125,8 +125,8 @@ public class FlowMapperTest {
             );
         }
 
-        assertThat(flowV4.getConnect()).isNotNull().isEmpty();
-        assertThat(flowV4.getInteract()).isNotNull().isEmpty();
+        assertThat(flowV4.getConnect()).isNull();
+        assertThat(flowV4.getInteract()).isNull();
 
         assertStepsV4Equals(flowEntityV4.getRequest(), flowV4.getRequest());
         assertStepsV4Equals(flowEntityV4.getPublish(), flowV4.getPublish());
@@ -138,9 +138,9 @@ public class FlowMapperTest {
         assertEquals(flowEntityV4.getName(), flowV4.getName());
 
         final var flowV4Selectors = flowV4.getSelectors();
-        assertThat(flowV4Selectors).isNotNull().isEmpty();
-        assertThat(flowV4.getRequest()).isNotNull().isEmpty();
-        assertThat(flowV4.getResponse()).isNotNull().isEmpty();
+        assertThat(flowV4Selectors).isNull();
+        assertThat(flowV4.getRequest()).isNull();
+        assertThat(flowV4.getResponse()).isNull();
 
         assertStepsV4Equals(flowEntityV4.getPublish(), flowV4.getPublish());
         assertStepsV4Equals(flowEntityV4.getSubscribe(), flowV4.getSubscribe());

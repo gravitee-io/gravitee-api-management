@@ -373,13 +373,11 @@ class ApiHealthResourceTest extends ApiResourceTest {
                                             new io.gravitee.rest.api.management.v2.rest.model.HealthCheckLogRequest()
                                                 .uri("uri")
                                                 .method("GET")
-                                                .headers(Map.of())
                                         )
                                         .response(
                                             new io.gravitee.rest.api.management.v2.rest.model.HealthCheckLogResponse()
                                                 .status(200)
                                                 .body("body")
-                                                .headers(Map.of())
                                         )
                                 )
                             )

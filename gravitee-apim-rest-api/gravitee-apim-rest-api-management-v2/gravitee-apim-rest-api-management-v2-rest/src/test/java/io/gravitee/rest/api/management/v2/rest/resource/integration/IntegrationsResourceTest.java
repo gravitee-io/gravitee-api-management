@@ -144,6 +144,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                         .name(INTEGRATION_NAME)
                         .description(INTEGRATION_DESCRIPTION)
                         .provider(INTEGRATION_PROVIDER)
+                        .groups(List.of())
                 );
         }
 

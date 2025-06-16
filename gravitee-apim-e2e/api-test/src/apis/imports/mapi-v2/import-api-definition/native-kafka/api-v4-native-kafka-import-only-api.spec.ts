@@ -125,9 +125,9 @@ describe('API - V4 - Native Kafka - Import - Gravitee Definition - Only API -', 
 
         // Adjust id and generalize flow for HTTP + Native type flow
         apiToImport.api.flows[0].id = apiV4.flows[0].id;
-        apiToImport.api.flows[0].selectors = [];
-        apiToImport.api.flows[0].request = [];
-        apiToImport.api.flows[0].response = [];
+        apiToImport.api.flows[0].selectors = undefined;
+        apiToImport.api.flows[0].request = undefined;
+        apiToImport.api.flows[0].response = undefined;
 
         expect(apiV4.flows).toEqual(apiToImport.api.flows);
         expect(apiV4.tags).toEqual(apiToImport.api.tags);
