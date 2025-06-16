@@ -130,7 +130,9 @@ public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends Abstra
                     })
                     .onComplete(response -> {
                         // end gracefully
-                        response.result().end();
+                        if (response.result() != null) {
+                            response.result().end();
+                        }
                         vertx.cancelTimer(timerId.get());
                         done.set(true);
                     });
