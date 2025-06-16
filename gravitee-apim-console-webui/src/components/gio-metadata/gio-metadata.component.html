@@ -51,96 +51,98 @@
         </div>
       </form>
     </ng-container>
+    <gio-table-wrapper
+      [disableSearchInput]="true"
+      [filters]="filtersStream.value.tableWrapper"
+      [length]="totalResults"
+      (filtersChange)="onFiltersChange($event)"
+    >
+      <table mat-table [dataSource]="dataSource" matSort>
+        <caption style="display: none">
+          {{
+            referenceType
+          }}
+          metadata table
+        </caption>
+
+        <ng-container matColumnDef="key">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by key" data-testid="metadata_key">Key</th>
+          <td mat-cell *matCellDef="let element" data-testid="metadata_key_cell">
+            {{ element.key }}
+            <span
+              *ngIf="!!element.defaultValue"
+              data-testid="metadata_globalBadge"
+              class="gio-badge-neutral"
+              matTooltip="Inherited global metadata"
+              >Global</span
+            >
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by name" data-testid="metadata_name">Name</th>
+          <td mat-cell *matCellDef="let element" data-testid="metadata_name_cell">{{ element.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="format">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by format" data-testid="metadata_format">
+            Format
+          </th>
+          <td mat-cell *matCellDef="let element" data-testid="metadata_format_cell">
+            <span class="gio-badge-neutral">{{ element.format | titlecase }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="value">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by value" data-testid="metadata_value">
+            Value
+          </th>
+          <td mat-cell *matCellDef="let element" data-testid="metadata_value_cell">{{ element.value }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef data-testid="metadata_actions">Actions</th>
+          <td mat-cell *matCellDef="let element">
+            <div class="gio-metadata__actions">
+              <div>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="update-metadata"
+                  (click)="updateMetadata(element)"
+                  *gioPermission="{ anyOf: [permissionPrefix + '-metadata-u'] }"
+                  matTooltip="Edit"
+                  data-testid="metadata_edit_button"
+                >
+                  <mat-icon [svgIcon]="readOnly ? 'gio:eye-empty' : 'gio:edit-pencil'"></mat-icon>
+                </button>
+              </div>
+              <div *ngIf="element.isDeletable">
+                <button
+                  [disabled]="readOnly"
+                  mat-icon-button
+                  type="button"
+                  class="delete-metadata"
+                  (click)="deleteMetadata(element)"
+                  *gioPermission="{ anyOf: [permissionPrefix + '-metadata-d'] }"
+                  matTooltip="{{ element.defaultValue ? 'Reset' : 'Delete' }}"
+                  data-testid="metadata_delete_button"
+                >
+                  <mat-icon *ngIf="element.defaultValue" svgIcon="gio:refresh-cw"></mat-icon>
+                  <mat-icon *ngIf="!element.defaultValue" svgIcon="gio:trash"></mat-icon>
+                </button>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="metadata_table_row"></tr>
+
+        <!-- Row shown when there is no data -->
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No metadata found</td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
   </mat-card-content>
-  <gio-table-wrapper
-    [disableSearchInput]="true"
-    [filters]="filtersStream.value.tableWrapper"
-    [length]="totalResults"
-    (filtersChange)="onFiltersChange($event)"
-  >
-    <table mat-table [dataSource]="dataSource" matSort>
-      <caption style="display: none">
-        {{
-          referenceType
-        }}
-        metadata table
-      </caption>
-
-      <ng-container matColumnDef="key">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by key" data-testid="metadata_key">Key</th>
-        <td mat-cell *matCellDef="let element" data-testid="metadata_key_cell">
-          {{ element.key }}
-          <span
-            *ngIf="!!element.defaultValue"
-            data-testid="metadata_globalBadge"
-            class="gio-badge-neutral"
-            matTooltip="Inherited global metadata"
-            >Global</span
-          >
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by name" data-testid="metadata_name">Name</th>
-        <td mat-cell *matCellDef="let element" data-testid="metadata_name_cell">{{ element.name }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="format">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by format" data-testid="metadata_format">
-          Format
-        </th>
-        <td mat-cell *matCellDef="let element" data-testid="metadata_format_cell">
-          <span class="gio-badge-neutral">{{ element.format | titlecase }}</span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="value">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by value" data-testid="metadata_value">Value</th>
-        <td mat-cell *matCellDef="let element" data-testid="metadata_value_cell">{{ element.value }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef data-testid="metadata_actions">Actions</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="gio-metadata__actions">
-            <div>
-              <button
-                mat-icon-button
-                type="button"
-                class="update-metadata"
-                (click)="updateMetadata(element)"
-                *gioPermission="{ anyOf: [permissionPrefix + '-metadata-u'] }"
-                matTooltip="Edit"
-                data-testid="metadata_edit_button"
-              >
-                <mat-icon [svgIcon]="readOnly ? 'gio:eye-empty' : 'gio:edit-pencil'"></mat-icon>
-              </button>
-            </div>
-            <div *ngIf="element.isDeletable">
-              <button
-                [disabled]="readOnly"
-                mat-icon-button
-                type="button"
-                class="delete-metadata"
-                (click)="deleteMetadata(element)"
-                *gioPermission="{ anyOf: [permissionPrefix + '-metadata-d'] }"
-                matTooltip="{{ element.defaultValue ? 'Reset' : 'Delete' }}"
-                data-testid="metadata_delete_button"
-              >
-                <mat-icon *ngIf="element.defaultValue" svgIcon="gio:refresh-cw"></mat-icon>
-                <mat-icon *ngIf="!element.defaultValue" svgIcon="gio:trash"></mat-icon>
-              </button>
-            </div>
-          </div>
-        </td>
-      </ng-container>
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="metadata_table_row"></tr>
-
-      <!-- Row shown when there is no data -->
-      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-        <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No metadata found</td>
-      </tr>
-    </table>
-  </gio-table-wrapper>
 </mat-card>
