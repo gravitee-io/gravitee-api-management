@@ -17,5 +17,6 @@ $foreground: map.get(gio.$mat-theme, foreground);
 }
 
 .mat-column-actions {
-  width: 100px;
+  width: 120px;
+  max-width: 120px;
 }
