@@ -556,10 +556,13 @@ data:
     {{- end }}
 
     # Dictionaries multi tenant
-    {{- if and .Values.gateway.dictionaries .Values.gateway.dictionaries.multitenant .Values.gateway.dictionaries.multitenant.enabled }}
+    {{- if .Values.gateway.dictionaries }}
+    {{- $multitenant := index .Values.gateway.dictionaries "multi-tenant" }}
+    {{- if and $multitenant $multitenant.enabled }}
     dictionaries:
       multi-tenant:
         enabled: true
+    {{- end }}
     {{- end }}
 
     # Alert Engine communication
