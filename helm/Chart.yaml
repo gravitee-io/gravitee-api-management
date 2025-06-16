@@ -29,4 +29,9 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: fixed
+      description: 'Use "dictionaries.multi-tenant.enabled" instead of "dictionaries.multitenant.enabled" to enable multi-tenancy for dictionaries on gateways'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10627
