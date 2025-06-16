@@ -332,7 +332,6 @@ components:
         - listeners
         - endpointGroups
         - version
-        - definitionContext
         - lifecycleState
     ApiV4State:
       allOf:
