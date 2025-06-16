@@ -560,10 +560,10 @@
                                 <id>init-dir</id>
                                 <phase>process-resources</phase>
                                 <configuration>
-                                    <tasks>
+                                    <target>
                                         <mkdir dir="${workspace.logs}"/>
                                         <mkdir dir="${workspace.plugins}"/>
-                                    </tasks>
+                                    </target>
                                 </configuration>
                                 <goals>
                                     <goal>run</goal>
