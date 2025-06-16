@@ -115,6 +115,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.slf4j.Logger;
@@ -165,6 +166,12 @@ public class GatewayRunner {
     private VertxEmbeddedContainer vertxContainer;
     private Path tempDir;
     private boolean isRunning = false;
+
+    @Getter
+    private Map<String, Integer> httpPorts;
+
+    @Getter
+    private Map<String, Integer> tcpPorts;
 
     record SharedPolicyGroupKey(String sharedPolicyGroupId, String environmentId) {}
 
@@ -254,6 +261,8 @@ public class GatewayRunner {
 
             // start Gateway
             vertxContainer = startServer(gatewayContainer);
+            httpPorts = vertxContainer.getHttpPorts();
+            tcpPorts = vertxContainer.getTcpPorts();
             isRunning = true;
 
             testInstance.init();

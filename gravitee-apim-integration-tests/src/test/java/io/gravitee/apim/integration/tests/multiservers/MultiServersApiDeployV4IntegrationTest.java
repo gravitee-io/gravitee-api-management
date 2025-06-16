@@ -19,6 +19,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -46,13 +47,17 @@ class MultiServersApiDeployV4IntegrationTest extends AbstractMultiServersApiDepl
 
     @Test
     @DeployApi("/apis/v4/http/api.json")
-    void should_get_200_when_calling_on_both_first_and_second_servers(HttpClient httpClient) throws InterruptedException {
-        super.should_get_200_when_calling_on_both_first_and_second_servers(httpClient);
+    void should_get_200_when_calling_on_both_first_and_second_servers(HttpClient httpClient, GatewayDynamicConfig.Config gatewayConfig)
+        throws InterruptedException {
+        super.should_get_200_when_calling_on_both_first_and_second_servers(httpClient, gatewayConfig);
     }
 
     @Test
     @DeployApi("/apis/v4/http/api-single-server.json")
-    void should_get_200_when_calling_on_second_server_and_404_on_first_server(HttpClient httpClient) throws InterruptedException {
-        super.should_get_200_when_calling_on_second_server_and_404_on_first_server(httpClient);
+    void should_get_200_when_calling_on_second_server_and_404_on_first_server(
+        HttpClient httpClient,
+        GatewayDynamicConfig.Config gatewayConfig
+    ) throws InterruptedException {
+        super.should_get_200_when_calling_on_second_server_and_404_on_first_server(httpClient, gatewayConfig);
     }
 }

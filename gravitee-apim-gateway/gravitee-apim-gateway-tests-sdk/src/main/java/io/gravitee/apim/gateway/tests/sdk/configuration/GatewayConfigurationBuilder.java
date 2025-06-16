@@ -87,10 +87,10 @@ public class GatewayConfigurationBuilder {
         return this.set("http.ssl.keystore.secret", secret);
     }
 
-    public GatewayConfigurationBuilder configureTcpGateway(int port) {
+    public GatewayConfigurationBuilder enableTcpGateway() {
         return this.set("tcp.enabled", true)
             .set("tcp.secured", true)
-            .set("tcp.port", port)
+            .set("tcp.port", 0) // auto select
             .set("tcp.instances", 1)
             .set("tcp.ssl.sni", true);
     }

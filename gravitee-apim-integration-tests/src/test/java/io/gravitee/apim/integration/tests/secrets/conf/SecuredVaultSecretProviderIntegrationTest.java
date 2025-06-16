@@ -29,6 +29,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.integration.tests.secrets.SecuredVaultContainer;
 import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -56,6 +57,7 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ParameterContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
@@ -167,7 +169,11 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         }
 
         @Override
-        protected void configureHttpClient(HttpClientOptions options) {
+        protected void configureHttpClient(
+            HttpClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext
+        ) {
             options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
         }
 
@@ -245,7 +251,11 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         }
 
         @Override
-        protected void configureHttpClient(HttpClientOptions options) {
+        protected void configureHttpClient(
+            HttpClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext
+        ) {
             options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
         }
 
@@ -261,7 +271,8 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
 
         @Test
         @DeployApi({ "/apis/v4/http/api.json" })
-        void should_be_able_to_call_on_https_then_not(HttpClient httpClient) throws VaultException, IOException {
+        void should_be_able_to_call_on_https_then_not(HttpClient httpClient, GatewayDynamicConfig.HttpConfig httpConfig)
+            throws VaultException, IOException {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             httpClient
@@ -287,7 +298,7 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
             var newHttpClient = getBean(Vertx.class)
                 .createHttpClient(
                     new HttpClientOptions()
-                        .setDefaultPort(this.gatewayPort())
+                        .setDefaultPort(httpConfig.httpPort())
                         .setDefaultHost("localhost")
                         .setSsl(true)
                         .setVerifyHost(false)

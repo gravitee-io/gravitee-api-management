@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginRegister;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiConfigurer;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiDeployer;
@@ -59,6 +60,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.mockito.Mockito;
 import org.springframework.aop.framework.Advised;
@@ -105,10 +107,6 @@ public abstract class AbstractGatewayTest
     private final Map<String, Runnable> tearDownHandlers = new HashMap<>();
 
     protected ApplicationContext applicationContext;
-
-    private int gatewayPort = -1;
-    private int technicalApiPort = -1;
-    private int tcpPort = -1;
 
     /**
      * Map of deployed apis for the current test method thanks to {@link io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi}
@@ -169,7 +167,11 @@ public abstract class AbstractGatewayTest
      * Override this method if you want to pass some specific configuration to the HttpClient.
      * It differs from WebClient which only response with Single, which was not good for SSE api.
      */
-    protected void configureHttpClient(HttpClientOptions options) {}
+    protected void configureHttpClient(
+        HttpClientOptions options,
+        GatewayDynamicConfig.Config gatewayConfig,
+        ParameterContext parameterContext
+    ) {}
 
     /**
      * Proxy for {@link TestObserver#await(long, TimeUnit)} with a default of 30 seconds.
@@ -377,27 +379,6 @@ public abstract class AbstractGatewayTest
      */
     public void setDeployedClassApis(Map<String, ReactableApi<?>> deployedForTestClass) {
         this.deployedForTestClass = deployedForTestClass;
-    }
-
-    public int gatewayPort() {
-        if (gatewayPort == -1) {
-            gatewayPort = getAvailablePort();
-        }
-        return gatewayPort;
-    }
-
-    public int tcpPort() {
-        if (tcpPort == -1) {
-            tcpPort = getAvailablePort();
-        }
-        return tcpPort;
-    }
-
-    public int technicalApiPort() {
-        if (technicalApiPort == -1) {
-            technicalApiPort = getAvailablePort();
-        }
-        return technicalApiPort;
     }
 
     /**
