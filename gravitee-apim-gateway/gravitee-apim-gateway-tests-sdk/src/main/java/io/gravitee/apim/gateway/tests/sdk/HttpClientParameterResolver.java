@@ -44,7 +44,9 @@ public class HttpClientParameterResolver implements GatewayTestParameterResolver
             .setDefaultPort(gatewayTest.gatewayPort())
             .setDefaultHost("localhost");
         gatewayTest.configureHttpClient(httpClientOptions);
-        return vertx.createHttpClient(httpClientOptions);
+        HttpClient httpClient = vertx.createHttpClient(httpClientOptions);
+        gatewayTest.registerATearDownHandler("HTTP client", () -> httpClient.close().onErrorComplete().subscribe());
+        return httpClient;
     }
 
     private Vertx getStoredVertx(ExtensionContext extensionContext) {
