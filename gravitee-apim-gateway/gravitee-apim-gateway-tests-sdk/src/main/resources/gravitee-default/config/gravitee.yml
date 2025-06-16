@@ -1,9 +1,10 @@
 
 http:
-  instances: 0
+  instances: 1
   websocket:
     enabled: true
-
+tcp:
+  instances: 1
 plugins:
     path: ${gravitee.home}/plugins
 

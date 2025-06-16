@@ -82,7 +82,15 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
@@ -105,6 +113,8 @@ import org.springframework.core.env.Environment;
  * @author GraviteeSource Team
  */
 public class GatewayRunner {
+
+    private static final Map<String, String> cacheDefinition = new ConcurrentHashMap<>();
 
     public static final String DEFAULT_CONFIGURATION_FOLDER = "/gravitee-default";
 
@@ -840,32 +850,37 @@ public class GatewayRunner {
     }
 
     private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {
-        try {
-            final URL jsonFile = loadURL(resourcePath);
-            String definition = Files.readString(Paths.get(jsonFile.toURI()));
-
-            final AbstractGatewayTest.PlaceholderSymbols placeHolderSymbols = testInstance.configurePlaceHolder();
-
-            final HashMap<String, String> variables = new HashMap<>();
-            testInstance.configurePlaceHolderVariables(variables);
-
-            for (Map.Entry<String, String> entry : variables.entrySet()) {
-                definition =
-                    definition.replaceAll(
-                        Pattern.quote(placeHolderSymbols.prefix() + entry.getKey() + placeHolderSymbols.suffix()),
-                        entry.getValue()
-                    );
+        String definition = cacheDefinition.computeIfAbsent(
+            resourcePath,
+            path -> {
+                try {
+                    final URL jsonFile = loadURL(path);
+                    return Files.readString(Paths.get(jsonFile.toURI()));
+                } catch (IOException | URISyntaxException e) {
+                    throw new RuntimeException(e);
+                }
             }
+        );
 
+        final AbstractGatewayTest.PlaceholderSymbols placeHolderSymbols = testInstance.configurePlaceHolder();
+
+        final HashMap<String, String> variables = new HashMap<>();
+        testInstance.configurePlaceHolderVariables(variables);
+
+        for (Map.Entry<String, String> entry : variables.entrySet()) {
             definition =
-                definition
-                    .replaceAll("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
-                    .replaceAll("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
-
-            return graviteeMapper.readValue(definition, toClass);
-        } catch (URISyntaxException e) {
-            throw new IOException("Invalid resourcePath [" + resourcePath + "].", e);
+                definition.replaceAll(
+                    Pattern.quote(placeHolderSymbols.prefix() + entry.getKey() + placeHolderSymbols.suffix()),
+                    entry.getValue()
+                );
         }
+
+        definition =
+            definition
+                .replaceAll("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
+                .replaceAll("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
+
+        return graviteeMapper.readValue(definition, toClass);
     }
 
     private URL loadURL(String resourcePath) {
@@ -879,19 +894,20 @@ public class GatewayRunner {
      * @throws IOException
      */
     private void copyJarResourcesRecursively(Path destination, JarURLConnection jarConnection) throws IOException {
-        JarFile jarFile = jarConnection.getJarFile();
-        for (Iterator<JarEntry> it = jarFile.entries().asIterator(); it.hasNext();) {
-            JarEntry entry = it.next();
-            if (entry.getName().startsWith(jarConnection.getEntryName())) {
-                if (entry.getName().contains("./") || entry.getName().contains("../")) {
-                    throw new SecurityException("JarEntry trying to access FileSystem with relative path: " + entry.getName());
-                }
-                if (!entry.isDirectory()) {
-                    try (InputStream entryInputStream = jarFile.getInputStream(entry)) {
-                        Files.copy(entryInputStream, Paths.get(destination.toString(), entry.getName()));
+        try (JarFile jarFile = jarConnection.getJarFile()) {
+            for (Iterator<JarEntry> it = jarFile.entries().asIterator(); it.hasNext();) {
+                JarEntry entry = it.next();
+                if (entry.getName().startsWith(jarConnection.getEntryName())) {
+                    if (entry.getName().contains("./") || entry.getName().contains("../")) {
+                        throw new SecurityException("JarEntry trying to access FileSystem with relative path: " + entry.getName());
                     }
-                } else {
-                    Files.createDirectories(Paths.get(destination.toString(), entry.getName()));
+                    if (!entry.isDirectory()) {
+                        try (InputStream entryInputStream = jarFile.getInputStream(entry)) {
+                            Files.copy(entryInputStream, Paths.get(destination.toString(), entry.getName()));
+                        }
+                    } else {
+                        Files.createDirectories(Paths.get(destination.toString(), entry.getName()));
+                    }
                 }
             }
         }
