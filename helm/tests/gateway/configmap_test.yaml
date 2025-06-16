@@ -81,7 +81,7 @@ tests:
     set:
       gateway:
         dictionaries:
-          multitenant:
+          multi-tenant:
             enabled: true
     asserts:
       - matchRegex:
