@@ -57,9 +57,12 @@ public class ApiCRDSpec {
 
     private String hrid;
 
-    @NotNull
-    @Valid
-    private DefinitionContext definitionContext;
+    @Builder.Default
+    private DefinitionContext definitionContext = new DefinitionContext(
+        DefinitionContext.ORIGIN_KUBERNETES,
+        DefinitionContext.MODE_FULLY_MANAGED,
+        DefinitionContext.ORIGIN_MANAGEMENT
+    );
 
     @NotEmpty
     private String name;
