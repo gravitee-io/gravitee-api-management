@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
 import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
@@ -45,7 +46,7 @@ public class GrpcServerStreamingV4IntegrationTest extends AbstractGrpcV4GatewayT
     private static final int STREAM_MESSAGE_NUMBER = 3;
 
     @Test
-    void should_request_grpc_server(VertxTestContext testContext) {
+    void should_request_grpc_server(VertxTestContext testContext, GatewayDynamicConfig.HttpConfig httpConfig) {
         // start the backend
         GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
         grpcServer.callHandler(
@@ -78,7 +79,7 @@ public class GrpcServerStreamingV4IntegrationTest extends AbstractGrpcV4GatewayT
             .andThen(handler -> {
                 // dynamic client, and call the Gateway
                 createGrpcClient()
-                    .request(gatewayAddress(), StreamingGreeterGrpc.getSayHelloStreamingMethod())
+                    .request(gatewayAddress(httpConfig), StreamingGreeterGrpc.getSayHelloStreamingMethod())
                     .compose(request -> {
                         // send one request
                         request.end(HelloRequest.newBuilder().setName("You").build());

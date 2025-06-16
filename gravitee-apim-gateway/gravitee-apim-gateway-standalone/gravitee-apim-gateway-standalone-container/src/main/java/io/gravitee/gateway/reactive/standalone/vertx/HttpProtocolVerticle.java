@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.standalone.vertx;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.standalone.vertx.GetDeployedPortHelper;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.reactivex.rxjava3.core.Completable;
@@ -73,7 +74,7 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
         return Flowable
             .fromIterable(servers)
-            .concatMapCompletable(gioServer -> {
+            .concatMapSingle(gioServer -> {
                 final HttpServer rxHttpServer = gioServer.newInstance();
                 httpServerMap.put(gioServer, rxHttpServer);
 
@@ -81,13 +82,22 @@ public class HttpProtocolVerticle extends AbstractVerticle {
                 return rxHttpServer
                     .requestHandler(request -> dispatchRequest(request, gioServer.id()))
                     .rxListen()
-                    .ignoreElement()
-                    .doOnComplete(() ->
-                        log.info("HTTP server [{}] ready to accept requests on port {}", gioServer.id(), rxHttpServer.actualPort())
-                    )
+                    .map(e -> {
+                        log.info("HTTP server [{}] ready to accept requests on port {}", gioServer.id(), rxHttpServer.actualPort());
+                        return Map.entry(gioServer.id(), rxHttpServer.actualPort());
+                    })
                     .doOnError(throwable -> log.error("Unable to start HTTP server [{}]", gioServer.id(), throwable.getCause()));
             })
-            .doOnSubscribe(disposable -> log.info("Starting HTTP servers..."));
+            .doOnSubscribe(disposable -> log.info("Starting HTTP servers..."))
+            .toList()
+            .doOnSuccess(ports -> {
+                if (config().containsKey(GetDeployedPortHelper.HTTP_PORTS_CONFIG_KEY) && !ports.isEmpty()) {
+                    vertx
+                        .eventBus()
+                        .publish(config().getString(GetDeployedPortHelper.HTTP_PORTS_CONFIG_KEY), GetDeployedPortHelper.serialize(ports));
+                }
+            })
+            .ignoreElement();
     }
 
     /**

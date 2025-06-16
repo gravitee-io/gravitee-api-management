@@ -21,6 +21,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.gateway.grpc.helloworld.GreeterGrpc;
 import io.gravitee.gateway.grpc.helloworld.HelloReply;
 import io.gravitee.gateway.grpc.helloworld.HelloRequest;
@@ -44,7 +45,7 @@ import org.junit.jupiter.api.Test;
 public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
 
     @Test
-    void should_request_and_get_response() {
+    void should_request_and_get_response(GatewayDynamicConfig.HttpConfig httpConfig) {
         // create the backend
         GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
         grpcServer.callHandler(
@@ -68,7 +69,7 @@ public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
             .andThen(handler -> {
                 // call the service through the gateway
                 getGrpcClient()
-                    .request(gatewayAddress(), GreeterGrpc.getSayHelloMethod())
+                    .request(gatewayAddress(httpConfig), GreeterGrpc.getSayHelloMethod())
                     .compose(request -> {
                         request.end(HelloRequest.newBuilder().setName("You").build());
                         return request.response().compose(GrpcReadStream::last);

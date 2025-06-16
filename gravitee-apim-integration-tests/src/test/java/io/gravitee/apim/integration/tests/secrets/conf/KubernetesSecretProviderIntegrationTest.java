@@ -29,6 +29,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
 import io.gravitee.apim.integration.tests.secrets.KubernetesHelper;
 import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
@@ -65,6 +66,7 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ParameterContext;
 import org.springframework.core.env.Environment;
 
 /**
@@ -287,7 +289,11 @@ class KubernetesSecretProviderIntegrationTest {
         }
 
         @Override
-        protected void configureHttpClient(HttpClientOptions options) {
+        protected void configureHttpClient(
+            HttpClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext
+        ) {
             options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
@@ -331,7 +337,11 @@ class KubernetesSecretProviderIntegrationTest {
         }
 
         @Override
-        protected void configureHttpClient(HttpClientOptions options) {
+        protected void configureHttpClient(
+            HttpClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext
+        ) {
             options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
@@ -371,7 +381,11 @@ class KubernetesSecretProviderIntegrationTest {
         }
 
         @Override
-        protected void configureHttpClient(HttpClientOptions options) {
+        protected void configureHttpClient(
+            HttpClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext
+        ) {
             options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
@@ -473,7 +487,11 @@ class KubernetesSecretProviderIntegrationTest {
         }
 
         @Override
-        protected void configureHttpClient(HttpClientOptions options) {
+        protected void configureHttpClient(
+            HttpClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext
+        ) {
             options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(CERT)));
         }
 
@@ -489,7 +507,8 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Test
         @DeployApi({ "/apis/v4/http/api.json" })
-        void should_be_able_to_call_on_https_then_not(HttpClient httpClient) throws IOException, InterruptedException {
+        void should_be_able_to_call_on_https_then_not(HttpClient httpClient, GatewayDynamicConfig.HttpConfig httpConfig)
+            throws IOException, InterruptedException {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
             httpClient
@@ -514,7 +533,7 @@ class KubernetesSecretProviderIntegrationTest {
             var newHttpClient = getBean(Vertx.class)
                 .createHttpClient(
                     new HttpClientOptions()
-                        .setDefaultPort(this.gatewayPort())
+                        .setDefaultPort(httpConfig.httpPort())
                         .setDefaultHost("localhost")
                         .setSsl(true)
                         .setVerifyHost(false)

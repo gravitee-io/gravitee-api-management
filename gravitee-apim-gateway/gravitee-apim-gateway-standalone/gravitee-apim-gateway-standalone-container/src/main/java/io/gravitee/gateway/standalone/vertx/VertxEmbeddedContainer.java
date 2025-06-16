@@ -16,12 +16,17 @@
 package io.gravitee.gateway.standalone.vertx;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.reactive.standalone.vertx.HttpProtocolVerticle;
 import io.gravitee.gateway.reactive.standalone.vertx.TcpProtocolVerticle;
 import io.gravitee.node.vertx.verticle.factory.SpringVerticleFactory;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.json.JsonObject;
+import java.util.HashMap;
+import java.util.Map;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +55,12 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     private String httpDeploymentId;
     private String tcpDeploymentId;
 
+    @Getter
+    private final Map<String, Integer> httpPorts = new HashMap<>();
+
+    @Getter
+    private final Map<String, Integer> tcpPorts = new HashMap<>();
+
     @Override
     public VertxEmbeddedContainer start() throws Exception {
         doStart();
@@ -63,7 +74,7 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     }
 
     @Override
-    protected void doStart() throws Exception {
+    protected void doStart() {
         if (httpInstances < 1 && tcpInstances < 1) {
             httpInstances = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE / 2;
             tcpInstances = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE / 2;
@@ -78,8 +89,13 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     private void startHttpInstances() {
         logger.info("Starting Vertx container and deploy Gateway HTTP Verticles [{} instance(s)]", httpInstances);
 
-        final DeploymentOptions options = new DeploymentOptions().setInstances(httpInstances);
+        String addrPorts = GetDeployedPortHelper.buildAnDedicatedAddr();
+        final DeploymentOptions options = new DeploymentOptions()
+            .setInstances(httpInstances)
+            .setConfig(JsonObject.of(GetDeployedPortHelper.HTTP_PORTS_CONFIG_KEY, addrPorts));
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName();
+
+        vertx.eventBus().consumer(addrPorts, GetDeployedPortHelper.handler(httpPorts));
 
         vertx.deployVerticle(
             verticleName,
@@ -107,9 +123,13 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     private void startTcpInstances() {
         logger.info("Starting Vertx container and deploy Gateway TCP Verticles [{} instance(s)]", tcpInstances);
 
-        final DeploymentOptions options = new DeploymentOptions().setInstances(tcpInstances);
+        String addrPorts = UUID.random().toString();
+        final DeploymentOptions options = new DeploymentOptions()
+            .setInstances(tcpInstances)
+            .setConfig(JsonObject.of(GetDeployedPortHelper.TCP_PORTS_CONFIG_KEY, addrPorts));
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + TcpProtocolVerticle.class.getName();
 
+        vertx.eventBus().consumer(addrPorts, GetDeployedPortHelper.handler(tcpPorts));
         vertx.deployVerticle(
             verticleName,
             options,

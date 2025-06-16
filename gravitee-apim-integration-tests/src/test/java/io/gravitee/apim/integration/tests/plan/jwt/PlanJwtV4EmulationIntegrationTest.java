@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.service.Subscription;
@@ -96,7 +97,8 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
     protected void should_return_200_success_with_jwt_and_subscription_on_the_api(
         final String apiId,
         final boolean requireWiremock,
-        final HttpClient client
+        final HttpClient client,
+        GatewayDynamicConfig.HttpConfig httpConfig
     ) throws Exception {
         String jwtToken = generateJWT(5000);
         whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID).thenReturn(Optional.of(createSubscription(apiId, PLAN_JWT_ID, false)));
@@ -134,7 +136,8 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
         final String apiId,
         final String headerName,
         final String headerValue,
-        final HttpClient client
+        final HttpClient client,
+        GatewayDynamicConfig.HttpConfig httpConfig
     ) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
 
@@ -166,7 +169,8 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
     protected void should_return_401_unauthorized_with_valid_jwt_but_no_subscription_on_the_api(
         final String path,
         final boolean requireWiremock,
-        final HttpClient client
+        final HttpClient client,
+        GatewayDynamicConfig.HttpConfig httpConfig
     ) throws Exception {
         String jwtToken = generateJWT(5000);
         assertUnauthorizedWithJwt(path, client, jwtToken, false);
@@ -177,7 +181,8 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
     protected void should_return_401_unauthorized_with_expired_jwt_and_subscription_on_the_api(
         final String path,
         final boolean requireWiremock,
-        final HttpClient client
+        final HttpClient client,
+        GatewayDynamicConfig.HttpConfig httpConfig
     ) throws Exception {
         String jwtToken = generateJWT(-5000);
         assertUnauthorizedWithJwt(path, client, jwtToken, true);
