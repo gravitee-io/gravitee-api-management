@@ -26,6 +26,15 @@ tasks:
     cmds:
       - mvn clean install -DskipTests -Dskip.validation -Dbundle=dev -T 1C
 
+  integration-test:
+    desc: "Run all tests in gravitee-apim-integration-tests"
+    env:
+      JDK_JAVA_OPTIONS: -XX:+MaxFDLimit
+    cmds:
+      - mvn -U -T2C -am -pl gravitee-apim-integration-tests clean install -Dskip.validation=true -DskipTests -Dbundle=dev -Dmaven.test.skip
+      - ulimit -n 102400
+      - mvn -fae -pl gravitee-apim-integration-tests install -Dbundle=dev
+
   docker:
     desc: "Build all 🐳 images"
     cmds:
