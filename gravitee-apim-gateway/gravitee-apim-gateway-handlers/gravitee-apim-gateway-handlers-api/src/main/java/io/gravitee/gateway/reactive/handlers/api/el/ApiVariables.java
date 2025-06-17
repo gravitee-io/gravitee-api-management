@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class ApiVariables {
+public class ApiVariables {
 
     private final ReactableApi<? extends AbstractApi> api;
 
