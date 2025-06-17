@@ -194,7 +194,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           });
           this.form.patchValue({ status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING] });
         })
-        .then(() => this.search(true));
+        .then(() => this.search(true, true));
     }
   }
 
@@ -264,7 +264,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     this.ngZone.run(() => this.router.navigate(['/catalog/api/', apiId]));
   }
 
-  search(displaySubscription?): Promise<void> {
+  search(displaySubscription?, paginate?: boolean): Promise<void> {
     const applicationId = this.route.snapshot.params.applicationId;
     const requestParameters: GetSubscriptionsRequestParams = { applicationId };
     if (this.form.value.api) {
@@ -272,6 +272,10 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     }
     if (this.form.value.status) {
       requestParameters.statuses = this.form.value.status;
+    }
+    if (paginate) {
+      requestParameters.size = -1;
+      this.options = { ...this.options, paging: 10 };
     }
     this.isSearching = true;
     return this.subscriptionService
