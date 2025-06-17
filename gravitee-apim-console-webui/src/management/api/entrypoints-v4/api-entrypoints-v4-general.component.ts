@@ -100,7 +100,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
+    this.canUpdate = this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u']);
 
     forkJoin([
       this.restrictedDomainService.get(),
