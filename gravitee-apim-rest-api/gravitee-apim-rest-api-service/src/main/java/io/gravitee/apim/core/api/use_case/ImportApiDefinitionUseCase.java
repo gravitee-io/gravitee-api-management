@@ -23,8 +23,10 @@ import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.exceptions.ApiTypeNotSupportedException;
 import lombok.extern.slf4j.Slf4j;
 
 @UseCase
@@ -47,6 +49,7 @@ public class ImportApiDefinitionUseCase {
     }
 
     public Output execute(Input input) {
+        ensureApiIsNotNative(input.importDefinition().getApiExport());
         ensureIsV4Api(input.importDefinition().getApiExport());
         ensureApiDoesNotExist(input);
 
@@ -67,6 +70,12 @@ public class ImportApiDefinitionUseCase {
     private void ensureIsV4Api(ApiExport api) {
         if (api.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ApiDefinitionVersionNotSupportedException(api.getDefinitionVersion().getLabel());
+        }
+    }
+
+    private void ensureApiIsNotNative(ApiExport api) {
+        if (api.getType() == ApiType.NATIVE) {
+            throw new ApiTypeNotSupportedException(api.getType());
         }
     }
 }
