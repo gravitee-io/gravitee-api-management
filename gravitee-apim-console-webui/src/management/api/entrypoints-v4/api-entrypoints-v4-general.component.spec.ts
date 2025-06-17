@@ -86,7 +86,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     }
   };
 
-  const init = async (permissions: string[] = ['api-definition-u', 'api-definition-r']) => {
+  const init = async (permissions: string[] = ['api-definition-u', 'api-definition-r', 'api-gateway_definition-u']) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [
@@ -462,7 +462,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(RESTRICTED_DOMAINS, API, undefined, ['api-definition-u'], false);
+      await createComponent(RESTRICTED_DOMAINS, API, undefined, ['api-definition-u', 'api-gateway_definition-u'], false);
     });
 
     afterEach(() => {
