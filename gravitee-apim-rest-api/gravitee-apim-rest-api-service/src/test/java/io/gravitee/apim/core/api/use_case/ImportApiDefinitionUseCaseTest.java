@@ -67,6 +67,7 @@ import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.exceptions.ApiTypeNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.time.Clock;
@@ -180,6 +181,19 @@ class ImportApiDefinitionUseCaseTest {
 
         // Then
         assertThat(throwable).isInstanceOf(ApiDefinitionVersionNotSupportedException.class);
+    }
+
+    @ParameterizedTest(name = "Test for API import for Native API Type")
+    @EnumSource(value = ApiType.class, names = { "NATIVE" })
+    void should_not_allow_import_with_api_type(ApiType apiType) {
+        //Given
+        var importDefinition = ImportDefinition.builder().apiExport(ApiExport.builder().type(apiType).build()).build();
+
+        //When
+        var throwable = catchThrowable(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)));
+
+        //Then
+        assertThat(throwable).isInstanceOf(ApiTypeNotSupportedException.class);
     }
 
     @Test
