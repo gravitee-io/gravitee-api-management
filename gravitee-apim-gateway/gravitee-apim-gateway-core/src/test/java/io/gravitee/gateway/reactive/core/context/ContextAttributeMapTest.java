@@ -87,4 +87,19 @@ class ContextAttributeMapTest {
             assertFalse(contextAttributeMap.containsKey(ATTR_PREFIX + "fallback"));
         }
     }
+
+    @Test
+    void should_getFallbackContextAttributeMap_when_fallback_is_not_null() {
+        var fallbackContextAttributeMap = new ContextAttributeMap();
+        fallbackContextAttributeMap.put(ATTR_PREFIX + "fallback", "fallbackValue");
+
+        var contextAttributeMap = new ContextAttributeMap(fallbackContextAttributeMap);
+        assertEquals(fallbackContextAttributeMap, contextAttributeMap.getFallbackContextAttributeMap());
+    }
+
+    @Test
+    void should_getFallbackContextAttributeMap_when_fallback_is_null() {
+        var contextAttributeMap = new ContextAttributeMap();
+        assertNull(contextAttributeMap.getFallbackContextAttributeMap());
+    }
 }
