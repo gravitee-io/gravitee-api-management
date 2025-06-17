@@ -165,7 +165,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
     this.formGroup = new UntypedFormGroup({});
 
     this.isReadOnly =
-      !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']) ||
+      !this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u']) ||
       api.definitionContext?.origin === 'KUBERNETES' ||
       api.definitionVersion === 'V1';
 
