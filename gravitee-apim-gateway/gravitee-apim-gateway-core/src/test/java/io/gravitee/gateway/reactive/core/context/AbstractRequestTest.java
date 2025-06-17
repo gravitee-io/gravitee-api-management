@@ -78,25 +78,6 @@ class AbstractRequestTest {
         }
 
         @Test
-        void should_override_context_path_and_path_and_path_info() {
-            String initialPath = "/eventId-contextPath/pathInfo";
-            String initialContextPath = "/eventId-contextPath/";
-
-            cut.path = initialPath;
-            cut.contextPath = initialContextPath;
-            assertThat(cut.path()).isEqualTo(initialPath);
-            assertThat(cut.contextPath()).isEqualTo(initialContextPath);
-            assertThat(cut.pathInfo()).isNull();
-
-            String newContextPath = "/contextPath/";
-
-            cut.contextPath(newContextPath);
-            assertThat(cut.path()).isEqualTo("/contextPath/pathInfo");
-            assertThat(cut.contextPath()).isEqualTo(newContextPath);
-            assertThat(cut.pathInfo()).isEqualTo("/pathInfo");
-        }
-
-        @Test
         void should_set_path_info_to_path() {
             String initialPath = "/unknownContextPath/pathInfo";
 
@@ -127,6 +108,59 @@ class AbstractRequestTest {
             BufferFlow bufferFlow = spy.lazyBufferFlow();
             assertThat(bufferFlow).isNotNull();
             verify(spy, never()).isStreaming();
+        }
+    }
+
+    @Nested
+    class debugContextPath {
+
+        @Test
+        void global_context_path_is_null() {
+            String contextPath = "/contextPath";
+            assertThat(cut.contextPath).isNull();
+            cut.debugContextPath(contextPath);
+            assertThat(cut.contextPath).isEqualTo(contextPath);
+            assertThat(cut.path).isNull();
+        }
+
+        @Test
+        void global_context_path_ends_with_slash_and_global_path_ends_with_slash() {
+            cut.contextPath = "/uuid-12345-contextPath/";
+            cut.path = "/uuid-12345-contextPath/";
+            String contextPath = "/contextPath/";
+            cut.debugContextPath(contextPath);
+            assertThat(cut.contextPath).isEqualTo("/contextPath/");
+            assertThat(cut.path).isEqualTo("/contextPath/");
+        }
+
+        @Test
+        void global_context_path_ends_with_slash_and_global_path_ends_with_slash_and_global_path_contains_subpath() {
+            cut.contextPath = "/uuid-12345-contextPath/";
+            cut.path = "/uuid-12345-contextPath/v1/";
+            String contextPath = "/contextPath/";
+            cut.debugContextPath(contextPath);
+            assertThat(cut.contextPath).isEqualTo("/contextPath/");
+            assertThat(cut.path).isEqualTo("/contextPath/v1/");
+        }
+
+        @Test
+        void global_context_path_ends_with_slash_and_global_path_doesnt_end_with_slash() {
+            cut.contextPath = "/uuid-12345-contextPath/";
+            cut.path = "/uuid-12345-contextPath";
+            String contextPath = "/contextPath/";
+            cut.debugContextPath(contextPath);
+            assertThat(cut.contextPath).isEqualTo("/contextPath/");
+            assertThat(cut.path).isEqualTo("/contextPath/");
+        }
+
+        @Test
+        void global_context_path_ends_with_slash_and_global_path_doesnt_end_with_slash_and_global_path_contains_subpath() {
+            cut.contextPath = "/uuid-12345-contextPath/";
+            cut.path = "/uuid-12345-contextPath/v1";
+            String contextPath = "/contextPath/";
+            cut.debugContextPath(contextPath);
+            assertThat(cut.contextPath).isEqualTo("/contextPath/");
+            assertThat(cut.path).isEqualTo("/contextPath/v1/");
         }
     }
 }
