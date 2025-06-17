@@ -98,4 +98,35 @@ describe('GioPermissionDirective', () => {
       expect(inputEl).toBeNull();
     });
   });
+
+  describe('allOf', () => {
+    it('should display element if all permissions are matching', () => {
+      prepareTestPermissionComponent({ allOf: ['api-rating-r', 'api-rating-c'] });
+      fixture.detectChanges();
+
+      const inputEl = fixture.nativeElement.querySelector('div');
+      expect(inputEl).toBeDefined();
+    });
+
+    it('should hide element if only one permission is missing', () => {
+      prepareTestPermissionComponent({ allOf: ['api-rating-r', 'api-rating-u'] });
+      fixture.detectChanges();
+
+      const inputEl = fixture.nativeElement.querySelector('div');
+      expect(inputEl).toBeNull();
+    });
+
+    it('should hide element if all permissions are missing', () => {
+      prepareTestPermissionComponent({ allOf: ['api-rating-u', 'api-definition-r'] });
+      fixture.detectChanges();
+
+      const inputEl = fixture.nativeElement.querySelector('div');
+      expect(inputEl).toBeNull();
+    });
+    it('should throw error if allOf and anyOf are both set', () => {
+      expect(() => {
+        prepareTestPermissionComponent({ allOf: ['api-rating-r'], anyOf: ['api-rating-c'] });
+      }).toThrowError('You should only set one of `anyOf`, `noneOf`, or `allOf`, but not more than one.');
+    });
+  });
 });
