@@ -82,6 +82,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,6 +91,7 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor<Api> {
 
     private static final Logger log = LoggerFactory.getLogger(SyncApiReactor.class);

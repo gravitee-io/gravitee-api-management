@@ -32,7 +32,6 @@ import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.MaybeTransformer;
 import io.reactivex.rxjava3.core.Single;
-import java.util.function.Function;
 import javax.net.ssl.SSLSession;
 
 /**
@@ -197,15 +196,28 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
 
     @Override
     public MutableRequest contextPath(String contextPath) {
+        this.contextPath = contextPath;
+
+        if (contextPath == null || contextPath.isEmpty()) {
+            this.pathInfo = path();
+        } else if (path().length() > 1) {
+            this.pathInfo = path().substring(contextPath.length() - 1);
+        } else {
+            this.pathInfo = "";
+        }
+
+        return this;
+    }
+
+    @Override
+    public MutableRequest debugContextPath(String contextPath) {
         if (this.contextPath != null) {
+            if (!this.path.endsWith("/") && this.contextPath.endsWith("/")) {
+                this.path += "/";
+            }
             this.path = this.path.replaceFirst(this.contextPath, contextPath);
         }
         this.contextPath = contextPath;
-        if (contextPath == null || contextPath.isEmpty()) {
-            this.pathInfo = path();
-        } else {
-            this.pathInfo = path().substring(contextPath.length() - 1);
-        }
         return this;
     }
 
