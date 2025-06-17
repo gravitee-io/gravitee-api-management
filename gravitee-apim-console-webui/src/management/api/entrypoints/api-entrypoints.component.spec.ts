@@ -71,6 +71,19 @@ describe('ApiProxyEntrypointsComponent', () => {
     httpTestingController.verify({ ignoreCancelled: true });
   });
 
+  function setupWithPermissions(permissions: string[]) {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      declarations: [ApiEntrypointsComponent],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsModule, MatIconTestingModule],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
+    });
+    TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: permissions });
+    fixture = TestBed.createComponent(ApiEntrypointsComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    fixture.detectChanges();
+  }
+
   describe('context-path mode', () => {
     beforeEach(() => {
       exceptRestrictedDomainsGetRequest([]);
@@ -99,6 +112,12 @@ describe('ApiProxyEntrypointsComponent', () => {
       expectApiGetRequest(api);
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
       expect(req.request.body.proxy.virtualHosts).toEqual([{ path: '/new-path' }]);
+    });
+
+    it('should disable or hide save button with only api-definition-u permission', async () => {
+      setupWithPermissions(['api-definition-u']);
+      const saveButtons = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Save changes' }));
+      expect(saveButtons.length === 0 || (saveButtons.length > 0 && (await saveButtons[0].isDisabled()))).toBe(true);
     });
 
     it('should disable field when origin is kubernetes', async () => {

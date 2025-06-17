@@ -20,6 +20,7 @@ import { GioPermissionService } from './gio-permission.service';
 export interface GioPermissionCheckOptions {
   anyOf?: string[];
   noneOf?: string[];
+  allOf?: string[];
 }
 
 @Directive({
@@ -37,16 +38,17 @@ export class GioPermissionDirective implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (this.gioPermission.anyOf && this.gioPermission.noneOf) {
-      throw new Error('You should only set `anyOf` or `noneOf` but not both at the same time.');
+    if ([this.gioPermission.anyOf, this.gioPermission.noneOf, this.gioPermission.allOf].filter((val) => !!val).length > 1) {
+      throw new Error('You should only set one of `anyOf`, `noneOf`, or `allOf`, but not more than one.');
     }
 
     this.viewContainer.clear();
-
-    if (
+    const shouldRender =
       (this.gioPermission.anyOf && this.permissionService.hasAnyMatching(this.gioPermission.anyOf)) ||
-      (this.gioPermission.noneOf && !this.permissionService.hasAnyMatching(this.gioPermission.noneOf))
-    ) {
+      (this.gioPermission.noneOf && !this.permissionService.hasAnyMatching(this.gioPermission.noneOf)) ||
+      (this.gioPermission.allOf && this.permissionService.hasAllMatching(this.gioPermission.allOf));
+
+    if (shouldRender) {
       this.viewContainer.createEmbeddedView(this.templateRef);
     }
   }
