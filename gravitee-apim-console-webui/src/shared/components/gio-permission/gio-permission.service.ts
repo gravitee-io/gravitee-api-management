@@ -183,4 +183,20 @@ export class GioPermissionService {
   clearIntegrationPermissions() {
     this.currentIntegrationPermissions = [];
   }
+
+  hasAllMatching(permissions: string[]): boolean {
+    if (!permissions || permissions.length === 0) {
+      return false;
+    }
+
+    const allUserPermissions = [
+      ...this.currentOrganizationPermissions,
+      ...this.currentEnvironmentPermissions,
+      ...this.currentApiPermissions,
+      ...this.currentApplicationPermissions,
+      ...this.permissions,
+    ];
+
+    return permissions.every((permission) => allUserPermissions.includes(permission));
+  }
 }
