@@ -30,6 +30,11 @@ public interface MutableRequest extends Request, OnMessagesInterceptor {
      */
     MutableRequest contextPath(final String contextPath);
 
+    // Used only for the API > Debug feature
+    default MutableRequest debugContextPath(final String contextPath) {
+        return this;
+    }
+
     /**
      * Allow setting path info.
      *
