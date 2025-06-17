@@ -25,13 +25,19 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.opentelemetry.TracingContext;
+import io.gravitee.gateway.reactive.api.hook.ChainHook;
+import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
+import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.debug.invoker.DebugInvokerHook;
 import io.gravitee.gateway.reactive.debug.policy.DebugPolicyHook;
 import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
+import io.gravitee.gateway.reactive.handlers.api.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.handlers.api.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
@@ -42,11 +48,14 @@ import io.reactivex.rxjava3.core.Completable;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.Builder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+
 public class DebugSyncApiReactor extends SyncApiReactor {
 
     public DebugSyncApiReactor(
@@ -86,16 +95,86 @@ public class DebugSyncApiReactor extends SyncApiReactor {
         invokerHooks.add(new DebugInvokerHook());
     }
 
+    @Builder(access = AccessLevel.MODULE)
+    DebugSyncApiReactor(
+        Api api,
+        List<ChainHook> processorChainHooks,
+        List<InvokerHook> invokerHooks,
+        ComponentProvider componentProvider,
+        List<TemplateVariableProvider> templateVariableProviders,
+        HttpInvoker defaultInvoker,
+        ResourceLifecycleManager resourceLifecycleManager,
+        PolicyManager policyManager,
+        GroupLifecycleManager groupLifecycleManager,
+        FlowChain organizationFlowChain,
+        FlowChain apiPlanFlowChain,
+        FlowChain apiFlowChain,
+        ProcessorChain beforeHandleProcessors,
+        ProcessorChain afterHandleProcessors,
+        ProcessorChain beforeSecurityChainProcessors,
+        ProcessorChain beforeApiFlowsProcessors,
+        ProcessorChain afterApiFlowsProcessors,
+        ProcessorChain onErrorProcessors,
+        Configuration configuration,
+        Node node,
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
+        AccessPointManager accessPointManager,
+        EventManager eventManager,
+        TracingContext tracingContext,
+        String loggingExcludedResponseType,
+        String loggingMaxSize,
+        long pendingRequestsTimeout,
+        AnalyticsContext analyticsContext,
+        HttpSecurityChain httpSecurityChain,
+        List<Acceptor<?>> acceptors
+    ) {
+        super(
+            api,
+            processorChainHooks,
+            invokerHooks,
+            componentProvider,
+            templateVariableProviders,
+            defaultInvoker,
+            resourceLifecycleManager,
+            policyManager,
+            groupLifecycleManager,
+            organizationFlowChain,
+            apiPlanFlowChain,
+            apiFlowChain,
+            beforeHandleProcessors,
+            afterHandleProcessors,
+            beforeSecurityChainProcessors,
+            beforeApiFlowsProcessors,
+            afterApiFlowsProcessors,
+            onErrorProcessors,
+            configuration,
+            node,
+            requestTimeoutConfiguration,
+            accessPointManager,
+            eventManager,
+            tracingContext,
+            loggingExcludedResponseType,
+            loggingMaxSize,
+            pendingRequestsTimeout,
+            analyticsContext,
+            httpSecurityChain,
+            acceptors
+        );
+    }
+
+    void handleProcess(final MutableExecutionContext ctx) {
+        String debugContextPath = ctx.request().contextPath();
+        String cleanContextPath = PathTransformer.removeEventIdFromPath(((DebugApi) api).getEventId(), debugContextPath);
+        ctx.request().debugContextPath(cleanContextPath);
+    }
+
     @Override
     public Completable handle(final MutableExecutionContext ctx) {
         /*
          * Debug path contains a generated uuid to isolate each debug request.
          * The code bellow remove this generated uuid from both context path, path and pathInfo and override request attributes to be sure the gateway find the right api
          */
-        String debugContextPath = ctx.request().contextPath();
-        String cleanContextPath = PathTransformer.removeEventIdFromPath(((DebugApi) api).getEventId(), debugContextPath);
-        ctx.request().contextPath(cleanContextPath);
-
+        handleProcess(ctx);
         return super.handle(ctx);
     }
 
