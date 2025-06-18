@@ -14,6 +14,20 @@
  * limitations under the License.
  */
 @use '../../scss/theme';
+@use '../../scss/responsive' as *;
+
+// Screen reader only class for accessibility
+.sr-only {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
 
 :host {
   position: sticky;
@@ -25,25 +39,272 @@
 
 .nav-bar__container {
   display: flex;
-  min-width: 1040px;
-  max-width: 1280px;
   flex-flow: row;
   align-items: center;
-  padding: 18px 24px;
+  padding: 12px 16px;
   margin: auto;
-  gap: 40px;
+  gap: 16px;
+
+  @include respond-to('sm') {
+    padding: 16px 20px;
+    gap: 24px;
+  }
+
+  @include respond-to('md') {
+    min-width: 1040px;
+    max-width: 1280px;
+    padding: 18px 24px;
+    gap: 40px;
+  }
 }
 
-.menu-items {
-  display: flex;
-  flex: 1 1 100%;
-  gap: 16px;
+// Desktop Menu (hidden on mobile)
+.desktop-menu {
+  display: none;
+
+  @include respond-to('md') {
+    display: flex;
+    flex: 1 1 100%;
+    gap: 16px;
+  }
 
   &__custom_link {
     width: max-content;
   }
 }
 
+// Desktop Actions (hidden on mobile)
+.desktop-actions {
+  display: none;
+
+  @include respond-to('md') {
+    display: flex;
+  }
+}
+
+// Hamburger Button (visible only on mobile/tablet)
+.hamburger-button {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  margin-left: auto;
+  background: transparent;
+  color: theme.$default-text-color;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  @include respond-to('md') {
+    display: none;
+  }
+
+  &:hover {
+    background-color: rgb(0 0 0 / 4%);
+  }
+
+  &:active {
+    background-color: rgb(0 0 0 / 8%);
+  }
+
+  mat-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+  }
+}
+
+// Mobile Menu Overlay
+.mobile-menu-overlay {
+  position: fixed;
+  z-index: 98;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(0 0 0 / 50%);
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+  visibility: hidden;
+
+  @include respond-to('md') {
+    display: none;
+  }
+
+  &.open {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+// Mobile Menu
+.mobile-menu {
+  position: fixed;
+  z-index: 99;
+  top: 0;
+  right: -100%;
+  display: flex;
+  width: 280px;
+  height: 100vh;
+  flex-direction: column;
+  background-color: theme.$nav-bar-background-color;
+  box-shadow: -2px 0 8px rgb(0 0 0 / 10%);
+  opacity: 0;
+  transition:
+    right 0.3s ease,
+    visibility 0.3s ease,
+    opacity 0.3s ease;
+  visibility: hidden;
+
+  @include respond-to('md') {
+    display: none;
+  }
+
+  &.open {
+    right: 0;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid rgb(0 0 0 / 10%);
+  }
+
+  &__close-button {
+    display: flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: theme.$default-text-color;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: rgb(0 0 0 / 4%);
+    }
+
+    mat-icon {
+      width: 24px;
+      height: 24px;
+      font-size: 24px;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 16px;
+    gap: 24px;
+  }
+
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__link {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: theme.$default-text-color;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 400;
+    outline: none;
+    text-decoration: none;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      outline 0.2s ease;
+
+    &:hover {
+      background-color: rgb(0 0 0 / 4%);
+      text-decoration: none;
+    }
+
+    &:active {
+      background-color: rgb(0 0 0 / 8%);
+    }
+
+    &:focus {
+      outline: 2px solid theme.$primary-main-color;
+      outline-offset: 2px;
+    }
+
+    &:focus:not(:focus-visible) {
+      outline: none;
+    }
+
+    &--active {
+      background-color: theme.$primary-main-color;
+      color: white;
+      font-weight: 500;
+
+      &:hover {
+        background-color: theme.$primary-main-color;
+        color: white;
+      }
+
+      &:focus {
+        outline: 2px solid white;
+        outline-offset: 2px;
+      }
+    }
+
+    &--external {
+      color: theme.$primary-main-color;
+
+      &:hover {
+        background-color: rgba(theme.$primary-main-color, 0.04);
+      }
+    }
+  }
+
+  &__actions {
+    padding-top: 16px;
+    border-top: 1px solid rgb(0 0 0 / 10%);
+    margin-top: auto;
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  &__auth {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    app-nav-bar-button {
+      width: 100%;
+      justify-content: center;
+      padding: 12px 16px;
+    }
+  }
+}
+
+// Desktop-specific styles
 .menu-title,
 .unauthenticated-actions {
   display: flex;
