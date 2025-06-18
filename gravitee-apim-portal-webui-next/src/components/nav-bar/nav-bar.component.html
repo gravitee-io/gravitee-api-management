@@ -17,7 +17,9 @@
 -->
 <div class="nav-bar__container">
   <app-company-title [title]="siteTitle" [logo]="logo()" />
-  <div class="menu-items">
+
+  <!-- Desktop Menu -->
+  <div class="menu-items desktop-menu">
     <app-nav-bar-button i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
     <app-nav-bar-button i18n="@@guides" [path]="['guides']">Guides</app-nav-bar-button>
     @if (!isEmpty(currentUser())) {
@@ -35,13 +37,117 @@
     }
   </div>
 
-  @if (!isEmpty(currentUser())) {
-    <div class="authenticated-actions">
-      <app-user-avatar [user]="currentUser()" />
+  <!-- Desktop Actions -->
+  <div class="desktop-actions">
+    @if (!isEmpty(currentUser())) {
+      <div class="authenticated-actions">
+        <app-user-avatar [user]="currentUser()" />
+      </div>
+    } @else {
+      <div class="unauthenticated-actions">
+        <app-nav-bar-button i18n="@@logIn" [path]="['log-in']">Log in</app-nav-bar-button>
+      </div>
+    }
+  </div>
+
+  <!-- Mobile Hamburger Button -->
+  <button
+    class="hamburger-button"
+    (click)="toggleMobileMenu()"
+    (keydown.enter)="toggleMobileMenu()"
+    (keydown.space)="toggleMobileMenu()"
+    [attr.aria-expanded]="isMobileMenuOpen"
+    aria-label="Toggle navigation menu">
+    <mat-icon>{{ isMobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+  </button>
+</div>
+
+<!-- Mobile Menu Overlay -->
+<div class="mobile-menu-overlay" [class.open]="isMobileMenuOpen"></div>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" [class.open]="isMobileMenuOpen">
+  <div class="mobile-menu__header">
+    <app-company-title [title]="siteTitle" [logo]="logo()" />
+    <button
+      class="mobile-menu__close-button"
+      (click)="closeMobileMenu()"
+      (keydown.enter)="closeMobileMenu()"
+      (keydown.space)="closeMobileMenu()"
+      (keydown.escape)="closeMobileMenu()"
+      aria-label="Close navigation menu"
+      aria-describedby="mobile-menu-close-description">
+      <mat-icon>close</mat-icon>
+      <span class="sr-only" id="mobile-menu-close-description">Closes the mobile navigation menu</span>
+    </button>
+  </div>
+
+  <div class="mobile-menu__content">
+    <nav class="mobile-menu__items" role="navigation" aria-label="Mobile navigation menu">
+      <a
+        routerLink="/catalog"
+        routerLinkActive="mobile-menu__link--active"
+        class="mobile-menu__link"
+        (click)="closeMobileMenu()"
+        (keydown.enter)="closeMobileMenu()"
+        (keydown.space)="closeMobileMenu()"
+        role="menuitem"
+        tabindex="0">
+        <span i18n="@@catalog">Catalog</span>
+      </a>
+      <a
+        routerLink="/guides"
+        routerLinkActive="mobile-menu__link--active"
+        class="mobile-menu__link"
+        (click)="closeMobileMenu()"
+        (keydown.enter)="closeMobileMenu()"
+        (keydown.space)="closeMobileMenu()"
+        role="menuitem"
+        tabindex="0">
+        <span i18n="@@guides">Guides</span>
+      </a>
+      @if (!isEmpty(currentUser())) {
+        <a
+          routerLink="/applications"
+          routerLinkActive="mobile-menu__link--active"
+          class="mobile-menu__link"
+          (click)="closeMobileMenu()"
+          (keydown.enter)="closeMobileMenu()"
+          (keydown.space)="closeMobileMenu()"
+          role="menuitem"
+          tabindex="0">
+          <span i18n="@@applications">Applications</span>
+        </a>
+      }
+      @for (link of customLinks(); track link.id) {
+        <a
+          [href]="link.target"
+          class="mobile-menu__link mobile-menu__link--external"
+          [target]="link.type === 'external' ? '_blank' : ''"
+          (click)="closeMobileMenu()"
+          (keydown.enter)="closeMobileMenu()"
+          (keydown.space)="closeMobileMenu()"
+          role="menuitem"
+          tabindex="0"
+          [attr.aria-label]="link.name + (link.type === 'external' ? ' (opens in new window)' : '')">
+          <span>{{ link.name }}</span>
+          @if (link.type === 'external') {
+            <span class="sr-only">(opens in new window)</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <div class="mobile-menu__actions">
+      @if (!isEmpty(currentUser())) {
+        <div class="mobile-menu__user">
+          <app-user-avatar [user]="currentUser()" />
+        </div>
+      } @else {
+        <div class="mobile-menu__auth">
+          <app-nav-bar-button i18n="@@logIn" [path]="['log-in']" (click)="closeMobileMenu()">Log in</app-nav-bar-button>
+        </div>
+      }
     </div>
-  } @else {
-    <div class="unauthenticated-actions">
-      <app-nav-bar-button i18n="@@logIn" [path]="['log-in']">Log in</app-nav-bar-button>
-    </div>
-  }
+  </div>
 </div>

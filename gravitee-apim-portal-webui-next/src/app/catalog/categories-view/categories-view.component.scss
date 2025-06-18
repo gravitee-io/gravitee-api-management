@@ -13,21 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+@use '../../../scss/responsive' as *;
+
 :host {
   display: flex;
   flex-flow: column;
-  gap: 32px;
+  gap: 16px;
+
+  @include respond-to('sm') {
+    gap: 24px;
+  }
+
+  @include respond-to('md') {
+    gap: 32px;
+  }
 }
 
 .categories-view {
   &__header {
     display: flex;
-    place-content: center space-between;
+    flex-direction: column;
+    gap: 16px;
+
+    @include respond-to('sm') {
+      flex-direction: row;
+      gap: 0;
+      place-content: center space-between;
+    }
   }
 
   &__container {
     display: grid;
-    gap: 32px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+
+    // Mobile first - 1 column
+    grid-template-columns: 1fr;
+
+    // Tablet - 2 columns
+    @include respond-to('sm') {
+      gap: 24px;
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    // Desktop - 3 columns
+    @include respond-to('md') {
+      gap: 32px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 }

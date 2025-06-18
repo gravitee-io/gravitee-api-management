@@ -19,6 +19,7 @@
 @forward './scss/material-design-overrides';
 @forward 'scss/m3-adapter';
 @forward 'scss/helper';
+@forward 'scss/responsive';
 @use '@angular/material' as mat;
 @use './scss/theme';
 @use 'scss/table-light';
@@ -105,4 +106,110 @@ mat-icon {
   text-transform: none;
   white-space: nowrap;
   word-wrap: normal;
+}
+
+/* Responsive Design - Tablet (768px to 1023px) */
+@media screen and (width <= 1023px) and (width >= 768px) {
+  body {
+    .main-container-wrapper,
+    app-footer {
+      width: calc(100% - 32px);
+      min-width: auto;
+      max-width: none;
+      padding: 0 16px;
+    }
+
+    font-size: 14px;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Responsive Design - Mobile (up to 767px) */
+@media screen and (width <= 767px) {
+  body {
+    .main-container-wrapper,
+    app-footer {
+      width: calc(100% - 16px);
+      min-width: auto;
+      max-width: none;
+      padding: 0 8px;
+    }
+
+    font-size: 13px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  /* Improve touch targets on mobile */
+  button,
+  .mat-button,
+  .mat-raised-button,
+  .mat-stroked-button,
+  .mat-flat-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Adjust spacing for mobile */
+  .mat-card {
+    padding: 12px;
+    margin: 8px 0;
+  }
+
+  /* Make tables scrollable on mobile */
+  .mat-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  /* Adjust breadcrumb for mobile */
+  .xng-breadcrumb-trail {
+    font-size: 0.875rem;
+  }
+}
+
+/* Extra small devices (phones, 480px and down) */
+@media screen and (width <= 480px) {
+  body {
+    .main-container-wrapper,
+    app-footer {
+      width: calc(100% - 8px);
+      padding: 0 4px;
+    }
+
+    font-size: 12px;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+  }
 }

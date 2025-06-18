@@ -1,0 +1,191 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@use 'sass:map';
+
+// Responsive breakpoints
+$breakpoints: (
+  'xs': 480px,
+  'sm': 768px,
+  'md': 1024px,
+  'lg': 1280px,
+  'xl': 1440px,
+);
+
+// Mixins for responsive design
+@mixin respond-to($breakpoint) {
+  @if map.has-key($breakpoints, $breakpoint) {
+    @media screen and (min-width: map.get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  } @else {
+    @warn "Unknown breakpoint: #{$breakpoint}";
+  }
+}
+
+@mixin respond-to-max($breakpoint) {
+  @if map.has-key($breakpoints, $breakpoint) {
+    $max-width: map.get($breakpoints, $breakpoint) - 1px;
+    @media screen and (max-width: $max-width) {
+      @content;
+    }
+  } @else {
+    @warn "Unknown breakpoint: #{$breakpoint}";
+  }
+}
+
+@mixin respond-between($min, $max) {
+  @if map.has-key($breakpoints, $min) and map.has-key($breakpoints, $max) {
+    $min-width: map.get($breakpoints, $min);
+    $max-width: map.get($breakpoints, $max) - 1px;
+    @media screen and (min-width: $min-width) and (max-width: $max-width) {
+      @content;
+    }
+  } @else {
+    @warn "Unknown breakpoint: #{$min} or #{$max}";
+  }
+}
+
+// Utility classes for responsive visibility
+.hide-xs {
+  @include respond-to-max('xs') {
+    display: none !important;
+  }
+}
+
+.hide-sm {
+  @include respond-to-max('sm') {
+    display: none !important;
+  }
+}
+
+.hide-md {
+  @include respond-to-max('md') {
+    display: none !important;
+  }
+}
+
+.show-xs {
+  display: none !important;
+  @include respond-to-max('xs') {
+    display: block !important;
+  }
+}
+
+.show-sm {
+  display: none !important;
+  @include respond-to-max('sm') {
+    display: block !important;
+  }
+}
+
+.show-md {
+  display: none !important;
+  @include respond-to-max('md') {
+    display: block !important;
+  }
+}
+
+// Responsive grid utilities
+.responsive-grid {
+  display: grid;
+  gap: 1rem;
+
+  // Mobile first - 1 column
+  grid-template-columns: 1fr;
+
+  // Tablet - 2 columns
+  @include respond-to('sm') {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  // Desktop - 3 columns
+  @include respond-to('md') {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  // Large desktop - 4 columns
+  @include respond-to('lg') {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// Responsive spacing utilities
+.responsive-padding {
+  padding: 1rem;
+
+  @include respond-to('sm') {
+    padding: 1.5rem;
+  }
+
+  @include respond-to('md') {
+    padding: 2rem;
+  }
+}
+
+.responsive-margin {
+  margin: 1rem;
+
+  @include respond-to('sm') {
+    margin: 1.5rem;
+  }
+
+  @include respond-to('md') {
+    margin: 2rem;
+  }
+}
+
+// Responsive typography utilities
+.responsive-text {
+  font-size: 0.875rem;
+
+  @include respond-to('sm') {
+    font-size: 1rem;
+  }
+
+  @include respond-to('md') {
+    font-size: 1.125rem;
+  }
+}
+
+// Touch-friendly button utilities
+.touch-friendly {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 12px 16px;
+
+  @include respond-to('md') {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 8px 12px;
+  }
+}
+
+// Responsive container utilities
+.responsive-container {
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 1rem;
+  margin: 0 auto;
+
+  @include respond-to('sm') {
+    padding: 0 1.5rem;
+  }
+
+  @include respond-to('md') {
+    padding: 0 2rem;
+  }
+}
