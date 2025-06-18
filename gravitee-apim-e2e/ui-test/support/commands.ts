@@ -20,3 +20,4 @@ import './common/tools.commands';
 import './common/http.commands';
 import './common/ui.commands';
 import './common/api.commands';
+import './common/a11y.commands';
