@@ -125,7 +125,7 @@
         <json-patch.version>1.13</json-patch.version>
         <json-path.version>2.9.0</json-path.version>
         <json-smart.version>2.5.2</json-smart.version>
-        <json-unit.version>4.1.0</json-unit.version>
+        <json-unit.version>4.1.1</json-unit.version>
         <jsoup.version>1.19.1</jsoup.version>
         <kafka.version>3.7.1</kafka.version>
         <lucene.version>10.1.0</lucene.version>
