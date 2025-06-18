@@ -21,8 +21,44 @@
     <meta charset="utf-8" />
     <title>Developer Portal</title>
     <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Responsive Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Developer Portal" />
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1976d2" />
+    <meta name="msapplication-TileColor" content="#1976d2" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Developer Portal - Discover, test, and subscribe to APIs" />
+    <meta name="keywords" content="API, management, developer portal, gravitee" />
+    <meta name="author" content="Gravitee" />
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Developer Portal" />
+    <meta property="og:description" content="Developer Portal - Discover, test, and subscribe to APIs" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Developer Portal" />
+    <meta name="twitter:description" content="Developer Portal - Discover, test, and subscribe to APIs" />
+
     <link rel="icon" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://cdn.redoc.ly" />
+    <link rel="dns-prefetch" href="https://cdn.redoc.ly" />
+
     <!--    Define global when serving dev config with Vite for swagger-ui -->
     <script type="application/javascript">
       window.global ||= window;
