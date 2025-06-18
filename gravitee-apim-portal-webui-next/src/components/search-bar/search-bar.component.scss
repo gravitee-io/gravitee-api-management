@@ -15,6 +15,7 @@
  */
 @use 'sass:map';
 @use '../../scss/theme' as theme;
+@use '../../scss/responsive' as *;
 
 :host {
   --mat-form-field-subscript-text-line-height: 0;
@@ -27,6 +28,8 @@
   &__form {
     --mdc-outlined-text-field-container-shape: #{theme.$search-bar-container-shape};
     --mat-form-field-leading-icon-color: #{theme.$primary-main-color};
+
+    width: 100%;
   }
 }
 
