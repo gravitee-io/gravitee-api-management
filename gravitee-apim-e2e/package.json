@@ -37,7 +37,7 @@
         "@faker-js/faker": "9.6.0",
         "@jest/create-cache-key-function": "29.7.0",
         "@types/jest": "29.5.14",
-        "@types/jsonwebtoken": "9.0.9",
+        "@types/jsonwebtoken": "9.0.10",
         "@types/node-fetch": "2.6.12",
         "cypress": "14.1.0",
         "dotenv": "16.4.7",

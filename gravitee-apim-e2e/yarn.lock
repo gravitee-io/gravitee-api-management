@@ -1155,13 +1155,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:9.0.9":
-  version: 9.0.9
-  resolution: "@types/jsonwebtoken@npm:9.0.9"
+"@types/jsonwebtoken@npm:9.0.10":
+  version: 9.0.10
+  resolution: "@types/jsonwebtoken@npm:9.0.10"
   dependencies:
     "@types/ms": "npm:*"
     "@types/node": "npm:*"
-  checksum: 10c0/d754a7b65fc021b298fc94e8d7a7d71f35dedf24296ac89286f80290abc5dbb0c7830a21440ee9ecbb340efc1b0a21f5609ea298a35b874cae5ad29a65440741
+  checksum: 10c0/0688ac8fb75f809201cb7e18a12b9d80ce539cb9dd27e1b01e11807cb1a337059e899b8ee3abc3f2c9417f02e363a3069d9eab9ef9724b1da1f0e10713514f94
   languageName: node
   linkType: hard
 
@@ -2876,7 +2876,7 @@ __metadata:
     "@gravitee/utils": "link:lib/utils"
     "@jest/create-cache-key-function": "npm:29.7.0"
     "@types/jest": "npm:29.5.14"
-    "@types/jsonwebtoken": "npm:9.0.9"
+    "@types/jsonwebtoken": "npm:9.0.10"
     "@types/node-fetch": "npm:2.6.12"
     cypress: "npm:14.1.0"
     dotenv: "npm:16.4.7"
