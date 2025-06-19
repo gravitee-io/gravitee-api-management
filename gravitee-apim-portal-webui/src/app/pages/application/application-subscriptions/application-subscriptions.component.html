@@ -175,7 +175,7 @@
       </div>
       <div class="page__box-footer form__actions">
         <gv-confirm
-          *ngIf="canCloseSubscription(selectedSubscription)"
+          *ngIf="canCloseSubscription(selectedSubscription) && true"
           [message]="'application.subscriptions.close.message' | translate"
           danger
           (:gv-confirm:ok)="closeSubscription(selectedSubscription.id)"
