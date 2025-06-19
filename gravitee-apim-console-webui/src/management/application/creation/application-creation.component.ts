@@ -15,7 +15,7 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, Inject, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { map, tap } from 'rxjs/operators';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -30,7 +30,7 @@ import { ApplicationTypesService } from '../../../services-ngx/application-types
 import { ApplicationService } from '../../../services-ngx/application.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { toDictionary } from '../../../util/gio-form-header.util';
-import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
+import { Constants } from '../../../entities/Constants';
 
 const TYPES_INFOS = {
   SIMPLE: {
@@ -113,7 +113,7 @@ export class ApplicationCreationComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private readonly settingsService: ConsoleSettingsService,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
@@ -168,17 +168,9 @@ export class ApplicationCreationComponent implements OnInit {
   }
 
   private setUserGroupRequiredValidator() {
-    this.settingsService
-      .get()
-      .pipe(
-        tap((consoleSettings) => {
-          if (consoleSettings.userGroup.required.enabled) {
-            this.applicationFormGroup.controls.groups?.setValidators(Validators.required);
-            this.requireUserGroups = true;
-          }
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    if (this.constants.org.settings.userGroup?.required?.enabled) {
+      this.applicationFormGroup.controls.groups?.setValidators(Validators.required);
+      this.requireUserGroups = true;
+    }
   }
 }

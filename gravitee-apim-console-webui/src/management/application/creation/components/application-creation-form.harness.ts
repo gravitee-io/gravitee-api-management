@@ -38,6 +38,9 @@ export class ApplicationCreationFormHarness extends ComponentHarness {
     GioFormTagsInputHarness.with({ selector: '[formControlName="oauthRedirectUris"]' }),
   );
 
+  // Groups
+  private getGroupSelectHarness = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="groups"]' }));
+
   public async setGeneralInformation(name: string, description: string, domain: string) {
     await this.getNameInput().then(async (input) => await input.setValue(name));
     await this.getDescriptionInput().then(async (input) => await input.setValue(description));
@@ -66,5 +69,9 @@ export class ApplicationCreationFormHarness extends ComponentHarness {
 
   public async setApplicationClientCertificate(appClientCertificate: string) {
     await this.getAppClientCertificateInput().then(async (input) => await input.setValue(appClientCertificate));
+  }
+
+  public async selectGroup(groupName: string) {
+    await this.getGroupSelectHarness().then((options) => options.clickOptions({ text: groupName }));
   }
 }
