@@ -22,6 +22,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
 
 import { NotificationService } from '../../../services/notification.service';
 import {
@@ -37,7 +38,6 @@ import {
   Subscription,
   SubscriptionService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
-import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
 import { ConfigurationService } from '../../../services/configuration.service';
 
 const StatusEnum = Subscription.StatusEnum;
