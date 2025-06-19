@@ -29,8 +29,11 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Integration;
@@ -100,6 +103,15 @@ public class MembershipService_IntegrationMembership {
     @Mock
     private IntegrationRepository integrationRepository;
 
+    @Mock
+    private Node node;
+
+    @Mock
+    private CommandRepository commandRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     public void setUp() throws Exception {
         reset(
@@ -131,7 +143,10 @@ public class MembershipService_IntegrationMembership {
                 null,
                 auditService,
                 null,
-                integrationRepository
+                integrationRepository,
+                node,
+                objectMapper,
+                commandRepository
             );
     }
 
