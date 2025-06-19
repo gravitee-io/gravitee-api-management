@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
-import { BuildBackendImagesJob, BuildBackendJob, ConsoleWebuiBuildJob, PortalWebuiBuildJob, PublishPrEnvUrlsJob, SetupJob } from '../jobs';
+import { BuildBackendImagesJob, BuildBackendJob, ConsoleWebuiBuildJob, PortalWebuiBuildJob, SetupJob } from '../jobs';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
+import { PublishPrDockerImagesJob } from '../jobs/job-publish-pr-docker-images';
 
 export class PublishDockerImagesWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
@@ -29,14 +30,14 @@ export class PublishDockerImagesWorkflow {
     const buildBackendImagesJob = BuildBackendImagesJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(buildBackendImagesJob);
 
-    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, true);
+    const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, true, false);
     dynamicConfig.addJob(consoleWebuiBuildJob);
 
-    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, true);
+    const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, true, false);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
-    const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(publishPrEnvUrlsJob);
+    const publishPrDockerImagesJob = PublishPrDockerImagesJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(publishPrDockerImagesJob);
 
     const jobs = [
       new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
@@ -56,8 +57,8 @@ export class PublishDockerImagesWorkflow {
         requires: ['Setup'],
         name: 'Build APIM Portal and publish image',
       }),
-      new workflow.WorkflowJob(publishPrEnvUrlsJob, {
-        name: 'Publish environment URLs in Github PR',
+      new workflow.WorkflowJob(publishPrDockerImagesJob, {
+        name: 'Publish docker Images in Github PR',
         context: config.jobContext,
         requires: [
           'Build and push rest api and gateway images',

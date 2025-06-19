@@ -24,7 +24,12 @@ import { config } from '../../config';
 export class PortalWebuiBuildJob {
   private static jobName = 'job-portal-webui-build';
 
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, buildDockerImage: boolean): Job {
+  public static create(
+    dynamicConfig: Config,
+    environment: CircleCIEnvironment,
+    isProtectedBranch: boolean,
+    isReleaseWorkflow: boolean,
+  ): Job {
     const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCmd);
 
@@ -68,10 +73,19 @@ export class PortalWebuiBuildJob {
         working_directory: `${config.dockerImages.portal.next.project}`,
       }),
     ];
-    if (buildDockerImage) {
+
+    if (isProtectedBranch) {
       const buildUiImageCommand = BuildUiImageCommand.get(dynamicConfig, environment);
       dynamicConfig.addReusableCommand(buildUiImageCommand);
-
+      steps.push(
+        new reusable.ReusedCommand(buildUiImageCommand, {
+          'docker-image-name': `${config.dockerImages.portal.image}`,
+          'apim-ui-project': `${config.dockerImages.portal.project}`,
+        }),
+      );
+    } else if (!isReleaseWorkflow) {
+      const buildUiImageCommand = BuildUiImageCommand.get(dynamicConfig, environment);
+      dynamicConfig.addReusableCommand(buildUiImageCommand);
       steps.push(
         new reusable.ReusedCommand(buildUiImageCommand, {
           'docker-image-name': `${config.dockerImages.portal.image}`,
