@@ -22,7 +22,7 @@ export * from './job-danger-js';
 export * from './job-deploy-on-azure';
 export * from './job-package-bundle';
 export * from './job-perf-lint-build';
-export * from './job-publish-pr-env-urls';
+export * from './job-publish-pr-docker-images';
 export * from './job-publish-rpm-packages';
 export * from './job-release-commit-and-prepare-next-version';
 export * from './job-release-notes-apim';
