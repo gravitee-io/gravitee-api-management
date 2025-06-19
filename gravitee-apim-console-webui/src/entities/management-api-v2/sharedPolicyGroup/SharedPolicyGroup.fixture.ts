@@ -30,6 +30,7 @@ export function fakeSharedPolicyGroup(
     apiType: 'PROXY',
     updatedAt: new Date('2024-04-04T00:00:00Z'),
     deployedAt: new Date('2024-04-04T00:00:00Z'),
+    steps: [],
   };
 
   if (isFunction(modifier)) {
