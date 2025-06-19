@@ -16,7 +16,15 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserMembership;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -233,6 +241,8 @@ public interface MembershipService {
     void deleteMemberForApi(ExecutionContext executionContext, String apiId, String memberId);
 
     void deleteMemberForApplication(ExecutionContext executionContext, String applicationId, String memberId);
+
+    void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId);
 
     class MembershipReference {
 
