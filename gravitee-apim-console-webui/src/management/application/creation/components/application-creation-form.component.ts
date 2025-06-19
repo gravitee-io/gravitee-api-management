@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -28,16 +28,13 @@ import {
   Header,
 } from '@gravitee/ui-particles-angular';
 import { MatRadioModule } from '@angular/material/radio';
-import { filter, map, share, startWith, switchMap, tap } from 'rxjs/operators';
+import { filter, map, share, startWith, tap } from 'rxjs/operators';
 import { MatSelectModule } from '@angular/material/select';
-import { Observable, of } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 
 import { ApplicationType } from '../../../../entities/application-type/ApplicationType';
 import { Group } from '../../../../entities/group/group';
-import { UsersService } from '../../../../services-ngx/users.service';
-import { CurrentUserService } from '../../../../services-ngx/current-user.service';
-import { User } from '../../../../entities/user/user';
+import { GroupService } from '../../../../services-ngx/group.service';
 
 export type ApplicationForm = {
   name: FormControl<string>;
@@ -90,10 +87,7 @@ export class ApplicationCreationFormComponent implements OnInit {
 
   @Input({ required: true })
   public requireUserGroups: boolean;
-
   hasGroupsToAdd: boolean = true;
-
-  private destroyRef = inject(DestroyRef);
 
   public applicationType$?: Observable<
     ApplicationType & {
@@ -102,16 +96,16 @@ export class ApplicationCreationFormComponent implements OnInit {
       allowedGrantTypesVM: { value: string; label: string; disabled: boolean }[];
     }
   >;
-  groupsList: Observable<Group[]> = of([]);
+  groupsList: Observable<Group[]> = this.groupService.list().pipe(
+    map((groups) => {
+      this.hasGroupsToAdd = groups?.length > 0;
+      return groups.sort((a, b) => a.name.localeCompare(b.name));
+    }),
+  );
 
-  constructor(
-    private readonly usersService: UsersService,
-    private currentUserService: CurrentUserService,
-  ) {}
+  constructor(private groupService: GroupService) {}
 
   ngOnInit() {
-    this.initializeUserGroups();
-
     this.applicationType$ = this.applicationFormGroup.get('type').valueChanges.pipe(
       startWith(this.applicationFormGroup.get('type').value),
       filter((typeSelected) => !!typeSelected),
@@ -149,21 +143,6 @@ export class ApplicationCreationFormComponent implements OnInit {
         }
       }),
       share(),
-    );
-  }
-
-  private initializeUserGroups() {
-    this.groupsList = this.currentUserService.current().pipe(
-      switchMap((user: User) =>
-        this.usersService.getUserGroups(user.id).pipe(
-          map((groups) => {
-            this.hasGroupsToAdd = groups.length > 0;
-            return groups.sort((a, b) => a.name.localeCompare(b.name));
-          }),
-          takeUntilDestroyed(this.destroyRef),
-        ),
-      ),
-      takeUntilDestroyed(this.destroyRef),
     );
   }
 }
