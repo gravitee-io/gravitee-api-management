@@ -63,6 +63,10 @@ export class ConsoleSettingsService {
     return this.http.get<ConsoleSettings>(`${this.constants.org.baseURL}/settings`);
   }
 
+  getOrganizationSettings(): Observable<ConsoleSettings> {
+    return this.http.get<ConsoleSettings>(`${this.constants.org.baseURL}/console`);
+  }
+
   private hasIdpDefined = (consoleSettings: ConsoleSettings) => {
     return (
       consoleSettings.authentication?.google?.clientId ||

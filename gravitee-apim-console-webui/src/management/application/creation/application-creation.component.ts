@@ -169,7 +169,7 @@ export class ApplicationCreationComponent implements OnInit {
 
   private setUserGroupRequiredValidator() {
     this.settingsService
-      .get()
+      .getOrganizationSettings()
       .pipe(
         tap((consoleSettings) => {
           if (consoleSettings.userGroup.required.enabled) {
