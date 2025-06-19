@@ -68,7 +68,11 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
 
   it('should fill and submit form', async () => {
     fixture.detectChanges();
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    expectGroupListByOrganizationRequest([
+      fakeGroup({ id: 'group-a', name: 'Group A', environmentId: 'roleEnvApiId', environmentName: 'Role Env API' }),
+    ]);
+
+    await fixture.whenStable(); // wait for async tasks like HTTP & `valueChanges` subscriptions
     fixture.detectChanges();
     expectRolesListRequest('API', [
       fakeRole({ id: 'roleOrgUserId', name: 'ROLE_API_USER' }),
@@ -83,7 +87,7 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
     expect(await submitButton.isDisabled()).toBeTruthy();
 
     const groupIdSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=groupId' }));
-    await groupIdSelect.clickOptions({ text: 'Group A' });
+    await groupIdSelect.clickOptions({ text: 'Group A (Environment: Role Env API)' });
 
     const apiRoleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=apiRole' }));
     await apiRoleSelect.clickOptions({ text: 'ROLE_API_USER' });
@@ -98,6 +102,7 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
       applicationRole: 'ROLE_APPLICATION_ADMIN',
       groupId: 'group-a',
       isAdmin: null,
+      environmentId: 'roleEnvApiId',
     });
   });
 
