@@ -18,8 +18,8 @@ import { generatePullRequestsConfig } from '../pipeline-pull-requests';
 
 describe('Pull requests workflow tests', () => {
   it.each`
-    baseBranch  | branch                          | changedFiles                           | expectedFileName
-    ${'master'} | ${'master'}                     | ${['pom.xml']}                         | ${'pull-requests-master.yml'}
+    baseBranch  | branch      | changedFiles   | expectedFileName
+    ${'master'} | ${'master'} | ${['pom.xml']} | ${'pull-requests-master.yml'}
   `(
     'should generate pull-requests config for branch $branchName with changedFiles $changedFiles',
     ({ baseBranch, branch, changedFiles, expectedFileName }) => {
