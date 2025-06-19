@@ -165,7 +165,7 @@ export class BuildDockerBackendImageJob {
   }
 }
 
-function aquaSetupCommands() {
+export function aquaSetupCommands() {
   return [
     new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
       'secret-url': config.secrets.aquaKey,

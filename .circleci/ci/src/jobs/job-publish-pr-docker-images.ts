@@ -19,9 +19,10 @@ import { orbs } from '../orbs';
 import { config } from '../config';
 import { NotifyOnFailureCommand } from '../commands';
 import { CircleCIEnvironment } from '../pipelines';
+import { computeImagesTag } from '../utils';
 
-export class PublishPrEnvUrlsJob {
-  private static jobName = 'job-publish-pr-env-urls';
+export class PublishPrDockerImagesJob {
+  private static jobName = 'job-publish-pr-docker-images';
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(orbs.keeper);
@@ -30,7 +31,7 @@ export class PublishPrEnvUrlsJob {
     const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
-    return new Job(PublishPrEnvUrlsJob.jobName, NodeLtsExecutor.create('small'), [
+    return new Job(PublishPrDockerImagesJob.jobName, NodeLtsExecutor.create('small'), [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
@@ -40,6 +41,9 @@ export class PublishPrEnvUrlsJob {
       new reusable.ReusedCommand(orbs.github.commands['setup']),
       new commands.Run({
         name: 'Edit Pull Request Description',
+        environment: {
+          BRANCH_TAG: computeImagesTag(environment.branch),
+        },
         command: `# First check there is an associated pull request, otherwise just stop the job here
 if ! gh pr view --json title;
 then
@@ -54,22 +58,26 @@ then
   exit 0
 fi
 export PR_NUMBER=$(gh pr view --json number --jq .number)
-export PR_BODY_ENV_SECTION="
-<!-- Environment placeholder -->
+export PR_BODY_DOCKER_IMAGES_SECTION="
+<!-- Docker Images placeholder -->
 
-🏗️ Your changes can be tested here and will be available soon:
-      Console: [https://pr.team-apim.gravitee.dev/$PR_NUMBER/console](https://pr.team-apim.gravitee.dev/$PR_NUMBER/console)
-      Portal: [https://pr.team-apim.gravitee.dev/$PR_NUMBER/portal](https://pr.team-apim.gravitee.dev/$PR_NUMBER/portal)
-      Management-api: [https://pr.team-apim.gravitee.dev/$PR_NUMBER/api/management](https://pr.team-apim.gravitee.dev/$PR_NUMBER/api/management)
-      Gateway v4: [https://pr.team-apim.gravitee.dev/$PR_NUMBER](https://pr.team-apim.gravitee.dev/$PR_NUMBER)
-      Gateway v3: [https://pr.gateway-v3.team-apim.gravitee.dev/$PR_NUMBER](https://pr.gateway-v3.team-apim.gravitee.dev/$PR_NUMBER)
+🏗️ Your changes can be tested using the Docker images listed below, which will be available shortly:
 
-<!-- Environment placeholder end -->
+      Console: graviteeio.azurecr.io/apim-management-ui:$BRANCH_TAG
+      Portal: graviteeio.azurecr.io/apim-portal-ui:$BRANCH_TAG
+      Management-api: graviteeio.azurecr.io/apim-management-api:$BRANCH_TAG
+      Gateway: graviteeio.azurecr.io/apim-gateway:$BRANCH_TAG
+      
+      You can also run any quick-setup docker compose via:
+      1. az acr login -n graviteeio
+      2. export APIM_REGISTRY=graviteeio.azurecr.io APIM_VERSION=$BRANCH_TAG && docker-compose down -v && docker-compose pull && docker-compose up
+
+<!-- Docker Images placeholder end -->
 "
 
-export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Environment placeholder -->/,/Environment placeholder end -->/d')
+export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Docker Images placeholder -->/,/Docker Images placeholder end -->/d')
 
-gh pr edit --body "$CLEAN_BODY$PR_BODY_ENV_SECTION"`,
+gh pr edit --body "$CLEAN_BODY$PR_BODY_DOCKER_IMAGES_SECTION"`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
     ]);

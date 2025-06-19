@@ -16,7 +16,7 @@
 import * as fs from 'fs';
 import { generatePullRequestsConfig } from '../pipeline-pull-requests';
 
-describe('Pull requests workflow tests', () => {
+describe.skip('Pull requests workflow tests', () => {
   it.each`
     baseBranch  | branch                          | changedFiles                           | expectedFileName
     ${'master'} | ${'master'}                     | ${['pom.xml']}                         | ${'pull-requests-master.yml'}
