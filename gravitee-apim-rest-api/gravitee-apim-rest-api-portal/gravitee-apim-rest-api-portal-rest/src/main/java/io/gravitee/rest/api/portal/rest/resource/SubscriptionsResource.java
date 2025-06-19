@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toSet;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -45,14 +48,10 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
