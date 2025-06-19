@@ -109,6 +109,7 @@ export class SharedPolicyGroupStudioComponent {
             name: payload.name,
             description: payload.description,
             prerequisiteMessage: payload.prerequisiteMessage,
+            steps: sharedPolicyGroup.steps,
           }),
         ),
         takeUntilDestroyed(this.destroyRef),
