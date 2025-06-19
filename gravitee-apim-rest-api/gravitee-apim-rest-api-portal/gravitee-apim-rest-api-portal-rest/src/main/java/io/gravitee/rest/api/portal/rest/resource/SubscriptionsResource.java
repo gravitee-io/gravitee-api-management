@@ -21,8 +21,12 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PageEntity.PageRevisionId;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -32,7 +36,11 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
-import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.ApiLinks;
+import io.gravitee.rest.api.portal.rest.model.Key;
+import io.gravitee.rest.api.portal.rest.model.Subscription;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -44,7 +52,13 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -97,8 +111,8 @@ public class SubscriptionsResource extends AbstractResource {
             newSubscriptionEntity.setGeneralConditionsAccepted(subscriptionInput.getGeneralConditionsAccepted());
             if (subscriptionInput.getGeneralConditionsContentRevision() != null) {
                 final PageRevisionId generalConditionsContentRevision = new PageRevisionId(
-                    subscriptionInput.getGeneralConditionsContentRevision().getPageId(),
-                    subscriptionInput.getGeneralConditionsContentRevision().getRevision()
+                        subscriptionInput.getGeneralConditionsContentRevision().getPageId(),
+                        subscriptionInput.getGeneralConditionsContentRevision().getRevision()
                 );
                 newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
             }
@@ -110,7 +124,7 @@ public class SubscriptionsResource extends AbstractResource {
                 subscriptionConfigurationEntity.setChannel(inputConfiguration.getChannel());
                 if (inputConfiguration.getEntrypointConfiguration() != null) {
                     subscriptionConfigurationEntity.setEntrypointConfiguration(
-                        graviteeMapper.valueToTree(inputConfiguration.getEntrypointConfiguration())
+                            graviteeMapper.valueToTree(inputConfiguration.getEntrypointConfiguration())
                     );
                 }
                 newSubscriptionEntity.setConfiguration(subscriptionConfigurationEntity);
@@ -122,11 +136,11 @@ public class SubscriptionsResource extends AbstractResource {
 
             // For consumer convenience, fetch the keys just after the subscription has been created.
             List<Key> keys = apiKeyService
-                .findBySubscription(executionContext, createdSubscription.getId())
-                .stream()
-                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
-                .map(keyMapper::convert)
-                .collect(Collectors.toList());
+                    .findBySubscription(executionContext, createdSubscription.getId())
+                    .stream()
+                    .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
+                    .map(keyMapper::convert)
+                    .collect(Collectors.toList());
 
             final Subscription subscription = subscriptionMapper.convert(createdSubscription);
             subscription.setKeys(keys);
@@ -139,10 +153,10 @@ public class SubscriptionsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSubscriptions(
-        @QueryParam("apiId") String apiId,
-        @QueryParam("applicationId") String applicationId,
-        @QueryParam("statuses") List<SubscriptionStatus> statuses,
-        @BeanParam PaginationParam paginationParam
+            @QueryParam("apiId") String apiId,
+            @QueryParam("applicationId") String applicationId,
+            @QueryParam("statuses") List<SubscriptionStatus> statuses,
+            @BeanParam PaginationParam paginationParam
     ) {
         final SubscriptionQuery query = new SubscriptionQuery();
         query.setApi(apiId);
@@ -170,21 +184,21 @@ public class SubscriptionsResource extends AbstractResource {
         final List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::convert).collect(Collectors.toList());
 
         SubscriptionMetadataQuery metadataQuery = new SubscriptionMetadataQuery(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment(),
-            subscriptions
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                subscriptions
         )
-            .withApis(true)
-            .withApplications(applicationId == null)
-            .withPlans(true)
-            .withSubscribers(true)
-            .includeDetails()
-            .fillApiMetadata((metadata, api) -> {
-                String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
-                ApiLinks apiLinks = apiMapper.computeApiLinks(apisURL, api.getUpdatedAt());
-                metadata.put(api.getId(), "pictureUrl", apiLinks.getPicture());
-                return api;
-            });
+                .withApis(true)
+                .withApplications(applicationId == null)
+                .withPlans(true)
+                .withSubscribers(true)
+                .includeDetails()
+                .fillApiMetadata((metadata, api) -> {
+                    String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
+                    ApiLinks apiLinks = apiMapper.computeApiLinks(apisURL, api.getUpdatedAt());
+                    metadata.put(api.getId(), "pictureUrl", apiLinks.getPicture());
+                    return api;
+                });
 
         Metadata metadata = subscriptionService.getMetadata(executionContext, metadataQuery);
 
