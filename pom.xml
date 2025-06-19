@@ -307,7 +307,7 @@
         <gravitee-policy-kafka-acl.version>1.7.4</gravitee-policy-kafka-acl.version>
         <gravitee-policy-kafka-transform-key.version>1.0.0</gravitee-policy-kafka-transform-key.version>
         <gravitee-policy-kafka-message-filtering.version>1.0.0</gravitee-policy-kafka-message-filtering.version>
-        <gravitee-policy-offloading.version>1.0.0-alpha.5</gravitee-policy-offloading.version>
+        <gravitee-policy-offloading.version>1.0.0</gravitee-policy-offloading.version>
     </properties>
 
     <scm>
