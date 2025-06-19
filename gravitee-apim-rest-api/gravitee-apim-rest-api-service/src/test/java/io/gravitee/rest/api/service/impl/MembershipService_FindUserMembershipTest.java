@@ -103,6 +103,9 @@ public class MembershipService_FindUserMembershipTest {
                 mockGroupService,
                 null,
                 null,
+                null,
+                null,
+                null,
                 null
             );
     }

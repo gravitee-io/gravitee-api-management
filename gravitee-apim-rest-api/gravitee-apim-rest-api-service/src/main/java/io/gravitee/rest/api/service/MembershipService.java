@@ -255,6 +255,8 @@ public interface MembershipService {
 
     void deleteMemberForIntegration(ExecutionContext executionContext, String integrationId, String memberId);
 
+    void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId);
+
     class MembershipReference {
 
         private final MembershipReferenceType type;
