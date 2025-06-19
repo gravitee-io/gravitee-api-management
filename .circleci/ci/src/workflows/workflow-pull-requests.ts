@@ -35,6 +35,7 @@ import {
   PerfLintBuildJob,
   PortalWebuiBuildJob,
   PublishJob,
+  PublishPrDockerImagesJob,
   ReleaseHelmJob,
   SetupJob,
   SonarCloudAnalysisJob,
@@ -495,6 +496,23 @@ export class PullRequestsWorkflow {
         }),
       );
       requires.push('Build APIM Portal docker image');
+    }
+
+    if (!isProtectedBranch) {
+      const publishPrDockerImagesJob = PublishPrDockerImagesJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(publishPrDockerImagesJob);
+      jobs.push(
+        new workflow.WorkflowJob(publishPrDockerImagesJob, {
+          name: 'Publish docker images in Github PR',
+          context: config.jobContext,
+          requires: [
+            'Build APIM Management API docker image',
+            'Build APIM Gateway docker image',
+            'Build APIM Console docker image',
+            'Build APIM Portal docker image',
+          ],
+        }),
+      );
     }
 
     // Force validation workflow in case only distribution pom.xml has changed
