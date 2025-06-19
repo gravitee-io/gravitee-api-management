@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Objects;
 
 /**
@@ -25,6 +26,9 @@ public class GroupSimpleEntity {
 
     private String id;
     private String name;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String environmentName; // <-- Optional field
 
     public String getId() {
         return id;
@@ -42,6 +46,14 @@ public class GroupSimpleEntity {
         this.name = name;
     }
 
+    public String getEnvironmentName() {
+        return environmentName;
+    }
+
+    public void setEnvironmentName(String environmentName) {
+        this.environmentName = environmentName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -57,6 +69,6 @@ public class GroupSimpleEntity {
 
     @Override
     public String toString() {
-        return "GroupSimpleEntity{" + "id='" + id + '\'' + ", name='" + name + '\'' + '}';
+        return "GroupSimpleEntity{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", environmentName='" + environmentName + '\'' + '}';
     }
 }

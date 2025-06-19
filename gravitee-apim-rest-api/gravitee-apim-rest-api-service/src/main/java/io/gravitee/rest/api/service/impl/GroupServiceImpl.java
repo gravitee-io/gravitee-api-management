@@ -52,6 +52,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InvitationService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -139,6 +140,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     @Autowired
     private ApiConverter apiConverter;
+
+    @Autowired
+    private EnvironmentService environmentService;
 
     @Override
     public List<GroupEntity> findAll(ExecutionContext executionContext) {
@@ -244,9 +248,20 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.debug("Find all groups for organization {}", organizationId);
             Set<Group> groups = groupRepository.findAllByOrganization(organizationId);
             logger.debug("Find all groups for organization {} - DONE", organizationId);
+
+            // Fetching all environments in the org and build a map of envId -> envName
+            List<EnvironmentEntity> environments = environmentService.findByOrganization(organizationId);
+            Map<String, String> envIdToName = environments
+                .stream()
+                .collect(Collectors.toMap(EnvironmentEntity::getId, EnvironmentEntity::getName));
+
             return groups
                 .stream()
-                .map(this::mapToSimple)
+                .map(group -> {
+                    GroupSimpleEntity entity = mapToSimple(group);
+                    entity.setEnvironmentName(envIdToName.get(group.getEnvironmentId())); // optional set
+                    return entity;
+                })
                 .sorted(Comparator.comparing(GroupSimpleEntity::getName))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
@@ -962,6 +977,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         GroupSimpleEntity entity = new GroupSimpleEntity();
         entity.setId(group.getId());
         entity.setName(group.getName());
+        entity.setEnvironmentName(group.getEnvironmentId());
 
         return entity;
     }
