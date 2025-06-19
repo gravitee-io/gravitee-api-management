@@ -48,6 +48,7 @@ describe('ApplicationCreationComponent', () => {
     beforeEach(async () => {
       expectGetEnabledApplicationTypes(fakeApplicationTypes());
       applicationCreationForm = await loader.getHarness(ApplicationCreationFormHarness);
+      expectGetEnvironmentGroups();
     });
 
     it('should create application type=simple', async () => {
@@ -69,6 +70,37 @@ describe('ApplicationCreationComponent', () => {
         description: 'description',
         domain: 'domain',
         groups: [],
+        settings: {
+          app: {
+            client_id: 'appClientId',
+            type: 'appType',
+          },
+          tls: {
+            client_certificate: 'PEM certificate',
+          },
+        },
+      });
+    });
+
+    it('should create application type=simple with a group', async () => {
+      await applicationCreationForm.setGeneralInformation('name', 'description', 'domain');
+      await applicationCreationForm.setApplicationType('SIMPLE');
+      await applicationCreationForm.setSimpleApplicationType('appType', 'appClientId');
+      await applicationCreationForm.setApplicationClientCertificate('PEM certificate');
+      await applicationCreationForm.selectGroup('Test Group');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications`,
+      });
+      expect(req.request.body).toEqual({
+        name: 'name',
+        description: 'description',
+        domain: 'domain',
+        groups: ['GroupId'],
         settings: {
           app: {
             client_id: 'appClientId',
@@ -189,5 +221,19 @@ describe('ApplicationCreationComponent', () => {
       url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/types`,
     });
     req.flush(fakeApplicationTypes);
+  }
+
+  function expectGetEnvironmentGroups() {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups`,
+    });
+    req.flush([
+      {
+        id: 'GroupId',
+        name: 'Test Group',
+        environmentId: 'DEFAULT',
+      },
+    ]);
   }
 });
