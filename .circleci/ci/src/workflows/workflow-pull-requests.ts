@@ -51,26 +51,27 @@ import {
   WebuiLintTestJob,
 } from '../jobs';
 import { orbs } from '../orbs';
+import { ReTagAndPushDockerImageJob } from '../jobs/job-retag-and-push-docker-image';
 
 export class PullRequestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
     let jobs: workflow.WorkflowJob[] = [];
-    const shouldBuildDockerImages: boolean = isSupportBranchOrMaster(environment.branch) || isE2EBranch(environment.branch);
+    const isProtectedBranch: boolean = isSupportBranchOrMaster(environment.branch) || isE2EBranch(environment.branch);
     // Needed to publish helm chart in internal repository
     environment.isDryRun = true;
     if (isSupportBranchOrMaster(environment.branch)) {
       jobs.push(
-        ...this.getCommonJobs(dynamicConfig, environment, false, false, shouldBuildDockerImages),
+        ...this.getCommonJobs(dynamicConfig, environment, false, false, isProtectedBranch),
         ...this.getE2EJobs(dynamicConfig, environment),
         ...this.getMasterAndSupportJobs(dynamicConfig, environment),
       );
     } else if (isE2EBranch(environment.branch)) {
       jobs.push(
-        ...this.getCommonJobs(dynamicConfig, environment, false, true, shouldBuildDockerImages),
+        ...this.getCommonJobs(dynamicConfig, environment, false, true, isProtectedBranch),
         ...this.getE2EJobs(dynamicConfig, environment),
       );
     } else {
-      jobs = this.getCommonJobs(dynamicConfig, environment, true, true, shouldBuildDockerImages);
+      jobs = this.getCommonJobs(dynamicConfig, environment, true, true, isProtectedBranch);
     }
     return new Workflow('pull_requests', jobs);
   }
@@ -80,7 +81,7 @@ export class PullRequestsWorkflow {
     environment: CircleCIEnvironment,
     filterJobs: boolean,
     addValidationJob: boolean,
-    shouldBuildDockerImages: boolean,
+    isProtectedBranch: boolean,
   ): workflow.WorkflowJob[] {
     dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
 
@@ -277,6 +278,47 @@ export class PullRequestsWorkflow {
         );
         requires.push('Test repository');
       }
+
+      if (!isProtectedBranch) {
+        const buildDockerBackendImageJob = BuildDockerBackendImageJob.create(dynamicConfig, environment, false);
+        dynamicConfig.addJob(buildDockerBackendImageJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(buildDockerBackendImageJob, {
+            context: config.jobContext,
+            name: `Build APIM Management API docker image`,
+            requires: ['Build backend'],
+            'apim-project': config.components.managementApi.project,
+            'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+            'docker-image-name': config.components.managementApi.image,
+          }),
+          new workflow.WorkflowJob(buildDockerBackendImageJob, {
+            context: config.jobContext,
+            name: `Build APIM Gateway docker image`,
+            requires: ['Build backend'],
+            'apim-project': config.components.gateway.project,
+            'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+            'docker-image-name': config.components.gateway.image,
+          }),
+        );
+
+        requires.push('Build APIM Management API docker image', 'Build APIM Management API docker image');
+      }
+    } else {
+      const reTagAndPushDockerImageJob = ReTagAndPushDockerImageJob.create(dynamicConfig, environment, false);
+      dynamicConfig.addJob(reTagAndPushDockerImageJob);
+
+      jobs.push(
+        new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          name: `Build APIM Management API docker image`,
+          'docker-image-name': config.components.managementApi.image,
+        }),
+        new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          name: `Build APIM Gateway docker image`,
+          'docker-image-name': config.components.gateway.image,
+        }),
+      );
+      requires.push('Build APIM Management API docker image', 'Build APIM Management API docker image');
     }
 
     if (!filterJobs || shouldBuildConsole(environment.changedFiles)) {
@@ -309,10 +351,10 @@ export class PullRequestsWorkflow {
       );
       requires.push('Lint & test APIM Console', 'Build APIM Console');
 
-      if (shouldBuildDockerImages) {
-        const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
-        dynamicConfig.addJob(buildDockerWebUiImageJob);
+      const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
+      dynamicConfig.addJob(buildDockerWebUiImageJob);
 
+      if (isProtectedBranch) {
         jobs.push(
           new workflow.WorkflowJob(buildDockerWebUiImageJob, {
             context: config.jobContext,
@@ -323,8 +365,20 @@ export class PullRequestsWorkflow {
             'docker-image-name': config.components.console.image,
           }),
         );
-        requires.push('Build APIM Console docker image');
+      } else {
+        jobs.push(
+          new workflow.WorkflowJob(buildDockerWebUiImageJob, {
+            context: config.jobContext,
+            name: `Build APIM Console docker image`,
+            requires: ['Build APIM Console'],
+            'apim-project': config.components.console.project,
+            'docker-context': '.',
+            'docker-image-name': config.components.console.image,
+          }),
+        );
       }
+
+      requires.push('Build APIM Console docker image');
 
       jobs.push(
         new workflow.WorkflowJob(storybookConsoleJob, {
@@ -344,6 +398,17 @@ export class PullRequestsWorkflow {
           cache_type: 'frontend',
         }),
       );
+    } else {
+      const reTagAndPushDockerImageJob = ReTagAndPushDockerImageJob.create(dynamicConfig, environment, false);
+      dynamicConfig.addJob(reTagAndPushDockerImageJob);
+
+      jobs.push(
+        new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          name: `Build APIM Console docker image`,
+          'docker-image-name': config.components.console.image,
+        }),
+      );
+      requires.push('Build APIM Console docker image');
     }
 
     if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
@@ -375,10 +440,10 @@ export class PullRequestsWorkflow {
       );
       requires.push('Lint & test APIM Portal', 'Lint & test APIM Portal Next', 'Build APIM Portal');
 
-      if (shouldBuildDockerImages) {
-        const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
-        dynamicConfig.addJob(buildDockerWebUiImageJob);
+      const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
+      dynamicConfig.addJob(buildDockerWebUiImageJob);
 
+      if (isProtectedBranch) {
         jobs.push(
           new workflow.WorkflowJob(buildDockerWebUiImageJob, {
             context: config.jobContext,
@@ -389,8 +454,19 @@ export class PullRequestsWorkflow {
             'docker-image-name': config.components.portal.image,
           }),
         );
-        requires.push('Build APIM Portal docker image');
+      } else {
+        jobs.push(
+          new workflow.WorkflowJob(buildDockerWebUiImageJob, {
+            context: config.jobContext,
+            name: `Build APIM Portal docker image`,
+            requires: ['Build APIM Portal'],
+            'apim-project': config.components.portal.project,
+            'docker-context': '.',
+            'docker-image-name': config.components.portal.image,
+          }),
+        );
       }
+      requires.push('Build APIM Portal docker image');
 
       jobs.push(
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
@@ -408,6 +484,17 @@ export class PullRequestsWorkflow {
           cache_type: 'frontend',
         }),
       );
+    } else {
+      const reTagAndPushDockerImageJob = ReTagAndPushDockerImageJob.create(dynamicConfig, environment, false);
+      dynamicConfig.addJob(reTagAndPushDockerImageJob);
+
+      jobs.push(
+        new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          name: `Build APIM Portal docker image`,
+          'docker-image-name': config.components.portal.image,
+        }),
+      );
+      requires.push('Build APIM Portal docker image');
     }
 
     // Force validation workflow in case only distribution pom.xml has changed
