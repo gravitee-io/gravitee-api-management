@@ -18,17 +18,10 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.reactive.standalone.vertx.HttpProtocolVerticle;
 import io.gravitee.gateway.reactive.standalone.vertx.TcpProtocolVerticle;
-import io.gravitee.node.vertx.server.http.VertxHttpServer;
-import io.gravitee.node.vertx.server.tcp.VertxTcpServer;
 import io.gravitee.node.vertx.verticle.factory.SpringVerticleFactory;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.rxjava3.core.http.HttpServer;
-import io.vertx.rxjava3.core.net.NetServer;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,12 +51,6 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
 
     private String httpDeploymentId;
     private String tcpDeploymentId;
-
-    @Getter
-    private final Map<VertxHttpServer, HttpServer> httpPorts = new HashMap<>();
-
-    @Getter
-    private final Map<VertxTcpServer, NetServer> tcpPorts = new HashMap<>();
 
     @Override
     public VertxEmbeddedContainer start() throws Exception {
@@ -147,9 +134,5 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
         if (tcpDeploymentId != null) {
             vertx.undeploy(tcpDeploymentId);
         }
-    }
-
-    public ServerRegister serverRegister() {
-        return new ServerRegister(httpPorts::put, tcpPorts::put);
     }
 }

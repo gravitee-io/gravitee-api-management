@@ -61,6 +61,7 @@ import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
+import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.gravitee.node.plugins.service.ServiceManager;
 import io.gravitee.node.reporter.ReporterManager;
@@ -87,8 +88,6 @@ import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
-import io.vertx.rxjava3.core.http.HttpServer;
-import io.vertx.rxjava3.core.net.NetServer;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -114,11 +113,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.platform.commons.PreconditionViolationException;
@@ -139,6 +141,8 @@ import org.springframework.core.env.Environment;
  * @author GraviteeSource Team
  */
 public class GatewayRunner {
+
+    private static final Random RANDOM = new Random();
 
     private static final Map<String, String> cacheDefinition = new ConcurrentHashMap<>();
 
@@ -172,10 +176,10 @@ public class GatewayRunner {
     private boolean isRunning = false;
 
     @Getter
-    private Map<VertxHttpServer, HttpServer> httpPorts;
+    private Map<String, Integer> httpPorts;
 
     @Getter
-    private Map<VertxTcpServer, NetServer> tcpPorts;
+    private Map<String, Integer> tcpPorts;
 
     record SharedPolicyGroupKey(String sharedPolicyGroupId, String environmentId) {}
 
@@ -265,8 +269,29 @@ public class GatewayRunner {
 
             // start Gateway
             vertxContainer = startServer(gatewayContainer);
-            httpPorts = vertxContainer.getHttpPorts();
-            tcpPorts = vertxContainer.getTcpPorts();
+            ServerManager serverManager = gatewayContainer.applicationContext().getBean(ServerManager.class);
+            httpPorts =
+                serverManager
+                    .servers(VertxHttpServer.class)
+                    .stream()
+                    .flatMap(c -> {
+                        if (c.instances().isEmpty()) {
+                            return Stream.empty();
+                        }
+                        return Stream.of(Map.entry(c.id(), c.instances().get(RANDOM.nextInt(c.instances().size())).actualPort()));
+                    })
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            tcpPorts =
+                serverManager
+                    .servers(VertxTcpServer.class)
+                    .stream()
+                    .flatMap(c -> {
+                        if (c.instances().isEmpty()) {
+                            return Stream.empty();
+                        }
+                        return Stream.of(Map.entry(c.id(), c.instances().get(RANDOM.nextInt(c.instances().size())).actualPort()));
+                    })
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             isRunning = true;
 
             testInstance.init();
@@ -331,8 +356,6 @@ public class GatewayRunner {
      * This temporary folder will be removed when gateway stops or an exception occurs.
      *
      * @param homeFolder is the home folder configured by {@link GatewayTest#configFolder()}. We load from jar only if value is equal to {@link GatewayRunner#DEFAULT_CONFIGURATION_FOLDER}
-     * @return
-     * @throws IOException
      */
     private String loadConfigurationFromJar(String homeFolder) throws IOException {
         if (DEFAULT_CONFIGURATION_FOLDER.equals(homeFolder)) {
@@ -366,7 +389,6 @@ public class GatewayRunner {
      *
      * @param organizationDefinitionPath is the definition file of the organization to deploy
      * @param apisDefPath array of api definition path to deploy
-     * @throws Exception
      */
     public void deployOrganizationForClass(String organizationDefinitionPath, final String[] apisDefPath) throws IOException {
         final ReactableOrganization reactableOrganization = loadOrganizationDefinition(organizationDefinitionPath);
@@ -382,7 +404,6 @@ public class GatewayRunner {
     /**
      * Deploys an Organization, declared at method level, thanks to {@link DeployOrganization}
      * @param organizationDefinitionPath is the definition of the organization to deploy
-     * @throws Exception
      */
     public void deployOrganizationForTest(String organizationDefinitionPath, final String[] apisDefinitionPath) throws IOException {
         final ReactableOrganization reactableOrganization = loadOrganizationDefinition(organizationDefinitionPath);
@@ -485,7 +506,6 @@ public class GatewayRunner {
     /**
      * Deploys an API, declared at class level, thanks to it definition
      * @param apiDefinitionPath is the definition file of the api to deploy
-     * @throws Exception
      */
     public void deployForClass(String apiDefinitionPath, final String organizationId) throws IOException {
         final ReactableApi<?> reactableApi = toReactableApi(apiDefinitionPath);
@@ -498,7 +518,6 @@ public class GatewayRunner {
     /**
      * Deploys an API, declared at method level, thanks to it definition
      * @param apiDefinitionPath is the definition of the api to deploy
-     * @throws Exception
      */
     public void deployForTest(String apiDefinitionPath) throws IOException {
         deployForTest(apiDefinitionPath, null);
@@ -508,7 +527,6 @@ public class GatewayRunner {
      * Deploys an API, declared at method level, thanks to it definition
      * @param apiDefinitionPath is the path of the api definition to deploy
      * @param organizationId the target organization, could be <code>null</code>
-     * @throws Exception
      */
     public void deployForTest(String apiDefinitionPath, final String organizationId) throws IOException {
         final ReactableApi<?> reactableApi = toReactableApi(apiDefinitionPath);
@@ -521,7 +539,6 @@ public class GatewayRunner {
     /**
      * Deploys an API from a test. Throws if trying to deploy an api deployed at class level
      * @param reactableApi is the api to deploy
-     * @throws Exception
      */
     private void deployFromTest(ReactableApi<?> reactableApi) {
         if (deployedForTestClass.containsKey(reactableApi.getId())) {
@@ -536,7 +553,6 @@ public class GatewayRunner {
 
     /**
      * Undeploys an API from a test. Throws if the api is deployed at class level
-     * @param api
      */
     private void undeployFromTest(String api) {
         if (deployedForTestClass.containsKey(api)) {
@@ -552,7 +568,6 @@ public class GatewayRunner {
     /**
      * Deploys a Shared Policy Group from a test. Throws if trying to deploy a shared policy group deployed at class level
      * @param reactableSharedPolicyGroup is the shared policy group to deploy
-     * @throws Exception
      */
     private void deploySharedPolicyGroupFromTest(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         if (

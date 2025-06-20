@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactive.standalone.vertx;
 
 import io.gravitee.gateway.reactive.reactor.TcpSocketDispatcher;
-import io.gravitee.gateway.standalone.vertx.ServerRegister;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.server.tcp.VertxTcpServer;
 import io.reactivex.rxjava3.core.Completable;
@@ -41,16 +40,10 @@ public class TcpProtocolVerticle extends AbstractVerticle {
     private final ServerManager serverManager;
     private final TcpSocketDispatcher socketDispatcher;
     private final Map<VertxTcpServer, NetServer> tcpServerMap = new ConcurrentHashMap<>();
-    private final ServerRegister serverRegister;
 
-    public TcpProtocolVerticle(
-        ServerManager serverManager,
-        @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher socketDispatcher,
-        ServerRegister serverRegister
-    ) {
+    public TcpProtocolVerticle(ServerManager serverManager, @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher socketDispatcher) {
         this.serverManager = serverManager;
         this.socketDispatcher = socketDispatcher;
-        this.serverRegister = serverRegister;
     }
 
     @Override
@@ -61,7 +54,6 @@ public class TcpProtocolVerticle extends AbstractVerticle {
             .concatMapCompletable(gioServer -> {
                 log.info("Starting TCP server...");
                 NetServer tcpServer = gioServer.newInstance();
-                serverRegister.register(gioServer, tcpServer);
 
                 // Listen and dispatch TCP requests.
                 return tcpServer

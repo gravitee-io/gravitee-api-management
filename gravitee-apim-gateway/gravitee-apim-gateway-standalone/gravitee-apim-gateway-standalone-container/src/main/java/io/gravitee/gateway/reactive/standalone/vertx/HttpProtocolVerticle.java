@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactive.standalone.vertx;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
-import io.gravitee.gateway.standalone.vertx.ServerRegister;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.reactivex.rxjava3.core.Completable;
@@ -54,17 +53,13 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     @Getter
     private final Map<VertxHttpServer, HttpServer> httpServerMap;
 
-    private final ServerRegister serverRegister;
-
     public HttpProtocolVerticle(
         final ServerManager serverManager,
-        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher,
-        ServerRegister serverRegister
+        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
     ) {
         this.serverManager = serverManager;
         this.requestDispatcher = requestDispatcher;
         this.httpServerMap = new HashMap<>();
-        this.serverRegister = serverRegister;
     }
 
     @Override
@@ -84,7 +79,6 @@ public class HttpProtocolVerticle extends AbstractVerticle {
             .concatMapCompletable(gioServer -> {
                 final HttpServer rxHttpServer = gioServer.newInstance();
                 httpServerMap.put(gioServer, rxHttpServer);
-                serverRegister.register(gioServer, rxHttpServer);
 
                 // Listen and dispatch http requests.
                 return rxHttpServer

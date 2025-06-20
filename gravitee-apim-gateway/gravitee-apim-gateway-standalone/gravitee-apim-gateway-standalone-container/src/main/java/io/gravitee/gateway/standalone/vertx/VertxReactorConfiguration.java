@@ -118,29 +118,22 @@ public class VertxReactorConfiguration {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public HttpProtocolVerticle graviteeVerticle(
         ServerManager serverManager,
-        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher,
-        ServerRegister serverRegister
+        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
     ) {
-        return new HttpProtocolVerticle(serverManager, requestDispatcher, serverRegister);
+        return new HttpProtocolVerticle(serverManager, requestDispatcher);
     }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public TcpProtocolVerticle graviteeTcpVerticle(
         ServerManager serverManager,
-        @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher tcpSocketDispatcher,
-        ServerRegister serverRegister
+        @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher tcpSocketDispatcher
     ) {
-        return new TcpProtocolVerticle(serverManager, tcpSocketDispatcher, serverRegister);
+        return new TcpProtocolVerticle(serverManager, tcpSocketDispatcher);
     }
 
     @Bean
     public VertxEmbeddedContainer container(Vertx vertx, ApplicationContext applicationContext) {
         return new VertxEmbeddedContainer(vertx, applicationContext);
-    }
-
-    @Bean
-    public ServerRegister serverRegister(VertxEmbeddedContainer vertxEmbeddedContainer) {
-        return vertxEmbeddedContainer.serverRegister();
     }
 }
