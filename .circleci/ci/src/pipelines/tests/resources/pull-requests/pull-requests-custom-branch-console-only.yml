@@ -26,6 +26,24 @@ parameters:
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
 commands:
+  cmd-docker-login:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+          var-name: DOCKER_REGISTRY_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+          var-name: DOCKER_REGISTRY_PASSWORD
+      - run:
+          name: Login to Azure Container Registry
+          command: echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+    description: Login to Azure Container Registry
+  cmd-docker-logout:
+    steps:
+      - run:
+          name: Logout from Azure Container Registry
+          command: docker logout graviteeio.azurecr.io
+    description: Logout from Azure Container Registry
   cmd-install-yarn:
     steps:
       - run:
@@ -91,7 +109,39 @@ commands:
             - ~/.m2
           when: always
     description: Save Maven cache for a dedicated job
+  cmd-create-docker-context:
+    steps:
+      - run:
+          name: Create docker context for buildx
+          command: |-
+            docker context create tls-env
+            docker buildx create tls-env --use
 jobs:
+  job-retag-and-push-docker-image:
+    parameters:
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: default
+      - cmd-docker-login
+      - run:
+          name: Pull existing image
+          command: docker pull graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
+          working_directory: << parameters.apim-project >>
+      - run:
+          name: Retag image
+          command: "\n          docker tag \\\n            graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest \\\n            graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-my-custom-branch-latest\n        "
+      - run:
+          name: Push with new tag
+          command: docker push graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-my-custom-branch-latest
+      - cmd-docker-logout
   job-webui-lint-test:
     parameters:
       apim-ui-project:
@@ -268,6 +318,39 @@ jobs:
             - /opt/sonar-scanner/.sonar/cache
           key: gravitee-api-management-v12-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
+  job-build-docker-webui-image:
+    parameters:
+      apim-project:
+        type: string
+        default: ""
+        description: the name of the project to build
+      docker-context:
+        type: string
+        default: ""
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context
+      - cmd-docker-login
+      - run:
+          name: Build docker image for << parameters.apim-project >>
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-my-custom-branch-latest \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - cmd-docker-logout
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
@@ -292,6 +375,12 @@ workflows:
             - keeper/env-export:
                 secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
                 var-name: GITHUB_TOKEN
+      - job-retag-and-push-docker-image:
+          name: Build APIM Management API docker image
+          docker-image-name: apim-management-api
+      - job-retag-and-push-docker-image:
+          name: Build APIM Gateway docker image
+          docker-image-name: apim-gateway
       - job-webui-lint-test:
           name: Lint & test APIM Console
           context:
@@ -302,6 +391,15 @@ workflows:
           name: Build APIM Console
           context:
             - cicd-orchestrator
+      - job-build-docker-webui-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Console docker image
+          requires:
+            - Build APIM Console
+          apim-project: gravitee-apim-console-webui
+          docker-context: .
+          docker-image-name: apim-management-ui
       - job-console-webui-build-storybook:
           name: Build Console Storybook
           context:
@@ -320,11 +418,18 @@ workflows:
             - Lint & test APIM Console
           working_directory: gravitee-apim-console-webui
           cache_type: frontend
+      - job-retag-and-push-docker-image:
+          name: Build APIM Portal docker image
+          docker-image-name: apim-portal-ui
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
+            - Build APIM Management API docker image
+            - Build APIM Management API docker image
             - Lint & test APIM Console
             - Build APIM Console
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.5

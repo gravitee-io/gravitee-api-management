@@ -36,6 +36,24 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1
+  cmd-docker-login:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+          var-name: DOCKER_REGISTRY_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+          var-name: DOCKER_REGISTRY_PASSWORD
+      - run:
+          name: Login to Azure Container Registry
+          command: echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+    description: Login to Azure Container Registry
+  cmd-docker-logout:
+    steps:
+      - run:
+          name: Logout from Azure Container Registry
+          command: docker logout graviteeio.azurecr.io
+    description: Logout from Azure Container Registry
 jobs:
   job-test-apim-charts:
     parameters:
@@ -62,6 +80,31 @@ jobs:
       - store_test_results:
           path: apim-result.xml
       - cmd-notify-on-failure
+  job-retag-and-push-docker-image:
+    parameters:
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: default
+      - cmd-docker-login
+      - run:
+          name: Pull existing image
+          command: docker pull graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest
+          working_directory: << parameters.apim-project >>
+      - run:
+          name: Retag image
+          command: "\n          docker tag \\\n            graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest \\\n            graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-my-custom-branch-latest\n        "
+      - run:
+          name: Push with new tag
+          command: docker push graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-my-custom-branch-latest
+      - cmd-docker-logout
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
@@ -90,10 +133,26 @@ workflows:
           name: Helm Chart - Lint & Test
           context:
             - cicd-orchestrator
+      - job-retag-and-push-docker-image:
+          name: Build APIM Management API docker image
+          docker-image-name: apim-management-api
+      - job-retag-and-push-docker-image:
+          name: Build APIM Gateway docker image
+          docker-image-name: apim-gateway
+      - job-retag-and-push-docker-image:
+          name: Build APIM Console docker image
+          docker-image-name: apim-management-ui
+      - job-retag-and-push-docker-image:
+          name: Build APIM Portal docker image
+          docker-image-name: apim-portal-ui
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
             - Helm Chart - Lint & Test
+            - Build APIM Management API docker image
+            - Build APIM Management API docker image
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.5
