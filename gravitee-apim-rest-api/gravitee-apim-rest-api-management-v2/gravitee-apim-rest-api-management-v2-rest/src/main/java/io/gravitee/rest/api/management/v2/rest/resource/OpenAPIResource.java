@@ -33,18 +33,4 @@ public class OpenAPIResource {
     public Response getOpenApiDocumentation() {
         return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index.html")).build();
     }
-
-    @GET
-    @Path("/index-{type}.html")
-    @Produces("text/html")
-    public Response getIndexHtml(@PathParam("type") final String openApiType) {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-%s.html".formatted(openApiType))).build();
-    }
-
-    @GET
-    @Path("/openapi-{type}.yaml")
-    @Produces("application/yaml")
-    public Response getOpenApi(@PathParam("type") final String openApiType) {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/openapi-%s.yaml".formatted(openApiType))).build();
-    }
 }

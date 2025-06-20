@@ -32,6 +32,6 @@ public class OpenAPIResource {
     @Path("/open-api.yaml")
     @Produces("application/yaml")
     public Response getOpenApi() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("open-api.yaml")).build();
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("automation-openapi.yaml")).build();
     }
 }

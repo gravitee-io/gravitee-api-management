@@ -35,6 +35,8 @@
 	<properties>
 		<openapi-generator.version>7.12.0</openapi-generator.version>
 		<openapi.modelPackage>io.gravitee.rest.api.management.v2.rest.model</openapi.modelPackage>
+        <openapi.file>management-v2-openapi.yaml</openapi.file>
+        <openapi.file.dir>${project.build.outputDirectory}/openapi</openapi.file.dir>
 		<jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
 		<jaxb-runtime.version>4.0.5</jaxb-runtime.version>
 	</properties>
@@ -42,6 +44,11 @@
 	<dependencies>
 
 		<!-- Gravitee Management dependencies-->
+		<dependency>
+			<groupId>io.gravitee.apim.rest.api.contracts</groupId>
+			<artifactId>gravitee-apim-rest-api-contracts</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>io.gravitee.apim.rest.api.management.v2</groupId>
 			<artifactId>gravitee-apim-rest-api-management-v2-security</artifactId>
@@ -209,31 +216,15 @@
 			</resource>
 		</resources>
 		<plugins>
-			<plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
+
+            <plugin>
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
 				<version>${openapi-generator.version}</version>
-				<configuration>
-					<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-apis.yaml</inputSpec>
-					<generatorName>java</generatorName>
-					<library>jersey3</library>
-					<modelPackage>${openapi.modelPackage}</modelPackage>
-					<generateApis>false</generateApis>
-					<generateModels>true</generateModels>
-					<generateModelTests>false</generateModelTests>
-					<generateModelDocumentation>false</generateModelDocumentation>
-					<generateSupportingFiles>true</generateSupportingFiles>
-					<supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java</supportingFilesToGenerate>
-					<reservedWordsMappings>configuration=configuration</reservedWordsMappings>
-					<configOptions>
-						<dateLibrary>java8</dateLibrary>
-						<useBeanValidation>true</useBeanValidation>
-					</configOptions>
-					<typeMappings>
-						<typeMapping>BigDecimal=Number</typeMapping>
-					</typeMappings>
-					<additionalProperties>removeEnumValuePrefix=false</additionalProperties>
-				</configuration>
 				<executions>
 					<execution>
 						<id>model-management</id>
@@ -241,63 +232,27 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-apis.yaml</inputSpec>
-						</configuration>
-					</execution>
-                    <execution>
-                        <id>model-environments</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-environments.yaml</inputSpec>
+                            <inputSpec>${openapi.file.dir}/${openapi.file}</inputSpec>
+                            <generatorName>java</generatorName>
+                            <library>jersey3</library>
+                            <modelPackage>${openapi.modelPackage}</modelPackage>
+                            <generateApis>false</generateApis>
+                            <generateModels>true</generateModels>
+                            <generateModelTests>false</generateModelTests>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateSupportingFiles>true</generateSupportingFiles>
+                            <supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java</supportingFilesToGenerate>
+                            <reservedWordsMappings>configuration=configuration</reservedWordsMappings>
+                            <configOptions>
+                                <dateLibrary>java8</dateLibrary>
+                                <useBeanValidation>true</useBeanValidation>
+                            </configOptions>
+                            <typeMappings>
+                                <typeMapping>BigDecimal=Number</typeMapping>
+                            </typeMappings>
+                            <additionalProperties>removeEnumValuePrefix=false</additionalProperties>
                         </configuration>
                     </execution>
-					<execution>
-						<id>model-plugins</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-plugins.yaml</inputSpec>
-						</configuration>
-					</execution>
-					<execution>
-						<id>model-installation</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-installation.yaml</inputSpec>
-						</configuration>
-					</execution>
-					<execution>
-						<id>model-ui</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-ui.yaml</inputSpec>
-						</configuration>
-					</execution>
-					<execution>
-						<id>model-plugins-deprecated</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-plugins-deprecated.yaml</inputSpec>
-						</configuration>
-					</execution>
-					<execution>
-						<id>model-installation-deprecated</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-installation-deprecated.yaml</inputSpec>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
         </plugins>

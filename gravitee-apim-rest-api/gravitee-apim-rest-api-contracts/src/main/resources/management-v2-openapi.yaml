@@ -8,7 +8,7 @@ info:
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
-    version: 2.0.0
+    version: ${project.version}
 
 security:
     - BasicAuth: []
@@ -9456,9 +9456,6 @@ components:
                     type: string
                     description: The scope of the license.
                     example: "PLATFORM"
-        MetadataResponse:
-            description: Generic object to handle additional information about an entity. Can also be used for pagination data.
-            type: object
         Organization:
             type: object
             properties:
@@ -9723,6 +9720,8 @@ components:
                 favicon:
                     type: string
                     description: Theme favicon
+            required:
+                - type
             discriminator:
                 propertyName: type
                 mapping:
@@ -9756,6 +9755,8 @@ components:
                 favicon:
                     type: string
                     description: Theme favicon
+            required:
+                - type
             discriminator:
                 propertyName: type
                 mapping:
@@ -11286,7 +11287,7 @@ components:
                                 items:
                                     $ref: "#/components/schemas/Environment"
                             metadata:
-                                $ref: "#/components/schemas/MetadataResponse"
+                                $ref: "#/components/schemas/ResponseMetadata"
                             links:
                                 $ref: "#/components/schemas/Links"
 

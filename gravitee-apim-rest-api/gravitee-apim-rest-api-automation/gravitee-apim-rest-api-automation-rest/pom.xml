@@ -31,6 +31,7 @@
     <properties>
         <openapi-generator.version>7.12.0</openapi-generator.version>
         <openapi.modelPackage>io.gravitee.apim.rest.api.automation.model</openapi.modelPackage>
+        <openapi.file>automation-openapi.yaml</openapi.file>
         <jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
         <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
     </properties>
@@ -38,6 +39,12 @@
     <dependencies>
 
         <!-- Gravitee Management dependencies-->
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.contracts</groupId>
+            <artifactId>gravitee-apim-rest-api-contracts</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.apim.rest.api.automation</groupId>
             <artifactId>gravitee-apim-rest-api-automation-security</artifactId>
@@ -211,11 +218,16 @@
 
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
+
+            <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <version>${openapi-generator.version}</version>
                 <configuration>
-                    <inputSpec>${project.basedir}/src/main/resources/open-api.yaml</inputSpec>
+                    <inputSpec>${openapi.file.dir}/${openapi.file}</inputSpec>
                     <generatorName>java</generatorName>
                     <library>jersey3</library>
                     <modelPackage>${openapi.modelPackage}</modelPackage>
