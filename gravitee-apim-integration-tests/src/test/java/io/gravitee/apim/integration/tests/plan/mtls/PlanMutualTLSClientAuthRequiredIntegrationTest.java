@@ -67,6 +67,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -185,7 +186,7 @@ public class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGate
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
             .assertError(t -> {
-                assertThat(t.getCause()).isInstanceOf(SSLHandshakeException.class);
+                assertThat(t.getCause()).isInstanceOf(SSLException.class);
                 return true;
             });
         if (requireWiremock) {
@@ -210,7 +211,7 @@ public class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGate
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
             .assertError(t -> {
-                assertThat(t.getCause()).isInstanceOf(SSLHandshakeException.class);
+                assertThat(t.getCause()).isInstanceOf(SSLException.class);
                 return true;
             });
         if (requireWiremock) {

@@ -26,7 +26,6 @@ import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
 import io.vertx.core.http.HttpServer;
 import io.vertx.grpc.client.GrpcClientRequest;
 import io.vertx.grpc.common.GrpcStatus;
-import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
 import io.vertx.grpcio.server.GrpcIoServer;
 import java.util.ArrayList;
@@ -119,7 +118,9 @@ public class GrpcBidirectionalStreamingV4IntegrationTest extends AbstractGrpcV4G
                     })
                     .onComplete(response -> {
                         // end gracefully
-                        response.result().end();
+                        if (response.result() != null) {
+                            response.result().end();
+                        }
                         vertx.cancelTimer(timerId.get());
                         done.set(true);
                     });

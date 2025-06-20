@@ -45,6 +45,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -88,6 +89,7 @@ public abstract class AbstractGatewayTest
      * The wiremock used by the deployed apis as a backend.
      */
     protected static WireMockServer wiremock;
+    private final Map<String, Runnable> tearDownHandlers = new HashMap<>();
 
     protected ApplicationContext applicationContext;
 
@@ -195,8 +197,14 @@ public abstract class AbstractGatewayTest
     }
 
     public void cleanUp() {
-        if (wiremock != null) {
-            wiremock.stop();
+        if (tearDownHandlers != null) {
+            for (var handler : tearDownHandlers.entrySet()) {
+                try {
+                    handler.getValue().run();
+                } catch (RuntimeException e) {
+                    log.error("An error occurred while trying to clean up {} the test", handler.getKey(), e);
+                }
+            }
         }
     }
 
@@ -245,9 +253,14 @@ public abstract class AbstractGatewayTest
             wireMockConfiguration.httpsPort(wiremockHttpsPort);
         }
         wiremock = new WireMockServer(wireMockConfiguration);
+        registerATearDownHandler("WireMockServer", wiremock::stop);
         wiremock.start();
         wiremockPort = wiremock.port();
         wiremockHttpsPort = wiremock.httpsPort();
+    }
+
+    public void registerATearDownHandler(String name, Runnable handler) {
+        tearDownHandlers.put(name, handler);
     }
 
     @Override

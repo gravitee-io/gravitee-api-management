@@ -24,6 +24,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +50,7 @@ public class Http2HeadersTestCase extends AbstractHttp2GatewayTest {
 
         httpClient
             .rxRequest(HttpMethod.GET, "/test/my_team")
-            .flatMap(request -> request.rxSend())
+            .flatMap(HttpClientRequest::rxSend)
             .test()
             .await()
             .assertValue(response -> {

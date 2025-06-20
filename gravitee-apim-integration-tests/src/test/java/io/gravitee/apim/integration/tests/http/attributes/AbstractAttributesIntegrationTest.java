@@ -35,10 +35,8 @@ import io.gravitee.policy.apikey.ApiKeyPolicyInitializer;
 import io.gravitee.policy.apikey.configuration.ApiKeyPolicyConfiguration;
 import io.gravitee.policy.mock.MockPolicy;
 import io.gravitee.policy.mock.configuration.MockPolicyConfiguration;
-import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class AbstractAttributesIntegrationTest extends AbstractGatewayTest {
 
