@@ -16,7 +16,9 @@
 package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.vertx.core.http.HttpClientOptions;
+import org.junit.jupiter.api.extension.ParameterContext;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -25,8 +27,12 @@ import io.vertx.core.http.HttpClientOptions;
 public abstract class AbstractHttp2GatewayTest extends AbstractGatewayTest {
 
     @Override
-    protected void configureHttpClient(HttpClientOptions options) {
-        options.setDefaultHost("localhost").setDefaultPort(gatewayPort()).setSsl(true).setVerifyHost(false).setTrustAll(true);
+    protected void configureHttpClient(
+        HttpClientOptions options,
+        GatewayDynamicConfig.Config gatewayConfig,
+        ParameterContext parameterContext
+    ) {
+        options.setDefaultHost("localhost").setSsl(true).setVerifyHost(false).setTrustAll(true);
     }
 
     @Override

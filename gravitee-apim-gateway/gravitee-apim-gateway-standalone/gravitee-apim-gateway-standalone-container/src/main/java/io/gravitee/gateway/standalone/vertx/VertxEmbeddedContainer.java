@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,6 +47,7 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     private int tcpInstances;
 
     private final Vertx vertx;
+    private final ApplicationContext applicationContext;
 
     private String httpDeploymentId;
     private String tcpDeploymentId;
@@ -63,7 +65,7 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     }
 
     @Override
-    protected void doStart() throws Exception {
+    protected void doStart() {
         if (httpInstances < 1 && tcpInstances < 1) {
             httpInstances = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE / 2;
             tcpInstances = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE / 2;
@@ -78,7 +80,7 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     private void startHttpInstances() {
         logger.info("Starting Vertx container and deploy Gateway HTTP Verticles [{} instance(s)]", httpInstances);
 
-        final DeploymentOptions options = new DeploymentOptions().setInstances(httpInstances);
+        final var options = new DeploymentOptions().setInstances(httpInstances);
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName();
 
         vertx.deployVerticle(

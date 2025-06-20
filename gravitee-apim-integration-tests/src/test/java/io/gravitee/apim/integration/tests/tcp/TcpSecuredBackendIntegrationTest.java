@@ -28,6 +28,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.utils.ResourceUtils;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.Api;
@@ -46,6 +47,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ParameterContext;
 
 public class TcpSecuredBackendIntegrationTest {
 
@@ -202,15 +204,19 @@ public class TcpSecuredBackendIntegrationTest {
         protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
             super.configureGateway(gatewayConfigurationBuilder);
             // enables the TCP proxy
-            gatewayConfigurationBuilder.configureTcpGateway(tcpPort());
+            gatewayConfigurationBuilder.enableTcpGateway();
             gatewayConfigurationBuilder.set("tcp.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
         }
 
         @Override
-        protected void configureHttpClient(HttpClientOptions options) {
+        protected void configureHttpClient(
+            HttpClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext
+        ) {
             options
                 .setDefaultHost("localhost")
-                .setDefaultPort(tcpPort())
+                .setDefaultPort(gatewayConfig.tcpPort())
                 .setForceSni(true)
                 .setSsl(true)
                 .setVerifyHost(false)

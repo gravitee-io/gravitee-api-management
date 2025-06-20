@@ -25,6 +25,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.node.api.certificate.KeyStoreLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
@@ -61,7 +62,7 @@ public class TlsCertKeySelectionIntegrationTest {
         @Override
         @SneakyThrows
         protected void configureGateway(GatewayConfigurationBuilder config) {
-            config.httpSecured(true).configureTcpGateway(this.tcpPort());
+            config.httpSecured(true).enableTcpGateway();
             KeyStoreGenResult genResult = createNewPKCS12KeyStore(BRIGHT_SIDE_FQDN, DARK_SIDE_FQDN);
             brightCert = genResult.certs().get(BRIGHT_SIDE_FQDN).toPem();
             darkCert = genResult.certs().get(DARK_SIDE_FQDN).toPem();
@@ -84,7 +85,7 @@ public class TlsCertKeySelectionIntegrationTest {
             endpoints.putIfAbsent("tcp-proxy", EndpointBuilder.build("tcp-proxy", TcpProxyEndpointConnectorFactory.class));
         }
 
-        void shouldFallbackOnBrightCertTest() {
+        void shouldFallbackOnBrightCertTest(GatewayDynamicConfig.HttpConfig httpConfig) {
             // We call with another domain name, it should use the fallback on first alias of the keystore => bright cert
             var httpClient = getBean(Vertx.class)
                 .createHttpClient(
@@ -93,10 +94,10 @@ public class TlsCertKeySelectionIntegrationTest {
                         .setVerifyHost(false) // given the host is not the good one, we bypass this check
                         .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(brightCert)))
                 );
-            assertApiCall(httpClient, this.gatewayPort(), "www.foo.com", GATEWAY_HTTP_API_URI);
+            assertApiCall(httpClient, httpConfig.httpPort(), "www.foo.com", GATEWAY_HTTP_API_URI);
         }
 
-        void shouldFallbackOnDefaultAliasTest() {
+        void shouldFallbackOnDefaultAliasTest(GatewayDynamicConfig.HttpConfig httpConfig) {
             // We call with another domain name, it should use the fallback on default alias => dark cert
             var httpClient = getBean(Vertx.class)
                 .createHttpClient(
@@ -105,7 +106,7 @@ public class TlsCertKeySelectionIntegrationTest {
                         .setVerifyHost(false) // given the host is not the good one, we bypass this check
                         .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(darkCert)))
                 );
-            assertApiCall(httpClient, this.gatewayPort(), "www.foo.com", GATEWAY_HTTP_API_URI);
+            assertApiCall(httpClient, httpConfig.httpPort(), "www.foo.com", GATEWAY_HTTP_API_URI);
         }
     }
 
@@ -121,8 +122,8 @@ public class TlsCertKeySelectionIntegrationTest {
         }
 
         @Test
-        void should_fallback_on_bright_cert() {
-            shouldFallbackOnBrightCertTest();
+        void should_fallback_on_bright_cert(GatewayDynamicConfig.HttpConfig httpConfig) {
+            shouldFallbackOnBrightCertTest(httpConfig);
         }
     }
 
@@ -139,8 +140,8 @@ public class TlsCertKeySelectionIntegrationTest {
         }
 
         @Test
-        void should_fallback_on_default_alias() {
-            shouldFallbackOnDefaultAliasTest();
+        void should_fallback_on_default_alias(GatewayDynamicConfig.HttpConfig httpConfig) {
+            shouldFallbackOnDefaultAliasTest(httpConfig);
         }
     }
 
@@ -150,8 +151,8 @@ public class TlsCertKeySelectionIntegrationTest {
     class NoSNIFallbackNoAlias extends AbstractTlsSelectionTest {
 
         @Test
-        void should_fallback_on_first_alias() {
-            shouldFallbackOnBrightCertTest();
+        void should_fallback_on_first_alias(GatewayDynamicConfig.HttpConfig httpConfig) {
+            shouldFallbackOnBrightCertTest(httpConfig);
         }
     }
 
@@ -167,8 +168,8 @@ public class TlsCertKeySelectionIntegrationTest {
         }
 
         @Test
-        void should_fallback_on_default_alias() {
-            shouldFallbackOnDefaultAliasTest();
+        void should_fallback_on_default_alias(GatewayDynamicConfig.HttpConfig httpConfig) {
+            shouldFallbackOnDefaultAliasTest(httpConfig);
         }
     }
 }

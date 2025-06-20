@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.createTrustedHttpClient;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.configureTrustedHttpClient;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.getUrl;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.vertx.core.http.HttpMethod.GET;
@@ -36,6 +36,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
 import io.gravitee.apim.integration.tests.plan.PlanHelper;
@@ -57,7 +58,6 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.mtls.MtlsPolicy;
 import io.gravitee.policy.mtls.configuration.MtlsPolicyConfiguration;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.nio.file.Files;
@@ -73,6 +73,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -124,8 +125,13 @@ public class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGate
     }
 
     @Override
-    protected void configureHttpClient(HttpClientOptions options) {
-        options.setSsl(true).setTrustAll(true).setVerifyHost(false).setDefaultPort(gatewayPort());
+    protected void configureHttpClient(
+        HttpClientOptions options,
+        GatewayDynamicConfig.Config gatewayConfig,
+        ParameterContext parameterContext
+    ) {
+        boolean withCert = parameterContext.findAnnotation(WithCert.class).isPresent();
+        configureTrustedHttpClient(options, gatewayConfig.httpPort(), withCert);
     }
 
     @SneakyThrows
@@ -152,7 +158,7 @@ public class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGate
         final String apiId,
         final boolean requireWiremock,
         final HttpClient client
-    ) throws Exception {
+    ) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
@@ -175,12 +181,12 @@ public class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGate
     void should_not_be_able_to_call_api_with_mtls_plan_if_no_cert_in_secured_request(
         final String apiId,
         final boolean requireWiremock,
-        final Vertx vertx
-    ) throws Exception {
+        HttpClient client
+    ) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
-        createTrustedHttpClient(vertx, gatewayPort(), false)
+        client
             .rxRequest(GET, PlanHelper.getApiPath(apiId))
             .flatMap(HttpClientRequest::rxSend)
             .test()
@@ -199,12 +205,11 @@ public class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGate
     void should_not_be_able_to_call_api_with_mtls_plan_if_certificate_not_registered_from_subscription(
         final String apiId,
         final boolean requireWiremock,
-        final Vertx vertx
-    ) throws Exception {
+        @WithCert HttpClient client
+    ) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
-        final HttpClient client = createTrustedHttpClient(vertx, gatewayPort(), true);
         client
             .rxRequest(GET, PlanHelper.getApiPath(apiId))
             .flatMap(HttpClientRequest::rxSend)
@@ -221,14 +226,13 @@ public class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGate
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_be_able_to_call_api_with_mtls_plan(final String apiId, final boolean requireWiremock, final Vertx vertx) throws Exception {
+    void should_be_able_to_call_api_with_mtls_plan(final String apiId, final boolean requireWiremock, @WithCert HttpClient client) {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
         final Subscription subscription = aSubscription(apiId);
         // Directly use the SubscriptionTrustStoreLoaderManager to fake the sync process of a subscription and register the certificate
         subscriptionTrustStoreLoaderManager.registerSubscription(subscription, Set.of());
-        final HttpClient client = createTrustedHttpClient(vertx, gatewayPort(), true);
         client
             .rxRequest(GET, PlanHelper.getApiPath(apiId))
             .flatMap(HttpClientRequest::rxSend)

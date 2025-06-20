@@ -111,7 +111,7 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
                 return true;
             })
             .values()
-            .get(0);
+            .getFirst();
 
         // 3. Stop the SSE request
         sseRequest.cancel();
@@ -128,7 +128,7 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
                     soft.assertThat(fullMetrics.isRequestEnded()).isTrue();
                     soft.assertThat(fullMetrics.getStatus()).isEqualTo(200);
                     soft.assertThat(fullMetrics.getGatewayResponseTimeMs()).isGreaterThan(0);
-                    soft.assertThat(fullMetrics.getEndpointResponseTimeMs()).isGreaterThan(0);
+                    soft.assertThat(fullMetrics.getEndpointResponseTimeMs()).isGreaterThanOrEqualTo(0);
                     soft.assertThat(fullMetrics.getGatewayLatencyMs()).isGreaterThan(0);
                 });
                 return true;

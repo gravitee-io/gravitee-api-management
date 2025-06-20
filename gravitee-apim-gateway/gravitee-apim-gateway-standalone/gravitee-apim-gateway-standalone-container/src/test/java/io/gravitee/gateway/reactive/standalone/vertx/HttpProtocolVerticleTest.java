@@ -27,6 +27,7 @@ import io.gravitee.node.api.certificate.TrustStoreLoaderOptions;
 import io.gravitee.node.api.server.DefaultServerManager;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.certificates.DefaultKeyStoreLoaderFactoryRegistry;
+import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
 import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
 import io.reactivex.rxjava3.core.Completable;
@@ -35,10 +36,7 @@ import io.vertx.core.http.*;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -46,30 +44,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HttpProtocolVerticleTest {
 
-    private VertxHttpServerOptions httpOptions;
+    final ServerManager serverManager = new DefaultServerManager();
+
     private HttpRequestDispatcher mockRequestDispatcher;
 
     @BeforeEach
     @DisplayName("Deploy a new http protocol verticle")
-    void deployVerticle(Vertx vertx, VertxTestContext testContext) throws IOException {
-        ServerSocket socket = new ServerSocket(0);
-        int randomPort = socket.getLocalPort();
-        socket.close();
-
-        final ServerManager serverManager = new DefaultServerManager();
+    void deployVerticle(Vertx vertx, VertxTestContext testContext) {
         final VertxHttpServerFactory vertxHttpServerFactory = new VertxHttpServerFactory(
             io.vertx.rxjava3.core.Vertx.newInstance(vertx),
             new DefaultKeyStoreLoaderFactoryRegistry<>(),
             new DefaultKeyStoreLoaderFactoryRegistry<>()
         );
-        httpOptions =
-            VertxHttpServerOptions
-                .builder()
-                .id("UnitTest")
-                .port(randomPort)
-                .keyStoreLoaderOptions(KeyStoreLoaderOptions.builder().build())
-                .trustStoreLoaderOptions(TrustStoreLoaderOptions.builder().build())
-                .build();
+        VertxHttpServerOptions httpOptions = VertxHttpServerOptions
+            .builder()
+            .id("UnitTest")
+            .port(0)
+            .keyStoreLoaderOptions(KeyStoreLoaderOptions.builder().build())
+            .trustStoreLoaderOptions(TrustStoreLoaderOptions.builder().build())
+            .build();
         serverManager.register(vertxHttpServerFactory.create(httpOptions));
 
         mockRequestDispatcher = spy(new DummyHttpRequestDispatcher());
@@ -86,7 +79,7 @@ class HttpProtocolVerticleTest {
     void http_server_should_listen(Vertx vertx, VertxTestContext testContext) {
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
@@ -106,14 +99,14 @@ class HttpProtocolVerticleTest {
             .dispatch(any(), anyString());
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(HttpStatusCode.INTERNAL_SERVER_ERROR_500))
                 )
             )
-            .compose(httpClientResponse -> client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/"))
+            .compose(httpClientResponse -> client.request(HttpMethod.GET, actualPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
@@ -132,7 +125,7 @@ class HttpProtocolVerticleTest {
             .dispatch(any(), anyString());
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(request -> {
                 request.send().otherwiseEmpty();
                 return request.connection().close();
@@ -155,14 +148,14 @@ class HttpProtocolVerticleTest {
 
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(SERVICE_UNAVAILABLE_503))
                 )
             )
-            .compose(httpClientResponse -> client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/"))
+            .compose(httpClientResponse -> client.request(HttpMethod.GET, actualPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
@@ -172,5 +165,9 @@ class HttpProtocolVerticleTest {
                     })
                 )
             );
+    }
+
+    private int actualPort() {
+        return serverManager.servers(VertxHttpServer.class).getFirst().instances().getFirst().actualPort();
     }
 }

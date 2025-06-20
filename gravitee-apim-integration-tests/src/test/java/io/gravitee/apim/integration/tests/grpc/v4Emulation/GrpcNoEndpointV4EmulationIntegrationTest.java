@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGrpcGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.grpc.helloworld.GreeterGrpc;
@@ -53,9 +54,10 @@ public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewa
     }
 
     @Test
-    void should_have_request_in_error_when_no_endpoint(VertxTestContext testContext) throws InterruptedException {
+    void should_have_request_in_error_when_no_endpoint(VertxTestContext testContext, GatewayDynamicConfig.HttpConfig httpConfig)
+        throws InterruptedException {
         // Prepare gRPC Client
-        GrpcIoClientChannel channel = new GrpcIoClientChannel(getGrpcClient(), gatewayAddress());
+        GrpcIoClientChannel channel = new GrpcIoClientChannel(getGrpcClient(), gatewayAddress(httpConfig));
 
         // Get a stub to use for interacting with the remote service
         GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);

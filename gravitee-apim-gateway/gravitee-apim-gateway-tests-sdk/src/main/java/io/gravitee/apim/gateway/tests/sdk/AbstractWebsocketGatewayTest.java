@@ -16,6 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -24,16 +25,15 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpServer;
 import io.vertx.rxjava3.core.http.ServerWebSocket;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ParameterContext;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
 
     protected HttpServer httpServer;
-    protected HttpClient httpClient;
     protected int websocketPort;
 
     protected Handler<ServerWebSocket> websocketServerHandler;
@@ -88,16 +88,17 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
         gatewayConfigurationBuilder.set("vertx.disableWebsockets", false);
     }
 
+    @Override
+    protected void configureHttpClient(
+        HttpClientOptions options,
+        GatewayDynamicConfig.Config gatewayConfig,
+        ParameterContext parameterContext
+    ) {
+        options.setDefaultPort(gatewayConfig.httpPort()).setDefaultHost("localhost");
+    }
+
     @BeforeEach
     public void beforeEachWebsocketTest(Vertx vertx) {
         wiremock.stop();
-        httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(gatewayPort()).setDefaultHost("localhost"));
-    }
-
-    @AfterEach
-    public void tearDown() {
-        if (null != httpClient) {
-            httpClient.close().subscribe();
-        }
     }
 }

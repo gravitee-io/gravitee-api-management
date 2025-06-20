@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.gateway.tests.sdk;
 
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.vertx.core.Vertx;
@@ -72,8 +73,8 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
         return vertxServer;
     }
 
-    protected SocketAddress gatewayAddress() {
-        return SocketAddress.inetSocketAddress(gatewayPort(), LOCALHOST);
+    protected SocketAddress gatewayAddress(GatewayDynamicConfig.HttpConfig httpConfig) {
+        return SocketAddress.inetSocketAddress(httpConfig.httpPort(), LOCALHOST);
     }
 
     protected GrpcIoClient getGrpcClient(Supplier<GrpcIoClient> factory) {

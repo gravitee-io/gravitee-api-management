@@ -39,7 +39,7 @@ public class TcpProtocolVerticle extends AbstractVerticle {
 
     private final ServerManager serverManager;
     private final TcpSocketDispatcher socketDispatcher;
-    private Map<VertxTcpServer, NetServer> tcpServerMap = new ConcurrentHashMap<>();
+    private final Map<VertxTcpServer, NetServer> tcpServerMap = new ConcurrentHashMap<>();
 
     public TcpProtocolVerticle(ServerManager serverManager, @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher socketDispatcher) {
         this.serverManager = serverManager;
@@ -54,7 +54,6 @@ public class TcpProtocolVerticle extends AbstractVerticle {
             .concatMapCompletable(gioServer -> {
                 log.info("Starting TCP server...");
                 NetServer tcpServer = gioServer.newInstance();
-                tcpServerMap.put(gioServer, tcpServer);
 
                 // Listen and dispatch TCP requests.
                 return tcpServer
