@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.8.0
-appVersion: 4.8.0
+version: 4.8.1
+appVersion: 4.8.1
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,27 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: fixed
-      description: 'bump elastisearch version to 8.17.2'
-    - kind: fixed
-      description: 'bump elastisearch helm release to 19.21.2'
-    - kind: fixed
-      description: 'bump mongodb helm release to 13.18.5'
-    - kind: added
-      description: 'Allow users to set allowed source ranges for the gateway LoadBalancer service'
-    - kind: added
-      description: 'If kafka gateway is enabled then startupProbe, readinessProbe and livenessProbe are configured to take the kafka-server probe into account'
-    - kind: added
-      description: 'allow users to enable dictionary multi-tenant support'
-    - kind: fixed
-      description: 'updated the default log file path'
-      links:
-       - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10524
-    - kind: fixed
-      description: 'The `portal.entrypoint` env var is used to configure the entrypoint used to expose APIs. It is used mainly on the developer portal. The value is automatically set with the ingress of the gateway. Now, if the gateway is configured with  a list of servers (http, tcp...) the `portal.entrypoint` is set accordingly'
-    - kind: changed
-      description: 'Gateway and Management API images are now based on Debian instead of Alpine.'
-    - kind: added
-      description: 'New RW volume in gateway deployment to store AI models files downloaded when using new Gravitee AI resources.'
+  artifacthub.io/changes: 
