@@ -133,7 +133,7 @@ public class VertxReactorConfiguration {
     }
 
     @Bean
-    public VertxEmbeddedContainer container(Vertx vertx, ApplicationContext applicationContext) {
-        return new VertxEmbeddedContainer(vertx, applicationContext);
+    public VertxEmbeddedContainer container(Vertx vertx) {
+        return new VertxEmbeddedContainer(vertx);
     }
 }
