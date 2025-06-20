@@ -22,7 +22,6 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
-import io.gravitee.gateway.standalone.vertx.ServerRegister;
 import io.gravitee.node.api.certificate.KeyStoreLoaderOptions;
 import io.gravitee.node.api.certificate.TrustStoreLoaderOptions;
 import io.gravitee.node.api.server.DefaultServerManager;
@@ -69,14 +68,7 @@ class HttpProtocolVerticleTest {
         serverManager.register(vertxHttpServerFactory.create(httpOptions));
 
         mockRequestDispatcher = spy(new DummyHttpRequestDispatcher());
-        vertx.deployVerticle(
-            new HttpProtocolVerticle(
-                serverManager,
-                mockRequestDispatcher,
-                new ServerRegister((ignored, srv) -> setHttpServer(srv), (ignored, srv) -> {})
-            ),
-            testContext.succeedingThenComplete()
-        );
+        vertx.deployVerticle(new HttpProtocolVerticle(serverManager, mockRequestDispatcher), testContext.succeedingThenComplete());
     }
 
     @AfterEach
