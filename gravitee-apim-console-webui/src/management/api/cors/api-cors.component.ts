@@ -82,7 +82,10 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
             };
           }
 
-          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          const isReadOnly =
+            (api.definitionVersion === 'V4'
+              ? !this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u'])
+              : !this.permissionService.hasAnyMatching(['api-definition-u'])) || api.definitionContext?.origin === 'KUBERNETES';
           const isCorsDisabled = isReadOnly || !cors.enabled;
 
           this.corsForm = new UntypedFormGroup({
