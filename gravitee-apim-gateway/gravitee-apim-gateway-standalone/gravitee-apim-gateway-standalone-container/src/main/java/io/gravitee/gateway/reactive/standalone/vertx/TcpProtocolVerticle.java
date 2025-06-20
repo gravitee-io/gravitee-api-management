@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.standalone.vertx;
 
 import io.gravitee.gateway.reactive.reactor.TcpSocketDispatcher;
-import io.gravitee.gateway.standalone.vertx.GetDeployedPortHelper;
+import io.gravitee.gateway.standalone.vertx.ServerRegister;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.server.tcp.VertxTcpServer;
 import io.reactivex.rxjava3.core.Completable;
@@ -41,10 +41,16 @@ public class TcpProtocolVerticle extends AbstractVerticle {
     private final ServerManager serverManager;
     private final TcpSocketDispatcher socketDispatcher;
     private final Map<VertxTcpServer, NetServer> tcpServerMap = new ConcurrentHashMap<>();
+    private final ServerRegister serverRegister;
 
-    public TcpProtocolVerticle(ServerManager serverManager, @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher socketDispatcher) {
+    public TcpProtocolVerticle(
+        ServerManager serverManager,
+        @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher socketDispatcher,
+        ServerRegister serverRegister
+    ) {
         this.serverManager = serverManager;
         this.socketDispatcher = socketDispatcher;
+        this.serverRegister = serverRegister;
     }
 
     @Override
@@ -52,31 +58,21 @@ public class TcpProtocolVerticle extends AbstractVerticle {
         final List<VertxTcpServer> servers = this.serverManager.servers(VertxTcpServer.class);
         return Flowable
             .fromIterable(servers)
-            .concatMapSingle(gioServer -> {
+            .concatMapCompletable(gioServer -> {
                 log.info("Starting TCP server...");
                 NetServer tcpServer = gioServer.newInstance();
-                tcpServerMap.put(gioServer, tcpServer);
+                serverRegister.register(gioServer, tcpServer);
 
                 // Listen and dispatch TCP requests.
                 return tcpServer
                     .connectHandler(socket -> this.dispatchSocket(socket, gioServer.id()))
                     .rxListen()
-                    .map(e -> {
-                        log.info("TCP server [{}] ready to accept connections on port {}", gioServer.id(), tcpServer.actualPort());
-                        return Map.entry(gioServer.id(), tcpServer.actualPort());
-                    })
+                    .ignoreElement()
+                    .doOnComplete(() ->
+                        log.info("TCP server [{}] ready to accept connections on port {}", gioServer.id(), tcpServer.actualPort())
+                    )
                     .doOnError(throwable -> log.error("Unable to start TCP server [{}]", gioServer.id(), throwable.getCause()));
-            })
-            .doOnSubscribe(disposable -> log.info("Starting TCP servers..."))
-            .toList()
-            .doOnSuccess(ports -> {
-                if (config().containsKey(GetDeployedPortHelper.TCP_PORTS_CONFIG_KEY) && !ports.isEmpty()) {
-                    vertx
-                        .eventBus()
-                        .publish(config().getString(GetDeployedPortHelper.TCP_PORTS_CONFIG_KEY), GetDeployedPortHelper.serialize(ports));
-                }
-            })
-            .ignoreElement();
+            });
     }
 
     public void dispatchSocket(NetSocket proxySocket, String id) {

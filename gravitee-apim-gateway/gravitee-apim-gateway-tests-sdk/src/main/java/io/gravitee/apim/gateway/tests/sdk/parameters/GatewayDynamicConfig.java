@@ -15,7 +15,12 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.parameters;
 
+import io.gravitee.node.vertx.server.http.VertxHttpServer;
+import io.gravitee.node.vertx.server.tcp.VertxTcpServer;
+import io.vertx.rxjava3.core.http.HttpServer;
+import io.vertx.rxjava3.core.net.NetServer;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public interface GatewayDynamicConfig {
     interface HttpConfig {
@@ -60,5 +65,15 @@ public interface GatewayDynamicConfig {
         }
     }
 
-    record GatewayDynamicConfigImpl(Map<String, Integer> httpPorts, Map<String, Integer> tcpPorts) implements Config {}
+    record GatewayDynamicConfigImpl(Map<VertxHttpServer, HttpServer> http, Map<VertxTcpServer, NetServer> tcp) implements Config {
+        @Override
+        public Map<String, Integer> httpPorts() {
+            return http.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().id(), e -> e.getValue().actualPort()));
+        }
+
+        @Override
+        public Map<String, Integer> tcpPorts() {
+            return tcp.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().id(), e -> e.getValue().actualPort()));
+        }
+    }
 }

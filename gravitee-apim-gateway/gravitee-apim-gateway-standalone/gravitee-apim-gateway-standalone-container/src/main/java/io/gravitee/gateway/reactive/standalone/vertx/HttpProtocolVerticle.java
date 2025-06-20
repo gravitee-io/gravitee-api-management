@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.standalone.vertx;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
-import io.gravitee.gateway.standalone.vertx.GetDeployedPortHelper;
+import io.gravitee.gateway.standalone.vertx.ServerRegister;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.reactivex.rxjava3.core.Completable;
@@ -32,6 +32,7 @@ import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -49,15 +50,21 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
     private final ServerManager serverManager;
     private final HttpRequestDispatcher requestDispatcher;
+
+    @Getter
     private final Map<VertxHttpServer, HttpServer> httpServerMap;
+
+    private final ServerRegister serverRegister;
 
     public HttpProtocolVerticle(
         final ServerManager serverManager,
-        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
+        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher,
+        ServerRegister serverRegister
     ) {
         this.serverManager = serverManager;
         this.requestDispatcher = requestDispatcher;
         this.httpServerMap = new HashMap<>();
+        this.serverRegister = serverRegister;
     }
 
     @Override
@@ -74,30 +81,22 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
         return Flowable
             .fromIterable(servers)
-            .concatMapSingle(gioServer -> {
+            .concatMapCompletable(gioServer -> {
                 final HttpServer rxHttpServer = gioServer.newInstance();
                 httpServerMap.put(gioServer, rxHttpServer);
+                serverRegister.register(gioServer, rxHttpServer);
 
                 // Listen and dispatch http requests.
                 return rxHttpServer
                     .requestHandler(request -> dispatchRequest(request, gioServer.id()))
                     .rxListen()
-                    .map(e -> {
-                        log.info("HTTP server [{}] ready to accept requests on port {}", gioServer.id(), rxHttpServer.actualPort());
-                        return Map.entry(gioServer.id(), rxHttpServer.actualPort());
-                    })
+                    .ignoreElement()
+                    .doOnComplete(() ->
+                        log.info("HTTP server [{}] ready to accept requests on port {}", gioServer.id(), rxHttpServer.actualPort())
+                    )
                     .doOnError(throwable -> log.error("Unable to start HTTP server [{}]", gioServer.id(), throwable.getCause()));
             })
-            .doOnSubscribe(disposable -> log.info("Starting HTTP servers..."))
-            .toList()
-            .doOnSuccess(ports -> {
-                if (config().containsKey(GetDeployedPortHelper.HTTP_PORTS_CONFIG_KEY) && !ports.isEmpty()) {
-                    vertx
-                        .eventBus()
-                        .publish(config().getString(GetDeployedPortHelper.HTTP_PORTS_CONFIG_KEY), GetDeployedPortHelper.serialize(ports));
-                }
-            })
-            .ignoreElement();
+            .doOnSubscribe(disposable -> log.info("Starting HTTP servers..."));
     }
 
     /**

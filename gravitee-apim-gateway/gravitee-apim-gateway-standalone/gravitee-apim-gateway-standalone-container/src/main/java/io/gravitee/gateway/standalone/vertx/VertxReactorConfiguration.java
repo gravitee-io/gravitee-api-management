@@ -34,6 +34,7 @@ import io.vertx.core.Vertx;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -117,22 +118,29 @@ public class VertxReactorConfiguration {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public HttpProtocolVerticle graviteeVerticle(
         ServerManager serverManager,
-        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
+        @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher,
+        ServerRegister serverRegister
     ) {
-        return new HttpProtocolVerticle(serverManager, requestDispatcher);
+        return new HttpProtocolVerticle(serverManager, requestDispatcher, serverRegister);
     }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public TcpProtocolVerticle graviteeTcpVerticle(
         ServerManager serverManager,
-        @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher tcpSocketDispatcher
+        @Qualifier("tcpSocketDispatcher") TcpSocketDispatcher tcpSocketDispatcher,
+        ServerRegister serverRegister
     ) {
-        return new TcpProtocolVerticle(serverManager, tcpSocketDispatcher);
+        return new TcpProtocolVerticle(serverManager, tcpSocketDispatcher, serverRegister);
     }
 
     @Bean
-    public VertxEmbeddedContainer container(Vertx vertx) {
-        return new VertxEmbeddedContainer(vertx);
+    public VertxEmbeddedContainer container(Vertx vertx, ApplicationContext applicationContext) {
+        return new VertxEmbeddedContainer(vertx, applicationContext);
+    }
+
+    @Bean
+    public ServerRegister serverRegister(VertxEmbeddedContainer vertxEmbeddedContainer) {
+        return vertxEmbeddedContainer.serverRegister();
     }
 }
