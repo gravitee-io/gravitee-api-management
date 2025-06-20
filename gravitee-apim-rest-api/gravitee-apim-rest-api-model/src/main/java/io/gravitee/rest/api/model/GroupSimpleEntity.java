@@ -28,7 +28,10 @@ public class GroupSimpleEntity {
     private String name;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String environmentName; // <-- Optional field
+    private String environmentName; // <-- Optional
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String environmentID; // <-- Optional field
 
     public String getId() {
         return id;
@@ -54,6 +57,14 @@ public class GroupSimpleEntity {
         this.environmentName = environmentName;
     }
 
+    public String getEnvironmentID() {
+        return environmentID;
+    }
+
+    public void setEnvironmentID(String environmentID) {
+        this.environmentID = environmentID;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -69,6 +80,21 @@ public class GroupSimpleEntity {
 
     @Override
     public String toString() {
-        return "GroupSimpleEntity{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", environmentName='" + environmentName + '\'' + '}';
+        return (
+            "GroupSimpleEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", environmentName='" +
+            environmentName +
+            '\'' +
+            ", environmentID='" +
+            environmentID +
+            '\'' +
+            '}'
+        );
     }
 }

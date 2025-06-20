@@ -33,4 +33,5 @@ export interface Group {
   disable_membership_notifications?: boolean;
   apiPrimaryOwner?: boolean;
   environmentName?: string;
+  environmentID?: string;
 }

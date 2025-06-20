@@ -248,7 +248,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.debug("Find all groups for organization {}", organizationId);
             Set<Group> groups = groupRepository.findAllByOrganization(organizationId);
             logger.debug("Find all groups for organization {} - DONE", organizationId);
-
             // Fetching all environments in the org and build a map of envId -> envName
             List<EnvironmentEntity> environments = environmentService.findByOrganization(organizationId);
             Map<String, String> envIdToName = environments
@@ -259,7 +258,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .stream()
                 .map(group -> {
                     GroupSimpleEntity entity = mapToSimple(group);
-                    entity.setEnvironmentName(envIdToName.get(group.getEnvironmentId())); // optional set
+                    entity.setEnvironmentName(envIdToName.get(group.getEnvironmentId()));
+                    entity.setEnvironmentID(group.getEnvironmentId()); // optional set
                     return entity;
                 })
                 .sorted(Comparator.comparing(GroupSimpleEntity::getName))
