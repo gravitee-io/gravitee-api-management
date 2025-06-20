@@ -55,16 +55,12 @@ export class GroupService {
     if (isEmpty(groupMembershipToSend)) {
       return of(void 0);
     }
-
-    return this.http.post<void>(
-      `${this.constants.org.baseURL}/environments/${environmentID}/configuration/groups/${groupId}/members`,
-      groupMembershipToSend,
-    );
+    const environmentUrl = environmentID ? `${this.constants.org.baseURL}/environments/${environmentID}` : this.constants.env.baseURL;
+    return this.http.post<void>(`${environmentUrl}/configuration/groups/${groupId}/members`, groupMembershipToSend);
   }
 
   deleteMember(groupId: string, memberId: string, environmentID?: string): Observable<void> {
-    return this.http.delete<void>(
-      `${this.constants.org.baseURL}/environments/${environmentID}/configuration/groups/${groupId}/members/${memberId}`,
-    );
+    const environmentUrl = environmentID ? `${this.constants.org.baseURL}/environments/${environmentID}` : this.constants.env.baseURL;
+    return this.http.delete<void>(`${environmentUrl}/configuration/groups/${groupId}/members/${memberId}`);
   }
 }

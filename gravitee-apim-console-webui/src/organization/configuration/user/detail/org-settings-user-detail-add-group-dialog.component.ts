@@ -64,7 +64,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
         isAdmin: new UntypedFormControl(null),
         apiRole: new UntypedFormControl(null),
         applicationRole: new UntypedFormControl(null),
-        environmentId: new UntypedFormControl(null), // Add this
+        environmentId: new UntypedFormControl(null),
       },
       [leastOneGroupRoleIsRequiredValidator],
     );

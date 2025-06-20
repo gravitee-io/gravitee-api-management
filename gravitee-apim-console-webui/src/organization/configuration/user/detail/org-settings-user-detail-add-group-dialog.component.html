@@ -24,7 +24,7 @@
         <mat-label>Group</mat-label>
         <mat-select formControlName="groupId" aria-label="Groups selection" required>
           <mat-option *ngFor="let group of groups" [value]="group.id"
-            >{{ group.name }} <span *ngIf="group.environmentName"> (Environment: {{ group.environmentName }})</span></mat-option
+            >{{ group.name }}{{ group.environmentName ? ' (Environment: ' + group.environmentName + ')' : '' }}</mat-option
           >
         </mat-select>
         <mat-error *ngIf="addGroupForm.get('groupId').hasError('required')">Group is required.</mat-error>

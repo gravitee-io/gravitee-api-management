@@ -19,9 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.model.GroupSimpleEntity;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
@@ -45,7 +47,13 @@ public class GroupService_FindAllTest extends TestCase {
     private final GroupService groupService = new GroupServiceImpl();
 
     @Mock
+    private EnvironmentService environmentService;
+
+    @Mock
     private GroupRepository groupRepository;
+
+    @Mock
+    private EnvironmentRepository environmentRepository; // Add this
 
     @Test
     public void shouldReturnGroupsByEnvironment() throws TechnicalException {
@@ -91,8 +99,8 @@ public class GroupService_FindAllTest extends TestCase {
         groups.add(group2);
 
         when(groupRepository.findAllByOrganization(ORGANIZATION_ID)).thenReturn(groups);
-
-        List<GroupSimpleEntity> result = groupService.findAllByOrganization(ORGANIZATION_ID);
+        when(environmentService.findByOrganization(ORGANIZATION_ID)).thenReturn(Collections.emptyList());
+        List<GroupSimpleEntity> result = groupService.findAllByOrganization(ORGANIZATION_ID); // Add this mock
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(GroupSimpleEntity::getName).containsExactlyInAnyOrder("Alpha", "Beta");
@@ -101,6 +109,7 @@ public class GroupService_FindAllTest extends TestCase {
     @Test
     public void shouldReturnEmptyListWhenNoGroupsFoundByOrganization() throws TechnicalException {
         when(groupRepository.findAllByOrganization(ORGANIZATION_ID)).thenReturn(Collections.emptySet());
+        when(environmentService.findByOrganization(ORGANIZATION_ID)).thenReturn(Collections.emptyList());
 
         List<GroupSimpleEntity> result = groupService.findAllByOrganization(ORGANIZATION_ID);
 
