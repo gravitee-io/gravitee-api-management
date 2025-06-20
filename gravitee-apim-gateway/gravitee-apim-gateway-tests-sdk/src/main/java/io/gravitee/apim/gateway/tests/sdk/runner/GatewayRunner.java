@@ -66,6 +66,8 @@ import io.gravitee.node.plugins.service.ServiceManager;
 import io.gravitee.node.reporter.ReporterManager;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
+import io.gravitee.node.vertx.server.http.VertxHttpServer;
+import io.gravitee.node.vertx.server.tcp.VertxTcpServer;
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.connector.ConnectorPluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -85,6 +87,8 @@ import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
+import io.vertx.rxjava3.core.http.HttpServer;
+import io.vertx.rxjava3.core.net.NetServer;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -168,10 +172,10 @@ public class GatewayRunner {
     private boolean isRunning = false;
 
     @Getter
-    private Map<String, Integer> httpPorts;
+    private Map<VertxHttpServer, HttpServer> httpPorts;
 
     @Getter
-    private Map<String, Integer> tcpPorts;
+    private Map<VertxTcpServer, NetServer> tcpPorts;
 
     record SharedPolicyGroupKey(String sharedPolicyGroupId, String environmentId) {}
 
