@@ -28,7 +28,6 @@ import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -175,7 +174,8 @@ public class SubscriptionsResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
-        final Collection<SubscriptionEntity> subscriptions = fetchSubscriptions(paginationParam, query);
+        final Page<SubscriptionEntity> subscriptionsPage = fetchSubscriptions(paginationParam, query);
+        final List<SubscriptionEntity> subscriptions = subscriptionsPage.getContent();
 
         if (subscriptions.isEmpty()) {
             return createListResponse(executionContext, subscriptions, paginationParam, null, paginationParam.hasPagination());
@@ -205,21 +205,9 @@ public class SubscriptionsResource extends AbstractResource {
         return createListResponse(executionContext, subscriptionList, paginationParam, metadata.toMap(), paginationParam.hasPagination());
     }
 
-    private Collection<SubscriptionEntity> fetchSubscriptions(PaginationParam paginationParam, SubscriptionQuery query) {
-        if (!paginationParam.hasPagination()) {
-            return subscriptionService.search(GraviteeContext.getExecutionContext(), query);
-        } else {
-            final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(
-                GraviteeContext.getExecutionContext(),
-                query,
-                new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
-            );
-            if (pagedSubscriptions == null) {
-                return emptyList();
-            } else {
-                return pagedSubscriptions.getContent();
-            }
-        }
+    private Page<SubscriptionEntity> fetchSubscriptions(PaginationParam paginationParam, SubscriptionQuery query) {
+        Collection<SubscriptionEntity> resp = subscriptionService.search(GraviteeContext.getExecutionContext(), query);
+        return new Page<>(resp.stream().toList(), 1, paginationParam.getSize(), resp.size());
     }
 
     @Path("{subscriptionId}")
