@@ -20,7 +20,6 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganizations;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeploySharedPolicyGroups;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayTestParameterResolver;
 import io.gravitee.apim.gateway.tests.sdk.runner.GatewayRunner;
 import java.io.IOException;
@@ -267,13 +266,8 @@ public class GatewayTestingExtension
             gatewayTest.configureGateway(gatewayConfigurationBuilder);
             gatewayRunner = new GatewayRunner(gatewayConfigurationBuilder, gatewayTest);
 
-            gatewayRunner.configureAndStart(0, 0);
-            context
-                .getStore(ExtensionContext.Namespace.GLOBAL)
-                .put(
-                    GATEWAY_DYNAMIC_CONFIG_KEY,
-                    new GatewayDynamicConfig.GatewayDynamicConfigImpl(gatewayRunner.getHttpPorts(), gatewayRunner.getTcpPorts())
-                );
+            var config = gatewayRunner.configureAndStart();
+            context.getStore(ExtensionContext.Namespace.GLOBAL).put(GATEWAY_DYNAMIC_CONFIG_KEY, config);
         } else {
             throw new PreconditionViolationException("Test class must extend AbstractGatewayTest");
         }

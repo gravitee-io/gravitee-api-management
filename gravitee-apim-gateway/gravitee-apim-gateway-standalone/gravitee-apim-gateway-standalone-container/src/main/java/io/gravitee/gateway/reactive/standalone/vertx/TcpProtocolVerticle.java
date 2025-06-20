@@ -54,6 +54,7 @@ public class TcpProtocolVerticle extends AbstractVerticle {
             .concatMapCompletable(gioServer -> {
                 log.info("Starting TCP server...");
                 NetServer tcpServer = gioServer.newInstance();
+                tcpServerMap.put(gioServer, tcpServer);
 
                 // Listen and dispatch TCP requests.
                 return tcpServer

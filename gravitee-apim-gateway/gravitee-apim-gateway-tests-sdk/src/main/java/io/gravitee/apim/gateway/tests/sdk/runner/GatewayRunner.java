@@ -30,6 +30,7 @@ import io.gravitee.apim.gateway.tests.sdk.converters.ApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.LegacyApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.NativeApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.V4ApiDeploymentPreparer;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginManifestLoader;
 import io.gravitee.apim.gateway.tests.sdk.policy.KeylessPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
@@ -67,6 +68,7 @@ import io.gravitee.node.plugins.service.ServiceManager;
 import io.gravitee.node.reporter.ReporterManager;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
+import io.gravitee.node.vertx.server.VertxServer;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.gravitee.node.vertx.server.tcp.VertxTcpServer;
 import io.gravitee.plugin.connector.ConnectorPlugin;
@@ -88,6 +90,8 @@ import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
+import io.vertx.rxjava3.core.http.HttpServer;
+import io.vertx.rxjava3.core.net.NetServer;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -116,12 +120,12 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.ToIntFunction;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.slf4j.Logger;
@@ -142,7 +146,8 @@ import org.springframework.core.env.Environment;
  */
 public class GatewayRunner {
 
-    private static final Random RANDOM = new Random();
+    @SuppressWarnings("java:S2245")
+    private static final Random NOT_SECURED_RANDOM = new Random();
 
     private static final Map<String, String> cacheDefinition = new ConcurrentHashMap<>();
 
@@ -174,12 +179,6 @@ public class GatewayRunner {
     private VertxEmbeddedContainer vertxContainer;
     private Path tempDir;
     private boolean isRunning = false;
-
-    @Getter
-    private Map<String, Integer> httpPorts;
-
-    @Getter
-    private Map<String, Integer> tcpPorts;
 
     record SharedPolicyGroupKey(String sharedPolicyGroupId, String environmentId) {}
 
@@ -216,16 +215,14 @@ public class GatewayRunner {
      *  - overrides variables thanks to {@link AbstractGatewayTest#configureGateway(GatewayConfigurationBuilder)}
      *  - registers the reporters, connectors, policies and resources
      *  And then, starts the gateway
-     * @param gatewayPort is the port used to reach the apis deployed on the gateway
-     * @param technicalApiPort is the port used to reach the technical api.
      */
-    public void configureAndStart(int gatewayPort, int technicalApiPort) throws IOException, InterruptedException {
+    public GatewayDynamicConfig.Config configureAndStart() throws IOException, InterruptedException {
         try {
             // gather extra config from the test class
             GatewayConfiguration gatewayConfiguration = gatewayConfigurationBuilder.build();
 
             // prepare Gateway
-            configure(gatewayPort, technicalApiPort, gatewayConfiguration);
+            configure(gatewayConfiguration);
 
             // create Gateway
             gatewayContainer =
@@ -270,42 +267,38 @@ public class GatewayRunner {
             // start Gateway
             vertxContainer = startServer(gatewayContainer);
             ServerManager serverManager = gatewayContainer.applicationContext().getBean(ServerManager.class);
-            httpPorts =
-                serverManager
-                    .servers(VertxHttpServer.class)
-                    .stream()
-                    .flatMap(c -> {
-                        if (c.instances().isEmpty()) {
-                            return Stream.empty();
-                        }
-                        return Stream.of(Map.entry(c.id(), c.instances().get(RANDOM.nextInt(c.instances().size())).actualPort()));
-                    })
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            tcpPorts =
-                serverManager
-                    .servers(VertxTcpServer.class)
-                    .stream()
-                    .flatMap(c -> {
-                        if (c.instances().isEmpty()) {
-                            return Stream.empty();
-                        }
-                        return Stream.of(Map.entry(c.id(), c.instances().get(RANDOM.nextInt(c.instances().size())).actualPort()));
-                    })
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            var httpPorts = serverManager
+                .servers(VertxHttpServer.class)
+                .stream()
+                .flatMap(srv -> selectPort(srv, HttpServer::actualPort))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            var tcpPorts = serverManager
+                .servers(VertxTcpServer.class)
+                .stream()
+                .flatMap(srv -> selectPort(srv, NetServer::actualPort))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            var gatewayDynamicConfig = new GatewayDynamicConfig.GatewayDynamicConfigImpl(httpPorts, tcpPorts);
             isRunning = true;
 
             testInstance.init();
+            return gatewayDynamicConfig;
         } finally {
             removeTemporaryFolderIfNeeded();
         }
     }
 
-    private void configure(int gatewayPort, int technicalApiPort, GatewayConfiguration gatewayConfiguration) throws IOException {
-        String graviteeHome;
+    private <U> Stream<Map.Entry<String, Integer>> selectPort(VertxServer<U, ?> c, ToIntFunction<U> actualPort) {
+        return c.instances().isEmpty()
+            ? Stream.empty()
+            : Stream.of(Map.entry(c.id(), actualPort.applyAsInt(c.instances().get(NOT_SECURED_RANDOM.nextInt(c.instances().size())))));
+    }
+
+    private void configure(GatewayConfiguration gatewayConfiguration) throws IOException {
         final String homeFolder = testInstance.getClass().getAnnotation(GatewayTest.class).configFolder();
 
         // Try to get graviteeHome from jar. Useful for policies having a maven dependency to this sdk.
-        graviteeHome = loadConfigurationFromJar(homeFolder);
+        String graviteeHome = loadConfigurationFromJar(homeFolder);
 
         // If no graviteeHome, get the resource in the module.
         if (graviteeHome == null) {
@@ -321,14 +314,10 @@ public class GatewayRunner {
 
         registerCustomProtocolHandlers(Handler.class);
 
-        if (v2ExecutionMode == ExecutionMode.V3) {
-            System.setProperty("api.v2.emulateV4Engine.default", "no");
-        } else {
-            System.setProperty("api.v2.emulateV4Engine.default", "yes");
-        }
+        System.setProperty("api.v2.emulateV4Engine.default", v2ExecutionMode == ExecutionMode.V3 ? "no" : "yes");
 
-        System.setProperty("http.port", String.valueOf(gatewayPort));
-        System.setProperty("services.core.http.port", String.valueOf(technicalApiPort));
+        System.setProperty("http.port", "0");
+        System.setProperty("services.core.http.port", "0");
         System.setProperty("services.core.http.enabled", String.valueOf(false));
 
         gatewayConfiguration
@@ -375,7 +364,6 @@ public class GatewayRunner {
 
     /**
      * Stops the gateway and remove temporary configuration folder if needed.
-     * @throws InterruptedException
      */
     public void stop() throws InterruptedException {
         // unset system properties set by user to avoid conflict in tests

@@ -31,7 +31,6 @@ import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -49,8 +48,6 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
     private final ServerManager serverManager;
     private final HttpRequestDispatcher requestDispatcher;
-
-    @Getter
     private final Map<VertxHttpServer, HttpServer> httpServerMap;
 
     public HttpProtocolVerticle(

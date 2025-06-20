@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,7 +46,6 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     private int tcpInstances;
 
     private final Vertx vertx;
-    private final ApplicationContext applicationContext;
 
     private String httpDeploymentId;
     private String tcpDeploymentId;
