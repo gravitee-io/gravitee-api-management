@@ -69,7 +69,7 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
   it('should fill and submit form', async () => {
     fixture.detectChanges();
     expectGroupListByOrganizationRequest([
-      fakeGroup({ id: 'group-a', name: 'Group A', environmentID: 'roleEnvApiId', environmentName: 'Role Env API' }),
+      fakeGroup({ id: 'group-a', name: 'Group A', environmentId: 'roleEnvApiId', environmentName: 'Role Env API' }),
     ]);
 
     await fixture.whenStable(); // wait for async tasks like HTTP & `valueChanges` subscriptions

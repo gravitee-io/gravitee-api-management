@@ -76,7 +76,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
             take(1),
             map((groups) => {
               const selectedGroup = groups.find((g) => g.id === selectedGroupId);
-              return selectedGroup?.environmentID ?? null;
+              return selectedGroup?.environmentId ?? null;
             }),
           ),
         ),

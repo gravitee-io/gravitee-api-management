@@ -21,11 +21,14 @@ import static org.mockito.Mockito.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Group;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupSimpleEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -92,15 +95,22 @@ public class GroupService_FindAllTest extends TestCase {
         Group group1 = new Group();
         group1.setId("group-1");
         group1.setName("Alpha");
+        group1.setEnvironmentId(ENVIRONMENT_ID);
         Group group2 = new Group();
         group2.setId("group-2");
         group2.setName("Beta");
+        group2.setEnvironmentId(ENVIRONMENT_ID);
         groups.add(group1);
         groups.add(group2);
 
+        EnvironmentEntity environmentEntity = new EnvironmentEntity();
+        environmentEntity.setId(ENVIRONMENT_ID);
+        environmentEntity.setName("env-name");
+
         when(groupRepository.findAllByOrganization(ORGANIZATION_ID)).thenReturn(groups);
-        when(environmentService.findByOrganization(ORGANIZATION_ID)).thenReturn(Collections.emptyList());
-        List<GroupSimpleEntity> result = groupService.findAllByOrganization(ORGANIZATION_ID); // Add this mock
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(environmentEntity);
+
+        List<GroupSimpleEntity> result = groupService.findAllByOrganization(ORGANIZATION_ID);
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(GroupSimpleEntity::getName).containsExactlyInAnyOrder("Alpha", "Beta");

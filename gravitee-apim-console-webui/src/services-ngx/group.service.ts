@@ -47,7 +47,7 @@ export class GroupService {
     return this.http.get<Group[]>(`${this.constants.org.baseURL}/groups`);
   }
 
-  addOrUpdateMemberships(groupId: string, groupMemberships: GroupMembership[], environmentID?: string): Observable<void> {
+  addOrUpdateMemberships(groupId: string, groupMemberships: GroupMembership[], environmentId?: string): Observable<void> {
     // Remove Membership with empty roles
     const filterEmptyMembershipRoles = (groupMembership: GroupMembership[]) => groupMembership.filter((m) => !isEmpty(m.roles));
 
@@ -55,12 +55,12 @@ export class GroupService {
     if (isEmpty(groupMembershipToSend)) {
       return of(void 0);
     }
-    const environmentUrl = environmentID ? `${this.constants.org.baseURL}/environments/${environmentID}` : this.constants.env.baseURL;
+    const environmentUrl = environmentId ? `${this.constants.org.baseURL}/environments/${environmentId}` : this.constants.env.baseURL;
     return this.http.post<void>(`${environmentUrl}/configuration/groups/${groupId}/members`, groupMembershipToSend);
   }
 
-  deleteMember(groupId: string, memberId: string, environmentID?: string): Observable<void> {
-    const environmentUrl = environmentID ? `${this.constants.org.baseURL}/environments/${environmentID}` : this.constants.env.baseURL;
+  deleteMember(groupId: string, memberId: string, environmentId?: string): Observable<void> {
+    const environmentUrl = environmentId ? `${this.constants.org.baseURL}/environments/${environmentId}` : this.constants.env.baseURL;
     return this.http.delete<void>(`${environmentUrl}/configuration/groups/${groupId}/members/${memberId}`);
   }
 }

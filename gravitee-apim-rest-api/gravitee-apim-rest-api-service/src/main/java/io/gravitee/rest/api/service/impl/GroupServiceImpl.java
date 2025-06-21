@@ -248,20 +248,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.debug("Find all groups for organization {}", organizationId);
             Set<Group> groups = groupRepository.findAllByOrganization(organizationId);
             logger.debug("Find all groups for organization {} - DONE", organizationId);
-            // Fetching all environments in the org and build a map of envId -> envName
-            List<EnvironmentEntity> environments = environmentService.findByOrganization(organizationId);
-            Map<String, String> envIdToName = environments
-                .stream()
-                .collect(Collectors.toMap(EnvironmentEntity::getId, EnvironmentEntity::getName));
-
             return groups
                 .stream()
-                .map(group -> {
-                    GroupSimpleEntity entity = mapToSimple(group);
-                    entity.setEnvironmentName(envIdToName.get(group.getEnvironmentId()));
-                    entity.setEnvironmentID(group.getEnvironmentId()); // optional set
-                    return entity;
-                })
+                .map(group -> mapToSimple(group, organizationId))
                 .sorted(Comparator.comparing(GroupSimpleEntity::getName))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
@@ -969,16 +958,16 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         return group;
     }
 
-    private GroupSimpleEntity mapToSimple(Group group) {
+    private GroupSimpleEntity mapToSimple(Group group, String organizationId) {
         if (group == null) {
             return null;
         }
-
+        EnvironmentEntity environments = environmentService.findByOrgAndIdOrHrid(organizationId, group.getEnvironmentId());
         GroupSimpleEntity entity = new GroupSimpleEntity();
         entity.setId(group.getId());
         entity.setName(group.getName());
-        entity.setEnvironmentName(group.getEnvironmentId());
-
+        entity.setEnvironmentId(group.getEnvironmentId());
+        entity.setEnvironmentName(environments.getName());
         return entity;
     }
 

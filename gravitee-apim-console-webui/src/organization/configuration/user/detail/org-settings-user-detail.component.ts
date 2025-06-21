@@ -65,6 +65,8 @@ interface EnvironmentDS {
 interface GroupDS {
   id: string;
   name: string;
+  environmentId?: string;
+  environmentName?: string;
 }
 
 interface ApiDS {
@@ -182,7 +184,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           return {
             id: g.id,
             name: g.name,
-            environmentID: fullGroup?.environmentID ?? this.constants.org.currentEnv.id,
+            environmentId: fullGroup?.environmentId ?? this.constants.org.currentEnv.id,
             environmentName: fullGroup?.environmentName ?? this.constants.org.currentEnv.name,
           };
         });
@@ -420,7 +422,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.groupService.deleteMember(group.id, this.user.id, group.environmentID)),
+        switchMap(() => this.groupService.deleteMember(group.id, this.user.id, group.environmentId)),
         tap(() => this.snackBarService.success(`"${this.user.displayName}" has been deleted from the group "${group.name}"`)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
