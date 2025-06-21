@@ -4,7 +4,9 @@ info:
     description: |-
         This is the OpenAPI specification for our new version of APIM Management API.
     contact:
+        name: Gravitee.io team
         email: team-apim@graviteesource.com
+        url: https://www.gravitee.io/
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -18,38 +20,60 @@ servers:
     - url: "/management/v2"
       description: APIM Management API v2 - Default base URL
 tags:
-    - name: APIs
-      description: Everything about APIs
+    - name: API Analytics
+      description: Everything about API analytics
+    - name: API Audits
+      description: Everything about API audits
     - name: API Documentation
       description: Everything about API documentation pages
+    - name: API Events
+      description: Everything about API events
+    - name: API Health
+      description: Everything about API health
     - name: API Members
       description: Everything about API members
     - name: API Plans
       description: Everything about API plans
-    - name: API Analytics
-      description: Everything about API analytics
-    - name: API Health
-      description: Everything about API health
+    - name: API SpecGen
+      description: Everything about Spec generation
     - name: API Subscriptions
       description: Everything about API subscriptions
-    - name: API Events
-      description: Everything about API events
-    - name: API Audits
-      description: Everything about API audits
+    - name: APIs
+      description: Everything about APIs
+    - name: AsyncJobs
+      description: Everything about async jobs
+    - name: Categories
+      description: Everything about categories
+    - name: Environment Analytics
+      description: Everything about environment analytics
     - name: Groups
       description: Everything about groups
+    - name: Installation
+      description: Base resources about the installation
     - name: Integrations
       description: Everything about integration
     - name: Integration Members
       description: Everything about Integration members
-    - name: Categories
-      description: Everything about categories
-    - name: SharedPolicyGroups
-      description: Everything about shared policy groups
-    - name: Installation
-      description: Base resources about the installation
     - name: Management UI
       description: Everything about Management UI
+    - name: Plugins - ApiServices
+      description: Everything about APIM ApiServices
+    - name: Plugins - Endpoints
+      description: Everything about APIM Endpoints
+    - name: Plugins - Entrypoints
+      description: Everything about APIM Entrypoints
+    - name: Plugins - Policies
+      description: Everything about APIM Policies
+    - name: Plugins - Resources
+      description: Everything about APIM Resources
+    - name: Scoring
+      description: Everything about APIs scoring
+    - name: Scoring - Functions
+      description: Everything about APIs scoring functions
+    - name: Scoring - Rulesets
+      description: Everything about APIs scoring rulesets
+    - name: SharedPolicyGroups
+      description: Everything about shared policy groups
 
 paths:
     # APIs
@@ -74,6 +98,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApisResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -99,6 +125,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiV4"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -109,7 +137,7 @@ paths:
         post:
             tags:
                 - APIs
-            summary: Import API definition
+            summary: Import API from OpenAPI
             description: |-
                 ⚠️ Support only v4 API for the moment. ⚠️<br>
                 Create an API by importing from an Open API descriptor. <br>
@@ -125,11 +153,13 @@ paths:
                 required: true
             responses:
                 "201":
-                    description: API successfully created
+                    description: API successfully created from OpenAPI
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiV4"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -140,7 +170,7 @@ paths:
         post:
             tags:
                 - APIs
-            summary: Import API definition
+            summary: Import API from Gravitee definition
             description: |-
                 ⚠️ Support only v4 API for the moment. ⚠️<br>
                 Create an API by importing an API definition. <br>
@@ -156,11 +186,13 @@ paths:
                 required: true
             responses:
                 "201":
-                    description: API successfully created
+                    description: API successfully created from Gravitee definition
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiV4"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/_search:
@@ -192,6 +224,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApisResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/_verify/paths:
@@ -218,6 +252,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/VerifyApiPathsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -245,6 +281,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/VerifyApiHostsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -269,6 +307,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Api"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         put:
@@ -293,6 +333,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Api"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -316,6 +358,8 @@ paths:
             responses:
                 "204":
                     description: API successfully deleted
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/background:
@@ -335,6 +379,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ImageResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         put:
@@ -355,6 +401,8 @@ paths:
             responses:
                 "204":
                     description: API background successfully updated
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -369,6 +417,8 @@ paths:
             responses:
                 "204":
                     description: API background successfully deleted.
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/deployments:
@@ -394,6 +444,8 @@ paths:
             responses:
                 "202":
                     description: API deployment request received
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/deployments/current:
@@ -417,6 +469,8 @@ paths:
                         application/json:
                             schema:
                                 type: object
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/deployments/_verify:
@@ -440,6 +494,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/VerifyApiDeploymentResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/picture:
@@ -459,6 +515,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ImageResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         put:
@@ -479,6 +537,8 @@ paths:
             responses:
                 "204":
                     description: API picture successfully updated
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -493,6 +553,8 @@ paths:
             responses:
                 "204":
                     description: API picture successfully deleted.
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -518,6 +580,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/MetadataResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -571,6 +635,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ExportApiV4"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/_start:
@@ -595,6 +661,8 @@ paths:
             responses:
                 "204":
                     description: API successfully started
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/_stop:
@@ -618,6 +686,8 @@ paths:
             responses:
                 "204":
                     description: API successfully stopped
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/_transfer-ownership:
@@ -649,6 +719,8 @@ paths:
             responses:
                 "204":
                     description: Ownership has been transfered successfully
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -679,6 +751,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Api"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -705,6 +779,8 @@ paths:
             responses:
                 "204":
                     description: API successfully rollbacked
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -726,6 +802,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ExposedEntrypointResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -756,7 +834,9 @@ paths:
                 required: true
             responses:
                 "204":
-                    description: API successfully change review state
+                    description: API review successfully asked
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/reviews/_accept:
@@ -785,7 +865,9 @@ paths:
                 required: true
             responses:
                 "204":
-                    description: API successfully change review state
+                    description: API review successfully accepted
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/reviews/_reject:
@@ -814,7 +896,9 @@ paths:
                 required: true
             responses:
                 "204":
-                    description: API successfully change review state
+                    description: API review successfully rejected
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -843,6 +927,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Member"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/members:
@@ -865,6 +951,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/MembersResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -892,6 +980,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Member"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/members/{memberId}:
@@ -925,6 +1015,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Member"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -942,6 +1034,8 @@ paths:
             responses:
                 "204":
                     description: API member successfully removed
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -998,6 +1092,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/PlansResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -1022,6 +1118,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Plan"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/plans/{planId}:
@@ -1046,6 +1144,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Plan"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         put:
@@ -1070,6 +1170,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Plan"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -1084,6 +1186,8 @@ paths:
             responses:
                 "204":
                     description: API's plan successfully deleted
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/plans/{planId}/_close:
@@ -1108,6 +1212,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Plan"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/plans/{planId}/_deprecate:
@@ -1132,6 +1238,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Plan"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/plans/{planId}/_publish:
@@ -1156,6 +1264,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Plan"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -1179,6 +1289,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/GroupsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/groups/{groupId}/members:
@@ -1201,6 +1313,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/MembersResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -1225,6 +1339,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/IntegrationsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -1250,6 +1366,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Integration"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/integrations/{integrationId}:
@@ -1273,6 +1391,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Integration"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         put:
@@ -1298,6 +1418,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Integration"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -1313,6 +1435,8 @@ paths:
             responses:
                 "204":
                     description: Integration deleted
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/integrations/{integrationId}/_ingest:
@@ -1339,6 +1463,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/IntegrationIngestionResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/integrations/{integrationId}/_preview:
@@ -1363,6 +1489,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/IngestionPreviewResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/integrations/{integrationId}/apis:
@@ -1385,6 +1513,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/IngestedApisResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -1400,6 +1530,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/DeletedIngestedApisResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     # Integration Members
@@ -1423,6 +1555,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/MembersResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -1445,11 +1579,13 @@ paths:
                 required: true
             responses:
                 "201":
-                    description: Member successfully added
+                    description: Member successfully added to integration
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Member"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/integrations/{integrationId}/members/{memberId}:
@@ -1478,11 +1614,13 @@ paths:
                 required: true
             responses:
                 "200":
-                    description: Membership successfully edited.
+                    description: Integration membership successfully edited.
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Member"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -1500,6 +1638,8 @@ paths:
             responses:
                 "204":
                     description: Integration member successfully removed
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     # API Subscriptions
@@ -1532,6 +1672,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SubscribersResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions:
@@ -1541,36 +1683,10 @@ paths:
             - $ref: "#/components/parameters/apiIdParam"
         get:
             parameters:
-                - name: applicationIds
-                  description: List of application ids to filter on.
-                  in: query
-                  explode: false
-                  schema:
-                      type: array
-                      items:
-                          type: string
-                - name: planIds
-                  description: List of plan ids to filter on.
-                  in: query
-                  explode: false
-                  schema:
-                      type: array
-                      items:
-                          type: string
-                - name: statuses
-                  in: query
-                  required: false
-                  description: List of status filters.
-                  explode: false
-                  schema:
-                      type: array
-                      items:
-                          $ref: "#/components/schemas/SubscriptionStatus"
-                - name: apiKey
-                  in: query
-                  description: API Key associated to the subscription to filter on.
-                  schema:
-                      type: string
+                - $ref: "#/components/parameters/applicationIds"
+                - $ref: "#/components/parameters/planIds"
+                - $ref: "#/components/parameters/subscriptionStatusesParam"
+                - $ref: "#/components/parameters/subscriptionApiKeyParam"
                 - name: expands
                   in: query
                   description: Expansion of data to return in subscriptions.
@@ -1597,6 +1713,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SubscriptionsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -1621,6 +1739,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Subscription"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/_export:
@@ -1630,36 +1750,10 @@ paths:
             - $ref: "#/components/parameters/apiIdParam"
         get:
             parameters:
-                - name: applicationIds
-                  description: List of application ids to filter on.
-                  in: query
-                  explode: false
-                  schema:
-                      type: array
-                      items:
-                          type: string
-                - name: planIds
-                  description: List of plan ids to filter on.
-                  in: query
-                  explode: false
-                  schema:
-                      type: array
-                      items:
-                          type: string
-                - name: statuses
-                  in: query
-                  required: false
-                  description: List of status filters.
-                  explode: false
-                  schema:
-                      type: array
-                      items:
-                          $ref: "#/components/schemas/SubscriptionStatus"
-                - name: apiKey
-                  in: query
-                  description: API Key associated to the subscription to filter on.
-                  schema:
-                      type: string
+                - $ref: "#/components/parameters/applicationIds"
+                - $ref: "#/components/parameters/planIds"
+                - $ref: "#/components/parameters/subscriptionStatusesParam"
+                - $ref: "#/components/parameters/subscriptionApiKeyParam"
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:
@@ -1680,6 +1774,8 @@ paths:
                                 example: attachment;filename="filename=subscriptions-51fdbabf-ab0c-3dc6-b3c1-77c99d96b535-1686772361126.csv"
                     content:
                         text/csv: {}
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/_verify:
@@ -1709,6 +1805,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/VerifySubscriptionResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -1747,6 +1845,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Subscription"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         put:
@@ -1771,6 +1871,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Subscription"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_close:
@@ -1795,6 +1897,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Subscription"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_pause:
@@ -1819,6 +1923,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Subscription"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_resume:
@@ -1843,6 +1949,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Subscription"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_accept:
@@ -1873,6 +1981,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Subscription"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_reject:
@@ -1903,6 +2013,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Subscription"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_transfer:
@@ -1934,6 +2046,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Subscription"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -1955,6 +2069,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SubscriptionApiKeysResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/_renew:
@@ -1986,6 +2102,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiKey"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}:
@@ -2017,6 +2135,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiKey"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_revoke:
@@ -2043,6 +2163,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiKey"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_reactivate:
@@ -2068,6 +2190,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiKey"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2092,6 +2216,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiAnalyticsRequestsCountResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/average-messages-per-request:
@@ -2113,6 +2239,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiAnalyticsAverageMessagesPerRequestResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/average-connection-duration:
@@ -2135,6 +2263,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiAnalyticsAverageConnectionDurationResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/response-status-ranges:
@@ -2156,6 +2286,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiAnalyticsResponseStatusRangesResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/response-time-over-time:
@@ -2177,6 +2309,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiAnalyticsOverPeriodResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/analytics/response-status-overtime:
@@ -2198,6 +2332,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiAnalyticsResponseStatusOvertimeResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2227,6 +2363,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiLogsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/logs/{requestId}:
@@ -2247,6 +2385,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiLogResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/logs/{requestId}/messages:
@@ -2270,6 +2410,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiMessageLogsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2292,6 +2434,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiHealthAverageResponseTimeResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/health/average-response-time-overtime:
@@ -2313,6 +2457,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiHealthAverageResponseTimeOvertimeResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/health/availability:
@@ -2333,6 +2479,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiHealthAvailabilityResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/health/logs:
@@ -2357,6 +2505,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiHealthLogsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2384,6 +2534,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/AuditsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/audits/events:
@@ -2403,6 +2555,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/AuditEventsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2430,6 +2584,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EventsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/events/{eventId}:
@@ -2450,6 +2606,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EventResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     # API Documentation
@@ -2476,6 +2634,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ApiDocumentationPagesResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -2501,6 +2661,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Page"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2526,6 +2688,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Page"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         put:
@@ -2551,6 +2715,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Page"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -2564,6 +2730,8 @@ paths:
             responses:
                 "204":
                     description: API Documentation page deleted
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2589,6 +2757,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Page"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2614,6 +2784,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Page"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2640,6 +2812,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Page"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2665,6 +2839,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiSpecGenRequestState"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2689,6 +2865,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiSpecGenRequestState"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     # API Scoring
@@ -2699,7 +2877,7 @@ paths:
             - $ref: "#/components/parameters/apiIdParam"
         post:
             tags:
-                - API Scoring
+                - Scoring
             summary: Trigger API Scoring
             description: |-
                 Trigger API Scoring.
@@ -2711,6 +2889,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiScoringTriggerResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/apis/{apiId}/scoring:
@@ -2720,7 +2900,7 @@ paths:
             - $ref: "#/components/parameters/apiIdParam"
         get:
             tags:
-                - API Scoring
+                - Scoring
             summary: Get API Scoring
             description: |-
                 Get API Scoring.
@@ -2734,6 +2914,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiScoring"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2754,8 +2936,10 @@ paths:
             description: Page of APIs within a Category
             operationId: getCategoryApisPage
             responses:
-                200:
+                "200":
                     $ref: "#/components/responses/CategoryApisResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2784,6 +2968,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/CategoryApi"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2817,6 +3003,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/AsyncJobsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2846,6 +3034,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/DebugEvent"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2868,6 +3058,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusRangesResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/analytics/top-hits:
@@ -2888,6 +3080,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentAnalyticsTopHitsApisResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/analytics/request-response-time:
@@ -2909,6 +3103,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentAnalyticsRequestResponseTimeResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/analytics/response-time-over-time:
@@ -2930,6 +3126,9 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentAnalyticsOverPeriodResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
+
     /organizations/{orgId}/environments/{envId}/analytics/response-status-overtime:
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
@@ -2949,6 +3148,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusOvertimeResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/analytics/top-apps-by-request-count:
@@ -2970,6 +3171,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentAnalyticsTopAppsByRequestCountResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/analytics/top-failed-apis:
@@ -2991,6 +3194,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentAnalyticsTopFailedApisResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     # Shared policy group
@@ -3016,6 +3221,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/SharedPolicyGroup"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         get:
@@ -3031,6 +3238,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SharedPolicyGroupsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/shared-policy-groups/policy-plugins:
@@ -3051,6 +3260,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/SharedPolicyGroupPolicyPlugin"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/shared-policy-groups/{sharedPolicyGroupId}:
@@ -3071,6 +3282,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/SharedPolicyGroup"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         put:
@@ -3093,6 +3306,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/SharedPolicyGroup"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -3105,6 +3320,8 @@ paths:
             responses:
                 "204":
                     description: Shared policy group deleted
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/shared-policy-groups/{sharedPolicyGroupId}/histories:
@@ -3124,6 +3341,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SharedPolicyGroupHistoriesResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/shared-policy-groups/{sharedPolicyGroupId}/_deploy:
@@ -3144,6 +3363,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/SharedPolicyGroup"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/shared-policy-groups/{sharedPolicyGroupId}/_undeploy:
@@ -3164,6 +3385,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/SharedPolicyGroup"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -3183,6 +3406,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentApisScoringResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/scoring/overview:
@@ -3201,6 +3426,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/EnvironmentScoringOverview"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/scoring/rulesets:
@@ -3209,8 +3436,7 @@ paths:
             - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
-                - Scoring
-                - Rulesets
+                - Scoring - Rulesets
             summary: Create a new ruleset at environment level
             operationId: createEnvironmentRuleset
             requestBody:
@@ -3222,17 +3448,20 @@ paths:
             responses:
                 "201":
                     description: Ruleset created
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         get:
             tags:
-                - Scoring
-                - Rulesets
+                - Scoring - Rulesets
             summary: Get all rulesets at environment level
             operationId: getEnvironmentRulesets
             responses:
                 "200":
                     $ref: "#/components/responses/ScoringRulesetsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/scoring/rulesets/{rulesetId}:
@@ -3241,8 +3470,7 @@ paths:
             - $ref: "#/components/parameters/envIdParam"
         delete:
             tags:
-                - Scoring
-                - Rulesets
+                - Scoring - Rulesets
             summary: Delete a ruleset
             operationId: deleteEnvironmentRuleset
             parameters:
@@ -3250,12 +3478,13 @@ paths:
             responses:
                 "204":
                     description: Ruleset deleted
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         get:
             tags:
-                - Scoring
-                - Rulesets
+                - Scoring - Rulesets
             summary: Get a specific ruleset
             operationId: getEnvironmentRuleset
             parameters:
@@ -3267,12 +3496,13 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ScoringRuleset"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         put:
             tags:
-                - Scoring
-                - Rulesets
+                - Scoring - Rulesets
             summary: Update ruleset
             operationId: updateEnvironmentRuleset
             parameters:
@@ -3290,6 +3520,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ScoringRuleset"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/scoring/functions:
@@ -3298,8 +3530,7 @@ paths:
             - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
-                - Scoring
-                - Functions
+                - Scoring - Functions
             summary: Create a new scoring function at environment level
             operationId: createEnvironmentScoringFunction
             requestBody:
@@ -3311,17 +3542,20 @@ paths:
             responses:
                 "201":
                     description: Scoring functions created
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         get:
             tags:
-                - Scoring
-                - Functions
+                - Scoring - Functions
             summary: Get all functions at environment level
             operationId: getEnvironmentScoringFunctions
             responses:
                 "200":
                     $ref: "#/components/responses/ScoringFunctionsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/scoring/functions/{scoringFunctionName}:
@@ -3330,8 +3564,7 @@ paths:
             - $ref: "#/components/parameters/envIdParam"
         delete:
             tags:
-                - Scoring
-                - Functions
+                - Scoring - Functions
             summary: Delete a scoring function
             operationId: deleteEnvironmentScoringFunction
             parameters:
@@ -3339,6 +3572,8 @@ paths:
             responses:
                 "204":
                     description: Scoring function deleted
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -3360,6 +3595,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/EnvironmentsResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}:
@@ -3382,6 +3619,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Environment"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}:
@@ -3403,6 +3642,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Organization"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/license:
@@ -3426,6 +3667,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/GraviteeLicense"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -3451,6 +3694,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/ConnectorPlugin"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/endpoints/{endpointId}:
@@ -3473,6 +3718,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ConnectorPlugin"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/endpoints/{endpointId}/documentation:
@@ -3495,6 +3742,8 @@ paths:
                         text/plain:
                             schema:
                                 type: string
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/endpoints/{endpointId}/more-information:
@@ -3517,6 +3766,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/MoreInformation"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/endpoints/{endpointId}/schema:
@@ -3535,6 +3786,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/endpoints/{endpointId}/shared-configuration-schema:
@@ -3553,6 +3806,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -3578,6 +3833,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/ConnectorPlugin"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/entrypoints/{entrypointId}:
@@ -3600,6 +3857,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ConnectorPlugin"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/entrypoints/{entrypointId}/documentation:
@@ -3622,6 +3881,8 @@ paths:
                         text/plain:
                             schema:
                                 type: string
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/entrypoints/{entrypointId}/more-information:
@@ -3644,6 +3905,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/MoreInformation"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/entrypoints/{entrypointId}/schema:
@@ -3662,6 +3925,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/entrypoints/{entrypointId}/subscription-schema:
@@ -3691,6 +3956,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -3711,6 +3978,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -3736,6 +4005,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/PolicyPlugin"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/policies/{policyId}:
@@ -3758,6 +4029,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/PolicyPlugin"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/policies/{policyId}/documentation:
@@ -3780,6 +4053,8 @@ paths:
                         text/plain:
                             schema:
                                 type: string
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/policies/{policyId}/schema:
@@ -3818,6 +4093,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -3843,6 +4120,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/ResourcePlugin"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/plugins/resources/{resourceId}:
@@ -3865,12 +4144,14 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ResourcePlugin"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
-    /organizations/{orgId}/plugins/resources/{policyId}/schema:
+    /organizations/{orgId}/plugins/resources/{resourceId}/schema:
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
-            - $ref: "#/components/parameters/policyIdParam"
+            - $ref: "#/components/parameters/resourceIdParam"
         get:
             parameters:
                 - name: display
@@ -3894,6 +4175,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -3920,6 +4203,8 @@ paths:
                                 $ref: "#/components/schemas/ConsoleCustomization"
                 "204":
                     description: The license does not contain OEM Customization
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/ui/themes:
@@ -3945,6 +4230,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ThemesResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/ui/themes/_default:
@@ -3971,6 +4258,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Theme"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/ui/themes/_current:
@@ -3996,6 +4285,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Theme"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/ui/themes/{themeId}:
@@ -4026,6 +4317,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Theme"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/ui/portal-menu-links:
@@ -4049,6 +4342,8 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/PortalMenuLinksResponse"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -4075,6 +4370,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/PortalMenuLink"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}/environments/{envId}/ui/portal-menu-links/{portalMenuLinkId}:
@@ -4102,6 +4399,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/PortalMenuLink"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         put:
@@ -4128,6 +4427,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/PortalMenuLink"
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -4143,6 +4444,8 @@ paths:
             responses:
                 "204":
                     description: Portal menu link successfully deleted
+                "400":
+                    $ref: "#/components/responses/Error"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -4211,17 +4514,17 @@ components:
                           type: string
                           format: date-time
                           description: The last date (as timestamp) when the API was deployed.
-                          example: 1581256457163
+                          example: "1581256457163"
                       createdAt:
                           type: string
                           format: date-time
                           description: The date (as timestamp) when the API was created.
-                          example: 1581256457163
+                          example: "1581256457163"
                       updatedAt:
                           type: string
                           format: date-time
                           description: The last date (as timestamp) when the API was updated.
-                          example: 1581256457163
+                          example: "1581256457163"
                       disableMembershipNotifications:
                           type: boolean
                           description: Disable membership notifications.
@@ -4531,7 +4834,7 @@ components:
                     type: string
                     format: date-time
                     description: The date (as timestamp) when the event was created.
-                    example: 1581256457163
+                    example: "1581256457163"
                 payload:
                     type: string
                     description: The payload of the event.
@@ -6345,19 +6648,10 @@ components:
                 entrypointConfiguration:
                     type: object
                     description: The configuration to use at subscription time to push to the target service.
-                    example: |
+                    example:
                         {
                             "callbackUrl": "https://webhook.site/aaaaaaaa-ffff-ffff-ffff-aaaaaaaa",
-                            "headers": [
-                                {
-                                    "name": "demoHeader",
-                                    "value": "my-value"
-                                },
-                                {
-                                    "name": "anotherHeader",
-                                    "value": "my-value2"
-                                }
-                            ]
+                            "headers": [{ "name": "demoHeader", "value": "my-value" }, { "name": "anotherHeader", "value": "my-value2" }],
                         }
             required: [entrypointId]
 
@@ -7852,19 +8146,13 @@ components:
         ApiMessageLogContent:
             type: object
             description: The message content.
-            example: |
+            example:
                 {
-                			"id": "0",
-                			"payload": "mock message",
-                			"headers": {
-                				"X-Mock": [
-                					"mocked"
-                				]
-                			},
-                			"metadata": {
-                				"MessageMetadata": "A metadata"
-                			}
-                		}
+                    "id": "0",
+                    "payload": "mock message",
+                    "headers": { "X-Mock": ["mocked"] },
+                    "metadata": { "MessageMetadata": "A metadata" },
+                }
             properties:
                 id:
                     type: string
@@ -8032,8 +8320,10 @@ components:
                     type: string
                     description: The type of the resource used to check the access control
                     example:
-                        - GROUP
-                        - ROLE
+                        group:
+                            value: GROUP
+                        role:
+                            value: ROLE
         Media:
             type: object
             properties:
@@ -10280,6 +10570,22 @@ components:
                 enum:
                     - endpoint
                     - gateway
+        subscriptionStatusesParam:
+            name: statuses
+            in: query
+            required: false
+            description: List of subscription status filters.
+            explode: false
+            schema:
+                type: array
+                items:
+                    $ref: "#/components/schemas/SubscriptionStatus"
+        subscriptionApiKeyParam:
+            name: apiKey
+            in: query
+            description: API Key associated to the subscription to filter on.
+            schema:
+                type: string
 
         sharedPolicyGroupId:
             name: sharedPolicyGroupId
