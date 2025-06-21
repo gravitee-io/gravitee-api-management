@@ -65,6 +65,8 @@ interface EnvironmentDS {
 interface GroupDS {
   id: string;
   name: string;
+  environmentId?: string;
+  environmentName?: string;
 }
 
 interface ApiDS {
@@ -154,9 +156,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       this.usersService.get(this.activatedRoute.snapshot.params.userId),
       this.environmentService.list(),
       this.usersService.getUserGroups(this.activatedRoute.snapshot.params.userId),
+      this.groupService.listByOrganization().pipe(shareReplay(1)), // Fetch groups only once
     ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([user, environments, groups]) => {
+      .subscribe(([user, environments, groups, allGroups]) => {
         const organizationRoles = user.roles.filter((r) => r.scope === 'ORGANIZATION');
         this.user = {
           ...user,
@@ -176,10 +179,15 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
         this.initEnvironmentsRolesForm(environments);
 
-        this.groupsTableDS = groups.map((g) => ({
-          id: g.id,
-          name: g.name,
-        }));
+        this.groupsTableDS = groups.map((g) => {
+          const fullGroup = allGroups.find((ag) => ag.id === g.id);
+          return {
+            id: g.id,
+            name: g.name,
+            environmentId: fullGroup?.environmentId ?? this.constants.org.currentEnv.id,
+            environmentName: fullGroup?.environmentName ?? this.constants.org.currentEnv.name,
+          };
+        });
         this.initialTableDS['groupsTableDS'] = this.groupsTableDS;
         this.tablesUnpaginatedLength['groupsTableDS'] = this.groupsTableDS.length;
         this.initGroupsRolesForm(groups);
@@ -414,7 +422,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.groupService.deleteMember(group.id, this.user.id)),
+        switchMap(() => this.groupService.deleteMember(group.id, this.user.id, group.environmentId)),
         tap(() => this.snackBarService.success(`"${this.user.displayName}" has been deleted from the group "${group.name}"`)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -443,16 +451,20 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .pipe(
         filter((groupeAdded) => !isEmpty(groupeAdded)),
         switchMap((groupeAdded) =>
-          this.groupService.addOrUpdateMemberships(groupeAdded.groupId, [
-            {
-              id: this.user.id,
-              roles: [
-                { scope: 'GROUP' as const, name: groupeAdded.isAdmin ? 'ADMIN' : '' },
-                { scope: 'API' as const, name: groupeAdded.apiRole },
-                { scope: 'APPLICATION' as const, name: groupeAdded.applicationRole },
-              ],
-            },
-          ]),
+          this.groupService.addOrUpdateMemberships(
+            groupeAdded.groupId,
+            [
+              {
+                id: this.user.id,
+                roles: [
+                  { scope: 'GROUP' as const, name: groupeAdded.isAdmin ? 'ADMIN' : '' },
+                  { scope: 'API' as const, name: groupeAdded.apiRole },
+                  { scope: 'APPLICATION' as const, name: groupeAdded.applicationRole },
+                ],
+              },
+            ],
+            groupeAdded.environmentId ?? this.constants.org.currentEnv.name,
+          ),
         ),
         tap(() => {
           this.snackBarService.success('Roles successfully updated');

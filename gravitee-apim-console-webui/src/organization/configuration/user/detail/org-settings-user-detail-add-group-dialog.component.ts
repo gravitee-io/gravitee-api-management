@@ -16,7 +16,7 @@
 import { Component, Inject } from '@angular/core';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { map, shareReplay } from 'rxjs/operators';
+import { map, shareReplay, switchMap, take } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
 import { RoleService } from '../../../../services-ngx/role.service';
@@ -24,6 +24,7 @@ import { GroupService } from '../../../../services-ngx/group.service';
 import { Group } from '../../../../entities/group/group';
 
 export type OrgSettingsUserDetailAddGroupDialogReturn = {
+  environmentId: any;
   groupId: string;
   apiRole: string;
   applicationRole?: string;
@@ -63,14 +64,30 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
         isAdmin: new UntypedFormControl(null),
         apiRole: new UntypedFormControl(null),
         applicationRole: new UntypedFormControl(null),
+        environmentId: new UntypedFormControl(null),
       },
       [leastOneGroupRoleIsRequiredValidator],
     );
+    this.addGroupForm
+      .get('groupId')
+      .valueChanges.pipe(
+        switchMap((selectedGroupId) =>
+          this.groups$.pipe(
+            take(1),
+            map((groups) => {
+              const selectedGroup = groups.find((g) => g.id === selectedGroupId);
+              return selectedGroup?.environmentId ?? null;
+            }),
+          ),
+        ),
+      )
+      .subscribe((environmentId) => {
+        this.addGroupForm.patchValue({ environmentId });
+      });
   }
 
   onSubmit() {
     const groupToAdd = this.addGroupForm.getRawValue();
-
     this.dialogRef.close(groupToAdd);
   }
 }
