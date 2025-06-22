@@ -18,6 +18,7 @@ package io.gravitee.plugin.endpoint.http.proxy.client;
 import io.gravitee.apim.common.mapper.HttpClientOptionsMapper;
 import io.gravitee.apim.common.mapper.HttpProxyOptionsMapper;
 import io.gravitee.apim.common.mapper.SslOptionsMapper;
+import io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;

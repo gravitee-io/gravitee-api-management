@@ -53,7 +53,9 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfigurationEvaluator;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfigurationEvaluator;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
@@ -110,6 +112,7 @@ class HttpConnectorTest {
     private HttpHeaders responseHeaders;
     private HttpProxyEndpointConnectorConfiguration configuration;
     private HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
+
     private HttpConnector cut;
 
     @BeforeAll
@@ -154,7 +157,7 @@ class HttpConnectorTest {
         configuration = new HttpProxyEndpointConnectorConfiguration();
         configuration.setTarget("http://localhost:" + wiremock.port() + "/team");
         sharedConfiguration = new HttpProxyEndpointConnectorSharedConfiguration();
-        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
+        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory(), deploymentCtx);
     }
 
     @AfterEach
@@ -186,7 +189,7 @@ class HttpConnectorTest {
         when(request.parameters()).thenReturn(parameters);
 
         configuration.setTarget("http://localhost:" + wiremock.port() + "/team?foo=bar");
-        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
+        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory(), deploymentCtx);
 
         wiremock.stubFor(get(urlPathEqualTo("/team")).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -536,7 +539,7 @@ class HttpConnectorTest {
 
         assertThrows(
             IllegalArgumentException.class,
-            () -> cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory())
+            () -> cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory(), deploymentCtx)
         );
     }
 
@@ -574,7 +577,7 @@ class HttpConnectorTest {
         when(request.parameters()).thenReturn(parameters);
 
         configuration.setTarget("http://localhost:" + wiremock.port() + "/team?param1=value1&param2=value2");
-        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
+        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory(), deploymentCtx);
 
         wiremock.stubFor(get(urlPathEqualTo("/team")).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -597,7 +600,7 @@ class HttpConnectorTest {
     void shouldErrorWhenExceptionIsThrown() {
         configuration.setTarget("http://localhost:" + wiremock.port() + "/team");
 
-        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
+        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory(), deploymentCtx);
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
         obs.assertError(NullPointerException.class);

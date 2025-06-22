@@ -15,6 +15,7 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
+import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.connector.endpoint.sync.HttpEndpointSyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
@@ -56,10 +57,7 @@ public class HttpProxyEndpointConnectorFactory implements HttpEndpointSyncConnec
                 new HttpProxyEndpointConnectorSharedConfigurationEvaluator(
                     connectorFactoryHelper.readConfiguration(HttpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration)
                 );
-            return new HttpProxyEndpointConnector(
-                configurationEvaluator.evalNow(deploymentContext),
-                sharedConfigurationEvaluator.evalNow(deploymentContext)
-            );
+            return new HttpProxyEndpointConnector(configurationEvaluator, sharedConfigurationEvaluator, deploymentContext);
         } catch (Exception e) {
             log.error("Can't create connector because no valid configuration", e);
             return null;

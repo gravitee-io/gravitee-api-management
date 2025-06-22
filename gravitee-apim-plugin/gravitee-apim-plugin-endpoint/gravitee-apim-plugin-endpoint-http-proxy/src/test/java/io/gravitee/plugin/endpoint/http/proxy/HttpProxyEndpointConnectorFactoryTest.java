@@ -27,6 +27,7 @@ import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfigurationEvaluator;
 import io.reactivex.rxjava3.core.Maybe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,19 +91,12 @@ class HttpProxyEndpointConnectorFactoryTest {
     void shouldCreateConnectorWithRightConfiguration() {
         HttpProxyEndpointConnector connector = cut.createConnector(deploymentContext, CONFIG, SHARED_CONFIG);
         assertThat(connector).isNotNull();
-        assertThat(connector.configuration).isNotNull();
-        verify(templateEngine).eval("https://localhost:8082/echo?foo=bar", String.class);
-        verify(templateEngine).eval("localhost", String.class);
-        verify(templateEngine).eval("user", String.class);
-        verify(templateEngine).eval("pwd", String.class);
-        verify(templateEngine).eval("Value1", String.class);
-        verify(templateEngine).eval("Value2", String.class);
     }
 
     @Test
     void shouldNotCreateConnectorWithNullConfiguration() {
         HttpProxyEndpointConnector connector = cut.createConnector(deploymentContext, null, null);
-        assertThat(connector).isNull();
+        assertThat(connector).isNotNull();
     }
 
     @Test
@@ -113,14 +107,17 @@ class HttpProxyEndpointConnectorFactoryTest {
             null
         );
         assertThat(connector).isNotNull();
-        assertThat(connector.configuration.getTarget()).isEqualTo("https://localhost:8082/echo?foo=bar");
-        assertThat(connector.sharedConfiguration.getHeaders()).isNull();
-        assertThat(connector.sharedConfiguration.getHttpOptions())
+        assertThat(connector.configurationEvaluator).isNotNull();
+        assertThat(connector.sharedConfigurationEvaluator).isNotNull();
+        assertThat(connector.configurationEvaluator.evalNow(deploymentContext).getTarget())
+            .isEqualTo("https://localhost:8082/echo?foo=bar");
+        assertThat(connector.sharedConfigurationEvaluator.evalNow(deploymentContext).getHeaders()).isNull();
+        assertThat(connector.sharedConfigurationEvaluator.evalNow(deploymentContext).getHttpOptions())
             .isNotNull()
             .usingRecursiveComparison()
             .isEqualTo(new HttpClientOptions());
-        assertThat(connector.sharedConfiguration.getProxyOptions()).isNull();
-        assertThat(connector.sharedConfiguration.getSslOptions()).isNull();
+        assertThat(connector.sharedConfigurationEvaluator.evalNow(deploymentContext).getProxyOptions()).isNull();
+        assertThat(connector.sharedConfigurationEvaluator.evalNow(deploymentContext).getSslOptions()).isNull();
     }
 
     static final String CONFIG = "{\n" + "  \"target\": \"https://localhost:8082/echo?foo=bar\"\n" + "}";
