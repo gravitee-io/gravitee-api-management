@@ -807,17 +807,17 @@ api:
       #      - apim.example.com
       #    secretName: api-custom-cert
     automation:
-        enabled: true
-        path: /automation
-        pathType: Prefix
-        hosts:
-          - apim.example.com
-        tls:
-          - hosts:
-              - apim.example.com
-            secretName: apim.example.com
-        annotations:
-          kubernetes.io/ingress.class: nginx
+      enabled: false
+      path: /automation
+      pathType: Prefix
+      hosts:
+        - apim.example.com
+      tls:
+        - hosts:
+            - apim.example.com
+          secretName: apim.example.com
+      annotations:
+        kubernetes.io/ingress.class: nginx
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
