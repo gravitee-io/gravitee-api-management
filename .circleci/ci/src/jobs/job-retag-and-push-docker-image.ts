@@ -20,6 +20,7 @@ import { DockerLoginCommand, DockerLogoutCommand } from '../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
+import { orbs } from '../orbs';
 
 export class ReTagAndPushDockerImageJob {
   private static jobName = 'job-retag-and-push-docker-image';
@@ -29,6 +30,8 @@ export class ReTagAndPushDockerImageJob {
   ]);
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ParameterizedJob {
+    dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
+    
     const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, isProd);
     dynamicConfig.addReusableCommand(dockerLoginCommand);
 
