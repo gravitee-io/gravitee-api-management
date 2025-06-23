@@ -29,4 +29,6 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: changed
+      description: 'Changed default behavior to enable multi-tenant support in dictionaries'
