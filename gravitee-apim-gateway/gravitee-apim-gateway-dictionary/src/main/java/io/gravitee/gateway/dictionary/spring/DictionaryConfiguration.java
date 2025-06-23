@@ -31,7 +31,7 @@ public class DictionaryConfiguration {
 
     @Bean
     public DictionaryManager dictionaryManager(
-        @Value("${dictionaries.multi-tenant.enabled:false}") boolean dictionariesMultiEnvironmentEnabled
+        @Value("${dictionaries.multi-tenant.enabled:true}") boolean dictionariesMultiEnvironmentEnabled
     ) {
         if (dictionariesMultiEnvironmentEnabled) {
             return new MultiEnvironmentDictionaryManager();

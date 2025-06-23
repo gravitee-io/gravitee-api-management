@@ -678,10 +678,10 @@ data:
     # Dictionaries multi tenant
     {{- if .Values.gateway.dictionaries }}
     {{- $multitenant := index .Values.gateway.dictionaries "multi-tenant" }}
-    {{- if and $multitenant $multitenant.enabled }}
+    {{- if and $multitenant (not $multitenant.enabled) }}
     dictionaries:
       multi-tenant:
-        enabled: true
+        enabled: false
     {{- end }}
     {{- end }}
 
