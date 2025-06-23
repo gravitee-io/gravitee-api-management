@@ -22,18 +22,16 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Key;
-import io.gravitee.rest.api.portal.rest.model.Subscription;
-import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
-import io.gravitee.rest.api.portal.rest.model.UpdateSubscriptionInput;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -346,6 +344,67 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
         Response response = target(SUBSCRIPTION).path("_changeConsumerStatus").queryParam("status", "STOPPED").request().post(null);
 
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturnEmptyWhenNoAppsFound() {
+        when(applicationService.findByUser(any(), any())).thenReturn(Collections.emptySet());
+
+        final Response response = target().queryParam("apiId", API).request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldThrowForbiddenWhenNoPermission() {
+        doReturn(false).when(permissionService).hasPermission(any(), any(), any(), any());
+
+        final Response response = target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get();
+
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturnEmptyWhenNoSubscriptions() {
+        doReturn(true).when(permissionService).hasPermission(any(), any(), any(), any());
+        doReturn(Collections.emptyList()).when(subscriptionService).search(any(), any());
+
+        final Response response = target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturnMappedSubscriptions() {
+        doReturn(true).when(permissionService).hasPermission(any(), any(), any(), any());
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("sub-id");
+        doReturn(Collections.singletonList(subscription)).when(subscriptionService).search(any(), any());
+        doReturn(new Metadata()).when(subscriptionService).getMetadata(any(), any());
+
+        final Response response = target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldReturnAllSubscriptionsWhenPaginationIsDisabled() {
+        doReturn(true).when(permissionService).hasPermission(any(), any(), any(), any());
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("sub-id");
+        subscription.setStatus(SubscriptionStatus.ACCEPTED);
+        doReturn(Collections.singletonList(subscription)).when(subscriptionService).search(any(), any());
+        doReturn(new Metadata()).when(subscriptionService).getMetadata(any(), any());
+
+        final Response response = target()
+            .queryParam("apiId", API)
+            .queryParam("applicationId", APPLICATION)
+            .queryParam("size", -1)
+            .request()
+            .get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
     @Getter
