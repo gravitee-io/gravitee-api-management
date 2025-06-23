@@ -746,12 +746,6 @@ api:
 #  delay: 0
 #  unit: MILLISECONDS
 
-# Before enabling multi-tenancy support for dictionaries, ensure you’re not mixing dictionaries across environments.
-# If any environment lacks a required dictionary recreate it, otherwise dictionaries will stop working once multi-tenancy is enabled
-dictionaries:
-  multi-tenant:
-    enabled: false
-
 # Since v3.15.0, a new internal classloader used to load api policies is in place.
 # Setting it to true will switch back to the legacy mode used prior the v3.15.0.
 classloader:
