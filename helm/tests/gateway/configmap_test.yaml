@@ -84,9 +84,23 @@ tests:
           multi-tenant:
             enabled: true
     asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s*dictionaries:
+            \s*multi-tenant:
+
+  - it: disable dictionaries multitenant
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        dictionaries:
+          multi-tenant:
+            enabled: false
+    asserts:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: |
             \s*dictionaries:
             \s*multi-tenant:
-            \s*enabled: true
+            \s*enabled: false
