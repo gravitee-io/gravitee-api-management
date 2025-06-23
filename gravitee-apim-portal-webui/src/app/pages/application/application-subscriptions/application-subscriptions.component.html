@@ -151,6 +151,9 @@
           (:gv-table:select)="onSelectSubscription($event.detail.items[0])"
         ></gv-table>
       </div>
+      <div class="page__content__pagination" [id]="fragments.pagination">
+        <gv-pagination [data]="paginationData" widget has-select></gv-pagination>
+      </div>
     </div>
   </div>
 
