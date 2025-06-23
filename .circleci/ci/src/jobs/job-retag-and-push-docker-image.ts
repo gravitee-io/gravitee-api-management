@@ -44,8 +44,7 @@ export class ReTagAndPushDockerImageJob {
       new reusable.ReusedCommand(dockerLoginCommand),
       new commands.Run({
         name: 'Pull existing image',
-        command: `docker pull graviteeio.azurecr.io/<< parameters.docker-image-name >>:${sourceTag}`,
-        working_directory: '<< parameters.apim-project >>',
+        command: `docker pull graviteeio.azurecr.io/<< parameters.docker-image-name >>:${sourceTag}`
       }),
       new commands.Run({
         name: 'Retag image',
