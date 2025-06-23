@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-rating-list';
@@ -22,6 +22,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
 
 import { NotificationService } from '../../../services/notification.service';
 import {
@@ -37,6 +38,7 @@ import {
   Subscription,
   SubscriptionService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
+import { ConfigurationService } from '../../../services/configuration.service';
 
 const StatusEnum = Subscription.StatusEnum;
 const SecurityEnum = Plan.SecurityEnum;
@@ -74,6 +76,13 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   application: Application;
   sharedAPIKey: Key | null;
   sharedAPIKeyLoaded: boolean;
+  paginationData: Pagination;
+  paginationPageSizes: Array<number>;
+  paginationSize: number;
+  selectedPageSize: number;
+  fragments: { pagination: string } = {
+    pagination: 'pagination',
+  };
 
   constructor(
     private route: ActivatedRoute,
@@ -87,6 +96,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     private permissionsService: PermissionsService,
     private ref: ChangeDetectorRef,
     private ngZone: NgZone,
+    private config: ConfigurationService,
   ) {}
 
   ngOnInit() {
@@ -96,6 +106,8 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       this.canDelete = permissions?.SUBSCRIPTION?.includes('D');
       this.canUpdate = permissions?.SUBSCRIPTION?.includes('U');
       this.format = key => this.translateService.get(key).toPromise();
+      this.paginationPageSizes = this.config.get('pagination.size.values', [5, 10, 25, 50, 100]);
+      this.paginationSize = this.config.get('pagination.size.default', 10);
       this.apisOptions = [];
       this.options = {
         selectable: true,
@@ -265,7 +277,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     this.ngZone.run(() => this.router.navigate(['/catalog/api/', apiId]));
   }
 
-  search(displaySubscription?): Promise<void> {
+  search(displaySubscription?, size?, page?): Promise<void> {
     const applicationId = this.route.snapshot.params.applicationId;
     const requestParameters: GetSubscriptionsRequestParams = { applicationId };
     if (this.form.value.api) {
@@ -274,11 +286,29 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     if (this.form.value.status) {
       requestParameters.statuses = this.form.value.status;
     }
+    if (size) {
+      requestParameters.size = size;
+      requestParameters.page = page;
+      this.selectedPageSize = size;
+    } else if (this.selectedPageSize) {
+      requestParameters.size = this.selectedPageSize;
+    }
     this.isSearching = true;
     return this.subscriptionService
       .getSubscriptions(requestParameters)
       .toPromise()
       .then(response => {
+        const pagination = response.metadata.pagination as unknown as Pagination;
+        if (pagination) {
+          this.paginationData = {
+            size: this.paginationSize,
+            sizes: this.paginationPageSizes,
+            ...this.paginationData,
+            ...pagination,
+          };
+        } else {
+          this.paginationData = null;
+        }
         this.subscriptions = response.data;
         this.metadata = response.metadata;
         if (displaySubscription && this.route.snapshot.queryParams.subscription) {
@@ -417,5 +447,10 @@ export class ApplicationSubscriptionsComponent implements OnInit {
 
   applicationHasSharedKey() {
     return this.application?.api_key_mode === ApiKeyModeEnum.SHARED;
+  }
+
+  @HostListener(':gv-pagination:paginate', ['$event.detail'])
+  onPaginate({ page, size }) {
+    this.search(true, size, page);
   }
 }
