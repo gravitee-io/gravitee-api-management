@@ -31,7 +31,7 @@ export class ReTagAndPushDockerImageJob {
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ParameterizedJob {
     dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
-    
+
     const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, isProd);
     dynamicConfig.addReusableCommand(dockerLoginCommand);
 
