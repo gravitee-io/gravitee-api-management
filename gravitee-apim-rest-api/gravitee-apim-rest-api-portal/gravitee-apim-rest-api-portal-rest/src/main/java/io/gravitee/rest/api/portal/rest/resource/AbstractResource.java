@@ -273,7 +273,7 @@ public abstract class AbstractResource<T, K> {
             paginationMetadata.put(METADATA_PAGINATION_TOTAL_KEY, totalItems);
             paginationMetadata.put(METADATA_PAGINATION_TOTAL_PAGE_KEY, totalPages);
 
-            return new ArrayList(list).subList(startIndex, lastIndex);
+            return startIndex > list.size() ? new ArrayList(list) : new ArrayList(list).subList(startIndex, lastIndex);
         }
     }
 
@@ -287,7 +287,12 @@ public abstract class AbstractResource<T, K> {
         Map<String, Object> dataMetadata = new HashMap<>();
         Map<String, Object> paginationMetadata = new HashMap<>();
 
-        int totalItems = dataList.size();
+        Object totalObj = null;
+        if (metadata != null && metadata.containsKey("paginateMetaData")) {
+            totalObj = metadata.get("paginateMetaData").get("totalElements");
+        }
+
+        int totalItems = totalObj != null ? Integer.parseInt(totalObj.toString()) : dataList.size();
 
         List pageContent;
         if (withPagination && totalItems > 0 && paginationParam.getSize() > 0) {
