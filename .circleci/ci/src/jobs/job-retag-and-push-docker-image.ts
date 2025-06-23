@@ -21,6 +21,7 @@ import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/C
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import { orbs } from '../orbs';
+import { aquaSetupCommands } from './job-build-docker-image';
 
 export class ReTagAndPushDockerImageJob {
   private static jobName = 'job-retag-and-push-docker-image';
@@ -45,6 +46,7 @@ export class ReTagAndPushDockerImageJob {
       new commands.Checkout(),
       new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(dockerLoginCommand),
+      ...aquaSetupCommands(),
       new commands.Run({
         name: 'Pull existing image',
         command: `docker pull graviteeio.azurecr.io/<< parameters.docker-image-name >>:${sourceTag}`,
