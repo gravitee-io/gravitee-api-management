@@ -48,6 +48,7 @@ import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.AccessControlReferenceType;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.GroupEventRuleEntity;
 import io.gravitee.rest.api.model.GroupSimpleEntity;
