@@ -15,17 +15,13 @@
  */
 package io.gravitee.rest.api.model;
 
-<<<<<<< HEAD
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-=======
-import com.fasterxml.jackson.annotation.JsonInclude;
-import java.util.Objects;
->>>>>>> 95d29a9fed (fix(console): handle group add/delete based on correct environment ID)
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -43,8 +39,6 @@ public class GroupSimpleEntity {
     private String id;
 
     private String name;
-<<<<<<< HEAD
-=======
     private String environmentName;
     private String environmentId;
 
@@ -112,5 +106,4 @@ public class GroupSimpleEntity {
             '}'
         );
     }
->>>>>>> 95d29a9fed (fix(console): handle group add/delete based on correct environment ID)
 }
