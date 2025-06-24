@@ -67,11 +67,8 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
         isAdmin: new UntypedFormControl(null),
         apiRole: new UntypedFormControl(null),
         applicationRole: new UntypedFormControl(null),
-<<<<<<< HEAD
         integrationRole: new UntypedFormControl(null),
-=======
         environmentId: new UntypedFormControl(null),
->>>>>>> 95d29a9fed (fix(console): handle group add/delete based on correct environment ID)
       },
       [leastOneGroupRoleIsRequiredValidator],
     );
