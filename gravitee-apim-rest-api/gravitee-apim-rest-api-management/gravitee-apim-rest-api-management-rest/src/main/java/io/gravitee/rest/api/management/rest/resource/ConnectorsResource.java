@@ -37,7 +37,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,7 +71,6 @@ public class ConnectorsResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public Collection<ConnectorListItem> getConnectors(@QueryParam("expand") List<String> expand) {
-        expand = expand == null ? Collections.emptyList() : expand;
         boolean includeSchema = expand.contains("schema");
         boolean includeIcon = expand.contains("icon");
         Stream<ConnectorListItem> stream = connectorService
