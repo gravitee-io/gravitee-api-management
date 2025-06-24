@@ -44,6 +44,7 @@ export class ReTagAndPushDockerImageJob {
 
     const steps: Command[] = [
       new commands.Checkout(),
+      new commands.workspace.Attach({ at: '.' }),
       new commands.SetupRemoteDocker({ version: config.docker.version }),
       new reusable.ReusedCommand(dockerLoginCommand),
       ...aquaSetupCommands(),
