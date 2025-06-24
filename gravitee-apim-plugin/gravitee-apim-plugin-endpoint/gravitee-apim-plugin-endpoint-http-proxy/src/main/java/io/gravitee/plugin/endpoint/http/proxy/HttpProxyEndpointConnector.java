@@ -16,6 +16,7 @@
 package io.gravitee.plugin.endpoint.http.proxy;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.connector.endpoint.sync.HttpEndpointSyncConnector;
@@ -33,12 +34,10 @@ import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.WebSocketConnector;
 import io.reactivex.rxjava3.core.Completable;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -54,7 +53,9 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private DeploymentContext deploymentContext;
 
     protected HttpProxyEndpointConnectorConfiguration configuration;
+    private Instant configurationLastUpdate = Instant.EPOCH;
     protected HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
+    private Instant sharedConfigurationLastUpdate = Instant.EPOCH;
     private final HttpClientFactory httpClientFactory;
     private final GrpcHttpClientFactory grpcHttpClientFactory;
 
@@ -62,7 +63,6 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private boolean targetStartWithGrpc;
     protected HttpProxyEndpointConnectorConfigurationEvaluator configurationEvaluator;
     protected HttpProxyEndpointConnectorSharedConfigurationEvaluator sharedConfigurationEvaluator;
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public HttpProxyEndpointConnector(
         HttpProxyEndpointConnectorConfigurationEvaluator configurationEvaluator,
@@ -104,37 +104,30 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     public Completable connect(HttpExecutionContext ctx) {
         return Completable.defer(() -> {
             HttpRequest request = ctx.request();
-            if (this.deploymentContext != null && this.configurationEvaluator != null) {
-                this.configuration = this.configurationEvaluator.evalNow(this.deploymentContext);
-            }
-            if (this.deploymentContext != null && this.sharedConfigurationEvaluator != null) {
-                this.sharedConfiguration = this.sharedConfigurationEvaluator.evalNow(this.deploymentContext);
-            }
-            if (this.configuration != null && this.configuration.getTarget() == null || this.configuration.getTarget().isBlank()) {
+            updateConfiguration();
+            updateSharedConfiguration();
+            if (configuration != null && (configuration.getTarget() == null || configuration.getTarget().isBlank())) {
                 throw new IllegalArgumentException("target cannot be null or empty");
-            }
-            if (this.configuration != null) {
-                this.targetStartWithGrpc = configuration.getTarget().startsWith("grpc://");
-            }
-            scheduler.scheduleAtFixedRate(
-                () -> {
-                    try {
-                        this.configuration = configurationEvaluator.evalNow(deploymentContext);
-                        this.sharedConfiguration = sharedConfigurationEvaluator.evalNow(deploymentContext);
-                        log.info("Configuration re-evaluated successfully.after {} seconds " + EXPRESSION_EVAL_INTERVAL);
-                    } catch (Exception e) {
-                        log.error("Failed to refresh configuration", e);
-                    }
-                },
-                10,
-                EXPRESSION_EVAL_INTERVAL,
-                TimeUnit.SECONDS
-            );
-            if (this.configuration != null) {
-                this.targetStartWithGrpc = configuration.getTarget().startsWith("grpc://");
             }
             return getConnector(request).connect(ctx);
         });
+    }
+
+    protected void updateConfiguration() {
+        if (deploymentContext != null && configurationEvaluator != null && configurationLastUpdate.isBefore(TimeProvider.instantNow().minusSeconds(EXPRESSION_EVAL_INTERVAL))) {
+            configuration = configurationEvaluator.evalNow(deploymentContext);
+            if (configuration != null) {
+                targetStartWithGrpc = configuration.getTarget().startsWith("grpc://");
+            }
+            configurationLastUpdate = TimeProvider.instantNow();
+        }
+    }
+
+    protected void updateSharedConfiguration() {
+        if (deploymentContext != null && sharedConfigurationEvaluator != null && sharedConfigurationLastUpdate.isBefore(TimeProvider.instantNow().minusSeconds(EXPRESSION_EVAL_INTERVAL))) {
+            sharedConfiguration = sharedConfigurationEvaluator.evalNow(deploymentContext);
+            sharedConfigurationLastUpdate = TimeProvider.instantNow();
+        }
     }
 
     private ProxyConnector getConnector(HttpRequest request) {
