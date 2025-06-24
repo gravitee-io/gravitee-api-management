@@ -51,10 +51,18 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.logging.log4j.util.PropertySource;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.util.BytesRef;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -294,5 +302,32 @@ public class IndexableApiDocumentTransformerTest {
                 .contains("Category1", "Category2");
             softly.assertThat(result.getFields(FIELD_HOSTS)).extracting(IndexableField::stringValue).contains("native.kafka");
         });
+    }
+
+    @Test
+    void should_sort_names_by_bytesref() throws Exception {
+        List<String> names = List.of("nano", "Zorro", "Äther", "VEM", "épée", "Épona", "Öko", "BNS");
+        List<String> expectedSorted = List.of("Äther", "BNS", "épée", "Épona", "nano", "Öko", "VEM", "Zorro");
+
+        Method toSortedValueMethod = IndexableApiDocumentTransformer.class.getDeclaredMethod("toSortedValue", String.class);
+        toSortedValueMethod.setAccessible(true);
+        Map<String, BytesRef> bytesRefMap = new HashMap<>();
+        for (String name : names) {
+            BytesRef key = (BytesRef) toSortedValueMethod.invoke(cut, name);
+            bytesRefMap.put(name, key);
+        }
+        List<String> sortedByBytesRef = new ArrayList<>(names);
+        sortedByBytesRef.sort(Comparator.comparing(bytesRefMap::get, BytesRef::compareTo));
+
+        // Also sort with collator directly for comparison
+        List<String> sortedByCollator = new ArrayList<>(names);
+        Field collatorField = IndexableApiDocumentTransformer.class.getDeclaredField("collator");
+        collatorField.setAccessible(true);
+        Collator collator = (Collator) collatorField.get(cut);
+        sortedByCollator.sort(collator);
+
+        // Assertions
+        assertThat(sortedByBytesRef).isEqualTo(expectedSorted);
+        assertThat(sortedByCollator).isEqualTo(expectedSorted);
     }
 }
