@@ -80,8 +80,8 @@ public class PoliciesResource {
                 ? GraviteeContext.getCurrentOrganization()
                 : GraviteeContext.getDefaultOrganization()
         );
-        boolean includeSchema = expand != null && expand.contains("schema");
-        boolean includeIcon = expand != null && expand.contains("icon");
+        boolean includeSchema = expand.contains("schema");
+        boolean includeIcon = expand.contains("icon");
         Stream<PolicyListItem> stream = policyService
             .findAll(withResource)
             .stream()

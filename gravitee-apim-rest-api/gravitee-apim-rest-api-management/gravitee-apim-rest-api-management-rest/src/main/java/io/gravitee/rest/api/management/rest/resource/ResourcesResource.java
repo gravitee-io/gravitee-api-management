@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static java.util.Collections.emptyList;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
@@ -42,12 +40,10 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -86,7 +82,6 @@ public class ResourcesResource {
                 : GraviteeContext.getDefaultOrganization()
         );
 
-        expand = expand == null ? emptyList() : expand;
         boolean includeSchema = expand.contains("schema");
         boolean includeIcon = expand.contains("icon");
 
