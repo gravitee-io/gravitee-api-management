@@ -23,6 +23,10 @@ import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
+import java.text.CollationKey;
+import java.text.Collator;
+import java.util.Base64;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -77,6 +81,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_HAS_HEALTH_CHECK = "has_health_check";
 
     private ApiService apiService;
+    private final Collator collator = Collator.getInstance(Locale.ENGLISH);
 
     public ApiDocumentTransformer(@Lazy ApiService apiService) {
         this.apiService = apiService;
@@ -214,12 +219,16 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
             doc.add(new TextField(FIELD_HOSTS_SPLIT, host, Field.Store.NO));
         }
         if (pathIndex[0]++ == 0) {
-            doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, new BytesRef(QueryParser.escape(path))));
+            doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, toSortedValue(path)));
         }
     }
 
     private BytesRef toSortedValue(String value) {
-        return new BytesRef(SPECIAL_CHARS.matcher(value).replaceAll("").toLowerCase());
+        if (value == null) return new BytesRef("");
+        String cleaned = SPECIAL_CHARS.matcher(value).replaceAll("");
+        collator.setStrength(Collator.SECONDARY);
+        CollationKey key = collator.getCollationKey(cleaned);
+        return new BytesRef(key.toByteArray());
     }
 
     @Override
