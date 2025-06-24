@@ -700,6 +700,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -727,6 +728,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
