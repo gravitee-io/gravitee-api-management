@@ -457,19 +457,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .pipe(
         filter((groupeAdded) => !isEmpty(groupeAdded)),
         switchMap((groupeAdded) =>
-<<<<<<< HEAD
-          this.groupService.addOrUpdateMemberships(groupeAdded.groupId, [
-            {
-              id: this.user.id,
-              roles: [
-                { scope: 'GROUP' as const, name: groupeAdded.isAdmin ? 'ADMIN' : '' },
-                { scope: 'API' as const, name: groupeAdded.apiRole },
-                { scope: 'APPLICATION' as const, name: groupeAdded.applicationRole },
-                { scope: 'INTEGRATION' as const, name: groupeAdded.integrationRole },
-              ],
-            },
-          ]),
-=======
           this.groupService.addOrUpdateMemberships(
             groupeAdded.groupId,
             [
@@ -479,12 +466,12 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
                   { scope: 'GROUP' as const, name: groupeAdded.isAdmin ? 'ADMIN' : '' },
                   { scope: 'API' as const, name: groupeAdded.apiRole },
                   { scope: 'APPLICATION' as const, name: groupeAdded.applicationRole },
+                  { scope: 'INTEGRATION' as const, name: groupeAdded.integrationRole },
                 ],
               },
             ],
             groupeAdded.environmentId ?? this.constants.org.currentEnv.name,
           ),
->>>>>>> 95d29a9fed (fix(console): handle group add/delete based on correct environment ID)
         ),
         tap(() => {
           this.snackBarService.success('Roles successfully updated');
