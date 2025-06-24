@@ -16,7 +16,7 @@
 import { commands, Config, parameters, reusable } from '@circleci/circleci-config-sdk';
 import { computeImagesTag } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
-import { DockerLoginCommand, DockerLogoutCommand } from '../commands';
+import { CreateDockerContextCommand, DockerLoginCommand, DockerLogoutCommand } from '../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
@@ -33,6 +33,9 @@ export class ReTagAndPushDockerImageJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ParameterizedJob {
     dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
 
+    const createDockerContextCommand = CreateDockerContextCommand.get();
+    dynamicConfig.addReusableCommand(createDockerContextCommand);
+    
     const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, isProd);
     dynamicConfig.addReusableCommand(dockerLoginCommand);
 
@@ -46,6 +49,7 @@ export class ReTagAndPushDockerImageJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new commands.SetupRemoteDocker({ version: config.docker.version }),
+      new reusable.ReusedCommand(createDockerContextCommand),
       new reusable.ReusedCommand(dockerLoginCommand),
       ...aquaSetupCommands(),
       new commands.Run({
