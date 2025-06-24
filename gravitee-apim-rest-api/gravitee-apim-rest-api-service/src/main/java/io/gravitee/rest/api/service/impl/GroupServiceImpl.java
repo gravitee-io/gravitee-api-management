@@ -171,11 +171,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     private ApiConverter apiConverter;
 
     @Autowired
-<<<<<<< HEAD
     private PortalNotificationConfigService portalNotificationConfigService;
-=======
+
+    @Autowired
     private EnvironmentService environmentService;
->>>>>>> 131c01533a (fix(console): handle group add/delete based on correct environment ID)
 
     @Override
     public List<GroupEntity> findAll(ExecutionContext executionContext) {
