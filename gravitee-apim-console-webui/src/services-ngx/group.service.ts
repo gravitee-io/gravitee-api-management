@@ -61,7 +61,6 @@ export class GroupService {
     return this.http.post<void>(`${environmentUrl}/configuration/groups/${groupId}/members`, groupMembershipToSend);
   }
 
-<<<<<<< HEAD
   delete(id: string) {
     return this.http.delete<void>(`${this.constants.env.baseURL}/configuration/groups/${id}`);
   }
@@ -92,13 +91,9 @@ export class GroupService {
     });
   }
 
-  deleteMember(groupId: string, memberId: string): Observable<void> {
-    return this.http.delete<void>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members/${memberId}`);
-=======
   deleteMember(groupId: string, memberId: string, environmentId?: string): Observable<void> {
     const environmentUrl = environmentId ? `${this.constants.org.baseURL}/environments/${environmentId}` : this.constants.env.baseURL;
     return this.http.delete<void>(`${environmentUrl}/configuration/groups/${groupId}/members/${memberId}`);
->>>>>>> 131c01533a (fix(console): handle group add/delete based on correct environment ID)
   }
 
   getInvitations(groupId: string): Observable<Invitation[]> {
