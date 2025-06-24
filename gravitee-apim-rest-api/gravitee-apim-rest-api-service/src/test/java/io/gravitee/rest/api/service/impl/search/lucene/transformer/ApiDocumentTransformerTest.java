@@ -26,13 +26,21 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.text.Collator;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.util.BytesRef;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -134,5 +142,27 @@ public class ApiDocumentTransformerTest {
         assertThat(toTransform.getMetadata().values()).hasSameSizeAs(transformed.getFields("metadata"));
         assertThat(toTransform.getDefinitionContext().getOrigin()).isEqualTo(transformed.get("origin"));
         assertThat("true").isEqualTo(transformed.get("has_health_check"));
+    }
+
+    @Test
+    public void shouldSortListCorrectlyWithCollatorAndBytesRef() throws Exception {
+        List<String> names = List.of("nano", "Zorro", "äther", "vem", "foo/bar", "Épée", "épona", "öko", "bns-One");
+        List<String> expectedSorted = List.of("äther", "bns-One", "Épée", "épona", "foo/bar", "nano", "öko", "vem", "Zorro");
+        Method toSortedValueMethod = ApiDocumentTransformer.class.getDeclaredMethod("toSortedValue", String.class);
+        toSortedValueMethod.setAccessible(true);
+
+        Field collatorField = ApiDocumentTransformer.class.getDeclaredField("collator");
+        collatorField.setAccessible(true);
+        Collator collator = (Collator) collatorField.get(cut);
+        List<String> sortedByCollator = new ArrayList<>(names);
+        sortedByCollator.sort(collator);
+        Map<String, BytesRef> bytesRefMap = new HashMap<>();
+        for (String name : names) {
+            bytesRefMap.put(name, (BytesRef) toSortedValueMethod.invoke(cut, name));
+        }
+        List<String> sortedByBytesRef = new ArrayList<>(names);
+        sortedByBytesRef.sort(Comparator.comparing(bytesRefMap::get));
+        assertThat(sortedByCollator).isEqualTo(expectedSorted);
+        assertThat(sortedByBytesRef).isEqualTo(expectedSorted);
     }
 }
