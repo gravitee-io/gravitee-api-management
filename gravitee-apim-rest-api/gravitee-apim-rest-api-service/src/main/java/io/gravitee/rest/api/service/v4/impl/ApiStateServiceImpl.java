@@ -472,7 +472,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                                 apiEntity
                             );
                     } else if (genericApiEntity instanceof ApiEntity httpApiEntity) {
-                        ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, null, false);
+                        ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, false);
 
                         sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApiEntity, httpApiEntity);
                     } else if (genericApiEntity instanceof NativeApiEntity nativeApiEntity) {
