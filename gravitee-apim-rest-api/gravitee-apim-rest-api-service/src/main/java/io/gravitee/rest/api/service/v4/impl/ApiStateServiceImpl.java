@@ -469,9 +469,14 @@ public class ApiStateServiceImpl implements ApiStateService {
                                 deployedApiEntity,
                                 apiEntity
                             );
+<<<<<<< HEAD
                     } else {
                         ApiEntity apiEntity = (ApiEntity) genericApiEntity;
                         ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, null, false);
+=======
+                    } else if (genericApiEntity instanceof ApiEntity httpApiEntity) {
+                        ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, false);
+>>>>>>> 4495145e01 (fix: Primary owner Group should not be removed from an API)
 
                         sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApiEntity, apiEntity);
                     }
