@@ -56,10 +56,7 @@ public class HttpProxyEndpointConnectorFactory implements HttpEndpointSyncConnec
                 new HttpProxyEndpointConnectorSharedConfigurationEvaluator(
                     connectorFactoryHelper.readConfiguration(HttpProxyEndpointConnectorSharedConfiguration.class, sharedConfiguration)
                 );
-            return new HttpProxyEndpointConnector(
-                configurationEvaluator.evalNow(deploymentContext),
-                sharedConfigurationEvaluator.evalNow(deploymentContext)
-            );
+            return new HttpProxyEndpointConnector(configurationEvaluator, sharedConfigurationEvaluator, deploymentContext);
         } catch (Exception e) {
             log.error("Can't create connector because no valid configuration", e);
             return null;
