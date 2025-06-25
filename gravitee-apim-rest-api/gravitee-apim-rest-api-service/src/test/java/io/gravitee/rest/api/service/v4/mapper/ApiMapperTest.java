@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -41,6 +42,8 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
@@ -50,6 +53,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
@@ -483,4 +487,106 @@ public class ApiMapperTest {
         );
         assertThat(api.getDefinition()).isEqualTo(objectMapper.writeValueAsString(apiDefinition));
     }
+<<<<<<< HEAD
+=======
+
+    @Test
+    public void shouldCreateNativeEntityFromApiRepository() throws JsonProcessingException {
+        var apiDefinition = new io.gravitee.definition.model.v4.nativeapi.NativeApi();
+        apiDefinition.setDefinitionVersion(DefinitionVersion.V4);
+        apiDefinition.setListeners(List.of(new KafkaListener()));
+
+        NativeEndpointGroup nativeEndpointGroup = new NativeEndpointGroup();
+        nativeEndpointGroup.setType("native-kafka");
+
+        apiDefinition.setEndpointGroups(List.of(nativeEndpointGroup));
+        apiDefinition.setServices(new NativeApiServices());
+        apiDefinition.setResources(List.of(new Resource()));
+        apiDefinition.setProperties(List.of(new Property("key", "value")));
+        apiDefinition.setTags(Set.of("tag"));
+        apiDefinition.setFlows(List.of(new NativeFlow(), new NativeFlow()));
+
+        Api api = new Api();
+        api.setId("id");
+        api.setCrossId("crossId");
+        api.setType(ApiType.NATIVE);
+        api.setName("name");
+        api.setVersion("version");
+        api.setUpdatedAt(new Date());
+        api.setDeployedAt(new Date());
+        api.setCreatedAt(new Date());
+        api.setDescription("description");
+        api.setGroups(Set.of("group1"));
+        api.setEnvironmentId("environmentId");
+        api.setCategories(Set.of("category"));
+        api.setPicture("picture");
+        api.setBackground("background");
+        api.setLabels(List.of("label"));
+        api.setLifecycleState(LifecycleState.STARTED);
+        api.setVisibility(Visibility.PUBLIC);
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        when(categoryMapper.toCategoryKey(any(), eq(api.getCategories()))).thenReturn(api.getCategories());
+
+        var nativeEntity = apiMapper.toNativeEntity(api, new PrimaryOwnerEntity());
+
+        assertThat(nativeEntity.getId()).isEqualTo("id");
+        assertThat(nativeEntity.getCrossId()).isEqualTo("crossId");
+        assertThat(nativeEntity.getType()).isEqualTo(ApiType.NATIVE);
+        assertThat(nativeEntity.getName()).isEqualTo("name");
+        assertThat(nativeEntity.getApiVersion()).isEqualTo("version");
+        assertThat(nativeEntity.getUpdatedAt()).isNotNull();
+        assertThat(nativeEntity.getDeployedAt()).isNotNull();
+        assertThat(nativeEntity.getCreatedAt()).isNotNull();
+        assertThat(nativeEntity.getDescription()).isEqualTo("description");
+        assertThat(nativeEntity.getGroups().size()).isEqualTo(1);
+        assertThat(nativeEntity.getReferenceType()).isEqualTo(ReferenceContext.Type.ENVIRONMENT.name());
+        assertThat(nativeEntity.getReferenceId()).isEqualTo("environmentId");
+        assertThat(nativeEntity.getCategories().size()).isEqualTo(1);
+        assertThat(nativeEntity.getPicture()).isEqualTo("picture");
+        assertThat(nativeEntity.getBackground()).isEqualTo("background");
+        assertThat(nativeEntity.getLabels().size()).isEqualTo(1);
+        assertThat(nativeEntity.getLifecycleState()).isEqualTo(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
+        assertThat(nativeEntity.getState()).isEqualTo(Lifecycle.State.STARTED);
+        assertThat(nativeEntity.getVisibility()).isEqualTo(io.gravitee.rest.api.model.Visibility.PUBLIC);
+
+        assertThat(nativeEntity.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+        assertThat(nativeEntity.getListeners()).isNotNull();
+        assertThat(nativeEntity.getListeners().size()).isEqualTo(1);
+        assertThat(nativeEntity.getEndpointGroups()).isNotNull();
+        assertThat(nativeEntity.getEndpointGroups().size()).isEqualTo(1);
+        assertThat(nativeEntity.getServices()).isNotNull();
+        assertThat(nativeEntity.getResources()).isNotNull();
+        assertThat(nativeEntity.getResources().size()).isEqualTo(1);
+        assertThat(nativeEntity.getProperties()).isNotNull();
+        assertThat(nativeEntity.getProperties().size()).isEqualTo(1);
+        assertThat(nativeEntity.getTags()).isNotNull();
+        assertThat(nativeEntity.getTags().size()).isEqualTo(1);
+        assertThat(nativeEntity.getFlows()).isNotNull();
+        assertThat(nativeEntity.getFlows().size()).isEqualTo(2);
+    }
+
+    @Test
+    public void shouldCreateEntity_withMembershipEntity_verifyPrimaryOwner() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Api api = Api.builder().build();
+        MembershipEntity primaryOwnerMembership = MembershipEntity
+            .builder()
+            .memberType(MembershipMemberType.GROUP)
+            .memberId("group-1")
+            .build();
+        boolean readDatabaseFlows = false;
+
+        ApiEntity apiEntity = apiMapper.toEntity(executionContext, api, primaryOwnerMembership, readDatabaseFlows);
+
+        assertAll(
+            () -> assertThat(apiEntity.getPrimaryOwner().getId()).isEqualTo(primaryOwnerMembership.getMemberId()),
+            () -> assertThat(apiEntity.getPrimaryOwner().getType()).isEqualTo(primaryOwnerMembership.getMemberType().name()),
+            () -> assertThat(apiEntity.getPrimaryOwner().getEmail()).isNull(),
+            () -> assertThat(apiEntity.getPrimaryOwner().getDisplayName()).isNull()
+        );
+    }
+>>>>>>> 4495145e01 (fix: Primary owner Group should not be removed from an API)
 }
