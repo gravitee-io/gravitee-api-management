@@ -37,9 +37,7 @@ import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
-import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfigurationEvaluator;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
-import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfigurationEvaluator;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
@@ -85,12 +83,6 @@ class HttpProxyEndpointConnectorTest {
     @Mock
     private ProxyConnector proxyConnector;
 
-    @Mock
-    private HttpProxyEndpointConnectorConfigurationEvaluator configurationEvaluator;
-
-    @Mock
-    private HttpProxyEndpointConnectorSharedConfigurationEvaluator sharedConfigurationEvaluator;
-
     private HttpHeaders requestHeaders;
     private HttpHeaders responseHeaders;
     private HttpProxyEndpointConnectorConfiguration configuration;
@@ -120,9 +112,7 @@ class HttpProxyEndpointConnectorTest {
         sharedConfiguration = new HttpProxyEndpointConnectorSharedConfiguration();
 
         configuration.setTarget("http://localhost:8080/team");
-        lenient().when(configurationEvaluator.evalNow(deploymentCtx)).thenReturn(configuration);
-        lenient().when(sharedConfigurationEvaluator.evalNow(deploymentCtx)).thenReturn(sharedConfiguration);
-        cut = new HttpProxyEndpointConnector(configurationEvaluator, sharedConfigurationEvaluator, deploymentCtx);
+        cut = new HttpProxyEndpointConnector(configuration, sharedConfiguration);
     }
 
     @Test
@@ -169,7 +159,7 @@ class HttpProxyEndpointConnectorTest {
             // we nee to create a dedicated endpoint here as the evaluation of the configuration target
             // to detect if the URL start by grpc is done once in the constructor
             configuration.setTarget("grpc://target");
-            var cut = new HttpProxyEndpointConnector(configurationEvaluator, sharedConfigurationEvaluator, deploymentCtx);
+            var cut = new HttpProxyEndpointConnector(configuration, sharedConfiguration);
             injectSpyIntoEndpointConnector(cut);
 
             // We don't want to test the request itself just that the correct factory is used

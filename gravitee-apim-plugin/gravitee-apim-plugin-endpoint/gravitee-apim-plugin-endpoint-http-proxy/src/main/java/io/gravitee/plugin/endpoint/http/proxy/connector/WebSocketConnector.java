@@ -24,7 +24,6 @@ import static io.gravitee.gateway.api.http.HttpHeaderNames.TRAILER;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
@@ -53,10 +52,9 @@ public class WebSocketConnector extends HttpConnector {
     public WebSocketConnector(
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration,
-        final HttpClientFactory httpClient,
-        final DeploymentContext deploymentContext
+        final HttpClientFactory httpClient
     ) {
-        super(configuration, sharedConfiguration, httpClient, deploymentContext);
+        super(configuration, sharedConfiguration, httpClient);
     }
 
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")

@@ -33,11 +33,9 @@ import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
-import io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
@@ -49,9 +47,7 @@ import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
-import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfigurationEvaluator;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
-import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfigurationEvaluator;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
@@ -90,25 +86,18 @@ public class HttpConnector implements ProxyConnector {
     private final int defaultPort;
     private final boolean defaultSsl;
     private final MultiValueMap<String, String> targetParameters;
-    protected HttpProxyEndpointConnectorConfiguration configuration;
-    protected HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
-    protected HttpClientFactory httpClientFactory;
-    private HttpProxyEndpointConnectorSharedConfigurationEvaluator sharedConfigurationEvaluator;
-    private HttpProxyEndpointConnectorConfigurationEvaluator configurationEvaluator;
-    private DeploymentContext deploymentContext;
-    protected boolean targetStartWithGrpc;
+    protected final HttpProxyEndpointConnectorConfiguration configuration;
+    protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
+    protected final HttpClientFactory httpClientFactory;
 
     public HttpConnector(
-        HttpProxyEndpointConnectorConfiguration configuration,
-        HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration,
-        HttpClientFactory httpClientFactory,
-        DeploymentContext deploymentContext
+        final HttpProxyEndpointConnectorConfiguration configuration,
+        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration,
+        final HttpClientFactory httpClientFactory
     ) {
         this.configuration = configuration;
         this.sharedConfiguration = sharedConfiguration;
-        this.deploymentContext = deploymentContext;
         this.httpClientFactory = httpClientFactory;
-
         final URL targetUrl = VertxHttpClientFactory.buildUrl(configuration.getTarget());
         this.relativeTarget = targetUrl.getPath();
         this.defaultHost = targetUrl.getHost();
@@ -133,7 +122,6 @@ public class HttpConnector implements ProxyConnector {
             ctx.metrics().setEndpoint(absoluteUri);
             ObservableHttpClientRequest observableHttpClientRequest = new ObservableHttpClientRequest(options);
             Span httpRequestSpan = ctx.getTracer().startSpanFrom(observableHttpClientRequest);
-
             return httpClientFactory
                 .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .rxRequest(options)
