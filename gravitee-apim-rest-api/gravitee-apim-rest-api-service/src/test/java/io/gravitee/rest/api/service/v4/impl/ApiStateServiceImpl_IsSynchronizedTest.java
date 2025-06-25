@@ -256,7 +256,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         )
             .thenReturn(List.of(event));
 
-        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -321,7 +321,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         )
             .thenReturn(List.of(event));
 
-        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         // Add Flows to make API not synchronized
         List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
@@ -546,7 +546,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         )
             .thenReturn(List.of(event));
 
-        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
         final PlanEntity planPublished = new PlanEntity();
@@ -630,7 +630,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         )
             .thenReturn(List.of(event));
 
-        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, null, false);
+        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false);
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
         final PlanEntity planPublished = new PlanEntity();
