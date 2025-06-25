@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -45,6 +46,8 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
@@ -54,6 +57,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
@@ -568,5 +572,26 @@ public class ApiMapperTest {
         assertThat(nativeEntity.getTags().size()).isEqualTo(1);
         assertThat(nativeEntity.getFlows()).isNotNull();
         assertThat(nativeEntity.getFlows().size()).isEqualTo(2);
+    }
+
+    @Test
+    public void shouldCreateEntity_withMembershipEntity_verifyPrimaryOwner() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Api api = Api.builder().build();
+        MembershipEntity primaryOwnerMembership = MembershipEntity
+            .builder()
+            .memberType(MembershipMemberType.GROUP)
+            .memberId("group-1")
+            .build();
+        boolean readDatabaseFlows = false;
+
+        ApiEntity apiEntity = apiMapper.toEntity(executionContext, api, primaryOwnerMembership, readDatabaseFlows);
+
+        assertAll(
+            () -> assertThat(apiEntity.getPrimaryOwner().getId()).isEqualTo(primaryOwnerMembership.getMemberId()),
+            () -> assertThat(apiEntity.getPrimaryOwner().getType()).isEqualTo(primaryOwnerMembership.getMemberType().name()),
+            () -> assertThat(apiEntity.getPrimaryOwner().getEmail()).isNull(),
+            () -> assertThat(apiEntity.getPrimaryOwner().getDisplayName()).isNull()
+        );
     }
 }
