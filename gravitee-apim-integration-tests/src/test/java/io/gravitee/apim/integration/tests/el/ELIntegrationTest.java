@@ -62,6 +62,8 @@ class ELIntegrationTest extends AbstractGatewayTest {
     public void configureDictionaries(List<Dictionary> dictionaries) {
         Dictionary dictionary = new Dictionary();
         dictionary.setId("test");
+        dictionary.setKey("test");
+        dictionary.setEnvironmentId("DEFAULT");
         dictionary.setProperties(Map.of("test", DICTIONARY_VALUE));
         dictionaries.add(dictionary);
     }
