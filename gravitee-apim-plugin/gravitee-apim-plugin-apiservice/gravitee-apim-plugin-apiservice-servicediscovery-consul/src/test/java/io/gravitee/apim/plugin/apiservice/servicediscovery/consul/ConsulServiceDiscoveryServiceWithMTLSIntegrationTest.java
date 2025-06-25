@@ -116,7 +116,6 @@ class ConsulServiceDiscoveryServiceWithMTLSIntegrationTest {
     void setUp() throws Exception {
         when(deploymentContext.getComponent(Vertx.class)).thenReturn(vertx);
         when(deploymentContext.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
-        when(deploymentContext.getTemplateEngine()).thenReturn(TemplateEngine.templateEngine());
 
         api = anApiWithDefaultGroup(HTTP_PROXY);
         when(deploymentContext.getComponent(Api.class)).thenReturn(api);
