@@ -170,6 +170,7 @@
                 <exclude>io.gravitee.reporter:*:zip</exclude>
                 <exclude>io.gravitee.tracer:*:zip</exclude>
                 <exclude>com.graviteesource.service:gravitee-service-secrets:zip</exclude>
+                <exclude>io.gravitee.inference.service:gravitee-inference-service:zip</exclude>
             </excludes>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>755</fileMode>
