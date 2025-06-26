@@ -60,7 +60,11 @@
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <gravitee-kubernetes.version>3.5.1</gravitee-kubernetes.version>
+<<<<<<< HEAD
         <gravitee-node.version>7.0.10</gravitee-node.version>
+=======
+        <gravitee-node.version>7.9.1</gravitee-node.version>
+>>>>>>> 53c986a0a5 (chore: bump gravitee-node to 7.9.1)
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>4.7.0</gravitee-plugin.version>
