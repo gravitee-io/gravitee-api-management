@@ -33,7 +33,4 @@ COPY --from=builder ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8083
 ENTRYPOINT ["./bin/gravitee"]
-VOLUME ${GRAVITEEIO_HOME}/logs
-HEALTHCHECK --interval=5s --timeout=3s --retries=6 --start-period=30s \
-            CMD curl --user admin:adminadmin --fail http://localhost:18083/_node/health || exit 1
 USER graviteeio
