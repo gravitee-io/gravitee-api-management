@@ -39,6 +39,7 @@ import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPol
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
@@ -104,6 +105,9 @@ public class ApiReactorHandlerFactoryTest {
     @Mock
     private OpenTelemetryFactory openTelemetryFactory;
 
+    @Mock
+    private LogGuardService logGuardService;
+
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -135,7 +139,8 @@ public class ApiReactorHandlerFactoryTest {
                 openTelemetryConfiguration,
                 openTelemetryFactory,
                 List.of(),
-                dictionaryManager
+                dictionaryManager,
+                logGuardService
             );
     }
 

@@ -55,6 +55,7 @@ import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseManager;
@@ -189,7 +190,8 @@ public class ApiHandlerConfiguration {
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
         @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
-        DictionaryManager dictionaryManager
+        DictionaryManager dictionaryManager,
+        LogGuardService logGuardService
     ) {
         return new ApiReactorHandlerFactory(
             applicationContext,
@@ -209,7 +211,8 @@ public class ApiHandlerConfiguration {
             openTelemetryConfiguration,
             openTelemetryFactory,
             instrumenterTracerFactories,
-            dictionaryManager
+            dictionaryManager,
+            logGuardService
         );
     }
 
@@ -262,7 +265,8 @@ public class ApiHandlerConfiguration {
         OpenTelemetryFactory openTelemetryFactory,
         @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
         GatewayConfiguration gatewayConfiguration,
-        DictionaryManager dictionaryManager
+        DictionaryManager dictionaryManager,
+        LogGuardService logGuardService
     ) {
         return new DefaultApiReactorFactory(
             applicationContext,
@@ -284,7 +288,8 @@ public class ApiHandlerConfiguration {
             openTelemetryFactory,
             instrumenterTracerFactories,
             gatewayConfiguration,
-            dictionaryManager
+            dictionaryManager,
+            logGuardService
         );
     }
 

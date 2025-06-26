@@ -90,7 +90,8 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
             null,
             null,
             gatewayConfiguration,
-            dictionaryManager
+            dictionaryManager,
+            null
         );
     }
 

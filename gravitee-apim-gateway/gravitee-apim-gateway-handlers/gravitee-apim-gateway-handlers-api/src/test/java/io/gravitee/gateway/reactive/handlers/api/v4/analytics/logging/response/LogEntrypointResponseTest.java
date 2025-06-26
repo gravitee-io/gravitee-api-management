@@ -99,6 +99,7 @@ class LogEntrypointResponseTest {
         when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
         when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
@@ -141,6 +142,7 @@ class LogEntrypointResponseTest {
         when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
         when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxPayloadSize);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
@@ -152,5 +154,28 @@ class LogEntrypointResponseTest {
 
         assertNull(logResponse.getHeaders());
         assertThat(logResponse.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
+    }
+
+    @Test
+    void shouldLogBodyNotCapturedWhenBodyIsNotLoggable() {
+        final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
+        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
+
+        when(response.chunks()).thenReturn(body);
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+        when(loggingContext.isBodyLoggable()).thenReturn(false);
+        when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
+
+        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture();
+        verify(response).chunks(chunksCaptor.capture());
+
+        final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
+        obs.assertComplete();
+
+        assertNull(logResponse.getHeaders());
+        assertThat(logResponse.getBody()).isEqualTo("BODY NOT CAPTURED");
     }
 }

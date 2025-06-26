@@ -57,8 +57,6 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.async.HttpEntrypointAsyncConnector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
@@ -83,6 +81,7 @@ import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.http.AccessPointHttpAcceptor;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -289,6 +288,9 @@ class DefaultApiReactorTest {
     private DefaultApiReactor cut;
     private TracingContext tracingContext = TracingContext.noop();
 
+    @Mock
+    private LogGuardService logGuardService;
+
     @BeforeEach
     public void init() throws Exception {
         lenient().when(ctx.request()).thenReturn(request);
@@ -404,7 +406,8 @@ class DefaultApiReactorTest {
                     accessPointManager,
                     eventManager,
                     new HttpAcceptorFactory(false),
-                    tracingContext
+                    tracingContext,
+                    logGuardService
                 );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);
