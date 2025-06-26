@@ -20,11 +20,11 @@ import {
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
   PortalWebuiBuildJob,
-  PublishPrEnvUrlsJob,
   SetupJob,
 } from '../jobs';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
+import { PublishPrDockerImagesJob } from '../jobs/job-publish-pr-docker-images';
 
 export class PublishDockerImagesWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
@@ -45,8 +45,8 @@ export class PublishDockerImagesWorkflow {
     const buildDockerBackendImageJob = BuildDockerBackendImageJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(buildDockerBackendImageJob);
 
-    const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(publishPrEnvUrlsJob);
+    const publishPrDockerImagesJob = PublishPrDockerImagesJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(publishPrDockerImagesJob);
 
     const jobs = [
       new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
@@ -97,8 +97,8 @@ export class PublishDockerImagesWorkflow {
         'docker-image-name': config.components.portal.image,
       }),
 
-      new workflow.WorkflowJob(publishPrEnvUrlsJob, {
-        name: 'Publish environment URLs in Github PR',
+      new workflow.WorkflowJob(publishPrDockerImagesJob, {
+        name: 'Publish docker images in Github PR',
         context: config.jobContext,
         requires: [
           'Build APIM Management API docker image',
