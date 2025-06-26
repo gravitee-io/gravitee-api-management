@@ -17,7 +17,9 @@ package io.gravitee.gateway.reactive.core.v4.analytics;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.gateway.opentelemetry.TracingContext;
+import io.gravitee.node.api.configuration.Configuration;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,7 +50,7 @@ public class AnalyticsContext {
 
     private void initLoggingContext(final String loggingMaxsize, final String loggingExcludedResponseType) {
         if (AnalyticsUtils.isLoggingEnabled(analytics)) {
-            this.loggingContext = createLoggingContext(analytics.getLogging());
+            this.loggingContext = loggingContext(analytics.getLogging());
             this.loggingContext.setMaxSizeLogMessage(loggingMaxsize);
             this.loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
         }
@@ -60,7 +62,7 @@ public class AnalyticsContext {
         }
     }
 
-    protected LoggingContext createLoggingContext(Logging logging) {
+    protected LoggingContext loggingContext(Logging logging) {
         return new LoggingContext(logging);
     }
 

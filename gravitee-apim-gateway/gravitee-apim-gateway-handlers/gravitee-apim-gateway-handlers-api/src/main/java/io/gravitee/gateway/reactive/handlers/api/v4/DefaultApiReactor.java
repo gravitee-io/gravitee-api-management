@@ -513,7 +513,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         httpSecurityChain = new HttpSecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
 
         tracingContext.start();
-        analyticsContext = createAnalyticsContext();
+        analyticsContext = analyticsContext();
         if (analyticsContext.isEnabled()) {
             if (analyticsContext.isLoggingEnabled()) {
                 invokerHooks.add(new LoggingHook());
@@ -551,7 +551,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}
 
-    protected AnalyticsContext createAnalyticsContext() {
+    protected AnalyticsContext analyticsContext() {
         return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingMaxSize, loggingExcludedResponseType, tracingContext);
     }
 
