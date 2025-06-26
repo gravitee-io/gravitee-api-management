@@ -18,10 +18,10 @@ package io.gravitee.gateway.standalone.node;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.report.impl.NodeMonitoringReporterService;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import io.gravitee.node.api.NodeMetadataResolver;
-import io.gravitee.node.api.opentelemetry.Tracer;
 import io.gravitee.node.container.AbstractNode;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import java.util.ArrayList;
@@ -65,6 +65,7 @@ public class GatewayNode extends AbstractNode {
         final List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
 
         components.add(NodeMonitoringReporterService.class);
+        components.add(LogGuardService.class);
         components.add(ReactorEventListener.class);
         components.addAll(super.components());
         // at this stage secret providers are loaded if any, so TLS can be resolved.

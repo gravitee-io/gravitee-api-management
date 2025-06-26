@@ -102,7 +102,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             null,
             null,
             null,
-            dictionaryManager
+            dictionaryManager,
+            null
         );
     }
 
