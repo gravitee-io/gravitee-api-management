@@ -53,6 +53,7 @@ import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilte
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -97,6 +98,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
     protected final ReporterService reporterService;
     protected final GatewayConfiguration gatewayConfiguration;
     protected final HttpAcceptorFactory httpAcceptorFactory;
+    protected final LogGuardService logGuardService;
     private final Logger logger = LoggerFactory.getLogger(DefaultApiReactorFactory.class);
 
     public DefaultApiReactorFactory(
@@ -119,7 +121,8 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final OpenTelemetryFactory openTelemetryFactory,
         final List<InstrumenterTracerFactory> instrumenterTracerFactories,
         final GatewayConfiguration gatewayConfiguration,
-        final DictionaryManager dictionaryManager
+        final DictionaryManager dictionaryManager,
+        final LogGuardService logGuardService
     ) {
         super(applicationContext, policyFactoryManager, configuration, dictionaryManager);
         this.node = node;
@@ -140,6 +143,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         this.reporterService = reporterService;
         this.openTelemetryFactory = openTelemetryFactory;
         this.instrumenterTracerFactories = instrumenterTracerFactories;
+        this.logGuardService = logGuardService;
     }
 
     // FIXME: this constructor is here to keep compatibility with Message Reactor plugin. it will be deleted when Message Reactor has been updated
@@ -163,7 +167,8 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         final OpenTelemetryFactory openTelemetryFactory,
         final List<InstrumenterTracerFactory> instrumenterTracerFactories,
         final GatewayConfiguration gatewayConfiguration,
-        final DictionaryManager dictionaryManager
+        final DictionaryManager dictionaryManager,
+        final LogGuardService logGuardService
     ) {
         super(applicationContext, new PolicyFactoryManager(new HashSet<>(Set.of(policyFactory))), configuration, dictionaryManager);
         this.node = node;
@@ -184,6 +189,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         this.reporterService = reporterService;
         this.openTelemetryFactory = openTelemetryFactory;
         this.instrumenterTracerFactories = instrumenterTracerFactories;
+        this.logGuardService = logGuardService;
     }
 
     @SuppressWarnings("java:S1845")
@@ -285,7 +291,8 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
             endpointManager,
             resourceLifecycleManager,
             flowChainFactory,
-            v4FlowChainFactory
+            v4FlowChainFactory,
+            logGuardService
         );
     }
 
@@ -302,7 +309,8 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         DefaultEndpointManager endpointManager,
         ResourceLifecycleManager resourceLifecycleManager,
         FlowChainFactory flowChainFactory,
-        io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory
+        io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory,
+        LogGuardService logGuardService
     ) {
         return new DefaultApiReactor(
             api,
@@ -324,7 +332,8 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
             accessPointManager,
             eventManager,
             httpAcceptorFactory,
-            createTracingContext(api, "API_V4")
+            createTracingContext(api, "API_V4"),
+            logGuardService
         );
     }
 

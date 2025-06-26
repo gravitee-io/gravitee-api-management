@@ -42,12 +42,16 @@ abstract class LogRequest extends io.gravitee.reporter.api.common.Request {
         if (isLogPayload() && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE))) {
             final Buffer buffer = Buffer.buffer();
 
-            request.chunks(
-                request
-                    .chunks()
-                    .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
-                    .doOnComplete(() -> this.setBody(buffer.toString()))
-            );
+            if (loggingContext.isBodyLoggable()) {
+                request.chunks(
+                    request
+                        .chunks()
+                        .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
+                        .doOnComplete(() -> this.setBody(buffer.toString()))
+                );
+            } else {
+                this.setBody("BODY NOT CAPTURED");
+            }
         }
 
         if (isLogHeaders()) {

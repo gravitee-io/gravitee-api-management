@@ -67,5 +67,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

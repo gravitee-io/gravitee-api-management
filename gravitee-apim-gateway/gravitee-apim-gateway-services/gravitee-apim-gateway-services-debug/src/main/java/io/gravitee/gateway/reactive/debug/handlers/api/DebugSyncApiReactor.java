@@ -93,7 +93,8 @@ public class DebugSyncApiReactor extends SyncApiReactor {
             accessPointManager,
             eventManager,
             httpAcceptorFactory,
-            tracingContext
+            tracingContext,
+            null
         );
         invokerHooks.add(new DebugInvokerHook());
     }
@@ -163,7 +164,8 @@ public class DebugSyncApiReactor extends SyncApiReactor {
             pendingRequestsTimeout,
             analyticsContext,
             httpSecurityChain,
-            acceptors
+            acceptors,
+            null
         );
     }
 

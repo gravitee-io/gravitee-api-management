@@ -16,6 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk.container;
 
 import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.report.impl.NodeMonitoringReporterService;
 import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.node.management.http.ManagementService;
@@ -41,6 +42,7 @@ public class GatewayTestNode extends GatewayNode {
         components.remove(AlertEventProducerManager.class);
         components.remove(ManagementService.class);
         components.remove(NodeMonitoringReporterService.class);
+        components.remove(LogGuardService.class);
         components.remove(NodeHealthCheckService.class);
         components.remove(NodeInfosService.class);
         components.remove(NodeMonitorService.class);

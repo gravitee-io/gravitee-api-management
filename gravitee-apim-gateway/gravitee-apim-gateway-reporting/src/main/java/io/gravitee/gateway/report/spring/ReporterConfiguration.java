@@ -16,8 +16,11 @@
 package io.gravitee.gateway.report.spring;
 
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.report.impl.NodeMonitoringReporterService;
 import io.gravitee.gateway.report.impl.ReporterServiceImpl;
+import io.gravitee.node.monitoring.healthcheck.NodeHealthCheckService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,5 +39,15 @@ public class ReporterConfiguration {
     @Bean
     public NodeMonitoringReporterService nodeMonitoringReporterService() {
         return new NodeMonitoringReporterService();
+    }
+
+    @Bean
+    public LogGuardService logGuardService(
+        @Value("${reporters.logging.memory_pressure_guard.enabled:true}") boolean enabled,
+        @Value("${reporters.logging.memory_pressure_guard.strategy.type:cooldown}") String strategy,
+        @Value("${reporters.logging.memory_pressure_guard.strategy.cooldown.duration:60}") int cooldownDurationInSeconds,
+        NodeHealthCheckService nodeHealthCheckService
+    ) {
+        return new LogGuardService(enabled, strategy, cooldownDurationInSeconds, nodeHealthCheckService);
     }
 }

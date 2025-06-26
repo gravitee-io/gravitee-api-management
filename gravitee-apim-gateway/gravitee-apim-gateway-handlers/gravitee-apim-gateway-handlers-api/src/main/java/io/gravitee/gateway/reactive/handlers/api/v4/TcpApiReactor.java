@@ -25,13 +25,11 @@ import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
-import io.gravitee.gateway.reactive.api.context.tcp.TcpExecutionContext;
-import io.gravitee.gateway.reactive.api.invoker.BaseInvoker;
 import io.gravitee.gateway.reactive.api.invoker.TcpInvoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
+import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.TcpEndpointInvoker;
@@ -43,7 +41,6 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -198,7 +195,10 @@ public class TcpApiReactor extends AbstractApiReactor {
     }
 
     protected AnalyticsContext analyticsContext() {
-        return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingMaxSize, loggingExcludedResponseType, tracingContext);
+        LoggingContext loggingContext = new LoggingContext(api.getDefinition().getAnalytics().getLogging());
+        loggingContext.setMaxSizeLogMessage(loggingMaxSize);
+        loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
+        return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingContext, tracingContext);
     }
 
     @Override
