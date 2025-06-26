@@ -52,6 +52,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InvitationService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -139,6 +140,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     @Autowired
     private ApiConverter apiConverter;
+
+    @Autowired
+    private EnvironmentService environmentService;
 
     @Override
     public List<GroupEntity> findAll(ExecutionContext executionContext) {
@@ -246,7 +250,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.debug("Find all groups for organization {} - DONE", organizationId);
             return groups
                 .stream()
-                .map(this::mapToSimple)
+                .map(group -> mapToSimple(group, organizationId))
                 .sorted(Comparator.comparing(GroupSimpleEntity::getName))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
@@ -954,15 +958,16 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         return group;
     }
 
-    private GroupSimpleEntity mapToSimple(Group group) {
+    private GroupSimpleEntity mapToSimple(Group group, String organizationId) {
         if (group == null) {
             return null;
         }
-
+        EnvironmentEntity environment = environmentService.findByOrgAndIdOrHrid(organizationId, group.getEnvironmentId());
         GroupSimpleEntity entity = new GroupSimpleEntity();
         entity.setId(group.getId());
         entity.setName(group.getName());
-
+        entity.setEnvironmentId(group.getEnvironmentId());
+        entity.setEnvironmentName(environment.getName());
         return entity;
     }
 

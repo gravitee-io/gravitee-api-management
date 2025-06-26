@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.4.31
-appVersion: 4.4.31
+version: 4.4.32
+appVersion: 4.4.32
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -24,8 +24,5 @@ annotations:
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
   artifacthub.io/changes: |
-    - kind: fixed
-      description: 'Use "dictionaries.multi-tenant.enabled" instead of "dictionaries.multitenant.enabled" to enable multi-tenancy for dictionaries on gateways'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10627
+    - kind: changed
+      description: 'Changed default behavior to enable multi-tenant support in dictionaries'
