@@ -16,10 +16,7 @@
 package io.gravitee.gateway.reactive.core.v4.analytics;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.analytics.logging.Logging;
-import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.gateway.opentelemetry.TracingContext;
-import io.gravitee.node.api.configuration.Configuration;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,24 +32,17 @@ public class AnalyticsContext {
     protected LoggingContext loggingContext;
     protected TracingContext tracingContext;
 
-    public AnalyticsContext(
-        final Analytics analytics,
-        final String loggingMaxsize,
-        final String loggingExcludedResponseType,
-        final TracingContext tracingContext
-    ) {
+    public AnalyticsContext(final Analytics analytics, final LoggingContext loggingContext, final TracingContext tracingContext) {
         this.analytics = analytics;
         if (isEnabled()) {
-            initLoggingContext(loggingMaxsize, loggingExcludedResponseType);
+            initLoggingContext(loggingContext);
             initTracingContext(tracingContext);
         }
     }
 
-    private void initLoggingContext(final String loggingMaxsize, final String loggingExcludedResponseType) {
+    private void initLoggingContext(final LoggingContext loggingContext) {
         if (AnalyticsUtils.isLoggingEnabled(analytics)) {
-            this.loggingContext = loggingContext(analytics.getLogging());
-            this.loggingContext.setMaxSizeLogMessage(loggingMaxsize);
-            this.loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
+            this.loggingContext = loggingContext;
         }
     }
 
@@ -60,10 +50,6 @@ public class AnalyticsContext {
         if (tracingContext.isEnabled()) {
             this.tracingContext = tracingContext;
         }
-    }
-
-    protected LoggingContext loggingContext(Logging logging) {
-        return new LoggingContext(logging);
     }
 
     public boolean isEnabled() {

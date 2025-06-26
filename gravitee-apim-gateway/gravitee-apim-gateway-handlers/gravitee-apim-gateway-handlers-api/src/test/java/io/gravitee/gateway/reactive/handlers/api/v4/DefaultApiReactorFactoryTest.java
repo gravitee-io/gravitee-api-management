@@ -54,6 +54,7 @@ import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -69,7 +70,6 @@ import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceManager;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -152,6 +152,9 @@ class DefaultApiReactorFactoryTest {
     @Mock
     private GatewayConfiguration gatewayConfiguration;
 
+    @Mock
+    private LogGuardService logGuardService;
+
     @BeforeEach
     void init() {
         lenient().when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
@@ -177,7 +180,8 @@ class DefaultApiReactorFactoryTest {
                 openTelemetryFactory,
                 List.of(),
                 gatewayConfiguration,
-                dictionaryManager
+                dictionaryManager,
+                logGuardService
             );
     }
 

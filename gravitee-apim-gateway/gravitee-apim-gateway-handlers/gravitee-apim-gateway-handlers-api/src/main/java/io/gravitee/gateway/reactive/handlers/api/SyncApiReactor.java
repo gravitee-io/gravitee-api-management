@@ -62,10 +62,10 @@ import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHoo
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
-import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.http.AccessPointHttpAcceptor;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -128,6 +128,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected AnalyticsContext analyticsContext;
     protected HttpSecurityChain httpSecurityChain;
     protected List<Acceptor<?>> acceptors;
+    private final LogGuardService logGuardService;
 
     public SyncApiReactor(
         final Api api,
@@ -145,7 +146,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         final AccessPointManager accessPointManager,
         final EventManager eventManager,
         final HttpAcceptorFactory httpAcceptorFactory,
-        final TracingContext tracingContext
+        final TracingContext tracingContext,
+        final LogGuardService logGuardService
     ) {
         this.api = api;
         this.componentProvider = componentProvider;
@@ -159,6 +161,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.eventManager = eventManager;
         this.httpAcceptorFactory = httpAcceptorFactory;
         this.tracingContext = tracingContext;
+        this.logGuardService = logGuardService;
 
         this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api, tracingContext);
         this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api, tracingContext);
@@ -451,7 +454,13 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         tracingContext.start();
         this.analyticsContext =
-            AnalyticsUtils.createAnalyticsContext(api.getDefinition(), loggingMaxSize, loggingExcludedResponseType, tracingContext);
+            AnalyticsUtils.createAnalyticsContext(
+                api.getDefinition(),
+                loggingMaxSize,
+                loggingExcludedResponseType,
+                tracingContext,
+                logGuardService
+            );
         if (analyticsContext.isLoggingEnabled()) {
             invokerHooks.add(new LoggingHook());
         }

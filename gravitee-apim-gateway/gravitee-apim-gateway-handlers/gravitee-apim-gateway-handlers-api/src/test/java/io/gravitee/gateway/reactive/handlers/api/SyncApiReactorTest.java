@@ -66,6 +66,7 @@ import io.gravitee.gateway.reactive.handlers.api.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -244,6 +245,9 @@ class SyncApiReactorTest {
 
     private TracingContext tracingContext = TracingContext.noop();
 
+    @Mock
+    private LogGuardService logGuardService;
+
     @BeforeEach
     void init() {
         lenient().when(apiDefinition.getProxy()).thenReturn(mock(Proxy.class));
@@ -296,7 +300,8 @@ class SyncApiReactorTest {
                 accessPointManager,
                 eventManager,
                 new HttpAcceptorFactory(false),
-                tracingContext
+                tracingContext,
+                logGuardService
             );
 
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER)).thenReturn(invokerAdapter);

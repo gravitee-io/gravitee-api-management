@@ -53,6 +53,7 @@ import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.core.tracing.InvokerTracingHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
+import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
@@ -68,6 +69,7 @@ import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.http.AccessPointHttpAcceptor;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -136,6 +138,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     private List<ApiService> services;
     private final boolean validateSubscriptionEnabled;
     protected List<Acceptor<?>> acceptors;
+    protected final LogGuardService logGuardService;
 
     public DefaultApiReactor(
         final Api api,
@@ -157,7 +160,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
         final AccessPointManager accessPointManager,
         final EventManager eventManager,
         final HttpAcceptorFactory httpAcceptorFactory,
-        final TracingContext tracingContext
+        final TracingContext tracingContext,
+        final LogGuardService logGuardService
     ) {
         super(
             configuration,
@@ -176,6 +180,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.accessPointManager = accessPointManager;
         this.eventManager = eventManager;
         this.httpAcceptorFactory = httpAcceptorFactory;
+        this.logGuardService = logGuardService;
 
         this.defaultInvoker = endpointInvoker(endpointManager);
 
@@ -513,7 +518,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         httpSecurityChain = new HttpSecurityChain(api.getDefinition(), policyManager, ExecutionPhase.REQUEST);
 
         tracingContext.start();
-        analyticsContext = analyticsContext();
+        analyticsContext = createAnalyticsContext();
         if (analyticsContext.isEnabled()) {
             if (analyticsContext.isLoggingEnabled()) {
                 invokerHooks.add(new LoggingHook());
@@ -551,8 +556,12 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}
 
-    protected AnalyticsContext analyticsContext() {
-        return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingMaxSize, loggingExcludedResponseType, tracingContext);
+    protected AnalyticsContext createAnalyticsContext() {
+        LoggingContext loggingContext = new LoggingContext(api.getDefinition().getAnalytics().getLogging());
+        loggingContext.setMaxSizeLogMessage(loggingMaxSize);
+        loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
+        loggingContext.setLogGuardService(logGuardService);
+        return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingContext, tracingContext);
     }
 
     @Override
