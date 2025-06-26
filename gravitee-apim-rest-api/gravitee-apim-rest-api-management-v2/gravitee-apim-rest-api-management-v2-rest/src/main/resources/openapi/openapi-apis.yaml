@@ -2015,6 +2015,88 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # API Analytics
+    /environments/{envId}/apis/{apiId}/analytics:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - API Analytics
+        summary: Perform analytics on API data
+        description: |-
+          Perform analytics on API data based on the provided query parameters.
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: performApiAnalytics
+        parameters:
+          - name: from
+            in: query
+            required: false
+            description: Start timestamp (epoch millis)
+            schema:
+              type: integer
+              format: int64
+          - name: to
+            in: query
+            required: false
+            description: End timestamp (epoch millis)
+            schema:
+              type: integer
+              format: int64
+          - name: interval
+            in: query
+            required: false
+            description: Interval in milliseconds
+            schema:
+              type: integer
+              format: int64
+          - name: field
+            in: query
+            required: false
+            description: Field to aggregate on
+            schema:
+              type: string
+          - name: size
+            in: query
+            required: false
+            description: Size of the result set
+            schema:
+              type: integer
+              format: int32
+          - name: type
+            in: query
+            required: false
+            description: Type of analytics (STATS, COUNT, HISTOGRAM, GROUP_BY)
+            schema:
+              type: string
+              enum: [ STATS, COUNT, HISTOGRAM, GROUP_BY ]
+          - name: ranges
+            in: query
+            required: false
+            description: Ranges for aggregation, e.g. "100:199;200:299"
+            schema:
+              type: string
+          - name: aggregations
+            in: query
+            required: false
+            description: Aggregations to apply, e.g. "avg:response-time,avg:api-response-time"
+            schema:
+              type: string
+          - name: order
+            in: query
+            required: false
+            description: Order of the results
+            schema:
+              type: string
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiAnalyticsResponse"
+          default:
+            description: Unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
+
     /environments/{envId}/apis/{apiId}/analytics/requests-count:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -7563,8 +7645,114 @@ components:
                     format: int64
                     description: The interval in milliseconds splitting the data
                     example: 120000
+        GenericAnalytics:
+            type: object
+            description: Generic Analytics response
+            oneOf:
+              - $ref: "#/components/schemas/StatsAnalytics"
+              - $ref: "#/components/schemas/CountAnalytics"
+              - $ref: "#/components/schemas/HistogramAnalytics"
+              - $ref: "#/components/schemas/GroupByAnalytics"
+            properties:
+                analyticsType:
+                    type: string
+                    description: The type of the analytics
+                    example: STATS
+            discriminator:
+                propertyName: analyticsType
+                mapping:
+                    STATS: "#/components/schemas/StatsAnalytics"
+                    COUNT: "#/components/schemas/CountAnalytics"
+                    HISTOGRAM: "#/components/schemas/HistogramAnalytics"
+                    GROUP_BY: "#/components/schemas/GroupByAnalytics"
+        StatsAnalytics:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/GenericAnalytics"
+          properties:
+            count:
+              type: integer
+              format: int64
+        CountAnalytics:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/GenericAnalytics"
+          properties:
+            count:
+              type: integer
+              format: int64
+            metadata:
+              type: object
+              additionalProperties:
+                type: object
+                additionalProperties:
+                  type: string
+        HistogramAnalytics:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/GenericAnalytics"
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+            values:
+              type: array
+              items:
+                type: object
+                properties:
+                  buckets:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Bucket"
+                  field:
+                    type: string
+                  name:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: number
+                  metadata:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      additionalProperties:
+                        type: string
+        GroupByAnalytics:
+          type: object
+          allOf:
+            - $ref: "#/components/schemas/GenericAnalytics"
+          properties:
+            values:
+              type: object
+              additionalProperties:
+                type: integer
+                format: int64
+            metadata:
+              type: object
+              additionalProperties:
+                type: object
+                additionalProperties:
+                  type: string
+        Bucket:
+          type: object
+          properties:
+            field:
+              type: string
+            name:
+              type: string
+            data:
+              type: array
+              items:
+                type: number
+            metadata:
+              type: object
+              additionalProperties:
+                type: object
+                additionalProperties:
+                  type: string
 
-        # API Health
+      # API Health
         HealthCheckLog:
             type: object
             description: A healh check log
@@ -8229,6 +8417,17 @@ components:
                             $ref: "#/components/schemas/ExposedEntrypoint"
 
         # Analytics
+        ApiAnalyticsResponse:
+          description: Successful analytics response
+          content:
+            application/json:
+              schema:
+                title: "ApiAnalyticsResponse"
+                oneOf:
+                  - $ref: "#/components/schemas/StatsAnalytics"
+                  - $ref: "#/components/schemas/CountAnalytics"
+                  - $ref: "#/components/schemas/HistogramAnalytics"
+                  - $ref: "#/components/schemas/GroupByAnalytics"
         ApiAnalyticsRequestsCountResponse:
             description: Analytics for requests count by entrypoint
             content:
@@ -8632,7 +8831,6 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
-
     securitySchemes:
         BasicAuth:
             type: http
