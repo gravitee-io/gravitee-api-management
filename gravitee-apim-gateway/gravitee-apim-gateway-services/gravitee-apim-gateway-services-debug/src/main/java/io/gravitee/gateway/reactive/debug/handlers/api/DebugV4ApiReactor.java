@@ -92,7 +92,8 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
             accessPointManager,
             eventManager,
             httpAcceptorFactory,
-            tracingContext
+            tracingContext,
+            null
         );
         invokerHooks.add(new DebugInvokerHook());
     }

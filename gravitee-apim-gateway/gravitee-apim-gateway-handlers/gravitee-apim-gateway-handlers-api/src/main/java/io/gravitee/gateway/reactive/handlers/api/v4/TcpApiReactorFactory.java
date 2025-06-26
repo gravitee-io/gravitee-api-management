@@ -33,7 +33,6 @@ import io.gravitee.node.api.opentelemetry.InstrumenterTracerFactory;
 import io.gravitee.node.api.opentelemetry.Tracer;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
-import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.List;
