@@ -1,0 +1,25 @@
+{
+  "hrid": "application-hrid",
+  "name": "simple-app",
+  "description": "test application.",
+  "domain": "https://example.com",
+  "groups": null,
+  "settings": {
+    "app": {
+      "type": "WEB"
+    }
+  },
+  "notifyMembers": null,
+  "metadata": [
+    {
+      "name": "test metadata 1",
+      "format": "STRING"
+    },
+    {
+      "name": "test metadata 2",
+      "format": "STRING"
+    }
+  ],
+  "members": null,
+  "origin": "kubernetes"
+}

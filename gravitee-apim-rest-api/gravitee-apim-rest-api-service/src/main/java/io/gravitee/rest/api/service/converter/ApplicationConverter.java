@@ -51,6 +51,7 @@ public class ApplicationConverter {
     public Application toApplication(NewApplicationEntity newApplicationEntity) {
         Application application = new Application();
 
+        application.setHrid(newApplicationEntity.getHrid());
         application.setName(StringUtils.trim(newApplicationEntity.getName()));
         application.setDescription(StringUtils.trim(newApplicationEntity.getDescription()));
         application.setDomain(newApplicationEntity.getDomain());

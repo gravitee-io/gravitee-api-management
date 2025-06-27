@@ -31,6 +31,7 @@ import lombok.Data;
 public class ApplicationCRDSpec {
 
     private String id;
+    private String hrid;
 
     @NotNull
     @NotEmpty

@@ -32,6 +32,7 @@ import java.util.Set;
 public class NewApplicationEntity {
 
     private String id;
+    private String hrid;
 
     @NotNull(message = "Application's name must not be null")
     @NotEmpty(message = "Application's name must not be empty")
@@ -89,6 +90,14 @@ public class NewApplicationEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getHrid() {
+        return hrid;
+    }
+
+    public void setHrid(String hrid) {
+        this.hrid = hrid;
     }
 
     public String getDescription() {
