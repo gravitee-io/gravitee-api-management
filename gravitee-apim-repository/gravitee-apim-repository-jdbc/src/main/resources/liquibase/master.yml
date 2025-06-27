@@ -200,6 +200,8 @@ databaseChangeLog:
     - include:
           - file: liquibase/changelogs/v4_4_29/00_add_key_column_dictionaries.yml
     - include:
+          - file: liquibase/changelogs/v4_4_32/00_change_flow_selectors_condition_length.yml
+    - include:
           - file: liquibase/changelogs/v4_5_0/00_integrations_nullable_agent_status.yml
     - include:
           - file: liquibase/changelogs/v4_5_0/01_add_async_jobs_table.yml
