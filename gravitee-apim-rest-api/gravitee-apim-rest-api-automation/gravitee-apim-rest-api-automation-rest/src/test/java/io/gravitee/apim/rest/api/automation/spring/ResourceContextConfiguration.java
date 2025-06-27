@@ -23,20 +23,16 @@ import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiExposedEntrypointDomainServiceInMemory;
-import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
-import inmemory.CategoryQueryServiceInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
-import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SharedPolicyGroupHistoryCrudServiceInMemory;
-import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
@@ -49,7 +45,6 @@ import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
-import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
@@ -59,42 +54,35 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
-import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
+import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
-import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
-import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
-import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
-import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
-import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
-import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
-import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupHistoryCrudService;
@@ -118,7 +106,6 @@ import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
-import io.gravitee.apim.core.user.domain_service.UserDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
@@ -430,6 +417,16 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ImportApplicationCRDUseCase importApplicationCRDUseCase() {
+        return mock(ImportApplicationCRDUseCase.class);
+    }
+
+    @Bean
+    public ValidateApplicationCRDDomainService validateApplicationCRDDomainService() {
+        return mock(ValidateApplicationCRDDomainService.class);
+    }
+
+    @Bean
     public ImportApiCRDUseCase importApiCRDUseCase() {
         return mock(ImportApiCRDUseCase.class);
     }
@@ -519,22 +516,6 @@ public class ResourceContextConfiguration {
     @Bean
     public CRDMembersDomainServiceInMemory crdMembersDomainService() {
         return new CRDMembersDomainServiceInMemory();
-    }
-
-    @Bean
-    public ValidateApplicationCRDUseCase validateApplicationCRDUseCase(
-        GroupQueryService groupQueryService,
-        UserDomainService userDomainService,
-        RoleQueryServiceInMemory roleQueryService,
-        ValidateApplicationSettingsDomainService validateApplicationSettingsDomainService
-    ) {
-        return new ValidateApplicationCRDUseCase(
-            new ValidateApplicationCRDDomainService(
-                new ValidateGroupsDomainService(groupQueryService),
-                new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-                validateApplicationSettingsDomainService
-            )
-        );
     }
 
     @Bean

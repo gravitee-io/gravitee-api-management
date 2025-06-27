@@ -44,6 +44,8 @@ public class ApplicationMongo extends Auditable {
     @Id
     private String id;
 
+    private String hrid;
+
     @Field("name")
     private String name;
 
