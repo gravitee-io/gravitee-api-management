@@ -273,7 +273,7 @@ public abstract class AbstractResource<T, K> {
             paginationMetadata.put(METADATA_PAGINATION_TOTAL_KEY, totalItems);
             paginationMetadata.put(METADATA_PAGINATION_TOTAL_PAGE_KEY, totalPages);
 
-            return startIndex > list.size() ? new ArrayList(list) : new ArrayList(list).subList(startIndex, lastIndex);
+            return startIndex >= list.size() ? new ArrayList(list) : new ArrayList(list).subList(startIndex, lastIndex);
         }
     }
 
