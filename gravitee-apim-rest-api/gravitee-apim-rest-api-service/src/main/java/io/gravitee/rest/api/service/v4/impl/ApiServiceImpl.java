@@ -45,6 +45,7 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
@@ -377,12 +378,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId
     ) {
         try {
-            PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, userId, null);
+            MembershipEntity primaryOwnerMembership = membershipService.getPrimaryOwner(
+                executionContext.getOrganizationId(),
+                MembershipReferenceType.API,
+                apiId
+            );
 
             Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-            final ApiEntity existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, false);
+            final ApiEntity existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwnerMembership, false);
 
-            apiValidationService.validateAndSanitizeUpdateApi(executionContext, updateApiEntity, primaryOwner, existingApiEntity);
+            apiValidationService.validateAndSanitizeUpdateApi(
+                executionContext,
+                updateApiEntity,
+                existingApiEntity.getPrimaryOwner(),
+                existingApiEntity
+            );
 
             // TODO FCY
             // check HC inheritance
@@ -524,7 +534,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 auditApiLogging(executionContext, updateApiEntity.getId(), existingApiLogging, updateApiLogging);
             }
 
-            ApiEntity apiEntity = apiMapper.toEntity(executionContext, updatedApi, primaryOwner, true);
+            ApiEntity apiEntity = apiMapper.toEntity(executionContext, updatedApi, existingApiEntity.getPrimaryOwner(), true);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
 
@@ -628,7 +638,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Audit
             auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
             // remove from search engine
-            searchEngineService.delete(executionContext, apiMapper.toEntity(executionContext, api, null, false));
+            searchEngineService.delete(executionContext, apiMapper.toEntity(executionContext, api, false));
 
             mediaService.deleteAllByApi(apiId);
 

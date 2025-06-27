@@ -33,6 +33,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.context.IntegrationContext;
@@ -164,6 +165,24 @@ public class ApiMapper {
     public FederatedApiEntity federatedToEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
         api.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
         return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
+    }
+
+    public ApiEntity toEntity(final ExecutionContext executionContext, final Api api, final boolean readDatabaseFlows) {
+        return toEntity(executionContext, api, (PrimaryOwnerEntity) null, readDatabaseFlows);
+    }
+
+    public ApiEntity toEntity(
+        final ExecutionContext executionContext,
+        final Api api,
+        final MembershipEntity primaryOwnerMembership,
+        final boolean readDatabaseFlows
+    ) {
+        PrimaryOwnerEntity primaryOwner = PrimaryOwnerEntity
+            .builder()
+            .type(primaryOwnerMembership.getMemberType().name())
+            .id(primaryOwnerMembership.getMemberId())
+            .build();
+        return toEntity(executionContext, api, primaryOwner, readDatabaseFlows);
     }
 
     public ApiEntity toEntity(
