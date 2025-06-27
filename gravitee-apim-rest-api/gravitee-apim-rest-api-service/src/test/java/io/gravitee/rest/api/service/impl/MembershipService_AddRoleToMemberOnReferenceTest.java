@@ -24,6 +24,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.node.api.Node;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.GroupEntity;
@@ -87,6 +90,15 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     @Mock
     private ParameterService parameterService;
 
+    @Mock
+    private Node node;
+
+    @Mock
+    private CommandRepository commandRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     public void setUp() throws Exception {
         membershipService =
@@ -107,7 +119,10 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 groupService,
                 auditService,
                 parameterService,
-                null
+                null,
+                node,
+                objectMapper,
+                commandRepository
             );
     }
 
@@ -270,7 +285,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     }
 
     @Test
-    public void shouldDisallowAddUnknownRoleOnApi() throws Exception {
+    public void shouldDisallowAddUnknownRoleOnApi() {
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
@@ -285,7 +300,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     }
 
     @Test
-    public void shouldDisallowAddUnknownRoleOnApplication() throws Exception {
+    public void shouldDisallowAddUnknownRoleOnApplication() {
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
@@ -300,7 +315,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     }
 
     @Test
-    public void shouldDisallowAddEnvironmentRoleOnGroup() throws Exception {
+    public void shouldDisallowAddEnvironmentRoleOnGroup() {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.of(role));
@@ -344,7 +359,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     }
 
     @Test
-    public void shouldDisallowAddApplicationPrimaryOwnerRoleOnGroup() throws Exception {
+    public void shouldDisallowAddApplicationPrimaryOwnerRoleOnGroup() {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION);
         when(role.getName()).thenReturn("PRIMARY_OWNER");
