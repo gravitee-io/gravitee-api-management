@@ -37,6 +37,7 @@
 
     <modules>
         <module>gravitee-apim-rest-api-common</module>
+        <module>gravitee-apim-rest-api-contracts</module>
         <module>gravitee-apim-rest-api-fetcher</module>
         <module>gravitee-apim-rest-api-model</module>
         <module>gravitee-apim-rest-api-idp</module>
@@ -55,6 +56,11 @@
         <module>gravitee-apim-rest-api-test-fixtures</module>
         <module>gravitee-apim-rest-api-coverage</module>
     </modules>
+
+    <properties>
+        <openapi.file>openapi.yml</openapi.file>
+        <openapi.file.dir>${project.build.outputDirectory}</openapi.file.dir>
+    </properties>
 
     <dependencyManagement>
         <dependencies>
@@ -83,4 +89,35 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>unpack-openapi</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>unpack</goal>
+                            </goals>
+                            <configuration>
+                                <artifactItems>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.apim.rest.api.contracts</groupId>
+                                        <artifactId>gravitee-apim-rest-api-contracts</artifactId>
+                                        <version>${project.version}</version>
+                                        <includes>${openapi.file}</includes>
+                                        <outputDirectory>${openapi.file.dir}</outputDirectory>
+                                    </artifactItem>
+                                </artifactItems>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

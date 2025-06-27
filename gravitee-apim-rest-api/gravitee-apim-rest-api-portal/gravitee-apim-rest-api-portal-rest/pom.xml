@@ -35,6 +35,7 @@
 
 	<properties>
 		<openapi-generator.version>6.6.0</openapi-generator.version>
+        <openapi.file>portal-openapi.yaml</openapi.file>
 		<jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
 		<openapi.modelPackage>io.gravitee.rest.api.portal.rest.model</openapi.modelPackage>
 	</properties>
@@ -47,32 +48,12 @@
 			</resource>
 		</resources>
 		<plugins>
-			<!--Plugin used to replace version on several files -->
-			<plugin>
-				<groupId>com.google.code.maven-replacer-plugin</groupId>
-				<artifactId>replacer</artifactId>
-				<version>1.5.3</version>
-				<executions>
-					<execution>
-						<phase>generate-resources</phase>
-						<goals>
-							<goal>replace</goal>
-						</goals>
-						<configuration>
-							<includes>
-								<include>${project.basedir}/src/main/resources/portal-openapi.yaml</include>
-							</includes>
-							<replacements>
-								<replacement>
-									<token>version: "(.*)"</token>
-									<value>version: "${project.version}"</value>
-								</replacement>
-							</replacements>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
+
+            <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <version>${openapi-generator.version}</version>
@@ -83,7 +64,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/portal-openapi.yaml</inputSpec>
+                            <inputSpec>${openapi.file.dir}/${openapi.file}</inputSpec>
                             <generatorName>java</generatorName>
                             <library>jersey3</library>
                             <modelPackage>${openapi.modelPackage}</modelPackage>
@@ -92,8 +73,7 @@
                             <generateModelTests>false</generateModelTests>
                             <generateModelDocumentation>false</generateModelDocumentation>
                             <generateSupportingFiles>true</generateSupportingFiles>
-                            <supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java
-                            </supportingFilesToGenerate>
+                            <supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java</supportingFilesToGenerate>
                             <configOptions>
                                 <dateLibrary>java8</dateLibrary>
                                 <useBeanValidation>true</useBeanValidation>
@@ -114,7 +94,12 @@
 	<dependencies>
 
 		<!-- Gravitee Management dependencies-->
-		<dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.contracts</groupId>
+            <artifactId>gravitee-apim-rest-api-contracts</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
 			<groupId>io.gravitee.apim.rest.api.portal</groupId>
 			<artifactId>gravitee-apim-rest-api-portal-security</artifactId>
 			<version>${project.version}</version>

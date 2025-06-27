@@ -27,14 +27,12 @@ import jakarta.ws.rs.core.Response;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/openapi")
+@Path("/")
 public class OpenApiResource extends AbstractResource {
 
-    @Context
-    private ResourceContext resourceContext;
-
     @GET
-    @Produces({ MediaType.TEXT_PLAIN })
+    @Path("/openapi")
+    @Produces("application/yaml")
     public Response getOpenApiDefinition() {
         return Response.ok(this.getClass().getClassLoader().getResourceAsStream("portal-openapi.yaml")).build();
     }

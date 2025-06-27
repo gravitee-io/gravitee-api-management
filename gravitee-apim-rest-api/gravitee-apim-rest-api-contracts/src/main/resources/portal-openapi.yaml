@@ -10,7 +10,7 @@ info:
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0
-    version: "4.9.0-SNAPSHOT"
+    version: ${project.version}
 servers:
     - url: /portal/environments/{envId}
       description: The portal API for a given environment
@@ -1608,24 +1608,24 @@ paths:
                 User must have the APPLICATION_LOG[READ] permission.
             operationId: getApplicationLogMessagesByApplicationIdAndLogId
             responses:
-              200:
-                description: Page of message logs with aggregated entrypoint and endpoint information.
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/AggregatedMessageLogsResponse"
-              400:
-                description: Invalid query params.
-                content:
-                  application/json:
-                    schema:
-                      $ref: "#/components/schemas/ErrorResponse"
-              403:
-                $ref: "#/components/responses/PermissionError"
-              404:
-                $ref: "#/components/responses/ApplicationNotFoundError"
-              500:
-                $ref: "#/components/responses/InternalServerError"
+                200:
+                    description: Page of message logs with aggregated entrypoint and endpoint information.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AggregatedMessageLogsResponse"
+                400:
+                    description: Invalid query params.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                403:
+                    $ref: "#/components/responses/PermissionError"
+                404:
+                    $ref: "#/components/responses/ApplicationNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /applications/{applicationId}/_renew_secret:
         parameters:
             - $ref: "#/components/parameters/applicationIdParam"
@@ -2115,7 +2115,7 @@ paths:
                     $ref: "#/components/responses/InternalServerError"
     /subscriptions/{subscriptionId}/_resumeFailure:
         parameters:
-            -   $ref: "#/components/parameters/subscriptionIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
         post:
             tags:
                 - Subscription
@@ -3076,9 +3076,9 @@ components:
         searchApplicationLogsRequestBody:
             description: Use to search application logs
             content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/SearchApplicationsLogsParams"
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/SearchApplicationsLogsParams"
             required: true
 
     parameters:
@@ -3649,71 +3649,71 @@ components:
                 links:
                     $ref: "#/components/schemas/Links"
         SearchApplicationsLogsParams:
-          type: object
-          description: Search filters for application logs
-          properties:
-              from:
-                description: Timestamp in ms for the connection log date lower limit
-                type: integer
-                example: 1460222528644
-              to:
-                description: Timestamp in ms for the connection log date upper limit. Must be superior to the timestamp provided in the 'to' parameter
-                type: integer
-                example: 1460222528644
-              planIds:
-                  description: Filter with list of plan IDs
-                  type: array
-                  items:
-                    type: string
-              methods:
-                  description: Filter with list of HTTP methods
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/HttpMethod"
-              statuses:
-                  description: Filter with list of response statuses
-                  example: [ 200 ]
-                  type: array
-                  items:
+            type: object
+            description: Search filters for application logs
+            properties:
+                from:
+                    description: Timestamp in ms for the connection log date lower limit
                     type: integer
-              apiIds:
-                  description: Filter with list of API IDs
-                  type: array
-                  items:
+                    example: 1460222528644
+                to:
+                    description: Timestamp in ms for the connection log date upper limit. Must be superior to the timestamp provided in the 'to' parameter
+                    type: integer
+                    example: 1460222528644
+                planIds:
+                    description: Filter with list of plan IDs
+                    type: array
+                    items:
+                        type: string
+                methods:
+                    description: Filter with list of HTTP methods
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/HttpMethod"
+                statuses:
+                    description: Filter with list of response statuses
+                    example: [200]
+                    type: array
+                    items:
+                        type: integer
+                apiIds:
+                    description: Filter with list of API IDs
+                    type: array
+                    items:
+                        type: string
+                requestIds:
+                    description: Filter with list of connection log request IDs
+                    type: array
+                    items:
+                        type: string
+                transactionIds:
+                    description: Filter with list of connection log transaction IDs
+                    type: array
+                    items:
+                        type: string
+                path:
+                    description: Filter with path used for the request
                     type: string
-              requestIds:
-                  description: Filter with list of connection log request IDs
-                  type: array
-                  items:
+                responseTimeRanges:
+                    type: array
+                    description: List of filters for response time ranges
+                    items:
+                        $ref: "#/components/schemas/ResponseTimeRange"
+                bodyText:
                     type: string
-              transactionIds:
-                  description: Filter with list of connection log transaction IDs
-                  type: array
-                  items:
-                    type: string
-              path:
-                  description: Filter with path used for the request
-                  type: string
-              responseTimeRanges:
-                type: array
-                description: List of filters for response time ranges
-                items:
-                  $ref: "#/components/schemas/ResponseTimeRange"
-              bodyText:
-                type: string
-                description: Filter for text in either the request or response body
-          required:
-            - to
-            - from
+                    description: Filter for text in either the request or response body
+            required:
+                - to
+                - from
 
         ResponseTimeRange:
-          properties:
-            from:
-              type: integer
-              description: Lower limit in milliseconds
-            to:
-              type: integer
-              description: Upper limit in milliseconds
+            properties:
+                from:
+                    type: integer
+                    description: Lower limit in milliseconds
+                to:
+                    type: integer
+                    description: Upper limit in milliseconds
         ApplicationsResponse:
             properties:
                 data:
@@ -3844,16 +3844,16 @@ components:
                 links:
                     $ref: "#/components/schemas/Links"
         AggregatedMessageLogsResponse:
-          properties:
-            data:
-              description: Page of messages with aggregated entrypoint and endpoint information
-              type: array
-              items:
-                $ref: "#/components/schemas/AggregatedMessageLog"
-            metadata:
-              $ref: "#/components/schemas/MetadataMap"
-            links:
-              $ref: "#/components/schemas/Links"
+            properties:
+                data:
+                    description: Page of messages with aggregated entrypoint and endpoint information
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AggregatedMessageLog"
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                links:
+                    $ref: "#/components/schemas/Links"
         SubscriptionsResponse:
             properties:
                 data:
@@ -4168,9 +4168,9 @@ components:
                     description: Name of the group.
                     type: string
         Mcp:
-          description: MCP configuration of the API.
-          type: object
-          additionalProperties: true
+            description: MCP configuration of the API.
+            type: object
+            additionalProperties: true
         Page:
             required:
                 - id
@@ -4616,81 +4616,81 @@ components:
         AggregatedMessageLog:
             type: object
             properties:
-              requestId:
-                type: string
-                description: The id of the request.
-                example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
-              apiId:
-                type: string
-                description: The id of the request.
-                example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
-              timestamp:
-                type: string
-                format: date-time
-                description: The date (as timestamp) of the log.
-                example: 2023-05-18T12:40:46.184Z
-              clientIdentifier:
-                type: string
-                description: The client identifier of the request.
-                example: 12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0
-              correlationId:
-                type: string
-                description: The correlation id.
-                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-              parentCorrelationId:
-                type: string
-                description: The parent correlation id.
-                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-              operation:
-                type: string
-                description: The operation.
-                example: subscribe
-              entrypoint:
-                $ref: "#/components/schemas/MessageLogContent"
-              endpoint:
-                $ref: "#/components/schemas/MessageLogContent"
+                requestId:
+                    type: string
+                    description: The id of the request.
+                    example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                apiId:
+                    type: string
+                    description: The id of the request.
+                    example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                timestamp:
+                    type: string
+                    format: date-time
+                    description: The date (as timestamp) of the log.
+                    example: 2023-05-18T12:40:46.184Z
+                clientIdentifier:
+                    type: string
+                    description: The client identifier of the request.
+                    example: 12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0
+                correlationId:
+                    type: string
+                    description: The correlation id.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                parentCorrelationId:
+                    type: string
+                    description: The parent correlation id.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                operation:
+                    type: string
+                    description: The operation.
+                    example: subscribe
+                entrypoint:
+                    $ref: "#/components/schemas/MessageLogContent"
+                endpoint:
+                    $ref: "#/components/schemas/MessageLogContent"
         MessageLogContent:
-          type: object
-          description: The message content.
-          example: |
-            {
-            			"id": "0",
-            			"payload": "mock message",
-            			"headers": {
-            				"X-Mock": [
-            					"mocked"
-            				]
-            			},
-            			"metadata": {
-            				"MessageMetadata": "A metadata"
-            			}
-            		}
-          properties:
-            id:
-              type: string
-              description: The internal UUID of the Message.
-              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-            connectorId:
-              type: string
-              description: The id of connector for this log.
-              example: kafka
-            payload:
-              type: string
-              description: The payload of the Message.
-              example: "This is a message"
-            isError:
-              type: boolean
-              description: Is the Message in error.
-              example: false
-            headers:
-              type: object
-              description: The list of headers associated with this message.
-              example:
-                - name: X-My-Header
-                  value: [ my-value ]
-            metadata:
-              type: object
-              description: The list of Message's metadata.
+            type: object
+            description: The message content.
+            example: |
+                {
+                			"id": "0",
+                			"payload": "mock message",
+                			"headers": {
+                				"X-Mock": [
+                					"mocked"
+                				]
+                			},
+                			"metadata": {
+                				"MessageMetadata": "A metadata"
+                			}
+                		}
+            properties:
+                id:
+                    type: string
+                    description: The internal UUID of the Message.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                connectorId:
+                    type: string
+                    description: The id of connector for this log.
+                    example: kafka
+                payload:
+                    type: string
+                    description: The payload of the Message.
+                    example: "This is a message"
+                isError:
+                    type: boolean
+                    description: Is the Message in error.
+                    example: false
+                headers:
+                    type: object
+                    description: The list of headers associated with this message.
+                    example:
+                        - name: X-My-Header
+                          value: [my-value]
+                metadata:
+                    type: object
+                    description: The list of Message's metadata.
         Subscription:
             required:
                 - id
@@ -4722,9 +4722,9 @@ components:
                     type: string
                     format: date-time
                 updated_at:
-                  description: Updated date and time of the subscription.
-                  type: string
-                  format: date-time
+                    description: Updated date and time of the subscription.
+                    type: string
+                    format: date-time
                 processed_at:
                     description: Date and time when the subscription request was processed.
                     type: string
@@ -4772,11 +4772,11 @@ components:
                     description: The cause of the failure
                     type: string
                 origin:
-                  description: The origin of the subscription
-                  type: string
-                  enum:
-                    - KUBERNETES
-                    - MANAGEMENT
+                    description: The origin of the subscription
+                    type: string
+                    enum:
+                        - KUBERNETES
+                        - MANAGEMENT
                 ###################
                 # may be included #
                 ###################
@@ -5077,7 +5077,7 @@ components:
                     description: Permitted Kafka Sasl Mechanisms. Used by portal to display allowed Kafka Sasl Mechanisms.
                     type: array
                     items:
-                      type: string
+                        type: string
                 support:
                     $ref: "#/components/schemas/Enabled"
                 applicationCreation:
@@ -5121,39 +5121,39 @@ components:
                     description: Subtitle to display on the homepage banner.
                     type: string
                 primaryButton:
-                  $ref: "#/components/schemas/BannerButton"
+                    $ref: "#/components/schemas/BannerButton"
                 secondaryButton:
-                  $ref: "#/components/schemas/BannerButton"
+                    $ref: "#/components/schemas/BannerButton"
         BannerButton:
-          type: object
-          description: Button displayed in the Portal Next banner
-          properties:
-            enabled:
-              description: Button is displayed
-              type: boolean
-            label:
-              description: Button label
-              type: string
-            type:
-              description: Type of link
-              enum:
-                - EXTERNAL
-            target:
-              description: Target of the link
-              type: string
-            visibility:
-              description: Visibility of the button
-              enum:
-                - PUBLIC
-                - PRIVATE
+            type: object
+            description: Button displayed in the Portal Next banner
+            properties:
+                enabled:
+                    description: Button is displayed
+                    type: boolean
+                label:
+                    description: Button label
+                    type: string
+                type:
+                    description: Type of link
+                    enum:
+                        - EXTERNAL
+                target:
+                    description: Target of the link
+                    type: string
+                visibility:
+                    description: Visibility of the button
+                    enum:
+                        - PUBLIC
+                        - PRIVATE
         ConfigurationPortalNextCatalog:
-          type: object
-          description: Configuration of the catalog for Portal Next
-          properties:
-            viewMode:
-              description: View mode used by the Catalog. If the value is invalid, the TABS view will be shown by default.
-              type: string
-              example: TABS
+            type: object
+            description: Configuration of the catalog for Portal Next
+            properties:
+                viewMode:
+                    description: View mode used by the Catalog. If the value is invalid, the TABS view will be shown by default.
+                    type: string
+                    example: TABS
         ConfigurationPortalApis:
             properties:
                 tilesMode:
@@ -5213,8 +5213,8 @@ components:
                     description: URL of the main documentation.
                     type: string
                 pageNotFoundMessage:
-                  description: Message to display when a page is not found.
-                  type: string
+                    description: Message to display when a page is not found.
+                    type: string
         ConfigurationPlan:
             properties:
                 security:
@@ -5342,10 +5342,10 @@ components:
         ConnectorsResponse:
             description: List of Connectors.
             properties:
-              data:
-                type: array
-                items:
-                    $ref: "#/components/schemas/Connector"
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Connector"
         Connector:
             description: |
                 Describes a connector.
@@ -5765,7 +5765,7 @@ components:
                 additional_client_metadata:
                     type: object
                     additionalProperties:
-                      type: string
+                        type: string
         TlsClientSettings:
             properties:
                 client_certificate:
@@ -5900,8 +5900,8 @@ components:
                     type: string
                     format: date-time
                 hash:
-                  type: string
-                  description: The MD5 hash of the API Key
+                    type: string
+                    description: The MD5 hash of the API Key
         AlertType:
             type: string
             enum:
@@ -6141,35 +6141,35 @@ components:
                         type: string
 
         SubscriptionConsumerConfiguration:
-          type: object
-          description: Consumer configuration associated to the subscription in case it is attached to a push plan.
-          properties:
-            entrypointId:
-              type: string
-              description: The id of the targeted entrypoint
-              example: webhook
-            channel:
-              type: string
-              description: The channel to consume
-              example: /channel1
-            entrypointConfiguration:
-              type: object
-              description: The configuration to use at subscription time to push to the target service.
-              example: |
-                {
-                    "callbackUrl": "https://webhook.site/aaaaaaaa-ffff-ffff-ffff-aaaaaaaa",
-                    "headers": [
+            type: object
+            description: Consumer configuration associated to the subscription in case it is attached to a push plan.
+            properties:
+                entrypointId:
+                    type: string
+                    description: The id of the targeted entrypoint
+                    example: webhook
+                channel:
+                    type: string
+                    description: The channel to consume
+                    example: /channel1
+                entrypointConfiguration:
+                    type: object
+                    description: The configuration to use at subscription time to push to the target service.
+                    example: |
                         {
-                            "name": "demoHeader",
-                            "value": "my-value"
-                        },
-                        {
-                            "name": "anotherHeader",
-                            "value": "my-value2"
+                            "callbackUrl": "https://webhook.site/aaaaaaaa-ffff-ffff-ffff-aaaaaaaa",
+                            "headers": [
+                                {
+                                    "name": "demoHeader",
+                                    "value": "my-value"
+                                },
+                                {
+                                    "name": "anotherHeader",
+                                    "value": "my-value2"
+                                }
+                            ]
                         }
-                    ]
-                }
-          required: [ entrypointId ]
+            required: [entrypointId]
 
     responses:
         InternalServerError:
