@@ -96,6 +96,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
@@ -162,10 +163,12 @@ import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -396,7 +399,6 @@ public class ApiServiceImplTest {
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
-        when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(admin));
 
         updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setId(API_ID);
@@ -1176,6 +1178,9 @@ public class ApiServiceImplTest {
         prepareUpdateApiEntity(endpointGroupName, endpointName, path);
 
         when(apiRepository.update(any())).thenReturn(updatedApi);
+
+        when(membershipService.getPrimaryOwner(any(), eq(MembershipReferenceType.API), eq(updatedApi.getId())))
+            .thenReturn(MembershipEntity.builder().memberType(MembershipMemberType.USER).build());
 
         api.setName(API_NAME);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
