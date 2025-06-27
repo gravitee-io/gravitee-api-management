@@ -40,6 +40,8 @@ import io.gravitee.policy.assignattributes.configuration.AssignAttributesPolicyC
 import io.gravitee.policy.transformheaders.TransformHeadersPolicy;
 import io.gravitee.policy.transformheaders.configuration.TransformHeadersPolicyConfiguration;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.junit5.Timeout;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.List;
@@ -60,6 +62,8 @@ class ELIntegrationTest extends AbstractGatewayTest {
     public void configureDictionaries(List<Dictionary> dictionaries) {
         Dictionary dictionary = new Dictionary();
         dictionary.setId("test");
+        dictionary.setKey("test");
+        dictionary.setEnvironmentId("DEFAULT");
         dictionary.setProperties(Map.of("test", DICTIONARY_VALUE));
         dictionaries.add(dictionary);
     }
@@ -88,30 +92,32 @@ class ELIntegrationTest extends AbstractGatewayTest {
 
     @Test
     @DeployApi("/apis/v4/el/api-with-ELs.json")
-    void should_get_all_EL_values(HttpClient httpClient) {
+    @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+    void should_get_all_EL_values(HttpClient httpClient, VertxTestContext vertxTestContext) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
         httpClient
             .rxRequest(HttpMethod.GET, "/test")
             .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                // just asserting we get a response (hence no SSL errors), no need for an API.
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.headers().get("X-Response-Content")).isEqualTo("response from backend");
-                return response.body();
-            })
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertComplete();
+            .subscribe(
+                response ->
+                    vertxTestContext.verify(() -> {
+                        // just asserting we get a response (hence no SSL errors), no need for an API.
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(response.headers().get("X-Response-Content")).isEqualTo("response from backend");
 
-        wiremock.verify(
-            1,
-            getRequestedFor(urlPathEqualTo("/endpoint"))
-                .withHeader("X-Node-Version", matching("^\\d+\\.\\d+\\.\\d+.*"))
-                .withHeader("X-Dictionary", equalTo(DICTIONARY_VALUE))
-                .withHeader("X-Api-Property", equalTo("this is an API property"))
-                .withHeader("X-Context-Attributes", equalTo("this is an attribute"))
-                .withHeader("X-Request-Path", equalTo("/test/"))
-        );
+                        wiremock.verify(
+                            1,
+                            getRequestedFor(urlPathEqualTo("/endpoint"))
+                                .withHeader("X-Node-Version", matching("^\\d+\\.\\d+\\.\\d+.*"))
+                                .withHeader("X-Dictionary", equalTo(DICTIONARY_VALUE))
+                                .withHeader("X-Api-Property", equalTo("this is an API property"))
+                                .withHeader("X-Context-Attributes", equalTo("this is an attribute"))
+                                .withHeader("X-Request-Path", equalTo("/test/"))
+                        );
+                        vertxTestContext.completeNow();
+                    }),
+                vertxTestContext::failNow
+            );
     }
 }
