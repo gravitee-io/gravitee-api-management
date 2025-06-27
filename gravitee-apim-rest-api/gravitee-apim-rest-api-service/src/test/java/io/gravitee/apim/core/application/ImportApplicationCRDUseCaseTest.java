@@ -172,7 +172,7 @@ public class ImportApplicationCRDUseCaseTest {
         void should_create_new_application() {
             var expected = expectedApplication();
             ApplicationCRDSpec crd = anApplicationCRD();
-            crd.setId(null);
+            crd.setId(UuidString.generateRandom());
             useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
             SoftAssertions.assertSoftly(soft -> soft.assertThat(importApplicationCRDDomainService.storage()).contains(expected));
@@ -182,7 +182,7 @@ public class ImportApplicationCRDUseCaseTest {
         void should_create_new_application_and_its_metadata() {
             var expectedApp = expectedApplication();
             ApplicationCRDSpec crd = anApplicationCRD();
-            crd.setId(null);
+            crd.setId(UuidString.generateRandom());
             useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
             SoftAssertions.assertSoftly(soft -> {

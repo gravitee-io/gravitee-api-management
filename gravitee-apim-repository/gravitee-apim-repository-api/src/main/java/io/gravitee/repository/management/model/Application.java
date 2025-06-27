@@ -67,6 +67,11 @@ public class Application {
     private String id;
 
     /**
+     * The application hrid.
+     */
+    private String hrid;
+
+    /**
      * The ID of the environment the application is attached to
      */
     private String environmentId;
@@ -122,6 +127,7 @@ public class Application {
 
     public Application(Application cloned) {
         this.id = cloned.id;
+        this.hrid = cloned.hrid;
         this.environmentId = cloned.environmentId;
         this.name = cloned.name;
         this.description = cloned.description;

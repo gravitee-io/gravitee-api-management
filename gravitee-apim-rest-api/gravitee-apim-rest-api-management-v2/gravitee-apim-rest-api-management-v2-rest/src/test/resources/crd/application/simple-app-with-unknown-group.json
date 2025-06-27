@@ -1,4 +1,5 @@
 {
+  "id": "application-id",
   "name": "with-unknown-group",
   "description": "Application with unknown group",
   "domain": "https://example.com",

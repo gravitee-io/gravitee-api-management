@@ -39,7 +39,7 @@ public class JdbcApplicationRepositoryTest {
             .build();
         String query = repository.searchQuery(criteria, sortable);
         String expectedQuery =
-            "select a.id, a.environment_id, a.name, a.description, a.type, a.created_at, " +
+            "select a.id, a.hrid, a.environment_id, a.name, a.description, a.type, a.created_at, " +
             "a.updated_at, a.status, a.disable_membership_notifications, a.api_key_mode, a.origin, " +
             "am.k as am_k, am.v as am_v from table_prefix_applications a left join " +
             "table_prefix_application_metadata am on a.id = am.application_id where 1 = 1 and " +
@@ -62,7 +62,7 @@ public class JdbcApplicationRepositoryTest {
             .build();
         String query = repository.searchQuery(criteria, sortable);
         String expectedQuery =
-            "select a.id, a.environment_id, a.name, a.description, a.type, a.created_at, " +
+            "select a.id, a.hrid, a.environment_id, a.name, a.description, a.type, a.created_at, " +
             "a.updated_at, a.status, a.disable_membership_notifications, a.api_key_mode, a.origin, " +
             "am.k as am_k, am.v as am_v from table_prefix_applications a left join " +
             "table_prefix_application_metadata am on a.id = am.application_id where 1 = 1 and " +

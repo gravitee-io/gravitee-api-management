@@ -1,4 +1,5 @@
 {
+  "id": "application-id",
   "name": "browser-app",
   "description": "Single Page Application",
   "domain": "test-domain",
