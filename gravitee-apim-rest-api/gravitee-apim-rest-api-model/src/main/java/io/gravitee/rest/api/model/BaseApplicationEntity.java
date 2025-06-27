@@ -41,6 +41,8 @@ public class BaseApplicationEntity {
     @EqualsAndHashCode.Include
     private String id;
 
+    private String hrid;
+
     @Schema(description = "Application's name. Duplicate names can exists.", example = "My App")
     private String name;
 

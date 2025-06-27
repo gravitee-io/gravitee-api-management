@@ -19,16 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
+import io.gravitee.apim.rest.api.automation.model.ApplicationState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.MediaType;
@@ -37,38 +37,33 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-class ApiResourceTest extends AbstractResourceTest {
+class ApplicationResourceTest extends AbstractResourceTest {
 
     @Inject
-    private ExportApiCRDUseCase exportApiCRDUseCase;
+    private ApplicationService applicationService;
 
-    @Inject
-    private ApiService apiService;
-
-    static final String API_ID = "api-id";
-    static final String API_CROSS_ID = "api-cross-id";
-    static final String HRID = "api-hrid";
+    static final String APPLICATION_ID = "application-id";
+    static final String HRID = "application-hrid";
     static final AuditInfo auditInfo = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
 
     @AfterEach
     void tearDown() {
-        reset(exportApiCRDUseCase);
+        reset(applicationService);
     }
 
     @Nested
     class GET {
 
         @Test
-        void should_get_api_from_known_hrid() {
+        void should_get_application_from_known_hrid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
-                    .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(HRID).build()));
+                when(applicationService.findById(any(), any()))
+                    .thenReturn(ApplicationEntity.builder().id(APPLICATION_ID).hrid(HRID).build());
                 var state = expectEntity(HRID);
                 SoftAssertions.assertSoftly(soft -> {
-                    assertThat(state.getId()).isEqualTo(API_ID);
+                    assertThat(state.getId()).isEqualTo(APPLICATION_ID);
                     assertThat(state.getHrid()).isEqualTo(HRID);
-                    assertThat(state.getCrossId()).isEqualTo(API_CROSS_ID);
                     assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                     assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 });
@@ -77,8 +72,8 @@ class ApiResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
-            when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
-                .thenThrow(new NotFoundException("No API found with hrid: unknown"));
+            when(applicationService.findById(any(), any()))
+                .thenThrow(new ApplicationNotFoundException("No Application found with hrid: unknown"));
 
             expectNotFound("unknown");
         }
@@ -89,9 +84,9 @@ class ApiResourceTest extends AbstractResourceTest {
             }
         }
 
-        private ApiV4State expectEntity(String hrid) {
+        private ApplicationState expectEntity(String hrid) {
             try (var response = rootTarget().path(hrid).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
-                return response.readEntity(ApiV4State.class);
+                return response.readEntity(ApplicationState.class);
             }
         }
     }
@@ -100,15 +95,17 @@ class ApiResourceTest extends AbstractResourceTest {
     class DELETE {
 
         @Test
-        void should_delete_api_and_return_no_content() {
+        void should_delete_application_and_return_no_content() {
             expectNoContent(HRID);
 
-            verify(apiService, atLeastOnce()).delete(any(), eq(IdBuilder.builder(auditInfo, HRID).buildId()), eq(true));
+            verify(applicationService, atLeastOnce()).archive(any(), eq(IdBuilder.builder(auditInfo, HRID).buildId()));
         }
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
-            doThrow(new ApiNotFoundException("unknown")).when(apiService).delete(any(), any(), eq(true));
+            doThrow(new ApplicationNotFoundException("unknown"))
+                .when(applicationService)
+                .archive(any(), eq(IdBuilder.builder(auditInfo, "unknown").buildId()));
 
             expectNotFound("unknown");
         }
@@ -128,6 +125,6 @@ class ApiResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/applications";
     }
 }

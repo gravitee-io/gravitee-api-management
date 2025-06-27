@@ -1,4 +1,5 @@
 {
+  "id": "application-id",
   "name": "backend-app",
   "description": "backend to backend application",
   "domain": "test-domain",

@@ -804,6 +804,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             Application application = applicationConverter.toApplication(updateApplicationEntity);
             application.setId(applicationId);
+            application.setHrid(applicationToUpdate.getHrid());
             application.setEnvironmentId(applicationToUpdate.getEnvironmentId());
             application.setStatus(ApplicationStatus.ACTIVE);
             application.setType(applicationToUpdate.getType());

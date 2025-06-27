@@ -1,4 +1,5 @@
 {
+  "id": "application-id",
   "name": "with-invalid-grand-type",
   "description": "SPA with invalid grand type",
   "domain": "test-domain",

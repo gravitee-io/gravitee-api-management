@@ -33,6 +33,11 @@ public class EnvironmentResource {
         return resourceContext.getResource(ApisResource.class);
     }
 
+    @Path("/applications")
+    public ApplicationsResource getApplicationsResource() {
+        return resourceContext.getResource(ApplicationsResource.class);
+    }
+
     @Path("/shared-policy-groups")
     public SharedPolicyGroupsResource getSharedPolicyGroupsResource() {
         return resourceContext.getResource(SharedPolicyGroupsResource.class);

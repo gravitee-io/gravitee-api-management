@@ -49,6 +49,7 @@ public class ApplicationCRDSpec extends ApplicationEntity {
     public NewApplicationEntity toNewApplicationEntity() {
         NewApplicationEntity nae = new NewApplicationEntity();
         nae.setId(getId());
+        nae.setHrid(getHrid());
         nae.setName(getName());
         nae.setDescription(getDescription());
         nae.setType(getType());

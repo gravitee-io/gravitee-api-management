@@ -1,4 +1,5 @@
 {
+  "id": "application-id",
   "name": "with-empty-redirect-uri",
   "description": "SPA with empty redirect uris",
   "domain": "test-domain",

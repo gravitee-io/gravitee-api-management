@@ -56,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ApplicationsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
+    protected static final String APPLICATION_ID = "application-id";
 
     @Autowired
     private ApplicationCrudServiceInMemory applicationCrudService;
@@ -123,6 +124,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                     .isEqualTo(
                         ApplicationCRDStatus
                             .builder()
+                            .id(APPLICATION_ID)
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
@@ -147,7 +149,9 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft
                     .assertThat(crdStatus)
-                    .isEqualTo(ApplicationCRDStatus.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build());
+                    .isEqualTo(
+                        ApplicationCRDStatus.builder().id(APPLICATION_ID).organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
+                    );
 
                 soft.assertThat(applicationCrudService.storage()).isEmpty();
             });
@@ -225,6 +229,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                     .isEqualTo(
                         ApplicationCRDStatus
                             .builder()
+                            .id(APPLICATION_ID)
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
@@ -262,6 +267,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                     .isEqualTo(
                         ApplicationCRDStatus
                             .builder()
+                            .id(APPLICATION_ID)
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
@@ -291,6 +297,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                     .isEqualTo(
                         ApplicationCRDStatus
                             .builder()
+                            .id(APPLICATION_ID)
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
@@ -318,6 +325,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                     .isEqualTo(
                         ApplicationCRDStatus
                             .builder()
+                            .id(APPLICATION_ID)
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
@@ -345,6 +353,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                     .isEqualTo(
                         ApplicationCRDStatus
                             .builder()
+                            .id(APPLICATION_ID)
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
