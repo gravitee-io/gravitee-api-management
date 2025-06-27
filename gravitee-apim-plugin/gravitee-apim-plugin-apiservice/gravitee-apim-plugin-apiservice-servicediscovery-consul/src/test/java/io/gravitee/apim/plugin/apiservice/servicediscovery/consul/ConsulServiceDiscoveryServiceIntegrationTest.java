@@ -112,7 +112,6 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
     void setUp() {
         when(deploymentContext.getComponent(Vertx.class)).thenReturn(vertx);
         when(deploymentContext.getComponent(PluginConfigurationHelper.class)).thenReturn(pluginConfigurationHelper);
-        when(deploymentContext.getTemplateEngine()).thenReturn(TemplateEngine.templateEngine());
 
         when(environment.getProperty(eq("api.pending_requests_timeout"), eq(Long.class), anyLong())).thenReturn(1000L);
         when(deploymentContext.getComponent(Environment.class)).thenReturn(environment);

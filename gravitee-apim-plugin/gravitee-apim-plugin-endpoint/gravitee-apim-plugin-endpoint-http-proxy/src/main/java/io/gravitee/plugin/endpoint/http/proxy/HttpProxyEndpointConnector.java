@@ -19,12 +19,15 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.connector.endpoint.sync.HttpEndpointSyncConnector;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfigurationEvaluator;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfigurationEvaluator;
 import io.gravitee.plugin.endpoint.http.proxy.connector.GrpcConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
@@ -45,13 +48,28 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private static final String ENDPOINT_ID = "http-proxy";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
 
-    protected final HttpProxyEndpointConnectorConfiguration configuration;
-    protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
+    protected HttpProxyEndpointConnectorConfiguration configuration;
+    protected HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
+    protected HttpProxyEndpointConnectorConfigurationEvaluator configurationEvaluator;
+    protected HttpProxyEndpointConnectorSharedConfigurationEvaluator sharedConfigurationEvaluator;
     private final HttpClientFactory httpClientFactory;
     private final GrpcHttpClientFactory grpcHttpClientFactory;
+    private DeploymentContext deploymentContext;
 
     private final Map<String, ProxyConnector> connectors = new ConcurrentHashMap<>(3);
-    private final boolean targetStartWithGrpc;
+    private boolean targetStartWithGrpc;
+
+    public HttpProxyEndpointConnector(
+        HttpProxyEndpointConnectorConfigurationEvaluator configurationEvaluator,
+        HttpProxyEndpointConnectorSharedConfigurationEvaluator sharedConfigurationEvaluator,
+        DeploymentContext deploymentContext
+    ) {
+        this.configurationEvaluator = configurationEvaluator;
+        this.sharedConfigurationEvaluator = sharedConfigurationEvaluator;
+        this.httpClientFactory = new HttpClientFactory();
+        this.grpcHttpClientFactory = new GrpcHttpClientFactory();
+        this.deploymentContext = deploymentContext;
+    }
 
     public HttpProxyEndpointConnector(
         HttpProxyEndpointConnectorConfiguration configuration,
@@ -64,7 +82,6 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
         }
         this.httpClientFactory = new HttpClientFactory();
         this.grpcHttpClientFactory = new GrpcHttpClientFactory();
-        this.targetStartWithGrpc = configuration.getTarget().startsWith("grpc://");
     }
 
     @Override
@@ -81,6 +98,13 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     public Completable connect(HttpExecutionContext ctx) {
         return Completable.defer(() -> {
             HttpRequest request = ctx.request();
+            this.configuration = configurationEvaluator.evalNow(this.deploymentContext);
+            if (this.configuration.getTarget() == null || this.configuration.getTarget().isBlank()) {
+                throw new IllegalArgumentException("target cannot be null or empty");
+            }
+
+            this.sharedConfiguration = sharedConfigurationEvaluator.evalNow(this.deploymentContext);
+            this.targetStartWithGrpc = configuration.getTarget().startsWith("grpc://");
             return getConnector(request).connect(ctx);
         });
     }
@@ -88,17 +112,17 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private ProxyConnector getConnector(HttpRequest request) {
         if (request.isWebSocket()) {
             return this.connectors.computeIfAbsent(
-                    "ws",
+                    "ws" + this.configuration.toString() + this.sharedConfiguration.toString(),
                     type -> new WebSocketConnector(configuration, sharedConfiguration, httpClientFactory)
                 );
         } else if (isGrpc(request)) {
             return this.connectors.computeIfAbsent(
-                    "grpc",
+                    "grpc" + this.configuration.toString() + this.sharedConfiguration.toString(),
                     type -> new GrpcConnector(configuration, sharedConfiguration, grpcHttpClientFactory)
                 );
         } else {
             return this.connectors.computeIfAbsent(
-                    "http",
+                    "http" + this.configuration.toString() + this.sharedConfiguration.toString(),
                     type -> new HttpConnector(configuration, sharedConfiguration, httpClientFactory)
                 );
         }
