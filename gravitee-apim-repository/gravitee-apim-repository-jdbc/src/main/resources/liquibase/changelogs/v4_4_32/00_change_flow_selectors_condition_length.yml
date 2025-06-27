@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.32_00_change_flow_selectors_condition_length
+      author: GraviteeSource Team
+      changes:
+        - modifyDataType:
+            columnName: condition
+            newDataType: nvarchar(1024)
+            tableName: ${gravitee_prefix}flow_selectors
