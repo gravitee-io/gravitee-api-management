@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.IdGenerator;
@@ -97,11 +98,11 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
 /**
@@ -109,9 +110,9 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDuplicatorService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiDuplicatorServiceImpl.class);
     public static final String API_DEFINITION_FIELD_GROUPS = "groups";
     public static final String API_DEFINITION_FIELD_PLANS = "plans";
     public static final String API_DEFINITION_FIELD_MEMBERS = "members";
@@ -209,7 +210,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
             return createdApiEntity;
         } catch (IOException e) {
-            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
+            log.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
         }
     }
@@ -248,7 +249,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             createOrUpdateApiNestedEntities(executionContext, updatedApiEntity, apiJsonNode);
             return updatedApiEntity;
         } catch (IOException e) {
-            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
+            log.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
         }
     }
@@ -257,7 +258,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     public ApiEntity duplicate(ExecutionContext executionContext, final ApiEntity apiEntity, final DuplicateApiEntity duplicateApiEntity) {
         requireNonNull(apiEntity, "Missing ApiEntity");
         final String apiId = apiEntity.getId();
-        LOGGER.debug("Duplicate API {}", apiId);
+        log.debug("Duplicate API {}", apiId);
 
         final UpdateApiEntity newApiEntity = apiConverter.toUpdateApiEntity(apiEntity, true);
         final Proxy proxy = apiEntity.getProxy();
@@ -473,7 +474,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         var role = roleService.findByIdAndOrganizationId(roleId, executionContext.getOrganizationId());
                         var isValidRole = role.isPresent() && RoleScope.API.equals(role.get().getScope());
                         if (!isValidRole) {
-                            LOGGER.warn(
+                            log.warn(
                                 "Role {} does not exist in organization {} or is not an API role",
                                 roleId,
                                 executionContext.getOrganizationId()
@@ -618,7 +619,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 if (optRoleToAddEntity.isPresent()) {
                     roleIdsToImport.add(optRoleToAddEntity.get().getId());
                 } else {
-                    LOGGER.warn("Role {} does not exist", roleIdOrName);
+                    log.warn("Role {} does not exist", roleIdOrName);
                     // We still add it to the list, same as what has been done for the memberToImport.getRoles()
                     roleIdsToImport.add(roleIdOrName);
                 }
@@ -667,7 +668,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                             role
                         );
                     } catch (Exception e) {
-                        LOGGER.warn(
+                        log.warn(
                             "Unable to add role '{}' to member '{}' on API '{}' due to : {}",
                             role,
                             userEntity.getId(),
@@ -719,7 +720,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             membershipService.deleteMemberForApi(executionContext, apiId, userEntity.getId());
         } catch (UserNotFoundException unfe) {} catch (Exception e) {
-            LOGGER.warn("Unable to delete membership from API '{}' due to : {}", apiId, e.getMessage());
+            log.warn("Unable to delete membership from API '{}' due to : {}", apiId, e.getMessage());
         }
     }
 
@@ -766,7 +767,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 apiMetadataService.update(executionContext, updateApiMetadataEntity);
             }
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while creating API metadata", ex);
+            log.error("An error occurs while creating API metadata", ex);
             throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
         }
     }
@@ -803,7 +804,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     group = groupEntities.get(0);
                     planEntity.getExcludedGroups().add(group.getId());
                 } else {
-                    LOGGER.warn(
+                    log.warn(
                         "Group with name {} does not exist and can't be added to plan \"{}\" [{}]",
                         name,
                         planEntity.getName(),
@@ -914,7 +915,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 pageService.delete(executionContext, id);
             }
         } catch (RuntimeException e) {
-            LOGGER.error("An error as occurred while trying to remove a page with kubernetes origin");
+            log.error("An error as occurred while trying to remove a page with kubernetes origin");
         }
     }
 
@@ -937,7 +938,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                             );
                             accessControlEntity.setReferenceId(groupId);
                             if (groupId == null) {
-                                LOGGER.warn(
+                                log.warn(
                                     "Group with name {} does not exist and can't be added to access control list of page \"{}\" [{}]",
                                     accessControlEntity.getReferenceId(),
                                     pageEntity.getName(),
@@ -1082,15 +1083,34 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     private void checkPagesConsistency(ImportApiJsonNode apiJsonNode) {
         if (apiJsonNode.hasPages()) {
+            log.debug("Checking pages consistency for imported API definition");
             long systemFoldersCount = apiJsonNode
                 .getPagesArray()
                 .findValuesAsText("type")
                 .stream()
                 .filter(type -> PageType.SYSTEM_FOLDER.name().equals(type))
                 .count();
-
+            log.debug("Found {} system folder(s) in API pages", systemFoldersCount);
             if (systemFoldersCount > 1) {
                 throw new ApiImportException("Only one system folder is allowed in the API pages definition");
+            }
+            for (JsonNode pageNode : apiJsonNode.getPagesArray()) {
+                JsonNode sourceNode = pageNode.path("source");
+                JsonNode configNode = sourceNode.path("configuration");
+
+                if (!configNode.isMissingNode() && configNode.has("fetchCron")) {
+                    String cron = configNode.path("fetchCron").asText(null);
+
+                    if (cron != null && !cron.isEmpty()) {
+                        log.debug("Validating fetchCron '{}'", cron);
+                        try {
+                            CronExpression.parse(cron); // Validate cron
+                        } catch (IllegalArgumentException e) {
+                            String pageName = pageNode.path("name").asText("Unnamed Page");
+                            throw new ApiImportException("Invalid fetchCron expression in page '" + pageName + "': " + e.getMessage());
+                        }
+                    }
+                }
             }
         }
     }
