@@ -323,11 +323,32 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private static PageSource convert(PageSourceEntity pageSourceEntity) {
         PageSource source = null;
         if (pageSourceEntity != null && pageSourceEntity.getType() != null && pageSourceEntity.getConfiguration() != null) {
+            validateFetchConfig(pageSourceEntity.getConfiguration());
             source = new PageSource();
             source.setType(pageSourceEntity.getType());
             source.setConfiguration(pageSourceEntity.getConfiguration());
         }
         return source;
+    }
+
+    public static void validateFetchConfig(String jsonConfig) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode root = mapper.readTree(jsonConfig);
+            boolean autoFetch = root.path("autoFetch").asBoolean(false);
+            if (autoFetch) {
+                String fetchCron = root.path("fetchCron").asText();
+                if (fetchCron == null || fetchCron.isEmpty()) {
+                    throw new IllegalArgumentException("fetchCron is required when autoFetch is true.");
+                }
+                // Throws IllegalArgumentException if cron expression is invalid
+                CronExpression.parse(fetchCron);
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid cron expression: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse configuration JSON: " + e.getMessage(), e);
+        }
     }
 
     @SuppressWarnings("squid:S1166")

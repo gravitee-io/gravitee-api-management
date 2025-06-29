@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.IdGenerator;
@@ -102,6 +103,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
 /**
@@ -1091,6 +1093,23 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             if (systemFoldersCount > 1) {
                 throw new ApiImportException("Only one system folder is allowed in the API pages definition");
+            }
+            for (JsonNode pageNode : apiJsonNode.getPagesArray()) {
+                JsonNode sourceNode = pageNode.path("source");
+                JsonNode configNode = sourceNode.path("configuration");
+
+                if (!configNode.isMissingNode() && configNode.has("fetchCron")) {
+                    String cron = configNode.path("fetchCron").asText(null);
+
+                    if (cron != null && !cron.isEmpty()) {
+                        try {
+                            CronExpression.parse(cron); // Validate cron
+                        } catch (IllegalArgumentException e) {
+                            String pageName = pageNode.path("name").asText("Unnamed Page");
+                            throw new ApiImportException("Invalid fetchCron expression in page '" + pageName + "': " + e.getMessage());
+                        }
+                    }
+                }
             }
         }
     }
