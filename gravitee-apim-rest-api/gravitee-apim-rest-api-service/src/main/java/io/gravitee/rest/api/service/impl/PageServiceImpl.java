@@ -330,6 +330,29 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return source;
     }
 
+    public static void validateFetchConfig(String jsonConfig) throws InvalidFetchCronExpressionException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root;
+        try {
+            root = mapper.readTree(jsonConfig);
+        } catch (IOException e) {
+            throw new InvalidFetchCronExpressionException("Invalid JSON format: " + e.getMessage());
+        }
+        boolean autoFetch = root.path("autoFetch").asBoolean(false);
+        String fetchCron = root.path("fetchCron").asText(null);
+
+        if (autoFetch && (fetchCron == null || fetchCron.trim().isEmpty() || "null".equalsIgnoreCase(fetchCron))) {
+            throw new InvalidFetchCronExpressionException("fetchCron is required when autoFetch is true.");
+        }
+        if (fetchCron != null && !fetchCron.trim().isEmpty() && !"null".equalsIgnoreCase(fetchCron)) {
+            try {
+                CronExpression.parse(fetchCron);
+            } catch (IllegalArgumentException e) {
+                throw new InvalidFetchCronExpressionException(fetchCron);
+            }
+        }
+    }
+
     @SuppressWarnings("squid:S1166")
     private static boolean isJson(String content) {
         try {
@@ -895,7 +918,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (newPageEntity.getContent() == null && newPageEntity.getSource() != null && newPageType != ROOT) {
                 fetchPage(newPageEntity);
             }
-
+            if (newPageEntity.getSource() != null && newPageEntity.getSource().getConfiguration() != null) {
+                validateFetchConfig(newPageEntity.getSource().getConfiguration());
+            }
             Page page = convert(newPageEntity);
 
             page.setId(id);
@@ -1226,6 +1251,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (partial) {
                 page = merge(updatePageEntity, pageToUpdate);
             } else {
+                if (updatePageEntity.getSource() != null && updatePageEntity.getSource().getConfiguration() != null) {
+                    validateFetchConfig(updatePageEntity.getSource().getConfiguration());
+                }
                 page = convert(updatePageEntity);
             }
 

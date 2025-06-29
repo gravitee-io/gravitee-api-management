@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import freemarker.template.TemplateException;
@@ -586,5 +587,15 @@ public class PageService_CreateTest {
         this.pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
 
         verify(pageRepository).create(any());
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldFailToCreatePageWithInvalidFetchCron() {
+        PageSourceEntity source = new PageSourceEntity();
+        source.setType("github-fetcher");
+        source.setConfiguration(JsonNodeFactory.instance.objectNode().put("autoFetch", true).put("fetchCron", "15 8,13 * * MON-FRI")); // Invalid cron
+        when(newPage.getSource()).thenReturn(source);
+        when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
+        pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
     }
 }
