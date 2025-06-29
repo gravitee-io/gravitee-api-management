@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.IdGenerator;
@@ -101,6 +102,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
 /**
@@ -1120,15 +1122,34 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     private void checkPagesConsistency(ImportApiJsonNode apiJsonNode) {
         if (apiJsonNode.hasPages()) {
+            log.debug("Checking pages consistency for imported API definition");
             long systemFoldersCount = apiJsonNode
                 .getPagesArray()
                 .findValuesAsText("type")
                 .stream()
                 .filter(type -> PageType.SYSTEM_FOLDER.name().equals(type))
                 .count();
-
+            log.debug("Found {} system folder(s) in API pages", systemFoldersCount);
             if (systemFoldersCount > 1) {
                 throw new ApiImportException("Only one system folder is allowed in the API pages definition");
+            }
+            for (JsonNode pageNode : apiJsonNode.getPagesArray()) {
+                JsonNode sourceNode = pageNode.path("source");
+                JsonNode configNode = sourceNode.path("configuration");
+
+                if (!configNode.isMissingNode() && configNode.has("fetchCron")) {
+                    String cron = configNode.path("fetchCron").asText(null);
+
+                    if (cron != null && !cron.isEmpty()) {
+                        log.debug("Validating fetchCron '{}'", cron);
+                        try {
+                            CronExpression.parse(cron); // Validate cron
+                        } catch (IllegalArgumentException e) {
+                            String pageName = pageNode.path("name").asText("Unnamed Page");
+                            throw new ApiImportException("Invalid fetchCron expression in page '" + pageName + "': " + e.getMessage());
+                        }
+                    }
+                }
             }
         }
     }
