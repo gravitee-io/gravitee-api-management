@@ -65,6 +65,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -172,7 +173,9 @@ public class SubscriptionsResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
-        final Collection<SubscriptionEntity> subscriptions = fetchSubscriptions(paginationParam, query);
+        final Page<SubscriptionEntity> pagedResult = fetchSubscriptions(paginationParam, query);
+        List<SubscriptionEntity> subscriptions = pagedResult.getContent();
+        long totalElements = pagedResult.getTotalElements();
 
         if (subscriptions.isEmpty()) {
             return createListResponse(executionContext, subscriptions, paginationParam, null, paginationParam.hasPagination());
@@ -202,23 +205,23 @@ public class SubscriptionsResource extends AbstractResource {
 
         Metadata metadata = subscriptionService.getMetadata(executionContext, metadataQuery);
 
+        if (metadata != null) {
+            metadata.put("paginateMetaData", "totalElements", totalElements);
+        }
         return createListResponse(executionContext, subscriptionList, paginationParam, metadata.toMap(), paginationParam.hasPagination());
     }
 
-    private Collection<SubscriptionEntity> fetchSubscriptions(PaginationParam paginationParam, SubscriptionQuery query) {
+    private Page<SubscriptionEntity> fetchSubscriptions(PaginationParam paginationParam, SubscriptionQuery query) {
         if (!paginationParam.hasPagination()) {
-            return subscriptionService.search(GraviteeContext.getExecutionContext(), query);
+            Collection<SubscriptionEntity> resp = subscriptionService.search(GraviteeContext.getExecutionContext(), query);
+            return new Page<>(resp.stream().toList(), 0, resp.size(), resp.size());
         } else {
             final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(
                 GraviteeContext.getExecutionContext(),
                 query,
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
             );
-            if (pagedSubscriptions == null) {
-                return emptyList();
-            } else {
-                return pagedSubscriptions.getContent();
-            }
+            return Objects.requireNonNullElseGet(pagedSubscriptions, () -> new Page<>(emptyList(), 0, 0, 0));
         }
     }
 
