@@ -1,0 +1,165 @@
+{
+  "name" : "Test",
+  "crossId" : "3bb7f9b3-a75b-47cd-b7f9-b3a75bd7cd66",
+  "version" : "1",
+  "execution_mode" : "v4-emulation-engine",
+  "description" : "Test",
+  "visibility" : "PRIVATE",
+  "flows" : [ ],
+  "gravitee" : "2.0.0",
+  "flow_mode" : "DEFAULT",
+  "resources" : [ ],
+  "properties" : [ ],
+  "members" : [ {
+    "source" : "memory",
+    "sourceId" : "admin",
+    "roles" : [ "0716e6d1-dccb-4c16-96e6-d1dccbac1674" ]
+  } ],
+  "pages" : [ {
+    "id" : "8812c075-92ce-41a6-92c0-7592cea1a684",
+    "crossId" : "21c3673a-e29c-4470-8367-3ae29c147099",
+    "name" : "Aside",
+    "type" : "SYSTEM_FOLDER",
+    "order" : 0,
+    "published" : true,
+    "visibility" : "PUBLIC",
+    "lastModificationDate" : 1745480801827,
+    "contentType" : "application/json",
+    "homepage" : false,
+    "parentPath" : "",
+    "excludedAccessControls" : false,
+    "accessControls" : [ ],
+    "api" : "c57c319b-62b6-427c-bc31-9b62b6527c37",
+    "attached_media" : [ ]
+  }, {
+    "id" : "0efebe71-6cb1-43e5-bebe-716cb163e539",
+    "crossId" : "fc3d8a92-b18c-4ba4-bd8a-92b18cfba4ce",
+    "name" : "Test",
+    "type" : "SWAGGER",
+    "content" : "{}",
+    "order" : 1,
+    "lastContributor" : "4407b94b-a747-41d6-87b9-4ba747f1d67c",
+    "published" : false,
+    "visibility" : "PUBLIC",
+    "lastModificationDate" : 1745480801842,
+    "contentType" : "application/json",
+    "source" : {
+      "type" : "gitlab-fetcher",
+      "configuration" : {"gitlabUrl":"https://gitlab.com/api/v4","useSystemProxy":false,"namespace":"t3551","project":"test","branchOrTag":"main","filepath":"/PetStore.json","privateToken":"********","apiVersion":"V4","editLink":null,"fetchCron":"15 8,13 * * MON-FRI","autoFetch":false}
+    },
+    "configuration" : {
+      "viewer" : "Swagger"
+    },
+    "homepage" : false,
+    "parentPath" : "",
+    "excludedAccessControls" : false,
+    "accessControls" : [ ],
+    "api" : "c57c319b-62b6-427c-bc31-9b62b6527c37",
+    "attached_media" : [ ]
+  } ],
+  "plans" : [ {
+    "id" : "ad8e4d1d-7c2c-4036-8e4d-1d7c2c203637",
+    "definitionVersion" : "2.0.0",
+    "crossId" : "5514b581-1083-4ca4-94b5-8110839ca4b1",
+    "name" : "KeylessPlan",
+    "description" : "KeylessPlan",
+    "validation" : "AUTO",
+    "security" : "KEY_LESS",
+    "type" : "API",
+    "status" : "PUBLISHED",
+    "api" : "c57c319b-62b6-427c-bc31-9b62b6527c37",
+    "order" : 0,
+    "characteristics" : [ ],
+    "tags" : [ ],
+    "created_at" : 1742314598986,
+    "updated_at" : 1745480801740,
+    "published_at" : 1742314598996,
+    "paths" : { },
+    "comment_required" : false,
+    "flows" : [ {
+      "id" : "29fef3df-5a55-4e45-bef3-df5a559e4526",
+      "path-operator" : {
+        "path" : "/",
+        "operator" : "STARTS_WITH"
+      },
+      "condition" : "",
+      "consumers" : [ ],
+      "methods" : [ ],
+      "pre" : [ ],
+      "post" : [ ],
+      "enabled" : true
+    } ]
+  } ],
+  "metadata" : [ {
+    "key" : "email-support",
+    "name" : "email-support",
+    "format" : "MAIL",
+    "value" : "${(api.primaryOwner.email)!''}",
+    "defaultValue" : "support@change.me",
+    "apiId" : "c57c319b-62b6-427c-bc31-9b62b6527c37"
+  } ],
+  "id" : "c57c319b-62b6-427c-bc31-9b62b6527c37",
+  "path_mappings" : [ ],
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/test/"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false,
+    "logging" : {
+      "mode" : "CLIENT_PROXY",
+      "content" : "HEADERS_PAYLOADS",
+      "scope" : "REQUEST_RESPONSE",
+      "condition" : "{#request.timestamp <= 1688987810835l}"
+    },
+    "groups" : [ {
+      "name" : "default-group",
+      "endpoints" : [ {
+        "name" : "default",
+        "target" : "https://webhook.site/356688cd-27d5-4365-ab40-963a7e945e35",
+        "weight" : 1,
+        "backup" : false,
+        "status" : "UP",
+        "type" : "http",
+        "inherit" : true,
+        "proxy" : null,
+        "http" : null,
+        "ssl" : null,
+        "healthcheck" : {
+          "enabled" : true,
+          "inherit" : true
+        }
+      } ],
+      "load_balancing" : {
+        "type" : "ROUND_ROBIN"
+      },
+      "services" : {
+        "discovery" : {
+          "enabled" : false
+        }
+      },
+      "http" : {
+        "connectTimeout" : 5000,
+        "idleTimeout" : 60000,
+        "keepAliveTimeout" : 300000,
+        "keepAlive" : false,
+        "readTimeout" : 300000,
+        "pipelining" : false,
+        "maxConcurrentConnections" : 100,
+        "useCompression" : true,
+        "followRedirects" : false
+      },
+      "ssl" : {
+        "trustAll" : false,
+        "hostnameVerifier" : false
+      }
+    } ]
+  },
+  "response_templates" : { },
+  "primaryOwner" : {
+    "id" : "4407b94b-a747-41d6-87b9-4ba747f1d67c",
+    "displayName" : "admin",
+    "type" : "USER"
+  },
+  "disable_membership_notifications" : false
+}
