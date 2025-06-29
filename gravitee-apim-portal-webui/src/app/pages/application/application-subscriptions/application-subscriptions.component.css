@@ -104,6 +104,11 @@ gv-confirm {
   flex-direction: column;
 }
 
+.page__content__pagination {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .application-subscriptions__shared-key-actions__button,
 .application-subscriptions__search__button {
   min-width: 160px;
