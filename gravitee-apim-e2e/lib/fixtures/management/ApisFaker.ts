@@ -36,6 +36,7 @@ export interface ApiImportEntity {
   description?: string;
   visibility?: Visibility;
   gravitee?: string;
+  execution_mode?: string;
   flow_mode?: ApiEntityFlowModeEnum;
   flows?: Array<Flow>;
   resources?: Array<any>;
