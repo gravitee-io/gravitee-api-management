@@ -7659,92 +7659,82 @@ components:
         GenericAnalytics:
             type: object
             description: Generic Analytics response
-            oneOf:
-              - $ref: "#/components/schemas/StatsAnalytics"
-              - $ref: "#/components/schemas/CountAnalytics"
-              - $ref: "#/components/schemas/HistogramAnalytics"
-              - $ref: "#/components/schemas/GroupByAnalytics"
             properties:
                 analyticsType:
                     $ref: "#/components/schemas/AnalyticsType"
-            discriminator:
-                propertyName: analyticsType
-                mapping:
-                    STATS: "#/components/schemas/StatsAnalytics"
-                    COUNT: "#/components/schemas/CountAnalytics"
-                    HISTOGRAM: "#/components/schemas/HistogramAnalytics"
-                    GROUP_BY: "#/components/schemas/GroupByAnalytics"
             required:
                 - analyticsType
         StatsAnalytics:
-          type: object
+
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"
-          properties:
-            count:
-              type: integer
-              format: int64
+            - type: object
+              properties:
+                count:
+                  type: integer
+                  format: int64
         CountAnalytics:
-          type: object
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"
-          properties:
-            count:
-              type: integer
-              format: int64
-            metadata:
-              type: object
-              additionalProperties:
-                type: object
-                additionalProperties:
-                  type: string
-        HistogramAnalytics:
-          type: object
-          allOf:
-            - $ref: "#/components/schemas/GenericAnalytics"
-          properties:
-            timestamp:
-              type: string
-              format: date-time
-            values:
-              type: array
-              items:
-                type: object
-                properties:
-                  buckets:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Bucket"
-                  field:
-                    type: string
-                  name:
-                    type: string
-                  data:
-                    type: array
-                    items:
-                      type: number
-                  metadata:
+            - type: object
+              properties:
+                count:
+                  type: integer
+                  format: int64
+                metadata:
+                  type: object
+                  additionalProperties:
                     type: object
                     additionalProperties:
-                      type: object
-                      additionalProperties:
-                        type: string
-        GroupByAnalytics:
-          type: object
+                      type: string
+        HistogramAnalytics:
+
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"
-          properties:
-            values:
-              type: object
-              additionalProperties:
-                type: integer
-                format: int64
-            metadata:
-              type: object
-              additionalProperties:
-                type: object
-                additionalProperties:
+            - type: object
+              properties:
+                timestamp:
                   type: string
+                  format: date-time
+                values:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      buckets:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Bucket"
+                      field:
+                        type: string
+                      name:
+                        type: string
+                      data:
+                        type: array
+                        items:
+                          type: number
+                      metadata:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          additionalProperties:
+                            type: string
+        GroupByAnalytics:
+          allOf:
+            - $ref: "#/components/schemas/GenericAnalytics"
+            - type: object
+              properties:
+                values:
+                  type: object
+                  additionalProperties:
+                    type: integer
+                    format: int64
+                metadata:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    additionalProperties:
+                      type: string
         Bucket:
           type: object
           properties:
@@ -8439,6 +8429,13 @@ components:
                   - $ref: "#/components/schemas/CountAnalytics"
                   - $ref: "#/components/schemas/HistogramAnalytics"
                   - $ref: "#/components/schemas/GroupByAnalytics"
+                discriminator:
+                    propertyName: analyticsType
+                    mapping:
+                        STATS: "#/components/schemas/StatsAnalytics"
+                        COUNT: "#/components/schemas/CountAnalytics"
+                        HISTOGRAM: "#/components/schemas/HistogramAnalytics"
+                        GROUP_BY: "#/components/schemas/GroupByAnalytics"
         ApiAnalyticsRequestsCountResponse:
             description: Analytics for requests count by entrypoint
             content:
