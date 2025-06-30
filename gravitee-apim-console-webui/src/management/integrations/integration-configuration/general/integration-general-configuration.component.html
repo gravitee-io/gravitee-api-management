@@ -77,7 +77,7 @@
                   />
                   <mat-label>Add new well-known URL</mat-label>
                   <mat-error *ngIf="wellKnownUrlsArrayControl()?.controls[i].hasError('pattern')"
-                    >Callback URL should respect URLs patter (starts with http|https://*")
+                    >Well-known URL should respect URLs pattern (starts with http:// or https://")
                   </mat-error>
                 </mat-form-field>
               } @else if (wellKnownUrlsArrayControl().controls.length === 2) {
@@ -105,7 +105,7 @@
                       (keydown)="enterKeyDown($event, i)"
                     ></mat-icon>
                     <mat-error *ngIf="wellKnownUrlsArrayControl()?.controls[i].hasError('pattern')"
-                      >Callback URL should respect URLs patter (starts with http|https://*")
+                      >Well-known URL should respect URLs pattern (starts with http:// or https://")
                     </mat-error>
                   </mat-form-field>
                 </div>

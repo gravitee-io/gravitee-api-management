@@ -209,6 +209,23 @@ describe('CreateIntegrationComponent', () => {
 
       expect(fakeSnackBarService.error).toHaveBeenCalledWith('An error occurred. Integration not created');
     });
+
+    it('should not validate Well Known URl if Url pattern is incorrect', async () => {
+      fakeIntegrationProviderService.getActiveProviders.mockReturnValue([{ icon: 'a2a', value: 'A2A' }]);
+      const radioButtonsGroup: GioFormSelectionInlineHarness = await componentHarness.getRadioButtonsGroup();
+      await radioButtonsGroup.select('A2A');
+      await componentHarness.clickOnAddNewUrl();
+      fixture.detectChanges();
+
+      await componentHarness.setWellKnownUrl('localhost:8082/well-known-url');
+
+      expect(await radioButtonsGroup.getSelectedValue()).toStrictEqual('A2A');
+      const error: MatErrorHarness = await componentHarness.matErrorMessage();
+      expect(await error.getText()).toEqual('Well-known URL should respect URLs pattern (starts with http:// or https://")');
+
+      await componentHarness.clickOnSubmit();
+      httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations`);
+    });
   });
 
   function expectIntegrationPostRequest(payload: CreateIntegrationPayload): void {
