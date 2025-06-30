@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.param;
 
+import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import jakarta.ws.rs.QueryParam;
 import java.util.List;
 import lombok.Getter;
@@ -39,15 +40,8 @@ public class ApiAnalyticsParam {
     @QueryParam("size")
     private Integer size;
 
-    public enum Type {
-        GROUP_BY,
-        HISTOGRAM,
-        COUNT,
-        STATS,
-    }
-
     @QueryParam("type")
-    private Type type;
+    private AnalyticsType type;
 
     @QueryParam("ranges")
     private Ranges ranges;

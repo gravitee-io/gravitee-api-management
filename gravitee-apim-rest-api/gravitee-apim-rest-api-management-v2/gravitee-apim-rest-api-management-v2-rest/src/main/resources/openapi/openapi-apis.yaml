@@ -2067,8 +2067,7 @@ paths:
             required: false
             description: Type of analytics (STATS, COUNT, HISTOGRAM, GROUP_BY)
             schema:
-              type: string
-              enum: [ STATS, COUNT, HISTOGRAM, GROUP_BY ]
+              $ref: "#/components/schemas/AnalyticsType"
           - name: ranges
             in: query
             required: false
@@ -2087,6 +2086,9 @@ paths:
             description: Order of the results
             schema:
               type: string
+              enum:
+                  - ASC
+                  - DESC
         responses:
           "200":
             $ref: "#/components/responses/ApiAnalyticsResponse"
@@ -7645,6 +7647,15 @@ components:
                     format: int64
                     description: The interval in milliseconds splitting the data
                     example: 120000
+        AnalyticsType:
+            type: string
+            description: The type of the analytics
+            example: STATS
+            enum:
+                - STATS
+                - COUNT
+                - HISTOGRAM
+                - GROUP_BY
         GenericAnalytics:
             type: object
             description: Generic Analytics response
@@ -7655,9 +7666,7 @@ components:
               - $ref: "#/components/schemas/GroupByAnalytics"
             properties:
                 analyticsType:
-                    type: string
-                    description: The type of the analytics
-                    example: STATS
+                    $ref: "#/components/schemas/AnalyticsType"
             discriminator:
                 propertyName: analyticsType
                 mapping:
@@ -7665,6 +7674,8 @@ components:
                     COUNT: "#/components/schemas/CountAnalytics"
                     HISTOGRAM: "#/components/schemas/HistogramAnalytics"
                     GROUP_BY: "#/components/schemas/GroupByAnalytics"
+            required:
+                - analyticsType
         StatsAnalytics:
           type: object
           allOf:
