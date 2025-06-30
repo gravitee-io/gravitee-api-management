@@ -28,6 +28,8 @@
 @use 'components/contextual/contextual-doc.component';
 @use 'management/application/creation/steps/application-creation';
 @use 'management/submenu';
+@import 'components/identityPicture/identityPicture';
+@import 'components/user-autocomplete/user-autocomplete';
 
 // Try to encapsulate all scss with .bootstrap class
 :where(.bootstrap, .md-dialog-container) {
