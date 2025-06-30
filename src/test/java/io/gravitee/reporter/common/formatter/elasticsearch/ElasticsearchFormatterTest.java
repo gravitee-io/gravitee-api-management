@@ -52,6 +52,7 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
       "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.json",
       "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.json",
       "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, elasticsearch/v4/metrics-with-additional.json",
+      "v4 event native metrics, v4.metric.eventnative.EventNativeMetrics, v4/event-native-metrics.json, elasticsearch/v4/event-native-metrics.json",
     }
   )
   @ParameterizedTest(name = "{0}")
