@@ -17,7 +17,7 @@ import * as angular from 'angular';
 
 import { CommonModule } from '@angular/common';
 import { provideHttpClient, withInterceptorsFromDi, withXsrfConfiguration } from '@angular/common/http';
-import { ApplicationRef, DoBootstrap, importProvidersFrom, NgModule } from '@angular/core';
+import { ApplicationRef, DoBootstrap, ErrorHandler, importProvidersFrom, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { setAngularJSGlobal, UpgradeModule } from '@angular/upgrade/static';
@@ -35,6 +35,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { UserComponent } from './user/my-accout/user.component';
 import { AuthModule } from './auth/auth.module';
 import { GioFormJsonSchemaExtendedModule } from './shared/components/form-json-schema-extended/form-json-schema-extended.module';
+import { GlobalErrorHandler } from './error-handling/global-error-handler';
 
 @NgModule({
   declarations: [AppComponent, UserComponent],
@@ -80,6 +81,7 @@ import { GioFormJsonSchemaExtendedModule } from './shared/components/form-json-s
         headerName: 'none',
       }),
     ),
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
   ],
 })
 export class AppModule implements DoBootstrap {
