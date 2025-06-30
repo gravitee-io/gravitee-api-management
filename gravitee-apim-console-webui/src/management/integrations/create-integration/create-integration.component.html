@@ -171,9 +171,12 @@
                           matInput
                           [formControl]="url.controls.url"
                           required="true"
-                          data-testid="create-integration-name-input"
+                          data-testid="create-integration-well-known-url"
                         />
                         <mat-label>Well-known URL</mat-label>
+                        <mat-error *ngIf="url.controls.url.hasError('pattern')"
+                          >Well-known URL should respect URLs pattern (starts with http:// or https://")
+                        </mat-error>
                       </mat-form-field>
                       @if (addInformationForm.controls.wellKnownUrls.length > 1) {
                         <button mat-button type="button" (click)="removeWellKnownUrl(idx)">
