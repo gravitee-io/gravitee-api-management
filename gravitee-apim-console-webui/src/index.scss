@@ -24,6 +24,8 @@
 
 // Not encapsulated because used when encapsulation is .mat
 @import 'components/contextual/contextual-doc.component';
+@import 'components/identityPicture/identityPicture';
+@import 'components/user-autocomplete/user-autocomplete';
 @import 'management/application/creation/steps/application-creation';
 @import 'management/submenu';
 
