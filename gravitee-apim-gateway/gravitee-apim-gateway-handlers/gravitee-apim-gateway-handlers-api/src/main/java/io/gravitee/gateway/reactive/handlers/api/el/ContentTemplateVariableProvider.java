@@ -70,7 +70,7 @@ public class ContentTemplateVariableProvider implements TemplateVariableProvider
         final HttpResponse response = ctx.response();
 
         if (evaluableRequest != null) {
-            var bodyRequestDefer = defer(request::bodyOrEmpty).cache();
+            var bodyRequestDefer = defer(request::bodyOrEmpty);
 
             templateContext.setDeferredVariable(
                 TEMPLATE_ATTRIBUTE_REQUEST_CONTENT,
@@ -89,7 +89,7 @@ public class ContentTemplateVariableProvider implements TemplateVariableProvider
         }
 
         if (evaluableResponse != null) {
-            var bodyResponseDefer = defer(response::bodyOrEmpty).cache();
+            var bodyResponseDefer = defer(response::bodyOrEmpty);
 
             templateContext.setDeferredVariable(
                 TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT,
