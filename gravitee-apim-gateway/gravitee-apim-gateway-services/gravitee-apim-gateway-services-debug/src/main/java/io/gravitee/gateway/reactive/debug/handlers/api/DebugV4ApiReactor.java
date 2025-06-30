@@ -105,7 +105,7 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
          */
         String debugContextPath = ctx.request().contextPath();
         String cleanContextPath = PathTransformer.removeEventIdFromPath(((ReactableDebugApi<?>) api).getEventId(), debugContextPath);
-        ctx.request().contextPath(cleanContextPath);
+        ctx.request().debugContextPath(cleanContextPath);
 
         return super.handle(ctx);
     }
