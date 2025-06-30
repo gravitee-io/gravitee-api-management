@@ -122,7 +122,7 @@ describe('IntegrationGeneralConfigurationComponent', (): void => {
       await componentHarness.fillWellKnownUrlInput('wrongURLpattern.com');
 
       const errorToLongName: MatErrorHarness = await componentHarness.matErrorMessage();
-      expect(await errorToLongName.getText()).toEqual('Callback URL should respect URLs patter (starts with http|https://*")');
+      expect(await errorToLongName.getText()).toEqual('Well-known URL should respect URLs pattern (starts with http:// or https://")');
 
       await componentHarness.fillWellKnownUrlInput('http://addValidURL.com');
 
