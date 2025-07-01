@@ -20,8 +20,7 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,9 +30,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class DefaultMetadataInitializer implements Initializer {
-
-    private final Logger logger = LoggerFactory.getLogger(DefaultMetadataInitializer.class);
 
     @Autowired
     private MetadataService metadataService;
@@ -47,7 +45,7 @@ public class DefaultMetadataInitializer implements Initializer {
                 .findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, executionContext.getEnvironmentId())
                 .isEmpty()
         ) {
-            logger.info("Create default env metadata for {}", executionContext);
+            log.info("Create default env metadata for {}", executionContext);
             metadataService.initialize(executionContext);
         }
         return true;

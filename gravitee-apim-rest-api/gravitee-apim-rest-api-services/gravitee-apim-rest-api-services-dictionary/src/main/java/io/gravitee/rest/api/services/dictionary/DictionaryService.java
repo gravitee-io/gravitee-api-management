@@ -32,20 +32,15 @@ import io.gravitee.rest.api.services.dictionary.provider.http.configuration.Http
 import io.vertx.core.Vertx;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class DictionaryService extends AbstractService implements EventListener<DictionaryEvent, DictionaryEntity> {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(DictionaryService.class);
 
     private static final String DICTIONARY_HTTP_PROVIDER = "HTTP";
 
@@ -122,7 +117,7 @@ public class DictionaryService extends AbstractService implements EventListener<
 
                     refresher.setProvider(provider);
                     refresher.setDictionaryService(dictionaryService);
-                    logger.info(
+                    log.info(
                         "Add a scheduled task to poll dictionary provider for dictionary [{}] each {} {} ",
                         dictionary.getId(),
                         dictionary.getTrigger().getRate(),
@@ -135,7 +130,7 @@ public class DictionaryService extends AbstractService implements EventListener<
                     long periodicTimer = vertx.setPeriodic(getDelayMillis(dictionary.getTrigger()), refresher);
                     timers.put(dictionary.getId(), periodicTimer);
                 } catch (JsonProcessingException jpe) {
-                    logger.error("Dictionary provider configuration for dictionary [{}] is invalid", dictionary.getId(), jpe);
+                    log.error("Dictionary provider configuration for dictionary [{}] is invalid", dictionary.getId(), jpe);
                 }
             }
         }
@@ -159,7 +154,7 @@ public class DictionaryService extends AbstractService implements EventListener<
     private void stopDynamicDictionary(DictionaryEntity dictionary) {
         Long timer = timers.remove(dictionary.getId());
         if (timer != null) {
-            logger.info("Stop dictionary refresher task for dictionary [{}]", dictionary.getId());
+            log.info("Stop dictionary refresher task for dictionary [{}]", dictionary.getId());
             vertx.cancelTimer(timer);
         }
     }

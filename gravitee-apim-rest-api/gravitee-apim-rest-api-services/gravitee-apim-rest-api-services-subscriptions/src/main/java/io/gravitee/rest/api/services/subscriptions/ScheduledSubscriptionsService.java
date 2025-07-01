@@ -20,8 +20,7 @@ import io.gravitee.apim.core.subscription.use_case.CloseExpiredSubscriptionsUseC
 import io.gravitee.common.service.AbstractService;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,12 +31,8 @@ import org.springframework.scheduling.support.CronTrigger;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ScheduledSubscriptionsService extends AbstractService implements Runnable {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(ScheduledSubscriptionsService.class);
 
     @Autowired
     @Qualifier("subscriptionsTaskScheduler")
@@ -63,19 +58,19 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
     protected void doStart() throws Exception {
         if (enabled) {
             super.doStart();
-            logger.info("Subscriptions Refresher service has been initialized with cron [{}]", cronTrigger);
+            log.info("Subscriptions Refresher service has been initialized with cron [{}]", cronTrigger);
             scheduler.schedule(this, new CronTrigger(cronTrigger));
         } else {
-            logger.warn("Subscriptions Refresher service has been disabled");
+            log.warn("Subscriptions Refresher service has been disabled");
         }
     }
 
     @Override
     public void run() {
-        logger.debug("Refresh subscriptions #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+        log.debug("Refresh subscriptions #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
 
         closeExpiredSubscriptionsUsecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AuditActor.builder().userId("system").build()));
 
-        logger.debug("Refresh subscriptions #{} ended at {}", counter.get(), Instant.now().toString());
+        log.debug("Refresh subscriptions #{} ended at {}", counter.get(), Instant.now().toString());
     }
 }
