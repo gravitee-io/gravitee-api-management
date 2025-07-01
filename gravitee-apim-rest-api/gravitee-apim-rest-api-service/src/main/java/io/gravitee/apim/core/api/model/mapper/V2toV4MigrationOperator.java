@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.exception;
+package io.gravitee.apim.core.api.model.mapper;
 
-import lombok.Getter;
-import lombok.Setter;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.plan.model.Plan;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter
-@Setter
-public class NotFoundDomainException extends AbstractDomainException {
+@Slf4j
+public class V2toV4MigrationOperator {
 
-    private String id;
+    private static final ApiMigration apiMigration = new ApiMigration();
+    private static final PlanMigration planMigration = new PlanMigration();
 
-    public NotFoundDomainException(String message) {
-        super(message);
+    public Api mapApi(Api source) {
+        return apiMigration.mapApi(source);
     }
 
-    public NotFoundDomainException(String message, String id) {
-        super(message);
-        this.setId(id);
-    }
-
-    public NotFoundDomainException(String message, Throwable cause) {
-        super(message, cause);
+    public Plan mapPlan(Plan plan) {
+        return planMigration.mapPlan(plan);
     }
 }
