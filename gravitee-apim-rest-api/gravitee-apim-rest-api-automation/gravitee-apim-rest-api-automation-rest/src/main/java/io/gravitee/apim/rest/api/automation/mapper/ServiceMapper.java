@@ -21,8 +21,6 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ConfigurationSerialization
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -30,7 +28,6 @@ import org.slf4j.LoggerFactory;
  */
 @Mapper(uses = { ConfigurationSerializationMapper.class })
 public interface ServiceMapper {
-    Logger logger = LoggerFactory.getLogger(ServiceMapper.class);
     ServiceMapper INSTANCE = Mappers.getMapper(ServiceMapper.class);
 
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")

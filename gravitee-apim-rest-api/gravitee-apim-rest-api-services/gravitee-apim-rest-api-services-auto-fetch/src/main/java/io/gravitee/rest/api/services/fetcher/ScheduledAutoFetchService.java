@@ -21,8 +21,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.services.fetcher.spring.AutoFetchConfiguration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
@@ -32,9 +31,8 @@ import org.springframework.scheduling.support.CronTrigger;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ScheduledAutoFetchService extends AbstractService implements Runnable {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledAutoFetchService.class);
 
     @Autowired
     @Qualifier("autoFetchTaskScheduler")
@@ -57,17 +55,17 @@ public class ScheduledAutoFetchService extends AbstractService implements Runnab
     protected void doStart() throws Exception {
         if (configuration.isEnabled()) {
             super.doStart();
-            LOGGER.info("Auto Fetch service has been initialized with cron [{}]", configuration.getCronTrigger());
+            log.info("Auto Fetch service has been initialized with cron [{}]", configuration.getCronTrigger());
             scheduler.schedule(this, new CronTrigger(configuration.getCronTrigger()));
         } else {
-            LOGGER.warn("Auto Fetch service has been disabled");
+            log.warn("Auto Fetch service has been disabled");
         }
     }
 
     @Override
     public void run() {
-        LOGGER.debug("Auto Fetch #{} started at {}", counter.incrementAndGet(), Instant.now());
+        log.debug("Auto Fetch #{} started at {}", counter.incrementAndGet(), Instant.now());
         pageService.execAutoFetch(GraviteeContext.getExecutionContext());
-        LOGGER.debug("Auto Fetch #{} ended at {}", counter.get(), Instant.now());
+        log.debug("Auto Fetch #{} ended at {}", counter.get(), Instant.now());
     }
 }

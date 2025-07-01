@@ -60,6 +60,7 @@ import javax.inject.Singleton;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +77,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 @Singleton
 @Tag(name = "Authentication")
+@Slf4j
 public class OAuth2AuthenticationResource extends AbstractAuthenticationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2AuthenticationResource.class);
@@ -90,7 +92,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             LOGGER.trace(
                 "Loading class to initialize properly JsonPath Cache provider: " + Class.forName(JsonPathFunction.class.getName())
             );
-        } catch (ClassNotFoundException ignored) {}
+        } catch (ClassNotFoundException ignored) {
+            log.debug("ClassNotFoundException ignored in OAuth2AuthenticationResource");
+        }
     }
 
     @Autowired

@@ -20,7 +20,9 @@ import jakarta.ws.rs.QueryParam;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Setter
 @Getter
 public class ApiAnalyticsParam {
@@ -77,7 +79,9 @@ public class ApiAnalyticsParam {
                     int from = Integer.parseInt(bounds[0]);
                     int to = Integer.parseInt(bounds[1]);
                     return new Range(from, to);
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                    log.debug("NumberFormatException ignored in ApiAnalyticsParam");
+                }
             }
             return null;
         }

@@ -49,17 +49,16 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
+@Slf4j
 public class ScheduledSubscriptionPreExpirationNotificationService extends AbstractService implements Runnable {
 
-    private final Logger logger = LoggerFactory.getLogger(ScheduledSubscriptionPreExpirationNotificationService.class);
     // For debugging purposes you can change the trigger to "0 */1 * * * *" and the cronPeriodInMs to 60 * 1000
     private final String cronTrigger = "0 0 */1 * * *";
     private final int cronPeriodInMs = 60 * 60 * 1000;
@@ -108,16 +107,16 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
         if (enabled) {
             notificationDays = getCleanedNotificationDays(configPreExpirationNotificationSchedule);
 
-            logger.info("Subscription Pre Expiration Notification service has been initialized with cron [{}]", cronTrigger);
+            log.info("Subscription Pre Expiration Notification service has been initialized with cron [{}]", cronTrigger);
             scheduler.schedule(this, new CronTrigger(cronTrigger));
         } else {
-            logger.warn("Subscription Pre Expiration Notification service has been disabled");
+            log.warn("Subscription Pre Expiration Notification service has been disabled");
         }
     }
 
     @Override
     public void run() {
-        logger.debug("Subscription Pre Expiration Notification #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+        log.debug("Subscription Pre Expiration Notification #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
 
         Instant now = Instant.now();
 
@@ -126,7 +125,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
             notifyApiKeysExpirations(now, daysToExpiration, notifiedSubscriptionIds);
         });
 
-        logger.debug("Subscription Pre Expiration Notification #{} ended at {}", counter.get(), Instant.now().toString());
+        log.debug("Subscription Pre Expiration Notification #{} ended at {}", counter.get(), Instant.now().toString());
     }
 
     private void notifyApiKeysExpirations(Instant now, Integer daysToExpiration, Set<String> notifiedSubscriptionIds) {
@@ -194,7 +193,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
         List<Integer> invalidValues = inputDays.stream().filter(day -> !isDayValid.test(day)).collect(Collectors.toList());
 
         if (!invalidValues.isEmpty()) {
-            logger.warn(
+            log.warn(
                 "The configuration key `services.subscription.pre-expiration-notification-schedule` contains some invalid values: {}. Values should be between {} and {} (days).",
                 invalidValues.stream().map(Object::toString).collect(Collectors.joining(", ")),
                 min,

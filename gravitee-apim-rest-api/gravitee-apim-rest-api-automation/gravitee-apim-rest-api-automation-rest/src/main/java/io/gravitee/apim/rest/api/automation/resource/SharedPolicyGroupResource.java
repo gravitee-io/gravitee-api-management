@@ -35,11 +35,13 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class SharedPolicyGroupResource extends AbstractResource {
 
     @PathParam("hrid")
@@ -63,6 +65,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
             );
             return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(sharedPolicyGroup)).build();
         } catch (SharedPolicyGroupNotFoundException e) {
+            log.warn("SharedPolicyGroup not found for hrid: {}, operation: get", hrid);
             throw new HRIDNotFoundException(hrid);
         }
     }
@@ -96,6 +99,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
                 deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroup.getId(), auditInfo));
             }
         } catch (SharedPolicyGroupNotFoundException e) {
+            log.warn("SharedPolicyGroup not found for hrid: {}, operation: delete", hrid);
             throw new HRIDNotFoundException(hrid);
         }
 

@@ -20,30 +20,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class FetcherConfigurationFactoryImpl implements FetcherConfigurationFactory {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(FetcherConfigurationFactoryImpl.class);
 
     private final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public <T extends FetcherConfiguration> T create(Class<T> fetcherConfigurationClass, String configuration) {
         if (configuration == null || configuration.isEmpty()) {
-            LOGGER.error("Unable to create a Fetcher configuration from a null or empty configuration data");
+            log.error("Unable to create a Fetcher configuration from a null or empty configuration data");
             return null;
         }
 
         try {
             return mapper.readValue(configuration, fetcherConfigurationClass);
         } catch (IOException ex) {
-            LOGGER.error("Unable to instance Fetcher configuration for {}", fetcherConfigurationClass.getName(), ex);
+            log.error("Unable to instance Fetcher configuration for {}", fetcherConfigurationClass.getName(), ex);
         }
 
         return null;

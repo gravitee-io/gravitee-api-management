@@ -22,8 +22,7 @@ import javax.wsdl.WSDLException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -33,9 +32,8 @@ import org.xml.sax.SAXException;
  *
  * see: <a href="https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html">XML External Entity Prevention Cheat Sheet</a>
  */
+@Slf4j
 public class GraviteeWSDLReaderImpl extends WSDLReaderImpl {
-
-    private static final Logger logger = LoggerFactory.getLogger(GraviteeWSDLReaderImpl.class);
 
     @Override
     public Definition readWSDL(String documentBaseURI, InputSource inputSource) throws WSDLException {
@@ -77,8 +75,10 @@ public class GraviteeWSDLReaderImpl extends WSDLReaderImpl {
             dbf.setExpandEntityReferences(false);
         } catch (ParserConfigurationException e) {
             // This should catch a failed setFeature feature
-            logger.info(
-                "ParserConfigurationException was thrown. The feature '" + FEATURE + "' is probably not supported by your XML processor."
+            log.warn(
+                "ParserConfigurationException was thrown. The feature '{}' is probably not supported by your XML processor.",
+                FEATURE,
+                e
             );
         }
 
@@ -90,10 +90,13 @@ public class GraviteeWSDLReaderImpl extends WSDLReaderImpl {
             DocumentBuilder safebuilder = dbf.newDocumentBuilder();
             return safebuilder.parse(inputSource);
         } catch (ParserConfigurationException e) {
+            log.error("ParserConfigurationException while creating DocumentBuilder for '{}'.", desc, e);
             throw new WSDLException("PARSER_ERROR", "Problem parsing '" + desc + "'.", e);
         } catch (IOException e) {
+            log.error("IOException while parsing '{}'.", desc, e);
             throw new WSDLException("IO_ERROR", "Problem parsing '" + desc + "'.", e);
         } catch (SAXException e) {
+            log.error("SAXException while parsing '{}'.", desc, e);
             throw new WSDLException("SAX_ERROR", "Problem parsing '" + desc + "'.", e);
         }
     }

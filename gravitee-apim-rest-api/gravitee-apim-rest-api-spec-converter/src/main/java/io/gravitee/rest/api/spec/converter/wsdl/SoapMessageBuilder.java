@@ -27,18 +27,17 @@ import java.io.StringWriter;
 import java.util.*;
 import javax.wsdl.*;
 import javax.wsdl.extensions.schema.Schema;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.xmlbeans.SchemaTypeSystem;
 import org.apache.xmlbeans.XmlBeans;
 import org.apache.xmlbeans.XmlCursor;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class SoapMessageBuilder {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(SoapMessageBuilder.class);
     public static final String XMLSCHEMA = "http://www.w3.org/2001/XMLSchema";
     public static final String XSD_PREFIX = "xsd";
 
@@ -71,7 +70,11 @@ public class SoapMessageBuilder {
         try {
             schemas.add(XmlObject.Factory.parse(schema.getElement(), this.options));
         } catch (XmlException e) {
-            LOGGER.debug("XSD parsing failed, OpenAPI specification maybe generated without SOAP envelop", e);
+            log.warn(
+                "XSD parsing failed, OpenAPI specification may be generated without SOAP envelope. Schema element: {}",
+                schema.getElement(),
+                e
+            );
         }
     }
 
@@ -81,7 +84,7 @@ public class SoapMessageBuilder {
                 XmlBeans.compileXsd(schemas.toArray(new XmlObject[schemas.size()]), XmlBeans.getBuiltinTypeSystem(), options);
             this.compiled = true;
         } catch (XmlException e) {
-            LOGGER.debug("Compilation of XSD failed, OpenAPI specification will be generated without SOAP envelop", e);
+            log.warn("Compilation of XSD failed, OpenAPI specification will be generated without SOAP envelope.", e);
         }
     }
 
@@ -93,6 +96,7 @@ public class SoapMessageBuilder {
         try (StringWriter writer = new StringWriter()) {
             Optional<SoapVersion> optVersion = detectSoapVersion(binding.getExtensibilityElements());
             if (!optVersion.isPresent()) {
+                log.error("SOAP version could not be detected for binding: {}. Skipping envelope generation.", binding.getQName());
                 return Optional.empty();
             }
 
@@ -140,7 +144,7 @@ public class SoapMessageBuilder {
             writer.flush();
             return Optional.ofNullable(writer.toString());
         } catch (IOException e) {
-            LOGGER.debug("Generation of Soap Envelope failed for binding : {} ", binding.getQName(), e);
+            log.error("Generation of Soap Envelope failed for binding: {}", binding.getQName(), e);
         }
         return Optional.empty();
     }
