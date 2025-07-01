@@ -19,8 +19,7 @@ import io.gravitee.node.api.initializer.Initializer;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -29,9 +28,8 @@ import org.springframework.context.annotation.Lazy;
  *
  * @author GraviteeSource Team
  */
+@Slf4j
 public abstract class OrganizationInitializer implements Initializer {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(OrganizationInitializer.class);
 
     @Lazy
     @Autowired
@@ -47,11 +45,11 @@ public abstract class OrganizationInitializer implements Initializer {
                 .findAll()
                 .forEach(organization -> {
                     ExecutionContext executionContext = new ExecutionContext(organization);
-                    LOGGER.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
+                    log.info("Starting {} for {}", this.getClass().getSimpleName(), executionContext);
                     initializeOrganization(executionContext);
                 });
         } catch (TechnicalException e) {
-            LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);
+            log.error("{} execution failed", this.getClass().getSimpleName(), e);
             return false;
         }
         return true;

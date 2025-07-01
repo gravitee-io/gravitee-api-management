@@ -26,9 +26,8 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import java.util.Map.Entry;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -36,12 +35,8 @@ import org.springframework.beans.factory.annotation.Value;
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class V3UpgraderService extends AbstractService {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(V3UpgraderService.class);
 
     @Autowired
     private IdentityProviderRepository identityProviderRepository;
@@ -64,32 +59,27 @@ public class V3UpgraderService extends AbstractService {
     protected void doStart() throws Exception {
         if (enabled) {
             super.doStart();
-            logger.info("v3 Upgrader service is enabled");
+            log.info("v3 Upgrader service is enabled");
             convertIDPRoleMapping();
             moveIdpPermission();
         } else {
-            logger.info("v3 Upgrader service has been disabled");
+            log.info("v3 Upgrader service has been disabled");
         }
     }
 
     public void convertIDPRoleMapping() {
         try {
             Set<IdentityProvider> allIdps = identityProviderRepository.findAll();
-            logger.debug("{} Idp found", allIdps.size());
+            log.debug("{} Idp found", allIdps.size());
             for (IdentityProvider idp : allIdps) {
                 boolean idpHasBeenModified = false;
                 Map<String, String[]> roleMappings = idp.getRoleMappings();
                 if (roleMappings != null) {
-                    logger.debug("Idp '{}' has {} roleMappings", idp.getId(), roleMappings.size());
+                    log.debug("Idp '{}' has {} roleMappings", idp.getId(), roleMappings.size());
                     for (Entry<String, String[]> entry : roleMappings.entrySet()) {
                         String[] roles = entry.getValue();
                         if (roles != null) {
-                            logger.debug(
-                                "Idp '{}' - RoleMapping with condition '{}' has {} roles",
-                                idp.getId(),
-                                entry.getKey(),
-                                roles.length
-                            );
+                            log.debug("Idp '{}' - RoleMapping with condition '{}' has {} roles", idp.getId(), entry.getKey(), roles.length);
                             List<String> newRoles = new ArrayList<>(roles.length);
                             boolean entryHasBeenModified = false;
                             for (String role : roles) {
@@ -118,19 +108,19 @@ public class V3UpgraderService extends AbstractService {
                                 idpHasBeenModified = true;
                             }
                         } else {
-                            logger.debug("Idp '{}' - RoleMapping with condition '{}' has no roles", idp.getId(), entry.getKey());
+                            log.debug("Idp '{}' - RoleMapping with condition '{}' has no roles", idp.getId(), entry.getKey());
                         }
                     }
                 }
                 if (idpHasBeenModified) {
                     identityProviderRepository.update(idp);
-                    logger.info("Idp '{}' has been updated", idp.getId());
+                    log.info("Idp '{}' has been updated", idp.getId());
                 } else {
-                    logger.info("Idp '{}' has not been updated", idp.getId());
+                    log.info("Idp '{}' has not been updated", idp.getId());
                 }
             }
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to retrieve all identity providers", ex);
+            log.error("An error occurs while trying to retrieve all identity providers", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
     }
@@ -143,7 +133,7 @@ public class V3UpgraderService extends AbstractService {
                         "DEFAULT",
                         RoleReferenceType.ORGANIZATION
                     );
-            logger.info("{} environment roles found", allRole.size());
+            log.info("{} environment roles found", allRole.size());
             for (Role envRole : allRole) {
                 int idpPerm = -1;
                 int idpPermIndex = -1;
@@ -156,7 +146,7 @@ public class V3UpgraderService extends AbstractService {
                 }
 
                 if (idpPerm != -1 && idpPermIndex != -1) {
-                    logger.info("Permission: {} found on role {}", idpPerm, envRole.getName());
+                    log.info("Permission: {} found on role {}", idpPerm, envRole.getName());
 
                     Role orgRole;
                     final Optional<Role> existingOrgRoleWithSameNameRoleCursor =
@@ -167,15 +157,15 @@ public class V3UpgraderService extends AbstractService {
                                 envRole.getReferenceType()
                             );
                     if (existingOrgRoleWithSameNameRoleCursor.isPresent()) {
-                        logger.info("An org role exist with the same name");
+                        log.info("An org role exist with the same name");
                         orgRole = existingOrgRoleWithSameNameRoleCursor.get();
                         orgRole.setPermissions(ArrayUtils.add(orgRole.getPermissions(), 1300 + idpPerm % 100));
-                        logger.info("permissions updated");
+                        log.info("permissions updated");
 
                         this.roleRepository.update(orgRole);
-                        logger.info("Update of org role done");
+                        log.info("Update of org role done");
                     } else {
-                        logger.info("No org role exist with the same name");
+                        log.info("No org role exist with the same name");
 
                         orgRole = new Role();
                         orgRole.setId(UuidString.generateRandom());
@@ -189,12 +179,12 @@ public class V3UpgraderService extends AbstractService {
                         orgRole.setSystem(envRole.isSystem());
                         orgRole.setPermissions(new int[] { 1300 + idpPerm % 100 });
                         this.roleRepository.create(orgRole);
-                        logger.info("Creation of org role done");
+                        log.info("Creation of org role done");
                     }
 
                     envRole.setPermissions(ArrayUtils.remove(envPermissions, idpPermIndex));
                     this.roleRepository.update(envRole);
-                    logger.info("Remove permission from env role done");
+                    log.info("Remove permission from env role done");
 
                     // Update memberships
                     final Set<Membership> envMembershipsWithRole =
@@ -216,7 +206,7 @@ public class V3UpgraderService extends AbstractService {
                             newOrganizationMembership.setRoleId(orgRole.getId());
 
                             this.membershipRepository.create(newOrganizationMembership);
-                            logger.info(
+                            log.info(
                                 "New membership {} on organization created for user {}",
                                 newOrganizationMembership.getId(),
                                 membership.getMemberId()
@@ -226,7 +216,7 @@ public class V3UpgraderService extends AbstractService {
                 }
             }
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to retrieve all identity providers", ex);
+            log.error("An error occurs while trying to retrieve all identity providers", ex);
             throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
     }

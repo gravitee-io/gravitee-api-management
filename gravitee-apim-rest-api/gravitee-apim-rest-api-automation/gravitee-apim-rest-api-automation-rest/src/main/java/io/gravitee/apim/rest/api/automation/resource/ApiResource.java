@@ -41,11 +41,13 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ApiResource extends AbstractResource {
 
     @Inject
@@ -85,6 +87,7 @@ public class ApiResource extends AbstractResource {
                 )
                 .build();
         } catch (ApiNotFoundException e) {
+            log.warn("API not found for HRID: {}, operation: getApiByHRID", hrid, e);
             throw new HRIDNotFoundException(hrid);
         }
     }
@@ -97,6 +100,7 @@ public class ApiResource extends AbstractResource {
         try {
             apiServiceV4.delete(GraviteeContext.getExecutionContext(), IdBuilder.builder(executionContext, hrid).buildId(), true);
         } catch (ApiNotFoundException e) {
+            log.warn("API not found for HRID: {}, operation: deleteApi", hrid, e);
             throw new HRIDNotFoundException(hrid);
         }
         return Response.noContent().build();

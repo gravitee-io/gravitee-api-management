@@ -23,17 +23,15 @@ import io.gravitee.rest.api.service.event.DictionaryEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class DictionaryManager {
-
-    private final Logger logger = LoggerFactory.getLogger(DictionaryManager.class);
 
     @Autowired
     private DictionaryService dictionaryService;
@@ -64,7 +62,7 @@ public class DictionaryManager {
 
             dictionaries.put(dictionary.getId(), dictionary);
         } catch (Exception e) {
-            logger.error("Error occurred when trying to start the dictionary [{}].", dictionaryId, e);
+            log.error("Error occurred when trying to start the dictionary [{}].", dictionaryId, e);
         }
     }
 
@@ -79,7 +77,7 @@ public class DictionaryManager {
 
             dictionaries.remove(dictionaryId);
         } catch (Exception e) {
-            logger.error("Error occurred when trying to stop the dictionary [{}].", dictionaryId, e);
+            log.error("Error occurred when trying to stop the dictionary [{}].", dictionaryId, e);
         }
     }
 
