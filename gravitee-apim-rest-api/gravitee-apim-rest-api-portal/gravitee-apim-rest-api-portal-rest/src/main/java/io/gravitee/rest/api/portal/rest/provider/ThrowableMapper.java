@@ -19,20 +19,18 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.ext.Provider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
+@Slf4j
 @Provider
 public class ThrowableMapper extends AbstractExceptionMapper<Throwable> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ThrowableMapper.class);
-
     @Override
     public Response toResponse(Throwable e) {
-        LOGGER.error("Internal error", e);
+        log.error("Internal error", e);
         Status status = Response.Status.INTERNAL_SERVER_ERROR;
         return Response.status(status).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, status.getStatusCode())).build();
     }

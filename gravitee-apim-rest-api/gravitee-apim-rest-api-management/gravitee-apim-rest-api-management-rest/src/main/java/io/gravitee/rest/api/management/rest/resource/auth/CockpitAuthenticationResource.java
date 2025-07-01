@@ -62,8 +62,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.server.ServerHttpRequest;
@@ -74,6 +73,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+@Slf4j
 @Singleton
 @Path("/auth/cockpit")
 public class CockpitAuthenticationResource extends AbstractAuthenticationResource {
@@ -84,7 +84,6 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     protected static final String ENVIRONMENT_CLAIM = "env";
     protected static final String API_CLAIM = "api";
     protected static final String APPLICATION_CLAIM = "app";
-    private static final Logger LOGGER = LoggerFactory.getLogger(CockpitAuthenticationResource.class);
     private static final String COCKPIT_SOURCE = "cockpit";
 
     @Autowired
@@ -203,10 +202,10 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 return Response.temporaryRedirect(new URI(url)).build();
             }
         } catch (UserNotFoundException e) {
-            LOGGER.error("Authentication failed", e);
+            log.error("Authentication failed", e);
             return Response.status(Response.Status.FORBIDDEN).build();
         } catch (Exception e) {
-            LOGGER.error("Error occurred when trying to log user using cockpit.", e);
+            log.error("Error occurred when trying to log user using cockpit.", e);
             return Response.serverError().build();
         } finally {
             GraviteeContext.cleanContext();

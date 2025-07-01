@@ -21,11 +21,13 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @SuppressWarnings("java:S4507") // disable printStackTrace warning as we are starting the application
 public class Bootstrap {
 
@@ -71,7 +73,7 @@ public class Bootstrap {
             try {
                 cpList.add(lib.toURI().toURL());
             } catch (java.net.MalformedURLException urlEx) {
-                urlEx.printStackTrace();
+                log.warn("Malformed URL for library file in lib directory: {}", lib, urlEx);
             }
         }
 
@@ -94,7 +96,7 @@ public class Bootstrap {
                     cpList.add(lib.toURI().toURL());
                 }
             } catch (java.net.MalformedURLException urlEx) {
-                urlEx.printStackTrace();
+                log.warn("Malformed URL for library file in ext directory: {}", libDir, urlEx);
             }
         }
 
@@ -177,7 +179,7 @@ public class Bootstrap {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.start();
         } catch (Exception t) {
-            t.printStackTrace();
+            log.error("Fatal error during Gravitee Standalone bootstrap", t);
             System.exit(1);
         }
     }

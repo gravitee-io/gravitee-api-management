@@ -46,8 +46,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,9 +56,8 @@ import org.springframework.web.filter.GenericFilterBean;
  * @author Azize Elamrani (azize at gravitee.io)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class TokenAuthenticationFilter extends GenericFilterBean {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TokenAuthenticationFilter.class);
 
     public static final String AUTH_COOKIE_NAME = "Auth-Graviteeio-APIM";
     public static final String TOKEN_AUTH_SCHEMA = "bearer";
@@ -105,7 +103,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
         }
 
         if (isEmpty(stringToken)) {
-            LOGGER.debug("Authorization header/cookie not found");
+            log.debug("Authorization header/cookie not found");
         } else {
             try {
                 if (stringToken.toLowerCase().contains(TOKEN_AUTH_SCHEMA)) {
@@ -144,17 +142,17 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                             .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     }
                 } else {
-                    LOGGER.debug("Authorization schema not found");
+                    log.debug("Authorization schema not found");
                 }
             } catch (final Exception e) {
                 final String errorMessage = "Invalid token";
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.error(errorMessage, e);
+                if (log.isDebugEnabled()) {
+                    log.error(errorMessage, e);
                 } else {
                     if (e instanceof JWTVerificationException) {
-                        LOGGER.warn(errorMessage);
+                        log.warn(errorMessage);
                     } else {
-                        LOGGER.error(errorMessage);
+                        log.error(errorMessage);
                     }
                 }
                 res.addCookie(cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null));

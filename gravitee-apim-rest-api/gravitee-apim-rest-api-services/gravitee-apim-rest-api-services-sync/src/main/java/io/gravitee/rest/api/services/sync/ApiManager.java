@@ -22,31 +22,30 @@ import io.gravitee.rest.api.service.event.ApiEvent;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ApiManager {
 
-    private final Logger logger = LoggerFactory.getLogger(ApiManager.class);
     private final Map<String, Api> apis = new HashMap<>();
 
     @Autowired
     private EventManager eventManager;
 
     public void deploy(Api api) {
-        logger.info("Deployment of API id[{}] name[{}] version[{}]", api.getId(), api.getName(), api.getVersion());
+        log.info("Deployment of API id[{}] name[{}] version[{}]", api.getId(), api.getName(), api.getVersion());
 
         apis.put(api.getId(), api);
 
         if (api.getLifecycleState() == LifecycleState.STARTED) {
             eventManager.publishEvent(ApiEvent.DEPLOY, api);
         } else {
-            logger.debug("API id[{}] name[{}] version[{}] is not enabled. Skip deployment.", api.getId(), api.getName(), api.getVersion());
+            log.debug("API id[{}] name[{}] version[{}] is not enabled. Skip deployment.", api.getId(), api.getName(), api.getVersion());
         }
     }
 
@@ -58,10 +57,10 @@ public class ApiManager {
     public void undeploy(String apiId) {
         Api currentApi = apis.remove(apiId);
         if (currentApi != null) {
-            logger.info("Un-deploying API id[{}] name[{}] version[{}]", currentApi.getId(), currentApi.getName(), currentApi.getVersion());
+            log.info("Un-deploying API id[{}] name[{}] version[{}]", currentApi.getId(), currentApi.getName(), currentApi.getVersion());
 
             eventManager.publishEvent(ApiEvent.UNDEPLOY, currentApi);
-            logger.info("API id[{}] has been un-deployed", apiId);
+            log.info("API id[{}] has been un-deployed", apiId);
         }
     }
 

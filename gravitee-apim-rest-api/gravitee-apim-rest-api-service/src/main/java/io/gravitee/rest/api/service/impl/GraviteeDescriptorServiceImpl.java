@@ -21,8 +21,7 @@ import io.gravitee.rest.api.service.GraviteeDescriptorService;
 import io.gravitee.rest.api.service.exceptions.GraviteeDescriptorReadException;
 import io.gravitee.rest.api.service.exceptions.GraviteeDescriptorVersionException;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,11 +29,10 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class GraviteeDescriptorServiceImpl extends TransactionalService implements GraviteeDescriptorService {
 
     private static final String DESCRIPTOR_FILENAME = ".gravitee.json";
-
-    private static final Logger logger = LoggerFactory.getLogger(GraviteeDescriptorServiceImpl.class);
 
     @Override
     public String descriptorName() {
@@ -49,7 +47,7 @@ public class GraviteeDescriptorServiceImpl extends TransactionalService implemen
             assertVersion(descriptorEntity);
             return descriptorEntity;
         } catch (IOException e) {
-            logger.error("An error occurs while trying to read the descriptor", e);
+            log.error("An error occurs while trying to read the descriptor", e);
             throw new GraviteeDescriptorReadException("An error occurs while trying to read the descriptor");
         }
     }

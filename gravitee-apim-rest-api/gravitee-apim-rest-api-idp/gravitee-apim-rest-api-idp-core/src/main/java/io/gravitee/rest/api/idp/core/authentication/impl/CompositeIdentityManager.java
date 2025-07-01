@@ -25,17 +25,15 @@ import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.core.authentication.IdentityManager;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class CompositeIdentityManager implements IdentityManager {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(CompositeIdentityManager.class);
 
     @Autowired
     private ReferenceSerializer referenceSerializer;
@@ -44,10 +42,10 @@ public class CompositeIdentityManager implements IdentityManager {
 
     @Override
     public Optional<User> lookup(final String reference) {
-        LOGGER.debug("Looking for a user: reference[{}]", reference);
+        log.debug("Looking for a user: reference[{}]", reference);
         try {
             IdentityReference identityReference = referenceSerializer.deserialize(reference);
-            LOGGER.debug(
+            log.debug(
                 "Lookup identity information from reference: source[{}] id[{}]",
                 identityReference.getSource(),
                 identityReference.getReference()
@@ -61,7 +59,7 @@ public class CompositeIdentityManager implements IdentityManager {
                 }
             }
         } catch (final Exception ex) {
-            LOGGER.error("Unable to extract IDP: token[" + reference + "]", ex);
+            log.error("Unable to extract IDP: token[" + reference + "]", ex);
         }
         return empty();
     }
@@ -129,7 +127,7 @@ public class CompositeIdentityManager implements IdentityManager {
             try {
                 return referenceSerializer.serialize(new IdentityReference(user.getSource(), user.getReference()));
             } catch (Exception ex) {
-                LOGGER.error("An error occurs while serializing user reference", ex);
+                log.error("An error occurs while serializing user reference", ex);
                 return null;
             }
         }

@@ -63,6 +63,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +77,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class SearchIndexInitializer implements Initializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchIndexInitializer.class);
@@ -252,7 +254,9 @@ public class SearchIndexInitializer implements Initializer {
                                 pageService.transformSwagger(executionContext, page, genericApiEntity);
                                 searchEngineService.index(executionContext, page, true, false);
                             }
-                        } catch (Exception ignored) {}
+                        } catch (Exception ignored) {
+                            log.debug("Exception ignored in SearchIndexInitializer");
+                        }
                     });
                 } finally {
                     GraviteeContext.cleanContext();

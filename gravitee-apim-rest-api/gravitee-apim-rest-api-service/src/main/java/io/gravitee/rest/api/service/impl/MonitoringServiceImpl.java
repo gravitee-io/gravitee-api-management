@@ -21,8 +21,7 @@ import io.gravitee.rest.api.model.monitoring.*;
 import io.gravitee.rest.api.service.MonitoringService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import jakarta.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +30,8 @@ import org.springframework.stereotype.Service;
  * @author GraviteeSource Team
  */
 @Service
+@Slf4j
 public class MonitoringServiceImpl implements MonitoringService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MonitoringServiceImpl.class);
 
     @Lazy
     @Inject
@@ -41,7 +39,7 @@ public class MonitoringServiceImpl implements MonitoringService {
 
     @Override
     public MonitoringData findMonitoring(final ExecutionContext executionContext, final String gatewayId) {
-        LOGGER.debug("Running monitoring query for Gateway instance '{}'", gatewayId);
+        log.debug("Running monitoring query for Gateway instance '{}'", gatewayId);
         final MonitoringResponse monitoringResponse = monitoringRepository.query(executionContext.getQueryContext(), gatewayId);
         return monitoringResponse != null ? convert(monitoringResponse) : null;
     }

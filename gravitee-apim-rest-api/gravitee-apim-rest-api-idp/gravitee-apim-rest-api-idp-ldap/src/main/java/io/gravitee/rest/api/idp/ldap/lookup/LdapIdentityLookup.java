@@ -24,8 +24,7 @@ import io.gravitee.rest.api.idp.ldap.utils.LdapUtils;
 import java.util.Collection;
 import java.util.Collections;
 import javax.naming.ldap.LdapName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -48,10 +47,9 @@ import org.springframework.ldap.support.LdapNameBuilder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Import(LdapIdentityLookupConfiguration.class)
 public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(LdapIdentityLookup.class);
 
     private static final String LDAP_ATTRIBUTE_GIVENNAME = "givenName";
     private static final String LDAP_ATTRIBUTE_SURNAME = "sn";
@@ -74,12 +72,12 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         String searchFilter = environment.getProperty("lookup.user.filter");
-        LOGGER.debug("Looking for a LDAP user's identifier using search filter [{}]", searchFilter);
+        log.debug("Looking for a LDAP user's identifier using search filter [{}]", searchFilter);
 
         if (searchFilter != null) {
             identifierAttribute = LdapUtils.extractAttribute(searchFilter);
 
-            LOGGER.info("User identifier is based on the [{}] attribute", identifierAttribute);
+            log.info("User identifier is based on the [{}] attribute", identifierAttribute);
 
             userAttributes =
                 new String[] {
@@ -101,7 +99,7 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
                 .add(environment.getProperty("lookup.user.base", ""))
                 .build();
 
-        LOGGER.info("User search is based on DN [{}]", baseDn);
+        log.info("User search is based on DN [{}]", baseDn);
     }
 
     @Override
@@ -123,10 +121,10 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
             return ldapTemplate.search(ldapQuery, USER_CONTEXT_MAPPER);
         } catch (LimitExceededException lee) {
-            LOGGER.info("Too much results while searching for [{}]. Returns an empty list.", query);
+            log.info("Too much results while searching for [{}]. Returns an empty list.", query);
             return Collections.emptyList();
         } catch (CommunicationException ce) {
-            LOGGER.error("LDAP server is not reachable.");
+            log.error("LDAP server is not reachable.");
             return Collections.emptyList();
         } finally {
             Thread.currentThread().setContextClassLoader(classLoader);

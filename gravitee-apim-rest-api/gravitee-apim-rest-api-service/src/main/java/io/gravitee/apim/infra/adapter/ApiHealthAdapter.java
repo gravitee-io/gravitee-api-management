@@ -18,7 +18,6 @@ package io.gravitee.apim.infra.adapter;
 import io.gravitee.apim.core.api_health.model.AverageHealthCheckResponseTime;
 import io.gravitee.apim.core.api_health.model.HealthCheckLog;
 import io.gravitee.apim.core.api_health.query_service.ApiHealthQueryService;
-import io.gravitee.apim.infra.query_service.api_health.ApiHealthQueryServiceImpl;
 import io.gravitee.repository.healthcheck.v4.model.ApiFieldPeriod;
 import io.gravitee.repository.healthcheck.v4.model.HealthCheckLogQuery;
 import io.gravitee.repository.management.api.search.Pageable;
