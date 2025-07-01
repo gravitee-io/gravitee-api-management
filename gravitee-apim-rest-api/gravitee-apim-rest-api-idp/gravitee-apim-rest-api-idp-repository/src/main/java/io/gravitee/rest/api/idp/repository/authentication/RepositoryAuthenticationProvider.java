@@ -25,8 +25,7 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -45,12 +44,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Import(RepositoryAuthenticationProviderConfiguration.class)
 public class RepositoryAuthenticationProvider
     extends AbstractUserDetailsAuthenticationProvider
     implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryAuthenticationProvider.class);
 
     @Autowired
     private UserService userService;
@@ -62,7 +60,7 @@ public class RepositoryAuthenticationProvider
     protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication)
         throws AuthenticationException {
         if (authentication.getCredentials() == null) {
-            LOGGER.debug("Authentication failed: no credentials provided");
+            log.debug("Authentication failed: no credentials provided");
             throw new BadCredentialsException(
                 messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
             );
@@ -71,7 +69,7 @@ public class RepositoryAuthenticationProvider
         String presentedPassword = authentication.getCredentials().toString();
 
         if (!passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
-            LOGGER.debug("Authentication failed: password does not match stored value");
+            log.debug("Authentication failed: password does not match stored value");
             throw new BadCredentialsException(
                 messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
             );
@@ -103,7 +101,7 @@ public class RepositoryAuthenticationProvider
         } catch (UserNotFoundException notFound) {
             throw new UsernameNotFoundException(String.format("User '%s' not found", username), notFound);
         } catch (Exception repositoryProblem) {
-            LOGGER.error("Failed to retrieveUser : {}", username, repositoryProblem);
+            log.error("Failed to retrieveUser : {}", username, repositoryProblem);
             throw new InternalAuthenticationServiceException(repositoryProblem.getMessage(), repositoryProblem);
         }
     }

@@ -20,6 +20,7 @@ import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupDefinition;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
@@ -28,9 +29,8 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.NullValueMappingStrategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 @Mapper(
     componentModel = MappingConstants.ComponentModel.SPRING,
     uses = { JsonDeserializer.class, JsonDeserializer.class },
@@ -39,8 +39,12 @@ import org.slf4j.LoggerFactory;
 )
 public abstract class SharedPolicyGroupAdapter {
 
+<<<<<<< HEAD
     private final Logger LOGGER = LoggerFactory.getLogger(SharedPolicyGroupAdapter.class);
 
+=======
+    @Mapping(target = "originContext", expression = "java(toOriginContextEnum(sharedPolicyGroup.getOrigin()))")
+>>>>>>> d0302258df (refactor(logging): use @Slf4j, remove unused loggers, and add contextual logs for silent failures)
     public abstract SharedPolicyGroup toEntity(io.gravitee.repository.management.model.SharedPolicyGroup sharedPolicyGroup);
 
     @Mapping(target = "definition", source = ".", qualifiedByName = "serializeDefinition")
@@ -63,7 +67,7 @@ public abstract class SharedPolicyGroupAdapter {
             var sharedPolicyGroupDefinition = GraviteeJacksonMapper.getInstance().readValue(definition, SharedPolicyGroupDefinition.class);
             result.setSteps(sharedPolicyGroupDefinition.getSteps());
         } catch (IOException ioe) {
-            LOGGER.error("Unexpected error while deserializing SharedPolicyGroup definition with id:" + result.getId(), ioe);
+            log.error("Unexpected error while deserializing SharedPolicyGroup definition with id:" + result.getId(), ioe);
         }
     }
 

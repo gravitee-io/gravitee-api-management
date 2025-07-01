@@ -17,6 +17,7 @@ package io.gravitee.rest.api.idp.ldap.lookup;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.core.env.Environment;
@@ -30,6 +31,7 @@ import org.springframework.security.ldap.server.ApacheDSContainer;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSource> {
 
     @Autowired
@@ -196,7 +198,9 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
                 if (serverSocket != null) {
                     try {
                         serverSocket.close();
-                    } catch (IOException e) {}
+                    } catch (IOException e) {
+                        log.debug("IOException ignored in LdapContextSourceFactory: {}", e.getMessage(), e);
+                    }
                 }
             }
         }

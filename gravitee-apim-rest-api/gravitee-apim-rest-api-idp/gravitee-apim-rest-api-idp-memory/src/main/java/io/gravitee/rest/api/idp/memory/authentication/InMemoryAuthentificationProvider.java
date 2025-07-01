@@ -20,8 +20,7 @@ import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
 import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryAuthenticationProviderConfiguration;
 import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
@@ -39,12 +38,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Import(InMemoryAuthenticationProviderConfiguration.class)
 public class InMemoryAuthentificationProvider
     extends AbstractUserDetailsAuthenticationProvider
     implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryAuthentificationProvider.class);
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -81,7 +79,7 @@ public class InMemoryAuthentificationProvider
                 newUser.setSourceId(username);
                 newUser.setFirstname(firstname);
                 newUser.setLastname(lastname);
-                LOGGER.debug("Add an in-memory user: {}", newUser);
+                log.debug("Add an in-memory user: {}", newUser);
                 userDetailsService.createUser(newUser);
             }
         }
@@ -93,7 +91,7 @@ public class InMemoryAuthentificationProvider
     protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication)
         throws AuthenticationException {
         if (authentication.getCredentials() == null) {
-            LOGGER.debug("Authentication failed: no credentials provided");
+            log.debug("Authentication failed: no credentials provided");
             throw new BadCredentialsException(
                 messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
             );
@@ -102,7 +100,7 @@ public class InMemoryAuthentificationProvider
         String presentedPassword = authentication.getCredentials().toString();
 
         if (!passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
-            LOGGER.debug("Authentication failed: password does not match stored value");
+            log.debug("Authentication failed: password does not match stored value");
             throw new BadCredentialsException(
                 messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
             );

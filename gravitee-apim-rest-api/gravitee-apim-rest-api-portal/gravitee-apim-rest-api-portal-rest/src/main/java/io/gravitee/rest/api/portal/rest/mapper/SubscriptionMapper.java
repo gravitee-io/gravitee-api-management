@@ -27,9 +27,22 @@ import org.springframework.stereotype.Component;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+<<<<<<< HEAD
 
 @Component
 public class SubscriptionMapper {
+=======
+@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
+public interface SubscriptionMapper {
+    SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
+
+    Logger log = LoggerFactory.getLogger(SubscriptionMapper.class);
+
+    @Mapping(target = "keys", ignore = true)
+    @Mapping(target = "endAt", source = "endingAt")
+    @Mapping(target = "startAt", source = "startingAt")
+    Subscription map(SubscriptionEntity subscriptionEntity);
+>>>>>>> d0302258df (refactor(logging): use @Slf4j, remove unused loggers, and add contextual logs for silent failures)
 
     public Subscription convert(SubscriptionEntity subscriptionEntity) {
         final Subscription subscriptionItem = new Subscription();

@@ -19,16 +19,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class JsonHelper {
-
-    private static Logger LOGGER = LoggerFactory.getLogger(JsonHelper.class);
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -47,7 +45,7 @@ public class JsonHelper {
             Object staleObject = objectMapper.readValue(jsonPayload, Object.class);
             return objectMapper.writeValueAsString(staleObject);
         } catch (IOException e) {
-            LOGGER.debug("Unable to remove 'null' values from policy configuration, return the original value", e);
+            log.debug("Unable to remove 'null' values from policy configuration, return the original value", e);
             return jsonPayload;
         }
     }
@@ -60,7 +58,7 @@ public class JsonHelper {
                     return jsonNode.get("scope").asText();
                 }
             } catch (IOException e) {
-                LOGGER.debug("Unable to get SCOPE from policy configuration, return the null", e);
+                log.debug("Unable to get SCOPE from policy configuration, return the null", e);
             }
         }
         return null;
