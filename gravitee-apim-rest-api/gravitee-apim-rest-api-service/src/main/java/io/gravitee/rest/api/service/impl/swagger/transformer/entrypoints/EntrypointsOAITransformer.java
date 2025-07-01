@@ -25,11 +25,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class EntrypointsOAITransformer extends AbstractPageConfigurationSwaggerTransformer<OAIDescriptor> {
 
     private final List<ApiEntrypointEntity> entrypoints;
@@ -82,7 +84,7 @@ public class EntrypointsOAITransformer extends AbstractPageConfigurationSwaggerT
                                 .toString()
                         );
                     } catch (URISyntaxException e) {
-                        logger.error(e.getMessage(), e);
+                        log.error(e.getMessage(), e);
                     }
                 });
         }

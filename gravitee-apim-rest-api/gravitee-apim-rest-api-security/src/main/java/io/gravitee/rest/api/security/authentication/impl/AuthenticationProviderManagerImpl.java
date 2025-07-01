@@ -23,8 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -33,18 +32,17 @@ import org.springframework.core.env.ConfigurableEnvironment;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class AuthenticationProviderManagerImpl implements AuthenticationProviderManager, InitializingBean {
 
     @Autowired
     private ConfigurableEnvironment environment;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationProviderManagerImpl.class);
-
     private List<AuthenticationProvider> identityProviders;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        LOGGER.info("Loading authentication providers");
+        log.info("Loading authentication providers");
         loadAuthenticationProviders();
     }
 
@@ -74,7 +72,7 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
     }
 
     private void loadAuthenticationProviders() {
-        LOGGER.debug("Looking for authentication providers...");
+        log.debug("Looking for authentication providers...");
         identityProviders = new ArrayList<>();
 
         boolean found = true;
@@ -87,7 +85,7 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
                 DefaultAuthenticationProvider provider = new DefaultAuthenticationProvider(type, idx);
                 provider.setConfiguration(getConfiguration(provider));
                 identityProviders.add(provider);
-                LOGGER.debug("\tAuthentication provider [{}] has been defined", type);
+                log.debug("\tAuthentication provider [{}] has been defined", type);
             }
             idx++;
         }

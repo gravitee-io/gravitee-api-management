@@ -33,9 +33,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+<<<<<<< HEAD
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+=======
+import lombok.extern.slf4j.Slf4j;
+>>>>>>> d0302258df (refactor(logging): use @Slf4j, remove unused loggers, and add contextual logs for silent failures)
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -52,9 +56,8 @@ import org.springframework.core.env.StandardEnvironment;
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class IdentityProviderManagerImpl implements IdentityProviderManager {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderManagerImpl.class);
 
     private final Map<String, IdentityProvider> identityProviders = new HashMap<>();
     private final Map<IdentityProvider, Plugin> identityProviderPlugins = new HashMap<>();
@@ -94,25 +97,25 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
     }
 
     private AuthenticationProvider authenticationProvider(String identityProviderType, Map<String, Object> properties) {
-        LOGGER.debug("Looking for an authentication provider for [{}]", identityProviderType);
+        log.debug("Looking for an authentication provider for [{}]", identityProviderType);
         IdentityProvider identityProvider = identityProviders.get(identityProviderType);
 
         if (identityProvider != null) {
             return create(identityProviderPlugins.get(identityProvider), identityProvider.authenticationProvider(), properties);
         } else {
-            LOGGER.error("No identity provider is registered for type {}", identityProviderType);
+            log.error("No identity provider is registered for type {}", identityProviderType);
             throw new IllegalStateException("No identity provider is registered for type " + identityProviderType);
         }
     }
 
     private IdentityLookup identityLookup(String identityProviderType, Map<String, Object> properties) {
-        LOGGER.debug("Looking for an identity lookup for [{}]", identityProviderType);
+        log.debug("Looking for an identity lookup for [{}]", identityProviderType);
         IdentityProvider identityProvider = identityProviders.get(identityProviderType);
 
         if (identityProvider != null) {
             return create(identityProviderPlugins.get(identityProvider), identityProvider.identityLookup(), properties);
         } else {
-            LOGGER.error("No identity provider is registered for type {}", identityProviderType);
+            log.error("No identity provider is registered for type {}", identityProviderType);
             throw new IllegalStateException("No identity provider is registered for type " + identityProviderType);
         }
     }
@@ -171,7 +174,7 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
 
             return identityObj;
         } catch (Exception ex) {
-            LOGGER.error("An unexpected error occurs while loading identity provider", ex);
+            log.error("An unexpected error occurs while loading identity provider", ex);
             return null;
         }
     }
@@ -180,7 +183,7 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         try {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            LOGGER.error("Unable to instantiate class: {}", ex);
+            log.error("Unable to instantiate class: {}", ex);
             throw ex;
         }
     }

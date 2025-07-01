@@ -26,16 +26,14 @@ import io.vertx.core.Handler;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class DictionaryRefresher implements Handler<Long> {
-
-    private final Logger logger = LoggerFactory.getLogger(DictionaryRefresher.class);
 
     private DictionaryEntity dictionary;
     private Provider provider;
@@ -47,13 +45,13 @@ public class DictionaryRefresher implements Handler<Long> {
 
     @Override
     public void handle(Long event) {
-        logger.debug("Running dictionary refresher task for {}", dictionary);
+        log.debug("Running dictionary refresher task for {}", dictionary);
 
         provider
             .get()
             .whenComplete((dynamicProperties, throwable) -> {
                 if (throwable != null) {
-                    logger.error(
+                    log.error(
                         "[{}] Unexpected error while getting dictionary's properties from provider: {}",
                         dictionary.getId(),
                         provider.name(),
@@ -73,7 +71,7 @@ public class DictionaryRefresher implements Handler<Long> {
                     Property::getKey,
                     dynamicProperty -> (dynamicProperty.getValue() == null) ? "" : dynamicProperty.getValue(),
                     (oldValue, newValue) -> {
-                        logger.error(
+                        log.error(
                             "Duplicate key found (attempted merging values {} and {}) for dictionary {}",
                             oldValue,
                             newValue,
@@ -97,9 +95,9 @@ public class DictionaryRefresher implements Handler<Long> {
                 // Get a fresh version of the dictionary before updating its properties.
                 dictionary = dictionaryService.updateProperties(GraviteeContext.getExecutionContext(), dictionary.getId(), properties);
             } catch (DictionaryNotFoundException e) {
-                logger.debug("Trying to update a deleted dictionary {} - nothing to do...", dictionary.getId());
+                log.debug("Trying to update a deleted dictionary {} - nothing to do...", dictionary.getId());
             } catch (Exception ex) {
-                logger.error("Unexpected error while updating and deploying the dictionary {}", dictionary.getId(), ex);
+                log.error("Unexpected error while updating and deploying the dictionary {}", dictionary.getId(), ex);
             }
         }
     }

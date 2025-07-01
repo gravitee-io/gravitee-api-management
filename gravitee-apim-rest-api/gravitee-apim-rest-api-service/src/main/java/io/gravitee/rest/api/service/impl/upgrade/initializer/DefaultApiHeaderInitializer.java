@@ -17,8 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
 import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,12 +26,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class DefaultApiHeaderInitializer extends EnvironmentInitializer {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(DefaultApiHeaderInitializer.class);
 
     @Autowired
     private ApiHeaderService apiHeaderService;
@@ -41,7 +36,7 @@ public class DefaultApiHeaderInitializer extends EnvironmentInitializer {
     public void initializeEnvironment(ExecutionContext executionContext) {
         // Initialize default headers
         if (apiHeaderService.findAll(executionContext.getEnvironmentId()).isEmpty()) {
-            logger.info("Create default API Headers configuration for {}", executionContext);
+            log.info("Create default API Headers configuration for {}", executionContext);
             apiHeaderService.initialize(executionContext);
         }
     }

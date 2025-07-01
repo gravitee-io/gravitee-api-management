@@ -19,12 +19,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.ws.rs.WebApplicationException;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties({ "empty", "values" })
+@Slf4j
 public abstract class ParsedListStringParam<T> extends ArrayList<String> /* to generate the right open-api def */{
 
     private List<T> values;
@@ -38,7 +40,9 @@ public abstract class ParsedListStringParam<T> extends ArrayList<String> /* to g
                     values.add(parseValue(inputAgg));
                 }
             }
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+            log.debug("IllegalArgumentException ignored in ParsedListStringParam");
+        }
     }
 
     protected abstract T parseValue(String param);
