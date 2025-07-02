@@ -325,7 +325,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         RolePermission rolePermission,
         RolePermissionAction... acl
     ) {
-        LOGGER.debug("Find applications for user {}, {}, {}", username, rolePermission, acl);
+        LOGGER.debug("Find applications for user {}", username);
         ApplicationQuery applicationQuery = ApplicationQuery.builder().user(username).status(ApplicationStatus.ACTIVE.name()).build();
         return search(executionContext, applicationQuery, sortable, null).getContent();
     }
