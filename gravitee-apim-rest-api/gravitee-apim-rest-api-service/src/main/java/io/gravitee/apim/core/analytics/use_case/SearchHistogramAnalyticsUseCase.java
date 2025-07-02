@@ -56,7 +56,10 @@ public class SearchHistogramAnalyticsUseCase {
             .map(io.gravitee.apim.core.analytics.model.HistogramAnalytics::getValues)
             .orElse(List.of());
 
-        return new Output(new Timestamp(input.from(), input.to(), input.interval()), result);
+        return new Output(
+            new Timestamp(Instant.ofEpochMilli(input.from()), Instant.ofEpochMilli(input.to()), Duration.ofMillis(input.interval())),
+            result
+        );
     }
 
     private void validateInput(Input input) {
