@@ -16,7 +16,10 @@
 package io.gravitee.apim.infra.query_service.analytics;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.Bucket;
+import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -24,6 +27,7 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
@@ -47,6 +51,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -247,5 +252,72 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .toList()
             )
             .map(topFailedApi -> TopFailedApis.builder().data(topFailedApi).build());
+    }
+
+    @Override
+    public Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters) {
+        // Map core Aggregation to repository Aggregation if needed
+        List<io.gravitee.repository.log.v4.model.analytics.Aggregation> repoAggregations = null;
+        if (histogramParameters.aggregations() != null) {
+            repoAggregations =
+                histogramParameters
+                    .aggregations()
+                    .stream()
+                    .map(agg ->
+                        new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                            agg.getField(),
+                            io.gravitee.repository.log.v4.model.analytics.AggregationType.valueOf(agg.getAggregationType().name())
+                        )
+                    )
+                    .collect(Collectors.toList());
+        }
+
+        List<HistogramAggregate> repoResult = analyticsRepository.searchHistogram(
+            executionContext.getQueryContext(),
+            new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
+                histogramParameters.apiId(),
+                histogramParameters.from(),
+                histogramParameters.to(),
+                histogramParameters.interval(),
+                repoAggregations
+            )
+        );
+
+        if (repoResult == null || repoResult.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(mapHistogramAggregatesToHistogramAnalytics(repoResult, histogramParameters));
+    }
+
+    private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(
+        List<HistogramAggregate> aggregates,
+        HistogramQuery histogramParameters
+    ) {
+        Timestamp timestamp = new Timestamp(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval());
+        List<Bucket> values = mapBuckets(aggregates);
+        return HistogramAnalytics.builder().timestamp(timestamp).values(values).build();
+    }
+
+    private List<Bucket> mapBuckets(List<HistogramAggregate> aggregates) {
+        if (aggregates == null) {
+            return null;
+        }
+        return aggregates.stream().map(this::mapHistogramAggregateToBucket).collect(Collectors.toList());
+    }
+
+    private Bucket mapHistogramAggregateToBucket(HistogramAggregate aggregate) {
+        if (aggregate == null) {
+            return null;
+        }
+
+        return Bucket
+            .builder()
+            .field(aggregate.getField())
+            .name(aggregate.getName())
+            .data(aggregate.getData())
+            .metadata(aggregate.getMetadata())
+            .buckets(mapBuckets(aggregate.getBuckets()))
+            .build();
     }
 }

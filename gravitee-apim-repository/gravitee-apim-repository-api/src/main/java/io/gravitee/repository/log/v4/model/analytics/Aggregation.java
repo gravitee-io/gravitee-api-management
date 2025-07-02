@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics.model;
+package io.gravitee.repository.log.v4.model.analytics;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class HistogramAnalytics {
+public class Aggregation {
 
-    private Timestamp timestamp;
-    private List<Bucket> values;
+    private String field;
+    private AggregationType type;
 }

@@ -21,12 +21,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.Bucket;
+import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
+import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
@@ -298,6 +303,58 @@ class AnalyticsQueryServiceImplTest {
                             TopFailedApis.TopFailedApi.builder().id("app-id-3").failedCalls(3L).failedCallsRatio(0.1).build()
                         )
                 );
+        }
+    }
+
+    @Nested
+    class HistogramAnalyticsTest {
+
+        @Test
+        void should_map_histogram_aggregate_to_histogram_analytics() {
+            Instant from = Instant.parse("2024-01-01T00:00:00Z");
+            Instant to = Instant.parse("2024-01-02T00:00:00Z");
+            Duration interval = Duration.ofHours(1);
+
+            // Prepare nested buckets
+            HistogramAggregate childAggregate = new HistogramAggregate();
+            childAggregate.setField("childField");
+            childAggregate.setName("childName");
+            childAggregate.setData(List.of(2, 3));
+            childAggregate.setMetadata(Map.of("meta", Map.of("k", "v")));
+            childAggregate.setBuckets(null);
+
+            HistogramAggregate rootAggregate = new HistogramAggregate();
+            rootAggregate.setField("rootField");
+            rootAggregate.setName("rootName");
+            rootAggregate.setData(List.of(1, 2, 3));
+            rootAggregate.setMetadata(Map.of("rootMeta", Map.of("rk", "rv")));
+            rootAggregate.setBuckets(List.of(childAggregate));
+
+            when(analyticsRepository.searchHistogram(any(QueryContext.class), any(HistogramQuery.class)))
+                .thenReturn(List.of(rootAggregate));
+
+            AnalyticsQueryService.HistogramQuery query = new AnalyticsQueryService.HistogramQuery("api-1", from, to, interval, null);
+
+            Optional<HistogramAnalytics> result = cut.searchHistogramAnalytics(GraviteeContext.getExecutionContext(), query);
+
+            assertThat(result).isPresent();
+            HistogramAnalytics analytics = result.get();
+            assertThat(analytics.getTimestamp()).isEqualTo(new Timestamp(from, to, interval));
+            assertThat(analytics.getValues()).hasSize(1);
+
+            Bucket rootBucket = analytics.getValues().getFirst();
+            assertThat(rootBucket.getField()).isEqualTo("rootField");
+            assertThat(rootBucket.getName()).isEqualTo("rootName");
+            assertThat(rootBucket.getData()).containsExactly(1, 2, 3);
+            assertThat(rootBucket.getMetadata()).containsEntry("rootMeta", Map.of("rk", "rv"));
+            assertThat(rootBucket.getBuckets()).hasSize(1);
+
+            Bucket childBucket = rootBucket.getBuckets().getFirst();
+            assertThat(childBucket.getField()).isEqualTo("childField");
+            assertThat(childBucket.getName()).isEqualTo("childName");
+            assertThat(childBucket.getData()).containsExactly(2, 3);
+            assertThat(childBucket.getMetadata()).containsEntry("meta", Map.of("k", "v"));
+            assertThat(childBucket.getBuckets()).isNull();
         }
     }
 }
