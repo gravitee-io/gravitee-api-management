@@ -317,19 +317,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return searchIds(executionContext, applicationQuery, sortable);
     }
 
-    @Override
-    public List<ApplicationListItem> findByUserAndPermission(
-        ExecutionContext executionContext,
-        String username,
-        Sortable sortable,
-        RolePermission rolePermission,
-        RolePermissionAction... acl
-    ) {
-        LOGGER.debug("Find applications for user and permission {}, {}, {}", username, rolePermission, acl);
-        ApplicationQuery applicationQuery = buildApplicationQueryForUserAndPermission(executionContext, rolePermission, acl, username);
-        return search(executionContext, applicationQuery, sortable, null).getContent();
-    }
-
     @NotNull
     private ApplicationQuery buildApplicationQueryForUserAndPermission(
         ExecutionContext executionContext,
@@ -359,20 +346,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByUser(
-        final ExecutionContext executionContext,
-        String username,
-        Sortable sortable,
-        Pageable pageable
-    ) {
+    public Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable) {
         LOGGER.debug("Find applications for user {}", username);
-
-        ApplicationQuery applicationQuery = new ApplicationQuery();
-        applicationQuery.setUser(username);
-        applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
-
-        Page<ApplicationListItem> applications = search(executionContext, applicationQuery, sortable, pageable);
-
+        ApplicationQuery applicationQuery = ApplicationQuery.builder().user(username).status(ApplicationStatus.ACTIVE.name()).build();
+        Page<ApplicationListItem> applications = search(executionContext, applicationQuery, sortable, null);
         return new LinkedHashSet<>(applications.getContent());
     }
 

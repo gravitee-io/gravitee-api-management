@@ -326,10 +326,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         ApplicationListItem appA = mock(ApplicationListItem.class);
         ApplicationListItem appB = mock(ApplicationListItem.class);
-        Collection<ApplicationListItem> applications = Arrays.asList(appA, appB);
-        doReturn(applications)
-            .when(applicationService)
-            .findByUserAndPermission(any(), any(), any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), eq(RolePermissionAction.CREATE));
+        Collection<ApplicationListItem> applications = Set.of(appA, appB);
+        doReturn(applications).when(applicationService).findByUser(any(), any(), any());
 
         final Response response = target().queryParam("size", -1).queryParam("forSubscription", true).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
