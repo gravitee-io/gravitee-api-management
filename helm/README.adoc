@@ -136,6 +136,38 @@ Where `gravitee-config-configmap-name` is the configmap name containing the exte
 
 External configuration files are only available for the AE Helm chart 1.1.42 and above, the AM Helm chart 1.0.53 and above, and the APIM Helm chart 3.1.60 and above.
 
+
+==== Internal configuration file
+
+Another way to use our helm chart and configure api-management and gateway is to provide the full configuration file inside the helm values.yaml.
+
+This can be done by using new attributes:
+
+[source,yaml]
+----
+api:
+  config:
+    graviteeYml:
+      management:
+        type: mongodb
+    logbackXml: |-
+      <?xml version="1.0" encoding="UTF-8"?>
+      <configuration>
+      </configuration>
+gateway:
+  config:
+    graviteeYml:
+    logbackXml:
+----
+Notice that configuration here are not relevant, this is only to have a syntax example.
+
+Then you will have a distinction between the deployment part (all helm values) and the application configuration (each on dedicated section).
+
+This means that you can configure all application capabilities even if an option is not yet available on helm values.
+The usual workaround is to use environment variable to overwrite / complete the application configuration. With that way to configure, this is not needed anymore.
+The counterpart is that you may have some duplication between api and gateway configuration, like mongo or elastic URL and credentials.
+
+
 ==== Shared Configuration
 
 To configure common features such as:
