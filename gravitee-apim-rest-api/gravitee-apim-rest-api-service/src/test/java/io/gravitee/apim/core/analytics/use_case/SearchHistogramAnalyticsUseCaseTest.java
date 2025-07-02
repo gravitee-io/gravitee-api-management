@@ -81,7 +81,10 @@ class SearchHistogramAnalyticsUseCaseTest {
         var output = useCase.execute(executionContext, input);
 
         assertNotNull(output);
-        assertEquals(new Timestamp(from, to, interval), output.timestamp());
+        assertEquals(
+            new Timestamp(java.time.Instant.ofEpochMilli(from), java.time.Instant.ofEpochMilli(to), java.time.Duration.ofMillis(interval)),
+            output.timestamp()
+        );
         assertEquals(buckets, output.values());
     }
 
