@@ -55,9 +55,7 @@ public interface ApplicationService {
         return findByUser(executionContext, username, null);
     }
 
-    default Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable) {
-        return findByUser(executionContext, username, sortable, null);
-    }
+    Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable);
 
     default Set<String> findIdsByUser(final ExecutionContext executionContext, String username) {
         return findIdsByUser(executionContext, username, null);
@@ -72,16 +70,6 @@ public interface ApplicationService {
         RolePermission rolePermission,
         RolePermissionAction... acl
     );
-
-    List<ApplicationListItem> findByUserAndPermission(
-        ExecutionContext executionContext,
-        String username,
-        Sortable sortable,
-        RolePermission rolePermission,
-        RolePermissionAction... acl
-    );
-
-    Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable, Pageable pageable);
 
     Set<String> findIdsByOrganization(String organizationId);
 

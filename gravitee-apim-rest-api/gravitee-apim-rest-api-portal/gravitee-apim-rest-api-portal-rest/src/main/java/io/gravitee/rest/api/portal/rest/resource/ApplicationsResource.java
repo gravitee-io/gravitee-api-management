@@ -154,7 +154,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
         @QueryParam("order") @DefaultValue("name") final ApplicationsOrderParam applicationsOrderParam
     ) {
         if (!paginationParam.hasPagination()) {
-            return getAllApplications(forSubscription, applicationsOrderParam);
+            return getAllApplications(applicationsOrderParam);
         }
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Collection<String> applicationIds;
@@ -183,21 +183,13 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
         return createListResponse(executionContext, applicationIds, paginationParam);
     }
 
-    private Response getAllApplications(boolean forSubscription, ApplicationsOrderParam applicationsOrderParam) {
+    private Response getAllApplications(ApplicationsOrderParam applicationsOrderParam) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Collection<ApplicationListItem> applications;
-        if (forSubscription) {
-            applications =
-                applicationService.findByUserAndPermission(
-                    executionContext,
-                    getAuthenticatedUser(),
-                    applicationsOrderParam.toSortable(),
-                    RolePermission.APPLICATION_SUBSCRIPTION,
-                    RolePermissionAction.CREATE
-                );
-        } else {
-            applications = applicationService.findByUser(executionContext, getAuthenticatedUser(), applicationsOrderParam.toSortable());
-        }
+        Collection<ApplicationListItem> applications = applicationService.findByUser(
+            executionContext,
+            getAuthenticatedUser(),
+            applicationsOrderParam.toSortable()
+        );
         List<Application> applicationList = applications
             .stream()
             .map(applicationListItem -> applicationMapper.convert(executionContext, applicationListItem, uriInfo, false))
