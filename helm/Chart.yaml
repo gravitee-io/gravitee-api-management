@@ -26,5 +26,3 @@ annotations:
   artifacthub.io/changes: |
     - kind: changed
       description: 'Changed default behavior to enable multi-tenant support in dictionaries'
-    - kind: changed
-      description: 'Allow customization on federation ingress. BREAKING CHANGE: now the federation ingress will not inherit anymore some management-api ingress definition (annotation, hosts, and tls)'
