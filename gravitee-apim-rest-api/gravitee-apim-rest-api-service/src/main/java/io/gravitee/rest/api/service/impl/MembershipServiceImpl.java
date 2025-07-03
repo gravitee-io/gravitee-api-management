@@ -413,7 +413,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         Command command = Command
             .builder()
             .id(UUID.random().toString())
-            .environmentId(context.getEnvironmentId())
             .organizationId(context.getOrganizationId())
             .from(this.node.id())
             .to(MessageRecipient.MANAGEMENT_APIS.name())
@@ -421,6 +420,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             .createdAt(Date.from(timestamp))
             .updatedAt(Date.from(timestamp))
             .build();
+
+        if (context.hasEnvironmentId()) {
+            command.setEnvironmentId(context.getEnvironmentId());
+        }
         InvalidateRoleCacheCommandEntity eventData = getEventData(reference, member);
 
         try {
