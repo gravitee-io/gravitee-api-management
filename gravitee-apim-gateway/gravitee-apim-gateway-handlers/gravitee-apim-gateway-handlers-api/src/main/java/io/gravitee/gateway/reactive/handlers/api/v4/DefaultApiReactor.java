@@ -557,10 +557,16 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}
 
     protected AnalyticsContext createAnalyticsContext() {
-        LoggingContext loggingContext = new LoggingContext(api.getDefinition().getAnalytics().getLogging());
-        loggingContext.setMaxSizeLogMessage(loggingMaxSize);
-        loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
-        loggingContext.setLogGuardService(logGuardService);
+        LoggingContext loggingContext = Optional
+            .ofNullable(api.getDefinition().getAnalytics())
+            .map(analytics -> {
+                var context = new LoggingContext(analytics.getLogging());
+                context.setMaxSizeLogMessage(loggingMaxSize);
+                context.setExcludedResponseTypes(loggingExcludedResponseType);
+                context.setLogGuardService(logGuardService);
+                return context;
+            })
+            .orElse(null);
         return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingContext, tracingContext);
     }
 

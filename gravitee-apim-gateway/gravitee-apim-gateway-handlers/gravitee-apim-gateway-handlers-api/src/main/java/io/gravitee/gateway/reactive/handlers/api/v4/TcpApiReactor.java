@@ -41,6 +41,7 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -130,10 +131,8 @@ public class TcpApiReactor extends AbstractApiReactor {
         long startTime = System.currentTimeMillis();
         endpointManager.start();
 
-        analyticsContext = analyticsContext();
-
         tracingContext.start();
-        analyticsContext = analyticsContext();
+        analyticsContext = createAnalyticsContext();
         if (analyticsContext.isEnabled()) {
             if (analyticsContext.isLoggingEnabled()) {
                 invokerHooks.add(new LoggingHook());
@@ -194,10 +193,16 @@ public class TcpApiReactor extends AbstractApiReactor {
             .collect(Collectors.<Acceptor<?>>toList());
     }
 
-    protected AnalyticsContext analyticsContext() {
-        LoggingContext loggingContext = new LoggingContext(api.getDefinition().getAnalytics().getLogging());
-        loggingContext.setMaxSizeLogMessage(loggingMaxSize);
-        loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
+    protected AnalyticsContext createAnalyticsContext() {
+        LoggingContext loggingContext = Optional
+            .ofNullable(api.getDefinition().getAnalytics())
+            .map(analytics -> {
+                var context = new LoggingContext(analytics.getLogging());
+                context.setMaxSizeLogMessage(loggingMaxSize);
+                context.setExcludedResponseTypes(loggingExcludedResponseType);
+                return context;
+            })
+            .orElse(null);
         return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingContext, tracingContext);
     }
 
