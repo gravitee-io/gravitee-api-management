@@ -34,9 +34,6 @@ tests:
       api:
         federation:
           enabled: true
-          ingress:
-            hosts:
-              - host1.example.com
     asserts:
       - hasDocuments:
           count: 1
@@ -46,7 +43,7 @@ tests:
           of: networking.k8s.io/v1
       - equal:
           path: spec.rules[0].host
-          value: host1.example.com
+          value: apim.example.com
       - equal:
           path: spec.rules[0].http.paths[0].path
           value: /integration-controller(/.*)?
@@ -124,14 +121,12 @@ tests:
       global:
         kubeVersion: 1.18.0
       api:
-        federation:
-          enabled: true
-          ingress:
+          federation:
             enabled: true
-            hosts:
-              - host1.example.com
-            pathType: Exact
-            path: /test-federation-controller
+            ingress:
+              enabled: true
+              pathType: Exact
+              path: /test-federation-controller
     asserts:
       - equal:
           path: spec.rules[0].http.paths[0].pathType
@@ -140,12 +135,35 @@ tests:
           path: spec.rules[0].http.paths[0].path
           value: /test-federation-controller
 
-  - it: Check tls federation ingress
+  - it: Check overridden hosts federation ingress
     set:
       api:
         federation:
           enabled: true
           ingress:
+            hosts:
+              - host1.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: spec.rules[0].host
+          value: host1.example.com
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /integration-controller(/.*)?
+
+  - it: Check management tls configuration by default
+    set:
+      api:
+        federation:
+          enabled: true
+        ingress:
+          management:
             tls:
               - hosts:
                   - tls.example.com
@@ -163,3 +181,33 @@ tests:
       - equal:
           path: spec.tls[0].secretName
           value: api-custom-cert
+
+  - it: Check overridden tls configuration
+    set:
+      api:
+        ingress:
+          management:
+            tls:
+              - hosts:
+                  - tls.example.com
+                secretName: api-custom-cert
+        federation:
+          enabled: true
+          ingress:
+            tls:
+              - hosts:
+                  - federation.example.com
+                secretName: federation-custom-cert
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: spec.tls[0].hosts[0]
+          value: federation.example.com
+      - equal:
+          path: spec.tls[0].secretName
+          value: federation-custom-cert
