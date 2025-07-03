@@ -22,8 +22,9 @@ metadata:
     {{- end }}
     {{- end }}
   annotations:
-    {{- if .Values.api.federation.ingress.annotations }}
-    {{- include "common.ingress.annotations.render" (dict "annotations" .Values.api.federation.ingress.annotations "ingressClassName" .Values.api.federation.ingress.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
+    {{- $annotations := (merge .Values.api.federation.ingress.annotations .Values.api.ingress.management.annotations ) }}
+    {{- if $annotations }}
+    {{- include "common.ingress.annotations.render" (dict "annotations" $annotations "ingressClassName" .Values.api.federation.ingress.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
     {{- end }}
     {{- if and .Values.common .Values.common.annotations }}
     {{- range $key, $value := .Values.common.annotations }}
@@ -35,7 +36,11 @@ spec:
   ingressClassName: {{ .Values.api.federation.ingress.ingressClassName | quote }}
   {{- end }}
   rules:
-  {{- range $host := .Values.api.federation.ingress.hosts }}
+  {{- $hosts := .Values.api.ingress.management.hosts }}
+  {{- if .Values.api.federation.ingress.hosts -}}
+  {{- $hosts = .Values.api.federation.ingress.hosts }}
+  {{- end -}}
+  {{- range $host := $hosts }}
   - host: {{ $host | quote }}
     http:
       paths:
@@ -52,9 +57,13 @@ spec:
             servicePort: {{ $serviceAPIPort }}
           {{- end -}}
   {{- end -}}
-  {{- if .Values.api.federation.ingress.tls }}
+  {{- $tls := .Values.api.ingress.management.tls }}
+  {{- if .Values.api.federation.ingress.tls -}}
+  {{- $tls = .Values.api.federation.ingress.tls }}
+  {{- end -}}
+  {{- if $tls }}
   tls:
-{{ toYaml .Values.api.federation.ingress.tls | indent 4 }}
+{{ toYaml $tls | indent 4 }}
   {{- end -}}
 {{- end -}}
 {{- end -}}
