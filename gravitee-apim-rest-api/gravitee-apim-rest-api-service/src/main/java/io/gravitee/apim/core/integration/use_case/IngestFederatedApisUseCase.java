@@ -152,9 +152,18 @@ public class IngestFederatedApisUseCase {
                 .map(plan -> PlanModelFactory.fromIntegration(plan, federatedApi))
                 .forEach(p -> createPlanDomainService.create(p, List.of(), federatedApi, bulk.auditInfo()));
 
-            stream(integrationApi.pages())
+            var pages = stream(integrationApi.pages())
                 .flatMap(page -> buildPage(page, integrationApi, federatedApi.getId()))
-                .forEach(page -> createApiDocumentationDomainService.createPage(page, bulk.auditInfo()));
+                .map(page -> createApiDocumentationDomainService.createPage(page, bulk.auditInfo()))
+                .toList();
+            pages
+                .stream()
+                .filter(Page::isHomepage)
+                .sorted(Comparator.comparing(Page::getCreatedAt).reversed())
+                .map(Page::getId)
+                .distinct()
+                .findFirst()
+                .ifPresent(homepageId -> homepageDomainService.setPreviousHomepageToFalse(federatedApi.getId(), homepageId));
         } catch (Exception e) {
             log.warn("An error occurred while importing api {}", federatedApi, e);
         }
