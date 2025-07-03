@@ -71,6 +71,8 @@ public class NativeApi extends AbstractApi {
 
     private NativeApiServices services;
 
+    private NativeAnalytics analytics;
+
     public NativePlan getPlan(final String plan) {
         return plans.get(plan);
     }
