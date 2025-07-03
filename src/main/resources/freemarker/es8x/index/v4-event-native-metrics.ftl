@@ -13,12 +13,16 @@
         ,"date": "${date}"
     </#if>
     ,"@timestamp": "${@timestamp}"
-    ,"plan-id": "${metrics.getPlanId()}"
-    ,"api-id": "${metrics.getApiId()}"
-    ,"app-id": "${metrics.getApplicationId()}"
     ,"gw-id": "${metrics.getGatewayId()}"
-    ,"env-id": "${metrics.getEnvironmentId()}"
     ,"org-id": "${metrics.getOrganizationId()}"
+    ,"env-id": "${metrics.getEnvironmentId()}"
+    ,"api-id": "${metrics.getApiId()}"
+    <#if metrics.getPlanId()??>
+        ,"plan-id": "${metrics.getPlanId()}"
+    </#if>
+    <#if metrics.getApplicationId()??>
+        ,"app-id": "${metrics.getApplicationId()}"
+    </#if>
     <#if metrics.getTopic()??>
         ,"topic": "${metrics.getTopic()}"
     </#if>
