@@ -319,10 +319,12 @@ export class PullRequestsWorkflow {
       jobs.push(
         new workflow.WorkflowJob(setupJob, { name: 'Setup', context: config.jobContext }),
         new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          context: config.jobContext,
           name: `Retag APIM Management API docker image`,
           'docker-image-name': config.components.managementApi.image,
         }),
         new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          context: config.jobContext,
           name: `Retag APIM Gateway docker image`,
           'docker-image-name': config.components.gateway.image,
         }),
@@ -414,6 +416,7 @@ export class PullRequestsWorkflow {
 
       jobs.push(
         new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          context: config.jobContext,
           name: `Retag APIM Console docker image`,
           'docker-image-name': config.components.console.image,
         }),
@@ -501,6 +504,7 @@ export class PullRequestsWorkflow {
 
       jobs.push(
         new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          context: config.jobContext,
           name: `Retag APIM Portal docker image`,
           'docker-image-name': config.components.portal.image,
         }),
