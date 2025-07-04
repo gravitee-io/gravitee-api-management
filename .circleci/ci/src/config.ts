@@ -98,7 +98,7 @@ const orbs = {
   awsCli: '5.1.2',
   awsS3: '4.1.0',
   github: '1.0.5',
-  gravitee: 'dev:4.5.0',
+  gravitee: '5.2.0',
   helm: '3.0.0',
   keeper: '0.7.0',
   slack: '4.12.5',
