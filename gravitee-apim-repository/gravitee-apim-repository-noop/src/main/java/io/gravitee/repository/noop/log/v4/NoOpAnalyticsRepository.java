@@ -20,6 +20,8 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.*;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 public class NoOpAnalyticsRepository implements AnalyticsRepository {
@@ -75,5 +77,10 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     @Override
     public Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria) {
         return Optional.empty();
+    }
+
+    @Override
+    public List<HistogramAggregate<?>> searchHistogram(QueryContext queryContext, HistogramQuery query) {
+        return Collections.emptyList();
     }
 }

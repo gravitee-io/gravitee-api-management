@@ -26,6 +26,8 @@ import static org.assertj.core.api.Assertions.withPrecision;
 
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
+import io.gravitee.repository.log.v4.model.analytics.Aggregation;
+import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
@@ -631,6 +633,51 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var result = cut.searchTopFailedApis(new QueryContext("org#1", "env#1"), null);
 
             assertThat(result).isNotNull().get().extracting(TopFailedAggregate::failedApis).isEqualTo(Map.of());
+        }
+    }
+
+    @Nested
+    class Histogram {
+
+        @Test
+        void should_return_histogram_aggregates_for_a_given_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var interval = Duration.ofMinutes(30);
+
+            var query = io.gravitee.repository.log.v4.model.analytics.HistogramQuery
+                .builder()
+                .from(from)
+                .to(to)
+                .interval(interval)
+                .apiId(API_ID)
+                .aggregations(List.of(new Aggregation("status", AggregationType.FIELD)))
+                .build();
+
+            var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result).isNotNull();
+            assertThat(result).hasSize(1);
+
+            var histogram = result.getFirst();
+            assertThat(histogram.getBuckets()).isNotNull();
+            assertThat(histogram.getBuckets()).hasSize(3);
+
+            assertThat(histogram.getBuckets().keySet()).containsExactlyInAnyOrder("200", "202", "404");
+
+            var bucket200 = histogram.getBuckets().get("200");
+            var bucket202 = histogram.getBuckets().get("202");
+            var bucket404 = histogram.getBuckets().get("404");
+
+            assertThat(bucket200).hasSizeGreaterThan(28);
+            assertThat(bucket200.get(28)).isEqualTo(1L);
+
+            assertThat(bucket202).hasSizeGreaterThan(61);
+            assertThat(bucket202.get(61)).isEqualTo(1L);
+
+            assertThat(bucket404).hasSizeGreaterThan(61);
+            assertThat(bucket404.get(61)).isEqualTo(2L);
         }
     }
 }
