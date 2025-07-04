@@ -17,12 +17,14 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
+import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
@@ -39,10 +41,8 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -74,6 +74,9 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchResponseStatusOverTimeUseCase searchResponseStatusOverTimeUseCase;
+
+    @Inject
+    private SearchHistogramAnalyticsUseCase searchHistogramAnalyticsUseCase;
 
     @Path("/requests-count")
     @GET
@@ -188,16 +191,27 @@ public class ApiAnalyticsResource extends AbstractResource {
         return ApiAnalyticsMapper.INSTANCE.map(result);
     }
 
-    @POST
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
     public ApiAnalyticsResponse performApiAnalytics(
         @PathParam("envId") String envId,
         @PathParam("apiId") String apiId,
         @BeanParam ApiAnalyticsParam apiAnalyticsParam
     ) {
-        // TODO: Implement the logic for handling analytics requests
+        if (apiAnalyticsParam.getType() == AnalyticsType.HISTOGRAM) {
+            var input = new SearchHistogramAnalyticsUseCase.Input(
+                apiId,
+                apiAnalyticsParam.getFrom(),
+                apiAnalyticsParam.getTo(),
+                apiAnalyticsParam.getInterval(),
+                ApiAnalyticsMapper.INSTANCE.mapAggregations(apiAnalyticsParam.getAggregations())
+            );
+            var output = searchHistogramAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+            var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
+            histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
+            return new ApiAnalyticsResponse(histogramResponse);
+        }
         return new ApiAnalyticsResponse();
     }
 }
