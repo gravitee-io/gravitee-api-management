@@ -256,7 +256,6 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
 
     @Override
     public Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters) {
-        // Map core Aggregation to repository Aggregation if needed
         List<io.gravitee.repository.log.v4.model.analytics.Aggregation> repoAggregations = null;
         if (histogramParameters.aggregations() != null) {
             repoAggregations =
@@ -272,7 +271,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .collect(Collectors.toList());
         }
 
-        List<HistogramAggregate> repoResult = analyticsRepository.searchHistogram(
+        List<HistogramAggregate<?>> repoResult = analyticsRepository.searchHistogram(
             executionContext.getQueryContext(),
             new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
                 histogramParameters.apiId(),
@@ -291,7 +290,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(
-        List<HistogramAggregate> aggregates,
+        List<HistogramAggregate<?>> aggregates,
         HistogramQuery histogramParameters
     ) {
         Timestamp timestamp = new Timestamp(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval());
@@ -299,14 +298,14 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return HistogramAnalytics.builder().timestamp(timestamp).values(values).build();
     }
 
-    private List<Bucket> mapBuckets(List<HistogramAggregate> aggregates) {
+    private List<Bucket> mapBuckets(List<HistogramAggregate<?>> aggregates) {
         if (aggregates == null) {
             return null;
         }
         return aggregates.stream().map(this::mapHistogramAggregateToBucket).collect(Collectors.toList());
     }
 
-    private Bucket mapHistogramAggregateToBucket(HistogramAggregate aggregate) {
+    private Bucket mapHistogramAggregateToBucket(HistogramAggregate<?> aggregate) {
         if (aggregate == null) {
             return null;
         }
@@ -315,9 +314,15 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .builder()
             .field(aggregate.getField())
             .name(aggregate.getName())
-            .data(aggregate.getData())
-            .metadata(aggregate.getMetadata())
-            .buckets(mapBuckets(aggregate.getBuckets()))
+            .buckets(mapValuesToBuckets(aggregate.getBuckets()))
             .build();
+    }
+
+    private List<Bucket> mapValuesToBuckets(Map<String, ? extends List<?>> buckets) {
+        return buckets
+            .entrySet()
+            .stream()
+            .map(entry -> Bucket.builder().field(entry.getKey()).name(entry.getKey()).data((List<Number>) entry.getValue()).build())
+            .toList();
     }
 }

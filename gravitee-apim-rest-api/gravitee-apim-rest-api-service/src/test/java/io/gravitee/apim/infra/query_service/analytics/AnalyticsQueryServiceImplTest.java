@@ -315,20 +315,11 @@ class AnalyticsQueryServiceImplTest {
             Instant to = Instant.parse("2024-01-02T00:00:00Z");
             Duration interval = Duration.ofHours(1);
 
-            // Prepare nested buckets
-            HistogramAggregate childAggregate = new HistogramAggregate();
-            childAggregate.setField("childField");
-            childAggregate.setName("childName");
-            childAggregate.setData(List.of(2, 3));
-            childAggregate.setMetadata(Map.of("meta", Map.of("k", "v")));
-            childAggregate.setBuckets(null);
-
-            HistogramAggregate rootAggregate = new HistogramAggregate();
-            rootAggregate.setField("rootField");
-            rootAggregate.setName("rootName");
-            rootAggregate.setData(List.of(1, 2, 3));
-            rootAggregate.setMetadata(Map.of("rootMeta", Map.of("rk", "rv")));
-            rootAggregate.setBuckets(List.of(childAggregate));
+            HistogramAggregate<Integer> rootAggregate = new HistogramAggregate<>(
+                "rootField",
+                "rootName",
+                Map.of("200", List.of(0, 0, 1, 0), "202", List.of(0, 0, 0, 1), "404", List.of(0, 0, 0, 2))
+            );
 
             when(analyticsRepository.searchHistogram(any(QueryContext.class), any(HistogramQuery.class)))
                 .thenReturn(List.of(rootAggregate));
@@ -345,16 +336,17 @@ class AnalyticsQueryServiceImplTest {
             Bucket rootBucket = analytics.getValues().getFirst();
             assertThat(rootBucket.getField()).isEqualTo("rootField");
             assertThat(rootBucket.getName()).isEqualTo("rootName");
-            assertThat(rootBucket.getData()).containsExactly(1, 2, 3);
-            assertThat(rootBucket.getMetadata()).containsEntry("rootMeta", Map.of("rk", "rv"));
-            assertThat(rootBucket.getBuckets()).hasSize(1);
+            assertThat(rootBucket.getBuckets()).hasSize(3);
 
-            Bucket childBucket = rootBucket.getBuckets().getFirst();
-            assertThat(childBucket.getField()).isEqualTo("childField");
-            assertThat(childBucket.getName()).isEqualTo("childName");
-            assertThat(childBucket.getData()).containsExactly(2, 3);
-            assertThat(childBucket.getMetadata()).containsEntry("meta", Map.of("k", "v"));
-            assertThat(childBucket.getBuckets()).isNull();
+            assertThat(rootBucket.getBuckets().stream().map(Bucket::getName)).containsExactlyInAnyOrder("200", "202", "404");
+
+            Bucket bucket200 = rootBucket.getBuckets().stream().filter(b -> "200".equals(b.getName())).findFirst().orElseThrow();
+            Bucket bucket202 = rootBucket.getBuckets().stream().filter(b -> "202".equals(b.getName())).findFirst().orElseThrow();
+            Bucket bucket404 = rootBucket.getBuckets().stream().filter(b -> "404".equals(b.getName())).findFirst().orElseThrow();
+
+            assertThat(bucket200.getData()).containsExactly(0, 0, 1, 0);
+            assertThat(bucket202.getData()).containsExactly(0, 0, 0, 1);
+            assertThat(bucket404.getData()).containsExactly(0, 0, 0, 2);
         }
     }
 }
