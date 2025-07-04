@@ -39,6 +39,7 @@ import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -105,6 +106,7 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
         return new DebugV4PolicyChainFactory(api.getId(), policyManager, false);
     }
 
+    @Override
     protected ApiReactor<Api> buildApiReactor(
         Api api,
         DefaultDeploymentContext deploymentContext,
@@ -114,7 +116,8 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
         DefaultEndpointManager endpointManager,
         ResourceLifecycleManager resourceLifecycleManager,
         FlowChainFactory flowChainFactory,
-        io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory
+        io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory,
+        LogGuardService logGuardService
     ) {
         return new DebugV4ApiReactor(
             api,
