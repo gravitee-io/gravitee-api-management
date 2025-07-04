@@ -36,7 +36,6 @@ import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,7 +62,5 @@ public interface AnalyticsRepository {
 
     Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria);
 
-    default List<HistogramAggregate> searchHistogram(QueryContext queryContext, HistogramQuery query) {
-        return Collections.emptyList();
-    }
+    List<HistogramAggregate<?>> searchHistogram(QueryContext queryContext, HistogramQuery query);
 }
