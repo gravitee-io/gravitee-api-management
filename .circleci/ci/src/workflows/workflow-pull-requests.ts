@@ -49,26 +49,28 @@ import {
   WebuiLintTestJob,
 } from '../jobs';
 import { orbs } from '../orbs';
+import { ReTagAndPushDockerImageJob } from '../jobs/job-retag-and-push-docker-image';
+import { PublishPrDockerImagesJob } from '../jobs/job-publish-pr-docker-images';
 
 export class PullRequestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
     let jobs: workflow.WorkflowJob[] = [];
-    const shouldBuildDockerImages: boolean = isSupportBranchOrMaster(environment.branch) || isE2EBranch(environment.branch);
+    const isProtectedBranch: boolean = isSupportBranchOrMaster(environment.branch) || isE2EBranch(environment.branch);
     // Needed to publish helm chart in internal repository
     environment.isDryRun = true;
     if (isSupportBranchOrMaster(environment.branch)) {
       jobs.push(
-        ...this.getCommonJobs(dynamicConfig, environment, false, false, shouldBuildDockerImages),
+        ...this.getCommonJobs(dynamicConfig, environment, false, false, isProtectedBranch),
         ...this.getE2EJobs(dynamicConfig, environment),
         ...this.getMasterAndSupportJobs(dynamicConfig, environment),
       );
     } else if (isE2EBranch(environment.branch)) {
       jobs.push(
-        ...this.getCommonJobs(dynamicConfig, environment, false, true, shouldBuildDockerImages),
+        ...this.getCommonJobs(dynamicConfig, environment, false, true, isProtectedBranch),
         ...this.getE2EJobs(dynamicConfig, environment),
       );
     } else {
-      jobs = this.getCommonJobs(dynamicConfig, environment, true, true, shouldBuildDockerImages);
+      jobs = this.getCommonJobs(dynamicConfig, environment, true, true, isProtectedBranch);
     }
     return new Workflow('pull_requests', jobs);
   }
@@ -78,7 +80,7 @@ export class PullRequestsWorkflow {
     environment: CircleCIEnvironment,
     filterJobs: boolean,
     addValidationJob: boolean,
-    shouldBuildDockerImages: boolean,
+    isProtectedBranch: boolean,
   ): workflow.WorkflowJob[] {
     dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
 
@@ -102,6 +104,7 @@ export class PullRequestsWorkflow {
       }),
     ];
     const requires: string[] = [];
+    let reTaggedBackend: boolean = false;
 
     if (!filterJobs || shouldBuildHelm(environment.changedFiles)) {
       const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig, environment);
@@ -275,13 +278,43 @@ export class PullRequestsWorkflow {
         );
         requires.push('Test repository');
       }
+
+      if (!isProtectedBranch) {
+        const buildImagesJob = BuildBackendImagesJob.create(dynamicConfig, environment);
+        dynamicConfig.addJob(buildImagesJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(buildImagesJob, {
+            name: 'Build and push rest api and gateway images',
+            context: config.jobContext,
+            requires: ['Build backend'],
+          }),
+        );
+        requires.push('Build and push rest api and gateway images');
+      }
+    } else {
+      reTaggedBackend = true;
+      const reTagAndPushDockerImageJob = ReTagAndPushDockerImageJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(reTagAndPushDockerImageJob);
+
+      jobs.push(
+        new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          name: `Build APIM Management API docker image`,
+          'docker-image-name': config.dockerImages.managementApi.image,
+        }),
+        new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          name: `Build APIM Gateway docker image`,
+          'docker-image-name': config.dockerImages.gateway.image,
+        }),
+      );
+      requires.push('Build APIM Management API docker image', 'Build APIM Gateway docker image');
     }
 
     if (!filterJobs || shouldBuildConsole(environment.changedFiles)) {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages);
+      const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment, isProtectedBranch, false);
       dynamicConfig.addJob(consoleWebuiBuildJob);
 
       const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig, environment);
@@ -323,13 +356,24 @@ export class PullRequestsWorkflow {
       );
 
       requires.push('Lint & test APIM Console', 'Build APIM Console and publish image');
+    } else {
+      const reTagAndPushDockerImageJob = ReTagAndPushDockerImageJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(reTagAndPushDockerImageJob);
+
+      jobs.push(
+        new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          name: `Build APIM Console and publish image`,
+          'docker-image-name': config.dockerImages.console.image,
+        }),
+      );
+      requires.push('Build APIM Console and publish image');
     }
 
     if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(webuiLintTestJob);
 
-      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, shouldBuildDockerImages);
+      const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, isProtectedBranch, false);
       dynamicConfig.addJob(portalWebuiBuildJob);
 
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
@@ -368,6 +412,36 @@ export class PullRequestsWorkflow {
       );
 
       requires.push('Lint & test APIM Portal', 'Lint & test APIM Portal Next', 'Build APIM Portal and publish image');
+    } else {
+      const reTagAndPushDockerImageJob = ReTagAndPushDockerImageJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(reTagAndPushDockerImageJob);
+
+      jobs.push(
+        new workflow.WorkflowJob(reTagAndPushDockerImageJob, {
+          name: `Build APIM Portal and publish image`,
+          'docker-image-name': config.dockerImages.portal.image,
+        }),
+      );
+      requires.push('Build APIM Portal and publish image');
+    }
+
+    if (!isProtectedBranch) {
+      const publishPrDockerImagesJob = PublishPrDockerImagesJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(publishPrDockerImagesJob);
+      jobs.push(
+        new workflow.WorkflowJob(publishPrDockerImagesJob, {
+          name: 'Publish docker images in Github PR',
+          context: config.jobContext,
+          requires: reTaggedBackend
+            ? [
+                'Build APIM Management API docker image',
+                'Build APIM Gateway docker image',
+                'Build APIM Console and publish image',
+                'Build APIM Portal and publish image',
+              ]
+            : ['Build and push rest api and gateway images', 'Build APIM Console and publish image', 'Build APIM Portal and publish image'],
+        }),
+      );
     }
 
     // Force validation workflow in case only distribution pom.xml has changed
