@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
-import { BuildBackendImagesJob, BuildBackendJob, ConsoleWebuiBuildJob, PortalWebuiBuildJob, PublishPrEnvUrlsJob, SetupJob } from '../jobs';
+import {
+  BuildBackendImagesJob,
+  BuildBackendJob,
+  ConsoleWebuiBuildJob,
+  PortalWebuiBuildJob,
+  PublishPrDockerImagesJob,
+  SetupJob,
+} from '../jobs';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
 
@@ -35,7 +42,7 @@ export class PublishDockerImagesWorkflow {
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(portalWebuiBuildJob);
 
-    const publishPrEnvUrlsJob = PublishPrEnvUrlsJob.create(dynamicConfig, environment);
+    const publishPrEnvUrlsJob = PublishPrDockerImagesJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishPrEnvUrlsJob);
 
     const jobs = [
