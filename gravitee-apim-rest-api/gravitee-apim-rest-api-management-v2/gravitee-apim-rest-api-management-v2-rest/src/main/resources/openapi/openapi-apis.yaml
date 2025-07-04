@@ -7688,14 +7688,23 @@ components:
                     additionalProperties:
                       type: string
         HistogramAnalytics:
-
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"
             - type: object
               properties:
                 timestamp:
-                  type: string
-                  format: date-time
+                  type: object
+                  title: HistogramTimestamp
+                  properties:
+                    from:
+                      type: integer
+                      format: int64
+                    to:
+                      type: integer
+                      format: int64
+                    interval:
+                      type: integer
+                      format: int64
                 values:
                   type: array
                   items:
@@ -7704,21 +7713,18 @@ components:
                       buckets:
                         type: array
                         items:
-                          $ref: "#/components/schemas/Bucket"
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            data:
+                              type: array
+                              items:
+                                type: number
                       field:
                         type: string
                       name:
                         type: string
-                      data:
-                        type: array
-                        items:
-                          type: number
-                      metadata:
-                        type: object
-                        additionalProperties:
-                          type: object
-                          additionalProperties:
-                            type: string
         GroupByAnalytics:
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"
@@ -7735,23 +7741,6 @@ components:
                     type: object
                     additionalProperties:
                       type: string
-        Bucket:
-          type: object
-          properties:
-            field:
-              type: string
-            name:
-              type: string
-            data:
-              type: array
-              items:
-                type: number
-            metadata:
-              type: object
-              additionalProperties:
-                type: object
-                additionalProperties:
-                  type: string
 
       # API Health
         HealthCheckLog:
