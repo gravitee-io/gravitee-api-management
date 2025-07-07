@@ -30,10 +30,11 @@ public class PageModelFactory {
 
     private PageModelFactory() {}
 
-    public static Page fromCRDSpec(PageCRD pageCRD) {
+    public static Page fromCRDSpec(String hrid, PageCRD pageCRD) {
         return Page
             .builder()
             .id(pageCRD.getId())
+            .hrid(hrid)
             .name(pageCRD.getName())
             .crossId(pageCRD.getCrossId())
             .parentId(pageCRD.getParentId())

@@ -13,12 +13,12 @@
 # limitations under the License.
 openapi: 3.1.0
 info:
-  title: Gravitee.io GKO - Automation API
-  description: |-
-    The APIM automation API. 
-
+  title: Gravitee.io - Automation API
+  description: The APIM automation API.
   contact:
+    name: DevEx team
     email: team-gko@graviteesource.com
+    url: https://www.gravitee.io/
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
@@ -35,20 +35,23 @@ tags:
     description: Everything about Applications
   - name: Shared Policy Group
     description: Everything about Shared Policy Groups
+  - name: Subscriptions
+    description: Everything about subscriptions
 paths:
   # APIs
-  /organizations/{orgId}/environments/{envId}/apis/:
+  /organizations/{orgId}/environments/{envId}/apis:
     put:
       operationId: createOrUpdateApis
       tags:
         - APIs
-      summary: Create or update APIs from API Spec
-      description: Create or update APIs from API Spec
+      summary: Create or update APIs from APISpec
+      description: Create/update APIs from API Spec
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/dryRunQueryParam"
       requestBody:
+        description: API Specification
         content:
           "application/json":
             schema:
@@ -56,19 +59,19 @@ paths:
         required: true
       responses:
         "200":
-          description: State of the successfully created API
+          description: State of the successfully created/updated API
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiV4State"
         "400":
-          $ref: "#/components/responses/Error"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: No credential provided
+          $ref: "#/components/responses/Unauthenticated"
         "403":
-          description: Wrong credentials
-        "500":
-          description: Internal server error
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
   /organizations/{orgId}/environments/{envId}/apis/{hrid}:
     parameters:
       - $ref: "#/components/parameters/orgIdParam"
@@ -79,30 +82,32 @@ paths:
       tags:
         - APIs
       summary: Get one API
-      description: Get one API
+      description: Get an API using HRID
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/hridParam"
       responses:
         "200":
-          description: Successful retrieval
+          description: API successfully retrieved
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiV4State"
         "401":
-          description: No credential provided
+          $ref: "#/components/responses/Unauthenticated"
         "403":
-          description: Wrong credentials
-        "500":
-          description: Internal server error
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
     delete:
       operationId: deleteApi
       tags:
         - APIs
       summary: Delete one API
-      description: Delete one API
+      description: Delete an API using it's HRID
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
@@ -110,22 +115,29 @@ paths:
       responses:
         "204":
           description: API successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
         default:
           $ref: "#/components/responses/Error"
 
   # Applications
-  /organizations/{orgId}/environments/{envId}/applications/:
+  /organizations/{orgId}/environments/{envId}/applications:
     put:
       operationId: createOrUpdateApplications
       tags:
         - Applications
-      summary: Create or update Applications from Application Spec
-      description: Create or update Applications from Application Spec
+      summary: Create or update Applications from ApplicationSpec
+      description: Create/update Applications from Application Spec
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/dryRunQueryParam"
       requestBody:
+        description: Application specification
         content:
           "application/json":
             schema:
@@ -133,19 +145,21 @@ paths:
         required: true
       responses:
         "200":
-          description: State of the successfully created Application
+          description: State of the successfully created/updated Applications
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApplicationState"
         "400":
-          $ref: "#/components/responses/Error"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: No credential provided
+          $ref: "#/components/responses/Unauthenticated"
         "403":
-          description: Wrong credentials
-        "500":
-          description: Internal server error
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
   /organizations/{orgId}/environments/{envId}/applications/{hrid}:
     parameters:
       - $ref: "#/components/parameters/orgIdParam"
@@ -156,30 +170,32 @@ paths:
       tags:
         - Applications
       summary: Get one Application
-      description: Get one Application
+      description: Get an Application using HRID
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/hridParam"
       responses:
         "200":
-          description: Successful retrieval
+          description: Application successfully retrieved
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApplicationState"
         "401":
-          description: No credential provided
+          $ref: "#/components/responses/Unauthenticated"
         "403":
-          description: Wrong credentials
-        "500":
-          description: Internal server error
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
     delete:
       operationId: deleteApplication
       tags:
         - Applications
       summary: Delete one Application
-      description: Delete one Application
+      description: Delete an Application using HRID
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
@@ -187,6 +203,98 @@ paths:
       responses:
         "204":
           description: Application successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Subscription
+  /organizations/{orgId}/environments/{envId}/subscriptions:
+    put:
+      operationId: createOrUpdateSubscriptions
+      tags:
+        - Subscriptions
+      summary: Create or update Subscriptions from SubscriptionSpec
+      description: Create/update Subscription from Subscription Spec
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+      requestBody:
+        description: Subscription specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/SubscriptionSpec"
+        required: true
+      responses:
+        "200":
+          description: State of the successfully created Subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /organizations/{orgId}/environments/{envId}/subscriptions/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getSubscription
+      tags:
+        - Subscriptions
+      summary: Get one Subscription
+      description: Get a Subscription using HRID
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/hridParam"
+      responses:
+        "200":
+          description: Subscription successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionState"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteSubscription
+      tags:
+        - Subscriptions
+      summary: Delete one Subscription
+      description: Delete a Subscription using HRID
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/hridParam"
+      responses:
+        "204":
+          description: Subscription successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
         default:
           $ref: "#/components/responses/Error"
 
@@ -201,31 +309,39 @@ paths:
       tags:
         - Shared Policy Group
       summary: Get one policy group
-      description: Get one policy group
+      description: Get a policy group using HRID
       responses:
         "200":
-          description: Successful retrieval
+          description: Shared policy group successfully retrieved
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SharedPolicyGroupState"
         "401":
-          description: No credential provided
+          $ref: "#/components/responses/Unauthenticated"
         "403":
-          description: Wrong credentials
-        "500":
-          description: Internal server error
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
     delete:
       operationId: deletePolicyGroup
       tags:
         - Shared Policy Group
       summary: Delete one policy group
-      description: Delete one shared policy group
+      description: Delete a shared policy group using HRID
       parameters:
         - $ref: "#/components/parameters/dryRunQueryParam"
       responses:
         "204":
           description: Shared Policy Group successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
         default:
           $ref: "#/components/responses/Error"
   /organizations/{orgId}/environments/{envId}/shared-policy-groups:
@@ -233,13 +349,14 @@ paths:
       operationId: createOrUpdatePolicyGroup
       tags:
         - Shared Policy Group
-      summary: Create or update Shared Policy Group from spec
-      description: Create or update Shared Policy Group from spec
+      summary: Create or update Shared Policy Group from SharedPolicyGroupSpec
+      description: Create/update Shared Policy Group from Shared Policy Group Spec
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/dryRunQueryParam"
       requestBody:
+        description: Shared Policy Group Specification
         content:
           "application/json":
             schema:
@@ -253,30 +370,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/SharedPolicyGroupState"
         "400":
-          $ref: "#/components/responses/Error"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: No credential provided
+          $ref: "#/components/responses/Unauthenticated"
         "403":
-          description: Wrong credentials
-        "500":
-          description: Internal server error
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
 
 components:
   schemas:
     Hrid:
       type: string
       pattern: '^[a-zA-Z][a-zA-Z0-9_-]{2,}$'
-      description: A unique human readable id identifying this object
+      description: A unique human readable id identifying this resource
+      examples:
+        - my_demo_api
+        - simple_demo_app
+        - keyless_demo_plan
+        - demo_subscription
+        - demo_shared_policy_groups
     ApiV4Spec:
       description: ApiV4DefinitionSpec defines the desired state of ApiDefinition.
       type: object
       properties:
         hrid:
           $ref: "#/components/schemas/Hrid"
-          examples:
-            - echo_api
-        definitionContext:
-          $ref: "#/components/schemas/DefinitionContext"
         name:
           type: string
           description: API's name. Duplicate names can exists.
@@ -300,8 +421,7 @@ components:
           type: array
           description: The list of sharding tags associated with this API.
           examples:
-            - public
-            - private
+            - ["public"]
           items:
             type: string
           uniqueItems: true
@@ -329,7 +449,11 @@ components:
           items:
             $ref: "#/components/schemas/Resource"
         plans:
-          $ref: '#/components/schemas/PlansMap'
+          default: []
+          description: List of Plans for the API
+          items:
+            $ref: '#/components/schemas/PlanV4'
+          type: array
         flowExecution:
           $ref: "#/components/schemas/FlowExecution"
         flows:
@@ -383,8 +507,7 @@ components:
           type: array
           description: The list of category keys associated with this API.
           examples:
-            - health
-            - media
+            - [health, media]
           items:
             type: string
         members:
@@ -401,7 +524,11 @@ components:
           type: boolean
           writeOnly: true
         pages:
-          $ref: '#/components/schemas/PagesMap'
+          default: []
+          description: List of Pages for the API
+          items:
+            $ref: '#/components/schemas/PageV4'
+          type: array
         consoleNotificationConfiguration:
           $ref: '#/components/schemas/PortalNotificationConfig'
       required:
@@ -411,9 +538,9 @@ components:
         - listeners
         - endpointGroups
         - version
-        - definitionContext
         - lifecycleState
     ApiV4State:
+      description: API state
       allOf:
         - $ref: "#/components/schemas/ApiV4Spec"
         - type: object
@@ -440,14 +567,58 @@ components:
                 The organization ID of the API.
               type: string
 
+    Error:
+      description: Error
+      type: object
+      properties:
+        httpStatus:
+          type: integer
+          format: int32
+          description: Error code
+          examples:
+            - 200
+            - 400
+        message:
+          type: string
+          description: Error message
+          examples:
+            - Bad request
+        technicalCode:
+          type: string
+          description: A technical code to identify the error
+          examples:
+            - invalid.import.definition
+        parameters:
+          type: object
+          description: A map of parameters to be used in the error message
+          additionalProperties:
+            type: string
+        details:
+          type: array
+          description: A list of details about the error
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                description: The error message
+                examples:
+                  - Bad request
+              location:
+                type: string
+                description: The json path of the field in error.
+                examples:
+                  - updateApi.properties[0].key
+              invalidValue:
+                type: string
+                description: The invalid value.
+
     ApplicationSpec:
       description: ApplicationSpec defines the desired state of Application.
       type: object
       properties:
         hrid:
           $ref: "#/components/schemas/Hrid"
-          examples:
-            - demo-application
         name:
           type: string
           description: Application's name. Duplicate names can exists.
@@ -466,7 +637,7 @@ components:
         groups:
           default: []
           description: >-
-            List of groups associated with the API.
+            List of groups associated with the Application.
 
             This groups are id or name references to existing groups in
             APIM.
@@ -510,7 +681,7 @@ components:
           uniqueItems: true
         members:
           type: array
-          description: Set of members associated with the plan
+          description: Set of members associated with the application
           items:
             $ref: '#/components/schemas/Member'
           uniqueItems: true
@@ -519,6 +690,7 @@ components:
         - name
         - description
     ApplicationSettings:
+      description: Application settings
       properties:
         app:
           $ref: '#/components/schemas/SimpleApplicationSettings'
@@ -528,6 +700,7 @@ components:
           $ref: '#/components/schemas/ApplicationTLSSettings'
 
     SimpleApplicationSettings:
+      description: Simple application settings
       properties:
         type:
           type: string
@@ -536,6 +709,7 @@ components:
           type: string
           description: Simple application client ID
     ApplicationOAuthClientSettings:
+      description: Application OAuth client settings
       properties:
         grantTypes:
           description: OAuth client grant types
@@ -551,12 +725,14 @@ components:
           type: string
           description: OAuth client application type
     ApplicationTLSSettings:
+      description: Application TLS settings
       properties:
         clientCertificate:
           type: string
           description: Application TLS client certificate
 
     ApplicationState:
+      description: Application state that has been created/updated
       allOf:
         - $ref: "#/components/schemas/ApplicationSpec"
         - type: object
@@ -575,6 +751,64 @@ components:
             organizationId:
               description:
                 The organization ID of the Application.
+              type: string
+
+    # Subscription
+    SubscriptionSpec:
+      description: SubscriptionSpec defines the desired state of Subscription.
+      type: object
+      properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
+        applicationHrid:
+          type: string
+          description: Application's Hrid that needs to subscribe to the API.
+          example: demo-app
+          minLength: 1
+        apiHrid:
+          type: string
+          description: The API's Hrid that you want to subscribe to.
+          example: demo-api
+          minLength: 1
+        planHrid:
+          type: string
+          description: API plan's Hrid
+          example: demo-plan
+        startingAt:
+          type: string
+          format: date-time
+          example: "2040-12-25T09:12:28Z"
+          writeOnly: true
+        endingAt:
+          type: string
+          format: date-time
+          example: "2040-12-25T09:12:28Z"
+      required:
+        - hrid
+        - applicationHrid
+        - apiHrid
+        - planHrid
+
+    SubscriptionState:
+      description: State of subscription that has been created/update
+      allOf:
+        - $ref: "#/components/schemas/SubscriptionSpec"
+        - type: object
+          properties:
+            errors:
+              $ref: "#/components/schemas/Errors"
+        - type: object
+          properties:
+            id:
+              type: string
+              description: Subscription's uuid.
+            environmentId:
+              description:
+                The environment ID of the Subscription.
+              type: string
+            organizationId:
+              description:
+                The organization ID of the Subscription.
               type: string
 
     Errors:
@@ -604,6 +838,7 @@ components:
           type: array
       type: object
     SharedPolicyGroupState:
+      description: State of Shared Policy Groups that has been created/updated
       allOf:
         - $ref: "#/components/schemas/SharedPolicyGroupSpec"
         - type: object
@@ -635,8 +870,6 @@ components:
       properties:
         hrid:
           $ref: "#/components/schemas/Hrid"
-          examples:
-            - partner_config
         apiType:
           $ref: "#/components/schemas/ApiType"
         description:
@@ -669,98 +902,6 @@ components:
         - apiType
         - name
         - phase
-    SharedPolicyGroupLifecycleState:
-      type: string
-      description: The lifecycle state of a shared policy group
-      enum:
-        - DEPLOYED
-        - UNDEPLOYED
-        - PENDING
-    ApiV4DefinitionVersion:
-      type: string
-      description: The definition version of the API.
-      enum:
-        - V4
-      default: V4
-    Status:
-      description: ApiV4DefinitionStatus defines the observed state of API Definition.
-      properties:
-        id:
-          description:
-            The ID of the API definition in the Gravitee API Management
-            instance (if an API context has been configured).
-          type: string
-        crossId:
-          description:
-            The Cross ID is used to identify an API that has been promoted from
-            one environment to another.
-          type: string
-        organizationId:
-          description:
-            The organization ID, if a management context has been defined to
-            sync with an APIM instance
-          type: string
-        environmentId:
-          description:
-            The environment ID, if a management context has been defined to
-            sync with an APIM instance
-          type: string
-        errors:
-          description: >-
-            When API has been created regardless of errors, this field
-            is
-
-            used to persist the error message encountered during
-            admission
-          properties:
-            severe:
-              description: >-
-                severe errors do not pass admission and will block
-                reconcile
-
-                hence, this field should always be during the admission
-                phase
-
-                and is very unlikely to be persisted in the status
-              items:
-                type: string
-              type: array
-            warning:
-              description: >-
-                warning errors do not block object reconciliation,
-
-                most of the time because the value is ignored or
-                defaulted
-
-                when the API gets synced with APIM
-              items:
-                type: string
-              type: array
-          type: object
-        plans:
-          additionalProperties:
-            type: string
-          description: >-
-            This field is used to store the list of plans that have been
-            created
-
-            for the API definition if a management context has been
-            defined
-
-            to sync the API with an APIM instance
-          type: object
-        processingStatus:
-          description: The processing status of the API definition.
-          type: string
-        state:
-          description: The state of the API. Can be either STARTED or STOPPED.
-          enum:
-            - STARTED
-            - STOPPED
-          type: string
-        subscriptions:
-          description: The number of subscriptions that reference the API
-          type: integer
     FlowPhase:
       type: string
       description: The execution phase of a policy.
@@ -772,6 +913,7 @@ components:
         - PUBLISH
         - SUBSCRIBE
     FlowStep:
+      description: API Flow step
       type: object
       properties:
         condition:
@@ -800,22 +942,12 @@ components:
       required:
         - enabled
 
-    PlansMap:
-      type: object
-      description: Map of plan IDs to Plan objects
-      additionalProperties:
-        $ref: '#/components/schemas/Plan'
-    Plan:
+    PlanV4:
+      description: API Plan
       type: object
       properties:
-        id:
-          type: string
-          description: Unique identifier for the plan
-          readOnly: true
-        crossId:
-          type: string
-          description: Cross-reference ID
-          readOnly: true
+        hrid:
+          $ref: "#/components/schemas/Hrid"
         name:
           type: string
         description:
@@ -853,11 +985,13 @@ components:
         mode:
           $ref: '#/components/schemas/PlanMode'
       required:
+        - hrid
         - status
         - type
         - mode
 
     Member:
+      description: Member
       type: object
       properties:
         id:
@@ -869,6 +1003,7 @@ components:
         role:
           type: string
     PortalNotificationConfig:
+      description: Portal notification config
       type: object
       properties:
         config_type:
@@ -897,6 +1032,7 @@ components:
         - name
 
     Analytics:
+      description: API analytics
       type: object
       properties:
         enabled:
@@ -923,32 +1059,11 @@ components:
         - UNPUBLISHED
       default: CREATED
     ApiServices:
+      description: Api services
       type: object
       properties:
         dynamicProperty:
           $ref: "#/components/schemas/ServiceV4"
-    ApiSearchQuery:
-      type: object
-      properties:
-        query:
-          type: string
-          description: The query to search for.
-          examples:
-            - my api
-        ids:
-          type: array
-          items:
-            type: string
-          description: List of ids to find
-          examples:
-            - apiId-1
-            - apiId-2
-        definitionVersion:
-          $ref: "#/components/schemas/DefinitionVersion"
-        definitionVersions:
-          type: array
-          items:
-            $ref: "#/components/schemas/DefinitionVersion"
     ApiType:
       type: string
       description: API's type.
@@ -966,19 +1081,8 @@ components:
       enum:
         - PUBLIC
         - PRIVATE
-
-    ApiWorkflowState:
-      type: string
-      description: The status of the API regarding the review feature.
-      examples:
-        - DRAFT
-      enum:
-        - DRAFT
-        - IN_REVIEW
-        - REQUEST_FOR_CHANGES
-        - REVIEW_OK
-      readOnly: true
     ChannelSelector:
+      description: Channel selector
       type: object
       title: "ChannelSelector"
       required:
@@ -1013,6 +1117,7 @@ components:
                 type: string
               uniqueItems: true
     ConditionSelector:
+      description: Condition selector
       type: object
       title: "ConditionSelector"
       required:
@@ -1028,6 +1133,7 @@ components:
               examples:
                 - ${#jsonPath(payload, '$.myField') == 'myValue'}
     Cors:
+      description: Http listener Cross-Origin Resource Sharing
       type: object
       properties:
         allowCredentials:
@@ -1061,60 +1167,14 @@ components:
         runPolicies:
           type: boolean
     Dlq:
+      description: DLQ
       type: object
       properties:
         endpoint:
           type: string
           description: The endpoint of the DLQ.
-    DefinitionContext:
-      deprecated: true
-      type: object
-      description: the context where the api definition was created.
-      properties:
-        origin:
-          type: string
-          description: The origin of the API.
-          const: KUBERNETES
-          enum:
-            - MANAGEMENT
-            - KUBERNETES
-        mode:
-          deprecated: true
-          type: string
-          description: |-
-            The mode of the API.
-            fully_managed: Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
-            api_definition_only: Mode indicating the api is partially managed by the origin and so, only the origin should be able to manage the api definition part of the api. This includes everything regarding the definition of the apis (plans, flows, metadata, ...)
-          examples:
-            - FULLY_MANAGED
-          enum:
-            - FULLY_MANAGED
-            - API_DEFINITION_ONLY
-          const: FULLY_MANAGED
-        syncFrom:
-          type: string
-          description: |-
-            syncFrom stands for where the Gateway should source the API definition from. 
-            If the value is KUBERNETES, then the gateway will sync the definition by listening to changes
-            issued on a kubernetes config map. If the value is MANAGEMENT, then the gateway will sync
-            the definition using the same datastore as APIM. 
-            Defining MANAGEMENT as source for sync is useful e.g. when a single operator should operate
-            on gateways deployed on multiple kubernetes clusters.
-          const: MANAGEMENT
-          enum:
-            - MANAGEMENT
-            - KUBERNETES
-    DefinitionVersion:
-      type: string
-      description: API's gravitee definition version.
-      examples:
-        - V4
-      enum:
-        - V1
-        - V2
-        - V4
-        - FEDERATED
     EndpointV4:
+      description: API endpoint
       type: object
       properties:
         name:
@@ -1154,6 +1214,7 @@ components:
       required:
         - type
     EndpointGroupV4:
+      description: API Endpoint Group
       type: object
       properties:
         name:
@@ -1179,6 +1240,7 @@ components:
       required:
         - type
     EndpointGroupServices:
+      description: API Endpoint Group Services
       type: object
       properties:
         discovery:
@@ -1186,11 +1248,13 @@ components:
         healthCheck:
           $ref: "#/components/schemas/ServiceV4"
     EndpointServices:
+      description: API Endpoint Services
       type: object
       properties:
         healthCheck:
           $ref: "#/components/schemas/ServiceV4"
     Entrypoint:
+      description: API Endpoint
       type: object
       required:
         - type
@@ -1206,50 +1270,9 @@ components:
           $ref: "#/components/schemas/Dlq"
         configuration:
           type: object
-    Error:
-      type: object
-      properties:
-        httpStatus:
-          type: integer
-          format: int32
-          description: The error code
-          examples:
-            - 400
-        message:
-          type: string
-          description: The error message
-          examples:
-            - Bad request
-        technicalCode:
-          type: string
-          description: A technical code to identify the error
-          examples:
-            - invalid.import.definition
-        parameters:
-          type: object
-          description: A map of parameters to be used in the error message
-          additionalProperties:
-            type: string
-        details:
-          type: array
-          description: A list of details about the error
-          items:
-            type: object
-            properties:
-              message:
-                type: string
-                description: The error message
-                examples:
-                  - Bad request
-              location:
-                type: string
-                description: The json path of the field in error.
-                examples:
-                  - updateApi.properties[0].key
-              invalidValue:
-                description: The invalid value.
 
     FlowV4:
+      description: API or PLan Flow
       type: object
       properties:
         id:
@@ -1273,32 +1296,32 @@ components:
             $ref: "#/components/schemas/Selector"
         request:
           type: array
-          description: Flow step used for PROXY and MESSAGE APIs
+          description: Request flow steps used for PROXY and MESSAGE APIs
           items:
             $ref: "#/components/schemas/StepV4"
         response:
           type: array
-          description: Flow step used for PROXY and MESSAGE APIs
+          description: Response flow steps used for PROXY and MESSAGE APIs
           items:
             $ref: "#/components/schemas/StepV4"
         subscribe:
           type: array
-          description: Flow step used for MESSAGE and NATIVE APIs
+          description: Subscribe flow steps used for MESSAGE and NATIVE APIs
           items:
             $ref: "#/components/schemas/StepV4"
         publish:
           type: array
-          description: Flow step used for MESSAGE and NATIVE APIs
+          description: Publish flow steps used for MESSAGE and NATIVE APIs
           items:
             $ref: "#/components/schemas/StepV4"
         connect:
           type: array
-          description: Flow step used for NATIVE APIs
+          description: Connect flow steps used for NATIVE APIs
           items:
             $ref: "#/components/schemas/StepV4"
         interact:
           type: array
-          description: Flow step used for NATIVE APIs
+          description: Interact flow steps used for NATIVE APIs
           items:
             $ref: "#/components/schemas/StepV4"
         tags:
@@ -1307,10 +1330,10 @@ components:
             type: string
           description: Flow's tags.
           examples:
-            - tag1
-            - tag2
+            - [tag1, tag2]
           uniqueItems: true
     FlowExecution:
+      description: Flow execution
       type: object
       properties:
         mode:
@@ -1329,6 +1352,7 @@ components:
         - BEST_MATCH
         - DEFAULT
     HttpListener:
+      description: HTTP Listener
       type: object
       title: "HttpListener"
       required:
@@ -1365,6 +1389,7 @@ components:
         - TRACE
         - OTHER
     HttpSelector:
+      description: HTTP selector
       type: object
       title: "HttpSelector"
       required:
@@ -1389,25 +1414,8 @@ components:
                 $ref: "#/components/schemas/HttpMethod"
               uniqueItems: true
 
-    Links:
-      description: List of links for pagination
-      properties:
-        self:
-          type: string
-          description: Link to current resource
-        first:
-          type: string
-          description: In a paginated response, link to the first page
-        last:
-          type: string
-          description: In a paginated response, link to the last page
-        previous:
-          type: string
-          description: In a paginated response, link to the previous page. Maybe null if current is the first page
-        next:
-          type: string
-          description: In a paginated response, link to the next page. Maybe null if current is the last page
     Listener:
+      description: Listener
       oneOf:
         - $ref: "#/components/schemas/HttpListener"
         - $ref: "#/components/schemas/SubscriptionListener"
@@ -1421,6 +1429,7 @@ components:
           SUBSCRIPTION: "#/components/schemas/SubscriptionListener"
           KAFKA: "#/components/schemas/KafkaListener"
     BaseListener:
+      description: Base listener
       type: object
       required:
         - type
@@ -1454,6 +1463,7 @@ components:
         - TCP
         - KAFKA
     LoadBalancer:
+      description: Load Balancer
       type: object
       properties:
         type:
@@ -1468,6 +1478,7 @@ components:
             - WEIGHTED_RANDOM
             - WEIGHTED_ROUND_ROBIN
     LoggingV4:
+      description: API logging configuration
       type: object
       properties:
         condition:
@@ -1481,6 +1492,7 @@ components:
         mode:
           $ref: "#/components/schemas/LoggingModeV4"
     LoggingContentV4:
+      description: API logging content
       type: object
       properties:
         headers:
@@ -1494,6 +1506,7 @@ components:
         messageMetadata:
           type: boolean
     LoggingModeV4:
+      description: API logging mode
       type: object
       properties:
         endpoint:
@@ -1501,6 +1514,7 @@ components:
         entrypoint:
           type: boolean
     LoggingPhase:
+      description: Logging phase
       type: object
       properties:
         request:
@@ -1508,6 +1522,7 @@ components:
         response:
           type: boolean
     TracingV4:
+      description: API analytic tracing
       type: object
       properties:
         enabled:
@@ -1516,28 +1531,6 @@ components:
         verbose:
           type: boolean
           description: Enable technical tracing to get more details on request execution. Be careful this settings would generate more noise and would impact performance.
-    ResponseMetadata:
-      description: Generic object to handle additional information about an entity. Can also be used for pagination data.
-      type: object
-    MoreInformation:
-      type: object
-      properties:
-        description:
-          type: string
-          description: Plugin's description.
-          examples:
-            - Let your consumers send synchronous, on-demand requests for events via a standard HTTP GET requests. Use a standard HTTP proxy to mediate between client applications as data consumers and event brokers such as Kafka.
-        documentationUrl:
-          type: string
-          description: Plugin's documentation URL.
-          examples:
-            - https://documentation.gravitee.io
-        schemaImg:
-          type: string
-          description: Plugin's schema image as base64.
-          format: base64
-          examples:
-            - data:image/png;base64,aFDqfda
     Operator:
       type: string
       description: The path operator of the selector
@@ -1547,22 +1540,31 @@ components:
       enum:
         - EQUALS
         - STARTS_WITH
-    PagesMap:
-      type: object
-      description: >-
-        A map of pages objects.
-        
-        Keys uniquely identify pages and are used to keep them in
-        sync with APIM when using a management context.
-        
-        Renaming a key is the equivalent of deleting the page and
-        recreating it holding a new ID in APIM.
-      additionalProperties:
-        $ref: '#/components/schemas/Page'
-    Page:
+
+    PageV4:
       description: Documentation page. Can be of multiple formats.
       type: object
+      allOf:
+        - $ref: "#/components/schemas/BasePageV4"
       properties:
+        translations:
+          type: array
+          description: List of page translations.
+          items:
+            $ref: "#/components/schemas/PageV4Translation"
+
+    PageV4Translation:
+      description: Documentation page translation. Can be of multiple formats.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/BasePageV4"
+
+    BasePageV4:
+      description: Documentation page.
+      type: object
+      properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
         id:
           type: string
           description: Page's uuid.
@@ -1608,8 +1610,7 @@ components:
           type: string
           format: date-time
           description: Page's last update date.
-          examples:
-            - 2018-01-01T00:00:00.000Z
+          example: 2018-01-01T00:00:00.000Z
         contentType:
           type: string
           description: Page's content type.
@@ -1655,11 +1656,6 @@ components:
           description: Page's metadata.
           additionalProperties:
             type: string
-        translations:
-          type: array
-          description: List of page translations.
-          items:
-            $ref: "#/components/schemas/Page"
         contentRevision:
           $ref: "#/components/schemas/Revision"
         hidden:
@@ -1668,6 +1664,10 @@ components:
         generalConditions:
           type: boolean
           description: If page is used as General Conditions of an active plan.
+      required:
+        - hrid
+        - type
+
     PageType:
       type: string
       description: The type of the page.
@@ -1687,6 +1687,7 @@ components:
 
     # Documentation pages
     AccessControl:
+      description: Document access control
       type: object
       properties:
         referenceId:
@@ -1701,6 +1702,7 @@ components:
             - GROUP
             - ROLE
     PageSource:
+      description: Page source
       type: object
       properties:
         type:
@@ -1716,6 +1718,7 @@ components:
           type: object
           description: Page source's configuration.
     PageMedia:
+      description: Page media
       type: object
       properties:
         name:
@@ -1732,9 +1735,9 @@ components:
           type: string
           format: date-time
           description: Media's attachment date.
-          examples:
-            - 2018-01-01T00:00:00.000Z
+          example: 2018-01-01T00:00:00.000Z
     Revision:
+      description: Page revision
       type: object
       properties:
         id:
@@ -1747,40 +1750,9 @@ components:
           description: Revision number.
           examples:
             - 1
-    Pagination:
-      description: Generic object to handle pagination data.
-      type: object
-      properties:
-        page:
-          type: integer
-          description: The current page.
-        perPage:
-          type: integer
-          description: The number of items requested per page.
-        pageCount:
-          type: integer
-          description: The total number of pages.
-        pageItemsCount:
-          type: integer
-          description: The number of items for the current page.
-        totalCount:
-          type: integer
-          format: int64
-          description: The total number of items.
-
-    Path:
-      type: object
-      properties:
-        host:
-          type: string
-        path:
-          type: string
-          default: "/"
-        overrideAccess:
-          type: boolean
-          default: false
 
     PathV4:
+      description: API Path
       type: object
       properties:
         host:
@@ -1792,14 +1764,8 @@ components:
           type: boolean
           default: false
 
-    ApiReview:
-      type: object
-      properties:
-        message:
-          type: string
-          description: Optional message from the API reviewer.
-
     PlanSecurity:
+      description: API plan security
       type: object
       properties:
         type:
@@ -1855,6 +1821,7 @@ components:
         - PUSH
 
     PrimaryOwner:
+      description: Primary owner
       type: object
       properties:
         id:
@@ -1874,20 +1841,26 @@ components:
         type:
           $ref: "#/components/schemas/MembershipMemberType"
     Property:
+      description: Api property
       type: object
       required:
         - key
         - value
       properties:
         key:
+          description: property key
           type: string
         value:
+          description: property value
           type: string
         encrypted:
+          description: is property encrypted or not?
           type: boolean
         dynamic:
+          description: is a dynamic property or not?
           type: boolean
         encryptable:
+          description: is property encryptable?
           type: boolean
           writeOnly: true
     Qos:
@@ -1902,6 +1875,7 @@ components:
         - AT_MOST_ONCE
         - AT_LEAST_ONCE
     Resource:
+      description: API resource
       type: object
       required:
         - name
@@ -1909,27 +1883,36 @@ components:
         - configuration
       properties:
         name:
+          description: Resource name
           type: string
         type:
+          description: Resource type
           type: string
         configuration:
+          description: Resource configuration
           type: object
         enabled:
+          description: API resource is enabled or not?
           type: boolean
     ResponseTemplate:
+      description: API response template
       type: object
       properties:
         status:
+          description: API response template status
           type: integer
         headers:
+          description: API response template headers
           type: object
           additionalProperties:
             type: string
         body:
+          description: API response template body
           type: string
         propagateErrorKeyToLogs:
           type: boolean
     Sampling:
+      description: API analytics sampling
       type: object
       properties:
         type:
@@ -1951,6 +1934,7 @@ components:
         - USER
         - GROUP
     Selector:
+      description: Flow selector
       oneOf:
         - $ref: "#/components/schemas/HttpSelector"
         - $ref: "#/components/schemas/ChannelSelector"
@@ -1962,6 +1946,7 @@ components:
           CHANNEL: "#/components/schemas/ChannelSelector"
           CONDITION: "#/components/schemas/ConditionSelector"
     BaseSelector:
+      description: Base selector
       properties:
         type:
           type: string
@@ -1981,6 +1966,7 @@ components:
       required:
         - type
     ServiceV4:
+      description: Service
       type: object
       properties:
         overrideConfiguration:
@@ -1997,6 +1983,7 @@ components:
         type:
           type: string
     BaseStep:
+      description: Base step
       type: object
       properties:
         name:
@@ -2019,6 +2006,7 @@ components:
           type: string
           description: The condition of the step
     StepV4:
+      description: Flow step
       allOf:
         - $ref: "#/components/schemas/BaseStep"
         - properties:
@@ -2026,12 +2014,14 @@ components:
               type: string
               description: The message condition of the step
     SubscriptionListener:
+      description: Subscription listener
       title: "SubscriptionListener"
       required:
         - type
       allOf:
         - $ref: "#/components/schemas/BaseListener"
     TcpListener:
+      description: TCP listener
       title: "TcpListener"
       required:
         - type
@@ -2051,6 +2041,7 @@ components:
           required:
             - "hosts"
     KafkaListener:
+      description: Kafka listener
       title: "KafkaListener"
       required:
         - type
@@ -2069,34 +2060,10 @@ components:
                 - 8080
           required:
             - "host"
-    VerifyApiPaths:
-      title: "VerifyApiPaths"
-      properties:
-        apiId:
-          type: string
-        paths:
-          type: array
-          items:
-            $ref: "#/components/schemas/Path"
-      required: [paths]
-
-    VerifyApiHosts:
-      title: "VerifyApiHosts"
-      properties:
-        apiId:
-          type: string
-        listenerType:
-          $ref: "#/components/schemas/ListenerType"
-        hosts:
-          type: array
-          examples:
-            - foo.example.com
-          items:
-            type: string
-      required: [hosts]
 
     # Failover v4
     FailoverV4:
+      description: API Failover
       type: object
       properties:
         enabled:
@@ -2134,6 +2101,7 @@ components:
 
     # Metadata Page
     Metadata:
+      description: Metadata
       type: object
       properties:
         key:
@@ -2168,28 +2136,7 @@ components:
         - DATE
         - MAIL
         - URL
-    Rule:
-      type: object
-      properties:
-        methods:
-          type: array
-          items:
-            $ref: "#/components/schemas/HttpMethod"
-        description:
-          type: string
-          description: The description of the rule
-        enabled:
-          type: boolean
-          description: Is the rule enabled or not.
-          default: true
-        operation:
-          type: string
-          description: The operation of the rule
-        configuration:
-          type: object
-          description: The configuration of the rule
-      additionalProperties:
-        type: object
+
     LifecycleState:
       type: string
       description: The state of the API regarding the gateway(s).
@@ -2203,93 +2150,44 @@ components:
         - STOPPING
 
   responses:
-    ApisResponse:
-      description: Page of apis
+    NotFound:
+        description: Resource not found
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Unauthorized
       content:
         application/json:
           schema:
-            title: "ApisResponse"
-            type: object
-            properties:
-              data:
-                description: List of Apis.
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiV4State"
-              pagination:
-                $ref: "#/components/schemas/Pagination"
-              links:
-                $ref: "#/components/schemas/Links"
-    SharedPolicyGroupsResponse:
-      description: Page of shared policy groups
+            $ref: "#/components/schemas/Error"
+    Unauthenticated:
+      description: Unauthenticated
       content:
         application/json:
           schema:
-            title: "Shared Policy Groups Response"
-            properties:
-              data:
-                description: List of SharedPolicyGroup.
-                type: array
-                items:
-                  $ref: "#/components/schemas/SharedPolicyGroupState"
-              pagination:
-                $ref: "#/components/schemas/Pagination"
-              links:
-                $ref: "#/components/schemas/Links"
-
+            $ref: "#/components/schemas/Error"
+    BadRequest:
+      description: Request is invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
     Error:
-      description: Validation error
+      description: Default error
       content:
         application/json:
           schema:
             type: object
-            properties:
-              httpStatus:
-                type: integer
-                format: int32
-                description: The error code
-                examples:
-                  - "400"
-              message:
-                type: string
-                description: The error message
-                examples:
-                  - Bad request
-              technicalCode:
-                type: string
-                description: A technical code to identify the error
-                examples:
-                  - invalid.import.definition
-              parameters:
-                type: object
-                description: A map of parameters to be used in the error message
-                additionalProperties:
-                  type: string
-              details:
-                type: array
-                description: A list of details about the error
-                items:
-                  type: object
-                  properties:
-                    message:
-                      type: string
-                      description: The error message
-                      examples:
-                        - Bad request
-                    location:
-                      type: string
-                      description: The json path of the field in error.
-                      examples:
-                        - updateApi.properties[0].key
-                    invalidValue:
-                      type: string
-                      description: The invalid value.
+            allOf:
+              - $ref: "#/components/schemas/Error"
   parameters:
     envIdParam:
       name: envId
       in: path
       required: true
-      description: Id of an environment.
+      description: environment ID
       schema:
         type: string
         default: DEFAULT
@@ -2297,7 +2195,7 @@ components:
       name: orgId
       in: path
       required: true
-      description: Id of an organization.
+      description: organization ID
       schema:
         type: string
         default: DEFAULT
@@ -2310,13 +2208,6 @@ components:
       schema:
         type: boolean
         default: false
-    apiIdParam:
-      name: apiId
-      in: path
-      required: true
-      description: Id of an API.
-      schema:
-        type: string
     hridParam:
       name: hrid
       in: path
@@ -2324,28 +2215,13 @@ components:
       description: Human-readable ID of a spec
       schema:
         type: string
-    pageParam:
-      name: page
-      in: query
-      required: false
-      description: The page number for pagination.
-      schema:
-        type: integer
-        default: 1
-    perPageParam:
-      name: perPage
-      in: query
-      required: false
-      description: |
-        The number of items per page for pagination.
-      schema:
-        type: integer
-        default: 10
   securitySchemes:
     BasicAuth:
+      description: Basic authentication
       type: http
       scheme: basic
     BearerAuth:
+      description: Bearer authentication
       type: http
       scheme: bearer
       bearerFormat: Gravitee service account ID

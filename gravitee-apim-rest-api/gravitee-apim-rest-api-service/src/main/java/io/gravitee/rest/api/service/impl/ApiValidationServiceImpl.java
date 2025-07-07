@@ -131,7 +131,6 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
                 new ValidatePagesDomainService.Input(
                     auditInfo,
                     api.getId(),
-                    null,
                     ApiCRDEntityAdapter.INSTANCE.toCoreApiCRDPages(api.getPagesMap())
                 )
             )

@@ -20,13 +20,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = false)
-public class LegacySharedPolicyGroupSpec extends SharedPolicyGroupSpec {
+public class LegacyAPIV4Spec extends ApiV4Spec {
 
     private String crossId;
 }
