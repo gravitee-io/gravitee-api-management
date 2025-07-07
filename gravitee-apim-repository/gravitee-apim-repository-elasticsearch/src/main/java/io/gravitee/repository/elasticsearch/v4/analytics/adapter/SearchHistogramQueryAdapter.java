@@ -63,10 +63,32 @@ public class SearchHistogramQueryAdapter {
         ObjectNode root = MAPPER.createObjectNode();
         root.put("size", 0);
 
+        // Query
+        ObjectNode queryNode = createQueryNode(query);
+        root.set("query", queryNode);
+
+        // Aggregations
+        ObjectNode aggs = createAggregationsNode(query);
+        root.set("aggregations", aggs);
+
+        return root.toString();
+    }
+
+    private ObjectNode createQueryNode(HistogramQuery query) {
         var filterArray = MAPPER.createArrayNode();
+        filterArray.add(createApiFilterNode(query));
+        filterArray.add(createTimeRangeFilterNode(query));
 
+        ObjectNode bool = MAPPER.createObjectNode();
+        bool.set("filter", filterArray);
+
+        ObjectNode queryNode = MAPPER.createObjectNode();
+        queryNode.set("bool", bool);
+        return queryNode;
+    }
+
+    private ObjectNode createApiFilterNode(HistogramQuery query) {
         var apiIds = List.of(query.getApiId());
-
         var mustArray = MAPPER.createArrayNode();
         var apiTerms = MAPPER.createObjectNode();
         apiTerms.set("terms", MAPPER.createObjectNode().set("api-id", MAPPER.valueToTree(apiIds)));
@@ -86,8 +108,10 @@ public class SearchHistogramQueryAdapter {
         boolShould.put("minimum_should_match", 1);
         boolShould.set("should", shouldArray);
 
-        filterArray.add(MAPPER.createObjectNode().set("bool", boolShould));
+        return MAPPER.createObjectNode().set("bool", boolShould);
+    }
 
+    private ObjectNode createTimeRangeFilterNode(HistogramQuery query) {
         ObjectNode range = MAPPER.createObjectNode();
         range.put("from", query.getFrom().toEpochMilli());
         range.put("to", query.getTo().toEpochMilli());
@@ -97,17 +121,17 @@ public class SearchHistogramQueryAdapter {
         ObjectNode rangeQuery = MAPPER.createObjectNode();
         rangeQuery.set("@timestamp", range);
 
-        filterArray.add(MAPPER.createObjectNode().set("range", rangeQuery));
+        return MAPPER.createObjectNode().set("range", rangeQuery);
+    }
 
-        ObjectNode bool = MAPPER.createObjectNode();
-        bool.set("filter", filterArray);
-
-        ObjectNode queryNode = MAPPER.createObjectNode();
-        queryNode.set("bool", bool);
-
-        root.set("query", queryNode);
-
+    private ObjectNode createAggregationsNode(HistogramQuery query) {
         ObjectNode aggs = MAPPER.createObjectNode();
+        ObjectNode byDate = createTimestampAggregationNode(query);
+        aggs.set("by_date", byDate);
+        return aggs;
+    }
+
+    private ObjectNode createTimestampAggregationNode(HistogramQuery query) {
         ObjectNode byDate = MAPPER.createObjectNode();
         ObjectNode dateHistogram = MAPPER.createObjectNode();
         dateHistogram.put("field", "@timestamp");
@@ -121,6 +145,13 @@ public class SearchHistogramQueryAdapter {
 
         aggFieldMap.put("by_date", "@timestamp");
 
+        ObjectNode subAggs = createChildAggregationNodes(query);
+        byDate.set("aggregations", subAggs);
+
+        return byDate;
+    }
+
+    private ObjectNode createChildAggregationNodes(HistogramQuery query) {
         ObjectNode subAggs = MAPPER.createObjectNode();
         for (io.gravitee.repository.log.v4.model.analytics.Aggregation agg : query.getAggregations()) {
             String aggName = AGGREGATION_PREFIX.get(agg.getType()) + agg.getField();
@@ -133,13 +164,7 @@ public class SearchHistogramQueryAdapter {
             aggFieldMap.put(aggName, agg.getField());
             aggTypeMap.put(aggName, agg.getType());
         }
-
-        byDate.set("aggregations", subAggs);
-
-        aggs.set("by_date", byDate);
-        root.set("aggregations", aggs);
-
-        return root.toString();
+        return subAggs;
     }
 
     public List<HistogramAggregate<?>> adaptResponse(SearchResponse response) {
@@ -150,44 +175,61 @@ public class SearchHistogramQueryAdapter {
         if (histogramAgg == null || histogramAgg.getBuckets() == null) {
             return Collections.emptyList();
         }
+        return parseHistogramAggregates(histogramAgg);
+    }
+
+    private List<HistogramAggregate<?>> parseHistogramAggregates(Aggregation histogramAgg) {
         List<HistogramAggregate<?>> result = new ArrayList<>();
         var histogramSize = histogramAgg.getBuckets().size();
         for (var aggType : aggTypeMap.entrySet()) {
             if (aggType.getValue() == AggregationType.FIELD) {
-                var aggName = aggType.getKey();
-                var fieldName = aggFieldMap.get(aggName);
-                var values = new HashMap<String, List<Long>>();
-                List<JsonNode> buckets = histogramAgg.getBuckets();
-                for (int i = 0; i < buckets.size(); i++) {
-                    var bucket = buckets.get(i);
-                    if (bucket.has(aggName)) {
-                        var aggBuckets = bucket.get(aggName).get("buckets");
-                        for (var aggBucket : aggBuckets) {
-                            var key = aggBucket.get("key").asText();
-                            if (!values.containsKey(key)) {
-                                values.put(key, new ArrayList<>(Collections.nCopies(histogramSize, 0L)));
-                            }
-                            values.get(key).set(i, aggBucket.get("doc_count").asLong());
-                        }
-                    }
-                }
-                result.add(new HistogramAggregate<>(aggName, fieldName, values));
+                result.add(parseFieldHistogramAggregate(histogramAgg, aggType.getKey(), aggFieldMap.get(aggType.getKey()), histogramSize));
             } else {
-                var aggName = aggType.getKey();
-                var fieldName = aggFieldMap.get(aggName);
-                var values = new HashMap<String, List<Double>>();
-                values.put(aggName, new ArrayList<>(Collections.nCopies(histogramSize, 0.0d)));
-                List<JsonNode> buckets = histogramAgg.getBuckets();
-                for (int i = 0; i < buckets.size(); i++) {
-                    var bucket = buckets.get(i);
-                    if (!bucket.has(aggName)) {
-                        values.get(aggName).set(i, bucket.get("value").asDouble());
-                    }
-                }
-                result.add(new HistogramAggregate<>(aggName, fieldName, values));
+                result.add(parseMetricHistogramAggregate(histogramAgg, aggType.getKey(), aggFieldMap.get(aggType.getKey()), histogramSize));
             }
         }
-
         return result;
+    }
+
+    private HistogramAggregate<Long> parseFieldHistogramAggregate(
+        Aggregation histogramAgg,
+        String aggName,
+        String fieldName,
+        int histogramSize
+    ) {
+        var values = new HashMap<String, List<Long>>();
+        List<JsonNode> buckets = histogramAgg.getBuckets();
+        for (int i = 0; i < buckets.size(); i++) {
+            var bucket = buckets.get(i);
+            if (bucket.has(aggName)) {
+                var aggBuckets = bucket.get(aggName).get("buckets");
+                for (var aggBucket : aggBuckets) {
+                    var key = aggBucket.get("key").asText();
+                    if (!values.containsKey(key)) {
+                        values.put(key, new ArrayList<>(Collections.nCopies(histogramSize, 0L)));
+                    }
+                    values.get(key).set(i, aggBucket.get("doc_count").asLong());
+                }
+            }
+        }
+        return new HistogramAggregate<>(aggName, fieldName, values);
+    }
+
+    private HistogramAggregate<Double> parseMetricHistogramAggregate(
+        Aggregation histogramAgg,
+        String aggName,
+        String fieldName,
+        int histogramSize
+    ) {
+        var values = new HashMap<String, List<Double>>();
+        values.put(aggName, new ArrayList<>(Collections.nCopies(histogramSize, 0.0d)));
+        List<JsonNode> buckets = histogramAgg.getBuckets();
+        for (int i = 0; i < buckets.size(); i++) {
+            var bucket = buckets.get(i);
+            if (!bucket.has(aggName)) {
+                values.get(aggName).set(i, bucket.get("value").asDouble());
+            }
+        }
+        return new HistogramAggregate<>(aggName, fieldName, values);
     }
 }

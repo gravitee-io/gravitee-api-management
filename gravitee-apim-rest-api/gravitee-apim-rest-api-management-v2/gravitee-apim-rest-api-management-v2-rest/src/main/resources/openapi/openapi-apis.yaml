@@ -7664,6 +7664,13 @@ components:
                     $ref: "#/components/schemas/AnalyticsType"
             required:
                 - analyticsType
+            discriminator:
+              propertyName: analyticsType
+              mapping:
+                STATS: "#/components/schemas/StatsAnalytics"
+                COUNT: "#/components/schemas/CountAnalytics"
+                HISTOGRAM: "#/components/schemas/HistogramAnalytics"
+                GROUP_BY: "#/components/schemas/GroupByAnalytics"
         StatsAnalytics:
 
           allOf:

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
 import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.Bucket;
 import io.gravitee.apim.core.analytics.model.Timestamp;
@@ -42,7 +43,7 @@ public class SearchHistogramAnalyticsUseCase {
     private final AnalyticsQueryService analyticsQueryService;
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        validateInput(input);
+        validateInput(input, executionContext);
 
         var histogramQuery = new AnalyticsQueryService.HistogramQuery(
             input.api(),
@@ -62,15 +63,22 @@ public class SearchHistogramAnalyticsUseCase {
         );
     }
 
-    private void validateInput(Input input) {
-        validateApi(input.api);
+    private void validateInput(Input input, ExecutionContext executionContext) {
+        validateApi(input.api, executionContext);
+        validateTimeRange(input.from, input.to);
     }
 
-    private void validateApi(String apiId) {
+    private void validateTimeRange(long from, long to) {
+        if (from > to) {
+            throw new IllegalTimeRangeException();
+        }
+    }
+
+    private void validateApi(String apiId, ExecutionContext executionContext) {
         var api = apiCrudService.get(apiId);
         validateApiV4(apiId, api.getDefinitionVersion());
         validateApiProxy(api);
-        validateApiMultiTenancyAccess(api, api.getEnvironmentId());
+        validateApiMultiTenancyAccess(api, executionContext.getEnvironmentId());
     }
 
     private void validateApiV4(String apiId, DefinitionVersion apiDefinition) {
@@ -80,7 +88,7 @@ public class SearchHistogramAnalyticsUseCase {
     }
 
     private void validateApiProxy(Api api) {
-        if (api.getApiDefinitionHttpV4().isTcpProxy()) {
+        if (api.isTcpProxy()) {
             throw new TcpProxyNotSupportedException(api.getId());
         }
     }
