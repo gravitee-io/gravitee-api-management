@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.apim.rest.api.automation.util.Hrid.toId;
+
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
@@ -61,7 +63,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
         try {
             var sharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
                 executionContext.getEnvironmentId(),
-                IdBuilder.builder(executionContext, hrid).buildId()
+                toId(executionContext, hrid)
             );
             return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(sharedPolicyGroup)).build();
         } catch (SharedPolicyGroupNotFoundException e) {
@@ -93,7 +95,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
         try {
             var sharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
                 executionContext.getEnvironmentId(),
-                IdBuilder.builder(auditInfo, hrid).buildId()
+                toId(executionContext, hrid)
             );
             if (!dryRun) {
                 deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroup.getId(), auditInfo));

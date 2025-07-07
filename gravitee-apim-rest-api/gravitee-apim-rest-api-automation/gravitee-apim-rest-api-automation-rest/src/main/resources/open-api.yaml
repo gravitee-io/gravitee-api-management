@@ -190,6 +190,82 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  # Subscription
+  /organizations/{orgId}/environments/{envId}/subscriptions/:
+    put:
+      operationId: createOrUpdateSubscriptions
+      tags:
+        - Subscriptions
+      summary: Create or update Subscriptions from SubscriptionSpec
+      description: Create or update Subscription from SubscriptionSpec
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/SubscriptionSpec"
+        required: true
+      responses:
+        "200":
+          description: State of the successfully created Subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionState"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          description: No credential provided
+        "403":
+          description: Wrong credentials
+        "500":
+          description: Internal server error
+  /organizations/{orgId}/environments/{envId}/subscriptions/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getSubscription
+      tags:
+        - Subscriptions
+      summary: Get one Subscription
+      description: Get one Subscription
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/hridParam"
+      responses:
+        "200":
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationState"
+        "401":
+          description: No credential provided
+        "403":
+          description: Wrong credentials
+        "500":
+          description: Internal server error
+    delete:
+      operationId: deleteSubscription
+      tags:
+        - Subscriptions
+      summary: Delete one Subscription
+      description: Delete one Subscription
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/hridParam"
+      responses:
+        "204":
+          description: Subscription successfully deleted
+        default:
+          $ref: "#/components/responses/Error"
+
   # Shared Policy Groups
   /organizations/{orgId}/environments/{envId}/shared-policy-groups/{hrid}:
     parameters:
@@ -266,15 +342,19 @@ components:
     Hrid:
       type: string
       pattern: '^[a-zA-Z][a-zA-Z0-9_-]{2,}$'
-      description: A unique human readable id identifying this object
+      description: A unique human readable id identifying this resource
+      examples:
+        - my_demo_api
+        - simple_demo_app
+        - keyless_demo_plan
+        - demo_subscription
+        - demo_shared_policy_groups
     ApiV4Spec:
       description: ApiV4DefinitionSpec defines the desired state of ApiDefinition.
       type: object
       properties:
         hrid:
           $ref: "#/components/schemas/Hrid"
-          examples:
-            - echo_api
         definitionContext:
           $ref: "#/components/schemas/DefinitionContext"
         name:
@@ -329,7 +409,11 @@ components:
           items:
             $ref: "#/components/schemas/Resource"
         plans:
-          $ref: '#/components/schemas/PlansMap'
+          default: []
+          description: List of Plans for the API
+          items:
+            $ref: '#/components/schemas/PlanV4'
+          type: array
         flowExecution:
           $ref: "#/components/schemas/FlowExecution"
         flows:
@@ -401,7 +485,11 @@ components:
           type: boolean
           writeOnly: true
         pages:
-          $ref: '#/components/schemas/PagesMap'
+          default: []
+          description: List of Pages for the API
+          items:
+            $ref: '#/components/schemas/PageV4'
+          type: array
         consoleNotificationConfiguration:
           $ref: '#/components/schemas/PortalNotificationConfig'
       required:
@@ -446,8 +534,6 @@ components:
       properties:
         hrid:
           $ref: "#/components/schemas/Hrid"
-          examples:
-            - demo-application
         name:
           type: string
           description: Application's name. Duplicate names can exists.
@@ -575,6 +661,63 @@ components:
             organizationId:
               description:
                 The organization ID of the Application.
+              type: string
+
+    # Subscription
+    SubscriptionSpec:
+      description: SubscriptionSpec defines the desired state of Subscription.
+      type: object
+      properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
+        applicationHrid:
+          type: string
+          description: Application's Hrid that needs to subscribe to the API.
+          example: demo-app
+          minLength: 1
+        apiHrid:
+          type: string
+          description: The API's Hrid that you want to subscribe to.
+          example: demo-api
+          minLength: 1
+        planHrid:
+          type: string
+          description: API plan's Hrid
+          example: demo-plan
+        startingAt:
+          type: string
+          format: date-time
+          example: "2040-12-25T09:12:28Z"
+          writeOnly: true
+        endingAt:
+          type: string
+          format: date-time
+          example: "2040-12-25T09:12:28Z"
+      required:
+        - hrid
+        - applicationHrid
+        - apiHrid
+        - planHrid
+        - endingAt
+    SubscriptionState:
+      allOf:
+        - $ref: "#/components/schemas/SubscriptionSpec"
+        - type: object
+          properties:
+            errors:
+              $ref: "#/components/schemas/Errors"
+        - type: object
+          properties:
+            id:
+              type: string
+              description: Subscription's uuid.
+            environmentId:
+              description:
+                The environment ID of the Subscription.
+              type: string
+            organizationId:
+              description:
+                The organization ID of the Subscription.
               type: string
 
     Errors:
@@ -800,14 +943,11 @@ components:
       required:
         - enabled
 
-    PlansMap:
-      type: object
-      description: Map of plan IDs to Plan objects
-      additionalProperties:
-        $ref: '#/components/schemas/Plan'
-    Plan:
+    PlanV4:
       type: object
       properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
         id:
           type: string
           description: Unique identifier for the plan
@@ -853,6 +993,7 @@ components:
         mode:
           $ref: '#/components/schemas/PlanMode'
       required:
+        - hrid
         - status
         - type
         - mode
@@ -1547,22 +1688,12 @@ components:
       enum:
         - EQUALS
         - STARTS_WITH
-    PagesMap:
-      type: object
-      description: >-
-        A map of pages objects.
-        
-        Keys uniquely identify pages and are used to keep them in
-        sync with APIM when using a management context.
-        
-        Renaming a key is the equivalent of deleting the page and
-        recreating it holding a new ID in APIM.
-      additionalProperties:
-        $ref: '#/components/schemas/Page'
-    Page:
+    PageV4:
       description: Documentation page. Can be of multiple formats.
       type: object
       properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
         id:
           type: string
           description: Page's uuid.
@@ -1659,7 +1790,7 @@ components:
           type: array
           description: List of page translations.
           items:
-            $ref: "#/components/schemas/Page"
+            $ref: "#/components/schemas/PageV4"
         contentRevision:
           $ref: "#/components/schemas/Revision"
         hidden:
@@ -1668,6 +1799,9 @@ components:
         generalConditions:
           type: boolean
           description: If page is used as General Conditions of an active plan.
+      required:
+        - hrid
+
     PageType:
       type: string
       description: The type of the page.

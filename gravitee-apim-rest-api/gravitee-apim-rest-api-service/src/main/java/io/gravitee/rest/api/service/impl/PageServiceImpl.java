@@ -190,6 +190,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private static Page convert(NewPageEntity newPageEntity) {
         Page page = new Page();
         page.setCrossId(newPageEntity.getCrossId());
+        page.setHrid(newPageEntity.getHrid());
         page.setName(newPageEntity.getName());
         final PageType type = newPageEntity.getType();
         if (type != null) {
@@ -254,6 +255,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private static Page merge(UpdatePageEntity updatePageEntity, Page withUpdatePage) {
         Page page = new Page();
         page.setCrossId(updatePageEntity.getCrossId() != null ? updatePageEntity.getCrossId() : withUpdatePage.getCrossId());
+        page.setHrid(withUpdatePage.getHrid());
         page.setName(updatePageEntity.getName() != null ? updatePageEntity.getName() : withUpdatePage.getName());
         page.setContent(updatePageEntity.getContent() != null ? updatePageEntity.getContent() : withUpdatePage.getContent());
         page.setLastContributor(
@@ -1249,6 +1251,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             page.setId(pageId);
+            page.setHrid(pageToUpdate.getHrid());
             page.setUpdatedAt(new Date());
 
             // Copy fields from existing values

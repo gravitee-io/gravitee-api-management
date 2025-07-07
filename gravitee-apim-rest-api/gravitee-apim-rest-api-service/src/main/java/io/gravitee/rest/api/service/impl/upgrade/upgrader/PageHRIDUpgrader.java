@@ -17,10 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Set;
+import io.gravitee.repository.management.api.PageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -32,22 +29,26 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class ApplicationHRIDUpgrader implements Upgrader {
+public class PageHRIDUpgrader implements Upgrader {
 
     @Lazy
     @Autowired
-    private ApplicationRepository applicationRepository;
-
-    @Lazy
-    @Autowired
-    private EnvironmentRepository environmentRepository;
+    private PageRepository pageRepository;
 
     @Override
     public boolean upgrade() {
         try {
-            for (var environment : environmentRepository.findAll()) {
-                setHRIDs(new ExecutionContext(environment));
-            }
+            pageRepository
+                .findAll()
+                .forEach(page -> {
+                    page.setHrid(page.getId());
+                    try {
+                        pageRepository.update(page);
+                    } catch (TechnicalException e) {
+                        log.error("Unable to set HRID for Plan {}", page.getId(), e);
+                        throw new RuntimeException(e);
+                    }
+                });
             return true;
         } catch (TechnicalException e) {
             log.error("Error applying upgrader", e);
@@ -57,20 +58,6 @@ public class ApplicationHRIDUpgrader implements Upgrader {
 
     @Override
     public int getOrder() {
-        return UpgraderOrder.APPLICATION_HRID_UPGRADER;
-    }
-
-    private void setHRIDs(ExecutionContext executionContext) throws TechnicalException {
-        applicationRepository
-            .findAllByEnvironment(executionContext.getEnvironmentId())
-            .forEach(application -> {
-                application.setHrid(application.getId());
-                try {
-                    applicationRepository.update(application);
-                } catch (TechnicalException e) {
-                    log.error("Unable to set HRID for Application {}", application.getId(), e);
-                    throw new RuntimeException(e);
-                }
-            });
+        return UpgraderOrder.PAGE_HRID_UPGRADER;
     }
 }

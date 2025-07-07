@@ -133,7 +133,7 @@ public class ApisResource extends AbstractResource {
         CollectionUtils.stream(spec.getFlows()).forEach(f -> mapSharedPolicyGroupHrid(f, audit));
         if (spec.getPlans() != null) {
             CollectionUtils
-                .stream(spec.getPlans().values())
+                .stream(spec.getPlans())
                 .flatMap(p -> CollectionUtils.stream(p.getFlows()))
                 .forEach(f -> mapSharedPolicyGroupHrid(f, audit));
         }
