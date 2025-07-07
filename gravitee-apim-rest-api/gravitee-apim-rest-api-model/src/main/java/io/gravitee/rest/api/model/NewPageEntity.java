@@ -40,6 +40,7 @@ public class NewPageEntity extends FetchablePageEntity {
      * Pages promoted between environments will share the same crossId.
      */
     private String crossId;
+    private String hrid;
 
     @NotNull
     @Size(min = 1)

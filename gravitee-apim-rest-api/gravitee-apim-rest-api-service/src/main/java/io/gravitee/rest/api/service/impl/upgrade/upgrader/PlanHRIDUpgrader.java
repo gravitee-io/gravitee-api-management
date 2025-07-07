@@ -17,10 +17,9 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -32,11 +31,11 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class ApplicationHRIDUpgrader implements Upgrader {
+public class PlanHRIDUpgrader implements Upgrader {
 
     @Lazy
     @Autowired
-    private ApplicationRepository applicationRepository;
+    private PlanRepository planRepository;
 
     @Lazy
     @Autowired
@@ -57,18 +56,20 @@ public class ApplicationHRIDUpgrader implements Upgrader {
 
     @Override
     public int getOrder() {
-        return UpgraderOrder.APPLICATION_HRID_UPGRADER;
+        return UpgraderOrder.PLAN_HRID_UPGRADER;
     }
 
     private void setHRIDs(ExecutionContext executionContext) throws TechnicalException {
-        applicationRepository
-            .findAllByEnvironment(executionContext.getEnvironmentId())
-            .forEach(application -> {
-                application.setHrid(application.getId());
+        planRepository
+            .findAll()
+            .stream()
+            .filter(plan -> plan.getEnvironmentId().equals(executionContext.getEnvironmentId()))
+            .forEach(plan -> {
+                plan.setHrid(plan.getId());
                 try {
-                    applicationRepository.update(application);
+                    planRepository.update(plan);
                 } catch (TechnicalException e) {
-                    log.error("Unable to set HRID for Application {}", application.getId(), e);
+                    log.error("Unable to set HRID for Plan {}", plan.getId(), e);
                     throw new RuntimeException(e);
                 }
             });
