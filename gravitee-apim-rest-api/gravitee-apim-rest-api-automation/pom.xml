@@ -30,6 +30,8 @@
     <artifactId>gravitee-apim-rest-api-automation</artifactId>
     <packaging>pom</packaging>
 
+    <name>Gravitee.io APIM - Management API - Automation</name>
+
     <modules>
         <module>gravitee-apim-rest-api-automation-rest</module>
         <module>gravitee-apim-rest-api-automation-security</module>
