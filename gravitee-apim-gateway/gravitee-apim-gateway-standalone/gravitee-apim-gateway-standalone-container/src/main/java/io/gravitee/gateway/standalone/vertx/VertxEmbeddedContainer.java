@@ -64,13 +64,8 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
 
     @Override
     protected void doStart() {
-        if (httpInstances < 1 && tcpInstances < 1) {
-            httpInstances = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE / 2;
-            tcpInstances = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE / 2;
-        } else {
-            httpInstances = (httpInstances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : httpInstances;
-            tcpInstances = (tcpInstances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : tcpInstances;
-        }
+        httpInstances = (httpInstances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : httpInstances;
+        tcpInstances = (tcpInstances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : tcpInstances;
         startHttpInstances();
         startTcpInstances();
     }
