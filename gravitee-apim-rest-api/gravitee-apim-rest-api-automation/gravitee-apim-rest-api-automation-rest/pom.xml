@@ -27,6 +27,7 @@
     </parent>
 
     <artifactId>gravitee-apim-rest-api-automation-rest</artifactId>
+    <name>Gravitee.io APIM - Management API - Automation - Rest API</name>
 
     <properties>
         <openapi-generator.version>7.12.0</openapi-generator.version>
