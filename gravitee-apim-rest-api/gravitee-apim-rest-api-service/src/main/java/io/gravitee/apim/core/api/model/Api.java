@@ -141,6 +141,11 @@ public class Api {
 
     private String background;
 
+    public boolean isTcpProxy() {
+        if (definitionVersion != DefinitionVersion.V4) return false;
+        return apiDefinitionHttpV4.isTcpProxy();
+    }
+
     public enum Visibility {
         /**
          * The entity is visible to everyone.

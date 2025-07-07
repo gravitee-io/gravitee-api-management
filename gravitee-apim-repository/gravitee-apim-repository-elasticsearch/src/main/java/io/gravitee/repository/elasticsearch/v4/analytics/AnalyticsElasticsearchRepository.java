@@ -199,10 +199,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var adapter = new SearchHistogramQueryAdapter();
         var esQuery = adapter.adapt(query);
-        var response = client.search(index, null, esQuery).blockingGet();
 
         log.debug("Search histogram query: {}", esQuery);
-        return adapter.adaptResponse(response);
+        return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {

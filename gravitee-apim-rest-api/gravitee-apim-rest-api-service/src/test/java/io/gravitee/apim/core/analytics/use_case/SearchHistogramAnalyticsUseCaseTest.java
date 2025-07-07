@@ -15,126 +15,117 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
+import fakes.FakeAnalyticsQueryService;
+import fixtures.core.model.ApiFixtures;
+import inmemory.ApiCrudServiceInMemory;
+import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
 import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.Bucket;
+import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.Timestamp;
-import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase.Input;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class SearchHistogramAnalyticsUseCaseTest {
 
-    private ApiCrudService apiCrudService;
-    private AnalyticsQueryService analyticsQueryService;
+    private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
+    private static final String ENV_ID = "environment-id";
+
+    private final FakeAnalyticsQueryService analyticsQueryService = new FakeAnalyticsQueryService();
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private SearchHistogramAnalyticsUseCase useCase;
-    private ExecutionContext executionContext;
+
+    @BeforeAll
+    static void beforeAll() {
+        TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
+        GraviteeContext.setCurrentEnvironment(ENV_ID);
+    }
+
+    @AfterAll
+    static void afterAll() {
+        TimeProvider.overrideClock(Clock.systemDefaultZone());
+    }
 
     @BeforeEach
     void setUp() {
-        apiCrudService = mock(ApiCrudService.class);
-        analyticsQueryService = mock(AnalyticsQueryService.class);
         useCase = new SearchHistogramAnalyticsUseCase(apiCrudService, analyticsQueryService);
-        executionContext = mock(ExecutionContext.class);
+    }
+
+    @AfterEach
+    void tearDown() {
+        apiCrudService.reset();
+        analyticsQueryService.reset();
     }
 
     @Test
     void shouldReturnHistogramAnalytics() {
-        String apiId = "api-1";
-        long from = 1000L;
-        long to = 2000L;
-        long interval = 100L;
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
+        long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
+        long to = INSTANT_NOW.toEpochMilli();
+        long interval = 60000L;
         List<Aggregation> aggregations = List.of();
 
-        Api api = mock(Api.class);
-        when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
+        var expectedBuckets = List.of(new Bucket());
+        analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
-        // Properly mock apiDefinitionHttpV4 and its isTcpProxy() method
-        io.gravitee.definition.model.v4.Api apiDefinitionHttpV4 = mock(io.gravitee.definition.model.v4.Api.class);
-        when(apiDefinitionHttpV4.isTcpProxy()).thenReturn(false);
-        when(api.getApiDefinitionHttpV4()).thenReturn(apiDefinitionHttpV4);
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations);
+        var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
-        when(api.belongsToEnvironment(anyString())).thenReturn(true);
-        when(api.getEnvironmentId()).thenReturn("env-1");
-        when(api.getId()).thenReturn(apiId);
-
-        when(apiCrudService.get(apiId)).thenReturn(api);
-
-        List<Bucket> buckets = List.of(new Bucket());
-        var histogramAnalytics = mock(io.gravitee.apim.core.analytics.model.HistogramAnalytics.class);
-        when(histogramAnalytics.getValues()).thenReturn(buckets);
-
-        when(analyticsQueryService.searchHistogramAnalytics(any(), any())).thenReturn(Optional.of(histogramAnalytics));
-
-        var input = new SearchHistogramAnalyticsUseCase.Input(apiId, from, to, interval, aggregations);
-        var output = useCase.execute(executionContext, input);
-
-        assertNotNull(output);
-        assertEquals(
-            new Timestamp(java.time.Instant.ofEpochMilli(from), java.time.Instant.ofEpochMilli(to), java.time.Duration.ofMillis(interval)),
-            output.timestamp()
-        );
-        assertEquals(buckets, output.values());
+        assertThat(output).isNotNull();
+        assertThat(output.timestamp()).isEqualTo(expectedTimestamp);
+        assertThat(output.values()).isEqualTo(expectedBuckets);
     }
 
     @Test
     void shouldThrowWhenApiNotV4() {
-        String apiId = "api-2";
-        Api api = mock(Api.class);
-        when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
-        when(apiCrudService.get(apiId)).thenReturn(api);
-
-        var input = new SearchHistogramAnalyticsUseCase.Input(apiId, 0, 0, 0, List.of());
-
-        assertThrows(ApiInvalidDefinitionVersionException.class, () -> useCase.execute(executionContext, input));
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of());
+        var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
+        assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
 
     @Test
     void shouldThrowWhenTcpProxy() {
-        String apiId = "api-3";
-        Api api = mock(Api.class);
-        when(api.getId()).thenReturn(apiId);
-        when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        var httpV4 = mock(io.gravitee.definition.model.v4.Api.class);
-        when(httpV4.isTcpProxy()).thenReturn(true);
-        when(api.getApiDefinitionHttpV4()).thenReturn(httpV4);
-        when(apiCrudService.get(apiId)).thenReturn(api);
-
-        var input = new SearchHistogramAnalyticsUseCase.Input(apiId, 0, 0, 0, List.of());
-
-        assertThrows(TcpProxyNotSupportedException.class, () -> useCase.execute(executionContext, input));
+        apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of());
+        var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
+        assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);
     }
 
     @Test
     void shouldThrowWhenApiNotInEnvironment() {
-        String apiId = "api-4";
-        Api api = mock(Api.class);
-        when(api.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId("definitely not" + ENV_ID).build()));
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of());
+        var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
+        assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
+    }
 
-        // Properly mock apiDefinitionHttpV4 and its isTcpProxy() method
-        io.gravitee.definition.model.v4.Api apiDefinitionHttpV4 = mock(io.gravitee.definition.model.v4.Api.class);
-        when(apiDefinitionHttpV4.isTcpProxy()).thenReturn(false);
-        when(api.getApiDefinitionHttpV4()).thenReturn(apiDefinitionHttpV4);
-
-        when(api.belongsToEnvironment(anyString())).thenReturn(false);
-        when(api.getEnvironmentId()).thenReturn("env-2");
-        when(api.getId()).thenReturn(apiId);
-
-        when(apiCrudService.get(apiId)).thenReturn(api);
-
-        var input = new SearchHistogramAnalyticsUseCase.Input(apiId, 0, 0, 0, List.of());
-
-        assertThrows(ApiNotFoundException.class, () -> useCase.execute(executionContext, input));
+    @Test
+    void shouldThrowWhenFromIsAfterTo() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
+        long from = 2000L;
+        long to = 1000L;
+        long interval = 100L;
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, List.of());
+        var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
+        assertThat(throwable).isInstanceOf(IllegalTimeRangeException.class);
     }
 }
