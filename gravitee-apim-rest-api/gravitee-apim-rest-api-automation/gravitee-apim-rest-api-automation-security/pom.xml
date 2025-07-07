@@ -27,6 +27,7 @@
     </parent>
 
     <artifactId>gravitee-apim-rest-api-automation-security</artifactId>
+    <name>Gravitee.io APIM - Management API - Automation - Security</name>
 
     <dependencies>
         <!-- Gravitee Management dependencies -->
