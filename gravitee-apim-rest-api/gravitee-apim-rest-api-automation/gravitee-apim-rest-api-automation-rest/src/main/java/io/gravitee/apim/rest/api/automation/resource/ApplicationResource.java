@@ -34,6 +34,7 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 
 /**
@@ -51,13 +52,13 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = { RolePermissionAction.CREATE }) })
-    public Response getApplicationByHRID() {
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = { RolePermissionAction.READ }) })
+    public Response getApplicationByHRID(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             ApplicationEntity applicationEntity = applicationService.findById(
                 executionContext,
-                IdBuilder.builder(executionContext, hrid).buildId()
+                legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
             );
             ApplicationSpec applicationSpec = ApplicationMapper.INSTANCE.applicationEntityToApplicationSpec(applicationEntity);
             return Response
@@ -77,11 +78,11 @@ public class ApplicationResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApplicationbyHrid() {
+    public Response deleteApplicationbyHrid(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
-            applicationService.archive(executionContext, IdBuilder.builder(executionContext, hrid).buildId());
+            applicationService.archive(executionContext, legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId());
         } catch (ApplicationNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
         }

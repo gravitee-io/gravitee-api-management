@@ -73,6 +73,30 @@ class ApplicationsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getHrid()).isEqualTo("application-hrid");
             });
         }
+
+        @Test
+        void should_return_state_from_legacy_id() {
+            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class)))
+                .thenAnswer(call -> {
+                    ImportApplicationCRDUseCase.Input input = call.getArgument(0, ImportApplicationCRDUseCase.Input.class);
+                    return new ImportApplicationCRDUseCase.Output(
+                        ApplicationCRDStatus
+                            .builder()
+                            .id(input.crd().getHrid())
+                            .organizationId(ORGANIZATION)
+                            .environmentId(ENVIRONMENT)
+                            .build()
+                    );
+                });
+
+            var state = expectEntity("application-with-hrid.json", false, true);
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(state.getHrid()).isEqualTo("application-hrid");
+                soft.assertThat(state.getId()).isEqualTo("application-hrid");
+                soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
+                soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
+            });
+        }
     }
 
     @Nested
@@ -118,13 +142,18 @@ class ApplicationsResourceTest extends AbstractResourceTest {
     }
 
     private ApplicationState expectEntity(String spec) {
-        return expectEntity(spec, false);
+        return expectEntity(spec, false, false);
     }
 
     private ApplicationState expectEntity(String spec, boolean dryRun) {
+        return expectEntity(spec, dryRun, false);
+    }
+
+    private ApplicationState expectEntity(String spec, boolean dryRun, boolean legacy) {
         try (
             var response = rootTarget()
                 .queryParam("dryRun", dryRun)
+                .queryParam("legacy", legacy)
                 .request()
                 .accept(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(readJSON(spec)))

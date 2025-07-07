@@ -25,6 +25,7 @@ import io.gravitee.apim.rest.api.automation.resource.EnvironmentsResource;
 import io.gravitee.apim.rest.api.automation.resource.OpenAPIResource;
 import io.gravitee.apim.rest.api.automation.resource.OrganizationResource;
 import io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupsResource;
+import io.gravitee.apim.rest.api.automation.resource.SubscriptionsResource;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import jakarta.inject.Inject;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -45,6 +46,7 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(EnvironmentResource.class);
         register(ApisResource.class);
         register(ApplicationsResource.class);
+        register(SubscriptionsResource.class);
         register(SharedPolicyGroupsResource.class);
 
         register(ValidationDomainMapper.class);

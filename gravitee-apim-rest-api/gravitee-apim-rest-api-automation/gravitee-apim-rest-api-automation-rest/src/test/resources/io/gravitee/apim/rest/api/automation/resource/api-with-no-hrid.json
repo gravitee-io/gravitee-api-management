@@ -1,80 +1,77 @@
 {
-    "name": "api-v4-with-apikey",
-    "id": "api-id",
-    "crossId": "api-cross-id",
-    "definitionContext": {
-        "origin": "KUBERNETES",
-        "syncFrom": "MANAGEMENT"
-    },
-    "description": "API v4 CRD spec with unknown categories",
-    "version": "1.0",
-    "type": "PROXY",
-    "categories": [],
-    "listeners": [
+  "name": "api-v4-with-apikey",
+  "id": "api-id",
+  "crossId": "api-cross-id",
+  "description": "API v4 CRD spec with unknown categories",
+  "version": "1.0",
+  "type": "PROXY",
+  "categories": [],
+  "listeners": [
+    {
+      "type": "HTTP",
+      "paths": [
         {
-            "type": "HTTP",
-            "paths": [
-                {
-                    "path": "/test-hrid"
-                }
-            ],
-            "entrypoints": [
-                {
-                    "type": "http-proxy",
-                    "qos": "AUTO"
-                }
-            ]
+          "path": "/test-hrid"
         }
-    ],
-    "endpointGroups": [
+      ],
+      "entrypoints": [
         {
-            "name": "Default HTTP proxy group",
-            "type": "http-proxy",
-            "endpoints": [
-                {
-                    "name": "Default HTTP proxy",
-                    "type": "http-proxy",
-                    "inheritConfiguration": false,
-                    "configuration": {
-                        "target": "https://api.gravitee.io/echo"
-                    },
-                    "secondary": false
-                }
-            ]
+          "type": "http-proxy",
+          "qos": "AUTO"
         }
-    ],
-    "flowExecution": {
-        "mode": "DEFAULT",
-        "matchRequired": false
-    },
-    "state": "STARTED",
-    "lifecycleState": "PUBLISHED",
-    "visibility": "PUBLIC",
-    "flows": [],
-    "plans": {
-        "API_KEY": {
-            "id": "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24",
-            "name": "API Key plan",
-            "description": "API key plan needs a key to authenticate",
-            "type": "API",
-            "status": "PUBLISHED",
-            "validation": "AUTO",
-            "mode": "STANDARD",
-            "security": {
-                "type": "API_KEY"
-            },
-            "flows": [
-                {
-                    "enabled": true,
-                    "selectors": [
-                        {
-                            "type": "HTTP",
-                            "path": "/",
-                            "pathOperator": "STARTS_WITH"
-                        }
-                    ]
-                }
-            ]
-        }
+      ]
     }
+  ],
+  "endpointGroups": [
+    {
+      "name": "Default HTTP proxy group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "Default HTTP proxy",
+          "type": "http-proxy",
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "https://api.gravitee.io/echo"
+          },
+          "secondary": false
+        }
+      ]
+    }
+  ],
+  "flowExecution": {
+    "mode": "DEFAULT",
+    "matchRequired": false
+  },
+  "state": "STARTED",
+  "lifecycleState": "PUBLISHED",
+  "visibility": "PUBLIC",
+  "flows": [],
+  "plans": [
+    {
+      "id": "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24",
+      "hrid": "API_KEY",
+      "name": "API Key plan",
+      "description": "API key plan needs a key to authenticate",
+      "type": "API",
+      "status": "PUBLISHED",
+      "validation": "AUTO",
+      "mode": "STANDARD",
+      "security": {
+        "type": "API_KEY"
+      },
+      "flows": [
+        {
+          "enabled": true,
+          "selectors": [
+            {
+              "type": "HTTP",
+              "path": "/",
+              "pathOperator": "STARTS_WITH"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

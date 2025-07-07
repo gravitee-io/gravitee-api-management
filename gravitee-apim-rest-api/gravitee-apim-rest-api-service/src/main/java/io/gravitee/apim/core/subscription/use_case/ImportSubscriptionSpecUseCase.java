@@ -19,7 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDSpecDomainService;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
-import java.time.ZonedDateTime;
+import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -32,12 +32,22 @@ public class ImportSubscriptionSpecUseCase {
 
     public record Input(AuditInfo auditInfo, SubscriptionCRDSpec spec) {}
 
-    public record Output(String id, String status, ZonedDateTime startingAt, ZonedDateTime endingAt) {}
+    public record Output(SubscriptionCRDStatus status) {}
 
     private final SubscriptionCRDSpecDomainService domainService;
 
     public Output execute(Input input) {
         var subscription = domainService.createOrUpdate(input.auditInfo, input.spec);
-        return new Output(subscription.getId(), subscription.getStatus().name(), subscription.getStartingAt(), subscription.getEndingAt());
+        return new Output(
+            new SubscriptionCRDStatus(
+                subscription.getId(),
+                subscription.getStatus().name(),
+                subscription.getStartingAt(),
+                subscription.getEndingAt(),
+                input.auditInfo.organizationId(),
+                input.auditInfo.environmentId(),
+                null
+            )
+        );
     }
 }

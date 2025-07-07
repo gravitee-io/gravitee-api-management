@@ -16,7 +16,6 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -40,6 +39,7 @@ import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,13 +62,13 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
-    public Response getApiByHRID() {
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    public Response getApiByHRID(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         var input = new ExportApiCRDUseCase.Input(
-            IdBuilder.builder(executionContext, hrid).buildId(),
+            legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId(),
             buildAuditInfo(executionContext, userDetails)
         );
 
@@ -94,11 +94,15 @@ public class ApiResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApi() {
+    public Response deleteApi(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
-            apiServiceV4.delete(GraviteeContext.getExecutionContext(), IdBuilder.builder(executionContext, hrid).buildId(), true);
+            apiServiceV4.delete(
+                GraviteeContext.getExecutionContext(),
+                legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId(),
+                true
+            );
         } catch (ApiNotFoundException e) {
             log.warn("API not found for HRID: {}, operation: deleteApi", hrid, e);
             throw new HRIDNotFoundException(hrid);

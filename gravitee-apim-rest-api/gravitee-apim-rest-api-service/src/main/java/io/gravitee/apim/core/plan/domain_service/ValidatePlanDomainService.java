@@ -65,9 +65,11 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
         input.plans.forEach((k, planCRD) -> {
             try {
                 Plan plan = PlanModelFactory.fromCRDSpec(planCRD, input.apiCRDSpec);
-                if (planCRD.getId() == null && input.apiCRDSpec.getHrid() != null) {
-                    planCRD.setId(IdBuilder.builder(input.auditInfo, input.apiCRDSpec.getHrid()).withExtraId(k).buildId());
+                if (planCRD.getId() == null) {
+                    planCRD.setId(IdBuilder.builder(input.auditInfo, input.apiCRDSpec.getId()).withExtraId(k).buildId());
                 }
+
+                plan.setHrid(k);
 
                 planValidator.validatePlanSecurity(
                     plan,

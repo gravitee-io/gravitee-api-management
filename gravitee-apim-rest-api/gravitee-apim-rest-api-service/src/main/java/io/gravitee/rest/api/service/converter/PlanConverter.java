@@ -59,6 +59,7 @@ public class PlanConverter {
 
         entity.setId(plan.getId());
         entity.setCrossId(plan.getCrossId());
+        entity.setHrid(plan.getHrid());
         entity.setName(plan.getName());
         entity.setDescription(plan.getDescription());
         entity.setApi(plan.getApi());
@@ -138,6 +139,7 @@ public class PlanConverter {
         NewPlanEntity newPlanEntity = new NewPlanEntity();
         newPlanEntity.setId(planEntity.getId());
         newPlanEntity.setCrossId(resetCrossId ? null : planEntity.getCrossId());
+        newPlanEntity.setHrid(planEntity.getHrid());
         newPlanEntity.setApi(planEntity.getApi());
         newPlanEntity.setName(planEntity.getName());
         newPlanEntity.setDescription(planEntity.getDescription());
@@ -179,6 +181,7 @@ public class PlanConverter {
         Plan plan = new Plan();
         plan.setId(newPlan.getId());
         plan.setCrossId(newPlan.getCrossId());
+        plan.setHrid(newPlan.getHrid());
         plan.setApi(newPlan.getApi());
         plan.setName(newPlan.getName());
         plan.setDescription(newPlan.getDescription());

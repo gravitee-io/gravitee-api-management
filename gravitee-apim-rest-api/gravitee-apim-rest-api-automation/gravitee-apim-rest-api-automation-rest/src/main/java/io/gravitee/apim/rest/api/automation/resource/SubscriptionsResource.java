@@ -15,20 +15,20 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
-import io.gravitee.apim.core.application.model.crd.ApplicationCRDSpec;
-import io.gravitee.apim.core.application.model.crd.ApplicationCRDStatus;
-import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
-import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.rest.api.automation.mapper.ApplicationMapper;
-import io.gravitee.apim.rest.api.automation.model.ApplicationSpec;
+import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
+import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
+import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
+import io.gravitee.apim.rest.api.automation.mapper.SubscriptionMapper;
+import io.gravitee.apim.rest.api.automation.model.SubscriptionSpec;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -45,31 +45,24 @@ import jakarta.ws.rs.core.Response;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApplicationsResource extends AbstractResource {
+public class SubscriptionsResource extends AbstractResource {
 
     @Inject
-    private ImportApplicationCRDUseCase importApplicationCRDUseCase;
-
-    @Inject
-    private ValidateApplicationCRDUseCase validateApplicationCRDUseCase;
+    private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
 
     @Context
     private ResourceContext resourceContext;
 
     @Path("/{hrid}")
-    public ApplicationResource getApplicationResource() {
-        return resourceContext.getResource(ApplicationResource.class);
+    public SubscriptionResource getSubscriptionResource() {
+        return resourceContext.getResource(SubscriptionResource.class);
     }
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = { RolePermissionAction.CREATE }) })
-    public Response createOrUpdate(
-        @Valid @NotNull ApplicationSpec spec,
-        @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("legacy") boolean legacy
-    ) {
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.CREATE }) })
+    public Response createOrUpdate(@Valid @NotNull SubscriptionSpec spec, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -87,26 +80,18 @@ public class ApplicationsResource extends AbstractResource {
             )
             .build();
 
-        ApplicationCRDSpec applicationCRDSpec = io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper.INSTANCE.map(
-            ApplicationMapper.INSTANCE.applicationSpecToApplicationCRDSpec(spec)
+        SubscriptionCRDSpec subscriptionCRDSpec = new SubscriptionCRDSpec(
+            legacy ? spec.getHrid() : IdBuilder.builder(auditInfo, spec.getHrid()).buildId(),
+            legacy ? spec.getApplicationHrid() : IdBuilder.builder(auditInfo, spec.getApplicationHrid()).buildId(),
+            legacy ? spec.getApiHrid() : IdBuilder.builder(auditInfo, spec.getApiHrid()).buildId(),
+            legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, spec.getPlanHrid()).buildId(),
+            spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null
         );
 
-        // Just for backward compatibility with old code
-        if (legacy) {
-            applicationCRDSpec.setId(spec.getHrid());
-        }
-
-        if (dryRun) {
-            ApplicationCRDStatus status = validateApplicationCRDUseCase
-                .execute(new ImportApplicationCRDUseCase.Input(auditInfo, applicationCRDSpec))
-                .status();
-            return Response.ok(ApplicationMapper.INSTANCE.applicationSpecAndStatusToApplicationState(spec, status)).build();
-        }
-
-        ApplicationCRDStatus status = importApplicationCRDUseCase
-            .execute(new ImportApplicationCRDUseCase.Input(auditInfo, applicationCRDSpec))
+        SubscriptionCRDStatus status = importSubscriptionSpecUseCase
+            .execute(new ImportSubscriptionSpecUseCase.Input(auditInfo, subscriptionCRDSpec))
             .status();
 
-        return Response.ok(ApplicationMapper.INSTANCE.applicationSpecAndStatusToApplicationState(spec, status)).build();
+        return Response.ok(SubscriptionMapper.INSTANCE.subscriptionSpecAndStatusToSubscriptionState(spec, status)).build();
     }
 }
