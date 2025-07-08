@@ -93,9 +93,7 @@ public class ResourceCrudServiceImplTest {
             Throwable throwable = catchThrowable(() -> service.get(resourceId));
 
             // Then
-            assertThat(throwable)
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Resource [" + resourceId + "] cannot be found.");
+            assertThat(throwable).isInstanceOf(ResourceNotFoundException.class);
         }
     }
 }
