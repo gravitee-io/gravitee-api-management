@@ -7,6 +7,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 4.9.0
 
 - Allow customization on federation ingress. BREAKING CHANGE: now the federation ingress will not inherit anymore some management-api ingress definition (annotation, hosts, and tls)
+- add capabilities to push application configuration files directly
 
 ### 4.8.0
 
