@@ -23,15 +23,14 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class ApiCrudServiceImpl implements ApiCrudService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ApiCrudServiceImpl.class);
     private final ApiRepository apiRepository;
 
     public ApiCrudServiceImpl(@Lazy ApiRepository apiRepository) {
@@ -46,7 +45,7 @@ public class ApiCrudServiceImpl implements ApiCrudService {
                 return ApiAdapter.INSTANCE.toCoreModel(foundApi.get());
             }
         } catch (TechnicalException e) {
-            logger.error("An error occurred while finding Api by id {}", id, e);
+            log.error("An error occurred while finding Api by id {}", id, e);
         }
         throw new ApiNotFoundException(id);
     }
@@ -54,7 +53,7 @@ public class ApiCrudServiceImpl implements ApiCrudService {
     @Override
     public Optional<Api> findById(String id) {
         try {
-            logger.debug("Find an Api by id : {}", id);
+            log.debug("Find an Api by id : {}", id);
             return apiRepository.findById(id).map(ApiAdapter.INSTANCE::toCoreModel);
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException(String.format("An error occurs while trying to find an api by id: %s", id), ex);
@@ -66,7 +65,7 @@ public class ApiCrudServiceImpl implements ApiCrudService {
         try {
             return apiRepository.existById(id);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while finding Api by id {}", id, e);
+            log.error("An error occurred while finding Api by id {}", id, e);
         }
         return false;
     }

@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  */
 @Mapper
 public interface PlanAdapter {
-    Logger LOGGER = LoggerFactory.getLogger(PlanAdapter.class);
+    Logger log = LoggerFactory.getLogger(PlanAdapter.class);
     PlanAdapter INSTANCE = Mappers.getMapper(PlanAdapter.class);
 
     @Mapping(source = "api", target = "apiId")
@@ -137,13 +137,12 @@ public interface PlanAdapter {
         if (source.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
             return null;
         }
-
         try {
             return GraviteeJacksonMapper
                 .getInstance()
                 .readValue(source.getDefinition(), io.gravitee.definition.model.federation.FederatedPlan.class);
         } catch (IOException ioe) {
-            LOGGER.error("Unexpected error while deserializing Federated Plan definition", ioe);
+            log.error("An error occurred while deserializing Federated Plan definition for plan id {}", source.getId(), ioe);
             return null;
         }
     }
@@ -208,7 +207,7 @@ public interface PlanAdapter {
             try {
                 return GraviteeJacksonMapper.getInstance().readValue(plan.getDefinition(), new TypeReference<>() {});
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while generating policy definition", ioe);
+                log.error("An error occurred while generating policy definition for plan id {}", plan.getId(), ioe);
                 return null;
             }
         } else {
@@ -228,7 +227,7 @@ public interface PlanAdapter {
         try {
             return GraviteeJacksonMapper.getInstance().writeValueAsString(source);
         } catch (IOException ioe) {
-            LOGGER.error("Unexpected error while serializing federated plan definition", ioe);
+            log.error("An error occurred while serializing federated plan definition", ioe);
             return null;
         }
     }
@@ -238,7 +237,7 @@ public interface PlanAdapter {
             try {
                 return GraviteeJacksonMapper.getInstance().writeValueAsString(plan.getPaths());
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while serializing v2 plan paths", ioe);
+                log.error("An error occurred while serializing v2 plan paths", ioe);
                 return null;
             }
         } else {

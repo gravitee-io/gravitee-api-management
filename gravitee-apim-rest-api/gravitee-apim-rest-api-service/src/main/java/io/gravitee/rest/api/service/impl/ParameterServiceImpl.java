@@ -45,8 +45,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
@@ -56,13 +55,12 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class ParameterServiceImpl extends TransactionalService implements ParameterService {
 
     public static final String SEPARATOR = ";";
     public static final String KV_SEPARATOR = "@";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ParameterServiceImpl.class);
 
     @Lazy
     @Inject
@@ -276,6 +274,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
+        log.debug("Finding parameters for key: {}, referenceId: {}, referenceType: {}", key, referenceId, referenceType);
         String refIdToUse = getEffectiveReferenceId(executionContext, referenceId, referenceType);
         try {
             Optional<Parameter> optionalParameter = this.getSystemParameter(key);
@@ -304,9 +303,10 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
             return splitValue(this.getDefaultParameterValue(key), mapper, filter);
         } catch (final TechnicalException ex) {
-            final String message = "An error occurs while trying to find parameter values with key: " + key;
-            LOGGER.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find parameter values with key: %s", key),
+                ex
+            );
         }
     }
 
@@ -319,6 +319,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
+        log.debug("Finding parameters for keys: {}, referenceId: {}, referenceType: {}", keys, referenceId, referenceType);
         String refIdToUse = getEffectiveReferenceId(executionContext, referenceId, referenceType);
         try {
             List<Key> keysToFind = new ArrayList<>(keys);
@@ -334,6 +335,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             }
 
             if (!keysToFind.isEmpty()) {
+                log.debug("Finding parameters for keys: {} and referenceType: {}", keysToFind, referenceType);
                 switch (referenceType) {
                     case ENVIRONMENT:
                         this.getEnvParameters(keysToFind, refIdToUse)
@@ -372,9 +374,10 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
             return result;
         } catch (final TechnicalException ex) {
-            final String message = "An error occurs while trying to find parameter values with keys: " + keys;
-            LOGGER.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find parameter values with keys: %s", keys),
+                ex
+            );
         }
     }
 
@@ -383,6 +386,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         String referenceId,
         io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
+        log.debug("Getting effective reference id for referenceId: {}, referenceType: {}", referenceId, referenceType);
         String refIdToUse = referenceId;
         if (refIdToUse == null) {
             if (referenceType == io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION) {
@@ -395,6 +399,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private <T> List<T> splitValue(final String value, final Function<String, T> mapper, final Predicate<String> filter) {
+        log.debug("Splitting value: {}", value);
         if (value == null) {
             return emptyList();
         }
@@ -413,6 +418,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
+        log.debug("Saving parameter for key: {}, value: {}, referenceId: {}, referenceType: {}", key, value, referenceId, referenceType);
         String refIdToUse = getEffectiveReferenceId(executionContext, referenceId, referenceType);
         try {
             Optional<Parameter> optionalParameter = parameterRepository.findById(
@@ -438,6 +444,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                     parameterRepository.delete(key.key(), refIdToUse, ParameterReferenceType.valueOf(referenceType.name()));
                     return null;
                 } else if (!value.equals(optionalParameter.get().getValue())) {
+                    log.debug("Updating parameter for key/value: {}", parameter);
                     final Parameter updatedParameter = parameterRepository.update(parameter);
                     auditService.createAuditLog(
                         executionContext,
@@ -456,6 +463,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 if (value == null) {
                     return null;
                 }
+                log.debug("Creating parameter for key/value: {}", parameter);
                 final Parameter savedParameter = parameterRepository.create(parameter);
                 auditService.createAuditLog(
                     executionContext,
@@ -469,9 +477,10 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 return savedParameter;
             }
         } catch (final TechnicalException ex) {
-            final String message = "An error occurs while trying to create parameter for key/value: " + key + '/' + value;
-            LOGGER.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to create parameter for key/value: %s/%s", key, value),
+                ex
+            );
         }
     }
 
@@ -483,6 +492,13 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
+        log.debug(
+            "Saving parameter for key: {}, List of values: {}, referenceId: {}, referenceType: {}",
+            key,
+            values,
+            referenceId,
+            referenceType
+        );
         return save(
             executionContext,
             key,
@@ -500,6 +516,13 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
+        log.debug(
+            "Saving parameter for key: {}, Map of values: {}, referenceId: {}, referenceType: {}",
+            key,
+            values,
+            referenceId,
+            referenceType
+        );
         return save(
             executionContext,
             key,
@@ -512,6 +535,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private String toSemicolonSeparatedString(Key key, String value) {
+        log.debug("Converting key: {} to semicolon separated string: {}", key, value);
         if (key.type() != null && List.class.isAssignableFrom(key.type())) {
             value = value.replace(",", SEPARATOR);
         }
@@ -519,6 +543,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private Optional<Parameter> getEnvParameter(Key key, String environmentId) throws TechnicalException {
+        log.debug("Getting environment parameter for key: {}", key);
         if (key.scopes().contains(KeyScope.ENVIRONMENT)) {
             return parameterRepository.findById(key.key(), environmentId, ParameterReferenceType.ENVIRONMENT);
         }
@@ -526,6 +551,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private List<Parameter> getEnvParameters(List<Key> keys, String environmentId) throws TechnicalException {
+        log.debug("Getting environment parameters for keys: {}", keys);
         List<Key> keysToFind = keys.stream().filter(k -> k.scopes().contains(KeyScope.ENVIRONMENT)).collect(toList());
         if (!keysToFind.isEmpty()) {
             return parameterRepository
@@ -538,6 +564,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private Optional<Parameter> getOrgParameter(Key key, String organizationId) throws TechnicalException {
+        log.debug("Getting organization parameter for key: {}", key);
         if (key.scopes().contains(KeyScope.ORGANIZATION)) {
             return parameterRepository.findById(key.key(), organizationId, ParameterReferenceType.ORGANIZATION);
         }
@@ -545,6 +572,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private List<Parameter> getOrgParameters(List<Key> keys, String organizationId) throws TechnicalException {
+        log.debug("Getting organization parameters for keys: {}", keys);
         List<Key> keysToFind = keys.stream().filter(k -> k.scopes().contains(KeyScope.ORGANIZATION)).collect(toList());
         if (!keysToFind.isEmpty()) {
             return parameterRepository
@@ -557,6 +585,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private Optional<Parameter> getSystemParameter(Key key) {
+        log.debug("Getting system parameter for key: {}", key);
         if (environment.containsProperty(key.key()) && key.isOverridable()) {
             final Parameter parameter = new Parameter();
             parameter.setKey(key.key());
@@ -567,6 +596,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private String getDefaultParameterValue(Key key) {
+        log.debug("Getting default parameter value for key: {}", key);
         return key.defaultValue();
     }
 }

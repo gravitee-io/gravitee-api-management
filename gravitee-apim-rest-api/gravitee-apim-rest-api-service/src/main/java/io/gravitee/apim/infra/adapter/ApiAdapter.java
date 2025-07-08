@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 @Mapper(uses = { PlanAdapter.class })
 @DecoratedWith(ApiAdapterDecorator.class)
 public interface ApiAdapter {
-    Logger LOGGER = LoggerFactory.getLogger(ApiAdapter.class);
+    Logger log = LoggerFactory.getLogger(ApiAdapter.class);
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
 
     @Mapping(target = "apiDefinitionHttpV4", expression = "java(deserializeApiDefinitionV4(source))")
@@ -164,14 +164,16 @@ public interface ApiAdapter {
 
     default <T> T deserialize(io.gravitee.repository.management.model.Api api, Class<T> clazz) {
         if (api.getDefinition() == null) {
-            // This can happen when filtering the definition using ApiFieldFilter
+            log.debug(
+                "The API definition is null for api id {}.This can happen when filtering the definition using ApiFieldFilter",
+                api.getId()
+            );
             return null;
         }
-
         try {
             return GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), clazz);
         } catch (IOException ioe) {
-            LOGGER.error("Unexpected error while deserializing V4 API definition", ioe);
+            log.error("An error occurred while deserializing V4 API definition for api id {}", api.getId(), ioe);
             return null;
         }
     }

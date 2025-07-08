@@ -789,9 +789,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updatedLogging
             );
         } catch (Exception ex) {
-            String errorMsg = String.format("An error occurs while auditing API logging configuration for API:  %s", apiId);
-            log.error(errorMsg, apiId, ex);
-            throw new TechnicalManagementException(errorMsg, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while auditing API logging configuration for API:  %s", apiId),
+                ex
+            );
         }
     }
 }
