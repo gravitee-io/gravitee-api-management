@@ -160,10 +160,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -179,10 +178,9 @@ import org.springframework.stereotype.Component;
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class UserServiceImpl extends AbstractService implements UserService, InitializingBean {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     /**
      * A default source used for user registration.
@@ -193,12 +191,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     // Dirty hack: only used to force class loading
     static {
         try {
-            LOGGER.trace(
-                "Loading class to initialize properly JsonPath Cache provider: {}",
-                Class.forName(JsonPathFunction.class.getName())
-            );
+            log.trace("Loading class to initialize properly JsonPath Cache provider: {}", Class.forName(JsonPathFunction.class.getName()));
         } catch (ClassNotFoundException ignored) {
-            LOGGER.trace("Loading class to initialize properly JsonPath Cache provider : fail");
+            log.trace("Loading class to initialize properly JsonPath Cache provider : fail");
         }
     }
 
@@ -307,7 +302,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     @Override
     public UserEntity connect(ExecutionContext executionContext, String userId) {
         try {
-            LOGGER.debug("Connection of {}", userId);
+            log.debug("Connection of {}", userId);
             Optional<User> checkUser = userRepository.findById(userId);
             if (!checkUser.isPresent()) {
                 throw new UserNotFoundException(userId);
@@ -325,7 +320,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 );
                 user.setFirstConnectionAt(new Date());
                 if (defaultApplicationForFirstConnection) {
-                    LOGGER.debug("Create a default application for {}", userId);
+                    log.debug("Create a default application for {}", userId);
                     NewApplicationEntity defaultApp = new NewApplicationEntity();
                     defaultApp.setName("Default application");
                     defaultApp.setDescription("My default application");
@@ -348,7 +343,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                             );
                     } catch (IllegalStateException ex) {
                         //do not fail to create a user even if we are not able to create its default app
-                        LOGGER.warn("Not able to create default app for user {}", userId);
+                        log.warn("Not able to create default app for user {}", userId);
                     }
                 }
             }
@@ -376,8 +371,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             searchEngineService.index(executionContext, userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to connect {}", userId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to connect " + userId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to connect %s", userId), ex);
         }
     }
 
@@ -389,7 +383,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 id,
                 k -> {
                     try {
-                        LOGGER.debug("Find user by ID: {}", k);
+                        log.debug("Find user by ID: {}", k);
 
                         Optional<User> optionalUser = userRepository
                             .findById(k)
@@ -408,8 +402,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         //should never happen
                         throw new UserNotFoundException(k);
                     } catch (TechnicalException ex) {
-                        LOGGER.error("An error occurs while trying to find user using its ID {}", k, ex);
-                        throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + k, ex);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to find user using its ID %s", k),
+                            ex
+                        );
                     }
                 }
             );
@@ -418,18 +414,26 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     @Override
     public List<UserEntity> findByEmail(ExecutionContext executionContext, String email) {
         try {
+<<<<<<< HEAD
             LOGGER.debug("Find user by Email: {}", email);
             List<User> users = userRepository.findByEmail(email, executionContext.getOrganizationId());
             return users.stream().map(user -> convert(user, false)).toList();
+=======
+            log.debug("Find user by Email: {}", email);
+            Optional<User> optionalUser = userRepository.findByEmail(email, executionContext.getOrganizationId());
+            return optionalUser.map(user -> convert(optionalUser.get(), false));
+>>>>>>> b692fc8b67 (chore(logs): Added logs for debug, removed multiple logs for the same Exception and used Slf4j logger (if its not an interface))
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find user using its email", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find user using its email", ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find user using its email %s", email),
+                ex
+            );
         }
     }
 
     @Override
     public UserEntity findByIdWithRoles(ExecutionContext executionContext, String userId) {
-        LOGGER.debug("Find user by ID: {}", userId);
+        log.debug("Find user by ID: {}", userId);
         try {
             return userRepository
                 .findById(userId)
@@ -437,23 +441,24 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .map(user -> convertWithFlags(executionContext, user))
                 .orElseThrow(() -> new UserNotFoundException(userId)); // should never happen
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find user using its ID {}", userId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + userId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to find user using its ID %s", userId), ex);
         }
     }
 
     @Override
     public UserEntity findBySource(String organizationId, String source, String sourceId, boolean loadRoles) {
         try {
-            LOGGER.debug("Find user by source[{}] user[{}]", source, sourceId);
+            log.debug("Find user by source[{}] user[{}]", source, sourceId);
 
             return userRepository
                 .findBySource(source, sourceId, organizationId)
                 .map(user -> convert(user, loadRoles, emptyList(), false))
                 .orElseThrow(() -> new UserNotFoundException(sourceId));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find user using source[{}], user[{}]", source, sourceId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find user using source " + source + ':' + sourceId, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find user using source %s:%s", source, sourceId),
+                ex
+            );
         }
     }
 
@@ -465,7 +470,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     @Override
     public Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids, boolean withUserMetadata) {
         try {
-            LOGGER.debug("Find users by ID: {}", ids);
+            log.debug("Find users by ID: {}", ids);
 
             Set<User> users = userRepository.findByIds(ids);
 
@@ -484,8 +489,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
         } catch (TechnicalException ex) {
             Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);
-            LOGGER.error("An error occurs while trying to find users using their ID {}", idsAsString, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find users using their ID " + idsAsString, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find users using their ID %s", idsAsString),
+                ex
+            );
         }
     }
 
@@ -568,8 +575,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 user.setOrganizationId(executionContext.getOrganizationId());
             } else {
                 final String username = subject.toString();
+<<<<<<< HEAD
                 LOGGER.debug("Create an internal user {}", username);
                 user = userRepository.findById(username).orElseThrow(() -> new UserNotFoundException(username));
+=======
+                log.debug("Create an internal user {}", username);
+                Optional<User> checkUser = userRepository.findById(username);
+                user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
+>>>>>>> b692fc8b67 (chore(logs): Added logs for debug, removed multiple logs for the same Exception and used Slf4j logger (if its not an interface))
                 if (StringUtils.isNotBlank(user.getPassword())) {
                     throw new UserAlreadyFinalizedException(executionContext.getOrganizationId());
                 }
@@ -623,8 +636,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         } catch (AbstractManagementException ex) {
             throw ex;
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while trying to create an internal user with the token {}", registerUserEntity.getToken(), ex);
-            throw new TechnicalManagementException(ex.getMessage(), ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to create an internal user with the token %s", registerUserEntity.getToken()),
+                ex
+            );
         }
     }
 
@@ -644,7 +659,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 throw new UserNotFoundException("Subject missing from JWT token");
             } else {
                 final String username = subject.toString();
-                LOGGER.debug("Find user {} to update password", username);
+                log.debug("Find user {} to update password", username);
                 user =
                     userRepository
                         .findById(username)
@@ -677,12 +692,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         } catch (AbstractManagementException ex) {
             throw ex;
         } catch (Exception ex) {
-            LOGGER.error(
-                "An error occurs while trying to change password of an internal user with the token {}",
-                registerUserEntity.getToken(),
+            throw new TechnicalManagementException(
+                String.format(
+                    "An error occurs while trying to change password of an internal user with the token %s",
+                    registerUserEntity.getToken()
+                ),
                 ex
             );
-            throw new TechnicalManagementException(ex.getMessage(), ex);
         }
     }
 
@@ -726,7 +742,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
                     return imageEntity;
                 } catch (Exception ex) {
-                    LOGGER.warn("Unable to get user picture for id[{}]", id);
+                    log.warn("Unable to get user picture for id[{}]", id);
                 }
             }
         }
@@ -761,7 +777,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // First we check that organization exist
             this.organizationService.findById(organizationId);
 
-            LOGGER.debug("Create an external user {}", newExternalUserEntity);
+            log.debug("Create an external user {}", newExternalUserEntity);
             Optional<User> checkUser = userRepository.findBySource(
                 newExternalUserEntity.getSource(),
                 newExternalUserEntity.getSourceId(),
@@ -816,8 +832,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             searchEngineService.index(executionContext, userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create an external user {}", newExternalUserEntity, ex);
-            throw new TechnicalManagementException("An error occurs while trying to create an external user" + newExternalUserEntity, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to create an external user: %s", newExternalUserEntity),
+                ex
+            );
         }
     }
 
@@ -970,19 +988,19 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 );
             }
         } catch (final TechnicalException e) {
-            LOGGER.error(
-                "An error occurs while trying to create user {} / {}",
-                newExternalUserEntity.getSource(),
-                newExternalUserEntity.getSourceId(),
+            throw new TechnicalManagementException(
+                String.format(
+                    "An error occurs while trying to create user %s / %s",
+                    newExternalUserEntity.getSource(),
+                    newExternalUserEntity.getSourceId()
+                ),
                 e
             );
-            throw new TechnicalManagementException(e.getMessage(), e);
         }
 
         final UserEntity userEntity = create(executionContext, newExternalUserEntity, true, autoRegistrationEnabled);
 
         if (userEntity == null) {
-            LOGGER.error("An error occurs while trying to create user");
             throw new TechnicalManagementException("An error occurs while trying to create user");
         }
 
@@ -1070,8 +1088,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
             throw new UserNotFoundException(userId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to validate user registration {}", userId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to create an external user" + userId, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to create an external user: %s", userId),
+                ex
+            );
         }
     }
 
@@ -1143,10 +1163,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         } else {
             // This value is used as a fallback when no Management URL has been configured by the platform admin.
             registrationUrl = DEFAULT_CONSOLE_URL + managementUri + token;
-            LOGGER.warn(
-                "An email will be sent with a default '" +
-                managementUri.substring(4, managementUri.indexOf('/', 4)) +
-                "' link. You may want to change this default configuration of the 'Management URL' in the Settings."
+            log.warn(
+                String.format(
+                    "An email will be sent with a default '%s' link. You may want to change this default configuration of the 'Management URL' in the Settings.",
+                    managementUri.substring(4, managementUri.indexOf('/', 4))
+                )
             );
         }
 
@@ -1162,7 +1183,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     @Override
     public UserEntity update(ExecutionContext executionContext, String id, UpdateUserEntity updateUserEntity, String newsletterEmail) {
         try {
-            LOGGER.debug("Updating {}", updateUserEntity);
+            log.debug("Updating {}", updateUserEntity);
             Optional<User> checkUser = userRepository.findById(id);
             if (!checkUser.isPresent()) {
                 throw new UserNotFoundException(id);
@@ -1258,14 +1279,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             return convert(updatedUser, true, updatedMetadata, true);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update {}", updateUserEntity, ex);
-            throw new TechnicalManagementException("An error occurs while trying update " + updateUserEntity, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to update %s", updateUserEntity), ex);
         }
     }
 
     @Override
     public Page<UserEntity> search(ExecutionContext executionContext, String query, Pageable pageable) {
-        LOGGER.debug("search users");
+        log.debug("search users");
 
         Query<UserEntity> userQuery;
         if (query == null || query.isEmpty()) {
@@ -1329,7 +1349,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     @Override
     public Page<UserEntity> search(ExecutionContext executionContext, UserCriteria criteria, Pageable pageable) {
         try {
-            LOGGER.debug("search users");
+            log.debug("search users");
             UserCriteria.Builder builder = new UserCriteria.Builder()
                 .organizationId(executionContext.getOrganizationId())
                 .statuses(criteria.getStatuses());
@@ -1350,7 +1370,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             return new Page<>(entities, users.getPageNumber() + 1, (int) users.getPageElements(), users.getTotalElements());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to search users", ex);
             throw new TechnicalManagementException("An error occurs while trying to search users", ex);
         }
     }
@@ -1425,8 +1444,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             final UserEntity userEntity = convert(user, false);
             searchEngineService.delete(executionContext, userEntity);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete user", ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete user", ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to delete user %s", id), ex);
         }
     }
 
@@ -1458,7 +1476,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     private void resetPassword(ExecutionContext executionContext, final String id, final String resetPageUrl) {
         try {
-            LOGGER.debug("Resetting password of user id {}", id);
+            log.debug("Resetting password of user id {}", id);
 
             Optional<User> optionalUser = userRepository
                 .findById(id)
@@ -1490,7 +1508,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 MetadataPage<AuditEntity> events = auditService.search(executionContext, query);
                 if (events != null) {
                     if (events.getContent().size() == 100) {
-                        LOGGER.warn("More than 100 reset password received in less than 1 hour", user.getId());
+                        log.warn("More than 100 reset password received in less than 1 hour for user {}", user.getId());
                     }
 
                     Optional<AuditEntity> optReset = events
@@ -1499,7 +1517,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         .filter(evt -> user.getId().equals(evt.getProperties().get(USER.name())))
                         .findFirst();
                     if (optReset.isPresent()) {
-                        LOGGER.warn("Multiple reset password received for user '{}' in less than 1 hour", user.getId());
+                        log.warn("Multiple reset password received for user '{}' in less than 1 hour", user.getId());
                         throw new PasswordAlreadyResetException();
                     }
                 }
@@ -1533,9 +1551,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     .build()
             );
         } catch (TechnicalException ex) {
-            final String message = "An error occurs while trying to reset password for user " + id;
-            LOGGER.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to reset password for user %s", id), ex);
         }
     }
 
@@ -1741,7 +1757,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         map.put(field, userInfoPath.read(mapping, String.class));
                     }
                 } catch (Exception e) {
-                    LOGGER.warn("Using mapping: \"{}\" (on field:\"{}\"), no fields are located in {}", mapping, field, userInfo);
+                    log.warn("Using mapping: \"{}\" (on field:\"{}\"), no fields are located in {}", mapping, field, userInfo);
                 }
             }
         }
@@ -1826,7 +1842,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
                 boolean match = evalCondition(username, mapping.getCondition(), templateEngine);
 
-                trace(username, match, mapping.getCondition());
+                log.trace(username, match, mapping.getCondition());
 
                 return match;
             })
@@ -1848,7 +1864,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             return templateEngine.eval(condition, boolean.class).blockingGet();
         } catch (Exception e) {
-            LOGGER.warn("Failed to evaluate condition for user: {}. Condition: {}. Error: {}", userData, condition, e.getMessage(), e);
+            log.warn("Failed to evaluate condition for user: {}. Condition: {}. Error: {}", userData, condition, e.getMessage(), e);
             return false;
         }
     }
@@ -1872,7 +1888,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             boolean match = evalCondition(username, mapping.getCondition(), templateEngine);
 
-            trace(username, match, mapping.getCondition());
+            log.trace(username, match, mapping.getCondition());
 
             // Get roles
             if (match) {
@@ -1930,16 +1946,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         }
     }
 
-    private void trace(String userId, boolean match, String condition) {
-        if (LOGGER.isDebugEnabled()) {
-            if (match) {
-                LOGGER.debug("the expression {} match {} on user's info ", condition, userId);
-            } else {
-                LOGGER.debug("the expression {} didn't match {} on user's info ", condition, userId);
-            }
-        }
-    }
-
     /**
      * Calculate the list of groups to associate to a user according to its OIDC profile (ie. UserInfo)
      *
@@ -1967,7 +1973,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             boolean match = evalCondition(userInfo, mapping.getCondition(), templateEngine);
 
-            trace(userId, match, mapping.getCondition());
+            log.trace("the expression {} {} on user's info id= {}",mapping.getCondition(), match ? "matched":"didn't match", userId);
 
             // Get groups
             if (match) {
@@ -1975,7 +1981,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     try {
                         groups.add(groupService.findById(executionContext, groupName));
                     } catch (GroupNotFoundException gnfe) {
-                        LOGGER.warn("Unable to map user groups, missing group in repository: {}", groupName);
+                        log.warn("Unable to map user groups, missing group in repository: {}", groupName);
                     }
                 }
             }
@@ -2105,9 +2111,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     )
                 );
             } catch (TechnicalException e) {
-                final String msg = "An error occurs while finding memberships for user " + userId;
-                LOGGER.error(msg, e);
-                throw new TechnicalManagementException(msg, e);
+                throw new TechnicalManagementException(String.format("An error occurs while finding memberships for user %s", userId), e);
             }
         }
 

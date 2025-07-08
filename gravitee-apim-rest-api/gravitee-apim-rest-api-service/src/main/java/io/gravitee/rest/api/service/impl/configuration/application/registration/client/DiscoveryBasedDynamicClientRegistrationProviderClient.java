@@ -19,6 +19,7 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.InitialAccessTokenProvider;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
@@ -28,6 +29,7 @@ import org.apache.http.util.EntityUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class DiscoveryBasedDynamicClientRegistrationProviderClient extends DynamicClientRegistrationProviderClient {
 
     private final String discoveryEndpoint;
@@ -61,7 +63,7 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
                             throw new DynamicClientRegistrationException("OIDC Discovery response is not well-formed");
                         }
                     } else {
-                        logger.error(
+                        log.error(
                             "Unexpected response status from OIDC Discovery endpoint: status[{}] message[{}]",
                             status,
                             EntityUtils.toString(response.getEntity())
@@ -76,7 +78,7 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
             metadata.put("registration_endpoint", discovery.getRegistrationEndpoint());
             metadata.put("token_endpoint", discovery.getTokenEndpoint());
         } catch (Exception ex) {
-            logger.error("Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(), ex);
+            log.error("Unexpected error while getting OIDC metadata from Discovery endpoint: {}", ex.getMessage(), ex);
             throw new DynamicClientRegistrationException(
                 "Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(),
                 ex
