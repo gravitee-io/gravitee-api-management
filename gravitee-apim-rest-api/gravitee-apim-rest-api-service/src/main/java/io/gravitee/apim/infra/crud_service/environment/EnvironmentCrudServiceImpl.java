@@ -45,7 +45,10 @@ public class EnvironmentCrudServiceImpl implements EnvironmentCrudService {
                 .map(EnvironmentAdapter.INSTANCE::toModel)
                 .orElseThrow(() -> new EnvironmentNotFoundException(environmentId));
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException(e);
+            throw new TechnicalManagementException(
+                String.format("An error occurred while finding Environment with id %s", environmentId),
+                e
+            );
         }
     }
 }

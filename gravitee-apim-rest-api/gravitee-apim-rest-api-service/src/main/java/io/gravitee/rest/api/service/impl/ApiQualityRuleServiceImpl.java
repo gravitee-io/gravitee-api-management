@@ -31,8 +31,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -41,10 +40,9 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQualityRuleService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(ApiQualityRuleServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -56,12 +54,10 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
     @Override
     public List<ApiQualityRuleEntity> findByApi(final String api) {
         try {
-            LOGGER.debug("Find quality rules by API");
+            log.debug("Find quality rules by API");
             return apiQualityRuleRepository.findByApi(api).stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to find quality rules by API";
-            LOGGER.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find quality rules by API", ex);
         }
     }
 
@@ -86,9 +82,10 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             );
             return convert(apiQualityRuleRepository.create(apiQualityRule));
         } catch (TechnicalException e) {
-            final String error = "An error occurs while trying to create an API quality rule " + newEntity;
-            LOGGER.error(error, e);
-            throw new TechnicalManagementException(error, e);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to create an API quality rule %s", newEntity),
+                e
+            );
         }
     }
 
@@ -113,9 +110,10 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             );
             return convert(apiQualityRule);
         } catch (TechnicalException e) {
-            final String error = "An error occurs while trying to update API quality rule " + updateEntity;
-            LOGGER.error(error, e);
-            throw new TechnicalManagementException(error, e);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to update API quality rule %s", updateEntity),
+                e
+            );
         }
     }
 
