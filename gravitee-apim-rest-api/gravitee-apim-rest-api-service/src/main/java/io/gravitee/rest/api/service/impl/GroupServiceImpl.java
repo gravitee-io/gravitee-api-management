@@ -106,9 +106,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -117,10 +116,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class GroupServiceImpl extends AbstractService implements GroupService {
-
-    private final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -190,9 +188,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public List<GroupEntity> findAll(ExecutionContext executionContext) {
         try {
-            logger.debug("Find all groups");
+            log.debug("Find all groups");
             Set<Group> all = groupRepository.findAllByEnvironment(executionContext.getEnvironmentId());
-            logger.debug("Find all groups - DONE");
+            log.debug("Find all groups - DONE");
             final List<GroupEntity> groups = all
                 .stream()
                 .map(this::map)
@@ -234,7 +232,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             return groups;
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find all groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
         }
     }
@@ -288,16 +285,15 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public List<GroupSimpleEntity> findAllByOrganization(String organizationId) {
         try {
-            logger.debug("Find all groups for organization {}", organizationId);
+            log.debug("Find all groups for organization {}", organizationId);
             Set<Group> groups = groupRepository.findAllByOrganization(organizationId);
-            logger.debug("Find all groups for organization {} - DONE", organizationId);
+            log.debug("Find all groups for organization {} - DONE", organizationId);
             return groups
                 .stream()
                 .map(group -> mapToSimple(group, organizationId))
                 .sorted(Comparator.comparing(GroupSimpleEntity::getName))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find all groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
         }
     }
@@ -324,7 +320,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public List<GroupEntity> findByName(final String environmentId, String name) {
         try {
-            logger.debug("findByUsername : {}", name);
+            log.debug("findByUsername : {}", name);
             if (name == null) {
                 return Collections.emptyList();
             }
@@ -335,10 +331,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .map(this::map)
                 .sorted(Comparator.comparing(GroupEntity::getName))
                 .collect(Collectors.toList());
-            logger.debug("findByUsername : {} - DONE", name);
+            log.debug("findByUsername : {} - DONE", name);
             return groupEntities;
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find groups by name", ex);
             throw new TechnicalManagementException("An error occurs while trying to find groups by name", ex);
         }
     }
@@ -346,7 +341,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public GroupEntity create(ExecutionContext executionContext, NewGroupEntity group) {
         try {
-            logger.debug("create {}", group);
+            log.debug("create {}", group);
             if (!this.findByName(executionContext.getEnvironmentId(), group.getName()).isEmpty()) {
                 throw new GroupNameAlreadyExistsException(group.getName());
             }
@@ -365,10 +360,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 null,
                 newGroup
             );
-            logger.debug("create {} - DONE", grp);
+            log.debug("create {} - DONE", grp);
             return grp;
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to create a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to create a group", ex);
         }
     }
@@ -376,7 +370,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public GroupEntity update(ExecutionContext executionContext, String groupId, UpdateGroupEntity group) {
         try {
-            logger.debug("update {}", group);
+            log.debug("update {}", group);
             GroupEntity updatedGroupEntity = this.findById(executionContext, groupId);
             Group previousGroup = this.map(updatedGroupEntity, executionContext.getEnvironmentId());
             updatedGroupEntity.setName(group.getName());
@@ -391,7 +385,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             Group updatedGroup = this.map(updatedGroupEntity, executionContext.getEnvironmentId());
             GroupEntity grp = this.map(groupRepository.update(updatedGroup));
-            logger.debug("update {} - DONE", grp);
+            log.debug("update {} - DONE", grp);
 
             updateDefaultRoles(executionContext, groupId, updatedGroupEntity.getRoles(), group.getRoles());
 
@@ -407,9 +401,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             reindexApisIfPrimaryOwnerGroup(executionContext, grp);
             return findById(executionContext, groupId);
         } catch (TechnicalException ex) {
-            final String error = "An error occurs while trying to update a group";
-            logger.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
+            throw new TechnicalManagementException("An error occurs while trying to update a group", ex);
         }
     }
 
@@ -486,7 +478,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @NotNull
     public GroupEntity findById(ExecutionContext executionContext, String groupId) {
         try {
-            logger.debug("findById {}", groupId);
+            log.debug("findById {}", groupId);
             Optional<Group> group = groupRepository
                 .findById(groupId)
                 .filter(g ->
@@ -495,11 +487,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             if (!group.isPresent()) {
                 throw new GroupNotFoundException(groupId);
             }
-            logger.debug("findById {} - DONE", group.get());
+            log.debug("findById {} - DONE", group.get());
             GroupEntity groupEntity = this.map(executionContext, group.get());
 
             if (groupEntity == null) {
-                logger.error("An error occurs while trying to find a group {}", groupId);
                 throw new TechnicalManagementException("An error occurs while trying to find a group " + groupId);
             }
 
@@ -538,7 +529,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             return groupEntity;
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to find a group", ex);
         }
     }
@@ -574,7 +564,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     break;
             }
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to associate group to all {}", associationType, ex);
             throw new TechnicalManagementException("An error occurs while trying to associate group to all " + associationType, ex);
         }
     }
@@ -583,14 +572,14 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             action.run();
         } catch (Throwable e) {
-            logger.error("An error occurs while trying to update group", e);
+            log.error("An error occurs while trying to update group", e);
         }
     }
 
     @Override
     public Set<GroupEntity> findByIds(Set<String> groupIds) {
         try {
-            logger.debug("findByIds {}", groupIds);
+            log.debug("findByIds {}", groupIds);
             Set<Group> groups = groupRepository.findByIds(groupIds);
             if (groups == null || groups.size() != groupIds.size()) {
                 List<String> groupsFound = groups == null
@@ -600,14 +589,13 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 groupIdsNotFound.removeAll(groupsFound);
                 throw new GroupsNotFoundException(groupIdsNotFound);
             }
-            logger.debug("findByIds {} - DONE", groups);
+            log.debug("findByIds {} - DONE", groups);
             return groups
                 .stream()
                 .map(this::map)
                 .sorted(Comparator.comparing(GroupEntity::getName))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find groups", ex);
         }
     }
@@ -615,7 +603,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public Set<GroupEntity> findByEvent(final String environmentId, GroupEvent event) {
         try {
-            logger.debug("findByEvent : {}", event);
+            log.debug("findByEvent : {}", event);
             Set<GroupEntity> set = groupRepository
                 .findAllByEnvironment(environmentId)
                 .stream()
@@ -626,10 +614,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .map(this::map)
                 .sorted(Comparator.comparing(GroupEntity::getName))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-            logger.debug("findByEvent : {} - DONE", set);
+            log.debug("findByEvent : {} - DONE", set);
             return set;
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find groups by event", ex);
             throw new TechnicalManagementException("An error occurs while trying to find groups by event", ex);
         }
     }
@@ -637,7 +624,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public void delete(ExecutionContext executionContext, String groupId) {
         try {
-            logger.debug("delete {}", groupId);
+            log.debug("delete {}", groupId);
             Optional<Group> group = groupRepository
                 .findById(groupId)
                 .filter(g -> g.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
@@ -698,7 +685,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         apiRepository.update(api);
                         triggerUpdateNotification(executionContext, api);
                     } catch (TechnicalException ex) {
-                        logger.error("An error occurs while trying to delete a group", ex);
                         throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
                     }
 
@@ -725,7 +711,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         applicationRepository.update(application);
                         applicationIds.add(application.getId());
                     } catch (TechnicalException ex) {
-                        logger.error("An error occurs while trying to delete a group", ex);
                         throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
                     }
                 });
@@ -755,9 +740,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 null
             );
 
-            logger.debug("delete {} - DONE", groupId);
+            log.debug("delete {} - DONE", groupId);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -791,7 +775,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 }
             }
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -807,7 +790,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 }
             }
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -836,7 +818,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 }
             }
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -902,7 +883,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             return groupRepository.findByIds(userGroups).stream().map(this::map).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find all user groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all user groups", ex);
         }
     }
@@ -937,8 +917,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 })
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find all application of group {}", groupId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all application of group " + groupId, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find all application of group %s", groupId),
+                ex
+            );
         }
     }
 
@@ -1117,7 +1099,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             group.setApiPrimaryOwner(newApiPrimaryOwner);
             groupRepository.update(group);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find or update a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to find or update a group", ex);
         }
     }
@@ -1135,9 +1116,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public Set<Group> findAllByEnvironment(String environmentId) {
         try {
-            logger.debug("Find all groups by environment ID {}", environmentId);
+            log.debug("Find all groups by environment ID {}", environmentId);
             Set<Group> groups = groupRepository.findAllByEnvironment(environmentId);
-            logger.debug("Find all groups by environment ID {} - DONE", environmentId);
+            log.debug("Find all groups by environment ID {} - DONE", environmentId);
             return groups;
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);

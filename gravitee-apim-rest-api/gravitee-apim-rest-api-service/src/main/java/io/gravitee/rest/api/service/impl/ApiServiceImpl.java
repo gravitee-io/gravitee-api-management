@@ -123,11 +123,10 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -140,6 +139,7 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class ApiServiceImpl extends AbstractService implements ApiService {
 
@@ -147,10 +147,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public static final String API_DEFINITION_CONTEXT_FIELD_ORIGIN = "origin";
     public static final String API_DEFINITION_CONTEXT_FIELD_MODE = "mode";
     public static final String API_DEFINITION_CONTEXT_FIELD_SYNC_FROM = "syncFrom";
+<<<<<<< HEAD
     private static final TypeReference<Map<String, Object>> MAPPER_TYPE_REFERENCE = new TypeReference<>() {};
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
+=======
+>>>>>>> b692fc8b67 (chore(logs): Added logs for debug, removed multiple logs for the same Exception and used Slf4j logger (if its not an interface))
     private static final String ENDPOINTS_DELIMITER = "\n";
+    private ObjectMapper objectMapper;
+    private ApiConverter apiConverter;
+
     private ObjectMapper objectMapper;
     private ApiConverter apiConverter;
 
@@ -443,7 +449,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         try {
-            LOGGER.debug("Create {} for user {}", api, userId);
+            log.debug("Create {} for user {}", api, userId);
 
             String apiId = apiDefinition != null && apiDefinition.has("id") ? apiDefinition.get("id").asText() : null;
             String id = apiId != null && UUID.fromString(apiId) != null ? apiId : UuidString.generateRandom();
@@ -640,11 +646,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             searchEngineService.index(executionContext, apiWithMetadata, false);
             return apiEntity;
         } catch (InvalidPathsException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
+            log.warn("An error occurs while trying to create {} for user {}", api, userId, ex);
             throw new InvalidPathException("API paths are invalid", ex);
         } catch (TechnicalException | IllegalStateException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying create %s for user %s", api, userId), ex);
         }
     }
 
@@ -671,7 +676,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             try {
                 primaryOwnerEntity = objectMapper.readValue(apiDefinition.get("primaryOwner").toString(), PrimaryOwnerEntity.class);
             } catch (JsonProcessingException e) {
-                LOGGER.warn("Cannot parse primary owner from definition, continue with current user", e);
+                log.warn("Cannot parse primary owner from definition, continue with current user", e);
             }
         }
         return primaryOwnerEntity;
@@ -837,7 +842,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         boolean manageOnly
     ) {
         try {
-            LOGGER.debug("Find APIs page by user {}", userId);
+            log.debug("Find APIs page by user {}", userId);
             if (apiQuery == null) {
                 apiQuery = new ApiQuery();
             }
@@ -848,14 +853,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Set<String> apiIds = apiAuthorizationService.findIdsByUser(executionContext, userId, apiQuery, sortable, manageOnly);
             return loadPage(executionContext, apiIds, pageable);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
         }
     }
 
     private Api findApiById(ExecutionContext executionContext, String apiId) {
         try {
-            LOGGER.debug("Find API by ID: {}", apiId);
+            log.debug("Find API by ID: {}", apiId);
 
             Optional<Api> optApi = apiRepository.findById(apiId);
 
@@ -865,8 +869,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find an API using its ID: %s", apiId),
+                ex
+            );
         }
     }
 
@@ -1030,7 +1036,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         boolean updatePlansAndFlows
     ) {
         try {
-            LOGGER.debug("Update API {}", apiId);
+            log.debug("Update API {}", apiId);
 
             Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
             if (DefinitionVersion.V1.equals(apiToUpdate.getDefinitionVersion())) {
@@ -1286,11 +1292,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return apiEntity;
         } catch (InvalidPathsException ex) {
-            LOGGER.error("An error occurs while trying to update API {}", apiId, ex);
+            log.debug("An error occurs while trying to update API {}", apiId, ex);
             throw new InvalidPathException("API paths are invalid", ex);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update API {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to update API " + apiId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to update API %s", apiId), ex);
         }
     }
 
@@ -1347,8 +1352,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return objectMapper.writeValueAsString(updateApiDefinition);
         } catch (JsonProcessingException jse) {
-            LOGGER.error("Unexpected error while generating API definition", jse);
-            throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to parse API definition %s", jse));
         }
     }
 
@@ -1456,8 +1460,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     try {
                         Pattern.compile(path);
                     } catch (java.util.regex.PatternSyntaxException pse) {
-                        LOGGER.error("An error occurs while trying to parse the path {}", path, pse);
-                        throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to parse the path %s", path),
+                            pse
+                        );
                     }
                 });
         }
@@ -1470,8 +1476,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     try {
                         Pattern.compile(pathMapping);
                     } catch (java.util.regex.PatternSyntaxException pse) {
-                        LOGGER.error("An error occurs while trying to parse the path mapping {}", pathMapping, pse);
-                        throw new TechnicalManagementException("An error occurs while trying to parse the path mapping" + pathMapping, pse);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to parse the path mapping %s", pathMapping),
+                            pse
+                        );
                     }
                 });
         }
@@ -1509,7 +1517,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public void delete(ExecutionContext executionContext, String apiId, boolean closePlans) {
         try {
-            LOGGER.debug("Delete API {}", apiId);
+            log.debug("Delete API {}", apiId);
 
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
             if (DefinitionContext.isManagement(api.getOrigin()) && api.getLifecycleState() == LifecycleState.STARTED) {
@@ -1595,7 +1603,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             apiMetadataService.deleteAllByApi(executionContext, apiId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiId, ex);
         }
     }
@@ -1603,7 +1610,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity start(ExecutionContext executionContext, String apiId, String userId) {
         try {
-            LOGGER.debug("Start API {}", apiId);
+            log.debug("Start API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STARTED, userId);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             notifierService.trigger(
@@ -1614,7 +1621,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
             return apiEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to start API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to start API " + apiId, ex);
         }
     }
@@ -1622,7 +1628,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity stop(ExecutionContext executionContext, String apiId, String userId) {
         try {
-            LOGGER.debug("Stop API {}", apiId);
+            log.debug("Stop API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             notifierService.trigger(
@@ -1633,7 +1639,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
             return apiEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to stop API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
         }
     }
@@ -1707,7 +1712,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 return sync;
             }
         } catch (Exception e) {
-            LOGGER.error("An error occurs while trying to check API synchronization state {}", apiId, e);
+            log.error("An error occurs while trying to check API synchronization state {}", apiId, e);
         }
 
         return false;
@@ -1739,18 +1744,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiDeploymentEntity apiDeploymentEntity
     ) {
         try {
-            LOGGER.debug("Deploy API : {}", apiId);
+            log.debug("Deploy API : {}", apiId);
 
             return deployCurrentAPI(executionContext, apiId, userId, eventType, apiDeploymentEntity);
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while trying to deploy API: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to deploy API: %s", apiId), ex);
         }
     }
 
     @Override
     public ApiEntity rollback(ExecutionContext executionContext, String apiId, RollbackApiEntity rollbackApiEntity) {
-        LOGGER.debug("Rollback API : {}", apiId);
+        log.debug("Rollback API : {}", apiId);
 
         try {
             // Audit
@@ -1762,7 +1766,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 objectMapper.writeValueAsString(rollbackApiEntity)
             );
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while trying to rollback API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to rollback API: " + apiId, ex);
         }
     }
@@ -1896,7 +1899,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 return this.deploy(executionContext, apiId, userId, EventType.PUBLISH_API, new ApiDeploymentEntity());
             }
         } catch (Exception e) {
-            LOGGER.error("An error occurs while trying to deploy last published API {}", apiId, e);
             throw new TechnicalException("An error occurs while trying to deploy last published API " + apiId, e);
         }
     }
@@ -1913,7 +1915,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
         } catch (final Exception e) {
-            LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
+            log.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
         }
         return "";
     }
@@ -1944,7 +1946,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             try {
                 content = of(IOUtils.toByteArray(new FileInputStream(defaultApiIcon)));
             } catch (IOException ioe) {
-                LOGGER.error("Default icon for API does not exist", ioe);
+                log.error("Default icon for API does not exist", ioe);
             }
         }
         return content;
@@ -2001,7 +2003,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Page<ApiEntity> search(ExecutionContext executionContext, final ApiQuery query, Sortable sortable, Pageable pageable) {
         try {
-            LOGGER.debug("Search paginated APIs by {}", query);
+            log.debug("Search paginated APIs by {}", query);
 
             Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, query);
 
@@ -2023,9 +2025,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 )
             );
         } catch (TechnicalException ex) {
-            final String errorMessage = "An error occurs while trying to search for paginated APIs: " + query;
-            LOGGER.error(errorMessage, ex);
-            throw new TechnicalManagementException(errorMessage, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to search for paginated APIs: %s ", query),
+                ex
+            );
         }
     }
 
@@ -2051,7 +2054,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Page<String> searchIds(ExecutionContext executionContext, ApiQuery query, Pageable pageable, Sortable sortable) {
         try {
-            LOGGER.debug("Search API ids by {}", query);
+            log.debug("Search API ids by {}", query);
             ApiCriteria apiCriteria = queryToCriteria(executionContext, query).build();
             return apiRepository.searchIds(List.of(apiCriteria), convert(pageable), convert(sortable));
         } catch (Exception ex) {
@@ -2069,7 +2072,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Pageable pageable
     ) {
         try {
-            LOGGER.debug("Search paged APIs by {}", query);
+            log.debug("Search paged APIs by {}", query);
 
             Collection<String> apiIds = apiSearchService.searchIds(
                 executionContext,
@@ -2085,7 +2088,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return loadPage(executionContext, apiIds, pageable);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to search paged apis", ex);
             throw new TechnicalManagementException("An error occurs while trying to search paged apis", ex);
         }
     }
@@ -2189,7 +2191,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId,
         final ReviewEntity reviewEntity
     ) {
-        LOGGER.debug("Ask for review API {}", apiId);
+        log.debug("Ask for review API {}", apiId);
         return updateWorkflowReview(
             executionContext,
             apiId,
@@ -2207,7 +2209,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId,
         final ReviewEntity reviewEntity
     ) {
-        LOGGER.debug("Accept review API {}", apiId);
+        log.debug("Accept review API {}", apiId);
         return updateWorkflowReview(executionContext, apiId, userId, ApiHook.REVIEW_OK, WorkflowState.REVIEW_OK, reviewEntity.getMessage());
     }
 
@@ -2218,7 +2220,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId,
         final ReviewEntity reviewEntity
     ) {
-        LOGGER.debug("Reject review API {}", apiId);
+        log.debug("Reject review API {}", apiId);
         return updateWorkflowReview(
             executionContext,
             apiId,
@@ -2505,7 +2507,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 loggingUpdated
             );
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while auditing API logging configuration for API: {}", apiUpdated.getId(), ex);
             throw new TechnicalManagementException(
                 "An error occurs while auditing API logging configuration for API: " + apiUpdated.getId(),
                 ex
@@ -2523,7 +2524,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Stream<Api> streamApis = apis.stream();
         if (!apiWithoutPo.isEmpty()) {
             String apisAsString = String.join(" / ", apiWithoutPo);
-            LOGGER.error("{} apis has no identified primary owners in this list {}.", apiWithoutPo.size(), apisAsString);
+            log.error("{} apis has no identified primary owners in this list {}.", apiWithoutPo.size(), apisAsString);
             streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
         return streamApis
@@ -2648,7 +2649,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     property.setValue(dataEncryptor.encrypt(property.getValue()));
                     property.setEncrypted(true);
                 } catch (GeneralSecurityException e) {
-                    LOGGER.error("Error encrypting property value", e);
+                    log.error("Error encrypting property value", e);
                 }
             }
         }

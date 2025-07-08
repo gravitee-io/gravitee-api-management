@@ -104,8 +104,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
             Set<String> categoryIds = apiRepository.listCategories(criteria);
             return categoryService.findByIdIn(environment, categoryIds);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to list categories for APIs {}", apis, ex);
-            throw new TechnicalManagementException("An error occurs while trying to list categories for APIs {}" + apis, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to list categories for APIs %s", apis), ex);
         }
     }
 
@@ -135,7 +134,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
             apiCategoryOrderRepository.delete(api.getId(), categoryId);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error has occurred while removing category " + categoryId + " from API " + api.getId(),
+                String.format("An error has occurred while removing category %s from API %s", categoryId, api.getId()),
                 e
             );
         }

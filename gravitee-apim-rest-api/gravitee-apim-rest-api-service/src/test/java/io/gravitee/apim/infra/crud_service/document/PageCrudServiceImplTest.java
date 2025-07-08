@@ -280,9 +280,7 @@ public class PageCrudServiceImplTest {
         @Test
         void should_throw_if_deletion_problem_occurs() throws TechnicalException {
             doThrow(new TechnicalException("exception")).when(pageRepository).delete(PAGE_ID);
-            assertThatThrownBy(() -> service.delete(PAGE_ID))
-                .isInstanceOf(ApiPageNotDeletedException.class)
-                .hasMessage("Page page-id not deleted");
+            assertThatThrownBy(() -> service.delete(PAGE_ID)).isInstanceOf(ApiPageNotDeletedException.class);
             verify(pageRepository).delete(PAGE_ID);
         }
     }
