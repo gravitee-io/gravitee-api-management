@@ -105,9 +105,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -116,10 +115,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class MembershipServiceImpl extends AbstractService implements MembershipService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MembershipServiceImpl.class);
 
     private static final String DEFAULT_SOURCE = "system";
     private final Cache<String, Set<RoleEntity>> cachedRoles = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
@@ -258,7 +256,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         boolean update
     ) {
         try {
-            LOGGER.debug("Add a new member for {} {}", reference.getType(), reference.getId());
+            log.debug("Add a new member for {} {}", reference.getType(), reference.getId());
 
             RoleEntity roleEntity = roleService
                 .findByScopeAndName(role.getScope(), role.getName(), executionContext.getOrganizationId())
@@ -356,7 +354,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                             try {
                                 emailService.sendAsyncEmailNotification(executionContext, emailNotification);
                             } catch (Exception e) {
-                                LOGGER.error(
+                                log.error(
                                     "An error occurs while trying to send email notification for {} {} {}",
                                     reference.getType(),
                                     reference.getId(),
@@ -388,9 +386,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             this.sendInvalidateRoleCacheCommand(reference, member, executionContext);
             return userMember;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to add member for {} {}", reference.getType(), reference.getId(), ex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to add member for " + reference.getType() + " " + reference.getId(),
+                String.format("An error occurs while trying to add member for %s %s", reference.getType(), reference.getId()),
                 ex
             );
         }
@@ -418,14 +415,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             String content = this.objectMapper.writeValueAsString(eventData);
             command.setContent(content);
         } catch (JsonProcessingException e) {
-            LOGGER.error("Failed to serialize map of properties {}", eventData, e);
+            log.error("Failed to serialize map of properties {}", eventData, e);
             return;
         }
 
         try {
             commandRepository.create(command);
         } catch (TechnicalException e) {
-            LOGGER.error("Failed to create command to invalidate cached default roles for {}", eventData, e);
+            log.error("Failed to create command to invalidate cached default roles for {}", eventData, e);
         }
     }
 
@@ -683,7 +680,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             Optional<io.gravitee.repository.management.model.Membership> optionalMembership = membershipRepository.findById(membershipId);
             if (optionalMembership.isPresent()) {
                 io.gravitee.repository.management.model.Membership membership = optionalMembership.get();
-                LOGGER.debug("Delete membership {}", membership);
+                log.debug("Delete membership {}", membership);
                 membershipRepository.delete(membershipId);
                 createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
 
@@ -695,8 +692,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 );
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete membership {}", membershipId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete membership " + membershipId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to delete membership %s", membershipId), ex);
         }
     }
 
@@ -710,7 +706,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             );
             if (!memberships.isEmpty()) {
                 for (io.gravitee.repository.management.model.Membership membership : memberships) {
-                    LOGGER.debug("Delete membership {}", membership.getId());
+                    log.debug("Delete membership {}", membership.getId());
                     membershipRepository.delete(membership.getId());
                     createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
                     invalidateRoleCache(
@@ -722,9 +718,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 }
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete memberships for {} {}", referenceType, referenceId, ex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to delete memberships for " + referenceType + " " + referenceId,
+                String.format("An error occurs while trying to delete memberships for %s %s", referenceType, referenceId),
                 ex
             );
         }
@@ -780,7 +775,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
             for (io.gravitee.repository.management.model.Membership membership : memberships) {
                 if (sourceId == null || membership.getSource().equals(sourceId)) {
-                    LOGGER.debug("Delete membership {}", membership.getId());
+                    log.debug("Delete membership {}", membership.getId());
                     membershipRepository.delete(membership.getId());
                     createAuditLog(executionContext, MEMBERSHIP_DELETED, new Date(), membership, null);
                     invalidateRoleCache(
@@ -808,23 +803,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 }
             }
         } catch (TechnicalException ex) {
-            LOGGER.error(
-                "An error occurs while trying to delete memberships for {} {} {} {}",
-                referenceType,
-                referenceId,
-                memberType,
-                memberId,
-                ex
-            );
             throw new TechnicalManagementException(
-                "An error occurs while trying to delete memberships for " +
-                referenceType +
-                " " +
-                referenceId +
-                " " +
-                memberType +
-                " " +
-                memberId,
+                String.format(
+                    "An error occurs while trying to delete memberships for %s %s %s %s",
+                    referenceType,
+                    referenceId,
+                    memberType,
+                    memberId
+                ),
                 ex
             );
         }
@@ -883,8 +869,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
             return new ArrayList<>(userMembershipMap.values());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to remove user {}", userId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to remove user " + userId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to remove user %s", userId), ex);
         }
     }
 
@@ -968,8 +953,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
             return new ArrayList<>(userMemberships);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to remove user {}", userId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to remove user " + userId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to remove user %s", userId), ex);
         }
     }
 
@@ -1010,7 +994,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
             return metadata;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get user membership metadata", ex);
             throw new TechnicalManagementException("An error occurs while trying to get user membership metadata", ex);
         }
     }
@@ -1095,7 +1078,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         Pageable pageable
     ) {
         try {
-            LOGGER.debug("Get members for {} {}", referenceType, referenceIds);
+            log.debug("Get members for {} {}", referenceType, referenceIds);
             Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByReferencesAndRoleId(
                 convert(referenceType),
                 referenceIds,
@@ -1121,9 +1104,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             fillMemberUserInformation(executionContext, memberships, members);
             return paginate(results.values(), pageable);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get members for {} {}", referenceType, referenceIds, ex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to get members for " + referenceType + " " + referenceIds,
+                String.format("An error occurs while trying to get members for %s %s", referenceType, referenceIds),
                 ex
             );
         }
@@ -1192,8 +1174,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to get memberships for %s", memberId), ex);
         }
     }
 
@@ -1208,8 +1189,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .findRefIdsByMemberIdAndMemberTypeAndReferenceType(memberId, convert(memberType), convert(referenceType))
                 .collect(toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to get memberships for %s", memberId), ex);
         }
     }
 
@@ -1226,8 +1206,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to get memberships for %s", memberId), ex);
         }
     }
 
@@ -1245,8 +1224,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to get memberships for %s", memberId), ex);
         }
     }
 
@@ -1264,8 +1242,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to get memberships for %s", memberId), ex);
         }
     }
 
@@ -1284,8 +1261,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 roleIds
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to get memberships for %s", memberId), ex);
         }
     }
 
@@ -1302,8 +1278,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} ", memberIds, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberIds, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to get memberships for %s", memberIds), ex);
         }
     }
 
@@ -1316,9 +1291,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} {} ", referenceType, referenceId, ex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to get memberships for " + referenceType + " " + referenceId,
+                String.format("An error occurs while trying to get memberships for %s %s", referenceType, referenceId),
                 ex
             );
         }
@@ -1333,9 +1307,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} {} {} and role", referenceType, referenceId, role, ex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to get memberships for " + referenceType + " " + referenceId + " and role " + role,
+                String.format("An error occurs while trying to get memberships for %s %s and role %s", referenceType, referenceId, role),
                 ex
             );
         }
@@ -1354,9 +1327,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(this::convert)
                 .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get memberships for {} {} {} and role", referenceType, referenceIds, role, ex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to get memberships for " + referenceType + " " + referenceIds + " and role " + role,
+                String.format("An error occurs while trying to get memberships for %s %s and role %s", referenceType, referenceIds, role),
                 ex
             );
         }
@@ -1375,9 +1347,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     .map(this::convert)
                     .orElse(null);
             } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to get primary owner for {} {} and role", referenceType, referenceId, ex);
                 throw new TechnicalManagementException(
-                    "An error occurs while trying to get primary owner for " + referenceType + " " + referenceId,
+                    String.format("An error occurs while trying to get primary owner for %s %s", referenceType, referenceId),
                     ex
                 );
             }
@@ -1394,7 +1365,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String memberId
     ) {
         try {
-            LOGGER.debug("Get role for {} {} and member {} {}", referenceType, referenceId, memberType, memberId);
+            log.debug("Get role for {} {} and member {} {}", referenceType, referenceId, memberType, memberId);
 
             String cachedRoleKey = computeCachedRoleKey(referenceType.name(), referenceId, memberType.name(), memberId);
             return cachedRoles.get(
@@ -1413,10 +1384,16 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         .collect(Collectors.toSet())
             );
         } catch (Exception ex) {
-            final String message =
-                "An error occurs while trying to get roles for " + referenceType + " " + referenceId + " " + memberType + " " + memberId;
-            LOGGER.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
+            throw new TechnicalManagementException(
+                String.format(
+                    "An error occurs while trying to get roles for %s %s %s %s",
+                    referenceType,
+                    referenceId,
+                    memberType,
+                    memberId
+                ),
+                ex
+            );
         }
     }
 
@@ -1511,9 +1488,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
             return memberEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get user member for {} {} {}", referenceType, referenceId, userId, ex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to get roles for " + referenceType + " " + referenceId + " " + userId,
+                String.format("An error occurs while trying to get roles for %s %s %s", referenceType, referenceId, userId),
                 ex
             );
         }
@@ -1619,26 +1595,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 invalidateRoleCache(referenceType.name(), referenceId, memberType.name(), memberId);
             }
         } catch (TechnicalException ex) {
-            LOGGER.error(
-                "An error occurs while trying to remove role {} from member {} {} for {} {}",
-                roleId,
-                memberType,
-                memberId,
-                referenceType,
-                referenceId,
-                ex
-            );
             throw new TechnicalManagementException(
-                "An error occurs while trying to remove role " +
-                roleId +
-                " from member " +
-                memberType +
-                " " +
-                memberId +
-                " for " +
-                referenceType +
-                " " +
-                referenceId,
+                String.format(
+                    "An error occurs while trying to remove role %s from member %s %s for %s %s",
+                    roleId,
+                    memberType,
+                    memberId,
+                    referenceType,
+                    referenceId
+                ),
                 ex
             );
         }
@@ -1673,8 +1638,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 );
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to remove role {}", oldRoleId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to remove role " + oldRoleId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to remove role %s", oldRoleId), ex);
         }
     }
 
@@ -1708,8 +1672,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 new ApplicationAlertMembershipEvent(executionContext.getOrganizationId(), applicationIds, groupIds)
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to remove member {} {}", memberType, memberId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to remove " + memberType + " " + memberId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to remove %s %s", memberType, memberId), ex);
         }
     }
 
@@ -1875,9 +1838,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(role -> _addRoleToMemberOnReference(executionContext, reference, member, role, source, notify, false))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update member for {} {}", reference.getType(), reference.getId(), ex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to update member for " + reference.getType() + " " + reference.getId(),
+                String.format("An error occurs while trying to update member for %s %s", reference.getType(), reference.getId()),
                 ex
             );
         }
