@@ -28,12 +28,15 @@ const ApiCreationStep1Component: ng.IComponentOptions = {
     class {
       private parent: ApiCreationV2ControllerAjs;
       private advancedMode: boolean;
-      private useGroupAsPrimaryOwner: boolean;
       public shouldDisplayHint = shouldDisplayHint;
+      private scrollContainer: HTMLElement | null = null;
+      private scrollListener: (() => void) | null = null;
+      private isLoading = false; // to prevent repititive call at once
+      private hasLoadedOnce = false;
+      public hasMoreGroups = true;
 
       constructor(private ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService) {
         this.advancedMode = false;
-        this.useGroupAsPrimaryOwner = this.ApiPrimaryOwnerModeService.isGroupOnly();
       }
 
       toggleAdvancedMode = () => {
@@ -51,6 +54,61 @@ const ApiCreationStep1Component: ng.IComponentOptions = {
           (this.ApiPrimaryOwnerModeService.isGroupOnly() && this.parent.attachableGroups && this.parent.attachableGroups.length > 0)
         );
       };
+
+      onSelectOpen = () => {
+        // Wait for DOM to render
+        setTimeout(() => {
+          this.scrollContainer = document.querySelector('[role="listbox"][aria-label="Groups"]');
+          const boundScrollHandler = this.onScroll.bind(this);
+          // Add scroll event listener
+          this.scrollContainer.addEventListener('scroll', boundScrollHandler);
+          // Cleaning: Store the scroll event removal function
+          this.scrollListener = () => {
+            this.scrollContainer?.removeEventListener('scroll', boundScrollHandler);
+          };
+        }, 100);
+      };
+
+      onScroll(event: Event): void {
+        const percentScroll = 0.7;
+        const target = event.target as HTMLElement;
+        const scrollThreshold = percentScroll * target.scrollHeight;
+
+        if (target.scrollTop + target.clientHeight >= scrollThreshold && this.parent.hasMoreGroups && !this.isLoading) {
+          // First request: No delay
+          if (!this.hasLoadedOnce) {
+            this.parent.loadMoreGroups();
+            this.hasLoadedOnce = true;
+          }
+
+          // For the other requests: 1 second delay
+          else {
+            this.isLoading = true;
+            // Release lock after 1 second
+            setTimeout(() => {
+              this.parent.loadMoreGroups();
+              this.isLoading = false;
+            }, 1000);
+          }
+        }
+      }
+
+      onSelectClose = () => {
+        this.cleanupScrollListener();
+      };
+
+      private cleanupScrollListener = () => {
+        if (this.scrollListener) {
+          this.scrollListener();
+          this.scrollListener = null;
+        }
+        this.scrollContainer = null;
+      };
+
+      // Don't forget to clean up when component is destroyed
+      $onDestroy() {
+        this.cleanupScrollListener();
+      }
     },
   ],
 };
