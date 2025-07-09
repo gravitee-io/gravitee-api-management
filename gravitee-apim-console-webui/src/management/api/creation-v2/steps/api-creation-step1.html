@@ -113,7 +113,7 @@
         <div layout-gt-sm="row" ng-if="$ctrl.advancedMode && $ctrl.parent.attachableGroups && $ctrl.parent.attachableGroups.length > 0">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Groups</label>
-            <md-select ng-model="$ctrl.parent.api.groups" multiple>
+            <md-select ng-model="$ctrl.parent.api.groups" md-on-open="$ctrl.onSelectOpen()" md-on-close="$ctrl.onSelectClose()" multiple>
               <md-option ng-repeat="group in $ctrl.parent.attachableGroups" ng-value="group">{{group.name}}</md-option>
             </md-select>
             <div class="hint">Groups that will be able to access the API.</div>
