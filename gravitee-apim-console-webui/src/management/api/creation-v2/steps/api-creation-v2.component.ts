@@ -34,6 +34,8 @@ export class ApiCreationV2Component extends UpgradeComponent implements OnDestro
   @Input() groups;
   @Input() tenants;
   @Input() tags;
+  private page = 1;
+  private pageSize = 50;
 
   private unsubscribe$ = new Subject<void>();
 
@@ -49,10 +51,10 @@ export class ApiCreationV2Component extends UpgradeComponent implements OnDestro
   }
 
   override ngOnInit() {
-    combineLatest([this.groupService.list(), this.tenantService.list(), this.tagService.list()])
+    combineLatest([this.groupService.listPaginated(this.page, this.pageSize), this.tenantService.list(), this.tagService.list()])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([groups, tenants, tags]) => {
-        this.groups = groups;
+        this.groups = groups.data;
         this.tenants = tenants;
         this.tags = tags;
 
