@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
@@ -34,11 +36,11 @@ public class SearchRequestsCountResponseAdapter {
             return Optional.empty();
         }
         final var entrypointsAggregation = aggregations.get("entrypoints");
-        if (entrypointsAggregation == null) {
+        final var allAPIstatusrangesAggregation = aggregations.get("all_apis_status_ranges");
+        if (entrypointsAggregation == null || allAPIstatusrangesAggregation == null) {
             return Optional.empty();
         }
 
-        final var totalCount = new AtomicLong(0);
         final var requestsCountByEntrypoint = entrypointsAggregation
             .getBuckets()
             .stream()
@@ -47,11 +49,16 @@ public class SearchRequestsCountResponseAdapter {
                     jsonNode -> jsonNode.get("key").asText(),
                     jsonNode -> {
                         final long docCount = jsonNode.get("doc_count").asLong();
-                        totalCount.addAndGet(docCount);
                         return docCount;
                     }
                 )
             );
+
+        final var totalCount = new AtomicLong(0);
+        List<JsonNode> buckets = allAPIstatusrangesAggregation.getBuckets();
+        if (!buckets.isEmpty()) {
+            totalCount.set(buckets.get(0).path("doc_count").asLong());
+        }
 
         return Optional.of(buildFromSource(requestsCountByEntrypoint, totalCount.get()));
     }

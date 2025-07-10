@@ -40,6 +40,9 @@ class SearchRequestsCountQueryAdapterTest {
               "aggs": {
                   "entrypoints": {
                       "terms": {"field":"entrypoint-id"}
+                  },
+                  "all_apis_status_ranges": {
+                       "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
                   }
               }
           }
@@ -80,7 +83,11 @@ class SearchRequestsCountQueryAdapterTest {
                                 "aggs": {
                                     "entrypoints": {
                                         "terms": {"field":"entrypoint-id"}
-                                    }
+                                    },
+                                    "all_apis_status_ranges": {
+                                        "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
+                                      }
+                                  }
                                 }
                             }
                             """
@@ -122,7 +129,10 @@ class SearchRequestsCountQueryAdapterTest {
                                 "aggs": {
                                     "entrypoints": {
                                             "terms": {"field":"entrypoint-id"}
-                                    }
+                                    },
+                                    "all_apis_status_ranges": {
+                                        "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
+                                      }
                                 }
                             }
                             """
@@ -150,6 +160,9 @@ class SearchRequestsCountQueryAdapterTest {
                             "aggs": {
                                 "entrypoints": {
                                         "terms": {"field":"entrypoint-id.keyword"}
+                                },
+                                "all_apis_status_ranges": {
+                                      "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
                                 }
                             }
                         }
