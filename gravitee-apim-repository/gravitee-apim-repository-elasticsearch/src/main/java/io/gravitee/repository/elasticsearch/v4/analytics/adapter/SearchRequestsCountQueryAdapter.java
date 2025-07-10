@@ -40,7 +40,9 @@ public class SearchRequestsCountQueryAdapter {
     private static JsonObject buildEntrypointIdAggregate(boolean isEntrypointIdKeyword) {
         return JsonObject.of(
             "entrypoints",
-            JsonObject.of("terms", JsonObject.of("field", isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword"))
+            JsonObject.of("terms", JsonObject.of("field", isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword")),
+            "all_apis_status_ranges",
+            JsonObject.of("range", JsonObject.of("field", "status", "ranges", JsonArray.of(JsonObject.of("from", 100.0, "to", 600.0))))
         );
     }
 
