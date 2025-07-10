@@ -46,6 +46,18 @@ class SearchRequestsCountResponseAdapterTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private Aggregation buildAggregation(Map<String, Long> buckets) {
+        Aggregation agg = new Aggregation();
+        agg.setBuckets(
+            buckets
+                .entrySet()
+                .stream()
+                .map(bucket -> (JsonNode) objectMapper.createObjectNode().put("key", bucket.getKey()).put("doc_count", bucket.getValue()))
+                .toList()
+        );
+        return agg;
+    }
+
     @Test
     void should_return_empty_result_if_no_aggregation() {
         final SearchResponse searchResponse = new SearchResponse();
@@ -62,32 +74,44 @@ class SearchRequestsCountResponseAdapterTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideSearchData")
-    void should_build_search_requests_count_response(Map<String, Long> buckets, long expectedCount) {
+    @MethodSource("provideSearchDataWithRanges")
+    void should_build_count_response_from_status_ranges(Map<String, Long> buckets, long expectedCount) {
         final SearchResponse searchResponse = new SearchResponse();
-        final Aggregation aggregation = new Aggregation();
-        searchResponse.setAggregations(Map.of("entrypoints", aggregation));
+        Aggregation statusRangesAggregation = buildAggregation(buckets);
+        Aggregation entrypointsAggregation = buildAggregation(Map.of("http-post", 7L));
 
-        aggregation.setBuckets(
-            buckets
-                .entrySet()
-                .stream()
-                .map(bucket -> (JsonNode) objectMapper.createObjectNode().put("key", bucket.getKey()).put("doc_count", bucket.getValue()))
-                .toList()
-        );
+        searchResponse.setAggregations(Map.of("all_apis_status_ranges", statusRangesAggregation, "entrypoints", entrypointsAggregation));
 
         assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse))
             .hasValueSatisfying(countAggregate -> {
                 assertThat(countAggregate.getTotal()).isEqualTo(expectedCount);
+            });
+    }
+
+    private static Stream<Arguments> provideSearchDataWithRanges() {
+        return Stream.of(Arguments.of(Map.of("100.0-600.0", 14L), 14L), Arguments.of(Map.of(), 0L));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSearchDataWithEntryPoints")
+    void should_build_search_requests_count_response(Map<String, Long> buckets) {
+        final SearchResponse searchResponse = new SearchResponse();
+        Aggregation statusRangesAggregation = buildAggregation(Map.of("100.0-600.0", 14L));
+        Aggregation entrypointsAggregation = buildAggregation(buckets);
+
+        searchResponse.setAggregations(Map.of("all_apis_status_ranges", statusRangesAggregation, "entrypoints", entrypointsAggregation));
+
+        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse))
+            .hasValueSatisfying(countAggregate -> {
                 assertThat(countAggregate.getCountBy()).containsAllEntriesOf(buckets);
             });
     }
 
-    private static Stream<Arguments> provideSearchData() {
+    private static Stream<Arguments> provideSearchDataWithEntryPoints() {
         return Stream.of(
-            Arguments.of(Map.of("http-get", 1L), 1L),
-            Arguments.of(Map.of(), 0L),
-            Arguments.of(Map.of("http-get", 11L, "http-post", 200L, "websocket", 5L, "the-unknown-endpoint", 10000L), 10216L)
+            Arguments.of(Map.of("http-get", 1L)),
+            Arguments.of(Map.of()),
+            Arguments.of(Map.of("http-get", 11L, "http-post", 200L, "websocket", 5L, "the-unknown-endpoint", 10000L))
         );
     }
 }
