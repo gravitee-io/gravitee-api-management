@@ -36,7 +36,7 @@
         <liquibase.version>4.27.0</liquibase.version>
         <liquibase-slf4j.version>5.1.0</liquibase-slf4j.version>
         <mariaDB.version>3.5.3</mariaDB.version>
-        <mssql-jdbc.version>12.10.0.jre11</mssql-jdbc.version>
+        <mssql-jdbc.version>12.10.1.jre11</mssql-jdbc.version>
         <mysql-connector-j.version>9.2.0</mysql-connector-j.version>
         <postgresql.version>42.7.7</postgresql.version>
 
