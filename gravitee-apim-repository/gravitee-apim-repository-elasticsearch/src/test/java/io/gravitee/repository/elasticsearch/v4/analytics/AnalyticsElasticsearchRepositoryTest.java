@@ -79,12 +79,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     class RequestsCount {
 
         @Test
-        void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
+        void should_return_total_requests_count_from_status_ranges_aggregation() {
             var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), new RequestsCountQuery(API_ID));
 
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {
-                    assertThat(countAggregate.getTotal()).isEqualTo(10);
+                    assertThat(countAggregate.getTotal()).isEqualTo(11);
                     assertThat(countAggregate.getCountBy())
                         .containsAllEntriesOf(Map.of("http-post", 3L, "http-get", 1L, "websocket", 3L, "sse", 2L, "webhook", 1L));
                 });
@@ -159,7 +159,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result)
                 .hasValueSatisfying(responseStatusAggregate -> {
-                    assertRanges(responseStatusAggregate.getRanges(), 3L, 7L);
+                    assertRanges(responseStatusAggregate.getRanges(), 3L, 8L);
                     var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
                     assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
                     assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);
@@ -183,7 +183,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result)
                 .hasValueSatisfying(responseStatusAggregate -> {
-                    assertRanges(responseStatusAggregate.getRanges(), 7L, 10L);
+                    assertRanges(responseStatusAggregate.getRanges(), 7L, 11L);
                     var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
                     assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
                     assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);
