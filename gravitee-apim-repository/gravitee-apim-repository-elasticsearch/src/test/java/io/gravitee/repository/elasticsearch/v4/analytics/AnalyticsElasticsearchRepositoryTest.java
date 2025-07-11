@@ -31,6 +31,7 @@ import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
@@ -708,6 +709,47 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var avgBucket = (List<Double>) histogram.getBuckets().get("avg_gateway-response-time-ms");
             assertThat(avgBucket).isNotEmpty();
             assertThat(avgBucket.stream().filter(v -> v > 0).count()).isEqualTo(2);
+        }
+    }
+
+    @Nested
+    class GroupByAggregate {
+
+        @Test
+        void should_return_group_by_aggregate_for_terms() {
+            var query = new GroupByQuery(API_ID, null, "entrypoint-id", null, null, null, null, null);
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_range() {
+            var query = new GroupByQuery(
+                API_ID,
+                null,
+                "response-time",
+                List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200)),
+                null,
+                null,
+                null,
+                null
+            );
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_response-time_range");
+                    assertThat(aggregate.field()).isEqualTo("response-time");
+                    assertThat(aggregate.values()).containsKeys("0.0-100.0", "100.0-200.0");
+                });
         }
     }
 }
