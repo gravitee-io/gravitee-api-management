@@ -15,18 +15,30 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.analytics.model.Aggregation;
+import io.gravitee.apim.core.analytics.model.Bucket;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
+import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.HistogramAnalytics;
+import io.gravitee.rest.api.management.v2.rest.model.HistogramAnalyticsAllOfValues;
+import io.gravitee.rest.api.management.v2.rest.model.HistogramTimestamp;
+import io.gravitee.rest.api.management.v2.rest.resource.param.ApiAnalyticsParam;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
+import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -61,4 +73,49 @@ public interface ApiAnalyticsMapper {
     AnalyticTimeRange map(ResponseStatusOvertime.TimeRange source);
 
     Map<String, Number> map(Map<String, Long> value);
+
+    default HistogramAnalytics mapHistogramAnalytics(List<Bucket> buckets) {
+        if (buckets == null) {
+            return null;
+        }
+        HistogramAnalytics analytics = new HistogramAnalytics();
+        analytics.analyticsType(AnalyticsType.HISTOGRAM);
+        analytics.setValues(mapBuckets(buckets));
+        return analytics;
+    }
+
+    List<@Valid HistogramAnalyticsAllOfValues> mapBuckets(List<Bucket> buckets);
+
+    default List<Aggregation> mapAggregations(List<ApiAnalyticsParam.Aggregation> aggregations) {
+        if (aggregations == null) {
+            return null;
+        }
+        return aggregations
+            .stream()
+            .map(a -> {
+                if (a.getType() == null) {
+                    return null;
+                }
+                Aggregation.AggregationType type;
+                try {
+                    type = Aggregation.AggregationType.valueOf(a.getType().toUpperCase());
+                } catch (IllegalArgumentException ex) {
+                    return null;
+                }
+                return new Aggregation(a.getField(), type);
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    }
+
+    default HistogramTimestamp map(Timestamp timestamp) {
+        if (timestamp == null) {
+            return null;
+        }
+        HistogramTimestamp range = new HistogramTimestamp();
+        range.setFrom(timestamp.getFrom().toEpochMilli());
+        range.setTo(timestamp.getTo().toEpochMilli());
+        range.setInterval(timestamp.getInterval().toMillis());
+        return range;
+    }
 }

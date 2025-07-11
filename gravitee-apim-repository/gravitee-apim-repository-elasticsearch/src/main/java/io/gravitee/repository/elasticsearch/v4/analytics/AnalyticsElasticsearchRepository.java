@@ -27,6 +27,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageCo
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchHistogramQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestResponseTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountResponseAdapter;
@@ -38,6 +39,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
+import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
@@ -189,6 +192,16 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Search top failed apis query: {}", esQuery);
         return this.client.search(indexes, null, esQuery).map(SearchTopFailedApisAdapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public List<HistogramAggregate<?>> searchHistogram(QueryContext queryContext, HistogramQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var adapter = new SearchHistogramQueryAdapter();
+        var esQuery = adapter.adapt(query);
+
+        log.debug("Search histogram query: {}", esQuery);
+        return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {

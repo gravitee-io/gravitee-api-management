@@ -19,6 +19,7 @@ import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -58,6 +59,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
+import io.gravitee.rest.api.service.exceptions.ApiImportException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
@@ -531,5 +533,17 @@ public class ApiDuplicatorServiceImplTest {
                 ),
                 eq(API_ID)
             );
+    }
+
+    @Test
+    public void shouldThrowExceptionForInvalidFetchCronExpression() throws IOException {
+        ImportApiJsonNode node = loadTestNode(IMPORT_FILES_FOLDER + "import-api.invalid.cron.json");
+        ApiImportException exception = assertThrows(
+            ApiImportException.class,
+            () -> ReflectionTestUtils.invokeMethod(apiDuplicatorService, "checkPagesConsistency", node)
+        );
+
+        assertTrue(exception.getMessage().startsWith("Invalid fetchCron expression in page"));
+        assertTrue(exception.getMessage().contains("Cron expression must consist of 6 fields"));
     }
 }

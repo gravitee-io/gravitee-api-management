@@ -15,7 +15,9 @@
  */
 package io.gravitee.apim.core.analytics.query_service;
 
+import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
@@ -34,7 +36,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.checkerframework.checker.units.qual.A;
 
 public interface AnalyticsQueryService {
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
@@ -73,6 +74,10 @@ public interface AnalyticsQueryService {
     RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
+
+    Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters);
+
+    record HistogramQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
 
     record ResponseStatusOverTimeQuery(
         List<String> apiIds,

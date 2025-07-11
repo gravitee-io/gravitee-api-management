@@ -46,49 +46,56 @@ public class ApiAnalyticsParam {
     private AnalyticsType type;
 
     @QueryParam("ranges")
-    private Ranges ranges;
+    private String ranges;
 
     @QueryParam("aggregations")
-    private Aggregations aggregations;
+    private String aggregations;
 
     @QueryParam("order")
     private String order;
 
-    @Getter
-    @Setter
-    public static class Ranges extends AbstractListParam<Range> {
-
-        public Ranges() {
-            super(null);
+    public List<Range> getRanges() {
+        if (ranges == null || ranges.isEmpty()) {
+            return List.of();
         }
-
-        public Ranges(String rangesStr) {
-            super(rangesStr);
-        }
-
-        public static Ranges fromString(String rangesStr) {
-            return new Ranges(rangesStr);
-        }
-
-        @Override
-        protected Range parseValue(String param) {
-            // param is expected to be "from:to"
-            String[] bounds = param.split(":");
-            if (bounds.length == 2) {
-                try {
-                    int from = Integer.parseInt(bounds[0]);
-                    int to = Integer.parseInt(bounds[1]);
-                    return new Range(from, to);
-                } catch (NumberFormatException ignored) {
-                    log.debug("NumberFormatException ignored in ApiAnalyticsParam");
+        // Split by comma, then parse each "from:to"
+        return java.util.Arrays
+            .stream(ranges.split(","))
+            .map(String::trim)
+            .map(param -> {
+                String[] bounds = param.split(":");
+                if (bounds.length == 2) {
+                    try {
+                        int from = Integer.parseInt(bounds[0]);
+                        int to = Integer.parseInt(bounds[1]);
+                        return new Range(from, to);
+                    } catch (NumberFormatException ignored) {
+                        log.debug("NumberFormatException ignored in ApiAnalyticsParam");
+                    }
                 }
-            }
-            return null;
-        }
+                return null;
+            })
+            .filter(java.util.Objects::nonNull)
+            .toList();
+    }
 
-        public List<Range> getRanges() {
-            return this;
+    public List<Aggregation> getAggregations() {
+        if (aggregations == null || aggregations.isEmpty()) {
+            return List.of();
         }
+        // Split by comma, then parse each "type:field"
+        return java.util.Arrays
+            .stream(aggregations.split(","))
+            .map(String::trim)
+            .map(param -> {
+                String[] parts = param.split(":");
+                if (parts.length == 2) {
+                    return new Aggregation(parts[0], parts[1]);
+                }
+                return null;
+            })
+            .filter(java.util.Objects::nonNull)
+            .toList();
     }
 
     @Getter
@@ -106,37 +113,6 @@ public class ApiAnalyticsParam {
 
     @Getter
     @Setter
-    public static class Aggregations extends AbstractListParam<Aggregation> {
-
-        public Aggregations() {
-            super(null);
-        }
-
-        public Aggregations(String aggregationsStr) {
-            super(aggregationsStr);
-        }
-
-        public static Aggregations fromString(String aggregationsStr) {
-            return new Aggregations(aggregationsStr);
-        }
-
-        @Override
-        protected Aggregation parseValue(String param) {
-            // param is expected to be "type:field"
-            String[] parts = param.split(":");
-            if (parts.length == 2) {
-                return new Aggregation(parts[0], parts[1]);
-            }
-            return null;
-        }
-
-        public List<Aggregation> getAggregations() {
-            return this;
-        }
-    }
-
-    @Getter
-    @Setter
     public static class Aggregation {
 
         private String type;
@@ -146,13 +122,5 @@ public class ApiAnalyticsParam {
             this.type = type;
             this.field = field;
         }
-    }
-
-    public void setRanges(String rangesStr) {
-        this.ranges = Ranges.fromString(rangesStr);
-    }
-
-    public void setAggregations(String aggregationsStr) {
-        this.aggregations = Aggregations.fromString(aggregationsStr);
     }
 }
