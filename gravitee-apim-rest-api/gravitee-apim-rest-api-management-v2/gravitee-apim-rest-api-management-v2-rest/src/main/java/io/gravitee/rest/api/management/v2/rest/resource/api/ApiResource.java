@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
+import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
@@ -53,6 +54,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.ErrorDetailsInner;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
@@ -226,6 +228,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     GetExposedEntrypointsUseCase getExposedEntrypointsUseCase;
+
+    @Inject
+    MigrateApiUseCase migrateApiUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -901,6 +906,48 @@ public class ApiResource extends AbstractResource {
         var output = getExposedEntrypointsUseCase.execute(input);
 
         return Response.ok().entity(ApiMapper.INSTANCE.map(output.exposedEntrypoints())).build();
+    }
+
+    @POST
+    @Path("/_migrate")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response migrateApi(@PathParam("apiId") String apiId, @QueryParam("dryRun") MigrateMode mode) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+        AuditInfo audit = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+        var upgradeMode = mode != null ? MigrateApiUseCase.Input.UpgradeMode.valueOf(mode.name()) : null;
+        var output = migrateApiUseCase.execute(new MigrateApiUseCase.Input(apiId, upgradeMode, audit, getAuthenticatedUser()));
+        return switch (output) {
+            case MigrateApiUseCase.Output.Success success -> Response.ok().build();
+            case MigrateApiUseCase.Output.Fail fail -> Response
+                .status(400)
+                .entity(
+                    new Error()
+                        .httpStatus(400)
+                        .parameters(null)
+                        .details(fail.errors().stream().map(new ErrorDetailsInner()::message).toList())
+                )
+                .build();
+        };
+    }
+
+    enum MigrateMode {
+        DRY_RUN,
+        FORCE,
     }
 
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
