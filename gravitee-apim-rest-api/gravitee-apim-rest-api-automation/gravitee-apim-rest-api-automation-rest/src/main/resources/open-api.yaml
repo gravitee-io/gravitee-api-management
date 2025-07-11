@@ -13,7 +13,7 @@
 # limitations under the License.
 openapi: 3.1.0
 info:
-  title: Gravitee.io GKO - Automation API
+  title: Gravitee.io - Automation API
   description: |-
     The APIM automation API. 
 
@@ -273,10 +273,6 @@ components:
       properties:
         hrid:
           $ref: "#/components/schemas/Hrid"
-          examples:
-            - echo_api
-        definitionContext:
-          $ref: "#/components/schemas/DefinitionContext"
         name:
           type: string
           description: API's name. Duplicate names can exists.
@@ -411,7 +407,6 @@ components:
         - listeners
         - endpointGroups
         - version
-        - definitionContext
         - lifecycleState
     ApiV4State:
       allOf:
