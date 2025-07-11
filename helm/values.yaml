@@ -868,7 +868,7 @@ api:
       enabled: true
       ingressClassName: ""
       path: /integration-controller(/.*)?
-      pathType: Prefix
+      pathType: ImplementationSpecific
 #      hosts:
 #        - apim.example.com
       annotations:
@@ -1313,7 +1313,7 @@ gateway:
       ingress:
         enabled: false
         ingressClassName: ""
-        pathType: Prefix
+        pathType: ImplementationSpecific
         path: /_(.*)
         hosts:
           - apim.example.com
@@ -1935,7 +1935,7 @@ ui:
   # annotations:
   ingress:
     enabled: true
-    pathType: Prefix
+    pathType: ImplementationSpecific
     path: /console(/.*)?
     ingressClassName: ""
     # Used to create an Ingress record.
