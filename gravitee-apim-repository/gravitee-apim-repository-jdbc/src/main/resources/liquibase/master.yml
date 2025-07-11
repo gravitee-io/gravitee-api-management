@@ -257,3 +257,7 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_8_0/04_add_hrid_to_apis_table.yml
     - include:
         - file: liquibase/changelogs/v4_9_0/00_add_hrid_to_applications_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/01_add_hrid_to_plans_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/02_add_hrid_to_pages_table.yml

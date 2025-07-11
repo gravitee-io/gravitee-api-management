@@ -23,14 +23,12 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Plan;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
-import liquibase.database.PreparedStatementFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,6 +73,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             .builder(Plan.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("cross_id", Types.NVARCHAR, String.class)
+            .addColumn("hrid", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
             .addColumn("mode", Types.NVARCHAR, Plan.PlanMode.class)
             .addColumn("name", Types.NVARCHAR, String.class)

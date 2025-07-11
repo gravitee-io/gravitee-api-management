@@ -345,7 +345,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response importSubscriptionSpec(@Valid SubscriptionCRDSpec spec) {
-        return Response.ok(importSubscriptionSpecUseCase.execute(new ImportSubscriptionSpecUseCase.Input(getAuditInfo(), spec))).build();
+        return Response
+            .ok(importSubscriptionSpecUseCase.execute(new ImportSubscriptionSpecUseCase.Input(getAuditInfo(), spec)).status())
+            .build();
     }
 
     @DELETE

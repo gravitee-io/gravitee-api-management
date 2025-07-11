@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.apim.rest.api.automation.util.Hrid.toId;
+
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
 import io.gravitee.apim.rest.api.automation.mapper.ApplicationMapper;
 import io.gravitee.apim.rest.api.automation.model.ApplicationSpec;
@@ -26,7 +28,6 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -51,14 +52,11 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = { RolePermissionAction.READ }) })
     public Response getApplicationByHRID() {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
-            ApplicationEntity applicationEntity = applicationService.findById(
-                executionContext,
-                IdBuilder.builder(executionContext, hrid).buildId()
-            );
+            ApplicationEntity applicationEntity = applicationService.findById(executionContext, toId(executionContext, hrid));
             ApplicationSpec applicationSpec = ApplicationMapper.INSTANCE.applicationEntityToApplicationSpec(applicationEntity);
             return Response
                 .ok(
@@ -81,7 +79,7 @@ public class ApplicationResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
-            applicationService.archive(executionContext, IdBuilder.builder(executionContext, hrid).buildId());
+            applicationService.archive(executionContext, toId(executionContext, hrid));
         } catch (ApplicationNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
         }

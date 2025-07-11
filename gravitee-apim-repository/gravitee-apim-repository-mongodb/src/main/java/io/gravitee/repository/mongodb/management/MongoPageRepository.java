@@ -103,6 +103,7 @@ public class MongoPageRepository implements PageRepository {
         try {
             pageMongo.setName(page.getName());
             pageMongo.setCrossId(page.getCrossId());
+            pageMongo.setHrid(page.getHrid());
             pageMongo.setContent(page.getContent());
             pageMongo.setType(page.getType());
             pageMongo.setId(page.getId());

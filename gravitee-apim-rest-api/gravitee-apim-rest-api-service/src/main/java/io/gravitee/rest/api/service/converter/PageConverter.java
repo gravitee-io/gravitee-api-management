@@ -54,6 +54,7 @@ public class PageConverter {
     public NewPageEntity toNewPageEntity(PageEntity pageEntity, boolean resetCrossId) {
         NewPageEntity newPage = new NewPageEntity();
         newPage.setCrossId(resetCrossId ? null : pageEntity.getCrossId());
+        newPage.setHrid(pageEntity.getHrid());
         newPage.setConfiguration(pageEntity.getConfiguration());
         newPage.setContent(pageEntity.getContent());
         newPage.setExcludedAccessControls(pageEntity.isExcludedAccessControls());

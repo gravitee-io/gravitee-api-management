@@ -15,8 +15,9 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.apim.rest.api.automation.util.Hrid.toId;
+
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -32,7 +33,6 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -62,15 +62,12 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
     public Response getApiByHRID() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        var input = new ExportApiCRDUseCase.Input(
-            IdBuilder.builder(executionContext, hrid).buildId(),
-            buildAuditInfo(executionContext, userDetails)
-        );
+        var input = new ExportApiCRDUseCase.Input(toId(executionContext, hrid), buildAuditInfo(executionContext, userDetails));
 
         try {
             ApiCRDSpec apiCRDSpec = exportApiCRDUseCase.execute(input).spec();
@@ -98,7 +95,7 @@ public class ApiResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
-            apiServiceV4.delete(GraviteeContext.getExecutionContext(), IdBuilder.builder(executionContext, hrid).buildId(), true);
+            apiServiceV4.delete(GraviteeContext.getExecutionContext(), toId(executionContext, hrid), true);
         } catch (ApiNotFoundException e) {
             log.warn("API not found for HRID: {}, operation: deleteApi", hrid, e);
             throw new HRIDNotFoundException(hrid);
