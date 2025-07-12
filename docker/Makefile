@@ -66,6 +66,15 @@ kibana: ## Run API Management with Kibana.
 tcp: ## Run API Management with gateway allowing to consume TCP-proxy APIs.
 	cd ./quick-setup/tcp && docker-compose down -v && docker-compose pull && docker-compose up -d
 
+prepare: ## Start a docker-compose based on target. Example: make start TARGET=tags-internal-external. You can use the optional SERVICES to provide the service to start. Example: make start TARGET=tags-internal-external SERVICES=elasticsearch
+ifeq ($(TARGET),)
+	@echo "\033[0;31m ⚠️ Please provide the target you want to prepare \033[0m"
+	@echo " 👍 Example: make prepare TARGET=mongodb"
+else
+	cd ./quick-setup/$(TARGET) && mkdir -p .license && chown -R $(USER) .license
+endif
+
+
 start: ## Start a docker-compose based on target. Example: make start TARGET=tags-internal-external. You can use the optional SERVICES to provide the service to start. Example: make start TARGET=tags-internal-external SERVICES=elasticsearch
 ifeq ($(TARGET),)
 	@echo "\033[0;31m ⚠️ Please provide the target you want to start \033[0m"
