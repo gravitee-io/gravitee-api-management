@@ -10,11 +10,12 @@
   </a>
 </div>
 
+<br/>
+
 ![GitHub Tag](https://img.shields.io/github/v/tag/gravitee-io/gravitee-api-management?style=flat&label=version&color=FF8A00)
 [![License](https://img.shields.io/github/license/gravitee-io/gravitee-api-management?style=flat&label=license&color=FF8A00)](https://github.com/gravitee-io/gravitee-api-management/blob/master/LICENSE.txt)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?style=flat&color=22A3B3)](https://www.linkedin.com/company/graviteesource)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?style=flat&color=22A3B3)](https://twitter.com/intent/follow?screen_name=graviteeio)
-
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-blue?style=flat&color=22A3B3)](https://twitter.com/intent/follow?screen_name=graviteeio)  
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/gravitee-io/gravitee-api-management?style=flat&color=F76C6C
 )
 ![GitHub last commit](https://img.shields.io/github/last-commit/gravitee-io/gravitee-api-management?style=flat&color=F76C6C)
@@ -35,7 +36,7 @@ Different ways to use <a href="https://documentation.gravitee.io/gravitee-cloud"
 
 - <a href="https://documentation.gravitee.io/gravitee-cloud" style="color:#ea3527; font-weight:bold;">Gravitee Cloud</a> (SaaS) on <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg" alt="Azure Logo" height="20" style=" vertical-align:middle; margin-right:8px;"><img src="https://icon.icepanel.io/Technology/svg/Google-Cloud.svg" alt="Google Cloud Logo" height="20" style="vertical-align:middle; margin-right:8px;"><img src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg" alt="AWS Logo" height="20" style="vertical-align:middle; margin-right:8px;">
 
-- <a href="https://github.com/gravitee-io/gravitee-kubernetes-operator" style="color:#ea3527; font-weight:bold;">Gravitee Kubernetes Operator</a> for <img src="https://raw.githubusercontent.com/cncf/artwork/refs/heads/main/projects/kubernetes/horizontal/all-blue-color/kubernetes-horizontal-all-blue-color.svg" alt="Kubernetes Logo" height="25" style=" vertical-align:middle; margin-right:8px;">
+- <a href="https://github.com/gravitee-io/gravitee-kubernetes-operator" style="color:#ea3527; font-weight:bold;">Gravitee Kubernetes Operator</a> for <img src="https://raw.githubusercontent.com/cncf/artwork/refs/heads/main/projects/kubernetes/horizontal/all-blue-color/kubernetes-horizontal-all-blue-color.svg" alt="Kubernetes Logo" height="30" style=" vertical-align:middle; margin-right:8px;">
 - Local/VM using <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Docker_%28container_engine%29_logo.svg" alt="Kubernetes Logo" height="20" style=" vertical-align:middle; margin-right:8px;">
 
 ---
