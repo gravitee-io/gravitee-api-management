@@ -26,21 +26,21 @@
 
 
 
-<span style="color:#ea3527"><strong>Gravitee API Management</strong></span> (also called <strong>Gravitee APIM</strong>)
+<span style="color:#ea3527"><strong>Gravitee API Management</strong></span> (also called <span style="color:#ea3527"><strong>Gravitee APIM</strong></span>)
 is a flexible, lightweight, and blazing-fast Open Source solution that helps your organization control who, when, and how users access your APIs. \
 Effortlessly manage the lifecycle of your APIs.
 
 Download API Management to document, discover, and publish your APIs.
 
-Different ways to use <a href="https://documentation.gravitee.io/gravitee-cloud" style="color:#ea3527; font-weight:bold;">Gravitee</a>:
+Different ways to use <span style="color:#ea3527"><strong>Gravitee APIM</strong></span>:
 
 
 
-| Tool                                                                                                                                            | Target|
-|-------------------------------------------------------------------------------------------------------------------------------------------------|---|
-| <a href="https://documentation.gravitee.io/gravitee-cloud" style="color:#ea3527; font-weight:bold;">Gravitee Cloud</a> (SaaS)                   | <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg" alt="Azure Logo" height="20" style=" vertical-align:middle; margin-right:8px;"><img src="https://icon.icepanel.io/Technology/svg/Google-Cloud.svg" alt="Google Cloud Logo" height="20" style="vertical-align:middle; margin-right:8px;"><img src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg" alt="AWS Logo" height="20" style="vertical-align:middle; margin-right:8px;"> |
+| Tool                                                                                                                                           | Target|
+|------------------------------------------------------------------------------------------------------------------------------------------------|---|
+| <a href="https://documentation.gravitee.io/gravitee-cloud" style="color:#ea3527; font-weight:bold;">Gravitee Cloud</a><sup>SaaS</sup>          | <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg" alt="Azure Logo" height="20" style=" vertical-align:middle; margin-right:8px;"><img src="https://icon.icepanel.io/Technology/svg/Google-Cloud.svg" alt="Google Cloud Logo" height="20" style="vertical-align:middle; margin-right:8px;"><img src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg" alt="AWS Logo" height="20" style="vertical-align:middle; margin-right:8px;"> |
 | <a href="https://github.com/gravitee-io/gravitee-kubernetes-operator" style="color:#ea3527; font-weight:bold;">Gravitee Kubernetes Operator</a> | <img src="https://raw.githubusercontent.com/cncf/artwork/refs/heads/main/projects/kubernetes/horizontal/all-blue-color/kubernetes-horizontal-all-blue-color.svg" alt="Kubernetes Logo" height="35" style=" vertical-align:middle; margin-right:8px;">|
-| docker-compose / make | <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Docker_%28container_engine%29_logo.svg" alt="Kubernetes Logo" height="20" style=" vertical-align:middle; margin-right:8px;">|
+| docker-compose / make                                                                                                                          | <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Docker_%28container_engine%29_logo.svg" alt="Kubernetes Logo" height="20" style=" vertical-align:middle; margin-right:8px;">|
 
 ---
 [Installation](https://documentation.gravitee.io/apim/getting-started/local-install-with-docker) | [Documentation](https://documentation.gravitee.io/apim) | [Community](https://community.gravitee.io/) | [Contributing](./CONTRIBUTING.adoc) | [License](./LICENSE.txt) | [Website][gravitee-url]
@@ -49,8 +49,10 @@ Different ways to use <a href="https://documentation.gravitee.io/gravitee-cloud"
 
 
 ## Getting Started
+Do you only have a few minutes or want to try it out without installation or configuration?  
+<a href="https://documentation.gravitee.io/gravitee-cloud" style="color:#ea3527; font-weight:bold;">Gravitee Cloud</a><sup>SaaS</sup> have you covered. [Start your free trial now][free-trial-url]!
 
-TODO
+If you prefer to use <span style="color:#ea3527"><strong>Gravitee APIM</strong></span> on your own infrastructure, follow the steps below.
 
 ## Features
 
@@ -81,6 +83,7 @@ TODO
 
 [gravitee-url]: https://www.gravitee.io
 [gravitee-features]: https://www.gravitee.io/hubfs/Spiralyze/assets/hero_1002.png
+[free-trial-url]: https://eu-auth.cloud.gravitee.io/cloud/register?response_type=code&client_id=fd45d898-e621-4b12-85d8-98e621ab1237&state=enlSaG1YWThMfmc4QXFLZE5aZGdpYUJrcF9VR0tGa3ZRfjBjWm12a2pXY1Bj&redirect_uri=https%3A%2F%2Feu.cloud.gravitee.io&scope=openid+profile+email+offline_access&code_challenge=Zqs-oyj0nSZXIt__zhOTZRmpoR2ShAaQRWksGEQeIYQ&code_challenge_method=S256&nonce=enlSaG1YWThMfmc4QXFLZE5aZGdpYUJrcF9VR0tGa3ZRfjBjWm12a2pXY1Bj
 
 [gravitee-logo-light-mode]: https://www.gravitee.io/hubfs/Spiralyze/assets/hero_1002.png
 [gravitee-logo-dark-mode]: https://www.gravitee.io/hubfs/Horizontal_DarkMode.svg#gh-dark-mode-only
