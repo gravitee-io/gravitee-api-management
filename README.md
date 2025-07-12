@@ -3,8 +3,8 @@
 <div align="center">
   <a href="https://www.gravitee.io/">
     <picture>
-      <source srcset="https://raw.githubusercontent.com/gravitee-io/gravitee-api-management/refs/heads/master/assets/gravitee-dark-mode.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="https://raw.githubusercontent.com/gravitee-io/gravitee-api-management/refs/heads/master/assets/gravitee-dark-mode.svg" media="(prefers-color-scheme: light)">
+      <source srcset="https://raw.githubusercontent.com/gravitee-io/gravitee-api-management/refs/heads/chore/APIM-10244-Update-Gravitee-APIM-README/assets/gravitee-dark-mode.svg" media="(prefers-color-scheme: dark)">
+      <source srcset="https://raw.githubusercontent.com/gravitee-io/gravitee-api-management/refs/heads/chore/APIM-10244-Update-Gravitee-APIM-README/assets/gravitee-light-mode.svg" media="(prefers-color-scheme: light)">
       <img src="https://raw.githubusercontent.com/gravitee-io/gravitee-api-management/refs/heads/master/assets/gravitee-dark-mode.svg" alt="Gravitee Logo" style="max-width: 100%; height: auto;">
     </picture>
   </a>
