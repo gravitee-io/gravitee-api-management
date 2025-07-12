@@ -27,6 +27,11 @@ networks:
 volumes:
   data-elasticsearch:
   data-mongo:
+  apim-mongodb-logs:
+  apim-gateway-logs:
+  apim-management-api-logs:
+  apim-management-ui-logs:
+  apim-portal-ui-logs:
 
 services:
   mongodb:
@@ -35,7 +40,7 @@ services:
     restart: always
     volumes:
       - data-mongo:/data/db
-      - ./.logs/apim-mongodb:/var/log/mongodb
+      - apim-mongodb-logs:/var/log/mongodb
     healthcheck:
       test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
       interval: 5s
@@ -64,7 +69,7 @@ services:
         hard: -1
       nofile: 65536
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -83,12 +88,13 @@ services:
       elasticsearch:
         condition: service_healthy
     volumes:
-      - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
+      - apim-gateway-logs:/opt/graviteeio-gateway/logs
       - ./.license:/opt/graviteeio-gateway/license
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - "license.key=${LICENSE_KEY}"
     networks:
       - storage
       - frontend
@@ -108,7 +114,7 @@ services:
       elasticsearch:
         condition: service_healthy
     volumes:
-      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+      - apim-management-api-logs:/opt/graviteeio-management-api/logs
       - ./.license:/opt/graviteeio-management-api/license
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
@@ -118,6 +124,7 @@ services:
       - gravitee_email_port=1025
       - gravitee_email_subject="TEST"
       - gravitee_email_from="user@my.domain"
+      - "license.key=${LICENSE_KEY}"
     networks:
       - storage
       - frontend
@@ -135,7 +142,7 @@ services:
       - MGMT_API_URL=http://localhost:8083/management/
       #- DEFAULT_PORTAL=next # Uncomment to set the portal-next as the default portal for management UI environment redirection.
     volumes:
-      - ./.logs/apim-management-ui:/var/log/nginx
+      - apim-management-ui-logs:/var/log/nginx
     networks:
       - frontend
 
@@ -144,14 +151,14 @@ services:
     container_name: gio_apim_portal_ui
     restart: always
     ports:
-      - "8085:8080"
+      - "4100:8080"
     depends_on:
       - management_api
     environment:
       - PORTAL_API_URL=http://localhost:8083/portal
       #- DEFAULT_PORTAL=next # Uncomment to set the portal-next as default portal
     volumes:
-      - ./.logs/apim-portal-ui:/var/log/nginx
+      - apim-portal-ui-logs:/var/log/nginx
     networks:
       - frontend
 
