@@ -26,7 +26,7 @@
 
 
 
-<span style="color:#ea3527"><strong>Gravitee API Management</strong></span> 
+<span style="color:#ea3527"><strong>Gravitee API Management</strong></span> (also called <strong>Gravitee APIM</strong>)
 is a flexible, lightweight, and blazing-fast Open Source solution that helps your organization control who, when, and how users access your APIs. \
 Effortlessly manage the lifecycle of your APIs.
 
@@ -34,10 +34,13 @@ Download API Management to document, discover, and publish your APIs.
 
 Different ways to use <a href="https://documentation.gravitee.io/gravitee-cloud" style="color:#ea3527; font-weight:bold;">Gravitee</a>:
 
-- <a href="https://documentation.gravitee.io/gravitee-cloud" style="color:#ea3527; font-weight:bold;">Gravitee Cloud</a> (SaaS) on <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg" alt="Azure Logo" height="20" style=" vertical-align:middle; margin-right:8px;"><img src="https://icon.icepanel.io/Technology/svg/Google-Cloud.svg" alt="Google Cloud Logo" height="20" style="vertical-align:middle; margin-right:8px;"><img src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg" alt="AWS Logo" height="20" style="vertical-align:middle; margin-right:8px;">
 
-- <a href="https://github.com/gravitee-io/gravitee-kubernetes-operator" style="color:#ea3527; font-weight:bold;">Gravitee Kubernetes Operator</a> for <img src="https://raw.githubusercontent.com/cncf/artwork/refs/heads/main/projects/kubernetes/horizontal/all-blue-color/kubernetes-horizontal-all-blue-color.svg" alt="Kubernetes Logo" height="30" style=" vertical-align:middle; margin-right:8px;">
-- Local/VM using <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Docker_%28container_engine%29_logo.svg" alt="Kubernetes Logo" height="20" style=" vertical-align:middle; margin-right:8px;">
+
+| Tool                                                                                                                                            | Target|
+|-------------------------------------------------------------------------------------------------------------------------------------------------|---|
+| <a href="https://documentation.gravitee.io/gravitee-cloud" style="color:#ea3527; font-weight:bold;">Gravitee Cloud</a> (SaaS)                   | <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg" alt="Azure Logo" height="20" style=" vertical-align:middle; margin-right:8px;"><img src="https://icon.icepanel.io/Technology/svg/Google-Cloud.svg" alt="Google Cloud Logo" height="20" style="vertical-align:middle; margin-right:8px;"><img src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg" alt="AWS Logo" height="20" style="vertical-align:middle; margin-right:8px;"> |
+| <a href="https://github.com/gravitee-io/gravitee-kubernetes-operator" style="color:#ea3527; font-weight:bold;">Gravitee Kubernetes Operator</a> | <img src="https://raw.githubusercontent.com/cncf/artwork/refs/heads/main/projects/kubernetes/horizontal/all-blue-color/kubernetes-horizontal-all-blue-color.svg" alt="Kubernetes Logo" height="35" style=" vertical-align:middle; margin-right:8px;">|
+| docker-compose / make | <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Docker_%28container_engine%29_logo.svg" alt="Kubernetes Logo" height="20" style=" vertical-align:middle; margin-right:8px;">|
 
 ---
 [Installation](https://documentation.gravitee.io/apim/getting-started/local-install-with-docker) | [Documentation](https://documentation.gravitee.io/apim) | [Community](https://community.gravitee.io/) | [Contributing](./CONTRIBUTING.adoc) | [License](./LICENSE.txt) | [Website][gravitee-url]
