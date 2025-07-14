@@ -237,12 +237,9 @@
                 <td mat-cell *matCellDef="let environment" formGroupName="environments">
                   <mat-form-field>
                     <mat-label>Roles</mat-label>
-                    <mat-select [formControlName]="environment.id" multiple required>
+                    <mat-select [formControlName]="environment.id" multiple>
                       <mat-option *ngFor="let role of environmentRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
                     </mat-select>
-                    <mat-error *ngIf="roleMappingControl.get('environments').get(environment.id).hasError('required')"
-                      >At least one role is required.</mat-error
-                    >
                   </mat-form-field>
                 </td>
               </ng-container>
