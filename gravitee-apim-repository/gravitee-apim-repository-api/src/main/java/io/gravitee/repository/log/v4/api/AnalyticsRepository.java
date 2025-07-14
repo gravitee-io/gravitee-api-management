@@ -66,7 +66,7 @@ public interface AnalyticsRepository {
 
     List<HistogramAggregate<?>> searchHistogram(QueryContext queryContext, HistogramQuery query);
 
-    default Optional<GroupByAggregate<?>> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
+    default Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
         return Optional.empty();
     }
 }

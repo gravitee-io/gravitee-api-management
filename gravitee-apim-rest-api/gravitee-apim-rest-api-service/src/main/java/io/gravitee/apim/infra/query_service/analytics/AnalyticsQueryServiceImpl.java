@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.analytics;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.Bucket;
+import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.Timestamp;
@@ -53,6 +54,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -287,6 +289,51 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         }
 
         return Optional.of(mapHistogramAggregatesToHistogramAnalytics(repoResult, histogramParameters));
+    }
+
+    @Override
+    public Optional<GroupByAnalytics> searchGroupByAnalytics(
+        ExecutionContext executionContext,
+        io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery groupByQuery
+    ) {
+        var repoGroups = groupByQuery.groups() == null
+            ? null
+            : groupByQuery
+                .groups()
+                .stream()
+                .map(g -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group(g.from(), g.to()))
+                .toList();
+        var repoQuery = getGroupByQuery(groupByQuery, repoGroups);
+        return analyticsRepository
+            .searchGroupBy(executionContext.getQueryContext(), repoQuery)
+            .map(groupByAggregate -> {
+                GroupByAnalytics analytics = new GroupByAnalytics();
+                analytics.setValues(groupByAggregate.values());
+                return analytics;
+            });
+    }
+
+    private static io.gravitee.repository.log.v4.model.analytics.@NotNull GroupByQuery getGroupByQuery(
+        GroupByQuery groupByQuery,
+        List<io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group> repoGroups
+    ) {
+        var repoOrder = groupByQuery.order() == null
+            ? null
+            : new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Order(
+                groupByQuery.order().field(),
+                groupByQuery.order().order(),
+                groupByQuery.order().type()
+            );
+        return new io.gravitee.repository.log.v4.model.analytics.GroupByQuery(
+            groupByQuery.apiId(),
+            null,
+            groupByQuery.field(),
+            repoGroups,
+            repoOrder,
+            groupByQuery.from(),
+            groupByQuery.to(),
+            groupByQuery.interval()
+        );
     }
 
     private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(
