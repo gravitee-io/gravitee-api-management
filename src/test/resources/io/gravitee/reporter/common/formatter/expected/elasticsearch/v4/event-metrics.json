@@ -1,5 +1,5 @@
 {
-  "type": "v4-event-native-metrics",
+  "type": "event-metrics",
   "date": "2025.06.27",
   "@timestamp": "2025-06-27T09:06:51.866Z",
   "plan-id": "test_plan",

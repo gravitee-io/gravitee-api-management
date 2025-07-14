@@ -46,6 +46,7 @@ class MsgPackFormatterTest extends AbstractFormatterTest {
       "v4 metrics, v4.metric.Metrics, v4/metrics.json, json/v4/metrics.json",
       "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, json/v4/message-metrics.json",
       "message log, v4.log.MessageLog, v4/message-log.json, json/v4/message-log.json",
+      "event metrics, v4.metric.EventMetrics, v4/event-metrics.json, json/v4/event-metrics.json",
     }
   )
   @ParameterizedTest(name = "{0}")

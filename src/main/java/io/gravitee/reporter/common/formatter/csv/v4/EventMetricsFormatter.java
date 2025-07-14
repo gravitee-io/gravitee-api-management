@@ -15,18 +15,18 @@
  */
 package io.gravitee.reporter.common.formatter.csv.v4;
 
-import io.gravitee.reporter.api.v4.metric.eventnative.EventNativeMetrics;
+import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.common.formatter.csv.SingleValueFormatter;
 import io.vertx.core.buffer.Buffer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class EventNativeMetricsFormatter
-  extends SingleValueFormatter<EventNativeMetrics> {
+public class EventMetricsFormatter extends SingleValueFormatter<EventMetrics> {
 
   @Override
-  protected Buffer format0(EventNativeMetrics data) {
+  protected Buffer format0(EventMetrics data) {
     final Buffer buffer = Buffer.buffer();
+    appendLong(buffer, data.getTimestamp());
 
     // Append base dimensions
     appendString(buffer, data.getGatewayId());

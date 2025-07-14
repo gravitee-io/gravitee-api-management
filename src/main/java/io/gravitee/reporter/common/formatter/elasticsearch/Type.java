@@ -28,7 +28,7 @@ public enum Type {
   V4_METRICS("v4-metrics"),
   V4_MESSAGE_METRICS("v4-message-metrics"),
   V4_MESSAGE_LOG("v4-message-log"),
-  V4_EVENT_NATIVE_METRICS("v4-event-native-metrics");
+  EVENT_METRICS("event-metrics");
 
   private final String type;
 

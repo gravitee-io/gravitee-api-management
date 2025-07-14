@@ -1,0 +1,21 @@
+{ "index" : { "_index" : "gravitee-v4.metric.EventMetrics-2023.08.28" } }
+{
+  "@timestamp": "2025-06-27T09:06:51.866Z",
+  "plan-id": "test_plan",
+  "api-id": "test_api",
+  "app-id": "test_app",
+  "gw-id": "test_gateway",
+  "env-id": "test_env",
+  "org-id": "test_org",
+  "topic": "test_topic",
+  "downstream-publish-messages-total": 3112,
+  "downstream-publish-message-bytes": 213123,
+  "upstream-publish-messages-total": 13123,
+  "upstream-publish-message-bytes": 213311,
+  "downstream-subscribe-messages-total": 40593,
+  "downstream-subscribe-message-bytes": 432421,
+  "upstream-subscribe-messages-total": 34413,
+  "upstream-subscribe-message-bytes": 2132131,
+  "downstream-active-connections": 4,
+  "upstream-active-connections": 3
+}

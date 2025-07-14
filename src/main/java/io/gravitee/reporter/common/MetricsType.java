@@ -21,8 +21,8 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.v4.log.MessageLog;
+import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
-import io.gravitee.reporter.api.v4.metric.eventnative.EventNativeMetrics;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -37,7 +37,7 @@ public enum MetricsType {
   V4_METRICS("v4-metrics", io.gravitee.reporter.api.v4.metric.Metrics.class),
   V4_MESSAGE_METRICS("v4-message-metrics", MessageMetrics.class),
   V4_MESSAGE_LOG("v4-message-log", MessageLog.class),
-  V4_EVENT_NATIVE_METRICS("v4-event-native-metrics", EventNativeMetrics.class);
+  EVENT_METRICS("event-metrics", EventMetrics.class);
 
   private final String type;
   private final Class<? extends Reportable> clazz;

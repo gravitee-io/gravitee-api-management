@@ -1,18 +1,18 @@
 <#ftl output_format="JSON">
 <#-- @ftlvariable name="@timestamp" type="java.lang.String" -->
 <#-- @ftlvariable name="index" type="java.lang.String" -->
-<#-- @ftlvariable name="metrics" type="io.gravitee.reporter.api.v4.metric.eventnative.EventNativeMetrics" -->
+<#-- @ftlvariable name="metrics" type="io.gravitee.reporter.api.v4.metric.EventMetrics" -->
 <#if index??>
     { "index": { "_index": "${index}" } }
 </#if>
 <#--noinspection FtlReferencesInspection-->
 <@compress single_line=true>
     {
+    "@timestamp": "${@timestamp}"
     <#if !index??>
-        "type": "v4-event-native-metrics"
+        ,"type": "event-metrics"
         ,"date": "${date}"
     </#if>
-    ,"@timestamp": "${@timestamp}"
     ,"gw-id": "${metrics.getGatewayId()}"
     ,"org-id": "${metrics.getOrganizationId()}"
     ,"env-id": "${metrics.getEnvironmentId()}"
