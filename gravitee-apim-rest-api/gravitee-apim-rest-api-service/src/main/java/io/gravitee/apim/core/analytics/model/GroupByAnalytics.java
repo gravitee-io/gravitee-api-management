@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.model.analytics;
+package io.gravitee.apim.core.analytics.model;
 
 import java.util.Map;
+import lombok.Data;
 
-public record GroupByAggregate(String name, String field, Map<String, Long> values) {}
+@Data
+public class GroupByAnalytics {
+
+    private Map<String, Long> values;
+}

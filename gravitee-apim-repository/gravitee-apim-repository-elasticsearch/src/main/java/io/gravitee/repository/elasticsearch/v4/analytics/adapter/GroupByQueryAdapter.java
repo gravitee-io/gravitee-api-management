@@ -31,6 +31,9 @@ public class GroupByQueryAdapter {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final List<String> ENTRYPOINT_IDS = List.of("http-post", "http-get", "http-proxy");
 
+    private String aggName;
+    private String fieldName;
+
     public String adapt(GroupByQuery query) {
         ObjectNode root = MAPPER.createObjectNode();
         root.put("size", 0);
@@ -42,6 +45,14 @@ public class GroupByQueryAdapter {
         // Aggregations
         ObjectNode aggs = createAggregationsNode(query);
         root.set("aggregations", aggs);
+
+        // Set instance fields for later use in adaptResponse
+        if (query.groups() != null && !query.groups().isEmpty()) {
+            this.aggName = "by_" + query.field() + "_range";
+        } else {
+            this.aggName = "by_" + query.field();
+        }
+        this.fieldName = query.field();
 
         return root.toString();
     }
@@ -115,11 +126,11 @@ public class GroupByQueryAdapter {
         return aggs;
     }
 
-    public Optional<GroupByAggregate<?>> adaptResponse(SearchResponse response, String aggName, String fieldName) {
+    public Optional<GroupByAggregate> adaptResponse(SearchResponse response) {
         if (response == null || response.getAggregations() == null) {
             return Optional.empty();
         }
-        Aggregation agg = response.getAggregations().get(aggName);
+        Aggregation agg = response.getAggregations().get(this.aggName);
         if (agg == null || agg.getBuckets() == null) {
             return Optional.empty();
         }
@@ -131,6 +142,6 @@ public class GroupByQueryAdapter {
                 long count = bucket.get("doc_count").asLong();
                 values.put(key, count);
             });
-        return Optional.of(new GroupByAggregate<>(aggName, fieldName, values));
+        return Optional.of(new GroupByAggregate(this.aggName, this.fieldName, values));
     }
 }

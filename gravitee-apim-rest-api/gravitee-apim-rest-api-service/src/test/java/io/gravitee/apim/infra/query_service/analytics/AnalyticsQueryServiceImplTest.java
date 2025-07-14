@@ -349,4 +349,30 @@ class AnalyticsQueryServiceImplTest {
             assertThat(bucket404.getData()).containsExactly(0, 0, 0, 2);
         }
     }
+
+    @Nested
+    class SearchGroupByAnalyticsTest {
+
+        @Test
+        void should_map_group_by_aggregate_to_group_by_analytics() {
+            var from = Instant.parse("2024-01-01T00:00:00Z");
+            var to = Instant.parse("2024-01-02T00:00:00Z");
+            var interval = Duration.ofHours(1);
+            var apiId = "api-1";
+            var field = "status";
+            var values = Map.of("200", 10L, "404", 2L);
+
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate("aggName", field, values);
+
+            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
+
+            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, interval);
+
+            var result = cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
+
+            assertThat(result).isPresent();
+            var analytics = result.get();
+            assertThat(analytics.getValues()).containsExactlyInAnyOrderEntriesOf(values);
+        }
+    }
 }

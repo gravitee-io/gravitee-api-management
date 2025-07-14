@@ -208,21 +208,13 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public Optional<GroupByAggregate<?>> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var adapter = new GroupByQueryAdapter();
         var esQuery = adapter.adapt(query);
 
         log.debug("Search group by query: {}", esQuery);
-        return client
-            .search(index, null, esQuery)
-            .map(response -> {
-                String aggName = query.groups() != null && !query.groups().isEmpty()
-                    ? "by_" + query.field() + "_range"
-                    : "by_" + query.field();
-                return adapter.adaptResponse(response, aggName, query.field());
-            })
-            .blockingGet();
+        return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {
