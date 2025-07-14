@@ -239,7 +239,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
           ...this.allEnvironments.reduce(
             (prev, environment) => ({
               ...prev,
-              [environment.id]: new UntypedFormControl(roleMapping?.environments[environment.id] ?? [], [Validators.required]),
+              [environment.id]: new UntypedFormControl(roleMapping?.environments[environment.id] ?? []),
             }),
             {},
           ),
