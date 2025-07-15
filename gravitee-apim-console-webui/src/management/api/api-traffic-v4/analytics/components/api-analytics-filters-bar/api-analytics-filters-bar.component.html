@@ -15,51 +15,50 @@
     limitations under the License.
 
 -->
-<mat-card>
-  <mat-card-content>
-    <form [formGroup]="form" class="form">
-      <mat-form-field>
-        <mat-label>Timeframe</mat-label>
-        <mat-select formControlName="period">
-          @for (timeFrame of timeFrames; track timeFrame.id) {
-            <mat-option [value]="timeFrame.id">{{ timeFrame.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
 
-      @if (periodFormValue.value === customPeriod) {
-        <mat-form-field class="custom-date">
-          <mat-label>From</mat-label>
-          <input matInput [owlDateTime]="fromDateTimePicker" [max]="nowDate" formControlName="from" />
-          <mat-icon [owlDateTimeTrigger]="fromDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
-          <owl-date-time #fromDateTimePicker></owl-date-time>
-        </mat-form-field>
-
-        <mat-form-field class="custom-date">
-          <mat-label>To</mat-label>
-          <input matInput [owlDateTime]="toDateTimePicker" [min]="minDate" [max]="nowDate" formControlName="to" />
-          <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
-          <owl-date-time #toDateTimePicker></owl-date-time>
-        </mat-form-field>
-
-        <button
-          data-testid="apply-button"
-          [disabled]="form.invalid || !form.get('from').value || !form.get('to').value"
-          mat-stroked-button
-          aria-label="Apply"
-          (click)="applyCustomTimeframe()"
-        >
-          Apply
-        </button>
-      } @else {
-        <button data-testid="refresh-button" mat-stroked-button aria-label="Refresh data" (click)="refresh()">Refresh data</button>
+<form [formGroup]="form" class="form">
+  <mat-form-field>
+    <mat-label>Timeframe</mat-label>
+    <mat-select formControlName="period">
+      @for (timeFrame of timeFrames; track timeFrame.id) {
+        <mat-option [value]="timeFrame.id">{{ timeFrame.label }}</mat-option>
       }
+    </mat-select>
+  </mat-form-field>
 
-      <div class="errors">
-        <mat-error *ngIf="form.get('to').hasError('owlDateTimeMin')">
-          <span> Error: Date "to" is earlier than "from"</span>
-        </mat-error>
-      </div>
-    </form>
-  </mat-card-content>
-</mat-card>
+  @if ((periodFormValue$ | async) === customPeriod) {
+    <mat-form-field class="custom-date">
+      <mat-label>From</mat-label>
+      <input matInput [owlDateTime]="fromDateTimePicker" [max]="nowDate" formControlName="from" />
+      <mat-icon [owlDateTimeTrigger]="fromDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
+      <owl-date-time #fromDateTimePicker></owl-date-time>
+    </mat-form-field>
+
+    <mat-form-field class="custom-date">
+      <mat-label>To</mat-label>
+      <input matInput [owlDateTime]="toDateTimePicker" [min]="minDate" [max]="nowDate" formControlName="to" />
+      <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
+      <owl-date-time #toDateTimePicker></owl-date-time>
+    </mat-form-field>
+
+    <button
+      data-testid="apply-button"
+      [disabled]="form.invalid || !form.get('from').value || !form.get('to').value"
+      mat-stroked-button
+      aria-label="Apply"
+      (click)="applyCustomTimeframe()"
+    >
+      Apply
+    </button>
+  } @else {
+    <button data-testid="refresh-button" mat-stroked-button aria-label="Refresh data" (click)="refresh()">Refresh data</button>
+  }
+
+  <div class="errors">
+    @if (form.get('to').hasError('owlDateTimeMin')) {
+      <mat-error>
+        <span> Error: Date "to" is earlier than "from"</span>
+      </mat-error>
+    }
+  </div>
+</form>

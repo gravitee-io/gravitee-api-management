@@ -13,31 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, OnInit } from '@angular/core';
+import { Component, DestroyRef, input, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
 import { switchMap } from 'rxjs/operators';
 
 import { GioChartLineModule } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
+import { AggregationFields, AggregationTypes } from '../../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+
+export interface ChartWidgetConfig {
+  apiId: string;
+  aggregationType: AggregationTypes;
+  aggregationField: AggregationFields;
+  title: string;
+  tooltip: string;
+}
 
 @Component({
-  selector: 'api-analytics-response-status-overtime',
-  imports: [MatCardModule, GioChartLineModule, GioLoaderModule],
-  templateUrl: './api-analytics-response-status-overtime.component.html',
-  styleUrl: './api-analytics-response-status-overtime.component.scss',
+  selector: 'chart-widget',
+  imports: [MatCardModule, GioChartLineModule, GioLoaderModule, MatTooltip, MatIcon],
+  templateUrl: './chart-widget.component.html',
+  styleUrl: './chart-widget.component.scss',
 })
-export class ApiAnalyticsResponseStatusOvertimeComponent implements OnInit {
+export class ChartWidgetComponent implements OnInit {
   public chartInput: GioChartLineData[];
   public isLoading = true;
   public chartOptions: GioChartLineOptions;
+  public config = input<ChartWidgetConfig>();
 
   constructor(
-    private readonly activatedRoute: ActivatedRoute,
     private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
     private readonly destroyRef: DestroyRef,
     private readonly snackBarService: SnackBarService,
@@ -49,20 +59,22 @@ export class ApiAnalyticsResponseStatusOvertimeComponent implements OnInit {
       .pipe(
         switchMap(() => {
           this.isLoading = true;
-          return this.apiAnalyticsV2Service.getResponseStatusOvertime(this.activatedRoute.snapshot.params.apiId);
+          return this.apiAnalyticsV2Service.getHistogramAnalytics(this.config().apiId, {
+            type: this.config().aggregationType,
+            field: this.config().aggregationField,
+          });
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (res) => {
           this.isLoading = false;
-          this.chartInput = Object.entries(res.data).map(([key, value]) => ({
-            name: key,
-            values: value,
-          }));
+          this.chartInput = res.values
+            .find((value) => value.name === this.config().aggregationField)
+            .buckets.map(({ name, data }) => ({ name, values: data }));
           this.chartOptions = {
-            pointStart: res.timeRange?.from,
-            pointInterval: res.timeRange?.interval,
+            pointStart: res.timestamp.from,
+            pointInterval: res.timestamp.interval,
           };
         },
         error: ({ error }) => {

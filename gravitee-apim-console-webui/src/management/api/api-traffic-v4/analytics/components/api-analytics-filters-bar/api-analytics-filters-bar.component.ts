@@ -18,20 +18,27 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOption } from '@angular/material/autocomplete';
 import { MatSelect } from '@angular/material/select';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatInputModule } from '@angular/material/input';
+import { Observable } from 'rxjs';
 import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import moment, { Moment } from 'moment/moment';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 
 import { ApiAnalyticsFilters } from './api-analytics-filters-bar.configuration';
 
-import { timeFrames, customTimeFrames, TimeRangeParams, DATE_TIME_FORMATS } from '../../../../../../shared/utils/timeFrameRanges';
+import {
+  timeFrames,
+  customTimeFrames,
+  TimeRangeParams,
+  DATE_TIME_FORMATS,
+  calculateCustomInterval,
+} from '../../../../../../shared/utils/timeFrameRanges';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 
 @Component({
@@ -60,6 +67,7 @@ export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
   public minDate: Moment;
   public nowDate: Moment = moment().add(1, 'd');
   public customPeriod: string = 'custom';
+  public periodFormValue$: Observable<string>;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -81,14 +89,12 @@ export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
     ) {
       this.applyCustomTimeframe();
     }
+
+    this.periodFormValue$ = this.form.get('period').valueChanges;
   }
 
   ngOnDestroy() {
     this.apiAnalyticsV2Service.setTimeRangeFilter(null);
-  }
-
-  get periodFormValue() {
-    return this.form.get('period') as FormControl;
   }
 
   private initForm() {
@@ -117,9 +123,13 @@ export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
   }
 
   public applyCustomTimeframe() {
+    const from = this.form.get('from').value.valueOf();
+    const to = this.form.get('to').value.valueOf();
+
     const customTimeRange = {
-      from: this.form.get('from').value.valueOf(),
-      to: this.form.get('to').value.valueOf(),
+      from,
+      to,
+      interval: calculateCustomInterval(from, to),
     };
     this.apiAnalyticsV2Service.setTimeRangeFilter(customTimeRange);
   }

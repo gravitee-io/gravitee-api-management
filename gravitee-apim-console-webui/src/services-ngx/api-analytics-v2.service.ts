@@ -23,10 +23,10 @@ import { AnalyticsRequestsCount } from '../entities/management-api-v2/analytics/
 import { AnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
-import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
+import { HistogramAnalyticsResponse, AnalyticsHistogramAggregation } from '../entities/management-api-v2/analytics/analyticsHistogram';
 
 @Injectable({
   providedIn: 'root',
@@ -87,22 +87,22 @@ export class ApiAnalyticsV2Service {
     );
   }
 
-  getResponseStatusOvertime(apiId: string): Observable<AnalyticsResponseStatusOvertime> {
-    return this.timeRangeFilter().pipe(
-      filter((data) => !!data),
-      switchMap(({ from, to }) => {
-        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-overtime?from=${from}&to=${to}`;
-        return this.http.get<AnalyticsResponseStatusOvertime>(url);
-      }),
-    );
-  }
-
   getResponseTimeOverTime(apiId: string): Observable<AnalyticsResponseTimeOverTime> {
     return this.timeRangeFilter().pipe(
       filter((data) => !!data),
       switchMap(({ from, to }) => {
         const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-time-over-time?from=${from}&to=${to}`;
         return this.http.get<AnalyticsResponseTimeOverTime>(url);
+      }),
+    );
+  }
+
+  getHistogramAnalytics(apiId: string, aggregation: AnalyticsHistogramAggregation) {
+    return this.timeRangeFilter().pipe(
+      filter((data) => !!data),
+      switchMap(({ from, to, interval }) => {
+        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=HISTOGRAM&from=${from}&to=${to}&interval=${interval}&aggregations=${aggregation.type}:${aggregation.field}`;
+        return this.http.get<HistogramAnalyticsResponse>(url);
       }),
     );
   }
