@@ -131,6 +131,92 @@ class SearchHistogramQueryAdapterTest {
                         )
                 );
         }
+
+        @Test
+        void should_generate_expected_avg_aggregation_query_json() {
+            HistogramQuery query = new HistogramQuery(
+                API_ID,
+                FROM,
+                TO,
+                INTERVAL,
+                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG))
+            );
+
+            String result = cut.adapt(query);
+
+            assertThatJson(result)
+                .isEqualTo(
+                    """
+                    {
+                      "size": 0,
+                      "query": {
+                        "bool": {
+                          "filter": [
+                            {
+                              "bool": {
+                                "minimum_should_match": 1,
+                                "should": [
+                                  {
+                                    "bool": {
+                                      "must": [
+                                        {
+                                          "terms": {
+                                            "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                          }
+                                        },
+                                        {
+                                          "terms": {
+                                            "entrypoint-id": [ "http-post", "http-get", "http-proxy" ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "range": {
+                                "@timestamp": {
+                                  "from": %d,
+                                  "to": %d,
+                                  "include_lower": true,
+                                  "include_upper": true
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "aggregations": {
+                        "by_date": {
+                          "date_histogram": {
+                            "field": "@timestamp",
+                            "fixed_interval": "1800000ms",
+                            "min_doc_count": 0,
+                            "extended_bounds": {
+                              "min": %d,
+                              "max": %d
+                            }
+                          },
+                          "aggregations": {
+                            "avg_gateway-response-time-ms": {
+                              "avg": {
+                                "field": "gateway-response-time-ms"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                    """.formatted(
+                            FROM.toEpochMilli(),
+                            TO.toEpochMilli(),
+                            FROM.toEpochMilli(),
+                            TO.toEpochMilli()
+                        )
+                );
+        }
     }
 
     @Nested
@@ -195,12 +281,64 @@ class SearchHistogramQueryAdapterTest {
             List<HistogramAggregate<?>> result = cut.adaptResponse(response);
 
             assertThat(result).hasSize(1);
-            HistogramAggregate<Long> agg = (HistogramAggregate<Long>) result.get(0);
+            HistogramAggregate<Long> agg = (HistogramAggregate<Long>) result.getFirst();
             assertThat(agg.getBuckets()).containsOnlyKeys("200", "202", "404");
 
             assertThat(agg.getBuckets().get("200")).containsExactly(1L, 0L);
             assertThat(agg.getBuckets().get("202")).containsExactly(0L, 1L);
             assertThat(agg.getBuckets().get("404")).containsExactly(0L, 2L);
+        }
+
+        @Test
+        void should_parse_avg_aggregation_response() throws Exception {
+            ObjectMapper mapper = new ObjectMapper();
+            String json =
+                """
+                {
+                  "aggregations": {
+                    "by_date": {
+                      "buckets": [
+                        {
+                          "key": 1751414400000,
+                          "avg_gateway-response-time-ms": {
+                            "value": 120.5
+                          }
+                        },
+                        {
+                          "key": 1751587200000,
+                          "avg_gateway-response-time-ms": {
+                            "value": 110.0
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                """;
+            SearchResponse response = new SearchResponse();
+            Aggregation byDateAgg = new Aggregation();
+            ArrayNode bucketsNode = (ArrayNode) mapper.readTree(json).get("aggregations").get("by_date").get("buckets");
+            List<JsonNode> buckets = new java.util.ArrayList<>();
+            bucketsNode.forEach(buckets::add);
+            byDateAgg.setBuckets(buckets);
+            response.setAggregations(Map.of("by_date", byDateAgg));
+
+            cut.adapt(
+                new HistogramQuery(
+                    API_ID,
+                    FROM,
+                    TO,
+                    INTERVAL,
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG))
+                )
+            );
+
+            List<HistogramAggregate<?>> result = cut.adaptResponse(response);
+
+            assertThat(result).hasSize(1);
+            HistogramAggregate<Double> agg = (HistogramAggregate<Double>) result.getFirst();
+            assertThat(agg.getBuckets()).containsOnlyKeys("avg_gateway-response-time-ms");
+            assertThat(agg.getBuckets().get("avg_gateway-response-time-ms")).containsExactly(120.5, 110.0);
         }
     }
 }
