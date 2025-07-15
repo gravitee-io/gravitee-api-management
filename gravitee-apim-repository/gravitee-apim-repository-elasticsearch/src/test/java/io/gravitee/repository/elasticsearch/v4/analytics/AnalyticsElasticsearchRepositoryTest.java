@@ -679,5 +679,35 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(bucket404).hasSizeGreaterThan(61);
             assertThat(bucket404.get(61)).isEqualTo(2L);
         }
+
+        @Test
+        void should_return_histogram_aggregates_for_avg_gateway_response_time_ms() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var interval = Duration.ofMinutes(30);
+
+            var query = io.gravitee.repository.log.v4.model.analytics.HistogramQuery
+                .builder()
+                .from(from)
+                .to(to)
+                .interval(interval)
+                .apiId(API_ID)
+                .aggregations(List.of(new Aggregation("gateway-response-time-ms", AggregationType.AVG)))
+                .build();
+
+            var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result).isNotNull();
+            assertThat(result).hasSize(1);
+
+            var histogram = result.getFirst();
+            assertThat(histogram.getBuckets()).isNotNull();
+            assertThat(histogram.getBuckets()).containsOnlyKeys("avg_gateway-response-time-ms");
+
+            var avgBucket = (List<Double>) histogram.getBuckets().get("avg_gateway-response-time-ms");
+            assertThat(avgBucket).isNotEmpty();
+            assertThat(avgBucket.stream().filter(v -> v > 0).count()).isEqualTo(2);
+        }
     }
 }
