@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.param;
 
+import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.apim.core.analytics.use_case.SearchGroupByAnalyticsUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import jakarta.ws.rs.QueryParam;
 import java.util.List;
@@ -96,6 +99,50 @@ public class ApiAnalyticsParam {
             })
             .filter(java.util.Objects::nonNull)
             .toList();
+    }
+
+    public static SearchHistogramAnalyticsUseCase.Input toHistogramInput(String apiId, ApiAnalyticsParam param) {
+        var aggregations = param
+            .getAggregations()
+            .stream()
+            .map(a -> {
+                if (a.getType() == null) return null;
+                try {
+                    var type = io.gravitee.apim.core.analytics.model.Aggregation.AggregationType.valueOf(a.getType().toUpperCase());
+                    return new io.gravitee.apim.core.analytics.model.Aggregation(a.getField(), type);
+                } catch (IllegalArgumentException ex) {
+                    return null;
+                }
+            })
+            .filter(java.util.Objects::nonNull)
+            .toList();
+
+        return new SearchHistogramAnalyticsUseCase.Input(apiId, param.getFrom(), param.getTo(), param.getInterval(), aggregations);
+    }
+
+    public static SearchGroupByAnalyticsUseCase.Input toGroupByInput(String apiId, ApiAnalyticsParam param) {
+        List<AnalyticsQueryService.GroupByQuery.Group> groups = param
+            .getRanges()
+            .stream()
+            .map(r -> new AnalyticsQueryService.GroupByQuery.Group(r.getFrom(), r.getTo()))
+            .toList();
+
+        AnalyticsQueryService.GroupByQuery.Order order = null;
+        if (param.getOrder() != null) {
+            try {
+                order = AnalyticsQueryService.GroupByQuery.Order.valueOf(param.getOrder());
+            } catch (IllegalArgumentException ignored) {}
+        }
+
+        return new SearchGroupByAnalyticsUseCase.Input(
+            apiId,
+            param.getFrom(),
+            param.getTo(),
+            param.getInterval(),
+            param.getField(),
+            groups,
+            order
+        );
     }
 
     @Getter

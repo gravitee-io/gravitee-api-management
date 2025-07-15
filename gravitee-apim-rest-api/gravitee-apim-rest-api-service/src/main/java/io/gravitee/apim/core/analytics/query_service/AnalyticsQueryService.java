@@ -84,7 +84,24 @@ public interface AnalyticsQueryService {
 
     record GroupByQuery(String apiId, Instant from, Instant to, String field, List<Group> groups, Order order, Duration interval) {
         public record Group(long from, long to) {}
-        public record Order(String field, boolean order, String type) {}
+        public record Order(String field, boolean order, String type) {
+            public static Order valueOf(String param) {
+                String field = null;
+                boolean order = true;
+                String type = null;
+                if (param != null) {
+                    String[] parts = param.split(":");
+                    order = !parts[0].startsWith("-");
+                    if (parts.length == 2) {
+                        type = order ? parts[0] : parts[0].substring(1);
+                        field = parts[1];
+                    } else {
+                        field = order ? parts[0] : parts[0].substring(1);
+                    }
+                }
+                return new Order(field, order, type);
+            }
+        }
     }
 
     record ResponseStatusOverTimeQuery(

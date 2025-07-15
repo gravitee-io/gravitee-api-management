@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics.model;
+package io.gravitee.apim.core.analytics.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class GroupByAnalytics {
+@DomainService
+public class GenericMetadataProvider implements AnalyticsMetadataProvider {
 
-    private Map<String, Long> values;
+    private static final String METADATA_NAME = "name";
+
+    @Override
+    public boolean appliesTo(Field field) {
+        return Field.GENERIC == field;
+    }
+
+    @Override
+    public Map<String, String> provide(String key, String environmentId) {
+        return Map.of(METADATA_NAME, key);
+    }
 }
