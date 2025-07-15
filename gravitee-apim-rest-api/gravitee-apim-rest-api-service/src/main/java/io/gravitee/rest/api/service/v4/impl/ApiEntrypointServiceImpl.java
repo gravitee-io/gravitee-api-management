@@ -109,6 +109,9 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                 if (!isEntrypointMatching) {
                     return;
                 }
+                if (!hasSupportedListeners(genericApiEntity)) {
+                    return;
+                }
                 // Check if entrypoint is matching the API target
                 if (entrypoint.getTarget() != getApiTarget(genericApiEntity)) {
                     return;
@@ -393,5 +396,26 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         }
 
         throw new EntrypointNotFoundException(genericApiEntity.getId());
+    }
+
+    private boolean hasSupportedListeners(GenericApiEntity api) {
+        // V1/V2 are always supported (HTTP)
+        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+            log.debug("API [{}] has supported listener", api.getId());
+            return true;
+        }
+        if (api instanceof io.gravitee.rest.api.model.v4.api.ApiEntity v4Api) {
+            boolean hasCompatibleListener = v4Api
+                .getListeners()
+                .stream()
+                .anyMatch(listener -> listener instanceof TcpListener || listener instanceof HttpListener);
+            if (!hasCompatibleListener) {
+                log.debug("API [{}] has no TCP or HTTP listeners — entrypoint checks will be skipped", api.getId());
+            }
+            return hasCompatibleListener;
+        }
+        // V4 Native APIs (Kafka) don't need HTTP/TCP
+        log.debug("API [{}] is a V4 Native API — skipping HTTP/TCP listener check", api.getId());
+        return true;
     }
 }

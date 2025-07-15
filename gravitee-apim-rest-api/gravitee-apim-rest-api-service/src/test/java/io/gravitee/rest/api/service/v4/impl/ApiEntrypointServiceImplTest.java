@@ -653,6 +653,59 @@ class ApiEntrypointServiceImplTest {
         assertThat(apiEntrypoints.get(2).getTarget()).isEqualTo("kafka-host-trial.domain3:1234");
     }
 
+    @Test
+    void should_skip_entrypoint_for_v4_api_with_unsupported_listeners_only() {
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("tag"));
+        SubscriptionListener unsupportedListener = SubscriptionListener.builder().build();
+        apiEntity.setListeners(List.of(unsupportedListener));
+
+        EntrypointEntity entrypointEntity = new EntrypointEntity();
+        entrypointEntity.setTags(new String[] { "tag" });
+        entrypointEntity.setValue("https://tag-entrypoint");
+        entrypointEntity.setTarget(EntrypointEntity.Target.HTTP);
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+        assertThat(apiEntrypoints).isEmpty();
+    }
+
+    @Test
+    void should_include_entrypoints_when_api_has_at_least_one_supported_listener() {
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_DOMAIN), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn("kafka.domain");
+        when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
+        HttpListener httpListener = HttpListener
+            .builder()
+            .paths(List.of(Path.builder().host("my-host").path("/v1").overrideAccess(false).build()))
+            .build();
+        SubscriptionListener subscriptionListener = SubscriptionListener.builder().build();
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("public"));
+        apiEntity.setListeners(List.of(httpListener, subscriptionListener));
+
+        EntrypointEntity httpEntrypoint = new EntrypointEntity();
+        httpEntrypoint.setTags(new String[] { "public" });
+        httpEntrypoint.setValue("https://gateway.example.com");
+        httpEntrypoint.setTarget(EntrypointEntity.Target.HTTP);
+
+        when(entrypointService.findAll(any())).thenReturn(List.of(httpEntrypoint));
+
+        List<ApiEntrypointEntity> entrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(entrypoints)
+            .as("Expected entrypoints to be generated from supported HttpListener")
+            .isNotEmpty()
+            .anySatisfy(e -> assertThat(e.getTarget()).contains("https://gateway.example.com/v1"));
+    }
+
     @Nested
     class createHttpApiEntrypointEntity {
 
