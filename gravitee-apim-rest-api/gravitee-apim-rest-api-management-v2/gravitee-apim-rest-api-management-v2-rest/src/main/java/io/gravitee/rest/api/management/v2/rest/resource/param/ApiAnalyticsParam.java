@@ -63,7 +63,7 @@ public class ApiAnalyticsParam {
         }
         // Split by comma, then parse each "from:to"
         return java.util.Arrays
-            .stream(ranges.split(","))
+            .stream(ranges.split(";"))
             .map(String::trim)
             .map(param -> {
                 String[] bounds = param.split(":");
