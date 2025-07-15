@@ -1,3 +1,12 @@
+# [1.7.0-alpha.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.2...1.7.0-alpha.1) (2025-07-15)
+
+
+### Features
+
+* add csv formatter for native kafka metrics ([62b50e2](https://github.com/gravitee-io/gravitee-reporter-common/commit/62b50e2f1f8a4778efc6d13c537ec985af0b4020))
+* add elasticsearch formatter and template for native kafka metrics ([de7f06a](https://github.com/gravitee-io/gravitee-reporter-common/commit/de7f06a4ecfd3f66f0dde2977d8921cfa6eb8f78))
+* renaming indices, templates to event-metrics and add tests ([84ad5af](https://github.com/gravitee-io/gravitee-reporter-common/commit/84ad5af33f39a31574345861f69b4ae5af6cbf59))
+
 ## [1.6.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.1...1.6.2) (2025-06-02)
 
 
