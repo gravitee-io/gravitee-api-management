@@ -1,3 +1,10 @@
+# [6.1.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.0.0...6.1.0) (2025-07-15)
+
+
+### Features
+
+* add an index template for v4 native event metrics ([eac6647](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/eac6647de2cff2097b5e68636a4fe001e6a97f0c))
+
 # [6.0.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.9.3...6.0.0) (2025-06-10)
 
 
