@@ -14,4 +14,3 @@ tests:
           value:
             acme.com/team: api
             acme.com/feature: products
-            kubernetes.io/ingress.class: nginx 
