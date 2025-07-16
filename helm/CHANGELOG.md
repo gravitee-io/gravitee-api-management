@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.5.22
+
+- remove helm warning about deprecated annotation kubernetes.io/ingress.class (APIM-10303)
+
 ### 4.5.9
 
 - fix typo and indentation about mapping of user.anonymize-on-delete.enabled (APIM-8628)
