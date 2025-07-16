@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
+import io.gravitee.apim.core.analytics.domain_service.ApplicationMetadataProvider;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;

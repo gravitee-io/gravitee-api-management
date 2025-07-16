@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
+import io.gravitee.apim.core.analytics.domain_service.PlanMetadataProvider;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.exception.PlanNotFoundException;
 import java.util.Map;

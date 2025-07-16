@@ -13,35 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.domain_service;
+package io.gravitee.apim.core.analytics.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
-import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
-import io.gravitee.apim.core.plan.exception.PlanNotFoundException;
+import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
 @DomainService
-public class PlanMetadataProvider implements AnalyticsMetadataProvider {
+public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
 
     private static final String METADATA_NAME = "name";
     private static final String METADATA_DELETED = "deleted";
     private static final String METADATA_UNKNOWN = "unknown";
-    private static final String METADATA_UNKNOWN_PLAN_NAME = "Unknown plan (keyless)";
-    private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
+    private static final String METADATA_UNKNOWN_APPLICATION_NAME = "Unknown application (keyless)";
+    private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
     private static final String UNKNOWN_SERVICE = "1";
     private static final String UNKNOWN_SERVICE_MAPPED = "?";
+    private static final String ARCHIVED = "ARCHIVED";
 
-    private final PlanCrudService planCrudService;
+    private final ApplicationCrudService applicationCrudService;
 
-    public PlanMetadataProvider(PlanCrudService planCrudService) {
-        this.planCrudService = planCrudService;
+    public ApplicationMetadataProvider(ApplicationCrudService applicationCrudService) {
+        this.applicationCrudService = applicationCrudService;
     }
 
     @Override
     public boolean appliesTo(Field field) {
-        return field == Field.PLAN;
+        return field == Field.APPLICATION;
     }
 
     @Override
@@ -49,15 +49,18 @@ public class PlanMetadataProvider implements AnalyticsMetadataProvider {
         Map<String, String> metadata = new HashMap<>();
         try {
             if (UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key)) {
-                metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
+                metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                var plan = planCrudService.getById(key);
-                metadata.put(METADATA_NAME, plan.getName());
+                var app = applicationCrudService.findById(key, environmentId);
+                metadata.put(METADATA_NAME, app.getName());
+                if (ARCHIVED.equals(app.getStatus())) {
+                    metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                }
             }
-        } catch (PlanNotFoundException e) {
+        } catch (ApplicationNotFoundException e) {
             metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
-            metadata.put(METADATA_NAME, METADATA_DELETED_PLAN_NAME);
+            metadata.put(METADATA_NAME, METADATA_DELETED_APPLICATION_NAME);
         }
         return metadata;
     }
