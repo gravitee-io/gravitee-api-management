@@ -3,58 +3,57 @@
 <#-- @ftlvariable name="index" type="java.lang.String" -->
 <#-- @ftlvariable name="metrics" type="io.gravitee.reporter.api.v4.metric.EventMetrics" -->
 <#if index??>
-    { "index": { "_index": "${index}" } }
+{ "index": { "_index": "${index}" } }
 </#if>
 <#--noinspection FtlReferencesInspection-->
 <@compress single_line=true>
-    {
+{
     "@timestamp": "${@timestamp}"
     <#if !index??>
-        ,"type": "event-metrics"
-        ,"date": "${date}"
+    ,"type": "event-metrics"
+    ,"date": "${date}"
     </#if>
     ,"gw-id": "${metrics.getGatewayId()}"
     ,"org-id": "${metrics.getOrganizationId()}"
     ,"env-id": "${metrics.getEnvironmentId()}"
     ,"api-id": "${metrics.getApiId()}"
     <#if metrics.getPlanId()??>
-        ,"plan-id": "${metrics.getPlanId()}"
+    ,"plan-id": "${metrics.getPlanId()}"
     </#if>
     <#if metrics.getApplicationId()??>
-        ,"app-id": "${metrics.getApplicationId()}"
+    ,"app-id": "${metrics.getApplicationId()}"
     </#if>
     <#if metrics.getTopic()??>
-        ,"topic": "${metrics.getTopic()}"
+    ,"topic": "${metrics.getTopic()}"
     </#if>
     <#if metrics.getDownstreamPublishMessagesTotal()??>
-        ,"downstream-publish-messages-total": ${metrics.getDownstreamPublishMessagesTotal()}
+    ,"downstream-publish-messages-total": ${metrics.getDownstreamPublishMessagesTotal()}
     </#if>
     <#if metrics.getDownstreamPublishMessageBytes()??>
-        ,"downstream-publish-message-bytes": ${metrics.getDownstreamPublishMessageBytes()}
+    ,"downstream-publish-message-bytes": ${metrics.getDownstreamPublishMessageBytes()}
     </#if>
     <#if metrics.getUpstreamPublishMessagesTotal()??>
-        ,"upstream-publish-messages-total": ${metrics.getUpstreamPublishMessagesTotal()}
+    ,"upstream-publish-messages-total": ${metrics.getUpstreamPublishMessagesTotal()}
     </#if>
     <#if metrics.getUpstreamPublishMessageBytes()??>
-        ,"upstream-publish-message-bytes": ${metrics.getUpstreamPublishMessageBytes()}
+    ,"upstream-publish-message-bytes": ${metrics.getUpstreamPublishMessageBytes()}
     </#if>
     <#if metrics.getDownstreamSubscribeMessagesTotal()??>
-        ,"downstream-subscribe-messages-total": ${metrics.getDownstreamSubscribeMessagesTotal()}
+    ,"downstream-subscribe-messages-total": ${metrics.getDownstreamSubscribeMessagesTotal()}
     </#if>
     <#if metrics.getDownstreamSubscribeMessageBytes()??>
-        ,"downstream-subscribe-message-bytes": ${metrics.getDownstreamSubscribeMessageBytes()}
+    ,"downstream-subscribe-message-bytes": ${metrics.getDownstreamSubscribeMessageBytes()}
     </#if>
     <#if metrics.getUpstreamSubscribeMessagesTotal()??>
-        ,"upstream-subscribe-messages-total": ${metrics.getUpstreamSubscribeMessagesTotal()}
+    ,"upstream-subscribe-messages-total": ${metrics.getUpstreamSubscribeMessagesTotal()}
     </#if>
     <#if metrics.getUpstreamSubscribeMessageBytes()??>
-        ,"upstream-subscribe-message-bytes": ${metrics.getUpstreamSubscribeMessageBytes()}
+    ,"upstream-subscribe-message-bytes": ${metrics.getUpstreamSubscribeMessageBytes()}
     </#if>
     <#if metrics.getDownstreamActiveConnections()??>
-        ,"downstream-active-connections": ${metrics.getDownstreamActiveConnections()}
+    ,"downstream-active-connections": ${metrics.getDownstreamActiveConnections()}
     </#if>
     <#if metrics.getUpstreamActiveConnections()??>
-        ,"upstream-active-connections": ${metrics.getUpstreamActiveConnections()}
+    ,"upstream-active-connections": ${metrics.getUpstreamActiveConnections()}
     </#if>
-    }
-</@compress>
+}</@compress>
