@@ -15,30 +15,41 @@
     limitations under the License.
 
 -->
-
-<div class="gio-table-wrapper__header-bar">
-  <div>
+@if (paginatorOptions.displayTopPaginator) {
+  <div class="gio-table-wrapper__header-bar--sb">
     <mat-form-field *ngIf="!disableSearchInput" class="gio-table-wrapper__header-bar__search-field">
       <mat-icon matIconPrefix svgIcon="gio:search"></mat-icon>
       <mat-label data-testid="search">{{ searchLabel }}</mat-label>
-      <input class="search-input" [formControl]="inputSearch" type="search" matInput />
+      <input class="search-input" [formControl]="inputSearch" type="search" matInput/>
     </mat-form-field>
 
-    <ng-container *ngComponentOutlet="childComponent; injector: childInjector"></ng-container>
+    <mat-paginator *ngIf="paginatorOptions.displayTopPaginator"
+                   class="gio-table-wrapper__header-bar__paginator"
+                   #paginatorTop
+                   [length]="length"
+                   [pageSizeOptions]="paginationPageSizeOptions"
+                   [hidePageSize]="disablePageSize"
+                   aria-label="Select page"
+                   data-testid="paginator-header"
+    ></mat-paginator>
   </div>
+} @else {
+  <div class="gio-table-wrapper__header-bar">
+    <div>
+      <mat-form-field *ngIf="!disableSearchInput" class="gio-table-wrapper__header-bar__search-field">
+        <mat-icon matIconPrefix svgIcon="gio:search"></mat-icon>
+        <mat-label data-testid="search">{{ searchLabel }}</mat-label>
+        <input class="search-input" [formControl]="inputSearch" type="search" matInput/>
+      </mat-form-field>
 
-  <mat-paginator *ngIf="paginatorOptions.displayTopPaginator"
-    class="gio-table-wrapper__header-bar__paginator"
-    #paginatorTop
-    [length]="length"
-    [pageSizeOptions]="paginationPageSizeOptions"
-    [hidePageSize]="disablePageSize"
-    aria-label="Select page"
-    data-testid="paginator-header"
-  ></mat-paginator>
+      <ng-container *ngComponentOutlet="childComponent; injector: childInjector"></ng-container>
+    </div>
+  </div>
+}
+
+<div class="gio-table-wrapper__table">
+  <ng-content select="[mat-table]"></ng-content>
 </div>
-
-<div class="gio-table-wrapper__table"><ng-content select="[mat-table]"></ng-content></div>
 
 <div class="gio-table-wrapper__footer-bar">
   <mat-paginator

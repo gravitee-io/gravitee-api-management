@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TagService } from 'src/services-ngx/tag.service';
+
 import { Component, inject, Inject, Injector, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
+
+import { ApiListAdditionalFiltersComponent } from './additional-filters.component';
 
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
@@ -42,8 +46,6 @@ import {
   TcpListener,
 } from '../../../entities/management-api-v2';
 import { CategoryService } from '../../../services-ngx/category.service';
-import { ApiListAdditionalFiltersComponent } from './additional-filters.component';
-import { TagService } from 'src/services-ngx/tag.service';
 
 export enum FilterType {
   API_TYPE,
@@ -137,7 +139,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
   });
 
   paginatorOptions = {
-    displayTopPaginator: false,
+    displayTopPaginator: true,
     hideBottomPaginatorPageSize: false
   }
 
@@ -222,7 +224,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
           });
         }),
         switchMap(({ pagination, searchTerm, order }) => {
-          let body = { query: searchTerm };
+          const body = { query: searchTerm };
           body['apiTypes'] = this.filters.apiTypes;
           body['statuses'] = this.filters.apisStatus;
           body['tags'] = this.filters.apisTags;

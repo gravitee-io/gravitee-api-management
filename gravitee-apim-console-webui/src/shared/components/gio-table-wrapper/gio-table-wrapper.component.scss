@@ -23,21 +23,29 @@ $typography: map.get(gio.$mat-theme, typography);
 .gio-table-wrapper {
   border-radius: 4px;
 
-  &__header-bar {
+  @mixin header-bar {
     display: flex;
     flex-wrap: nowrap;
-    justify-content: space-between;
     align-items: center;
     min-height: 56px;
     background: mat.m2-get-color-from-palette($background, 'card');
-    padding: 0px 16px 0px 16px;
+    padding: 0 16px 0 16px;
     border-bottom: 1px solid mat.m2-get-color-from-palette($foreground, divider);
+  }
+
+  &__header-bar {
+    @include header-bar;
 
     &__search-field {
       @include gio-layout.large-desktop {
         width: 380px;
       }
     }
+  }
+
+  &__header-bar--sb {
+    justify-content: space-between;
+    @include header-bar;
   }
 
   &__table {
