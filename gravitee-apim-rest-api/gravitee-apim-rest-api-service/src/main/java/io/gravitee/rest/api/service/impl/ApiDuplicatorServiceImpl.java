@@ -208,8 +208,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
             return createdApiEntity;
         } catch (IOException e) {
-            log.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
-            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
+            throw new TechnicalManagementException(String.format("An error occurs while trying to JSON deserialize the API definition. %s", apiDefinition), e);
         }
     }
 
@@ -247,8 +246,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             createOrUpdateApiNestedEntities(executionContext, updatedApiEntity, apiJsonNode);
             return updatedApiEntity;
         } catch (IOException e) {
-            log.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
-            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
+            throw new TechnicalManagementException(String.format("An error occurs while trying to JSON deserialize the API definition %s.", apiDefinition), e);
         }
     }
 
@@ -609,6 +607,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 UUID.fromString(roleIdOrName);
                 roleIdsToImport.add(roleIdOrName);
             } catch (IllegalArgumentException e) {
+                log.debug("IllegalArgumentException while getting role ids to import", e);
                 Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(
                     RoleScope.API,
                     roleIdOrName,
@@ -681,7 +680,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                             role,
                             userEntity.getId(),
                             apiId,
-                            e.getMessage()
+                            e.getMessage(),
+                            e
                         );
                     }
                 });
@@ -804,7 +804,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 apiMetadataService.update(executionContext, updateApiMetadataEntity);
             }
         } catch (Exception ex) {
-            log.error("An error occurs while creating API metadata", ex);
             throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
         }
     }
@@ -952,7 +951,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 pageService.delete(executionContext, id);
             }
         } catch (RuntimeException e) {
-            log.error("An error as occurred while trying to remove a page with kubernetes origin");
+            log.error("An error as occurred while trying to remove a page with kubernetes origin", e);
         }
     }
 
@@ -997,6 +996,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 .map(GroupEntity::getId)
                 .orElseThrow(() -> new GroupNotFoundException(key));
         } catch (GroupNotFoundException e) {
+            log.error("GroupNotFoundException while finding group by id {}", key, e);
             return groupService
                 .findByName(executionContext.getEnvironmentId(), key)
                 .stream()
