@@ -28,10 +28,10 @@ import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
-import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.CountAnalytics;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiAnalyticsParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -40,6 +40,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
@@ -78,6 +79,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Inject
     private SearchHistogramAnalyticsUseCase searchHistogramAnalyticsUseCase;
 
+    /*
     @Path("/requests-count")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -94,6 +96,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             .map(ApiAnalyticsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No requests count found for api: " + apiId));
     }
+    */
 
     @Path("/average-messages-per-request")
     @GET
@@ -191,6 +194,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         return ApiAnalyticsMapper.INSTANCE.map(result);
     }
 
+    /*
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
@@ -213,5 +217,48 @@ public class ApiAnalyticsResource extends AbstractResource {
             return new ApiAnalyticsResponse(histogramResponse);
         }
         return new ApiAnalyticsResponse();
+    }
+*/
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public ApiAnalyticsResponse performApiAnalytics(
+        @PathParam("envId") String envId,
+        @PathParam("apiId") String apiId,
+        @BeanParam ApiAnalyticsParam apiAnalyticsParam
+    ) {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        if (apiAnalyticsParam.getType() == AnalyticsType.HISTOGRAM) {
+            var input = new SearchHistogramAnalyticsUseCase.Input(
+                apiId,
+                apiAnalyticsParam.getFrom(),
+                apiAnalyticsParam.getTo(),
+                apiAnalyticsParam.getInterval(),
+                ApiAnalyticsMapper.INSTANCE.mapAggregations(apiAnalyticsParam.getAggregations())
+            );
+            var output = searchHistogramAnalyticsUseCase.execute(executionContext, input);
+
+            var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
+            histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
+
+            return new ApiAnalyticsResponse(histogramResponse);
+        } else if (apiAnalyticsParam.getType() == AnalyticsType.COUNT) {
+            var input = new SearchRequestsCountAnalyticsUseCase.Input(
+                apiId,
+                apiAnalyticsParam.getFrom(),
+                apiAnalyticsParam.getTo(),
+                apiAnalyticsParam.getInterval(),
+                ApiAnalyticsMapper.INSTANCE.mapAggregations(apiAnalyticsParam.getAggregations())
+            );
+
+            var output = searchRequestsCountAnalyticsUseCase.execute(executionContext, input);
+
+            CountAnalytics countAnalytics = ApiAnalyticsMapper.INSTANCE.mapToCountAnalytics(output.result());
+            return new ApiAnalyticsResponse(countAnalytics);
+        }
+
+        // optionally throw if type is unsupported
+        throw new BadRequestException("Unsupported analytics type: " + apiAnalyticsParam.getType());
     }
 }

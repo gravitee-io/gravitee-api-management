@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface AnalyticsQueryService {
-    Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
+    Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, CountQuery query);
 
     Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
         ExecutionContext executionContext,
@@ -78,6 +78,8 @@ public interface AnalyticsQueryService {
     Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters);
 
     record HistogramQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
+
+    record CountQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
 
     record ResponseStatusOverTimeQuery(
         List<String> apiIds,
