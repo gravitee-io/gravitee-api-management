@@ -57,7 +57,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public HistogramAnalytics histogramAnalytics;
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
+    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, CountQuery query) {
         return Optional.ofNullable(requestsCount);
     }
 

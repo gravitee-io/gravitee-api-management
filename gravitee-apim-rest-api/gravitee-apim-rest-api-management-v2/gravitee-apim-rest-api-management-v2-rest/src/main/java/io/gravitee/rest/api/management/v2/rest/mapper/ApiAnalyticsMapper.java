@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessages
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.CountAnalytics;
 import io.gravitee.rest.api.management.v2.rest.model.HistogramAnalytics;
 import io.gravitee.rest.api.management.v2.rest.model.HistogramAnalyticsAllOfValues;
 import io.gravitee.rest.api.management.v2.rest.model.HistogramTimestamp;
@@ -52,6 +53,11 @@ public interface ApiAnalyticsMapper {
 
     @Mapping(target = "countsByEntrypoint", source = "countsByEntrypoint")
     ApiAnalyticsRequestsCountResponse map(RequestsCount requestsCount);
+
+    @Mapping(target = "analyticsType", expression = "java(io.gravitee.rest.api.management.v2.rest.model.AnalyticsType.COUNT)")
+    @Mapping(target = "count", source = "total")
+    @Mapping(target = "countsByEntrypoint", source = "countsByEntrypoint")
+    CountAnalytics mapToCountAnalytics(RequestsCount requestsCount);
 
     @Mapping(target = "average", source = "globalAverage")
     @Mapping(target = "averagesByEntrypoint", source = "averagesByEntrypoint")
