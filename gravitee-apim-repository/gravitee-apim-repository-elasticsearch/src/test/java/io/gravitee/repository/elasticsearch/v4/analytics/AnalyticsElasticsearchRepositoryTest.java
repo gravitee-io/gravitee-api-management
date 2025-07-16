@@ -38,6 +38,8 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -750,6 +752,49 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(aggregate.field()).isEqualTo("response-time");
                     assertThat(aggregate.values()).containsKeys("0.0-100.0", "100.0-200.0");
                 });
+        }
+    }
+
+    @Nested
+    class StatsAnalytics {
+
+        @Test
+        void should_return_stats_for_a_given_api_and_field() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new StatsQuery(
+                "gateway-response-time-ms",
+                API_ID,
+                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli())
+            );
+
+            Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(stats -> {
+                    assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
+                    assertThat(stats.count()).isEqualTo(7.0f);
+                    assertThat(stats.sum()).isEqualTo(131845.0f);
+                    assertThat(stats.avg()).isEqualTo(18835.0f);
+                    assertThat(stats.min()).isEqualTo(20.0f);
+                    assertThat(stats.max()).isEqualTo(60000.0f);
+                });
+        }
+
+        @Test
+        void should_return_empty_if_no_stats_found() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.DAYS);
+            var to = from.plus(Duration.ofDays(1));
+
+            var query = new StatsQuery("non-existent-field", API_ID, new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()));
+
+            Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result).isEmpty();
         }
     }
 }
