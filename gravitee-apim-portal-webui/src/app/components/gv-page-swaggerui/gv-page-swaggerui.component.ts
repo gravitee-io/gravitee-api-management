@@ -16,6 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { PlatformLocation } from '@angular/common';
 import SwaggerUI, { SwaggerUIOptions, SwaggerUIPlugin } from 'swagger-ui';
+import * as React from 'react';
 
 import { Page, User } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { CurrentUserService } from '../../services/current-user.service';
@@ -103,8 +104,42 @@ export class GvPageSwaggerUIComponent implements OnInit {
     if (!this.isTryItEnabled(page)) {
       plugins.push(this.disabledTryItOutPlugin);
       plugins.push(this.disabledAuthorizationPlugin);
+    } else {
+      plugins.push(this.disableHighlightPlugin());
     }
     return plugins;
+  }
+
+  disableHighlightPlugin(): SwaggerUIPlugin {
+    interface Props {
+      children?: React.ReactNode;
+    }
+
+    class EmptyHighlightCode extends React.Component<Props> {
+      declare props: Props;
+
+      render(): React.ReactNode {
+        return React.createElement(
+          'pre',
+          {
+            style: {
+              backgroundColor: '#2d2d2d',
+              color: '#eee',
+              maxHeight: '400px',
+              overflow: 'auto',
+              whiteSpace: 'pre',
+            },
+          },
+          this.props?.children || '',
+        );
+      }
+    }
+
+    return {
+      components: {
+        HighlightCode: EmptyHighlightCode,
+      },
+    } as any;
   }
 
   disabledTryItOutPlugin() {
