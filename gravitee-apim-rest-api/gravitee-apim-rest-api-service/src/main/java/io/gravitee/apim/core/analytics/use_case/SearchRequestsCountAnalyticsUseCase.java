@@ -16,15 +16,21 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
+import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,49 +44,60 @@ public class SearchRequestsCountAnalyticsUseCase {
     private final ApiCrudService apiCrudService;
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        validateApiRequirements(input);
+        validateInput(input, executionContext);
 
-        // Verify v4 api
-        return analyticsQueryService
-            .searchRequestsCount(executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
-            .map(Output::new)
-            .orElse(new Output());
+        var countQuery = new AnalyticsQueryService.CountQuery(
+            input.api(),
+            Instant.ofEpochMilli(input.from()),
+            Instant.ofEpochMilli(input.to()),
+            Duration.ofMillis(input.interval()),
+            input.aggregations()
+        );
+
+        var result = analyticsQueryService
+            .searchRequestsCount(executionContext, countQuery)
+            .orElse(RequestsCount.builder().total(0L).countsByEntrypoint(Map.of()).build());
+
+        return new Output(result);
     }
 
-    private void validateApiRequirements(Input input) {
-        final Api api = apiCrudService.get(input.apiId);
-        validateApiDefinitionVersion(api.getDefinitionVersion(), input.apiId);
-        validateApiIsNotTcp(api.getApiDefinitionHttpV4());
-        validateApiMultiTenancyAccess(api, input.environmentId);
+    private void validateInput(Input input, ExecutionContext executionContext) {
+        validateApi(input.api, executionContext);
+        validateTimeRange(input.from, input.to);
     }
 
-    private static void validateApiMultiTenancyAccess(Api api, String environmentId) {
+    private void validateTimeRange(long from, long to) {
+        if (from > to) {
+            throw new IllegalTimeRangeException();
+        }
+    }
+
+    private void validateApi(String apiId, ExecutionContext executionContext) {
+        var api = apiCrudService.get(apiId);
+        validateApiV4(apiId, api.getDefinitionVersion());
+        validateApiProxy(api);
+        validateApiMultiTenancyAccess(api, executionContext.getEnvironmentId());
+    }
+
+    private void validateApiV4(String apiId, DefinitionVersion apiDefinition) {
+        if (!DefinitionVersion.V4.equals(apiDefinition)) {
+            throw new ApiInvalidDefinitionVersionException(apiId);
+        }
+    }
+
+    private void validateApiProxy(Api api) {
+        if (api.isTcpProxy()) {
+            throw new TcpProxyNotSupportedException(api.getId());
+        }
+    }
+
+    private void validateApiMultiTenancyAccess(Api api, String environmentId) {
         if (!api.belongsToEnvironment(environmentId)) {
             throw new ApiNotFoundException(api.getId());
         }
     }
 
-    private static void validateApiDefinitionVersion(DefinitionVersion definitionVersion, String apiId) {
-        if (!DefinitionVersion.V4.equals(definitionVersion)) {
-            throw new ApiInvalidDefinitionVersionException(apiId);
-        }
-    }
+    public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations) {}
 
-    private void validateApiIsNotTcp(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
-        if (apiDefinitionV4.isTcpProxy()) {
-            throw new IllegalArgumentException("Analytics are not supported for TCP Proxy APIs");
-        }
-    }
-
-    public record Input(String apiId, String environmentId, Optional<Instant> from, Optional<Instant> to) {}
-
-    public record Output(Optional<RequestsCount> requestsCount) {
-        Output(RequestsCount requestsCount) {
-            this(Optional.of(requestsCount));
-        }
-
-        Output() {
-            this(new RequestsCount());
-        }
-    }
+    public record Output(RequestsCount result) {}
 }

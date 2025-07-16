@@ -76,9 +76,22 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
+    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, CountQuery countPrameters) {
+        String aggregationField = ENTRYPOINT_ID_FIELD;
+
+        if (countPrameters.aggregations() != null && !countPrameters.aggregations().isEmpty()) {
+            var agg = countPrameters.aggregations().get(0);
+            if (AggregationType.FIELD.name().equals(agg.getAggregationType().name())) {
+                aggregationField = agg.getField();
+            }
+        }
+
         return analyticsRepository
-            .searchRequestsCount(executionContext.getQueryContext(), new RequestsCountQuery(apiId, from, to))
+            .searchRequestsCount(
+                executionContext.getQueryContext(),
+                new RequestsCountQuery(countPrameters.apiId(), countPrameters.from(), countPrameters.to()),
+                aggregationField
+            )
             .map(countAggregate ->
                 RequestsCount.builder().total(countAggregate.getTotal()).countsByEntrypoint(countAggregate.getCountBy()).build()
             );
