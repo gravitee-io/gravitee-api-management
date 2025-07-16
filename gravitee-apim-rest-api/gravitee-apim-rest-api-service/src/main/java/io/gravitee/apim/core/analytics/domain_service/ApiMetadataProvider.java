@@ -13,36 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.application.domain_service;
+package io.gravitee.apim.core.analytics.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
-import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
 import java.util.HashMap;
 import java.util.Map;
 
 @DomainService
-public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
+public class ApiMetadataProvider implements AnalyticsMetadataProvider {
 
     private static final String METADATA_NAME = "name";
     private static final String METADATA_DELETED = "deleted";
     private static final String METADATA_UNKNOWN = "unknown";
-    private static final String METADATA_UNKNOWN_APPLICATION_NAME = "Unknown application (keyless)";
-    private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
+    private static final String METADATA_VERSION = "version";
+    private static final String METADATA_UNKNOWN_API_NAME = "Unknown API (not found)";
+    private static final String METADATA_DELETED_API_NAME = "Deleted API";
     private static final String UNKNOWN_SERVICE = "1";
     private static final String UNKNOWN_SERVICE_MAPPED = "?";
-    private static final String ARCHIVED = "ARCHIVED";
 
-    private final ApplicationCrudService applicationCrudService;
+    private final ApiCrudService apiCrudService;
 
-    public ApplicationMetadataProvider(ApplicationCrudService applicationCrudService) {
-        this.applicationCrudService = applicationCrudService;
+    public ApiMetadataProvider(ApiCrudService apiCrudService) {
+        this.apiCrudService = apiCrudService;
     }
 
     @Override
     public boolean appliesTo(Field field) {
-        return field == Field.APPLICATION;
+        return field == Field.API;
     }
 
     @Override
@@ -50,18 +50,19 @@ public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
         Map<String, String> metadata = new HashMap<>();
         try {
             if (UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key)) {
-                metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
+                metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                var app = applicationCrudService.findById(key, environmentId);
-                metadata.put(METADATA_NAME, app.getName());
-                if (ARCHIVED.equals(app.getStatus())) {
+                var api = apiCrudService.get(key);
+                metadata.put(METADATA_NAME, api.getName());
+                metadata.put(METADATA_VERSION, api.getVersion());
+                if (Api.ApiLifecycleState.ARCHIVED == api.getApiLifecycleState()) {
                     metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
                 }
             }
-        } catch (ApplicationNotFoundException e) {
+        } catch (ApiNotFoundException e) {
             metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
-            metadata.put(METADATA_NAME, METADATA_DELETED_APPLICATION_NAME);
+            metadata.put(METADATA_NAME, METADATA_DELETED_API_NAME);
         }
         return metadata;
     }
