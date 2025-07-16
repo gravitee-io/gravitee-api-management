@@ -19,6 +19,7 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.analytics.use_case.SearchGroupByAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.QueryParam;
 import java.util.List;
 import lombok.Getter;
@@ -111,7 +112,7 @@ public class ApiAnalyticsParam {
                     var type = io.gravitee.apim.core.analytics.model.Aggregation.AggregationType.valueOf(a.getType().toUpperCase());
                     return new io.gravitee.apim.core.analytics.model.Aggregation(a.getField(), type);
                 } catch (IllegalArgumentException ex) {
-                    return null;
+                    throw new BadRequestException("Invalid aggregation type: " + a.getType(), ex);
                 }
             })
             .filter(java.util.Objects::nonNull)
@@ -129,9 +130,7 @@ public class ApiAnalyticsParam {
 
         AnalyticsQueryService.GroupByQuery.Order order = null;
         if (param.getOrder() != null) {
-            try {
-                order = AnalyticsQueryService.GroupByQuery.Order.valueOf(param.getOrder());
-            } catch (IllegalArgumentException ignored) {}
+            order = AnalyticsQueryService.GroupByQuery.Order.valueOf(param.getOrder());
         }
 
         return new SearchGroupByAnalyticsUseCase.Input(

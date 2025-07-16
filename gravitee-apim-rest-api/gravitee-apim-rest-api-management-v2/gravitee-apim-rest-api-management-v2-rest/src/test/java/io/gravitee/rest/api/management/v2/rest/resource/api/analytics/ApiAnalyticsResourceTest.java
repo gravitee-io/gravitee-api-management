@@ -547,6 +547,31 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         assertThat(avgBucket.getData()).containsExactly(120.5, 110.0);
                     });
             }
+
+            @Test
+            void should_return_bad_request_when_aggregation_type_is_invalid() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
+                    Instant.now().minusSeconds(60),
+                    Instant.now(),
+                    Duration.ofMinutes(10)
+                );
+                var response = rootTarget()
+                    .queryParam("type", "HISTOGRAM")
+                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
+                    .queryParam("interval", expectedTimestamp.getInterval().toMillis())
+                    .queryParam("aggregations", "INVALID:status")
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(400)
+                    .asError()
+                    .hasHttpStatus(400)
+                    .hasMessage("Invalid aggregation type: INVALID");
+            }
         }
 
         @Nested
