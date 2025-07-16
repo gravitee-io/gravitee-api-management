@@ -26,6 +26,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
+import java.util.Map;
 
 public interface IntegrationAgent {
     /**
@@ -58,7 +59,8 @@ public interface IntegrationAgent {
         FederatedApi api,
         SubscriptionParameter subscriptionParameter,
         String subscriptionId,
-        BaseApplicationEntity application
+        BaseApplicationEntity application,
+        Map<String, String> providerMetadata
     );
 
     /**

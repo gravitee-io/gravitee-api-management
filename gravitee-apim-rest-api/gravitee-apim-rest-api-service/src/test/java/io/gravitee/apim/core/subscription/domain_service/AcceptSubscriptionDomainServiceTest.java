@@ -21,22 +21,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
+import fixtures.core.model.IntegrationFixture;
 import fixtures.core.model.PlanFixtures;
 import fixtures.core.model.SubscriptionFixtures;
-import inmemory.ApiCrudServiceInMemory;
-import inmemory.ApiKeyCrudServiceInMemory;
-import inmemory.ApiKeyQueryServiceInMemory;
-import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
-import inmemory.InMemoryAlternative;
-import inmemory.IntegrationAgentInMemory;
-import inmemory.MembershipQueryServiceInMemory;
-import inmemory.PlanCrudServiceInMemory;
-import inmemory.RoleQueryServiceInMemory;
-import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
+import inmemory.*;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
@@ -124,6 +112,8 @@ class AcceptSubscriptionDomainServiceTest {
     GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
+    MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
+    IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
     AcceptSubscriptionDomainService cut;
 
     @BeforeAll
@@ -161,7 +151,9 @@ class AcceptSubscriptionDomainServiceTest {
                 integrationAgent,
                 triggerNotificationDomainService,
                 userCrudService,
-                applicationPrimaryOwnerDomainService
+                applicationPrimaryOwnerDomainService,
+                metadataCrudService,
+                integrationCrudService
             );
 
         planCrudService.initWith(List.of(PLAN_CLOSED, PLAN_PUBLISHED, PUSH_PLAN));
@@ -405,6 +397,7 @@ class AcceptSubscriptionDomainServiceTest {
             apiCrudService.create(
                 Api.builder().id(subscription.getApiId()).originContext(new OriginContext.Integration("integration-id")).build()
             );
+            integrationCrudService.initWith(List.of(IntegrationFixture.anApiIntegration()));
 
             // When
             accept(subscription, plan);

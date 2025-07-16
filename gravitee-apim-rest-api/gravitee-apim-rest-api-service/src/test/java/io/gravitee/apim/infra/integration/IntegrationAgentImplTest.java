@@ -61,6 +61,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -237,7 +238,8 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
                     subscriptionParameter,
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS);
@@ -286,7 +288,8 @@ class IntegrationAgentImplTest {
                         .build(),
                     subscriptionParameter,
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS);
@@ -323,7 +326,8 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
@@ -344,13 +348,38 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi().toBuilder().server(Map.of("k1", "v1")).build(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
                 .values();
 
             assertThat(subscribeCommandCaptor.getValue().getPayload().subscription().metadata()).containsEntry("k1", "v1");
+            assertThat(result)
+                .hasSize(1)
+                .containsExactly(
+                    new IntegrationSubscription(INTEGRATION_ID, IntegrationSubscription.Type.API_KEY, "my-api-key", Map.of("key", "value"))
+                );
+        }
+
+        @Test
+        void should_send_providers_metadata() {
+            var result = agent
+                .subscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi().toBuilder().server(Map.of()).build(),
+                    PlanFixtures.subscriptionParameter(),
+                    SUBSCRIPTION_ID,
+                    APPLICATION,
+                    Map.of("provider-metadata-key", "provider-metadata-value")
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .values();
+
+            assertThat(subscribeCommandCaptor.getValue().getPayload().subscription().metadata())
+                .containsExactlyInAnyOrderEntriesOf(Map.of("planId", "provider-id", "provider-metadata-key", "provider-metadata-value"));
             assertThat(result)
                 .hasSize(1)
                 .containsExactly(
@@ -368,7 +397,8 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
@@ -387,7 +417,8 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
