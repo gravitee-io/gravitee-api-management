@@ -17,12 +17,17 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_LIFECYCLE_STATE;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
 
 import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.use_case.CreateHttpApiUseCase;
 import io.gravitee.apim.core.api.use_case.CreateNativeApiUseCase;
@@ -358,6 +363,31 @@ public class ApisResource extends AbstractResource {
 
         if (Objects.nonNull(apiSearchQuery.getIds()) && !apiSearchQuery.getIds().isEmpty()) {
             apiQueryBuilder.addFilter(FIELD_TYPE_VALUE, apiSearchQuery.getIds());
+        }
+
+        if (apiSearchQuery.getApiTypes() != null && !apiSearchQuery.getApiTypes().isEmpty()) {
+            apiQueryBuilder.addFilter(FIELD_DEFINITION_VERSION, apiSearchQuery.getApiTypes());
+        }
+
+        if (apiSearchQuery.getStatuses() != null && !apiSearchQuery.getStatuses().isEmpty()) {
+            apiQueryBuilder.addFilter(FIELD_STATUS, apiSearchQuery.getStatuses());
+        }
+
+        if (apiSearchQuery.getTags() != null && !apiSearchQuery.getTags().isEmpty()) {
+            apiQueryBuilder.addFilter(FIELD_TAGS, apiSearchQuery.getTags());
+        }
+
+        if (apiSearchQuery.getCategories() != null && !apiSearchQuery.getCategories().isEmpty()) {
+            apiQueryBuilder.addFilter(FIELD_CATEGORIES, apiSearchQuery.getCategories());
+        }
+
+        if (apiSearchQuery.getPublished() != null && !apiSearchQuery.getPublished().isEmpty()) {
+            if (apiSearchQuery.getPublished().contains(Api.ApiLifecycleState.UNPUBLISHED.name())) {
+                apiSearchQuery.getPublished().add(Api.ApiLifecycleState.CREATED.name());
+                apiSearchQuery.getPublished().add(Api.ApiLifecycleState.ARCHIVED.name());
+                apiSearchQuery.getPublished().add(Api.ApiLifecycleState.DEPRECATED.name());
+            }
+            apiQueryBuilder.addFilter(FIELD_API_LIFECYCLE_STATE, apiSearchQuery.getPublished());
         }
 
         var selectedDefinitions = Stream

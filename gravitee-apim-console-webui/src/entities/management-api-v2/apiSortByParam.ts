@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type ApiSortByParam = 'name' | '-name' | 'paths' | '-paths';
+export type ApiSortByParam = 'name' | '-name' | 'paths' | '-paths' | 'definition_version' | '-definition_version' | 'status' | '-status' |
+  'owner' | '-owner' | 'visibility' | '-visibility' | 'tags_asc' | '-tags_desc' | 'categories_asc' | '-categories_desc';
 
 export function apiSortByParamFromString(sort: string): ApiSortByParam {
   if (!sort) {
@@ -23,5 +24,17 @@ export function apiSortByParamFromString(sort: string): ApiSortByParam {
   if (sort.endsWith('access')) {
     return desc ? '-paths' : 'paths';
   }
-  return desc ? '-name' : 'name';
+  if (sort.endsWith('definitionVersion')) {
+    return desc ? '-definition_version' : 'definition_version';
+  }
+  if (sort.endsWith('states')) {
+    return desc ? '-status' : 'status';
+  }
+  if (sort.endsWith('tags')) {
+    return desc ? '-tags_desc' : 'tags_asc';
+  }
+  if (sort.endsWith('categories')) {
+    return desc ? '-categories_desc' : 'categories_asc';
+  }
+  return sort as ApiSortByParam;
 }

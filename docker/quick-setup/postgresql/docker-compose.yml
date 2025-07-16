@@ -39,7 +39,7 @@ services:
     volumes:
       - data-pg:/var/lib/postgresql/data
     ports:
-      - "0.0.0.0:5455:5432"
+      - "0.0.0.0:5432:5432"
     networks:
       - storage
 
@@ -81,6 +81,8 @@ services:
       retries: 10
     networks:
       - storage
+    ports:
+      - "9200:9200"
 
   gateway:
     image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}

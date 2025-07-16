@@ -23,9 +23,11 @@
       <mat-label data-testid="search">{{ searchLabel }}</mat-label>
       <input class="search-input" [formControl]="inputSearch" type="search" matInput />
     </mat-form-field>
+
+    <ng-container *ngComponentOutlet="childComponent; injector: childInjector"></ng-container>
   </div>
 
-  <mat-paginator
+  <mat-paginator *ngIf="paginatorOptions.displayTopPaginator"
     class="gio-table-wrapper__header-bar__paginator"
     #paginatorTop
     [length]="length"
@@ -44,7 +46,8 @@
     class="gio-table-wrapper__footer-bar__paginator"
     [class.hidden]="length <= paginatorBottom.pageSize"
     [length]="length"
-    [hidePageSize]="true"
+    [pageSizeOptions]="paginationPageSizeOptions"
+    [hidePageSize]="paginatorOptions.hideBottomPaginatorPageSize"
     aria-label="Select page"
     data-testid="paginator-footer"
   ></mat-paginator>

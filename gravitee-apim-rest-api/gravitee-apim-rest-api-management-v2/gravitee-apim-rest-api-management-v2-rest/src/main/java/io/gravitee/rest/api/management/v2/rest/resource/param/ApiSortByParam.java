@@ -27,7 +27,21 @@ public class ApiSortByParam {
         NAME("name"),
         _NAME("-name"),
         PATHS("paths"),
-        _PATHS("-paths");
+        _PATHS("-paths"),
+        DEFINITION_ASC("definition_version"),
+        DEFINITION_DESC("-definition_version"),
+        STATUS_ASC("status"),
+        STATUS_DESC("-status"),
+        ACCESS_ASC("access"),
+        ACCESS_DESC("-access"),
+        TAGS_ASC("tags_asc"),
+        TAGS_DESC("-tags_desc"),
+        CATEGORIES_ASC("categories_asc"),
+        CATEGORIES_DESC("-categories_desc"),
+        OWNER_ASC("owner"),
+        OWNER_DESC("-owner"),
+        VISIBILITY_ASC("visibility"),
+        VISIBILITY_DESC("-visibility");
 
         private String value;
 

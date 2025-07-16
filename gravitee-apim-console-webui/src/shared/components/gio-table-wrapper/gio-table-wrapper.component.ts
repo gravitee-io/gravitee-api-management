@@ -19,10 +19,12 @@ import {
   Component,
   ContentChild,
   EventEmitter,
+  Injector,
   Input,
   OnChanges,
   Output,
   SimpleChanges,
+  Type,
   ViewChild,
 } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
@@ -69,6 +71,9 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   @Input()
   filters: GioTableWrapperFilters = INITIAL_FILTERS_VALUE;
 
+  @Input() childComponent!: Type<any>;
+  @Input() childInjector!: Injector;
+
   @Input()
   searchLabel = 'Search';
 
@@ -86,6 +91,12 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   /** Pagination available page size options */
   @Input()
   paginationPageSizeOptions = [5, 10, 25, 100];
+
+  @Input()
+  paginatorOptions = {
+    displayTopPaginator: true,
+    hideBottomPaginatorPageSize: true
+  }
 
   // Combine the paginator, sort and filter into a single output
   // Alway sent initial filters values
