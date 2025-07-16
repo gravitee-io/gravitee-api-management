@@ -198,12 +198,28 @@ Usage:
 {{ include "common.ingress.annotations.render" ( dict "annotations" .Values.path.to.the.Value "ingressClassName" .Values.path.to.the.Value "context" $) }}
 */}}
 {{- define "common.ingress.annotations.render" -}}
-{{- $ingressType := get $.annotations "kubernetes.io/ingress.class"  }}
+{{/* we compute ingressType from annotation or ingressClassName and set "nginx" by default if ingressClassName is empty
+    As is, nginx annotation is also set if ingressClassName is empty (this can happen if default ingress is set as nginx)
+*/}}
+{{- $ingressType := (default "nginx" (default $.ingressClassName (get $.annotations "kubernetes.io/ingress.class"))) }}
 {{- range $key, $value := $.annotations }}
-{{- if or ( ne $key "kubernetes.io/ingress.class" ) ( not ( and ( $.ingressClassName ) ( include "common.ingress.supportsIngressClassname" $.context ))) }}
-{{- if or (not (hasPrefix "nginx.ingress.kubernetes.io" $key)) (and (hasPrefix "nginx.ingress.kubernetes.io" $key) (contains "nginx" $ingressType)) }}
+{{- if and
+    (or
+        ( ne $key "kubernetes.io/ingress.class" )
+        ( not (and
+            ( $.ingressClassName )
+            ( include "common.ingress.supportsIngressClassname" $.context )
+        ))
+    )
+    (or
+        (not (hasPrefix "nginx.ingress.kubernetes.io" $key))
+        (and
+            (hasPrefix "nginx.ingress.kubernetes.io" $key)
+            (contains "nginx" $ingressType)
+        )
+    )
+}}
 {{ $key }}: {{ $value | quote }}
-{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
