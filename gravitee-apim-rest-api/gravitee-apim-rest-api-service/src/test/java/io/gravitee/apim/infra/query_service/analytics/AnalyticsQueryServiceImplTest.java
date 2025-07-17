@@ -375,4 +375,43 @@ class AnalyticsQueryServiceImplTest {
             assertThat(analytics.getValues()).containsExactlyInAnyOrderEntriesOf(values);
         }
     }
+
+    @Nested
+    class SearchStatsAnalyticsTest {
+
+        @Test
+        void should_return_empty_when_repository_returns_empty() {
+            when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.empty());
+
+            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now());
+            var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_map_stats_aggregate_to_stats_analytics() {
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate(
+                "field",
+                10.0f,
+                100.0f,
+                10.0f,
+                1.0f,
+                20.0f
+            );
+            when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
+
+            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now());
+            var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
+
+            assertThat(result)
+                .hasValueSatisfying(statsAnalytics -> {
+                    assertThat(statsAnalytics.count()).isEqualTo(10.0f);
+                    assertThat(statsAnalytics.sum()).isEqualTo(100.0f);
+                    assertThat(statsAnalytics.avg()).isEqualTo(10.0f);
+                    assertThat(statsAnalytics.min()).isEqualTo(1.0f);
+                    assertThat(statsAnalytics.max()).isEqualTo(20.0f);
+                });
+        }
+    }
 }
