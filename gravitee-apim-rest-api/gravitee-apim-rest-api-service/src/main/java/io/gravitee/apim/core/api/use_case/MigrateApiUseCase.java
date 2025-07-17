@@ -20,6 +20,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.mapper.V2toV4MigrationOperator;
@@ -52,6 +53,7 @@ public class MigrateApiUseCase {
     private final ApiIndexerDomainService apiIndexerDomainService;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final PlanCrudService planService;
+    private final ApiStateDomainService apiStateService;
 
     private final V2toV4MigrationOperator upgradeApiOperator;
 
@@ -61,7 +63,8 @@ public class MigrateApiUseCase {
         AuditDomainService auditService,
         ApiIndexerDomainService apiIndexerDomainService,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
-        PlanCrudService planService
+        PlanCrudService planService,
+        ApiStateDomainService apiStateService
     ) {
         this(
             apiCrudService,
@@ -69,6 +72,7 @@ public class MigrateApiUseCase {
             apiIndexerDomainService,
             apiPrimaryOwnerDomainService,
             planService,
+            apiStateService,
             new V2toV4MigrationOperator()
         );
     }
@@ -81,6 +85,11 @@ public class MigrateApiUseCase {
             return new Output(
                 input.apiId(),
                 List.of(new Output.Issue("Cannot upgrade an API which is not a v2 definition", Output.State.IMPOSSIBLE))
+            );
+        } else if (!apiStateService.isSynchronized(api.get(), input.auditInfo())) {
+            return new Output(
+                input.apiId(),
+                List.of(new Output.Issue("Cannot upgrade an API which is out of sync", Output.State.CAN_BE_FORCED))
             );
         }
         var plans = planService.findByApiId(input.apiId());
