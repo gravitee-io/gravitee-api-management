@@ -19,6 +19,10 @@ export interface PageConfiguration {
      */
     try_it?: boolean;
     /**
+     * Enable \"disable_syntax_highlight!\" mode in documentation page.
+     */
+    disable_syntax_highlight?: boolean;
+    /**
      * Enable \"Try It!\" mode in documentation page for anonymous users.
      */
     try_it_anonymous?: boolean;

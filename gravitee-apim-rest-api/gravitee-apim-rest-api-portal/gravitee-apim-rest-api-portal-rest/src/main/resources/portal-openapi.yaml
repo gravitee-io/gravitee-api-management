@@ -5452,6 +5452,9 @@ components:
                 try_it:
                     type: boolean
                     description: Enable "Try It!" mode in documentation page.
+                disable_syntax_highlight:
+                    type: boolean
+                    description: Disable response body styling for large JSON payloads
                 try_it_anonymous:
                     type: boolean
                     description: Enable "Try It!" mode in documentation page for anonymous users.
