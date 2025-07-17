@@ -634,5 +634,58 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     });
             }
         }
+
+        @Nested
+        class StatsAnalytics {
+
+            @Test
+            void should_return_stats_analytics_response() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                fakeAnalyticsQueryService.statsAnalytics = new io.gravitee.apim.core.analytics.model.StatsAnalytics(1f, 2f, 3f, 4f, 5f);
+
+                var response = rootTarget()
+                    .queryParam("type", "STATS")
+                    .queryParam("field", "response-time")
+                    .queryParam("from", 1000L)
+                    .queryParam("to", 2000L)
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
+                    .satisfies(result -> {
+                        var stats = result.getStatsAnalytics();
+                        assertThat(stats).isNotNull();
+                        assertThat(stats.getAvg()).isEqualTo(1f);
+                        assertThat(stats.getMin()).isEqualTo(2f);
+                        assertThat(stats.getMax()).isEqualTo(3f);
+                        assertThat(stats.getSum()).isEqualTo(4f);
+                        assertThat(stats.getCount()).isEqualTo(5f);
+                    });
+            }
+
+            @Test
+            void should_return_not_found_when_no_data() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                fakeAnalyticsQueryService.statsAnalytics = null;
+
+                var response = rootTarget()
+                    .queryParam("type", "STATS")
+                    .queryParam("field", "response-time")
+                    .queryParam("from", 1000L)
+                    .queryParam("to", 2000L)
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(404)
+                    .asError()
+                    .hasHttpStatus(404)
+                    .hasMessage("No stats analytics found for api: " + API);
+            }
+        }
     }
 }

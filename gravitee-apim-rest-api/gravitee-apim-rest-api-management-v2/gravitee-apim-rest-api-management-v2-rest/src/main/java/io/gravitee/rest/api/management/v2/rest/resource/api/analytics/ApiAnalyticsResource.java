@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseC
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
@@ -81,6 +82,9 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchGroupByAnalyticsUseCase searchGroupByAnalyticsUseCase;
+
+    @Inject
+    private SearchStatsUseCase searchStatsUseCase;
 
     @Path("/requests-count")
     @GET
@@ -215,6 +219,15 @@ public class ApiAnalyticsResource extends AbstractResource {
             var output = searchGroupByAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
             var groupByResponse = ApiAnalyticsMapper.INSTANCE.mapGroupByAnalytics(output.analytics(), output.metadata());
             return new ApiAnalyticsResponse(groupByResponse);
+        }
+        if (apiAnalyticsParam.getType() == AnalyticsType.STATS) {
+            var input = ApiAnalyticsParam.toStatsInput(apiId, apiAnalyticsParam);
+            var output = searchStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+            if (output.analytics() == null) {
+                throw new NotFoundException("No stats analytics found for api: " + apiId);
+            }
+            var statsResponse = ApiAnalyticsMapper.INSTANCE.map(output.analytics());
+            return new ApiAnalyticsResponse(statsResponse);
         }
         return new ApiAnalyticsResponse();
     }

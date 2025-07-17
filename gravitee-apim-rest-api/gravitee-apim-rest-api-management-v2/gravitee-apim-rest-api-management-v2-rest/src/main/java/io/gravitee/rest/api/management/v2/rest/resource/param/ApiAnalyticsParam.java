@@ -144,6 +144,15 @@ public class ApiAnalyticsParam {
         );
     }
 
+    public static io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input toStatsInput(String apiId, ApiAnalyticsParam param) {
+        return new io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input(
+            apiId,
+            param.getFrom(),
+            param.getTo(),
+            param.getField()
+        );
+    }
+
     @Getter
     @Setter
     public static class Range {
