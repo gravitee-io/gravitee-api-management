@@ -1,3 +1,10 @@
+# [1.7.0-alpha.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.1...1.7.0-alpha.2) (2025-07-17)
+
+
+### Bug Fixes
+
+* clean event-metrics.ftl template indentation and add ligne break at the end ([419399c](https://github.com/gravitee-io/gravitee-reporter-common/commit/419399c559143d88a573b1a3242137c0a87fce0d))
+
 # [1.7.0-alpha.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.2...1.7.0-alpha.1) (2025-07-15)
 
 
