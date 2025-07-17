@@ -17,6 +17,7 @@
       "configuration": {
          "tryItURL": "http://company.com",
          "tryIt": true,
+         "disableSyntaxHighlight": false,
          "showURL": true,
          "displayOperationId": true,
          "docExpansion": "FULL",
