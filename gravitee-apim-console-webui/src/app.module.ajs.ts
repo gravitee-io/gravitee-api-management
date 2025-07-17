@@ -308,6 +308,74 @@ require('highcharts/modules/map')(Highcharts);
 
 require('@highcharts/map-collection/custom/world');
 
+// Configure Highcharts to use Manrope font
+const PARAGRAPH_FONT_FAMILY = 'Manrope, sans-serif';
+const HEADER_FONT_FAMILY = 'Kanit, Roboto, Helvetica Neue, sans-serif';
+
+Highcharts.setOptions({
+  chart: {
+    style: {
+      fontFamily: PARAGRAPH_FONT_FAMILY,
+    },
+  },
+  title: {
+    style: {
+      fontFamily: HEADER_FONT_FAMILY,
+    },
+  },
+  subtitle: {
+    style: {
+      fontFamily: PARAGRAPH_FONT_FAMILY,
+    },
+  },
+  xAxis: {
+    labels: {
+      style: {
+        fontFamily: PARAGRAPH_FONT_FAMILY,
+      },
+    },
+    title: {
+      style: {
+        fontFamily: PARAGRAPH_FONT_FAMILY,
+      },
+    },
+  },
+  yAxis: {
+    labels: {
+      style: {
+        fontFamily: PARAGRAPH_FONT_FAMILY,
+      },
+    },
+    title: {
+      style: {
+        fontFamily: PARAGRAPH_FONT_FAMILY,
+      },
+    },
+  },
+  legend: {
+    itemStyle: {
+      fontFamily: PARAGRAPH_FONT_FAMILY,
+    },
+    itemHoverStyle: {
+      fontFamily: PARAGRAPH_FONT_FAMILY,
+    },
+  },
+  tooltip: {
+    style: {
+      fontFamily: PARAGRAPH_FONT_FAMILY,
+    },
+  },
+  plotOptions: {
+    series: {
+      dataLabels: {
+        style: {
+          fontFamily: PARAGRAPH_FONT_FAMILY,
+        },
+      },
+    },
+  },
+});
+
 (<any>window).moment = moment;
 require('angular-moment-picker');
 
