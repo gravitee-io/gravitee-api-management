@@ -80,6 +80,9 @@ export class GvPageSwaggerUIComponent implements OnInit {
         config.url = page._links.content;
         config.spec = undefined;
       }
+      if (page.configuration?.disable_syntax_highlight) {
+        config.syntaxHighlight = false;
+      }
       config.docExpansion = this.getDocExpansion(page);
       config.displayOperationId = page.configuration.display_operation_id || false;
       config.filter = page.configuration.enable_filtering || false;
