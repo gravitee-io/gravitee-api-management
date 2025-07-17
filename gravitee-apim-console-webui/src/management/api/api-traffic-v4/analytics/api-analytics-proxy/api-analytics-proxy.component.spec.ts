@@ -80,7 +80,7 @@ describe('ApiAnalyticsProxyComponent', () => {
     beforeEach(async () => {
       await initComponent();
       expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
-      expectGetHistogramAnalytics();
+      expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
     });
 
     it('should not display empty panel', async () => {
@@ -90,7 +90,7 @@ describe('ApiAnalyticsProxyComponent', () => {
     it('should refresh', async () => {
       const filtersBar = await componentHarness.getFiltersBarHarness();
       await filtersBar.refresh();
-      expectGetHistogramAnalytics();
+      expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
     });
   });
 
@@ -104,7 +104,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
         await initComponent(testParams.input);
         expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
-        expectGetHistogramAnalytics();
+        expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
 
         const filtersBar = await componentHarness.getFiltersBarHarness();
 
@@ -125,11 +125,15 @@ describe('ApiAnalyticsProxyComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectGetHistogramAnalytics(res: HistogramAnalyticsResponse = fakeAnalyticsHistogram()) {
+  function expectGetHistogramAnalytics(res: HistogramAnalyticsResponse = fakeAnalyticsHistogram(), numberOfRequests: number = 1) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=HISTOGRAM`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
+    const requests = httpTestingController.match((req) => {
+      return req.url.startsWith(url);
     });
-    req.flush(res);
+
+    expect(requests.length).toBe(numberOfRequests);
+    requests.forEach((request) => {
+      request.flush(res);
+    });
   }
 });

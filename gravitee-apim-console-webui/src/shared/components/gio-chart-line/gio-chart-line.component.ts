@@ -26,6 +26,20 @@ export interface GioChartLineOptions {
   pointInterval: number;
 }
 
+export const colors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
+
+export const defineLineColors = (code: string) => {
+  return colors[Math.floor(+code / 100) - 2];
+};
+
+export const names = {
+  'avg_gateway-response-time-ms': 'Gateway Response Time',
+};
+
+export const formatName = (name: string) => {
+  return names[name] || name;
+};
+
 @Component({
   selector: 'gio-chart-line',
   templateUrl: './gio-chart-line.component.html',
@@ -53,8 +67,9 @@ export class GioChartLineComponent implements OnInit {
     this.chartOptions = {
       credits: { enabled: false },
       chart: {
-        backgroundColor: 'transparent',
+        plotBackgroundColor: '#F7F7F8',
         type: 'spline',
+        marginTop: 32,
       },
 
       title: {
@@ -86,9 +101,10 @@ export class GioChartLineComponent implements OnInit {
       },
 
       series: this.data?.map((item) => ({
-        name: item.name,
+        name: formatName(item.name),
         data: item.values,
         type: 'spline',
+        color: defineLineColors(item.name),
       })),
     };
   }
