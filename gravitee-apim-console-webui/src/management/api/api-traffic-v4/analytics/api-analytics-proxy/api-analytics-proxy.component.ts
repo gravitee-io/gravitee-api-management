@@ -18,14 +18,9 @@ import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
 
 import { ChartWidgetComponent, ChartWidgetConfig } from '../components/chart-widget/chart-widget.component';
 import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { onlyApiV4Filter } from '../../../../../util/apiFilter.operator';
 import { AggregationFields, AggregationTypes } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
 
 @Component({
@@ -35,15 +30,6 @@ import { AggregationFields, AggregationTypes } from '../../../../../entities/man
   styleUrl: './api-analytics-proxy.component.scss',
 })
 export class ApiAnalyticsProxyComponent {
-  private isAnalyticsEnabled$: Observable<boolean> = this.apiService.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(
-    onlyApiV4Filter(),
-    map((api) => {
-      return api.analytics.enabled;
-    }),
-  );
-
-  public isAnalyticsEnabled = toSignal(this.isAnalyticsEnabled$, { initialValue: false });
-
   public chartWidgetConfigs: ChartWidgetConfig[] = [
     {
       apiId: this.activatedRoute.snapshot.params.apiId,
@@ -74,8 +60,5 @@ export class ApiAnalyticsProxyComponent {
     },
   ];
 
-  constructor(
-    private readonly apiService: ApiV2Service,
-    private readonly activatedRoute: ActivatedRoute,
-  ) {}
+  constructor(private readonly activatedRoute: ActivatedRoute) {}
 }

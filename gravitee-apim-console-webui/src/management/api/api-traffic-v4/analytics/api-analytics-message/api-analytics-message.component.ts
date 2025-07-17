@@ -16,7 +16,7 @@
 import { Component, inject } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
-import { combineLatest, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, Observable, switchMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { map, startWith } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -45,7 +45,6 @@ import { AnalyticsResponseStatusRanges } from '../../../../../entities/managemen
 
 type ApiAnalyticsVM = {
   isLoading: boolean;
-  isAnalyticsEnabled?: boolean;
   globalRequestStats?: AnalyticsRequestStats;
   globalResponseStatusRanges?: ApiAnalyticsResponseStatusRanges;
   entrypoints?: {
@@ -112,19 +111,14 @@ export class ApiAnalyticsMessageComponent {
     this.apiAnalyticsV2Service.timeRangeFilter(),
   ]).pipe(
     switchMap(([api, availableEntrypoints]) => {
-      if (api.analytics.enabled) {
-        const apiEntrypointsId = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
-        const allEntrypoints: ApiAnalyticsVM['entrypoints'] = availableEntrypoints.map((e) => ({
-          id: e.id,
-          name: e.name,
-          icon: this.iconService.registerSvg(e.id, e.icon),
-        }));
+      const apiEntrypointsId = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
+      const allEntrypoints: ApiAnalyticsVM['entrypoints'] = availableEntrypoints.map((e) => ({
+        id: e.id,
+        name: e.name,
+        icon: this.iconService.registerSvg(e.id, e.icon),
+      }));
 
-        return this.analyticsData$(allEntrypoints, apiEntrypointsId).pipe(
-          map((analyticsData) => ({ isAnalyticsEnabled: true, ...analyticsData })),
-        );
-      }
-      return of({ isAnalyticsEnabled: false });
+      return this.analyticsData$(allEntrypoints, apiEntrypointsId);
     }),
     map((analyticsData) => ({ isLoading: false, ...analyticsData })),
     startWith({ isLoading: true }),

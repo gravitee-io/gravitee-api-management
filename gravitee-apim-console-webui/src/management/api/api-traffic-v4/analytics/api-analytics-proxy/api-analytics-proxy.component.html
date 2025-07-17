@@ -15,21 +15,12 @@
     limitations under the License.
 
 -->
+<div class="api-analytics">
+  <api-analytics-filters-bar></api-analytics-filters-bar>
 
-@if (!isAnalyticsEnabled()) {
-  <gio-card-empty-state
-    icon="folder-plus"
-    title="Enable Analytics"
-    subtitle="Your metrics live here. Start monitoring your API by enabling the Analytics in the settings."
-  ></gio-card-empty-state>
-} @else {
-  <div class="api-analytics">
-    <api-analytics-filters-bar></api-analytics-filters-bar>
-
-    <div class="chart-widgets">
-      @for (widget of chartWidgetConfigs; track widget.title) {
-        <chart-widget [config]="widget" />
-      }
-    </div>
+  <div class="chart-widgets">
+    @for (widget of chartWidgetConfigs; track widget.title) {
+      <chart-widget [config]="widget" />
+    }
   </div>
-}
+</div>

@@ -25,7 +25,6 @@ import { ApiAnalyticsProxyComponent } from './api-analytics-proxy.component';
 import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import {
   AggregationFields,
@@ -69,21 +68,9 @@ describe('ApiAnalyticsProxyComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('GIVEN an API with analytics.enabled=false', () => {
-    beforeEach(async () => {
-      await initComponent();
-      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: false } }));
-    });
-
-    it('should display empty panel', async () => {
-      expect(await componentHarness.isEmptyPanelDisplayed()).toBeTruthy();
-    });
-  });
-
   describe('GIVEN an API with analytics.enabled=true', () => {
     beforeEach(async () => {
       await initComponent();
-      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
       expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
     });
 
@@ -186,7 +173,6 @@ describe('ApiAnalyticsProxyComponent', () => {
     ].forEach((testParams) => {
       it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
         await initComponent(testParams.input);
-        expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
         expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
 
         const filtersBar = await componentHarness.getFiltersBarHarness();
@@ -198,15 +184,6 @@ describe('ApiAnalyticsProxyComponent', () => {
       });
     });
   });
-
-  function expectApiGetRequest(api: ApiV4) {
-    const res = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
-      method: 'GET',
-    });
-    res.flush(api);
-    fixture.detectChanges();
-  }
 
   function expectGetHistogramAnalytics(res: HistogramAnalyticsResponse = fakeAnalyticsHistogram(), numberOfRequests: number = 1) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=HISTOGRAM`;
