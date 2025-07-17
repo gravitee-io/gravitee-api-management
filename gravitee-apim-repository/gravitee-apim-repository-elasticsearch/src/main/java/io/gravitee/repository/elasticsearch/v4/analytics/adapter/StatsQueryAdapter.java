@@ -99,7 +99,7 @@ public class StatsQueryAdapter {
             return Optional.empty();
         }
 
-        float count = agg.getCount();
+        long count = agg.getCount().longValue();
         float sum = agg.getSum();
         float avg = agg.getAvg();
         float min = agg.getMin();
