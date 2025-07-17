@@ -104,6 +104,15 @@
                     </gio-form-label>
                   </gio-form-slide-toggle>
                   <gio-form-slide-toggle>
+                    <mat-slide-toggle gioFormSlideToggle data-test-id="disable-syntax-highlight" formControlName="disableSyntaxHighlight" />
+                    <gio-form-label>
+                      <div>Disable response body styling for large JSON payloads</div>
+                      <div class="mat-body-2">
+                        Displays API responses without Swagger UI styling to optimize performance when handling large payloads.
+                      </div>
+                    </gio-form-label>
+                  </gio-form-slide-toggle>
+                  <gio-form-slide-toggle>
                     <mat-slide-toggle gioFormSlideToggle data-test-id="try-it-anonymous" formControlName="tryItAnonymous" />
                     <gio-form-label>
                       <div>Enable "Try It!" mode for anonymous users</div>

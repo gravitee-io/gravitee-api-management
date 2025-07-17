@@ -83,6 +83,14 @@
     </md-checkbox>
     <md-checkbox
       ng-disabled="$ctrl.readOnly"
+      ng-model="$ctrl.page.configuration.disableSyntaxHighlight"
+      ng-true-value="'true'"
+      ng-false-value="'false'"
+    >
+      Disable response body styling for large JSON payloads
+    </md-checkbox>
+    <md-checkbox
+      ng-disabled="$ctrl.readOnly"
       ng-model="$ctrl.page.configuration.tryItAnonymous"
       ng-true-value="'true'"
       ng-false-value="'false'"
