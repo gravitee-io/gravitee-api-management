@@ -653,7 +653,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Audit
             auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
             // remove from search engine
-            searchEngineService.delete(executionContext, apiMapper.toEntity(executionContext, api, false));
+            searchEngineService.delete(executionContext, genericApiMapper.toGenericApi(api, null));
 
             mediaService.deleteAllByApi(apiId);
 
