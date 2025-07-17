@@ -23,6 +23,7 @@ export enum AggregationTypes {
 
 export enum AggregationFields {
   STATUS = 'status',
+  GATEWAY_RESPONSE_TIME_MS = 'gateway-response-time-ms',
 }
 
 export interface AnalyticsHistogramAggregation {
