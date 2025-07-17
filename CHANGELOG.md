@@ -1,3 +1,10 @@
+# [6.2.0-alpha.3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.2...6.2.0-alpha.3) (2025-07-17)
+
+
+### Bug Fixes
+
+* bump ci gravitee orb ([342c907](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/342c907118e8e9afb6768852d151cbf365b4b14b))
+
 # [6.2.0-alpha.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.1...6.2.0-alpha.2) (2025-07-17)
 
 
