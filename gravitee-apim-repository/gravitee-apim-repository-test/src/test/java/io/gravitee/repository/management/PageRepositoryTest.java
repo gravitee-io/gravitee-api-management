@@ -105,6 +105,7 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("source configuration", "sourceConfiguration", page.getSource().getConfiguration());
 
         assertEquals("configuration try it", "true", page.getConfiguration().get("tryIt"));
+        assertEquals("configuration disable syntax highlight", "false", page.getConfiguration().get("disableSyntaxHighlight"));
         assertEquals("configuration try it URL", "http://company.com", page.getConfiguration().get("tryItURL"));
         assertEquals("configuration show URL", "true", page.getConfiguration().get("showURL"));
         assertEquals("configuration display operation id", "true", page.getConfiguration().get("displayOperationId"));
@@ -170,6 +171,7 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         configuration.put("showURL", "true");
         configuration.put("showExtensions", "true");
         configuration.put("tryIt", "true");
+        configuration.put("disableSyntaxHighlight", "false");
         page.setConfiguration(configuration);
 
         final Map<String, String> metadata = new HashMap<>();
@@ -248,6 +250,7 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         configuration.put("maxDisplayedTags", "1234");
         configuration.put("enableFiltering", "true");
         configuration.put("tryItURL", "http://company.com");
+        configuration.put("disableSyntaxHighlight", "false");
         configuration.put("showURL", "true");
         configuration.put("showExtensions", "true");
         configuration.put("tryIt", "true");
@@ -337,6 +340,7 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         page.setPublished(true);
         page.setConfiguration(new HashMap<>());
         page.getConfiguration().put("tryIt", "true");
+        page.getConfiguration().put("disableSyntaxHighlight", "false");
         page.getConfiguration().put("tryItURL", "http://company.com");
         page.getConfiguration().put("showURL", "true");
         page.getConfiguration().put("displayOperationId", "true");
@@ -375,6 +379,7 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue("Invalid published.", updatedPage.isPublished());
 
         assertEquals("configuration try it", "true", updatedPage.getConfiguration().get("tryIt"));
+        assertEquals("configuration disable syntax highlight", "false", updatedPage.getConfiguration().get("disableSyntaxHighlight"));
         assertEquals("configuration try it URL", "http://company.com", updatedPage.getConfiguration().get("tryItURL"));
         assertEquals("configuration show URL", "true", updatedPage.getConfiguration().get("showURL"));
         assertEquals("configuration display operation id", "true", updatedPage.getConfiguration().get("displayOperationId"));
