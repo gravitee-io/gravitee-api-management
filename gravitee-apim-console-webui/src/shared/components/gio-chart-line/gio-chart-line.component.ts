@@ -29,7 +29,7 @@ export interface GioChartLineOptions {
 export const colors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
 
 export const defineLineColors = (code: string) => {
-  return colors[Math.floor(+code / 100) - 2];
+  return colors[Math.floor(+code / 100) - 1];
 };
 
 export const names = {
