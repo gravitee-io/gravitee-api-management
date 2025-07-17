@@ -51,6 +51,7 @@ export class ApiAnalyticsProxyComponent {
       aggregationField: AggregationFields.STATUS,
       title: 'Response Status Over Time',
       tooltip: 'Visualizes the breakdown of HTTP status codes (2xx, 4xx, 5xx) across time',
+      shouldSortBuckets: true,
     },
     {
       apiId: this.activatedRoute.snapshot.params.apiId,

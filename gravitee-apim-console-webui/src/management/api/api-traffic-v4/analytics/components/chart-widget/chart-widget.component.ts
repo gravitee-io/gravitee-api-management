@@ -33,6 +33,7 @@ export interface ChartWidgetConfig {
   aggregationField: AggregationFields;
   title: string;
   tooltip: string;
+  shouldSortBuckets?: boolean;
 }
 
 @Component({
@@ -72,6 +73,11 @@ export class ChartWidgetComponent implements OnInit {
           this.chartInput = res.values
             .find((value) => value.name === this.config().aggregationField)
             .buckets.map(({ name, data }) => ({ name, values: data }));
+
+          if (this.config().shouldSortBuckets) {
+            this.chartInput = this.chartInput.sort((a, b) => +a.name - +b.name);
+          }
+
           this.chartOptions = {
             pointStart: res.timestamp.from,
             pointInterval: res.timestamp.interval,
