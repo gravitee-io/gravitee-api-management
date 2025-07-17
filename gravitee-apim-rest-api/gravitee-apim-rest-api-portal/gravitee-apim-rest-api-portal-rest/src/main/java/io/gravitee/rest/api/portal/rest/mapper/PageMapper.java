@@ -115,6 +115,7 @@ public class PageMapper {
         String showExtensions = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_EXTENSIONS);
         String showUrl = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_URL);
         String tryIt = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT);
+        String disableSyntaxHighlight = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_DISABLE_SYNTAX_HIGHLIGHT);
         String tryItAnonymous = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS);
         String tryItURL = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL);
         String usePkce = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_USE_PKCE);
@@ -143,6 +144,9 @@ public class PageMapper {
         }
         if (tryIt != null) {
             pageConfiguration.setTryIt(Boolean.parseBoolean(tryIt));
+        }
+        if (disableSyntaxHighlight != null) {
+            pageConfiguration.setDisableSyntaxHighlight(Boolean.parseBoolean(disableSyntaxHighlight));
         }
         if (tryItAnonymous != null) {
             pageConfiguration.setTryItAnonymous(Boolean.parseBoolean(tryItAnonymous));

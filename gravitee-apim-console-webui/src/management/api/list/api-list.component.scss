@@ -133,3 +133,8 @@
   display: block;
   color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
 }
+
+.apis__avatar {
+  height: 32px;
+  width: 32px;
+}

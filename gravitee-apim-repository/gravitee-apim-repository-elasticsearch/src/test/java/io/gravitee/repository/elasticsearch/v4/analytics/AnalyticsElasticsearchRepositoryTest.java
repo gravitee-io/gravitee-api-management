@@ -56,7 +56,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {
-                    assertThat(countAggregate.getTotal()).isEqualTo(10);
+                    assertThat(countAggregate.getTotal()).isEqualTo(11);
                     assertThat(countAggregate.getCountBy())
                         .containsAllEntriesOf(Map.of("http-post", 3L, "http-get", 1L, "websocket", 3L, "sse", 2L, "webhook", 1L));
                 });
@@ -113,7 +113,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result)
                 .hasValueSatisfying(responseStatusAggregate -> {
-                    assertRanges(responseStatusAggregate.getRanges(), 3L, 7L);
+                    assertRanges(responseStatusAggregate.getRanges(), 3L, 8L);
                     var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
                     assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
                     assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);

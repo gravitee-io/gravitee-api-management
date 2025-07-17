@@ -65,6 +65,7 @@ interface OpenApiConfiguration {
   viewer: FormControl<string>;
   tryItURL: FormControl<string>;
   tryIt: FormControl<boolean>;
+  disableSyntaxHighlight: FormControl<boolean>;
   tryItAnonymous: FormControl<boolean>;
   showURL: FormControl<boolean>;
   displayOperationId: FormControl<boolean>;
@@ -180,6 +181,9 @@ export class DocumentationEditPageComponent implements OnInit {
         entrypointsAsServers: new FormControl(this.parseConfigurationStringToBoolean(this.page.configuration?.['entrypointsAsServers'])),
         tryItURL: new FormControl(this.page.configuration?.['tryItURL'] ?? ''),
         tryIt: new FormControl<boolean>(this.parseConfigurationStringToBoolean(this.page.configuration?.['tryIt'])),
+        disableSyntaxHighlight: new FormControl<boolean>(
+          this.parseConfigurationStringToBoolean(this.page.configuration?.['disableSyntaxHighlight']),
+        ),
         tryItAnonymous: new FormControl<boolean>(this.parseConfigurationStringToBoolean(this.page.configuration?.['tryItAnonymous'])),
         showURL: new FormControl<boolean>(this.parseConfigurationStringToBoolean(this.page.configuration?.['showURL'])),
         displayOperationId: new FormControl<boolean>(
