@@ -489,6 +489,150 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         assertThat(bucket.getBuckets()).size().isEqualTo(2);
                     });
             }
+
+            @Test
+            void should_return_histogram_analytics_response_for_avg_gateway_response_time_ms() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
+                    Instant.now().minusSeconds(60),
+                    Instant.now(),
+                    Duration.ofMinutes(10)
+                );
+                var expectedBuckets = List.of(
+                    io.gravitee.apim.core.analytics.model.Bucket
+                        .builder()
+                        .name("avg_gateway-response-time-ms")
+                        .field("gateway-response-time-ms")
+                        .buckets(
+                            List.of(
+                                new Bucket(null, "gateway-response-time-ms", "avg_gateway-response-time-ms", List.of(120.5, 110.0), null)
+                            )
+                        )
+                        .build()
+                );
+                fakeAnalyticsQueryService.histogramAnalytics =
+                    io.gravitee.apim.core.analytics.model.HistogramAnalytics
+                        .builder()
+                        .timestamp(expectedTimestamp)
+                        .values(expectedBuckets)
+                        .build();
+
+                var response = rootTarget()
+                    .queryParam("type", "HISTOGRAM")
+                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
+                    .queryParam("interval", expectedTimestamp.getInterval().toMillis())
+                    .queryParam("aggregations", "AVG:gateway-response-time-ms")
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
+                    .satisfies(result -> {
+                        var histogram = result.getHistogramAnalytics();
+                        assertThat(histogram).isNotNull();
+                        assertThat(histogram.getTimestamp()).isNotNull();
+                        assertThat(histogram.getTimestamp().getFrom()).isEqualTo(expectedTimestamp.getFrom().toEpochMilli());
+                        assertThat(histogram.getTimestamp().getTo()).isEqualTo(expectedTimestamp.getTo().toEpochMilli());
+                        assertThat(histogram.getTimestamp().getInterval()).isEqualTo(expectedTimestamp.getInterval().toMillis());
+                        assertThat(histogram.getValues()).hasSize(1);
+                        var bucket = histogram.getValues().getFirst();
+                        assertThat(bucket.getName()).isEqualTo("avg_gateway-response-time-ms");
+                        assertThat(bucket.getField()).isEqualTo("gateway-response-time-ms");
+                        assertThat(bucket.getBuckets()).hasSize(1);
+                        var avgBucket = bucket.getBuckets().getFirst();
+                        assertThat(avgBucket.getName()).isEqualTo("avg_gateway-response-time-ms");
+                        assertThat(avgBucket.getData()).containsExactly(120.5, 110.0);
+                    });
+            }
+
+            @Test
+            void should_return_bad_request_when_aggregation_type_is_invalid() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
+                    Instant.now().minusSeconds(60),
+                    Instant.now(),
+                    Duration.ofMinutes(10)
+                );
+                var response = rootTarget()
+                    .queryParam("type", "HISTOGRAM")
+                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
+                    .queryParam("interval", expectedTimestamp.getInterval().toMillis())
+                    .queryParam("aggregations", "INVALID:status")
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(400)
+                    .asError()
+                    .hasHttpStatus(400)
+                    .hasMessage("Invalid aggregation type: INVALID");
+            }
+        }
+
+        @Nested
+        class GroupByAnalytics {
+
+            @Test
+            void should_return_group_by_analytics_response() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+
+                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
+                    Instant.now().minusSeconds(60),
+                    Instant.now(),
+                    Duration.ofMinutes(10)
+                );
+                String ranges = "100:199;200:299;300:399;400:499;500:599";
+
+                var expectedAnalytics = io.gravitee.apim.core.analytics.model.GroupByAnalytics
+                    .builder()
+                    .values(Map.of("100:199", 0L, "200:299", 5L, "300:399", 0L, "400:499", 1L, "500:599", 0L))
+                    .build();
+
+                var expectedMetadata = Map.of(
+                    "100:199",
+                    Map.of("name", "100:199"),
+                    "200:299",
+                    Map.of("name", "200:299"),
+                    "300:399",
+                    Map.of("name", "300:399"),
+                    "400:499",
+                    Map.of("name", "400:499"),
+                    "500:599",
+                    Map.of("name", "500:599")
+                );
+
+                fakeAnalyticsQueryService.groupByAnalytics = expectedAnalytics;
+
+                var response = rootTarget()
+                    .queryParam("type", "GROUP_BY")
+                    .queryParam("field", "status")
+                    .queryParam("ranges", ranges)
+                    .queryParam("interval", expectedTimestamp.getInterval().toMillis())
+                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
+                    .satisfies(result -> {
+                        var groupBy = result.getGroupByAnalytics();
+                        assertThat(groupBy).isNotNull();
+                        assertThat(groupBy.getAnalyticsType())
+                            .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.AnalyticsType.GROUP_BY);
+                        assertThat(groupBy.getValues()).hasSize(5);
+                        assertThat(groupBy.getValues()).containsEntry("200:299", 5L);
+                        assertThat(groupBy.getValues()).containsEntry("400:499", 1L);
+                        assertThat(groupBy.getMetadata()).isEqualTo(expectedMetadata);
+                    });
+            }
         }
     }
 }

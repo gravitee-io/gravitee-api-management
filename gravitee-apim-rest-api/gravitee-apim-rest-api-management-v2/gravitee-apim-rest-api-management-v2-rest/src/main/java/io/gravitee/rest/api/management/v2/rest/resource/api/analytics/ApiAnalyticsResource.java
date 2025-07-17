@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchGroupByAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseCase;
@@ -77,6 +78,9 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchHistogramAnalyticsUseCase searchHistogramAnalyticsUseCase;
+
+    @Inject
+    private SearchGroupByAnalyticsUseCase searchGroupByAnalyticsUseCase;
 
     @Path("/requests-count")
     @GET
@@ -200,17 +204,17 @@ public class ApiAnalyticsResource extends AbstractResource {
         @BeanParam ApiAnalyticsParam apiAnalyticsParam
     ) {
         if (apiAnalyticsParam.getType() == AnalyticsType.HISTOGRAM) {
-            var input = new SearchHistogramAnalyticsUseCase.Input(
-                apiId,
-                apiAnalyticsParam.getFrom(),
-                apiAnalyticsParam.getTo(),
-                apiAnalyticsParam.getInterval(),
-                ApiAnalyticsMapper.INSTANCE.mapAggregations(apiAnalyticsParam.getAggregations())
-            );
+            var input = ApiAnalyticsParam.toHistogramInput(apiId, apiAnalyticsParam);
             var output = searchHistogramAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
             var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
             histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
             return new ApiAnalyticsResponse(histogramResponse);
+        }
+        if (apiAnalyticsParam.getType() == AnalyticsType.GROUP_BY) {
+            var input = ApiAnalyticsParam.toGroupByInput(apiId, apiAnalyticsParam);
+            var output = searchGroupByAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+            var groupByResponse = ApiAnalyticsMapper.INSTANCE.mapGroupByAnalytics(output.analytics(), output.metadata());
+            return new ApiAnalyticsResponse(groupByResponse);
         }
         return new ApiAnalyticsResponse();
     }

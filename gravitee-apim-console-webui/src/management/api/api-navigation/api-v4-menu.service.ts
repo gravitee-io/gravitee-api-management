@@ -393,7 +393,6 @@ export class ApiV4MenuService implements ApiMenuService {
         routerLink: hasTcpListeners ? 'DISABLED' : '',
         header: {
           title: 'API Traffic',
-          subtitle: 'Gain actionable insights into API performance with real-time metrics, logs, and notifications',
         },
         tabs: apiTrafficTabs,
       };

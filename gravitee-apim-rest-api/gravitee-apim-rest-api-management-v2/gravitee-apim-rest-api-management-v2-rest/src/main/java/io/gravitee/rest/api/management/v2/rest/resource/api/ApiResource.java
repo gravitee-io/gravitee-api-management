@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
+import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
@@ -53,6 +54,9 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponses;
+import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponsesIssuesInner;
+import io.gravitee.rest.api.management.v2.rest.model.MigrationStateType;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
@@ -226,6 +230,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     GetExposedEntrypointsUseCase getExposedEntrypointsUseCase;
+
+    @Inject
+    MigrateApiUseCase migrateApiUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -901,6 +908,37 @@ public class ApiResource extends AbstractResource {
         var output = getExposedEntrypointsUseCase.execute(input);
 
         return Response.ok().entity(ApiMapper.INSTANCE.map(output.exposedEntrypoints())).build();
+    }
+
+    @POST
+    @Path("/_migrate")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public MigrationReportResponses migrateApi(@PathParam("apiId") String apiId, @QueryParam("mode") MigrateMode mode) {
+        var upgradeMode = mode != null ? MigrateApiUseCase.Input.UpgradeMode.valueOf(mode.name()) : null;
+        var output = migrateApiUseCase.execute(new MigrateApiUseCase.Input(apiId, upgradeMode, getAuditInfo()));
+        return new MigrationReportResponses()
+            .state(mapState(output.state()))
+            .issues(
+                stream(output.issues())
+                    .map(issue -> new MigrationReportResponsesIssuesInner().message(issue.message()).state(mapState(issue.state())))
+                    .toList()
+            );
+    }
+
+    private static MigrationStateType mapState(MigrateApiUseCase.Output.State state) {
+        return switch (state) {
+            case MIGRATED -> MigrationStateType.MIGRATED;
+            case MIGRATABLE -> MigrationStateType.MIGRATABLE;
+            case IMPOSSIBLE -> MigrationStateType.IMPOSSIBLE;
+            case CAN_BE_FORCED -> MigrationStateType.CAN_BE_FORCED;
+        };
+    }
+
+    public enum MigrateMode {
+        DRY_RUN,
+        FORCE,
     }
 
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {

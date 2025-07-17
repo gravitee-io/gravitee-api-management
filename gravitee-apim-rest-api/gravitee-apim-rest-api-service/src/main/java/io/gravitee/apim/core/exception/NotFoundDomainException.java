@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.core.exception;
 
-import java.util.HashMap;
-import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -16,6 +16,7 @@
 package fakes;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
@@ -55,6 +56,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public TopHitsApps topHitsApps;
     public TopFailedApis topFailedApis;
     public HistogramAnalytics histogramAnalytics;
+    public GroupByAnalytics groupByAnalytics;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -140,5 +142,13 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters) {
         return Optional.ofNullable(histogramAnalytics);
+    }
+
+    @Override
+    public Optional<io.gravitee.apim.core.analytics.model.GroupByAnalytics> searchGroupByAnalytics(
+        ExecutionContext executionContext,
+        AnalyticsQueryService.GroupByQuery groupByQuery
+    ) {
+        return Optional.ofNullable(groupByAnalytics);
     }
 }

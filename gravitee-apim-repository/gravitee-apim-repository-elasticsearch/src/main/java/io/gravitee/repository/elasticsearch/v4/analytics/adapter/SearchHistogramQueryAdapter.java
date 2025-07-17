@@ -226,8 +226,11 @@ public class SearchHistogramQueryAdapter {
         List<JsonNode> buckets = histogramAgg.getBuckets();
         for (int i = 0; i < buckets.size(); i++) {
             var bucket = buckets.get(i);
-            if (!bucket.has(aggName)) {
-                values.get(aggName).set(i, bucket.get("value").asDouble());
+            if (bucket.has(aggName)) {
+                var aggValue = bucket.get(aggName).get("value");
+                if (!aggValue.isNull()) {
+                    values.get(aggName).set(i, aggValue.asDouble());
+                }
             }
         }
         return new HistogramAggregate<>(aggName, fieldName, values);

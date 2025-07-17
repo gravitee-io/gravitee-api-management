@@ -17,6 +17,7 @@ package io.gravitee.apim.core.analytics.query_service;
 
 import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -77,7 +78,31 @@ public interface AnalyticsQueryService {
 
     Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters);
 
+    Optional<GroupByAnalytics> searchGroupByAnalytics(ExecutionContext executionContext, GroupByQuery groupByQuery);
+
     record HistogramQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
+
+    record GroupByQuery(String apiId, Instant from, Instant to, String field, List<Group> groups, Order order, Duration interval) {
+        public record Group(long from, long to) {}
+        public record Order(String field, boolean order, String type) {
+            public static Order valueOf(String param) {
+                String field = null;
+                boolean order = true;
+                String type = null;
+                if (param != null) {
+                    String[] parts = param.split(":");
+                    order = !parts[0].startsWith("-");
+                    if (parts.length == 2) {
+                        type = order ? parts[0] : parts[0].substring(1);
+                        field = parts[1];
+                    } else {
+                        field = order ? parts[0] : parts[0].substring(1);
+                    }
+                }
+                return new Order(field, order, type);
+            }
+        }
+    }
 
     record ResponseStatusOverTimeQuery(
         List<String> apiIds,

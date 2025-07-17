@@ -31,7 +31,7 @@
     <name>Gravitee.io APIM - Repository - Elasticsearch</name>
 
     <properties>
-        <gravitee-reporter-common.version>1.4.1</gravitee-reporter-common.version>
+        <gravitee-reporter-common.version>1.7.0-alpha.1</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>6.2.0</gravitee-common-elasticsearch.version>
         <opensearch-testcontainers.version>2.1.3</opensearch-testcontainers.version>
 

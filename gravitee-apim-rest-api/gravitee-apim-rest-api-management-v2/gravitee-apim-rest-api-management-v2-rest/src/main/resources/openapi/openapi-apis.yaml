@@ -582,6 +582,38 @@ paths:
                     description: API successfully started
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/_migrate:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+        - name: mode
+          in: query
+          required: false
+          description: Migrate in dry run.
+          schema:
+            type: string
+            enum:
+              - DRY_RUN
+              - FORCE
+      post:
+        tags:
+          - APIs
+        summary: Migrate an API
+        x-experimental: true
+        description: |-
+          ⚠️ Experimental endpoints - subject to change
+          Migrate an APIv2 to APIv4.
+          
+          Return a 400 HTTP Error:
+           - when API isn’t V2.
+          
+          User must have the API_DEFINITION[UPDATE] permission.
+        operationId: migrateApi
+        responses:
+          "200":
+            $ref: "#/components/responses/MigrationReportResponses"
+          default:
+            $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_stop:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -7849,6 +7881,18 @@ components:
                     type: string
                     description: The url or host of the entrypoint depending on the API type
                     example: https://my-api.domain.com/echo
+        MigrationStateType:
+          type: string
+          description: |
+            * MIGRATED: API is migrated
+            * MIGRATABLE: DRY_RUN and can works
+            * CAN_BE_FORCED: if you force, we upgrade
+            * IMPOSSIBLE: we don’t know howto upgrade
+          enum:
+            - MIGRATED
+            - MIGRATABLE
+            - CAN_BE_FORCED
+            - IMPOSSIBLE
 
     parameters:
         #############
@@ -8835,6 +8879,28 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+
+        MigrationReportResponses:
+          description: Migration report
+          content:
+            application/json:
+              schema:
+                title: "MigrationReportResponses"
+                properties:
+                  state:
+                    $ref: '#/components/schemas/MigrationStateType'
+                  issues:
+                    description: List of issues.
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                        state:
+                          $ref: '#/components/schemas/MigrationStateType'
+
+
     securitySchemes:
         BasicAuth:
             type: http

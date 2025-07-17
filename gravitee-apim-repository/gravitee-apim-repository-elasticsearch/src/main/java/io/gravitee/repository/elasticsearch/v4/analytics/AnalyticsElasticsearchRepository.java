@@ -22,6 +22,7 @@ import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.AggregateValueCountByFieldAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.GroupByQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.ResponseTimeRangeQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationResponseAdapter;
@@ -39,6 +40,8 @@ import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
@@ -201,6 +204,16 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var esQuery = adapter.adapt(query);
 
         log.debug("Search histogram query: {}", esQuery);
+        return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var adapter = new GroupByQueryAdapter();
+        var esQuery = adapter.adapt(query);
+
+        log.debug("Search group by query: {}", esQuery);
         return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
     }
 

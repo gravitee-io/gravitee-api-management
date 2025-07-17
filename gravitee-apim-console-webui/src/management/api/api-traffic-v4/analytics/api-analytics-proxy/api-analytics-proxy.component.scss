@@ -7,13 +7,29 @@
   @include gio-layout.gio-responsive-margin-container;
 }
 
-.gridContent {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-gap: 16px;
+.api-analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.full-bleed {
-  width: 100%;
-  grid-column: 1 / 3;
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .title {
+    margin: 0;
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.chart-widgets {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  grid-gap: 24px;
 }

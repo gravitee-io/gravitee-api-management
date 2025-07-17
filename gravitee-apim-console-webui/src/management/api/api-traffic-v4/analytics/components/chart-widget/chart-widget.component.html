@@ -17,9 +17,12 @@
 -->
 <mat-card class="card">
   <mat-card-header>
-    <mat-card-title>Response status</mat-card-title>
-    <mat-card-subtitle>Hits repartition by HTTP Status</mat-card-subtitle>
+    <mat-card-title class="card__title"
+      >{{ config().title }} <mat-icon [matTooltip]="config().tooltip" matTooltipPosition="after" svgIcon="gio:info"></mat-icon
+    ></mat-card-title>
   </mat-card-header>
+
+  <div class="card__line"></div>
 
   @if (isLoading) {
     <div class="card__loader">

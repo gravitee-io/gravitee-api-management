@@ -1,0 +1,35 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$borderColor: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
+
+:host {
+  display: block;
+}
+
+.card {
+  height: 100%;
+  border: 1px solid $borderColor;
+  border-radius: 8px;
+
+  &__loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    margin: 16px;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__line {
+    background-color: $borderColor;
+    margin: 16px 0;
+    height: 1px;
+  }
+}
