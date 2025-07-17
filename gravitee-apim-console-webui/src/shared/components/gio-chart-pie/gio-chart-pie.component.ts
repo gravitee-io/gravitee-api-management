@@ -85,6 +85,9 @@ export class GioChartPieComponent implements OnInit {
           dataLabels: {
             enabled: true,
             format: '<b>{point.name}</b>: {point.y} ({point.percentage:.1f} %)',
+            style: {
+              fontFamily: 'Manrope, sans-serif',
+            },
           },
         },
       },

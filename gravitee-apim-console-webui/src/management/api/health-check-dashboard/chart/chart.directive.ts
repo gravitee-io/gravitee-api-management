@@ -136,7 +136,7 @@ class ChartDirective {
               newOptions.title.style = {
                 fontWeight: 'bold',
                 fontSize: '12px',
-                fontFamily: '"Helvetica Neue",Helvetica,Arial,sans-serif',
+                fontFamily: 'Manrope, sans-serif',
               };
               newOptions.title.align = 'left';
             } else {
