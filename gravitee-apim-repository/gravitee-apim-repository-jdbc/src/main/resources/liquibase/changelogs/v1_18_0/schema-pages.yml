@@ -32,13 +32,21 @@ databaseChangeLog:
               from ${gravitee_prefix}pages
               where configuration_try_it is true
 
-        - sql:
-            comment: Move tryItURL to a the dedicated table
-            sql: >
-              insert into ${gravitee_prefix}page_configuration (page_id, k, v)
-              select id, 'tryItURL', configuration_try_it_url
-              from ${gravitee_prefix}pages
-              where configuration_try_it_url is not null
+              - sql:
+                    comment: Move disableSyntaxHighlight to a the dedicated table
+                    sql: >
+                        insert into ${gravitee_prefix}page_configuration (page_id, k, v)
+                        select id, 'disableSyntaxHighlight', configuration_disable_syntax_highlight
+                        from ${gravitee_prefix}pages
+                        where configuration_disable_syntax_highlight is true
+
+              - sql:
+                    comment: Move tryItURL to a the dedicated table
+                    sql: >
+                        insert into ${gravitee_prefix}page_configuration (page_id, k, v)
+                        select id, 'tryItURL', configuration_try_it_url
+                        from ${gravitee_prefix}pages
+                        where configuration_try_it_url is not null
 
         - dropColumn:
             columnName: configuration_try_it_url

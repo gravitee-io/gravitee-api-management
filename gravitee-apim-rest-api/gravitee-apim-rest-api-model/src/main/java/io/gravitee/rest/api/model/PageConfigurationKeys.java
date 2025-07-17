@@ -27,6 +27,7 @@ public final class PageConfigurationKeys {
     public static final String LINK_IS_FOLDER = "isFolder";
     public static final String LINK_RESOURCE_TYPE = "resourceType";
     public static final String SWAGGER_SWAGGERUI_TRY_IT = "tryIt";
+    public static final String SWAGGER_SWAGGERUI_DISABLE_SYNTAX_HIGHLIGHT = "disableSyntaxHighlight";
     public static final String SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS = "tryItAnonymous";
     public static final String SWAGGER_SWAGGERUI_TRY_IT_URL = "tryItURL";
     public static final String SWAGGER_SWAGGERUI_SHOW_URL = "showURL";

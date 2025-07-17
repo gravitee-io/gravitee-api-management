@@ -193,6 +193,7 @@
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
    },
+      "disableSyntaxHighlight": false,
   {
     "id":"page-to-be-removed-1",
     "referenceType":"API",
