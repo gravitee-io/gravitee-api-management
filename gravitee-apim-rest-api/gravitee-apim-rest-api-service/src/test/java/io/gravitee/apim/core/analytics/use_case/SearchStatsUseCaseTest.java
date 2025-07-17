@@ -56,7 +56,7 @@ class SearchStatsUseCaseTest {
     void should_return_stats_analytics_when_valid() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        analyticsQueryService.statsAnalytics = new StatsAnalytics(1f, 2f, 3f, 4f, 5f);
+        analyticsQueryService.statsAnalytics = new StatsAnalytics(1f, 2f, 3f, 4f, 5);
 
         var input = new SearchStatsUseCase.Input(
             MY_API,

@@ -7721,8 +7721,8 @@ components:
                   type: number
                   format: float
                 count:
-                  type: number
-                  format: float
+                  type: integer
+                  format: int64
         CountAnalytics:
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"

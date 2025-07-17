@@ -80,7 +80,7 @@ class StatsQueryAdapterTest {
             assertTrue(result.isPresent());
             StatsAggregate stats = result.get();
             assertEquals(FIELD, stats.field());
-            assertEquals(10f, stats.count());
+            assertEquals(10L, stats.count()); // count is long
             assertEquals(100f, stats.sum());
             assertEquals(10f, stats.avg());
             assertEquals(1f, stats.min());

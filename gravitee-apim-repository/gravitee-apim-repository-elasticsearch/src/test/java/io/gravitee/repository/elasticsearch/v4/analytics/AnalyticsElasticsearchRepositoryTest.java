@@ -776,7 +776,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .isPresent()
                 .hasValueSatisfying(stats -> {
                     assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
-                    assertThat(stats.count()).isEqualTo(7.0f);
+                    assertThat(stats.count()).isEqualTo(7L);
                     assertThat(stats.sum()).isEqualTo(131845.0f);
                     assertThat(stats.avg()).isEqualTo(18835.0f);
                     assertThat(stats.min()).isEqualTo(20.0f);
