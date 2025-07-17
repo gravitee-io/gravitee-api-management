@@ -92,6 +92,7 @@ import { DebugModeV2WrapperComponent } from './debug-mode/v2-wrapper/debug-mode-
 import { DebugModeV4WrapperComponent } from './debug-mode/v4-wrapper/debug-mode-v4-wrapper.component';
 import { McpComponent } from './mcp/mcp.component';
 import { EnableMcpEntrypointComponent } from './mcp/enable-mcp-entrypoint/enable-mcp-entrypoint.component';
+import { ReporterSettingsComponent } from './reporter-settings/reporter-settings.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -412,6 +413,18 @@ const apisRoutes: Routes = [
           },
           docs: {
             page: 'management-api-history',
+          },
+        },
+      },
+      {
+        path: 'reporter-settings',
+        component: ReporterSettingsComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-reporter-settings',
           },
         },
       },

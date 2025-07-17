@@ -48,7 +48,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addConsumersMenuEntry(hasTcpListeners),
       this.addDocumentationMenuEntry(api),
-      this.addDeploymentMenuEntry(),
+      this.addDeploymentMenuEntry(api),
       ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...this.addAlertsMenuEntry(),
@@ -322,7 +322,7 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addDeploymentMenuEntry(): MenuItem {
+  private addDeploymentMenuEntry(api: ApiV4): MenuItem {
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
@@ -336,6 +336,13 @@ export class ApiV4MenuService implements ApiMenuService {
       tabs.push({
         displayName: 'Deployment History',
         routerLink: 'v4/history',
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-definition-r']) && api.type === 'NATIVE') {
+      tabs.push({
+        displayName: 'Reporter Settings',
+        routerLink: 'reporter-settings',
       });
     }
 

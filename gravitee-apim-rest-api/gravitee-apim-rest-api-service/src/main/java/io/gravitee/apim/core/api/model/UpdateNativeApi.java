@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.model;
 
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -41,4 +42,7 @@ public class UpdateNativeApi extends AbstractUpdateApi {
     private List<NativeFlow> flows;
 
     private NativeApiServices services;
+
+    @Builder.Default
+    private NativeAnalytics analytics = new NativeAnalytics();
 }
