@@ -1,3 +1,10 @@
+# [6.2.0-alpha.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.1...6.2.0-alpha.2) (2025-07-17)
+
+
+### Features
+
+* add an index template for v4 native event metrics in ES7 ([eee942a](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/eee942aedca828b8739da37850a2d4e89073c008))
+
 # [6.2.0-alpha.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.1.0...6.2.0-alpha.1) (2025-07-17)
 
 
