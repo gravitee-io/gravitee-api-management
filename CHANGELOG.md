@@ -1,3 +1,10 @@
+# [1.7.0-alpha.3](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.2...1.7.0-alpha.3) (2025-07-17)
+
+
+### Bug Fixes
+
+* bump gravitee-parent ([7e93256](https://github.com/gravitee-io/gravitee-reporter-common/commit/7e93256eb819b3b17775acd069e9bb68a5cdd2c8))
+
 # [1.7.0-alpha.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.1...1.7.0-alpha.2) (2025-07-17)
 
 
