@@ -250,7 +250,7 @@
         <gravitee-notifier-slack.version>1.3.0</gravitee-notifier-slack.version>
         <gravitee-notifier-webhook.version>1.1.3</gravitee-notifier-webhook.version>
         <!-- Gateway Only -->
-        <gravitee-reporter-elasticsearch.version>6.1.0</gravitee-reporter-elasticsearch.version>
+        <gravitee-reporter-elasticsearch.version>6.2.0-alpha.3</gravitee-reporter-elasticsearch.version>
         <gravitee-reporter-file.version>3.5.3</gravitee-reporter-file.version>
         <gravitee-reporter-tcp.version>2.6.2</gravitee-reporter-tcp.version>
         <gravitee-reporter-cloud.version>1.5.2</gravitee-reporter-cloud.version>
@@ -295,7 +295,7 @@
         <gravitee-resource-schema-registry-confluent.version>4.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-storage-azure-blob.version>1.0.0</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>8.0.0-alpha.1</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>4.0.0-alpha.3</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-native-kafka.version>4.0.0-alpha.5</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>7.0.0</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
@@ -307,7 +307,7 @@
         <gravitee-policy-kafka-acl.version>1.7.4</gravitee-policy-kafka-acl.version>
         <gravitee-policy-kafka-transform-key.version>1.0.0</gravitee-policy-kafka-transform-key.version>
         <gravitee-policy-kafka-message-filtering.version>1.0.0</gravitee-policy-kafka-message-filtering.version>
-        <gravitee-policy-offloading.version>1.0.0</gravitee-policy-offloading.version>
+        <gravitee-policy-offloading.version>1.1.0</gravitee-policy-offloading.version>
     </properties>
 
     <scm>
