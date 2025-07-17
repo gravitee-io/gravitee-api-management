@@ -19,6 +19,7 @@ import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
@@ -57,6 +58,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public TopFailedApis topFailedApis;
     public HistogramAnalytics histogramAnalytics;
     public GroupByAnalytics groupByAnalytics;
+    public StatsAnalytics statsAnalytics;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -150,5 +152,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
         AnalyticsQueryService.GroupByQuery groupByQuery
     ) {
         return Optional.ofNullable(groupByAnalytics);
+    }
+
+    @Override
+    public Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery) {
+        return Optional.ofNullable(statsAnalytics);
     }
 }
