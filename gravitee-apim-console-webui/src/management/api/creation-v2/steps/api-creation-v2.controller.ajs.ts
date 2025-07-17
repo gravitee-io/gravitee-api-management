@@ -17,6 +17,7 @@ import { IPromise } from 'angular';
 
 import { ActivatedRoute, Router } from '@angular/router';
 import { forEach, remove, some } from 'lodash';
+import { SimpleChange } from '@angular/core';
 
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
@@ -24,6 +25,7 @@ import UserService from '../../../../services/user.service';
 import { PlanSecurityType } from '../../../../entities/plan';
 import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match-etag.interceptor';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import GroupService from '../../../../services/group.service';
 
 interface Page {
   fileName: string;
@@ -89,6 +91,13 @@ class ApiCreationV2ControllerAjs {
   private tags: any[];
   private tenants: any[];
   private groups: any[];
+  public hasMoreGroups = true;
+
+  pageSize = 50;
+  currentPage = 1;
+  loadedGroups: any[] = [];
+  isFetchingGroups = false;
+  totalPages: any;
 
   constructor(
     private $scope,
@@ -103,6 +112,7 @@ class ApiCreationV2ControllerAjs {
     private $rootScope,
     private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
     private readonly ngRouter: Router,
+    private readonly groupService: GroupService,
   ) {
     this.api = {
       gravitee: '2.0.0',
@@ -158,11 +168,48 @@ class ApiCreationV2ControllerAjs {
   }
 
   $onInit = () => {
-    this.attachableGroups = this.groups.filter((group) => group.apiPrimaryOwner == null);
+    const groups = this.groups || [];
+    this.syncGroupData(groups);
+  };
+
+  loadMoreGroups = () => {
+    if (this.isFetchingGroups || !this.hasMoreGroups) return;
+    this.isFetchingGroups = true;
+
+    this.groupService.listPaginated(this.currentPage, this.pageSize).then((response) => {
+      const pageMeta = response.data.page;
+      const data = response.data.data;
+      this.totalPages = pageMeta.total_pages;
+
+      this.loadedGroups = [...this.loadedGroups, ...data];
+
+      if (pageMeta.current >= this.totalPages) this.hasMoreGroups = false;
+      else this.currentPage++;
+
+      this.$onChanges({
+        groups: new SimpleChange(null, this.loadedGroups, false),
+      });
+
+      this.isFetchingGroups = false;
+    });
+  };
+
+  syncGroupData = (groups) => {
     const currentUserGroups = this.UserService.getCurrentUserGroups();
-    this.poGroups = this.groups.filter(
-      (group) => group.apiPrimaryOwner != null && currentUserGroups.some((userGroup) => userGroup === group.name),
-    );
+    this.attachableGroups = groups.filter((group) => group.apiPrimaryOwner == null);
+    this.poGroups = groups.filter((group) => group.apiPrimaryOwner != null && currentUserGroups.includes(group.name));
+  };
+
+  $onChanges = (changes) => {
+    if (changes.groups && changes.groups.currentValue) {
+      const groups = changes.groups.currentValue;
+      this.groups = groups;
+      this.syncGroupData(groups);
+    }
+
+    if (changes.hasMoreGroups) {
+      this.hasMoreGroups = changes.hasMoreGroups.currentValue;
+    }
   };
 
   /*
@@ -546,6 +593,7 @@ ApiCreationV2ControllerAjs.$inject = [
   '$rootScope',
   'ngIfMatchEtagInterceptor',
   'ngRouter',
+  'GroupService',
 ];
 
 export default ApiCreationV2ControllerAjs;
