@@ -1,3 +1,15 @@
+# [6.2.0-alpha.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.1.0...6.2.0-alpha.1) (2025-07-17)
+
+
+### Bug Fixes
+
+* add missing stuff for new EVENT_METRICS ([b9646fc](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/b9646fcec06479e3ac31a79fa841a8be210372ae))
+
+
+### Features
+
+* bump dependancies ([ed739cc](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/ed739cc2923b5a2442b81652d4dd9288c3440546))
+
 # [6.1.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.0.0...6.1.0) (2025-07-15)
 
 
