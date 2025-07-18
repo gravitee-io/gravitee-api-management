@@ -44,7 +44,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AnalyticsRepository {
-    Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery, String aggregationField);
+    Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery);
+    Optional<CountAggregate> searchRequestsCountByEvent(
+        QueryContext queryContext,
+        RequestsCountQuery requestsCountQuery,
+        String aggregationField
+    );
 
     Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query);
 

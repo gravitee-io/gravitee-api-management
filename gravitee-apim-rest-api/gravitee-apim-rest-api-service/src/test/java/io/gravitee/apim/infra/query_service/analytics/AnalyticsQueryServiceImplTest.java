@@ -99,9 +99,15 @@ class AnalyticsQueryServiceImplTest {
 
         @Test
         void should_return_empty_requests_count() {
-            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any(), any())).thenReturn(Optional.empty());
+            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any())).thenReturn(Optional.empty());
+            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1", null, null)).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_requests_count_by_event() {
+            when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any(), any())).thenReturn(Optional.empty());
             assertThat(
-                cut.searchRequestsCount(
+                cut.searchRequestsCountByEvent(
                     GraviteeContext.getExecutionContext(),
                     new AnalyticsQueryService.CountQuery("api#1", null, null, null, null)
                 )
