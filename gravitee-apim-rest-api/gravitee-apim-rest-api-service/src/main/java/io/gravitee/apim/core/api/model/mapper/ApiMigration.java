@@ -45,6 +45,7 @@ import org.jspecify.annotations.Nullable;
 class ApiMigration {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final String HTTP_PROXY = "http-proxy";
 
     MigrationResult<Api> mapApi(Api source) {
         return apiDefinitionHttpV4(source.getApiDefinition())
@@ -77,7 +78,7 @@ class ApiMigration {
                         .toList()
                 )
                 .pathMappingsPattern(apiDefinitionV2.getPathMappings())
-                .entrypoints(List.of(Entrypoint.builder().type("http-proxy").build()))
+                .entrypoints(List.of(Entrypoint.builder().type(HTTP_PROXY).build()))
                 .build()
         );
 
@@ -120,7 +121,7 @@ class ApiMigration {
         return EndpointGroup
             .builder()
             .name(source.getName())
-            .type("http-proxy")
+            .type(HTTP_PROXY)
             .loadBalancer(mapLoadBalancer(source.getLoadBalancer()))
             .endpoints(endpoints)
             //.services(source.getServices())
@@ -141,7 +142,7 @@ class ApiMigration {
         return Endpoint
             .builder()
             .name(lb.getName())
-            .type(lb.getType())
+            .type(HTTP_PROXY)
             .secondary(lb.isBackup())
             .tenants(lb.getTenants())
             .weight(lb.getWeight())

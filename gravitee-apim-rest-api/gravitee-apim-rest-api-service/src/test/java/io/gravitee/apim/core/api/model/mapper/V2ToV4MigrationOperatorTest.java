@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.model.mapper;
 import static io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import fixtures.core.model.ApiFixtures;
@@ -341,9 +342,11 @@ class V2ToV4MigrationOperatorTest {
             var result = get(mapper.mapApi(api));
 
             var mappedEndpoint = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst().getEndpoints().getFirst();
-            assertThat(mappedEndpoint.getName()).isEqualTo("test-endpoint");
-            assertThat(mappedEndpoint.getType()).isEqualTo("http");
-            assertThat(mappedEndpoint.getConfiguration()).contains("\"target\":\"http://example.com\"");
+            assertSoftly(softly -> {
+                softly.assertThat(mappedEndpoint.getName()).isEqualTo("test-endpoint");
+                softly.assertThat(mappedEndpoint.getType()).isEqualTo("http-proxy");
+                softly.assertThat(mappedEndpoint.getConfiguration()).contains("\"target\":\"http://example.com\"");
+            });
         }
     }
 
@@ -363,11 +366,13 @@ class V2ToV4MigrationOperatorTest {
 
             var result = get(mapper.mapPlan(plan));
 
-            assertThat(result.getPlanDefinitionHttpV4().getStatus()).isEqualTo(expectedV4Status);
-            assertThat(result.getPlanDefinitionHttpV4().getMode()).isEqualTo(PlanMode.STANDARD);
-            assertThat(result.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo("api-key");
-            assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-            assertThat(result.getApiType()).isEqualTo(ApiType.PROXY);
+            assertSoftly(softly -> {
+                softly.assertThat(result.getPlanDefinitionHttpV4().getStatus()).isEqualTo(expectedV4Status);
+                softly.assertThat(result.getPlanDefinitionHttpV4().getMode()).isEqualTo(PlanMode.STANDARD);
+                softly.assertThat(result.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo("api-key");
+                softly.assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+                softly.assertThat(result.getApiType()).isEqualTo(ApiType.PROXY);
+            });
         }
 
         private static Stream<Arguments> planStatusProvider() {
@@ -427,20 +432,22 @@ class V2ToV4MigrationOperatorTest {
 
             var result = get(mapper.mapPlan(plan));
 
-            assertThat(result.getId()).isEqualTo("plan-id");
-            assertThat(result.getName()).isEqualTo("Test Plan");
-            assertThat(result.getDescription()).isEqualTo("Plan Description");
-            assertThat(result.getCreatedAt()).isEqualTo(now);
-            assertThat(result.getUpdatedAt()).isEqualTo(now);
-            assertThat(result.getPublishedAt()).isEqualTo(now);
-            assertThat(result.getClosedAt()).isEqualTo(now);
-            assertThat(result.getOrder()).isEqualTo(5);
-            assertThat(result.getCharacteristics()).containsExactly("char1", "char2");
-            assertThat(result.getExcludedGroups()).containsExactly("group1");
-            assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.MANUAL);
-            assertThat(result.getPlanDefinitionHttpV4().getSelectionRule()).isEqualTo("rule");
-            assertThat(result.getPlanDefinitionHttpV4().getTags()).containsExactlyInAnyOrder("tag1", "tag2");
-            assertThat(result.isCommentRequired()).isFalse();
+            assertSoftly(softly -> {
+                softly.assertThat(result.getId()).isEqualTo("plan-id");
+                softly.assertThat(result.getName()).isEqualTo("Test Plan");
+                softly.assertThat(result.getDescription()).isEqualTo("Plan Description");
+                softly.assertThat(result.getCreatedAt()).isEqualTo(now);
+                softly.assertThat(result.getUpdatedAt()).isEqualTo(now);
+                softly.assertThat(result.getPublishedAt()).isEqualTo(now);
+                softly.assertThat(result.getClosedAt()).isEqualTo(now);
+                softly.assertThat(result.getOrder()).isEqualTo(5);
+                softly.assertThat(result.getCharacteristics()).containsExactly("char1", "char2");
+                softly.assertThat(result.getExcludedGroups()).containsExactly("group1");
+                softly.assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.MANUAL);
+                softly.assertThat(result.getPlanDefinitionHttpV4().getSelectionRule()).isEqualTo("rule");
+                softly.assertThat(result.getPlanDefinitionHttpV4().getTags()).containsExactlyInAnyOrder("tag1", "tag2");
+                softly.assertThat(result.isCommentRequired()).isFalse();
+            });
         }
 
         @ParameterizedTest
