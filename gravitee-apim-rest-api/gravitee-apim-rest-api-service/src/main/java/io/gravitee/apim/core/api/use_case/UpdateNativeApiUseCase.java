@@ -105,6 +105,7 @@ public class UpdateNativeApiUseCase {
                             .flows(updateNativeApi.getFlows())
                             .services(updateNativeApi.getServices())
                             .properties(properties)
+                            .analytics(updateNativeApi.getAnalytics())
                             .build()
                         : null
                 )
