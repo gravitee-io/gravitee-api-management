@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.infra.domain_service.subscription;
 
-import static fixtures.core.model.MembershipFixtures.anApiPrimaryOwnerUserMembership;
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -25,19 +24,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
-import inmemory.ApiCrudServiceInMemory;
-import inmemory.ApiKeyCrudServiceInMemory;
-import inmemory.ApiKeyQueryServiceInMemory;
-import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
-import inmemory.IntegrationAgentInMemory;
-import inmemory.MembershipQueryServiceInMemory;
-import inmemory.PlanCrudServiceInMemory;
-import inmemory.RoleQueryServiceInMemory;
-import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
+import inmemory.*;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
@@ -122,6 +109,8 @@ class SubscriptionCRDSpecDomainServiceImplTest {
         roleQueryService,
         userCrudService
     );
+    private final MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
+    private final IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
 
     private final SubscriptionService subscriptionService = Mockito.mock(SubscriptionService.class);
 
@@ -288,7 +277,9 @@ class SubscriptionCRDSpecDomainServiceImplTest {
             integrationAgent,
             notificationService,
             userCrudService,
-            applicationPrimaryOwnerDomainService
+            applicationPrimaryOwnerDomainService,
+            metadataCrudService,
+            integrationCrudService
         );
     }
 

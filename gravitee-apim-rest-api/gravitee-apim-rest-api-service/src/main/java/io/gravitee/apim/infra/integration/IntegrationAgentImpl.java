@@ -97,9 +97,11 @@ public class IntegrationAgentImpl implements IntegrationAgent {
         FederatedApi api,
         SubscriptionParameter subscriptionParameter,
         String subscriptionId,
-        BaseApplicationEntity application
+        BaseApplicationEntity application,
+        Map<String, String> providerMetadata
     ) {
         Map<String, String> metadata = api.getServer() != null ? new HashMap<>(api.getServer()) : new HashMap<>();
+        metadata.putAll(providerMetadata);
         SubscriptionType type;
         if (subscriptionParameter instanceof SubscriptionParameter.ApiKey apiKeyParams) {
             type = SubscriptionType.API_KEY;

@@ -26,24 +26,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
 import fixtures.ApplicationModelFixtures;
-import fixtures.core.model.ApiFixtures;
-import fixtures.core.model.AuditInfoFixtures;
-import fixtures.core.model.PlanFixtures;
-import fixtures.core.model.SubscriptionFixtures;
-import inmemory.ApiCrudServiceInMemory;
-import inmemory.ApiKeyCrudServiceInMemory;
-import inmemory.ApiKeyQueryServiceInMemory;
-import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
-import inmemory.InMemoryAlternative;
-import inmemory.IntegrationAgentInMemory;
-import inmemory.MembershipQueryServiceInMemory;
-import inmemory.PlanCrudServiceInMemory;
-import inmemory.RoleQueryServiceInMemory;
-import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
+import fixtures.core.model.*;
+import inmemory.*;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
@@ -54,6 +38,7 @@ import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
@@ -116,6 +101,8 @@ class AcceptSubscriptionUseCaseTest {
     GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
+    MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
+    IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
     AcceptSubscriptionUseCase useCase;
 
     @BeforeAll
@@ -152,7 +139,9 @@ class AcceptSubscriptionUseCaseTest {
             integrationAgent,
             triggerNotificationDomainService,
             userCrudService,
-            applicationPrimaryOwnerDomainService
+            applicationPrimaryOwnerDomainService,
+            metadataCrudService,
+            integrationCrudService
         );
 
         useCase = new AcceptSubscriptionUseCase(subscriptionCrudService, planCrudService, acceptSubscriptionDomainService);
@@ -172,6 +161,7 @@ class AcceptSubscriptionUseCaseTest {
         userCrudService.initWith(
             List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
         );
+        integrationCrudService.initWith(List.of(IntegrationFixture.anApiIntegration()));
     }
 
     @AfterEach
@@ -278,6 +268,20 @@ class AcceptSubscriptionUseCaseTest {
         var application = givenExistingApplication();
         var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
+        var providerMetadataKey = "test-provider-metadata";
+        var providerMetadataValue = "test-provider-metadata-value";
+        var providerMetadata = new Metadata(
+            providerMetadataKey,
+            Metadata.ReferenceType.API,
+            api.getId(),
+            providerMetadataKey,
+            Metadata.MetadataFormat.STRING,
+            providerMetadataValue,
+            STARTING_AT,
+            STARTING_AT
+        );
+        givenExistingMetadata(providerMetadata);
+
         // When
         var result = accept(subscription.getId());
 
@@ -297,7 +301,7 @@ class AcceptSubscriptionUseCaseTest {
                 null,
                 INSTANT_NOW.atZone(ZoneId.systemDefault()),
                 null,
-                Map.of("key", "value")
+                Map.of("key", "value", providerMetadataKey, providerMetadataValue)
             );
     }
 
@@ -311,7 +315,7 @@ class AcceptSubscriptionUseCaseTest {
 
         doReturn(Single.error(new IntegrationSubscriptionException("fail to subscribe")))
             .when(integrationAgent)
-            .subscribe(any(), any(), any(), any(), any());
+            .subscribe(any(), any(), any(), any(), any(), any());
 
         // When
         accept(subscription.getId());
@@ -661,6 +665,11 @@ class AcceptSubscriptionUseCaseTest {
     private SubscriptionEntity givenExistingSubscription(SubscriptionEntity subscription) {
         subscriptionCrudService.initWith(List.of(subscription));
         return subscription;
+    }
+
+    private Metadata givenExistingMetadata(Metadata metadata) {
+        metadataCrudService.initWith(List.of(metadata));
+        return metadata;
     }
 
     private AcceptSubscriptionUseCase.Output accept(String subscriptionId) {
