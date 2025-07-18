@@ -32,14 +32,6 @@ export const defineLineColors = (code: string) => {
   return colors[Math.floor(+code / 100) - 1];
 };
 
-export const names = {
-  'avg_gateway-response-time-ms': 'Gateway Response Time',
-};
-
-export const formatName = (name: string) => {
-  return names[name] || name;
-};
-
 @Component({
   selector: 'gio-chart-line',
   templateUrl: './gio-chart-line.component.html',
@@ -101,7 +93,7 @@ export class GioChartLineComponent implements OnInit {
       },
 
       series: this.data?.map((item) => ({
-        name: formatName(item.name),
+        name: item.name,
         data: item.values,
         type: 'spline',
         color: defineLineColors(item.name),

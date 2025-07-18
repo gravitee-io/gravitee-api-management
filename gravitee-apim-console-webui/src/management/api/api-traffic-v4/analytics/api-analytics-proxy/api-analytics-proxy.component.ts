@@ -47,18 +47,30 @@ export class ApiAnalyticsProxyComponent {
   public chartWidgetConfigs: ChartWidgetConfig[] = [
     {
       apiId: this.activatedRoute.snapshot.params.apiId,
-      aggregationType: AggregationTypes.FIELD,
-      aggregationField: AggregationFields.STATUS,
+      aggregations: [
+        {
+          type: AggregationTypes.FIELD,
+          field: AggregationFields.STATUS,
+        },
+      ],
       title: 'Response Status Over Time',
       tooltip: 'Visualizes the breakdown of HTTP status codes (2xx, 4xx, 5xx) across time',
       shouldSortBuckets: true,
     },
     {
       apiId: this.activatedRoute.snapshot.params.apiId,
-      aggregationType: AggregationTypes.AVG,
-      aggregationField: AggregationFields.GATEWAY_RESPONSE_TIME_MS,
+      aggregations: [
+        {
+          type: AggregationTypes.AVG,
+          field: AggregationFields.GATEWAY_RESPONSE_TIME_MS,
+        },
+        {
+          type: AggregationTypes.AVG,
+          field: AggregationFields.ENDPOINT_RESPONSE_TIME_MS,
+        },
+      ],
       title: 'Response Time Over Time',
-      tooltip: 'Measures latency trend for gateway and downstream systems (API) ',
+      tooltip: 'Measures response time for gateway and endpoint',
     },
   ];
 
