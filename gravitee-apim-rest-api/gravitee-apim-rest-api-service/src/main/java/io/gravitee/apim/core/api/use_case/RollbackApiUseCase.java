@@ -29,6 +29,7 @@ import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
@@ -52,6 +53,7 @@ public class RollbackApiUseCase {
     private static final V4toV2RollbackOperator ROLLBACK_OPERATOR = new V4toV2RollbackOperator();
     private static final String ROLLBACK = "rollback";
     private static final String CLOSE = "close";
+    private static final String REOPEN = "reopen";
 
     private final EventQueryService eventQueryService;
     private final ApiCrudService apiCrudService;
@@ -60,6 +62,7 @@ public class RollbackApiUseCase {
     private final CreatePlanDomainService createPlanDomainService;
     private final UpdatePlanDomainService updatePlanDomainService;
     private final ClosePlanDomainService closePlanDomainService;
+    private final PlanCrudService planCrudService;
     private final AuditDomainService auditService;
 
     public void execute(Input input) {
@@ -87,6 +90,9 @@ public class RollbackApiUseCase {
                 case V2 -> {
                     var apiDefinition = api.getApiDefinition();
                     var toRollback = apiCrudService.get(api.getId());
+                    if (toRollback.getDefinitionVersion() != io.gravitee.definition.model.DefinitionVersion.V4) {
+                        throw new IllegalStateException("The migration is only built for rollback migration from V2 to V4.");
+                    }
 
                     Api rollbackedApi = ROLLBACK_OPERATOR.rollback(toRollback, apiDefinition);
 
@@ -188,13 +194,26 @@ public class RollbackApiUseCase {
             return;
         }
 
-        var plansTuUpdateById = stream(apiDefinitionPlans)
+        var plansToUpdateById = stream(apiDefinitionPlans)
             .collect(Collectors.toMap(io.gravitee.definition.model.Plan::getId, Function.identity()));
 
         var existingPlansMustBeRollbackOrClose = planQueryService
             .findAllByApiId(api.getId())
             .stream()
-            .collect(Collectors.groupingBy(plan -> plansTuUpdateById.containsKey(plan.getId()) ? ROLLBACK : CLOSE));
+            .collect(
+                Collectors.groupingBy(currentPlan -> {
+                    var targetOfRollback = plansToUpdateById.get(currentPlan.getId());
+                    if (targetOfRollback == null) {
+                        return CLOSE;
+                    } else if (
+                        PlanStatus.valueOf(targetOfRollback.getStatus()) != PlanStatus.CLOSED &&
+                        currentPlan.getPlanStatus() == PlanStatus.CLOSED
+                    ) {
+                        return REOPEN;
+                    }
+                    return ROLLBACK;
+                })
+            );
 
         if (existingPlansMustBeRollbackOrClose.get(ROLLBACK).size() < apiDefinitionPlans.size()) {
             throw new IllegalStateException("Cannot rollback plans because some plans have been removed");
@@ -208,14 +227,14 @@ public class RollbackApiUseCase {
         // Rollback plans
         existingPlansMustBeRollbackOrClose
             .getOrDefault(ROLLBACK, List.of())
-            .forEach(planToUpdate ->
-                updatePlanDomainService.update(
-                    ROLLBACK_OPERATOR.rollback(planToUpdate, plansTuUpdateById.get(planToUpdate.getId())),
-                    List.of()/* TODO handle flows */,
-                    null,
-                    api,
-                    auditInfo
-                )
-            );
+            .forEach(planToUpdate -> {
+                var plan = plansToUpdateById.get(planToUpdate.getId());
+                planCrudService.update(ROLLBACK_OPERATOR.rollback(planToUpdate, plan));
+            });
+
+        // Reopen plans
+        existingPlansMustBeRollbackOrClose
+            .getOrDefault(REOPEN, List.of())
+            .forEach(plan -> createPlanDomainService.create(plan, List.of(), api, auditInfo));
     }
 }

@@ -147,6 +147,7 @@ class RollbackApiUseCaseTest {
                 createPlanDomainService,
                 updatePlanDomainService,
                 closePlanDomainService,
+                planCrudService,
                 auditDomainService
             );
 
@@ -611,13 +612,6 @@ class RollbackApiUseCaseTest {
                 .build();
             eventQueryService.initWith(List.of(event));
 
-            // Mock plan update for rollback
-            when(updatePlanDomainService.update(any(Plan.class), any(), any(), any(), any()))
-                .thenAnswer(invocation -> {
-                    planCrudService.update(invocation.getArgument(0));
-                    return null;
-                });
-
             // When
             useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
 
@@ -644,15 +638,7 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(rolledBackPlan.getUpdatedAt()).isEqualTo(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()));
             });
 
-            verify(updatePlanDomainService)
-                .update(
-                    argThat(plan -> plan.getName().equals("plan-previous-name") && plan.getDefinitionVersion().equals(DefinitionVersion.V2)
-                    ),
-                    any(), // flows (TODO comment in code)
-                    eq(null),
-                    eq(rolledBackApi),
-                    eq(AUDIT_INFO)
-                );
+            assertThat(planCrudService.storage()).containsOnly(rolledBackPlan);
 
             // Verify audit log was created
             assertRollbackAuditHasBeenCreated();
