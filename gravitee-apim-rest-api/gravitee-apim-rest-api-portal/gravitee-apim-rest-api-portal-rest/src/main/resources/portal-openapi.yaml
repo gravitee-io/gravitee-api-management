@@ -5859,6 +5859,7 @@ components:
                     schema:
                         type: string
                         format: binary
+          description: Disable Styling for Response body for large payload json data.
 
     securitySchemes:
         BasicAuth:
