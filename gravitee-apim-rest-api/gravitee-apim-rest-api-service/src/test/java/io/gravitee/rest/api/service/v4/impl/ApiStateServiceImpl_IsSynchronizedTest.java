@@ -35,9 +35,6 @@ import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.*;
@@ -214,6 +211,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         Api api = new Api();
         api.setId("apiId");
         api.setName("Api name");
+        api.setDefinitionVersion(DefinitionVersion.V4);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
         Event event = new Event();
@@ -279,6 +277,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         Api api = new Api();
         api.setId("apiId");
         api.setName("Api name");
+        api.setDefinitionVersion(DefinitionVersion.V4);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
         Event event = new Event();
@@ -348,6 +347,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         Api api = new Api();
         api.setId("apiId");
         api.setName("Api name");
+        api.setDefinitionVersion(DefinitionVersion.V4);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
         Event event = new Event();
@@ -413,6 +413,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         Api api = new Api();
         api.setId("apiId");
         api.setName("Api name");
+        api.setDefinitionVersion(DefinitionVersion.V4);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
         Event event = new Event();
@@ -637,6 +638,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         Api api = new Api();
         api.setId("apiId");
         api.setName("Api name");
+        api.setDefinitionVersion(DefinitionVersion.V4);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
         api.setDeployedAt(nowDate);
 
@@ -721,6 +723,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         Api api = new Api();
         api.setId("apiId");
         api.setName("Api name");
+        api.setDefinitionVersion(DefinitionVersion.V4);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
         api.setDeployedAt(nowDate);
 

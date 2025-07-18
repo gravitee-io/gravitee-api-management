@@ -23,6 +23,8 @@ import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -66,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -404,9 +407,14 @@ public class ApiStateServiceImpl implements ApiStateService {
                 // According to page size, we know that we have only one element in the list
                 Event lastEvent = events.getFirst();
                 boolean sync = false;
-
                 if (EnumSet.of(PUBLISH_API, START_API, STOP_API).contains(lastEvent.getType())) {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
+                    if (
+                        payloadEntity != null &&
+                        getOrV2(genericApiEntity::getDefinitionVersion) != getOrV2(payloadEntity::getDefinitionVersion)
+                    ) {
+                        return false;
+                    }
 
                     sync =
                         switch (genericApiEntity) {
@@ -475,18 +483,16 @@ public class ApiStateServiceImpl implements ApiStateService {
 
     private void removePathsRuleDescriptionFromApiV1(final io.gravitee.rest.api.model.api.ApiEntity api) {
         if (api.getPaths() != null) {
-            api
-                .getPaths()
-                .forEach((s, rules) -> {
-                    if (rules != null) {
-                        rules.forEach(rule -> rule.setDescription(""));
-                    }
-                });
+            api.getPaths().values().stream().flatMap(CollectionUtils::stream).forEach(rule -> rule.setDescription(""));
         }
     }
 
     private void removeFlowsIdsFromApiV2(io.gravitee.rest.api.model.api.ApiEntity api) {
         stream(api.getFlows()).forEach(flow -> flow.setId(null));
         stream(api.getPlans()).forEach(plan -> plan.getFlows().forEach(flow -> flow.setId(null)));
+    }
+
+    private DefinitionVersion getOrV2(Supplier<DefinitionVersion> getDefinitionVersion) {
+        return getDefinitionVersion.get() != null ? getDefinitionVersion.get() : DefinitionVersion.V2;
     }
 }
