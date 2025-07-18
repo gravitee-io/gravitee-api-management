@@ -16,25 +16,6 @@ extraObjects: []
   #  data:
   #    license.key: myLicenceInBase64==
 
-installation:
-  type: standalone
-  api:
-    url:
-  standalone:
-# If you want to use multiple environments with different consoles/portals, you can configure the URL below.
-    console:
-      urls:
-#        - orgId: DEFAULT
-#          url: https://4-2-x-multi-console.console1.team-apim.gravitee.dev
-#        - orgId: 6eb27b47-2560-481f-b27b-472560581fff
-#          url: https://4-2-x-multi-console.console2.team-apim.gravitee.dev
-    portal:
-      urls:
-#        - envId: DEFAULT
-#          url: https://4-2-x-multi-console.portal1.team-apim.gravitee.dev
-#        - envId: 808a51a9-48f5-4517-8a51-a948f5e517b3
-#          url: https://4-2-x-multi-console.portal2.team-apim.gravitee.dev
-
 # Create NetworkPolicy objects
 # https://kubernetes.io/docs/concepts/services-networking/network-policies/
 networkPolicy:
@@ -84,197 +65,9 @@ apim:
 chaos:
   enabled: false
 
-graviteeRepoAuth:
-  enabled: true
-
-inMemoryAuth:
-  enabled: true
-  allowEmailInSearchResults: false
-  passwordEncodingAlgo: bcrypt
-
-jwtSecret: myJWT4Gr4v1t33_S3cr3t
-
-# Define extra inMemory users here or disable the default ones here
-# By default, admin user will be added. If you want to remove the default admin turn the followong boolean to false.
-adminAccountEnable: true
-# Default password "admin", use bcrypt ($2a$ version) to generate a new one
-adminPasswordBcrypt: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
-adminEmail:
-adminFirstName:
-adminLastName:
-
-extraInMemoryUsers: |
-  - user:
-    username: user
-    # Password value: password
-    password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
-    roles: ORGANIZATION:USER, ENVIRONMENT:USER
-    # Useful to receive notifications
-    #email:
-    #firstName:
-    #lastName:
-  - user:
-    username: api1
-    # Password value: api1
-    password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
-    # You can declare multiple roles using comma separator
-    roles: ORGANIZATION:USER, ENVIRONMENT:API_PUBLISHER
-    #email:
-    #firstName:
-    #lastName:
-  - user:
-    username: application1
-    # Password value: application1
-    password: $2a$10$2gtKPYRB9zaVaPcn5RBx/.3T.7SeZoDGs9GKqbo9G64fKyXFR1He.
-    roles: ORGANIZATION:USER, ENVIRONMENT:USER
-    #email:
-    #firstName:
-    #lastName:
-
-ldap:
-  enabled: false
-  context:
-    # User to bind the LDAP
-    user: user@example.com
-    # Password to bind the LDAP
-    password: pass@12345
-    # URL to LDAP
-    url: ldap://ldap.example.com
-    # Bind base to be used in authentication and lookup sections
-    base: dc=example,dc=com
-  authentication:
-    user:
-      # Base to search users, must be relative to the context.base
-      base: ou=users
-      # Use sAMAccountName if you are in AD
-      # Use uid if you are in a native LDAP
-      # The {0} will be replaced by user typed to authenticate
-      filter: sAMAccountName={0}
-      # If you have an attribute with the user photo, you can set it here
-      photo: "thumbnailPhoto"
-    group:
-      # Base to search groups, must be relative to the context.base
-      # There an issue here, until fixed only oneleve search is supported
-      base: ou=gravitee,ou=groups
-      # The {0} will be replaced by DN of the user
-      filter: member={0}
-      role:
-        # The attribute that define your group names on your AD/LDAP
-        # You can use sAMAccountName if you're in AD or cn if you're in native LDAP
-        attribute: sAMAccountName
-        consumer: LDAP_GROUP_CONSUMER
-        publisher: LDAP_GROUP_PUBLISHER
-        admin: LDAP_GROUP_ADMIN
-        user: LDAP_GROUP_USER
-  lookup:
-    allowEmailInSearchResults: false
-    # Note that personal information can be exposed without user consentment
-    user:
-      # Base to lookup user, must be relative to context.base
-      base: ou=users
-      # The filter can be any type of complex LDAP query
-      filter: (&(objectClass=person)(|(cn=*{0}*)(sAMAccountName={0})))
-security:
-  trustAll: false
-  providers: []
-oidcAuth:
-  enabled: false
-#  id: keycloak
-#  clientId:
-#  clientSecret:
-#  tokenIntrospectionEndpoint:
-#  tokenEndpoint:
-#  authorizeEndpoint:
-#  userInfoEndpoint:
-#  userLogoutEndpoint:
-#  color:
-#  syncMappings:
-#  scopes:
-#    - openid
-#    - profile
-#  userMapping:
-#    id: sub
-#    email: email
-#    lastname: family_name
-#    firstname: given_name
-#    picture: picture
-#  groupMapping:
-#    - condition: "{#jsonPath(#profile, '$.realm_roles').contains('group1')}"
-#      groups:
-#        - Group 1
-#        - Group 2
-#  roleMapping:
-#    - condition: "{#jsonPath(#profile, '$.realm_roles').contains('admin')}"
-#      roles:
-#        - "ENVIRONMENT:ADMIN"
-#        - "ORGANIZATION:ADMIN"
-smtp:
-  enabled: true
-#  host: smtp.example.com
-#  port: 25
-#  from: info@example.com
-#  username: info@example.com
-#  password: example.com
-#  subject: "[gravitee] %s"
-#  properties:
-#    auth: true
-#    starttls.enable: false
-#    localhost: apim.example.com
-
-notifiers:
-  smtp:
-    enabled: true
-    host: ${email.host}
-    subject: ${email.subject}
-    port: ${email.port}
-    from: ${email.from}
-    username: ${email.username}
-    password: ${email.password}
-    # starttlsEnabled: false
-    # ssl:
-    #   trustAll: false
-    #   keyStore:
-    #   keyStorePassword:
-
-mongo:
-  # uri: mongodb://graviteeio-apim-mongodb-replicaset-headless:27017/gravitee?replicaset=rs0&connectTimeoutMS=30000
-  # servers: |
-  #   - host: mongo1
-  #     port: 27017
-  #   - host: mongo2
-  #     port: 27017
-  sslEnabled: false
-  socketKeepAlive: false
-  rs: rs0
-  rsEnabled: true
-  dbhost: graviteeio-apim-mongodb-replicaset-headless
-  dbname: gravitee
-  dbport: 27017
-  connectTimeoutMS: 30000
-  auth:
-    enabled: false
-    source: admin
-    username:
-    password:
-
 jdbc:
-  url: jdbc:mysql://localhost:3306/gravitee
   # the URL to download the driver
   driver: https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.22/mysql-connector-java-8.0.22.jar
-  # the version of the gravitee-repository-jdbc (only required for apim versions < 3.5.0)
-#  repositoryVersion: 3.3.0
-  username:
-  password:
-  liquibase: true
-  schema: public
-  pool:
-    autoCommit:  true
-    connectionTimeout: 10000
-    idleTimeout: 600000
-    maxLifetime: 1800000
-    minIdle: 10
-    maxPoolSize: 10
-    registerMbeans: true
 
 # Configuration to download the gravitee-apim-repository-redis plugin if rate-limit is configured to use Redis
 redis:
@@ -307,52 +100,6 @@ mongodb:
     accessModes:
       - ReadWriteOnce
     size: 1Gi
-
-es:
-  enabled: true
-  cluster: elasticsearch
-  index: gravitee
-  # If the details for security are entered
-  # authentication will be provided for the
-  # elastic search cluster
-  # https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories/elasticsearch#apim-api-configuration
-  index_mode: daily # Index mode normal (daily index) vs ILM (managed by ILM)
-  settings:
-    number_of_shards: 1
-    number_of_replicas: 1
-    refresh_interval: 5s
-  security:
-    enabled: false
-    username: example
-    password: example
-  lifecycle:
-    enabled: false
-    policyPropertyName: index.lifecycle.name   #for Opensearch, use 'index.plugins.index_state_management.policy_id' instead of 'index.lifecycle.name'
-    rolloverAliasPropertyName: index.lifecycle.rollover_alias   #for Opensearch, use 'index.plugins.index_state_management.rollover_alias' instead of 'index.lifecycle.name'
-    policies:
-      monitor: my_policy ## ILM policy for the gravitee-monitor-* indexes
-      request: my_policy ## ILM policy for the gravitee-request-* indexes
-      health: my_policy ## ILM policy for the gravitee-health-* indexes
-      log: my_policy ## ILM policy for the gravitee-log-* indexes
-    # http:
-      # timeout: 10000
-  ssl:
-    enabled: false
-    # keystore:
-    #   type: jks
-    #   path: path/to/jks
-    #   password: example
-    #   certs:
-    #     - /path/to/cert1
-    #     - /path/to/cert2
-    #   keys:
-    #     - /path/to/key
-    #     - /path/to/key2
-  endpoints:
-    - http://graviteeio-apim-elasticsearch-ingest-hl:9200
-  pipeline:
-    plugins:
-      ingest: geoip, user_agent # geoip and user_agent plugins are enabled by default
 
 elasticsearch:
   enabled: false
@@ -393,22 +140,6 @@ elasticsearch:
         memory: 1024Mi
     persistence:
       size: 20Gi
-
-alerts:
-  enabled: false
-  endpoints:
-    - http://localhost:8072/
-  security:
-    enabled: false
-    username: admin
-    password: adminadmin
-
-management:
-  type: mongodb
-  #url: your_public_ui_url
-
-ratelimit:
-  type: mongodb
 
 # Support for Gravitee.io Cockpit (cockpit.gravitee.io)
 cockpit:
@@ -461,8 +192,8 @@ cloud:
 
 cluster:
   plugins:
-    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.10.0.zip
-    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.10.0.zip
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.9.1.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.9.1.zip
 
 api:
   enabled: true
@@ -483,32 +214,205 @@ api:
     # * Defining environment variable still overwrite definition on configuration files.
     ############################################################################################################
     graviteeYml:
+      management:
+        type: mongodb
+        mongodb:
+          sslEnabled: false
+          socketKeepAlive: false
+#          uri: mongodb://graviteeio-apim-mongodb-replicaset-headless:27017/gravitee?replicaset=rs0&connectTimeoutMS=30000
+
+      # Secret Manager configuration
+      secrets:
+        kubernetes:
+          enabled: true
+
+      installation:
+        type: standalone
+        api:
+          url: https://apim.example.com/
+          proxyPath:
+            management: /management
+            portal: /portal
+        standalone:
+          console:
+            url: https://apim.example.com/console
+          portal:
+            url: https://apim.example.com/
+      console:
+        ui:
+          url: https://apim.example.com/console
+        api:
+          url: https://apim.example.com/management
+
+      services:
+        core:
+          http:
+            enabled: true
+            port: 18083
+            host: localhost
+            authentication:
+              type: basic
+              users:
+                admin: adminadmin
+        metrics:
+          enabled: false
+          prometheus:
+            enabled: true
+      httpClient:
+        timeout: 10000
+      http:
+        api:
+          entrypoint: /
+          management:
+            entrypoint: ${http.api.entrypoint}management
+          portal:
+            entrypoint: ${http.api.entrypoint}portal
+
+      analytics:
+        type: elasticsearch
+        elasticsearch:
+          endpoints:
+            - http://graviteeio-apim-elasticsearch-ingest-hl:9200
+          index_mode: daily
+          index: gravitee
+
+      security:
+        trustAll: false
+        providers:
+          - type: gravitee
+          - type: memory
+            # password encoding/hashing algorithm. One of:
+            # - bcrypt : passwords are hashed with bcrypt
+            # - none : passwords are not hashed/encrypted
+            # default value is bcrypt
+            password-encoding-algo: bcrypt
+            allow-email-in-search-results: false
+            users:
+              - user:
+                username: admin
+                password: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
+                roles: ORGANIZATION:ADMIN, ENVIRONMENT:ADMIN
+                email:
+                firstName:
+                lastName:
+              - user:
+                username: user
+                # Password value: password
+                password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
+                roles: ORGANIZATION:USER, ENVIRONMENT:USER
+                # Useful to receive notifications
+                #email:
+                #firstName:
+                #lastName:
+              - user:
+                username: api1
+                # Password value: api1
+                password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
+                # You can declare multiple roles using comma separator
+                roles: ORGANIZATION:USER, ENVIRONMENT:API_PUBLISHER
+                #email:
+                #firstName:
+                #lastName:
+              - user:
+                username: application1
+                # Password value: application1
+                password: $2a$10$2gtKPYRB9zaVaPcn5RBx/.3T.7SeZoDGs9GKqbo9G64fKyXFR1He.
+                roles: ORGANIZATION:USER, ENVIRONMENT:USER
+                #email:
+                #firstName:
+                #lastName:
+
+      # SMTP configuration used to send mails
+      email:
+        enabled: true
+
+      # SMTP configuration used to send notifications / alerts
+      notifiers:
+        email:
+          enabled: true
+          host: ${email.host}
+          subject: "${email.subject}"
+          port: ${email.port}
+          from: ${email.from}
+          username: ${email.username}
+          password: ${email.password}
+          starttls.enabled: false
+
+      # Mail templates
+      templates:
+        path: ${gravitee.home}/templates
+
+      jwt:
+        secret: myJWT4Gr4v1t33_S3cr3t
+
+      swagger:
+        # Default scheme used when creating an API from a Swagger descriptor if there is no scheme specified.
+        scheme: https
+
+      user:
+        login:
+          # Create a default application when user connects to the portal for the very first time (default true)
+          defaultApplication: true
+
+        creation:
+          # Allows to register new users from portal (default false)
+          #enabled: true
+          token:
+          #expire-after: 86400
+        anonymize-on-delete:
+          enabled: false
+
+      # The portal URL used in emails
+      portalURL: https://apim.example.com
+
+      # Allows to create support ticket (default value: false)
+      support:
+        enabled: true
+
+      # Allows to rate an API (default value: false)
+      rating:
+        enabled: true
+
+      # Set the Subscribe to newsletter feature (default value: true)
+      newsletter:
+        enabled: true
+
+      gateway:
+        unknown-expire-after: 604800
+
+      # Integration controller
+      integration:
+        enabled: false
+
+      # Alert Engine communication
+
+      alerts:
+        alert-engine-connector-ws:
+          enabled: false
+      # APIs specific configuration
+      # External Authentication
+      # Cloud connector
+
     # Hazelcast config is used related to federation feature.
     hazelcastClusterXml:
     hazelcastCacheXml:
-    # this will be applied only if `api.logging.debug` is true
-    logbackXml:
+    logbackXml: |-
+      <?xml version="1.0" encoding="UTF-8"?>
+      <configuration>
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+          <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+          </encoder>
+        </appender>
+      
+        <logger name="io.gravitee" level="INFO" />
+        <logger name="org.eclipse.jetty" level="INFO" />
+        
+        <root level="WARN">
+          <appender-ref ref="STDOUT" />
+        </root>
+      </configuration>
 
-  logging:
-    debug: false
-    contextualLoggingEnabled: false
-    stdout:
-      json: false
-      encoderPattern: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-      contextualLoggingEncoderPattern: "%d{HH:mm:ss.SSS} [%thread] [%X{orgId} %X{envId}] %-5level %logger{36} - %msg%n"
-    file:
-      enabled: true
-      rollingPolicy: |
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
-            <fileNamePattern>${gravitee.home}/logs/gravitee_%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- keep 30 days' worth of history -->
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-      encoderPattern: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%n"
-      contextualLoggingEncoderPattern: "%d{HH:mm:ss.SSS} [%thread] [%X{orgId} %X{envId}] %-5level %logger{36} - %msg%n%n"
-    graviteeLevel: DEBUG
-    jettyLevel: INFO
   restartPolicy: OnFailure
   # If you provide your own gravitee.yml by using a volumeMount, reloadOnConfigChange is disabled.
   reloadOnConfigChange: true
@@ -577,19 +481,6 @@ api:
       periodSeconds: 10
 
     customStartupProbe: {}
-  # configuration reflects the parameters keys
-  configuration:
-    logging: {}
-#      messageSampling:
-#        count:
-#          default: 500
-#          limit: 100
-#        probabilistic:
-#          default: 0.01
-#          limit: 0.5
-#        temporal:
-#          default: PT1S
-#          limit: PT1S
 
   pdb:
     enabled: false
@@ -628,141 +519,6 @@ api:
 #    - https://path_to_plugin
   ssl:
     enabled: false
-  #  keystore:
-  #    type: jks # Supports jks, pkcs12
-  #    path: ${gravitee.home}/security/keystore.jks
-  #    password: secret
-  #  truststore:
-  #    type: jks # Supports jks, pkcs12
-  #    path: ${gravitee.home}/security/truststore.jks
-  #    password: secret
-  services:
-    metrics:
-      enabled: false
-      prometheus:
-        enabled: true
-    bridge:
-      enabled: false
-      # host: localhost
-      # # next two are deprecated, use authentication.users instead
-      # username:
-      # password:
-      tcpKeepAlive: true
-      # maxHeaderSize: 8192
-      # maxChunkSize: 8192
-      # alpn: true
-      # authentication:
-      #    type: basic # Supports: none, jwt
-      #    users:
-      #      admin: secret
-      #      foo: bar
-      #    jwt:
-      #      signature:
-      #        algorithm: RS256
-      #        path: ${gravitee.home}/security/bridge/public_key.pem
-      #        # path and value mutually exclusive
-      #        value: <public key pem with headers>
-      #      verifyClaims: true
-      ssl:
-        enabled: false
-      #  keystore:
-      #    type: jks # Supports jks, pem, pkcs12
-      #    path: ${gravitee.home}/security/keystore.jks
-      #    password: secret
-      #    defaultAlias:
-      #    secret: secret://kubernetes/bridge-tls
-      #    watch: true
-      #    # when type is 'pem'
-      #    certificates:
-      #      - cert: ${gravitee.home}/security/cert.pem
-      #        key: ${gravitee.home}/security/key.pem
-      #  clientAuth: none
-      #  truststore:
-      #    type: jks # Supports jks, pem, pkcs12
-      #    path: ${gravitee.home}/security/truststore.jks
-      #    password: secret
-      #    secret: secret://kubernetes/bridge-mtls:ca.crt
-      #    watch: true
-      service:
-        externalPort: 92
-        internalPort: 18092
-      #  appProtocol: http
-      ingress:
-        enabled: false
-        ingressClassName: ""
-        pathType: Prefix
-        path: /api/_bridge
-        # Used to create an Ingress record.
-        hosts:
-          - apim.example.com
-        annotations: {}
-        #  kubernetes.io/ingress.class: nginx
-        #  nginx.ingress.kubernetes.io/ssl-redirect: "false"
-        #  nginx.ingress.kubernetes.io/enable-rewrite-log: "true"
-        #  kubernetes.io/app-root: /api
-        #  kubernetes.io/rewrite-target: /api
-        #  nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_set_header if-match \"\";\n"
-        #  kubernetes.io/tls-acme: "true"
-        # tls:
-          # Secrets must be manually created in the namespace.
-        #  - hosts:
-        #      - apim.example.com
-        #    secretName: api-custom-cert
-    subscription:
-      enabled: false
-#      pre-expiration-notification-schedule: 15,10,5
-  http:
-    services:
-      core:
-        http:
-          enabled: true
-          port: 18083
-          host: localhost
-          authentication:
-            password: adminadmin
-        ingress:
-          enabled: false
-          ingressClassName: ""
-          pathType: Prefix
-#          path: /management/_(.*)
-#          hosts:
-#            - apim.example.com
-#          annotations:
-#            kubernetes.io/ingress.class: nginx
-#            nginx.ingress.kubernetes.io/rewrite-target: /_$1
-        service:
-#       If you choose to enable this service, you'll need to expose the technical api
-#       on an accessible host outside of the pod: api.http.services.core.http.host
-          enabled: false
-#         type: ClusterIP
-#         externalPort: 18083
-#         appProtocol: http
-    api:
-      entrypoint: /
-    client:
-      timeout: 10000
-      # proxy:
-      #   type: HTTP
-      #   http:
-      #     host: localhost
-      #     port: 3128
-      #     username:
-      #     password:
-      #   https:
-      #     host: localhost
-      #     port: 3128
-      #     username:
-      #     password:
-  user:
-    login:
-      defaultApplication: true
-    anonymizeOnDelete: false
-  supportEnabled: true
-  ratingEnabled: true
-  newsletterEnabled: true
-  # Specify the visibility duration of a gateway in Unknown State (in seconds)
-  gateway:
-    unknownExpireAfter: 604800
   service:
     type: ClusterIP
     # externalTrafficPolicy is used only when configuring type "NodePort" or "LoadBalancer"
@@ -870,18 +626,6 @@ api:
   #    secret:
   #      secretName: gravitee-config-secret-name
 
-  # you can choose if you want to enable analytics using elasticsearch or disable it (set type to "none")
-  analytics:
-    type: elasticsearch # or none
-
-  # External Authentication settings
-  #  auth:
-  #    external:
-  #      enabled: false
-  #      algorithm: HS256
-  #      verificationKey: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm # verificationKey or the JWKS URL
-  #      issuer: MY_ISSUER
-
   federation:
     enabled: false
     port: 8072
@@ -921,7 +665,163 @@ gateway:
     # * Defining environment variable still overwrite definition on configuration files.
     ############################################################################################################
     graviteeYml:
-    logbackXml:
+      # Secret Manager configuration
+      secrets:
+        kubernetes:
+          enabled: true
+
+      # Gateway HTTP server
+      http:
+        port: 8082
+        host: 0.0.0.0
+        #  idleTimeout: 0
+        #  tcpKeepAlive: true
+        #  compressionSupported: false
+        #  instances: 0
+        requestTimeout: 30000
+        requestTimeoutGraceDelay: 30
+        maxHeaderSize: 8192
+        maxChunkSize: 8192
+        maxInitialLineLength: 4096
+        maxFormAttributeSize: 2048
+        alpn: true
+        websocket:
+          enabled: false
+      management:
+        type: mongodb
+        mongodb:
+          sslEnabled: false
+          socketKeepAlive: false
+      #   uri: mongodb://graviteeio-apim-mongodb-replicaset-headless:27017/gravitee?replicaset=rs0&connectTimeoutMS=30000
+
+
+      ratelimit:
+        type: mongodb
+        mongodb:
+          sslEnabled: false
+          socketKeepAlive: false
+      #   uri: mongodb://graviteeio-apim-mongodb-replicaset-headless:27017/gravitee?replicaset=rs0&connectTimeoutMS=30000
+
+      # Sharding tags configuration
+      # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
+      tags:
+
+      # Multi-tenant configuration
+      # Allow only a single-value
+      tenant:
+
+      # Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
+      # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
+      reporters:
+        # Elasticsearch reporter
+        elasticsearch:
+          endpoints:
+            - http://graviteeio-apim-elasticsearch-ingest-hl:9200
+          index_mode: daily
+          pipeline:
+            plugins:
+              ingest: geoip, user_agent
+          index: gravitee
+          settings:
+            number_of_replicas: 1
+            number_of_shards: 1
+            refresh_interval: 5s
+          bulk:
+            actions: 1000           # Number of requests action before flush
+            flush_interval: 5       # Flush interval in seconds
+
+      services:
+        core:
+          http:
+            enabled: true
+            port: 18082
+            host: 0.0.0.0
+            authentication:
+              type: basic
+              users:
+                admin: adminadmin
+            secured: false
+
+        sync:
+          enabled: true
+
+        # Service used to store and cache api-keys from the management repository to avoid direct repository communication
+        # while serving requests.
+        apikeyscache:
+          delay: 10000
+          unit: MILLISECONDS
+          threads: 3 # Threads core size used to retrieve api-keys from repository.
+
+        # Local registry service.
+        # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
+        # to configure your API using the web console or the rest API (but you need to know and understand the json descriptor
+        # format to make it work....)
+        local:
+          enabled: false
+          path: ${gravitee.home}/apis # The path to API descriptors
+
+        # Gateway monitoring service.
+        # This service retrieves metrics like os / process / jvm metrics and send them to an underlying reporting service.
+        monitoring:
+          delay: 5000
+          unit: MILLISECONDS
+
+        # Endpoint healthcheck service.
+        healthcheck:
+          threads: 3 # Threads core size used to check endpoint availability
+
+        heartbeat:
+          delay: 5000
+          enabled: true
+          unit: MILLISECONDS
+        metrics:
+          enabled: false
+          prometheus:
+            enabled: true
+      policy:
+        api-key:
+          header: X-Gravitee-Api-Key
+          param: api-key
+
+      # Alert Engine communication
+      alerts:
+        alert-engine-connector-ws:
+          enabled: false
+
+      # APIs specific configuration
+      api:
+
+      gracefulShutdown:
+        delay: 0
+        unit: MILLISECONDS
+
+      # Secret Manager configuration
+
+      # Old class loader behavior, false by default
+      classloader:
+        legacy:
+          enabled: false
+
+    logbackXml: |-
+      <?xml version="1.0" encoding="UTF-8"?>
+      <configuration>
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+          <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [%X{api}] %-5level %logger{36} - %msg%n</pattern>
+          </encoder>
+        </appender>
+        <appender name="async-console" class="ch.qos.logback.classic.AsyncAppender">
+          <appender-ref ref="STDOUT"/>
+        </appender>
+        <logger name="io.gravitee" level="INFO"/>
+        <logger name="org.reflections" level="WARN"/>
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.eclipse.jetty" level="WARN"/>
+        <root level="INFO">
+          <appender-ref ref="async-console"/>
+        </root>
+      </configuration>
+
   # if enabled, required annotation will be added to allow the gateway to act as a runtime for the GKO
   # ingress controller (service should be set to type LoadBalancer in order to get the full feature set)
   ingressController:
@@ -1010,14 +910,6 @@ gateway:
 ##          - hosts:
 ##            - apim.example.com
 ##            secretName: api-custom-cert
-  http:
-    maxHeaderSize: 8192
-    maxChunkSize: 8192
-    maxInitialLineLength: 4096
-    maxFormAttributeSize: 2048
-    alpn: "true"
-    requestTimeout: 30000
-    requestTimeoutGraceDelay: 30
 
 # # Gateway Kafka server
 #  kafka:
@@ -1108,25 +1000,6 @@ gateway:
 #        watch: true # Watch for any updates on the keystore/pem and reload it. Default is true.
 #      openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
 
-  logging:
-    debug: false
-    stdout:
-      json: false
-      encoderPattern: "%d{HH:mm:ss.SSS} [%thread] [%X{api}] %-5level %logger{36} - %msg%n"
-    file:
-      enabled: true
-      rollingPolicy: |
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
-            <fileNamePattern>${gravitee.home}/logs/gravitee_%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- keep 30 days' worth of history -->
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-      encoderPattern: "%d{HH:mm:ss.SSS} [%thread] [%X{api}] %-5level %logger{36} - %msg%n"
-    graviteeLevel: DEBUG
-    jettyLevel: WARN
-  # If you provide your own gravitee.yml by using a volumeMount, reloadOnConfigChange is disabled.
-  reloadOnConfigChange: true
   deployment:
     # Annotations to apply to the deployment
     annotations: {}
@@ -1217,121 +1090,8 @@ gateway:
 
   ssl:
     enabled: false
-  #  keystore:
-  #    type: jks # Supports jks, pem, pkcs12
-  #    path: ${gravitee.home}/security/keystore.jks
-  #    password: secret
-    clientAuth: false # Supports false/none, request, true/requires
-  #  truststore:
-  #    type: jks # Supports jks, pem, pkcs12
-  #    path: ${gravitee.home}/security/truststore.jks
-  #    password: secret
-  #  sni: true
   replicaCount: 1
-  # sharding_tags:
-  # tenant:
-  websocket: false
-#  haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
-#    proxyProtocol: false
-#    proxyProtocolTimeout: 10000
-  ratelimit:
-    # redis:
-    #   host: redis
-    #   port: 6379
-    #   password:
-    #   ssl: false
-    #   hostnameVerificationAlgorithm: NONE
-    #   trustAll: true # default value is true to keep backward compatibility but you should set it to false and configure a truststore for security concerns
-    #   tlsProtocols: # List of TLS protocols to allow comma separated i.e: TLSv1.2, TLSv1.3
-    #   tlsCiphers: # List of TLS ciphers to allow comma separated i.e: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-    #   alpn: false
-    #   openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
-    #   # Keystore for redis mTLS (client certificate)
-    #   keystore:
-    #     type: pem # Supports jks, pem, pkcs12
-    #     path: ${gravitee.home}/security/redis-keystore.jks # A path is required if certificate's type is jks or pkcs12
-    #     password: secret
-    #     keyPassword:
-    #     alias:
-    #     certificates: # Certificates are required if keystore's type is pem
-    #       - cert: ${gravitee.home}/security/redis-mycompany.org.pem
-    #         key: ${gravitee.home}/security/redis-mycompany.org.key
-    #       - cert: ${gravitee.home}/security/redis-mycompany.com.pem
-    #         key: ${gravitee.home}/security/redis-mycompany.com.key
-    #   truststore:
-    #     type: pem # Supports jks, pem, pkcs12
-    #     path: ${gravitee.home}/security/redis-truststore.jks
-    #     password: secret
-    #     alias:
-    #   sentinel:
-    #     master: redis-master
-    #     nodes:
-    #       - host: sentinel1
-    #         port: 26379
-    #       - host: sentinel2
-    #         port: 26379
-    #   operation:
-    #     timeout: 10 # in milliseconds
-    #   tcp:
-    #     connectTimeout: 5000 # in milliseconds
-    #     idleTimeout: 0 # in milliseconds
-  management:
-      http:
-      #  url: "https://bridge.example.com:18092"
-      #  # default values
-      #  keepAlive: true
-      #  idleTimeout: 30000
-      #  connectTimeout: 5000
-      #  readTimeout: 10000
-      #  useCompression: true
-      #  clearTextUpgrade: true
-      #  version: HTTP_1_1     # or HTTP_2
-      #  # retry less and less often until we reach 60s (default)
-      #  # formula is factor^attempt x delay
-      #  # in this case retry occurs like this: 2s, 3s, 4.5s, 6.7s, 10.1s, 15,2s etc.
-      #  connectionRetry:
-      #    delaySec: 2
-      #    maxDelaySec: 60
-      #    backoffFactor: 1.5 # how exponential we get to 60s (1.0 means linear)
-      #  authentication:
-      #    type: none # or basic or jwt
-      #    basic:
-      #      username: admin
-      #      password: adminadmin
-      #    jwt:
-      #      token: eyJhbGciOiJIUzI1NiI...
-      #  ssl:
-      #    # defaults
-      #    ### beware: since 4.4 default is false (see upgrade guide)
-      #    trustAll: false
-      #    verifyHostname: true
-      #    # custom config for mTLS
-      #    keystore:
-      #      type: pkcs12 # can be jks / pkcs12 / pem
-      #      path: ${gravitee.home}/security/bridge/mtls-keystore.p12
-      #      password: s3cr3t
-      #      # for pem
-      #      # certPath: ${gravitee.home}/security/mtls-bridge-cert.pem
-      #      # keyPath: ${gravitee.home}/security/mtls-bridge-key.pem
-      #      # certContent: secret://...  # or raw pem, same for key content
-      #      # keyContent:
-      #    # config for non public CAs
-      #    truststore:
-      #      type: pem # can be jks / pkcs12 / pem
-      #      path: ${gravitee.home}/security/bridge/rootCA.pem
-      #      # certContent: secret://...  # or raw pem, same for key content
-      #      # for jks/pkcs12
-      #      # password:
-      #  proxy:
-      #    enabled: true
-      #    host: proxy.example.com
-      #    port: 8080
-      #    username: proxy
-      #    password: pa$$w0rd
-      #    type: HTTP
-      #    # useSystemProxy: true # reuses apim-gateway proxy config for other services
 
-  # system: {}
   services:
     core:
       http:
@@ -1371,46 +1131,8 @@ gateway:
         internalPort: 9092
     bridge:
       enabled: false
-      # host: localhost
-      # # next two are deprecated, use authentication.users instead
-      # username:
-      # password:
-      tcpKeepAlive: true
-      # maxHeaderSize: 8192
-      # maxChunkSize: 8192
-      # alpn: true
-      # authentication:
-      #    type: basic # Supports: none, jwt
-      #    users:
-      #      admin: secret
-      #      foo: bar
-      #    jwt:
-      #      signature:
-      #        algorithm: RS256
-      #        path: ${gravitee.home}/security/bridge/public_key.pem
-      #        # path and value mutually exclusive
-      #        value: <public key pem with headers>
-      #      verifyClaims: true
       ssl:
         enabled: false
-      #  keystore:
-      #    type: jks # Supports jks, pem, pkcs12
-      #    path: ${gravitee.home}/security/keystore.jks
-      #    password: secret
-      #    defaultAlias:
-      #    secret: secret://kubernetes/bridge-tls
-      #    watch: true
-      #    # when type is 'pem'
-      #    certificates:
-      #      - cert: ${gravitee.home}/security/cert.pem
-      #        key: ${gravitee.home}/security/key.pem
-      #  clientAuth: none
-      #  truststore:
-      #    type: jks # Supports jks, pem, pkcs12
-      #    path: ${gravitee.home}/security/truststore.jks
-      #    password: secret
-      #    secret: secret://kubernetes/bridge-mtls:ca.crt
-      #    watch: true
       service:
         externalPort: 92
         internalPort: 18092
@@ -1440,111 +1162,6 @@ gateway:
       enabled: false
       prometheus:
         enabled: true
-#   opentelemetry:
-#      enabled: false
-#      verbose: false
-#      extraAttributes:
-#        - deployment.environment.name: production
-#      exporter:
-#        endpoint: http://localhost:4317
-#        protocol: grpc
-#        compression: none
-#        headers:
-#          - X-Custom-Header: value
-#        timeout: 10000
-#        ssl:
-#          trustall: false
-#          verifyHostname: true
-#          keystore:
-#            type: pkcs12
-#            path: /path/to/keystore
-#            password: password
-#          truststore:
-#            type: pkcs12
-#            path: /path/to/truststore
-#            password: password
-
-    sync:
-      enabled: true
-      #delay: 5000
-      #unit: MILLISECONDS
-
-    heartbeat:
-      enabled: true
-      delay: 5000
-      unit: MILLISECONDS
-## APIs specific configuration
-#  api:
-#    properties:
-#      encryption:
-#        secret: ...
-## API Level secret-provider configuration
-#    secrets:
-#      providers:
-#        # exists on all environments
-#        - id: all                # uri starts with '/all/...'
-#          plugin: vault
-#          configuration:
-#            enabled: true
-#            # ... HC Vault plugin configuration
-#            auth:
-#              method: token
-#              # this points to the configuration-level kube plugin
-#              # as configured in 'secrets.kubernetes' section of the configuration
-#              token: secrets://kubernetes/gravitee-secrets:vault-token
-#        # this one is another instance of kube plugin
-#        # and may have a different configuration
-#        - plugin: kubernetes    # uri starts with '/kubernetes/...'
-#          configuration:
-#            enabled: true
-#            # ... Kube plugin config
-#          environments:
-#            - f5bd78b7-eec2-4c97-9d3a-cb73ec7e3e87
-#            - 6654bb2f-1f07-4b55-b708-0d0fde18159e
-#      retryOnError:
-#        enabled: true
-#        delay: 2
-#        unit: SECONDS
-#        backoffFactor: 1.5
-#        maxDelay: 60
-#        maxAttempt: 10
-#      allowGeneratedSpecs: true
-#      renewal:
-#        enable: true
-#        check:
-#          delay: 15
-#          unit: MINUTES
-  # handlers:
-  #   request:
-  #     transaction:
-  #       header: X-Gravitee-Transaction-Id
-  #     request:
-  #       header: X-Gravitee-Request-Id
-#  reporters:
-#    elasticsearch:
-#      enabled: true
-#    tcp:
-#      enabled: true
-#      host: localhost
-#      port: 8379
-#    file:
-  gracefulShutdown:
-    delay: 0
-    unit: MILLISECONDS
-
-  classloader:
-    legacy:
-      enabled: false
-
-  # DEPRECATED: This part will be removed shortly in favor of gateway.policy (see below)
-  apiKey:
-    header: X-Gravitee-Api-Key
-    param: api-key
-
-  #policy:
-  #  api-key:
-  #    header: X-Gravitee-Api-Key
-  #    param: api-key
 
   image:
     repository: graviteeio/apim-gateway
@@ -1632,17 +1249,6 @@ gateway:
   #    mountPath: /mnt/volume
   #    readOnly: true
   #
-  # If you want to use your own gravitee.yml you have to provide your configmap or secret in extraVolume part.
-  # the name of the volume MUST be "config".
-  # In this case, values configuration related to gravitee.yaml defined in this file will be ignored
-  # If you also define your own logback.xml in the "config" volume, you have to set logging.debug: false or your file will be ignored
-  #extraVolumes: |
-  #  - name: config
-  #    configMap:
-  #      name: gravitee-config-configmap-name
-  #  - name: config
-  #    secret:
-  #      secretName: gravitee-config-secret-name
 
 portal:
   enabled: true
@@ -2016,34 +1622,6 @@ ui:
   #  - name: config
   #    secret:
   #      secretName: gravitee-config-secret-name
-
-#secrets:
-#  loadFirst: kubernetes
-#  kubernetes:
-#    enabled: true
-#    namespace: default
-#    kubeConfigFile: /opt/gravitee/config/kube-config.json
-#    timeoutMs: 3000
-#  vault:
-#    enabled: false
-#    host: 127.0.0.1
-#    port: 8200
-#    namespace:
-#      kvEngine: V2
-#      readTimeoutSec: 2
-#      connectTimeoutSec: 3
-#    ssl:
-#      enabled: false
-#    auth:
-#      method: token
-#      config:
-#        token: aToken
-#    retry:
-#      attempts: 2
-#      intervalMs: 1000
-#    watch:
-#      enabled: true
-#      pollIntervalSec: 30
 
 # Enabling openshift support will update ingresses annotations for not containing "kubernetes.io/ingress.class" which
 # has to be removed to ensure OpenShift is creating a Route from the Ingress
