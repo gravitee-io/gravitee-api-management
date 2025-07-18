@@ -56,4 +56,22 @@
     <#if metrics.getUpstreamActiveConnections()??>
     ,"upstream-active-connections": ${metrics.getUpstreamActiveConnections()}
     </#if>
+    <#if metrics.getUpstreamAuthenticatedConnections()??>
+    ,"upstream-authenticated-connections": ${metrics.getUpstreamAuthenticatedConnections()}
+    </#if>
+    <#if metrics.getDownstreamAuthenticatedConnections()??>
+    ,"downstream-authenticated-connections": ${metrics.getDownstreamAuthenticatedConnections()}
+    </#if>
+    <#if metrics.getDownstreamAuthenticationFailuresTotal()??>
+    ,"downstream-authentication-failures-total": ${metrics.getDownstreamAuthenticationFailuresTotal()}
+    </#if>
+    <#if metrics.getUpstreamAuthenticationFailuresTotal()??>
+    ,"upstream-authentication-failures-total": ${metrics.getUpstreamAuthenticationFailuresTotal()}
+    </#if>
+    <#if metrics.getDownstreamAuthorizationSuccessesTotal()??>
+    ,"downstream-authentication-successes-total": ${metrics.getDownstreamAuthorizationSuccessesTotal()}
+    </#if>
+    <#if metrics.getUpstreamAuthorizationSuccessesTotal()??>
+    ,"upstream-authentication-successes-total": ${metrics.getUpstreamAuthorizationSuccessesTotal()}
+    </#if>
 }</@compress>

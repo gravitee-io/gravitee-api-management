@@ -18,5 +18,11 @@
   "upstream-subscribe-messages-total": 34413,
   "upstream-subscribe-message-bytes": 2132131,
   "downstream-active-connections": 4,
-  "upstream-active-connections": 3
+  "upstream-active-connections": 3,
+  "upstream-authenticated-connections": 10,
+  "downstream-authenticated-connections": 10,
+  "downstream-authentication-failures-total": 12,
+  "upstream-authentication-failures-total": 12,
+  "downstream-authentication-successes-total": 15,
+  "upstream-authentication-successes-total": 15
 }
