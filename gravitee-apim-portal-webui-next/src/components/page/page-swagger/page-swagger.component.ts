@@ -62,6 +62,9 @@ export class PageSwaggerComponent implements OnChanges {
         config.url = this.page._links?.content;
         config.spec = undefined;
       }
+      if (this.page.configuration?.disable_syntax_highlight) {
+        config.syntaxHighlight = false;
+      }
       config.docExpansion = this.page.configuration?.doc_expansion ?? 'none';
       config.displayOperationId = pageConfiguration.display_operation_id || false;
       config.filter = pageConfiguration.enable_filtering || false;
