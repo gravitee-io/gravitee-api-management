@@ -76,6 +76,30 @@
                 "type": "integer",
                 "time_series_metric": "gauge"
             },
+            "upstream-authenticated-connections": {
+                "type": "integer",
+                "time_series_metric": "gauge"
+            },
+            "downstream-authenticated-connections": {
+                "type": "integer",
+                "time_series_metric": "gauge"
+            },
+            "downstream-authentication-failures-total": {
+                "type": "integer",
+                "time_series_metric": "counter"
+            },
+            "upstream-authentication-failures-total": {
+                "type": "integer",
+                "time_series_metric": "counter"
+            },
+            "downstream-authentication-successes-total": {
+                "type": "integer",
+                "time_series_metric": "counter"
+            },
+            "upstream-authentication-successes-total": {
+                "type": "integer",
+                "time_series_metric": "counter"
+            },
             "@timestamp": {
                 "type": "date"
             }
