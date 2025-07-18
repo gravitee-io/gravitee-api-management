@@ -152,7 +152,7 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getPlanMode()).isEqualTo(PlanMode.STANDARD);
                 soft
                     .assertThat(plan.getPlanSecurity())
-                    .isEqualTo(PlanSecurity.builder().type("api-key").configuration("security-definition").build());
+                    .isEqualTo(PlanSecurity.builder().type("API_KEY").configuration("security-definition").build());
                 soft.assertThat(plan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getPlanType()).isEqualTo(PlanType.API);
                 soft.assertThat(plan.getPlanValidation()).isEqualTo(PlanValidationType.AUTO);
