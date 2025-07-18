@@ -1,0 +1,145 @@
+.gravitee-markdown-viewer {
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.6;
+  color: #333;
+  
+  // Headings
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  
+  h1 { font-size: 2em; }
+  h2 { font-size: 1.5em; }
+  h3 { font-size: 1.25em; }
+  h4 { font-size: 1em; }
+  h5 { font-size: 0.875em; }
+  h6 { font-size: 0.85em; }
+  
+  // Paragraphs
+  p {
+    margin-bottom: 1em;
+  }
+  
+  // Links
+  a {
+    color: #1976d2;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  
+  // Lists
+  ul, ol {
+    margin-bottom: 1em;
+    padding-left: 2em;
+  }
+  
+  li {
+    margin-bottom: 0.25em;
+  }
+  
+  // Code blocks
+  pre {
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 1em 0;
+    
+    code {
+      background: none;
+      padding: 0;
+      border-radius: 0;
+    }
+  }
+  
+  // Inline code
+  code {
+    background-color: #f6f8fa;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9em;
+  }
+  
+  // Blockquotes
+  blockquote {
+    border-left: 4px solid #dfe2e5;
+    margin: 1em 0;
+    padding-left: 1em;
+    color: #6a737d;
+  }
+  
+  // Tables
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    
+    th, td {
+      border: 1px solid #dfe2e5;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f6f8fa;
+      font-weight: 600;
+    }
+  }
+  
+  // Horizontal rule
+  hr {
+    border: none;
+    border-top: 1px solid #dfe2e5;
+    margin: 2em 0;
+  }
+  
+  // Images
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+  }
+  
+  // Dark theme
+  &.dark-theme {
+    color: #e1e5e9;
+    
+    a {
+      color: #64b5f6;
+    }
+    
+    pre {
+      background-color: #2d3748;
+    }
+    
+    code {
+      background-color: #2d3748;
+    }
+    
+    blockquote {
+      border-left-color: #4a5568;
+      color: #a0aec0;
+    }
+    
+    table {
+      th, td {
+        border-color: #4a5568;
+      }
+      
+      th {
+        background-color: #2d3748;
+      }
+    }
+    
+    hr {
+      border-top-color: #4a5568;
+    }
+  }
+} 

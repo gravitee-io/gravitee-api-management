@@ -1,0 +1,22 @@
+<div class="gravitee-markdown-editor">
+  <div class="split-panel">
+    <div class="split-left">
+      <div class="editor-container">
+        <textarea
+          [(ngModel)]="content"
+          (ngModelChange)="onContentChange($event)"
+          [placeholder]="placeholder"
+          class="markdown-textarea">
+        </textarea>
+      </div>
+    </div>
+    <div class="split-right">
+      <div class="preview-container">
+        <div 
+          class="markdown-preview"
+          [innerHTML]="renderedContent">
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

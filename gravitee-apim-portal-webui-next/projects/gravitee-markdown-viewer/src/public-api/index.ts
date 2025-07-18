@@ -1,0 +1,1 @@
+export * from '../lib/gravitee-markdown-viewer.component'; 

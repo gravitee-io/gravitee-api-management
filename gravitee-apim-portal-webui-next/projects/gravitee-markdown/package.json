@@ -1,0 +1,38 @@
+{
+  "name": "@gravitee/gravitee-markdown",
+  "version": "0.0.0",
+  "description": "Gravitee Markdown library with viewer and editor components",
+  "keywords": ["gravitee", "markdown", "viewer", "editor", "angular"],
+  "author": "Gravitee Team",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gravitee-io/gravitee-api-management.git"
+  },
+  "peerDependencies": {
+    "@angular/common": "^19.0.0",
+    "@angular/core": "^19.0.0",
+    "@angular/forms": "^19.0.0",
+    "@angular/material": "^19.0.0"
+  },
+  "dependencies": {
+    "marked": "^12.0.2",
+    "marked-alert": "^2.1.2",
+    "marked-emoji": "^1.4.3",
+    "marked-extended-tables": "^1.1.1",
+    "marked-gfm-heading-id": "^3.2.0",
+    "marked-highlight": "^2.2.1",
+    "highlight.js": "^11.11.1"
+  },
+  "exports": {
+    "./viewer": {
+      "import": "./projects/gravitee-markdown-viewer/src/public-api.js",
+      "types": "./projects/gravitee-markdown-viewer/src/public-api.d.ts"
+    },
+    "./editor": {
+      "import": "./projects/gravitee-markdown-editor/src/public-api.js",
+      "types": "./projects/gravitee-markdown-editor/src/public-api.d.ts"
+    }
+  },
+  "sideEffects": false
+} 

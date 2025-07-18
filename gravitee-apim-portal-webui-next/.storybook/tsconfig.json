@@ -1,11 +1,18 @@
 {
-  "extends": "../tsconfig.app.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "types": ["node"],
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "types": ["node"]
   },
-  "exclude": ["../src/**/*.spec.ts"],
-  "include": ["../src/**/*.stories.*", "./preview.ts"],
-  "files": ["./typings.d.ts"]
+  "include": [
+    "../src/**/*",
+    "../projects/gravitee-markdown-viewer/src/**/*",
+    "../projects/gravitee-markdown-editor/src/**/*",
+    "**/*"
+  ],
+  "exclude": [
+    "../**/*.spec.ts",
+    "../**/*.spec.js"
+  ]
 }

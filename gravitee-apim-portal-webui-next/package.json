@@ -26,7 +26,11 @@
     "lint": "yarn lint:license && yarn lint:eslint && yarn lint:styles && yarn lint:prettier",
     "lint:fix": "yarn lint:license:fix && yarn lint:eslint:fix && yarn lint:styles:fix && yarn lint:prettier:fix",
     "storybook": "ng run gravitee-apim-portal-webui-next:storybook",
-    "storybook:build": "ng run gravitee-apim-portal-webui-next:build-storybook"
+    "storybook:build": "ng run gravitee-apim-portal-webui-next:build-storybook",
+    "storybook:viewer": "ng run gravitee-apim-portal-webui-next:storybook --port 6006",
+    "storybook:viewer:build": "ng run gravitee-apim-portal-webui-next:build-storybook --output-path storybook-static-viewer",
+    "storybook:editor": "ng run gravitee-apim-portal-webui-next:storybook --port 6007",
+    "storybook:editor:build": "ng run gravitee-apim-portal-webui-next:build-storybook --output-path storybook-static-editor"
   },
   "private": true,
   "dependencies": {
