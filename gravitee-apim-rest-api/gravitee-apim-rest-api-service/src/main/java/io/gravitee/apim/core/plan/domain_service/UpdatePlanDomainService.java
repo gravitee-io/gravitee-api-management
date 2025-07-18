@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.jspecify.annotations.Nullable;
 
 @DomainService
 public class UpdatePlanDomainService {
@@ -74,7 +75,7 @@ public class UpdatePlanDomainService {
     public Plan update(
         Plan planToUpdate,
         List<? extends AbstractFlow> flows,
-        Map<String, PlanStatus> existingPlanStatuses,
+        @Nullable Map<String, PlanStatus> existingPlanStatuses,
         Api api,
         AuditInfo auditInfo
     ) {
@@ -87,6 +88,13 @@ public class UpdatePlanDomainService {
                 yield updateV4ApiPlan(planToUpdate, flows, existingPlanStatuses, api, auditInfo);
             }
             case FEDERATED -> updateFederatedApiPlan(planToUpdate, auditInfo);
+            case V2 -> {
+                if (existingPlanStatuses == null) {
+                    List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
+                    existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
+                }
+                yield updateV2ApiPlan(planToUpdate, flows, existingPlanStatuses, api, auditInfo);
+            }
             default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
         };
     }
@@ -126,6 +134,42 @@ public class UpdatePlanDomainService {
         }
 
         return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<Flow>) flows, api, auditInfo);
+    }
+
+    private Plan updateV2ApiPlan(
+        Plan planToUpdate,
+        List<? extends AbstractFlow> flows,
+        Map<String, PlanStatus> existingPlanStatuses,
+        Api api,
+        AuditInfo auditInfo
+    ) {
+        if (
+            existingPlanStatuses.containsKey(planToUpdate.getId()) &&
+            existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
+            existingPlanStatuses.get(planToUpdate.getId()) != planToUpdate.getPlanStatus()
+        ) {
+            throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
+        }
+
+        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
+        planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), api.getTags());
+        planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
+
+        Plan existingPlan = planCrudService.getById(planToUpdate.getId());
+        Plan updatePlan = existingPlan.update(planToUpdate);
+
+        if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), updatePlan, List.of()/*sanitizedFlows TODO */)) {
+            updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
+        }
+
+        Plan updated = updatePlan.getOrder() != existingPlan.getOrder()
+            ? reorderPlanDomainService.reorderAfterUpdate(updatePlan)
+            : planCrudService.update(updatePlan);
+
+        // TODO flowCrudService.savePlanFlows(updated.getId(), sanitizedFlows);
+
+        createAuditLog(existingPlan, updated, auditInfo);
+        return updated;
     }
 
     private Plan updateHttpV4ApiPlan(Plan existingPlan, Plan updatePlan, List<Flow> flows, Api api, AuditInfo auditInfo) {

@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -129,7 +130,13 @@ public class Plan implements GenericPlanEntity {
     public PlanSecurity getPlanSecurity() {
         return switch (definitionVersion) {
             case V4 -> getPlanDefinitionV4().getSecurity();
-            case V1, V2 -> new PlanSecurity(planDefinitionV2.getSecurity(), planDefinitionV2.getSecurityDefinition());
+            case V1, V2 -> {
+                String label = planDefinitionV2.getSecurity();
+                try {
+                    label = PlanSecurityType.valueOf(planDefinitionV2.getSecurity()).getLabel();
+                } catch (IllegalArgumentException iae) {}
+                yield new PlanSecurity(label, planDefinitionV2.getSecurityDefinition());
+            }
             case FEDERATED, FEDERATED_AGENT -> federatedPlanDefinition.getSecurity();
         };
     }
