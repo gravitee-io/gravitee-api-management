@@ -1678,7 +1678,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (!events.isEmpty()) {
                 // According to page size, we know that we have only one element in the list
-                Event lastEvent = events.get(0);
+                Event lastEvent = events.getFirst();
                 boolean sync = false;
                 if (
                     io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType()) ||
@@ -1686,6 +1686,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     io.gravitee.repository.management.model.EventType.START_API.equals(lastEvent.getType())
                 ) {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
+                    if (payloadEntity.getDefinitionVersion() != api.getDefinitionVersion()) {
+                        return false;
+                    }
 
                     final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
                     // Remove policy description from sync check
