@@ -49,10 +49,9 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -60,9 +59,8 @@ import org.springframework.stereotype.Service;
  * @author GraviteeSource Team
  */
 @Service
+@Slf4j
 public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiCRDServiceImpl.class);
 
     @Inject
     private ObjectMapper objectMapper;
@@ -145,8 +143,7 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
                 plansByCrossId
             );
         } catch (JsonProcessingException e) {
-            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", api, e);
-            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
+            throw new TechnicalManagementException(String.format("An error occurs while trying to JSON deserialize the API definition for API %s", api), e);
         }
     }
 
@@ -170,7 +167,7 @@ public class ApiCRDServiceImpl extends AbstractService implements ApiCRDService 
         );
 
         if (currentPrimaryOwner.getMemberId().equals(authenticatedUser.getUsername())) {
-            LOGGER.debug("user {} is already the primary owner of API {}", authenticatedUser.getUsername(), apiId);
+            log.debug("user {} is already the primary owner of API {}", authenticatedUser.getUsername(), apiId);
             return;
         }
 
