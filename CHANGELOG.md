@@ -1,3 +1,10 @@
+# [1.7.0-alpha.4](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.3...1.7.0-alpha.4) (2025-07-18)
+
+
+### Features
+
+* add update template for even metrics in ES7 ([b3ad341](https://github.com/gravitee-io/gravitee-reporter-common/commit/b3ad3413b32a963c1d6939c1847b040b3c690931))
+
 # [1.7.0-alpha.3](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.2...1.7.0-alpha.3) (2025-07-17)
 
 
