@@ -27,7 +27,11 @@ import java.util.Optional;
 public class NoOpAnalyticsRepository implements AnalyticsRepository {
 
     @Override
-    public Optional<CountAggregate> searchRequestsCount(
+    public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery requestsCountQuery) {
+        return Optional.empty();
+    }
+
+    public Optional<CountAggregate> searchRequestsCountByEvent(
         QueryContext queryContext,
         RequestsCountQuery requestsCountQuery,
         String aggregationField

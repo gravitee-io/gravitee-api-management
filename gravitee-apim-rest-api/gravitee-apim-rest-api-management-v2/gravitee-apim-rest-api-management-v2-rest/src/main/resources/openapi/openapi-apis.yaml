@@ -7693,12 +7693,6 @@ components:
                     additionalProperties:
                       type: integer
                     description: "Breakdown of counts by entrypoint"
-                metadata:
-                    type: object
-                    additionalProperties:
-                      type: object
-                      additionalProperties:
-                        type: string
         HistogramAnalytics:
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"
