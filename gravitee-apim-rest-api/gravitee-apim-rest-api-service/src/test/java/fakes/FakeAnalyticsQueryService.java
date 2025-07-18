@@ -61,7 +61,12 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public StatsAnalytics statsAnalytics;
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, CountQuery query) {
+    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
+        return Optional.ofNullable(requestsCount);
+    }
+
+    @Override
+    public Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query) {
         return Optional.ofNullable(requestsCount);
     }
 

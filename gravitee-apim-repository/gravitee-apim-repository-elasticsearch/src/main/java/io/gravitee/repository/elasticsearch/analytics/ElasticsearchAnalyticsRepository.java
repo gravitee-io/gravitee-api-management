@@ -68,9 +68,6 @@ public class ElasticsearchAnalyticsRepository extends AbstractElasticsearchRepos
             logger.error("No command found to handle query of type {}", query.getClass());
             throw new AnalyticsException("No command found to handle query of type " + query.getClass());
         }
-        Query<T> preparedQuery = handler.prepareQuery(query);
-        System.out.println("Prepared query: " + preparedQuery);
-
-        return handler.executeQuery(queryContext, preparedQuery);
+        return handler.executeQuery(queryContext, handler.prepareQuery(query));
     }
 }
