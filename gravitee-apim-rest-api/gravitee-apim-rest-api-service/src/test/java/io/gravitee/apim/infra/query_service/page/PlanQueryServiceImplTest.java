@@ -74,7 +74,7 @@ class PlanQueryServiceImplTest {
             var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(API_ID, DefinitionVersion.V4, PAGE_ID);
             assertThat(res).hasSize(1);
             assertThat(res.getFirst().getId()).isEqualTo("published-id");
-            assertThat(res.getFirst().getPlanSecurity()).isEqualTo(PlanSecurity.builder().type("API_KEY").build());
+            assertThat(res.getFirst().getPlanSecurity()).isEqualTo(PlanSecurity.builder().type("api-key").build());
             assertThat(res.getFirst().getApiId()).isEqualTo(API_ID);
         }
 

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -34,7 +35,6 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventQueryServiceInMemory;
-import inmemory.FlowCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
@@ -57,7 +57,10 @@ import io.gravitee.apim.infra.domain_service.api.UpdateApiDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Api;
@@ -71,6 +74,7 @@ import java.sql.Date;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,8 +83,13 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class RollbackApiUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
@@ -96,11 +105,15 @@ class RollbackApiUseCaseTest {
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionCrudService = new SubscriptionQueryServiceInMemory();
-    private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
 
-    CreatePlanDomainService createPlanDomainService = mock(CreatePlanDomainService.class);
-    UpdatePlanDomainService updatePlanDomainService = mock(UpdatePlanDomainService.class);
+    @Mock
+    CreatePlanDomainService createPlanDomainService;
+
+    @Mock
+    UpdatePlanDomainService updatePlanDomainService;
+
     ApiService delegateApiService = mock(ApiService.class);
     UpdateApiDomainService updateApiDomainService = new UpdateApiDomainServiceImpl(delegateApiService, apiCrudService);
 
@@ -145,7 +158,17 @@ class RollbackApiUseCaseTest {
     @AfterEach
     void tearDown() {
         Stream
-            .of(auditCrudService, eventCrudService, eventQueryService, planCrudService, planQueryService, userCrudService)
+            .of(
+                auditCrudService,
+                eventCrudService,
+                eventQueryService,
+                planCrudService,
+                planQueryService,
+                userCrudService,
+                subscriptionCrudService,
+                apiCrudService,
+                subscriptionQueryService
+            )
             .forEach(InMemoryAlternative::reset);
         reset(delegateApiService);
     }
@@ -230,7 +253,7 @@ class RollbackApiUseCaseTest {
             .id("event-id")
             .type(EventType.PUBLISH_API)
             .environments(Set.of(ENVIRONMENT_ID))
-            .payload("{\"definitionVersion\":\"2.0.0\"}")
+            .payload("{\"definitionVersion\":\"1.0.0\"}")
             .build();
         eventQueryService.initWith(List.of(event));
 
@@ -319,15 +342,15 @@ class RollbackApiUseCaseTest {
                     // Rollbacked with previous values
                     assertThat(updateApiEntity.getName()).isEqualTo("api-previous-name");
                     assertThat(updateApiEntity.getApiVersion()).isEqualTo("api-previous-version");
-                    assertThat(updateApiEntity.getListeners().get(0).getEntrypoints().get(0))
+                    assertThat(updateApiEntity.getListeners().getFirst().getEntrypoints().getFirst())
                         .isEqualTo(Entrypoint.builder().type("http-proxy").configuration("{}").build());
                     assertThat(
-                        ((io.gravitee.definition.model.v4.listener.http.HttpListener) updateApiEntity.getListeners().get(0)).getPaths()
-                            .get(0)
+                        ((io.gravitee.definition.model.v4.listener.http.HttpListener) updateApiEntity.getListeners().getFirst()).getPaths()
+                            .getFirst()
                             .getPath()
                     )
                         .isEqualTo("/api-previous-path");
-                    assertThat(updateApiEntity.getFlows().get(0).getName()).isEqualTo("api-previous-flow-name");
+                    assertThat(updateApiEntity.getFlows()).map(AbstractFlow::getName).first().isEqualTo("api-previous-flow-name");
 
                     // Not rollbacked
                     assertThat(updateApiEntity.getDescription()).isEqualTo("api-previous-api-description");
@@ -494,7 +517,10 @@ class RollbackApiUseCaseTest {
         // Check updated plan
         var updatedPlan = planCrudService.getById(existingPlanToUpdate.getId());
         assertThat(updatedPlan.getName()).isEqualTo("plan-to-update-name-UPDATED");
-        assertThat(updatedPlan.getPlanDefinitionHttpV4().getFlows().get(0).getName()).isEqualTo("plan-to-update-new-flow");
+        assertThat(updatedPlan.getPlanDefinitionHttpV4().getFlows())
+            .map(AbstractFlow::getName)
+            .first()
+            .isEqualTo("plan-to-update-new-flow");
         assertThat(updatedPlan.getDescription()).isEqualTo("Description not updated");
         assertThat(updatedPlan.getCommentMessage()).isEqualTo("Comment message not updated");
 
@@ -502,13 +528,135 @@ class RollbackApiUseCaseTest {
         var createdPlan = planCrudService.getById("plan-to-add");
         assertThat(createdPlan.getId()).isEqualTo("plan-to-add");
         assertThat(createdPlan.getName()).isEqualTo("plan-to-add-name");
-        assertThat(createdPlan.getPlanDefinitionHttpV4().getFlows().get(0).getName()).isEqualTo("flow-name");
+        assertThat(createdPlan.getPlanDefinitionHttpV4().getFlows()).map(AbstractFlow::getName).first().isEqualTo("flow-name");
         assertThat(createdPlan.getPlanDefinitionHttpV4().getTags()).containsExactly("tag");
         assertThat(createdPlan.getPlanDefinitionHttpV4().getSelectionRule()).isEqualTo("selection-rule");
         assertThat(createdPlan.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo("KEY_LESS");
 
         assertClosePlanAuditHasBeenCreated(existingPlanToClose);
         assertRollbackAuditHasBeenCreated();
+    }
+
+    @Nested
+    class RollbackApiV4toV2Proxy {
+
+        @Test
+        void should_rollback_api() throws JsonProcessingException {
+            // Given
+            var existingV4Api = apiV4().build();
+            apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
+
+            givenExistingPlan(
+                PlanFixtures
+                    .aPlanHttpV4()
+                    .toBuilder()
+                    .id("plan-to-rollback")
+                    .apiId(existingV4Api.getId())
+                    .name("plan-current-name")
+                    .description("Current plan description")
+                    .build()
+            );
+
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api
+                .builder()
+                .id(existingV4Api.getId())
+                .name("api-previous-name")
+                .version("api-previous-version")
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(
+                    io.gravitee.definition.model.Proxy
+                        .builder()
+                        .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
+                        .groups(
+                            Set.of(
+                                EndpointGroup
+                                    .builder()
+                                    .name("default-endpoint")
+                                    .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+                .plans(
+                    Map.of(
+                        "plan-to-rollback",
+                        io.gravitee.definition.model.Plan
+                            .builder()
+                            .id("plan-to-rollback")
+                            .name("plan-previous-name")
+                            .status("PUBLISHED")
+                            .security("KEY_LESS")
+                            .build()
+                    )
+                )
+                .build();
+
+            var apiRepositoryModel = io.gravitee.repository.management.model.Api
+                .builder()
+                .id(eventV2ApiDefinition.getId())
+                .name(eventV2ApiDefinition.getName())
+                .version(eventV2ApiDefinition.getVersion())
+                .definitionVersion(DefinitionVersion.V2)
+                .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+                .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
+                .build();
+
+            var event = Event
+                .builder()
+                .id("rollback-event-id")
+                .type(EventType.PUBLISH_API)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+                .build();
+            eventQueryService.initWith(List.of(event));
+
+            // Mock plan update for rollback
+            when(updatePlanDomainService.update(any(Plan.class), any(), any(), any(), any()))
+                .thenAnswer(invocation -> {
+                    planCrudService.update(invocation.getArgument(0));
+                    return null;
+                });
+
+            // When
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            // Then
+            var rolledBackApi = apiCrudService.get(existingV4Api.getId());
+            assertSoftly(softly -> {
+                softly.assertThat(rolledBackApi.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
+                softly.assertThat(rolledBackApi.getName()).isEqualTo("api-previous-name");
+                softly.assertThat(rolledBackApi.getVersion()).isEqualTo("api-previous-version");
+                softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+            });
+
+            var apiDefinition = rolledBackApi.getApiDefinition();
+            assertSoftly(softly -> {
+                softly.assertThat(apiDefinition.getName()).isEqualTo("api-previous-name");
+                softly.assertThat(apiDefinition.getVersion()).isEqualTo("api-previous-version");
+                softly.assertThat(apiDefinition.getProxy().getVirtualHosts().getFirst().getPath()).isEqualTo("/api-previous-path");
+            });
+
+            var rolledBackPlan = planCrudService.getById("plan-to-rollback");
+            assertSoftly(softly -> {
+                softly.assertThat(rolledBackPlan.getName()).isEqualTo("plan-previous-name");
+                softly.assertThat(rolledBackPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
+                softly.assertThat(rolledBackPlan.getUpdatedAt()).isEqualTo(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()));
+            });
+
+            verify(updatePlanDomainService)
+                .update(
+                    argThat(plan -> plan.getName().equals("plan-previous-name") && plan.getDefinitionVersion().equals(DefinitionVersion.V2)
+                    ),
+                    any(), // flows (TODO comment in code)
+                    eq(null),
+                    eq(rolledBackApi),
+                    eq(AUDIT_INFO)
+                );
+
+            // Verify audit log was created
+            assertRollbackAuditHasBeenCreated();
+        }
     }
 
     private Plan givenExistingPlan(Plan plan) {
