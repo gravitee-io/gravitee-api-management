@@ -117,7 +117,7 @@ public class ApiTagServiceImplTest {
         when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class))).thenReturn(Stream.of(api));
         when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
 
-        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class)).thenReturn(apiDefinition);
+        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.AbstractApi.class)).thenReturn(apiDefinition);
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
 
         apiTagService.deleteTagFromAPIs(executionContext, "intranet");
