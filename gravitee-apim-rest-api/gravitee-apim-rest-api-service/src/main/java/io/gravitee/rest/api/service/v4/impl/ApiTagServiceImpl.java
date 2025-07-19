@@ -79,10 +79,20 @@ public class ApiTagServiceImpl implements ApiTagService {
     }
 
     private void removeTag(ExecutionContext executionContext, Api api, String tagId) throws TechnicalManagementException {
+        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            log.debug("skipping tag removal for FEDERATED API: {}", api.getId());
+            return;
+        }
+        log.debug(
+            "Starting tag removal process for API: {}, tag: '{}', definition version: {}",
+            api.getId(),
+            tagId,
+            api.getDefinitionVersion()
+        );
         try {
             Api previousApi = new Api(api);
             Api updated = null;
-            if (api.getDefinitionVersion() != DefinitionVersion.V4 && api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
+            if (api.getDefinitionVersion() != DefinitionVersion.V4) {
                 final io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                     api.getDefinition(),
                     io.gravitee.definition.model.Api.class
@@ -92,13 +102,14 @@ public class ApiTagServiceImpl implements ApiTagService {
                     updated = apiRepository.update(api);
                 }
             } else {
-                final io.gravitee.definition.model.v4.Api apiDefinition = objectMapper.readValue(
+                final io.gravitee.definition.model.v4.AbstractApi apiDefinition = objectMapper.readValue(
                     api.getDefinition(),
-                    io.gravitee.definition.model.v4.Api.class
+                    io.gravitee.definition.model.v4.AbstractApi.class
                 );
                 if (apiDefinition.getTags().remove(tagId)) {
                     api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
                     updated = apiRepository.update(api);
+                    log.debug("API '{}' updated successfully after removing tag '{}'", api.getId(), tagId);
                 }
             }
             if (updated != null) {
@@ -112,6 +123,7 @@ public class ApiTagServiceImpl implements ApiTagService {
                     previousApi,
                     updated
                 );
+                log.debug("API update notification and audit log triggered for API: {}", api.getId());
             }
         } catch (Exception ex) {
             throw new TechnicalManagementException("An error occurs while removing tag from API: " + api.getId(), ex);
