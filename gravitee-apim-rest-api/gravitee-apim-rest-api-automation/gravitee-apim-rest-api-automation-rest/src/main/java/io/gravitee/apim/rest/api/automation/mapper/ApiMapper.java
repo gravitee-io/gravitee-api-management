@@ -26,6 +26,8 @@ import io.gravitee.apim.rest.api.automation.model.HttpListener;
 import io.gravitee.apim.rest.api.automation.model.HttpSelector;
 import io.gravitee.apim.rest.api.automation.model.KafkaListener;
 import io.gravitee.apim.rest.api.automation.model.Listener;
+import io.gravitee.apim.rest.api.automation.model.PageV4;
+import io.gravitee.apim.rest.api.automation.model.PlanV4;
 import io.gravitee.apim.rest.api.automation.model.ResponseTemplate;
 import io.gravitee.apim.rest.api.automation.model.Selector;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionListener;
@@ -33,9 +35,13 @@ import io.gravitee.apim.rest.api.automation.model.TcpListener;
 import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
+import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
+import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -49,6 +55,8 @@ public interface ApiMapper {
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
     @Mapping(target = "listeners", expression = "java(mapApiV4SpecListeners(apiV4Spec))")
+    @Mapping(target = "plans", expression = "java(mapApiV4SpecPlans(apiV4Spec))")
+    @Mapping(target = "pages", expression = "java(mapApiV4SpecPages(apiV4Spec))")
     ApiCRDSpec apiV4SpecToApiCRDSpec(ApiV4Spec apiV4Spec);
 
     @Mapping(target = "id", source = "id")
@@ -56,7 +64,7 @@ public interface ApiMapper {
     @Mapping(target = "errors", ignore = true)
     @Mapping(target = "organizationId", source = "organizationId")
     @Mapping(target = "environmentId", source = "environmentId")
-    ApiV4State apiV4SpecToApiV4State(ApiV4Spec apiV4State, String id, String crossId, String organizationId, String environmentId);
+    ApiV4State apiV4SpecToApiV4State(ApiV4Spec apiV4Spec, String id, String crossId, String organizationId, String environmentId);
 
     @Mapping(target = "selectors", expression = "java(mapApiV4SpecSelectors(flowV4))")
     io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(FlowV4 flowV4);
@@ -75,8 +83,10 @@ public interface ApiMapper {
 
     Errors toErrors(ApiCRDStatus.Errors apiV4State);
 
-    @Mapping(target = "listeners", expression = "java(mapApiCRDSpecListeners(spec))")
-    ApiV4Spec apiCRDSpecToApiV4Spec(ApiCRDSpec spec);
+    @Mapping(target = "listeners", expression = "java(mapApiCRDSpecListeners(apiCRD))")
+    @Mapping(target = "plans", expression = "java(mapApiCRDSpecPlans(apiCRD))")
+    @Mapping(target = "pages", expression = "java(mapApiCRDSpecPages(apiCRD))")
+    ApiV4Spec apiCRDSpecToApiV4Spec(ApiCRDSpec apiCRD);
 
     @Mapping(target = "statusCode", source = "status")
     io.gravitee.definition.model.ResponseTemplate mapResponseTemplate(ResponseTemplate src);
@@ -105,6 +115,12 @@ public interface ApiMapper {
     HttpSelector map(io.gravitee.rest.api.management.v2.rest.model.HttpSelector selector);
     ChannelSelector map(io.gravitee.rest.api.management.v2.rest.model.ChannelSelector selector);
     ConditionSelector map(io.gravitee.rest.api.management.v2.rest.model.ConditionSelector selector);
+
+    PlanCRD map(PlanV4 planV4);
+    PageCRD map(PageV4 pageV4);
+
+    PlanV4 map(PlanCRD planCRD);
+    PageV4 map(PageCRD pageCRD);
 
     default List<io.gravitee.rest.api.management.v2.rest.model.Selector> mapApiV4SpecSelectors(FlowV4 flowV4) {
         if (flowV4 == null || flowV4.getSelectors() == null) {
@@ -175,6 +191,56 @@ public interface ApiMapper {
             })
             .filter(Objects::nonNull)
             .toList();
+    }
+
+    default Map<String, PlanCRD> mapApiV4SpecPlans(ApiV4Spec apiV4Spec) {
+        if (apiV4Spec == null || apiV4Spec.getPlans() == null) {
+            return Map.of();
+        }
+
+        return apiV4Spec.getPlans().stream().collect(Collectors.toMap(PlanV4::getHrid, this::map));
+    }
+
+    default List<PlanV4> mapApiCRDSpecPlans(ApiCRDSpec apiCRD) {
+        if (apiCRD == null || apiCRD.getPlans() == null) {
+            return List.of();
+        }
+
+        return apiCRD
+            .getPlans()
+            .entrySet()
+            .stream()
+            .map(entry -> {
+                PlanV4 planV4 = map(entry.getValue());
+                planV4.setHrid(entry.getKey());
+                return planV4;
+            })
+            .collect(Collectors.toList());
+    }
+
+    default Map<String, PageCRD> mapApiV4SpecPages(ApiV4Spec apiV4Spec) {
+        if (apiV4Spec == null || apiV4Spec.getPages() == null) {
+            return Map.of();
+        }
+
+        return apiV4Spec.getPages().stream().collect(Collectors.toMap(PageV4::getHrid, this::map));
+    }
+
+    default List<PageV4> mapApiCRDSpecPages(ApiCRDSpec apiCRD) {
+        if (apiCRD == null || apiCRD.getPages() == null) {
+            return List.of();
+        }
+
+        return apiCRD
+            .getPages()
+            .entrySet()
+            .stream()
+            .map(entry -> {
+                PageV4 pageV4 = map(entry.getValue());
+                pageV4.setHrid(entry.getKey());
+                return pageV4;
+            })
+            .collect(Collectors.toList());
     }
 
     default List<Listener> mapApiCRDSpecListeners(ApiCRDSpec apiCRDSpec) {

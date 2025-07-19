@@ -31,7 +31,6 @@ import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
@@ -55,13 +54,13 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
-    public Response get() {
+    public Response get(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
             var sharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
                 executionContext.getEnvironmentId(),
-                IdBuilder.builder(executionContext, hrid).buildId()
+                legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
             );
             return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(sharedPolicyGroup)).build();
         } catch (SharedPolicyGroupNotFoundException e) {
@@ -72,7 +71,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.DELETE }) })
-    public Response delete(@QueryParam("dryRun") boolean dryRun) {
+    public Response delete(@QueryParam("dryRun") boolean dryRun, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -93,7 +92,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
         try {
             var sharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
                 executionContext.getEnvironmentId(),
-                IdBuilder.builder(auditInfo, hrid).buildId()
+                legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
             );
             if (!dryRun) {
                 deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(sharedPolicyGroup.getId(), auditInfo));

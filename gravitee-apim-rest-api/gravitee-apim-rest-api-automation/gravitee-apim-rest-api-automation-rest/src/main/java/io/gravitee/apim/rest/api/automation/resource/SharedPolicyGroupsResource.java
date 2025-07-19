@@ -59,7 +59,11 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
-    public Response createOrUpdate(@Valid @NotNull LegacySharedPolicyGroupSpec spec, @QueryParam("dryRun") boolean dryRun) {
+    public Response createOrUpdate(
+        @Valid @NotNull LegacySharedPolicyGroupSpec spec,
+        @QueryParam("dryRun") boolean dryRun,
+        @QueryParam("legacy") boolean legacy
+    ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -77,10 +81,17 @@ public class SharedPolicyGroupsResource extends AbstractResource {
             )
             .build();
 
+        var sharedPolicyGroupCRD = SharedPolicyGroupMapper.INSTANCE.map(spec);
+
+        // Just for backward compatibility with old code
+        if (legacy) {
+            sharedPolicyGroupCRD.setSharedPolicyGroupId(spec.getHrid());
+        }
+
         if (dryRun) {
             var statusBuilder = SharedPolicyGroupCRDStatus.builder();
             validateSharedPolicyGroupCRDDomainService
-                .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(audit, SharedPolicyGroupMapper.INSTANCE.map(spec)))
+                .validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(audit, sharedPolicyGroupCRD))
                 .peek(
                     sanitized ->
                         statusBuilder
@@ -96,7 +107,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
         }
 
         var output = importSharedPolicyGroupCRDCRDUseCase.execute(
-            new ImportSharedPolicyGroupCRDCRDUseCase.Input(audit, SharedPolicyGroupMapper.INSTANCE.map(spec))
+            new ImportSharedPolicyGroupCRDCRDUseCase.Input(audit, sharedPolicyGroupCRD)
         );
 
         return Response

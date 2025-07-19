@@ -64,10 +64,27 @@ class ApiResourceTest extends AbstractResourceTest {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
                 when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
                     .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(HRID).build()));
-                var state = expectEntity(HRID);
+                var state = expectEntity(HRID, false);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(API_ID);
                     assertThat(state.getHrid()).isEqualTo(HRID);
+                    assertThat(state.getCrossId()).isEqualTo(API_CROSS_ID);
+                    assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
+                    assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
+                });
+            }
+        }
+
+        @Test
+        void should_get_api_from_known_legacy_id() {
+            try (var ctx = mockStatic(GraviteeContext.class)) {
+                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
+                    .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(API_ID).build()));
+                var state = expectEntity(API_ID, true);
+                SoftAssertions.assertSoftly(soft -> {
+                    assertThat(state.getId()).isEqualTo(API_ID);
+                    assertThat(state.getHrid()).isEqualTo(API_ID);
                     assertThat(state.getCrossId()).isEqualTo(API_CROSS_ID);
                     assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                     assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
@@ -89,8 +106,10 @@ class ApiResourceTest extends AbstractResourceTest {
             }
         }
 
-        private ApiV4State expectEntity(String hrid) {
-            try (var response = rootTarget().path(hrid).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+        private ApiV4State expectEntity(String hrid, boolean legacy) {
+            try (
+                var response = rootTarget().queryParam("legacy", legacy).path(hrid).request().accept(MediaType.APPLICATION_JSON_TYPE).get()
+            ) {
                 return response.readEntity(ApiV4State.class);
             }
         }
@@ -107,6 +126,13 @@ class ApiResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_delete_api_and_return_no_content_with_valid_legacy_id() {
+            expectNoContent(API_ID, true);
+
+            verify(apiService, atLeastOnce()).delete(any(), eq(API_ID), eq(true));
+        }
+
+        @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
             doThrow(new ApiNotFoundException("unknown")).when(apiService).delete(any(), any(), eq(true));
 
@@ -114,7 +140,11 @@ class ApiResourceTest extends AbstractResourceTest {
         }
 
         private void expectNoContent(String hrid) {
-            try (var response = rootTarget().path(hrid).request().delete()) {
+            expectNoContent(hrid, false);
+        }
+
+        private void expectNoContent(String hrid, boolean legacy) {
+            try (var response = rootTarget().queryParam("legacy", legacy).path(hrid).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
         }

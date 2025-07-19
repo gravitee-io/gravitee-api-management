@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import io.gravitee.definition.model.v4.ApiType;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -45,6 +44,7 @@ public class PlanMongo extends Auditable {
      * Plans promoted between environments will share the same crossId.
      */
     private String crossId;
+    private String hrid;
 
     private String name;
 

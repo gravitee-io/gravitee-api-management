@@ -57,7 +57,6 @@ import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
-import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
@@ -679,8 +678,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase(SubscriptionCRDSpecDomainService subscriptionSpecDomainService) {
-        return new ImportSubscriptionSpecUseCase(subscriptionSpecDomainService);
+    public ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase() {
+        return mock(ImportSubscriptionSpecUseCase.class);
     }
 
     @Bean

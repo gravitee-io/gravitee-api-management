@@ -37,6 +37,7 @@ public class PlanWithFlows extends Plan {
             plan.getId(),
             plan.getDefinitionVersion(),
             plan.getCrossId(),
+            plan.getHrid(),
             plan.getName(),
             plan.getDescription(),
             plan.getCreatedAt(),

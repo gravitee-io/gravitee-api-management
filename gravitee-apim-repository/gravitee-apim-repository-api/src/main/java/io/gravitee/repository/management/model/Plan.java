@@ -56,6 +56,7 @@ public class Plan {
      * Plans promoted between environments will share the same crossId.
      */
     private String crossId;
+    private String hrid;
 
     private String name;
 
@@ -153,6 +154,7 @@ public class Plan {
         this.id = cloned.id;
         this.definitionVersion = cloned.definitionVersion;
         this.crossId = cloned.crossId;
+        this.hrid = cloned.hrid;
         this.name = cloned.name;
         this.description = cloned.description;
         this.security = cloned.security;
@@ -207,6 +209,9 @@ public class Plan {
             '\'' +
             ", crossId='" +
             crossId +
+            '\'' +
+            ", hrid='" +
+            hrid +
             '\'' +
             ", api='" +
             api +
