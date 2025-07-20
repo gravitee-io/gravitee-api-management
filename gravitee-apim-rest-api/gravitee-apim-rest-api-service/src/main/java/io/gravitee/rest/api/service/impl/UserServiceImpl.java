@@ -1999,31 +1999,32 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             RoleScope.APPLICATION
         );
 
-        // Add groups to user
-        for (GroupEntity groupEntity : userGroups) {
-            for (RoleEntity roleEntity : roleEntities) {
-                String defaultRole = roleEntity.getName();
+        for (GroupEntity group : userGroups) {
+            if (group == null) {
+                continue;
+            }
+            for (RoleScope scope : List.of(RoleScope.API, RoleScope.APPLICATION)) {
+                String roleName = Optional
+                    .ofNullable(group.getRoles())
+                    .map(roles -> roles.get(scope))
+                    .orElseGet(() ->
+                        roleEntities.stream().filter(role -> role.getScope() == scope).map(RoleEntity::getName).findFirst().orElse(null)
+                    );
 
-                // If defined, get the override default role at the group level
-                if (groupEntity.getRoles() != null) {
-                    String groupDefaultRole = groupEntity.getRoles().get(RoleScope.valueOf(roleEntity.getScope().name()));
-                    if (groupDefaultRole != null) {
-                        defaultRole = groupDefaultRole;
-                    }
+                // Skip if no group or default role is found
+                if (roleName == null) {
+                    continue;
                 }
 
                 MembershipService.Membership membership = new MembershipService.Membership(
-                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupEntity.getId()),
+                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group.getId()),
                     new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(roleEntity.getScope(), defaultRole)
+                    new MembershipService.MembershipRole(scope, roleName)
                 );
-
                 membership.setSource(identityProviderId);
-
                 memberships.add(membership);
             }
         }
-
         return memberships;
     }
 
