@@ -188,6 +188,14 @@ jobs:
       - store_test_results:
           path: ~/test-results
     parallelism: 4
+  job-validate-workflow-status:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - run:
+          name: Check workflow jobs
+          command: echo "Congratulations! If you can read this, everything is OK"
 workflows:
   pull_requests:
     jobs:
@@ -230,6 +238,10 @@ workflows:
             - cicd-orchestrator
           requires:
             - Build backend
+      - job-validate-workflow-status:
+          name: Validate workflow status
+          requires:
+            - Integration tests
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.5

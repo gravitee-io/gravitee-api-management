@@ -507,6 +507,7 @@ workflows:
             - Test definition
             - Test gateway
             - Test rest-api
+            - Integration tests
             - Test plugins
             - Test repository
 orbs:
