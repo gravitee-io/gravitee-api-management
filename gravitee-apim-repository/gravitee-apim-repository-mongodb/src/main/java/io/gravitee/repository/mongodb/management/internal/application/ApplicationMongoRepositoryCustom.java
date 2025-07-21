@@ -35,4 +35,6 @@ public interface ApplicationMongoRepositoryCustom {
     Stream<String> searchIds(ApplicationCriteria applicationCriteria);
 
     Set<ApplicationMongo> findByIds(Collection<String> ids, Sortable sortable);
+
+    boolean existsMetadataEntryForEnv(String key, String value, String environmentId);
 }
