@@ -44,6 +44,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -203,14 +204,11 @@ class MigrateApiUseCaseTest {
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
 
         // Then
-        assertThat(result.state()).isEqualTo(MigrateApiUseCase.Output.State.IMPOSSIBLE);
+        assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
             .containsExactly(
-                new MigrateApiUseCase.Output.Issue(
-                    "Cannot upgrade an API which is not a v2 definition",
-                    MigrateApiUseCase.Output.State.IMPOSSIBLE
-                )
+                new MigrationResult.Issue("Cannot upgrade an API which is not a v2 definition", MigrationResult.State.IMPOSSIBLE)
             );
     }
 
@@ -225,15 +223,10 @@ class MigrateApiUseCaseTest {
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
 
         // Then
-        assertThat(result.state()).isEqualTo(MigrateApiUseCase.Output.State.CAN_BE_FORCED);
+        assertThat(result.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
-            .containsExactly(
-                new MigrateApiUseCase.Output.Issue(
-                    "Cannot upgrade an API which is out of sync",
-                    MigrateApiUseCase.Output.State.CAN_BE_FORCED
-                )
-            );
+            .containsExactly(new MigrationResult.Issue("Cannot upgrade an API which is out of sync", MigrationResult.State.CAN_BE_FORCED));
     }
 
     @Test
@@ -249,7 +242,7 @@ class MigrateApiUseCaseTest {
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, DRY_RUN, AUDIT_INFO));
 
         // Then
-        assertThat(result.state()).isEqualTo(MigrateApiUseCase.Output.State.MIGRATABLE);
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATABLE);
         assertThat(result.apiId()).isEqualTo(API_ID);
 
         var storedApi = apiCrudService.findById(API_ID);
@@ -273,7 +266,7 @@ class MigrateApiUseCaseTest {
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
 
         // Then
-        assertThat(result.state()).isEqualTo(MigrateApiUseCase.Output.State.MIGRATED);
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
         assertThat(result.apiId()).isEqualTo(API_ID);
 
         var upgradedApiOpt = apiCrudService.findById(API_ID);
@@ -312,7 +305,7 @@ class MigrateApiUseCaseTest {
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
 
         // Then
-        assertThat(result.state()).isEqualTo(MigrateApiUseCase.Output.State.MIGRATED);
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
 
         var upgradedApiOpt = apiCrudService.findById(API_ID);
         assertThat(upgradedApiOpt).hasValueSatisfying(MigrateApiUseCaseTest::assertApiV4);
@@ -338,7 +331,7 @@ class MigrateApiUseCaseTest {
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
 
         // Then
-        assertThat(result.state()).isEqualTo(MigrateApiUseCase.Output.State.MIGRATED);
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
 
         var upgradedApiOpt = apiCrudService.findById(API_ID);
         assertThat(upgradedApiOpt).hasValueSatisfying(MigrateApiUseCaseTest::assertApiV4);

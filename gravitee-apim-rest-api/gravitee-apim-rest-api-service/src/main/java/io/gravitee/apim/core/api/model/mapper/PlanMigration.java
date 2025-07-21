@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model.mapper;
 
+import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -27,39 +28,22 @@ import java.util.List;
 
 class PlanMigration {
 
-    io.gravitee.apim.core.plan.model.Plan mapPlan(io.gravitee.apim.core.plan.model.Plan plan) {
+    MigrationResult<io.gravitee.apim.core.plan.model.Plan> mapPlan(io.gravitee.apim.core.plan.model.Plan plan) {
         if (plan.getPlanDefinitionV2().getFlows() != null && !plan.getPlanDefinitionV2().getFlows().isEmpty()) {
-            throw new IllegalArgumentException("Flow are not supported yet");
+            return MigrationResult.issues(
+                List.of(new MigrationResult.Issue("Flow are not supported yet", MigrationResult.State.IMPOSSIBLE))
+            );
         }
-        return io.gravitee.apim.core.plan.model.Plan
-            .builder()
-            .definitionVersion(DefinitionVersion.V4)
-            .id(plan.getId())
-            .crossId(plan.getCrossId())
-            .name(plan.getName())
-            .description(plan.getDescription())
-            .createdAt(plan.getCreatedAt())
-            .updatedAt(plan.getUpdatedAt())
-            .publishedAt(plan.getPublishedAt())
-            .closedAt(plan.getClosedAt())
-            .needRedeployAt(Date.from(TimeProvider.instantNow()))
-            .commentMessage(plan.getCommentMessage())
-            .generalConditions(plan.getGeneralConditions())
-            .apiId(plan.getApiId())
-            .environmentId(plan.getEnvironmentId())
-            .order(plan.getOrder())
-            .characteristics(plan.getCharacteristics())
-            .excludedGroups(plan.getExcludedGroups())
-            .planDefinitionHttpV4(mapPlanDefinition(plan.getPlanDefinitionV2()))
-            .apiType(ApiType.PROXY)
-            .validation(
-                switch (plan.getValidation()) {
-                    case AUTO -> io.gravitee.apim.core.plan.model.Plan.PlanValidationType.AUTO;
-                    case MANUAL -> io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL;
-                }
-            )
-            .commentRequired(false) // ??
-            .build();
+        return MigrationResult.value(
+            plan
+                .toBuilder()
+                .definitionVersion(DefinitionVersion.V4)
+                .needRedeployAt(Date.from(TimeProvider.instantNow()))
+                .planDefinitionHttpV4(mapPlanDefinition(plan.getPlanDefinitionV2()))
+                .planDefinitionV2(null)
+                .apiType(ApiType.PROXY)
+                .build()
+        );
     }
 
     private Plan mapPlanDefinition(io.gravitee.definition.model.Plan planDefinitionV2) {

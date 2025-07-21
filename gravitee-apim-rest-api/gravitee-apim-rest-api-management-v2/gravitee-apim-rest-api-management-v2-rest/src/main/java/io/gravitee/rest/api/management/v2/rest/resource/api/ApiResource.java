@@ -20,6 +20,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
+import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
@@ -927,7 +928,7 @@ public class ApiResource extends AbstractResource {
             );
     }
 
-    private static MigrationStateType mapState(MigrateApiUseCase.Output.State state) {
+    private static MigrationStateType mapState(MigrationResult.State state) {
         return switch (state) {
             case MIGRATED -> MigrationStateType.MIGRATED;
             case MIGRATABLE -> MigrationStateType.MIGRATABLE;
