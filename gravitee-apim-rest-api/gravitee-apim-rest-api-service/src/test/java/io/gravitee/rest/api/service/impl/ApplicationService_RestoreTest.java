@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -112,11 +113,8 @@ public class ApplicationService_RestoreTest {
         appToRestore.setMetadata(Map.of(Application.METADATA_CLIENT_ID, CLIENT_ID));
         appToRestore.setEnvironmentId(ENVIRONMENT_ID);
 
-        Application anotherApp = fakeApp(true);
-        anotherApp.setMetadata(Map.of(Application.METADATA_CLIENT_ID, CLIENT_ID));
-
         when(applicationRepository.findById(APP)).thenReturn(Optional.of(appToRestore));
-        when(applicationRepository.findAllByEnvironment(ENVIRONMENT_ID, ApplicationStatus.ACTIVE)).thenReturn(Set.of(anotherApp));
+        when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(true);
 
         applicationService.restore(GraviteeContext.getExecutionContext(), APP);
     }
