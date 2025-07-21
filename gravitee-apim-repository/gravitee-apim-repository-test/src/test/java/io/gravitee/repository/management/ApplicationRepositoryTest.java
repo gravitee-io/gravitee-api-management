@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.management;
 
+import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_CERTIFICATE;
+import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.emptyList;
@@ -61,7 +63,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Set<Application> applications = applicationRepository.findAll();
 
         assertNotNull(applications);
-        assertEquals("Fail to resolve application in findAll", 12, applications.size());
+        assertEquals("Fail to resolve application in findAll", 13, applications.size());
     }
 
     @Test
@@ -69,7 +71,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Set<Application> applications = applicationRepository.findAllByEnvironment("DEFAULT");
 
         assertNotNull(applications);
-        assertEquals("Fail to resolve application in findAllByEnvironment", 5, applications.size());
+        assertEquals("Fail to resolve application in findAllByEnvironment", 6, applications.size());
     }
 
     @Test
@@ -181,9 +183,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     public void findByIdTest() throws Exception {
         Optional<Application> optional = applicationRepository.findById("application-sample");
         assertTrue("Find application by name return no result ", optional.isPresent());
-
-        assertNotNull(optional.get().getMetadata());
-        assertEquals(2, optional.get().getMetadata().size());
+        assertEquals(1, optional.get().getMetadata().size());
     }
 
     @Test
@@ -470,5 +470,25 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals(beforeDeletion.size(), deleted.size());
         assertTrue(beforeDeletion.containsAll(deleted));
         assertEquals(0, nbAfterDeletion);
+    }
+
+    @Test
+    public void should_return_true_on_existing_client_id_in_env() {
+        assertTrue(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "PROD"));
+    }
+
+    @Test
+    public void should_return_false_on_existing_client_id_in_different_env() {
+        assertFalse(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "DEFAULT"));
+    }
+
+    @Test
+    public void should_return_true_on_existing_certificate_in_env() {
+        assertTrue(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE", "DEFAULT"));
+    }
+
+    @Test
+    public void should_return_false_on_existing_certificate_in_different_env() {
+        assertFalse(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE", "PROD"));
     }
 }

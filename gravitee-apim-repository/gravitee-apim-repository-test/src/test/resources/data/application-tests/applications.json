@@ -9,7 +9,6 @@
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883",
     "metadata": {
-      "client_id": "my-client-id",
       "type": "Web"
     },
     "disableMembershipNotifications": false
@@ -25,7 +24,6 @@
     "updatedAt": "1439022010883",
     "picture": "New picture",
     "metadata": {
-      "client_id": "my-client-id",
       "type": "Web"
     },
     "disableMembershipNotifications": false,
@@ -41,7 +39,6 @@
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883",
     "metadata": {
-      "client_id": "my-client-id",
       "type": "Web"
     },
     "disableMembershipNotifications": false
@@ -179,5 +176,19 @@
     },
     "disableMembershipNotifications": false,
     "origin": "KUBERNETES"
+  },
+  {
+    "id": "app-with-certificate",
+    "environmentId": "DEFAULT",
+    "name": "App with certificate",
+    "description": "An app with a certificate",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "client_certificate": "ABCDE"
+    },
+    "disableMembershipNotifications": false
   }
 ]
