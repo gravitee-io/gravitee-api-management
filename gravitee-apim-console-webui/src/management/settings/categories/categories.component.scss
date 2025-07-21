@@ -33,6 +33,11 @@
       display: flex;
     }
   }
+
+  &__avatar {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .mat-column-picture,
