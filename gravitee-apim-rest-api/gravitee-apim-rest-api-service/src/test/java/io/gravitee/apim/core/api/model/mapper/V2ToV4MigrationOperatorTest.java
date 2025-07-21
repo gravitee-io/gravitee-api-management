@@ -17,12 +17,12 @@ package io.gravitee.apim.core.api.model.mapper;
 
 import static io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PlanFixtures;
+import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -38,6 +38,7 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +71,7 @@ class V2ToV4MigrationOperatorTest {
             var originalApi = ApiFixtures.aProxyApiV2();
 
             // When
-            var result = mapper.mapApi(originalApi);
+            var result = get(mapper.mapApi(originalApi));
 
             // Then
             assertThat(result.getId()).isEqualTo(originalApi.getId());
@@ -99,7 +100,7 @@ class V2ToV4MigrationOperatorTest {
         void should_upgrade_definition_version_to_v4() {
             var v2Api = ApiFixtures.aProxyApiV2().toBuilder().definitionVersion(DefinitionVersion.V2).build();
 
-            var result = mapper.mapApi(v2Api);
+            var result = get(mapper.mapApi(v2Api));
 
             assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
             assertThat(result.getType()).isEqualTo(ApiType.PROXY);
@@ -128,7 +129,7 @@ class V2ToV4MigrationOperatorTest {
             var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             // When
-            var result = mapper.mapApi(api);
+            var result = get(mapper.mapApi(api));
 
             // Then
             if (result.getApiDefinitionHttpV4().getListeners().getFirst() instanceof HttpListener httpListener) {
@@ -155,7 +156,7 @@ class V2ToV4MigrationOperatorTest {
 
             var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
-            var result = mapper.mapApi(api);
+            var result = get(mapper.mapApi(api));
 
             var httpListener = (HttpListener) result.getApiDefinitionHttpV4().getListeners().getFirst();
             var path = httpListener.getPaths().getFirst();
@@ -185,7 +186,7 @@ class V2ToV4MigrationOperatorTest {
 
             var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
-            var result = mapper.mapApi(api);
+            var result = get(mapper.mapApi(api));
 
             assertThat(result.getApiDefinitionHttpV4().getListeners()).hasSize(1);
             var listener = result.getApiDefinitionHttpV4().getListeners().getFirst();
@@ -232,7 +233,7 @@ class V2ToV4MigrationOperatorTest {
 
             var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
-            var result = mapper.mapApi(api);
+            var result = get(mapper.mapApi(api));
 
             var mappedEndpointGroup = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
             if (expectedV4Type != null) {
@@ -263,7 +264,7 @@ class V2ToV4MigrationOperatorTest {
 
             var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
-            var result = mapper.mapApi(api);
+            var result = get(mapper.mapApi(api));
             var v4Definition = result.getApiDefinitionHttpV4();
 
             assertThat(v4Definition.getId()).isEqualTo("test-api-id");
@@ -305,7 +306,7 @@ class V2ToV4MigrationOperatorTest {
 
             var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
-            var result = mapper.mapApi(api);
+            var result = get(mapper.mapApi(api));
 
             var mappedEndpoint = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst().getEndpoints().getFirst();
             assertThat(mappedEndpoint.isSecondary()).isEqualTo(isBackup);
@@ -337,7 +338,7 @@ class V2ToV4MigrationOperatorTest {
 
             var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
-            var result = mapper.mapApi(api);
+            var result = get(mapper.mapApi(api));
 
             var mappedEndpoint = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst().getEndpoints().getFirst();
             assertThat(mappedEndpoint.getName()).isEqualTo("test-endpoint");
@@ -360,7 +361,7 @@ class V2ToV4MigrationOperatorTest {
 
             var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").name("Test Plan").planDefinitionV2(planDef).build();
 
-            var result = mapper.mapPlan(plan);
+            var result = get(mapper.mapPlan(plan));
 
             assertThat(result.getPlanDefinitionHttpV4().getStatus()).isEqualTo(expectedV4Status);
             assertThat(result.getPlanDefinitionHttpV4().getMode()).isEqualTo(PlanMode.STANDARD);
@@ -390,7 +391,7 @@ class V2ToV4MigrationOperatorTest {
 
             var plan = PlanFixtures.aPlanV2().toBuilder().planDefinitionV2(planDef).build();
 
-            var result = mapper.mapPlan(plan);
+            var result = get(mapper.mapPlan(plan));
 
             assertThat(result.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo(expectedV4SecurityType);
             assertThat(result.getPlanDefinitionHttpV4().getSecurity().getConfiguration()).isEqualTo("{\"config\": \"value\"}");
@@ -424,7 +425,7 @@ class V2ToV4MigrationOperatorTest {
                 .validation(Plan.PlanValidationType.MANUAL)
                 .build();
 
-            var result = mapper.mapPlan(plan);
+            var result = get(mapper.mapPlan(plan));
 
             assertThat(result.getId()).isEqualTo("plan-id");
             assertThat(result.getName()).isEqualTo("Test Plan");
@@ -447,7 +448,7 @@ class V2ToV4MigrationOperatorTest {
         void should_map_plan_validation_type_correctly(Plan.PlanValidationType v2Validation, Plan.PlanValidationType expectedValidation) {
             var plan = PlanFixtures.aPlanV2().toBuilder().validation(v2Validation).build();
 
-            var result = mapper.mapPlan(plan);
+            var result = get(mapper.mapPlan(plan));
 
             assertThat(result.getValidation()).isEqualTo(expectedValidation);
         }
@@ -473,9 +474,9 @@ class V2ToV4MigrationOperatorTest {
 
             Plan plan = Plan.builder().planDefinitionV2(planDef).build();
 
-            assertThatThrownBy(() -> mapper.mapPlan(plan))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Flow are not supported yet");
+            MigrationResult<Plan> planResult = mapper.mapPlan(plan);
+
+            assertThat(planResult.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         }
 
         @Test
@@ -485,12 +486,16 @@ class V2ToV4MigrationOperatorTest {
             var plan = PlanFixtures.aPlanV2();
 
             // When
-            var result = mapper.mapPlan(plan);
+            var result = get(mapper.mapPlan(plan));
 
             // Then
             assertThat(result.getNeedRedeployAt()).isNotNull();
             assertThat(result.getNeedRedeployAt().toInstant()).isAfter(now.toInstant().minusSeconds(1));
             assertThat(result.getNeedRedeployAt().toInstant()).isBefore(now.toInstant().plusSeconds(10));
         }
+    }
+
+    private <T> T get(MigrationResult<T> result) {
+        return Objects.requireNonNull(result.value());
     }
 }
