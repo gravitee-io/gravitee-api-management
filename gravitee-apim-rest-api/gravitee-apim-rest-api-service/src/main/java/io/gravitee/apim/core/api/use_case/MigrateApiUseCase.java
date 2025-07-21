@@ -32,6 +32,7 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import jakarta.inject.Inject;
@@ -79,6 +80,7 @@ public class MigrateApiUseCase {
 
     public Output execute(Input input) {
         var api = apiCrudService.findById(input.apiId());
+        // Preconditions
         if (api.isEmpty()) {
             throw new ApiNotFoundException(input.apiId());
         } else if (api.get().getDefinitionVersion() != DefinitionVersion.V2) {
@@ -92,11 +94,18 @@ public class MigrateApiUseCase {
                 List.of(new Output.Issue("Cannot upgrade an API which is out of sync", Output.State.CAN_BE_FORCED))
             );
         }
+
+        // Migration
         var plans = planService.findByApiId(input.apiId());
         for (var plan : plans) {
-            planService.update(upgradeApiOperator.mapPlan(plan));
+            Plan migratedPlan = upgradeApiOperator.mapPlan(plan);
+            if (input.mode() != Input.UpgradeMode.DRY_RUN) {
+                planService.update(migratedPlan);
+            }
         }
         Api upgraded = upgradeApiOperator.mapApi(api.get());
+
+        // Apply
         Output.State state = Output.State.MIGRATABLE;
         if (input.mode() != Input.UpgradeMode.DRY_RUN) {
             upgraded = apiCrudService.update(upgraded);
