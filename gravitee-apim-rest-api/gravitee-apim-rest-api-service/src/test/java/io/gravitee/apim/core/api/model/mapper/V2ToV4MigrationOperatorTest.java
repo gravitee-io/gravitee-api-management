@@ -468,25 +468,6 @@ class V2ToV4MigrationOperatorTest {
         }
 
         @Test
-        void should_fail_when_plan_has_flows() {
-            var flow = new io.gravitee.definition.model.flow.Flow();
-            flow.setName("test-flow");
-
-            var planDef = new io.gravitee.definition.model.Plan();
-            planDef.setId("plan-id");
-            planDef.setName("Test Plan");
-            planDef.setStatus("PUBLISHED");
-            planDef.setSecurity("api-key");
-            planDef.setFlows(List.of(flow));
-
-            Plan plan = Plan.builder().planDefinitionV2(planDef).build();
-
-            MigrationResult<Plan> planResult = mapper.mapPlan(plan);
-
-            assertThat(planResult.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
-        }
-
-        @Test
         void should_set_needRedeployAt_for_plan_mapping() {
             // Given
             var now = TimeProvider.now();

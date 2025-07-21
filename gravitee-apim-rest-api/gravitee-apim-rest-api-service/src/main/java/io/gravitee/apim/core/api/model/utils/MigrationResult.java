@@ -89,6 +89,10 @@ public class MigrationResult<T> {
         return new MigrationResult<>(null, issues);
     }
 
+    public static <T> MigrationResult<T> issue(String message, State state) {
+        return new MigrationResult<>(null, List.of(new Issue(message, state)));
+    }
+
     public record Issue(String message, State state) {}
 
     @RequiredArgsConstructor
