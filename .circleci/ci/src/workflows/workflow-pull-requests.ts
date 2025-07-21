@@ -222,6 +222,8 @@ export class PullRequestsWorkflow {
       }
 
       if (!filterJobs || shouldTestIntegrationTests(environment.changedFiles)) {
+        // Force validation workflow in case only integration tests have change
+        // addValidationJob = true;
         const testIntegrationJob = TestIntegrationJob.create(dynamicConfig, environment);
         dynamicConfig.addJob(testIntegrationJob);
 
@@ -232,6 +234,7 @@ export class PullRequestsWorkflow {
             requires: ['Build backend'],
           }),
         );
+        requires.push('Integration tests');
       }
 
       if (!filterJobs || shouldTestPlugin(environment.changedFiles)) {
