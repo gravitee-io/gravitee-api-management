@@ -193,6 +193,11 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     @Override
+    public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
+        return internalApplicationRepo.existsMetadataEntryForEnv(key, value, environmentId);
+    }
+
+    @Override
     public Set<Application> findAll() throws TechnicalException {
         return internalApplicationRepo.findAll().stream().map(this::mapApplication).collect(Collectors.toSet());
     }

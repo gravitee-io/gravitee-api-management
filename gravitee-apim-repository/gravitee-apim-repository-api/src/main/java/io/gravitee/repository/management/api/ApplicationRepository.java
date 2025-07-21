@@ -99,4 +99,6 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @throws TechnicalException
      */
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
+
+    boolean existsMetadataEntryForEnv(String key, String value, String environmentId);
 }
