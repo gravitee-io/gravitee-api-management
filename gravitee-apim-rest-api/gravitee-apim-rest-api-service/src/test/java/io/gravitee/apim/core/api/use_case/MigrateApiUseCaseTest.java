@@ -59,6 +59,7 @@ import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrap
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.List;
@@ -131,7 +132,7 @@ class MigrateApiUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(apiStateService.isSynchronized(any(), any())).thenReturn(true);
+        lenient().when(apiService.isSynchronized(any(), any())).thenReturn(true);
         primaryOwnerDomainService.add(
             API_ID,
             PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build()
@@ -217,8 +218,9 @@ class MigrateApiUseCaseTest {
     @Test
     void should_return_fail_when_api_is_not_synchronized() {
         // Given
-        when(apiStateService.isSynchronized(any(), any())).thenReturn(false);
+        when(apiService.isSynchronized(any(), any())).thenReturn(false);
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
         apiCrudService.initWith(List.of(api));
 
         // When
@@ -232,9 +234,26 @@ class MigrateApiUseCaseTest {
     }
 
     @Test
+    void should_return_fail_when_api_dont_use_v4_emulation_engine() {
+        // Given
+        var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        apiCrudService.initWith(List.of(api));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+        assertThat(result.issues())
+            .containsExactly(new MigrationResult.Issue("Cannot migrate an API not using V4 emulation", MigrationResult.State.IMPOSSIBLE));
+    }
+
+    @Test
     void should_not_upgrade_api_in_dry_run_mode() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
         apiCrudService.initWith(List.of(v2Api));
 
         var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
@@ -259,6 +278,7 @@ class MigrateApiUseCaseTest {
     void should_upgrade_api_definition() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
         apiCrudService.initWith(List.of(v2Api));
 
         var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
@@ -291,6 +311,7 @@ class MigrateApiUseCaseTest {
     void should_upgrade_api_with_multiple_plans() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
         apiCrudService.initWith(List.of(v2Api));
 
         var plan1 = PlanFixtures.aPlanV2().toBuilder().id("plan-1").apiId(API_ID).build();
@@ -321,6 +342,7 @@ class MigrateApiUseCaseTest {
     void should_upgrade_api_with_no_plans() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
         apiCrudService.initWith(List.of(v2Api));
 
         var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();

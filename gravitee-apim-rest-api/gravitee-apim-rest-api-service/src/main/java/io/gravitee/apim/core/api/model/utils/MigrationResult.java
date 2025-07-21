@@ -77,8 +77,8 @@ public class MigrationResult<T> {
         return mapper.apply(value).addIssues(issues);
     }
 
-    public <U> MigrationResult<T> foldLeft(MigrationResult<U> result, BiFunction<T, U, T> merger) {
-        return new MigrationResult<>(merger.apply(value(), result.value()), issues).addIssues(result.issues);
+    public <U> MigrationResult<T> foldLeft(MigrationResult<U> result, Merger<T, U> merger) {
+        return new MigrationResult<>(merger.merge(value(), result.value()), issues).addIssues(result.issues);
     }
 
     public static <T> MigrationResult<T> value(T value) {
@@ -100,5 +100,15 @@ public class MigrationResult<T> {
 
         @Getter
         private final int weight;
+    }
+
+    public interface Merger<T, U> extends BiFunction<T, U, T> {
+        @Nullable
+        T merge(@Nullable T result1, @Nullable U result2);
+
+        @Override
+        default T apply(T result1, U result2) {
+            return merge(result1, result2);
+        }
     }
 }

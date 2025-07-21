@@ -36,6 +36,7 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ExecutionMode;
 import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.Comparator;
@@ -45,6 +46,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 
 @UseCase
 @RequiredArgsConstructor
@@ -81,26 +83,28 @@ public class MigrateApiUseCase {
     }
 
     public Output execute(Input input) {
-        var api = apiCrudService.findById(input.apiId());
-        // Preconditions
-        if (api.isEmpty()) {
-            throw new ApiNotFoundException(input.apiId());
-        }
+        var api = apiCrudService.findById(input.apiId()).orElseThrow(() -> new ApiNotFoundException(input.apiId()));
         MigrationResult<?> precondition = MigrationResult.value(1);
-        if (api.get().getDefinitionVersion() != DefinitionVersion.V2) {
+        if (api.getDefinitionVersion() != DefinitionVersion.V2) {
             return new Output(
                 input.apiId(),
                 List.of(new MigrationResult.Issue("Cannot upgrade an API which is not a v2 definition", MigrationResult.State.IMPOSSIBLE))
             );
-        } else if (!apiStateService.isSynchronized(api.get(), input.auditInfo())) {
+        } else if (!apiStateService.isSynchronized(api, input.auditInfo())) {
             precondition =
                 precondition.addIssue(
                     new MigrationResult.Issue("Cannot upgrade an API which is out of sync", MigrationResult.State.CAN_BE_FORCED)
                 );
         }
+        if (api.getApiDefinition().getExecutionMode() == ExecutionMode.V3) {
+            precondition =
+                precondition.addIssue(
+                    new MigrationResult.Issue("Cannot upgrade an API which isn’t in V4 emulation", MigrationResult.State.IMPOSSIBLE)
+                );
+        }
 
         // Migration
-        var migrationResult = precondition.flatMap(ignored -> upgradeApiOperator.mapApi(api.get())).map(Migration::new);
+        var migrationResult = precondition.flatMap(ignored -> upgradeApiOperator.mapApi(api)).map(Migration::new);
 
         var plans = planService.findByApiId(input.apiId());
         for (var plan : plans) {
@@ -125,13 +129,13 @@ public class MigrateApiUseCase {
                         .environmentId(input.auditInfo().environmentId())
                         .organizationId(input.auditInfo().organizationId())
                         .createdAt(TimeProvider.now())
-                        .oldValue(api.get())
+                        .oldValue(api)
                         .newValue(upgraded)
                         .properties(Map.of(AuditProperties.API, input.apiId()))
                         .build()
                 );
                 var indexerContext = new ApiIndexerDomainService.Context(input.auditInfo(), false);
-                apiIndexerDomainService.delete(indexerContext, api.get());
+                apiIndexerDomainService.delete(indexerContext, api);
                 apiIndexerDomainService.index(indexerContext, upgraded, apiPrimaryOwner);
                 // Plans
                 migration.plans().forEach(planService::update);
@@ -158,8 +162,11 @@ public class MigrateApiUseCase {
             this(api, List.of());
         }
 
-        public Migration withPlan(Plan plan) {
-            return new Migration(api, Stream.concat(plans.stream(), Stream.of(plan)).toList());
+        @Nullable
+        public static Migration withPlan(@Nullable Migration migration, Plan plan) {
+            return migration == null
+                ? null
+                : new Migration(migration.api, Stream.concat(migration.plans.stream(), Stream.of(plan)).toList());
         }
     }
 
