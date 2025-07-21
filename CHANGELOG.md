@@ -1,3 +1,10 @@
+# [1.7.0-alpha.5](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.4...1.7.0-alpha.5) (2025-07-21)
+
+
+### Features
+
+* add more metrics in all formatters ([170d2c8](https://github.com/gravitee-io/gravitee-reporter-common/commit/170d2c8f64512fe8f505aff12f6a0251dfdd84c8))
+
 # [1.7.0-alpha.4](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.3...1.7.0-alpha.4) (2025-07-18)
 
 
