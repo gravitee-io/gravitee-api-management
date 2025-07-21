@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_CERTIFICATE;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -312,10 +313,9 @@ public class ApplicationService_CreateTest {
     }
 
     @Test(expected = ClientIdAlreadyExistsException.class)
-    public void shouldNotCreateBecauseClientIdExists() throws TechnicalException {
+    public void shouldNotCreateBecauseClientIdExists() {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("client_id", CLIENT_ID);
-        when(application.getMetadata()).thenReturn(metadata);
 
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
@@ -323,21 +323,7 @@ public class ApplicationService_CreateTest {
         settings.setApp(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
 
-        when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE))
-            .thenReturn(Collections.singleton(application));
-
-        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldNotCreateForUserBecauseTechnicalException() throws TechnicalException {
-        ApplicationSettings settings = new ApplicationSettings();
-        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
-        clientSettings.setClientId(CLIENT_ID);
-        settings.setApp(clientSettings);
-        when(newApplication.getSettings()).thenReturn(settings);
-
-        when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenThrow(TechnicalException.class);
+        when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(true);
 
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
@@ -424,17 +410,14 @@ public class ApplicationService_CreateTest {
         settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM).build());
         when(newApplication.getSettings()).thenReturn(settings);
 
-        when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE))
-            .thenReturn(
-                Set.of(
-                    Application
-                        .builder()
-                        .metadata(
-                            Map.of(Application.METADATA_CLIENT_CERTIFICATE, Base64.getEncoder().encodeToString(VALID_PEM.trim().getBytes()))
-                        )
-                        .build()
-                )
-            );
+        when(
+            applicationRepository.existsMetadataEntryForEnv(
+                METADATA_CLIENT_CERTIFICATE,
+                Base64.getEncoder().encodeToString(settings.getTls().getClientCertificate().trim().getBytes()),
+                "DEFAULT"
+            )
+        )
+            .thenReturn(true);
 
         Assertions
             .assertThatThrownBy(() -> applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME))
