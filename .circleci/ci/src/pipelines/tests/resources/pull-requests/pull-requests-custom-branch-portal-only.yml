@@ -92,6 +92,18 @@ commands:
           when: always
     description: Save Maven cache for a dedicated job
 jobs:
+  job-danger-js:
+    docker:
+      - image: cimg/node:20.11.1
+    resource_class: small
+    steps:
+      - checkout
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: DANGER_GITHUB_API_TOKEN
+      - run:
+          name: Run Danger JS
+          command: cd .circleci/danger && yarn run danger
   job-webui-lint-test:
     parameters:
       apim-ui-project:
@@ -231,6 +243,10 @@ workflows:
             - keeper/env-export:
                 secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
                 var-name: GITHUB_TOKEN
+      - job-danger-js:
+          name: Run Danger JS
+          context:
+            - cicd-orchestrator
       - job-webui-lint-test:
           name: Lint & test APIM Portal Next
           context:
