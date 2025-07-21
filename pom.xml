@@ -33,7 +33,7 @@
 
     <properties>
         <gravitee-bom.version>8.2.22</gravitee-bom.version>
-        <gravitee-apim.version>4.8.0-alpha.2</gravitee-apim.version>
+        <gravitee-apim.version>4.8.2</gravitee-apim.version>
         <gravitee-reporter-common.version>1.6.2</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>6.2.0</gravitee-common-elasticsearch.version>
         <gravitee-node-api.version>4.8.7</gravitee-node-api.version>
