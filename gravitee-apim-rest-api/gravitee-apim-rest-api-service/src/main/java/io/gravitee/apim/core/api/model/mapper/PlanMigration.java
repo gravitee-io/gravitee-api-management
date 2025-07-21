@@ -24,16 +24,10 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.Date;
-import java.util.List;
 
 class PlanMigration {
 
     MigrationResult<io.gravitee.apim.core.plan.model.Plan> mapPlan(io.gravitee.apim.core.plan.model.Plan plan) {
-        if (plan.getPlanDefinitionV2().getFlows() != null && !plan.getPlanDefinitionV2().getFlows().isEmpty()) {
-            return MigrationResult.issues(
-                List.of(new MigrationResult.Issue("Flow are not supported yet", MigrationResult.State.IMPOSSIBLE))
-            );
-        }
         return MigrationResult.value(
             plan
                 .toBuilder()
@@ -55,7 +49,7 @@ class PlanMigration {
             planDefinitionV2.getSelectionRule(),
             planDefinitionV2.getTags(),
             PlanStatus.valueOf(planDefinitionV2.getStatus()),
-            List.of() // TODO
+            null/* flows are managed in another place because is in a different collection */
         );
     }
 }

@@ -31,12 +31,14 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.v4.flow.Flow;
 import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.Comparator;
@@ -58,9 +60,10 @@ public class MigrateApiUseCase {
     private final ApiIndexerDomainService apiIndexerDomainService;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final PlanCrudService planService;
+    private final FlowCrudService flowCrudService;
     private final ApiStateDomainService apiStateService;
 
-    private final V2toV4MigrationOperator upgradeApiOperator;
+    private final V2toV4MigrationOperator migrationOperator;
 
     @Inject
     public MigrateApiUseCase(
@@ -69,6 +72,7 @@ public class MigrateApiUseCase {
         ApiIndexerDomainService apiIndexerDomainService,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         PlanCrudService planService,
+        FlowCrudService flowCrudService,
         ApiStateDomainService apiStateService
     ) {
         this(
@@ -77,6 +81,7 @@ public class MigrateApiUseCase {
             apiIndexerDomainService,
             apiPrimaryOwnerDomainService,
             planService,
+            flowCrudService,
             apiStateService,
             new V2toV4MigrationOperator()
         );
@@ -86,30 +91,44 @@ public class MigrateApiUseCase {
         var api = apiCrudService.findById(input.apiId()).orElseThrow(() -> new ApiNotFoundException(input.apiId()));
         MigrationResult<?> precondition = MigrationResult.value(1);
         if (api.getDefinitionVersion() != DefinitionVersion.V2) {
+            // Fatal issue, we don’t try to do anything in this case
             return new Output(
                 input.apiId(),
-                List.of(new MigrationResult.Issue("Cannot upgrade an API which is not a v2 definition", MigrationResult.State.IMPOSSIBLE))
+                List.of(new MigrationResult.Issue("Cannot migrate an API which is not a v2 definition", MigrationResult.State.IMPOSSIBLE))
             );
-        } else if (!apiStateService.isSynchronized(api, input.auditInfo())) {
+        }
+        if (!apiStateService.isSynchronized(api, input.auditInfo())) {
             precondition =
                 precondition.addIssue(
-                    new MigrationResult.Issue("Cannot upgrade an API which is out of sync", MigrationResult.State.CAN_BE_FORCED)
+                    new MigrationResult.Issue("Cannot migrate an API which is out of sync", MigrationResult.State.CAN_BE_FORCED)
                 );
         }
         if (api.getApiDefinition().getExecutionMode() == ExecutionMode.V3) {
             precondition =
                 precondition.addIssue(
-                    new MigrationResult.Issue("Cannot upgrade an API which isn’t in V4 emulation", MigrationResult.State.IMPOSSIBLE)
+                    new MigrationResult.Issue("Cannot migrate an API not using V4 emulation", MigrationResult.State.IMPOSSIBLE)
                 );
         }
 
         // Migration
-        var migrationResult = precondition.flatMap(ignored -> upgradeApiOperator.mapApi(api)).map(Migration::new);
+        var migrationResult = precondition.flatMap(ignored -> migrationOperator.mapApi(api)).map(Migration::new);
 
         var plans = planService.findByApiId(input.apiId());
         for (var plan : plans) {
-            var migratedPlan = upgradeApiOperator.mapPlan(plan);
+            var migratedPlan = migrationOperator.mapPlan(plan);
             migrationResult = migrationResult.foldLeft(migratedPlan, Migration::withPlan);
+        }
+
+        var apiV2Flows = flowCrudService.getApiV2Flows(input.apiId());
+        MigrationResult<Migration.ReferencedFlow> result = migrationOperator
+            .mapFlows(apiV2Flows)
+            .map(flows -> new Migration.ReferencedFlow.Api(input.apiId(), flows));
+        migrationResult = migrationResult.foldLeft(result, Migration::withFlow);
+
+        for (String planId : stream(plans).map(io.gravitee.apim.core.plan.model.Plan::getId).toList()) {
+            var planV2Flows = flowCrudService.getPlanV2Flows(planId);
+            result = migrationOperator.mapFlows(planV2Flows).map(flows -> new Migration.ReferencedFlow.Plan(planId, flows));
+            migrationResult = migrationResult.foldLeft(result, Migration::withFlow);
         }
 
         // Apply
@@ -139,6 +158,13 @@ public class MigrateApiUseCase {
                 apiIndexerDomainService.index(indexerContext, upgraded, apiPrimaryOwner);
                 // Plans
                 migration.plans().forEach(planService::update);
+
+                for (var a : migration.flows()) {
+                    switch (a) {
+                        case Migration.ReferencedFlow.Plan planFlows -> flowCrudService.savePlanFlows(planFlows.id(), planFlows.flows());
+                        case Migration.ReferencedFlow.Api apiFlows -> flowCrudService.saveApiFlows(apiFlows.id(), apiFlows.flows());
+                    }
+                }
             }
         );
         return new Output(input.apiId(), migrationResult.issues(), state);
@@ -157,16 +183,32 @@ public class MigrateApiUseCase {
         }
     }
 
-    private record Migration(Api api, Collection<Plan> plans) {
+    private record Migration(Api api, Collection<Plan> plans, Collection<ReferencedFlow> flows) {
         public Migration(Api api) {
-            this(api, List.of());
+            this(api, List.of(), List.of());
         }
 
         @Nullable
         public static Migration withPlan(@Nullable Migration migration, Plan plan) {
             return migration == null
                 ? null
-                : new Migration(migration.api, Stream.concat(migration.plans.stream(), Stream.of(plan)).toList());
+                : new Migration(migration.api, Stream.concat(migration.plans.stream(), Stream.of(plan)).toList(), migration.flows);
+        }
+
+        @Nullable
+        public static Migration withFlow(@Nullable Migration migration, ReferencedFlow flow) {
+            return migration == null
+                ? null
+                : new Migration(migration.api, migration.plans, Stream.concat(migration.flows.stream(), Stream.of(flow)).toList());
+        }
+
+        public sealed interface ReferencedFlow {
+            String id();
+            List<Flow> flows();
+
+            record Api(String id, List<Flow> flows) implements ReferencedFlow {}
+
+            record Plan(String id, List<Flow> flows) implements ReferencedFlow {}
         }
     }
 

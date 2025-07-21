@@ -30,6 +30,7 @@ import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
@@ -60,6 +61,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.List;
@@ -99,6 +101,7 @@ class MigrateApiUseCaseTest {
     private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     private final ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
+    private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
 
     private final AuditDomainService auditDomainService = new AuditDomainService(
         auditCrudService,
@@ -127,6 +130,7 @@ class MigrateApiUseCaseTest {
         apiIndexerDomainService,
         apiPrimaryOwnerDomainService,
         planCrudService,
+        flowCrudService,
         apiStateDomainService
     );
 
@@ -179,7 +183,8 @@ class MigrateApiUseCaseTest {
                 membershipQueryService,
                 roleQueryService,
                 membershipCrudService,
-                apiCategoryQueryService
+                apiCategoryQueryService,
+                flowCrudService
             )
             .forEach(InMemoryAlternative::reset);
     }
@@ -211,7 +216,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
             .containsExactly(
-                new MigrationResult.Issue("Cannot upgrade an API which is not a v2 definition", MigrationResult.State.IMPOSSIBLE)
+                new MigrationResult.Issue("Cannot migrate an API which is not a v2 definition", MigrationResult.State.IMPOSSIBLE)
             );
     }
 
@@ -230,7 +235,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
-            .containsExactly(new MigrationResult.Issue("Cannot upgrade an API which is out of sync", MigrationResult.State.CAN_BE_FORCED));
+            .containsExactly(new MigrationResult.Issue("Cannot migrate an API which is out of sync", MigrationResult.State.CAN_BE_FORCED));
     }
 
     @Test
@@ -361,6 +366,85 @@ class MigrateApiUseCaseTest {
         assertThat(upgradedApiOpt).hasValueSatisfying(MigrateApiUseCaseTest::assertApiV4);
 
         assertThat(planCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_migrate_api_and_plan_flows() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiCrudService.initWith(List.of(v2Api));
+
+        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+        planCrudService.initWith(List.of(plan));
+
+        var apiFlow = new io.gravitee.definition.model.flow.Flow();
+        apiFlow.setName("api-flow");
+        flowCrudService.saveApiFlowsV2(API_ID, List.of(apiFlow));
+
+        var planFlow = new io.gravitee.definition.model.flow.Flow();
+        planFlow.setName("plan-flow");
+        flowCrudService.savePlanFlowsV2("plan-id", List.of(planFlow));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var apiV4Flows = flowCrudService.getApiV4Flows(API_ID);
+        assertThat(apiV4Flows).map(AbstractFlow::getName).containsExactly("api-flow");
+
+        var planV4Flows = flowCrudService.getPlanV4Flows("plan-id");
+        assertThat(planV4Flows).map(AbstractFlow::getName).containsExactly("plan-flow");
+    }
+
+    @Test
+    void should_return_issue_when_migrating_flow_with_incompatible_policy() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiCrudService.initWith(List.of(v2Api));
+
+        var step = new io.gravitee.definition.model.flow.Step();
+        step.setPolicy("cloud-events");
+        var apiFlow = new io.gravitee.definition.model.flow.Flow();
+        apiFlow.setPre(List.of(step));
+        flowCrudService.saveApiFlowsV2(API_ID, List.of(apiFlow));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, DRY_RUN, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+        assertThat(result.issues())
+            .map(MigrationResult.Issue::message)
+            .containsExactly("Policy cloud-events is not compatible with V4 APIs");
+    }
+
+    @Test
+    void should_return_issue_when_migrating_flow_with_unknown_policy() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiCrudService.initWith(List.of(v2Api));
+
+        var apiFlow = new io.gravitee.definition.model.flow.Flow();
+        var step = new io.gravitee.definition.model.flow.Step();
+        step.setPolicy("unknown-policy");
+        apiFlow.setPre(List.of(step));
+        flowCrudService.saveApiFlowsV2(API_ID, List.of(apiFlow));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, DRY_RUN, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
+        assertThat(result.issues())
+            .map(MigrationResult.Issue::message)
+            .containsExactly(
+                "Policy unknown-policy is not a Gravitee policy. Please ensure it is compatible with V4 API before migrating to V4"
+            );
     }
 
     private static void assertApiV4(Api upgradedApi) {
