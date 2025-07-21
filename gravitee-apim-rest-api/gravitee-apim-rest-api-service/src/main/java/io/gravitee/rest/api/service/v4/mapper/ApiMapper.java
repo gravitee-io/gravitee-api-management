@@ -190,6 +190,7 @@ public class ApiMapper {
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
                 apiEntity.setFlows(apiDefinition.getFlows());
+                apiEntity.setAnalytics(apiDefinition.getAnalytics());
             } catch (IOException ioe) {
                 log.error("Unexpected error while generating API definition", ioe);
             }

@@ -437,9 +437,10 @@ public class ApiServiceImplTest {
         Api api = new Api();
         api.setId(API_ID);
         api.setLifecycleState(LifecycleState.STOPPED);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.NATIVE);
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.emptySet());
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -447,6 +448,11 @@ public class ApiServiceImplTest {
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowCrudService, times(1)).saveApiFlows(API_ID, null);
+        verify(searchEngineService, times(1))
+            .delete(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(indexableApi -> indexableApi instanceof GenericApiEntity && indexableApi.getId().equals(API_ID))
+            );
     }
 
     @Test(expected = ApiNotDeletableException.class)

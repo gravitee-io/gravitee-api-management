@@ -25,15 +25,24 @@ import { GioChartLineModule } from '../../../../../../shared/components/gio-char
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { AggregationFields, AggregationTypes } from '../../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import {
+  AnalyticsHistogramAggregation,
+  Bucket,
+  HistogramAnalyticsResponse,
+} from '../../../../../../entities/management-api-v2/analytics/analyticsHistogram';
 
 export interface ChartWidgetConfig {
   apiId: string;
-  aggregationType: AggregationTypes;
-  aggregationField: AggregationFields;
+  aggregations: AnalyticsHistogramAggregation[];
   title: string;
   tooltip: string;
+  shouldSortBuckets?: boolean;
 }
+
+const namesFormatted = {
+  'avg_gateway-response-time-ms': 'Gateway Response Time',
+  'avg_endpoint-response-time-ms': 'Endpoint Response Time',
+};
 
 @Component({
   selector: 'chart-widget',
@@ -53,25 +62,40 @@ export class ChartWidgetComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
   ) {}
 
+  private buildAggregationsParams(aggregations: AnalyticsHistogramAggregation[]): string {
+    return aggregations.reduce((acc, aggregation, index) => {
+      return acc + `${aggregation.type}:${aggregation.field}${index !== aggregations.length - 1 ? ',' : ''}`;
+    }, '');
+  }
+
+  private mapResponseToChartData(res: HistogramAnalyticsResponse): GioChartLineData[] {
+    return res.values
+      .reduce((acc: Bucket[], value): Bucket[] => {
+        return [...acc, ...value.buckets];
+      }, [])
+      .map(({ name, data }) => ({ name: namesFormatted[name] || name, values: data }));
+  }
+
   ngOnInit() {
     this.apiAnalyticsV2Service
       .timeRangeFilter()
       .pipe(
-        switchMap(() => {
+        switchMap((timeRangeParams) => {
           this.isLoading = true;
-          return this.apiAnalyticsV2Service.getHistogramAnalytics(this.config().apiId, {
-            type: this.config().aggregationType,
-            field: this.config().aggregationField,
-          });
+          const aggregationsParams = this.buildAggregationsParams(this.config().aggregations);
+          return this.apiAnalyticsV2Service.getHistogramAnalytics(this.config().apiId, aggregationsParams, timeRangeParams);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (res) => {
           this.isLoading = false;
-          this.chartInput = res.values
-            .find((value) => value.name === this.config().aggregationField)
-            .buckets.map(({ name, data }) => ({ name, values: data }));
+          this.chartInput = this.mapResponseToChartData(res);
+
+          if (this.config().shouldSortBuckets) {
+            this.chartInput = this.chartInput.sort((a, b) => +a.name - +b.name);
+          }
+
           this.chartOptions = {
             pointStart: res.timestamp.from,
             pointInterval: res.timestamp.interval,

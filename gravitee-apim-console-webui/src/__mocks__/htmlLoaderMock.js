@@ -13,15 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-.gio-chart-line {
-  padding: 0 16px 16px 16px;
-
-  &__chart {
-    display: block;
-  }
-  &__no-data {
-    display: flex;
-    justify-content: center;
-  }
-}
+module.exports = {
+  default: '<div></div>',
+};

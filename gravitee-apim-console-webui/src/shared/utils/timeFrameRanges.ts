@@ -91,5 +91,5 @@ export const DATE_TIME_FORMATS = {
 
 export const calculateCustomInterval = (from: number, to: number, nbValuesByBucket = 30) => {
   const range: number = to - from;
-  return range / nbValuesByBucket;
+  return Math.floor(range / nbValuesByBucket);
 };

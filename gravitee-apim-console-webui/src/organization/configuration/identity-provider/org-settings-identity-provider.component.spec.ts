@@ -35,6 +35,7 @@ import {
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
+import { UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
@@ -819,6 +820,43 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
         // no flush to end this test
         httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+
+      it('should not set required validator on environment role controls', async () => {
+        const roleMappingsArray = component.identityProviderFormGroup.get('roleMappings') as UntypedFormArray;
+        const roleMappingGroup = roleMappingsArray.at(0) as UntypedFormGroup;
+        const environmentsGroup = roleMappingGroup.get('environments') as UntypedFormGroup;
+
+        const environmentAlphaControl = environmentsGroup.get('environmentAlphaId');
+        const environmentBetaControl = environmentsGroup.get('environmentBetaId');
+
+        expect(environmentAlphaControl.validator).toBeNull();
+        expect(environmentBetaControl.validator).toBeNull();
+      });
+
+      it('should allow empty environment roles but not empty organization roles', async () => {
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+        const addRoleMappingButton = await roleMappingsCard.getHarness(MatButtonHarness.with({ text: /Add role mapping/ }));
+        await addRoleMappingButton.click();
+        const roleMappingCardAdded = await roleMappingsCard.getHarness(MatCardHarness.with({ selector: '[ng-reflect-name="1"]' }));
+
+        const conditionInput = await roleMappingCardAdded.getHarness(MatInputHarness.with({ selector: '[formControlName=condition]' }));
+        await conditionInput.setValue('{true}');
+        const organizationsSelect = await roleMappingCardAdded.getHarness(
+          MatSelectHarness.with({ selector: '[formControlName=organizations]' }),
+        );
+        expect(await organizationsSelect.getValueText()).toEqual(''); // Should be empty
+        const environmentsTable = await roleMappingCardAdded.getHarness(MatTableHarness);
+        const environmentAlphaRow = (await environmentsTable.getRows())[0];
+        const environmentBetaRow = (await environmentsTable.getRows())[1];
+        const alphaSelect = await (await environmentAlphaRow.getCells())[2].getHarness(MatSelectHarness);
+        const betaSelect = await (await environmentBetaRow.getCells())[2].getHarness(MatSelectHarness);
+        expect(await alphaSelect.getValueText()).toEqual('');
+        expect(await betaSelect.getValueText()).toEqual('');
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
+        await organizationsSelect.clickOptions({ text: 'ROLE_ORG_USER' });
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       });
 
       it('should add role mapping', async () => {

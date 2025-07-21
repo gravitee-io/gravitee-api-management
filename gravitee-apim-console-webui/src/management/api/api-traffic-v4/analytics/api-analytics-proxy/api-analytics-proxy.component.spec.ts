@@ -25,9 +25,12 @@ import { ApiAnalyticsProxyComponent } from './api-analytics-proxy.component';
 import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
-import { HistogramAnalyticsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import {
+  AggregationFields,
+  AggregationTypes,
+  HistogramAnalyticsResponse,
+} from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -65,22 +68,89 @@ describe('ApiAnalyticsProxyComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('GIVEN an API with analytics.enabled=false', () => {
-    beforeEach(async () => {
-      await initComponent();
-      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: false } }));
-    });
-
-    it('should display empty panel', async () => {
-      expect(await componentHarness.isEmptyPanelDisplayed()).toBeTruthy();
-    });
-  });
-
   describe('GIVEN an API with analytics.enabled=true', () => {
     beforeEach(async () => {
       await initComponent();
-      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
-      expectGetHistogramAnalytics();
+      expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
+    });
+
+    it('should serialize SINGLE aggregation into request params', async () => {
+      fixture.componentInstance.chartWidgetConfigs = [
+        {
+          apiId: API_ID,
+          aggregations: [
+            {
+              type: AggregationTypes.AVG,
+              field: AggregationFields.GATEWAY_RESPONSE_TIME_MS,
+            },
+          ],
+          title: 'Response Time Over Time',
+          tooltip: 'Measures latency trend for gateway and downstream systems (API) ',
+        },
+      ];
+      const expectedSerialization = 'AVG:gateway-response-time-ms';
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      const select = await filtersBar.getMatSelect();
+      await select.clickOptions({ text: 'Custom' });
+
+      const from = '2025-07-10 15:21:00';
+      const to = '2025-07-17 15:21:00';
+      const fromInMilliSeconds = new Date(from).getTime();
+      const toInMilliseconds = new Date(to).getTime();
+
+      await filtersBar.setFromDate(from);
+      await filtersBar.setToDate(to);
+
+      await filtersBar.apply();
+
+      const url2 = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=HISTOGRAM&from=${fromInMilliSeconds}&to=${toInMilliseconds}&interval=20160000&aggregations=${expectedSerialization}`;
+      const req2 = httpTestingController.expectOne(url2);
+      req2.flush(fakeAnalyticsHistogram());
+    });
+
+    it('should serialize MULTIPLE aggregation into request params params', async () => {
+      fixture.componentInstance.chartWidgetConfigs = [
+        {
+          apiId: API_ID,
+          aggregations: [
+            {
+              type: AggregationTypes.AVG,
+              field: AggregationFields.GATEWAY_RESPONSE_TIME_MS,
+            },
+            {
+              type: AggregationTypes.AVG,
+              field: AggregationFields.ENDPOINT_RESPONSE_TIME_MS,
+            },
+            {
+              type: AggregationTypes.MAX,
+              field: AggregationFields.ENDPOINT_RESPONSE_TIME_MS,
+            },
+          ],
+          title: 'Response Time Over Time',
+          tooltip: 'Measures latency trend for gateway and downstream systems (API) ',
+        },
+      ];
+
+      const expectedMultipleSerialization = 'AVG:gateway-response-time-ms,AVG:endpoint-response-time-ms,MAX:endpoint-response-time-ms';
+
+      const filters = await componentHarness.getFiltersBarHarness();
+      const select = await filters.getMatSelect();
+      await select.clickOptions({ text: 'Custom' });
+
+      const from = '2025-07-10 15:21:00';
+      const to = '2025-07-17 15:21:00';
+      const fromInMilliSeconds = new Date(from).getTime();
+      const toInMilliseconds = new Date(to).getTime();
+
+      await filters.setFromDate(from);
+      await filters.setToDate(to);
+
+      await filters.apply();
+
+      const url2 = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=HISTOGRAM&from=${fromInMilliSeconds}&to=${toInMilliseconds}&interval=20160000&aggregations=${expectedMultipleSerialization}`;
+      const req2 = httpTestingController.expectOne(url2);
+      req2.flush(fakeAnalyticsHistogram());
     });
 
     it('should not display empty panel', async () => {
@@ -90,7 +160,7 @@ describe('ApiAnalyticsProxyComponent', () => {
     it('should refresh', async () => {
       const filtersBar = await componentHarness.getFiltersBarHarness();
       await filtersBar.refresh();
-      expectGetHistogramAnalytics();
+      expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
     });
   });
 
@@ -103,8 +173,7 @@ describe('ApiAnalyticsProxyComponent', () => {
     ].forEach((testParams) => {
       it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
         await initComponent(testParams.input);
-        expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
-        expectGetHistogramAnalytics();
+        expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
 
         const filtersBar = await componentHarness.getFiltersBarHarness();
 
@@ -116,20 +185,15 @@ describe('ApiAnalyticsProxyComponent', () => {
     });
   });
 
-  function expectApiGetRequest(api: ApiV4) {
-    const res = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
-      method: 'GET',
-    });
-    res.flush(api);
-    fixture.detectChanges();
-  }
-
-  function expectGetHistogramAnalytics(res: HistogramAnalyticsResponse = fakeAnalyticsHistogram()) {
+  function expectGetHistogramAnalytics(res: HistogramAnalyticsResponse = fakeAnalyticsHistogram(), numberOfRequests: number = 1) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=HISTOGRAM`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
+    const requests = httpTestingController.match((req) => {
+      return req.url.startsWith(url);
     });
-    req.flush(res);
+
+    expect(requests.length).toBe(numberOfRequests);
+    requests.forEach((request) => {
+      request.flush(res);
+    });
   }
 });

@@ -19,6 +19,10 @@ import static io.gravitee.apim.core.api.use_case.MigrateApiUseCase.Input.Upgrade
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PlanFixtures;
@@ -37,6 +41,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -49,9 +54,11 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -75,6 +82,7 @@ class MigrateApiUseCaseTest {
         .actor(AuditActor.builder().userId(USER_ID).build())
         .build();
 
+    private final ApiStateService apiStateService = mock(ApiStateService.class);
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final IndexerInMemory indexer = new IndexerInMemory();
@@ -107,17 +115,20 @@ class MigrateApiUseCaseTest {
         apiCategoryQueryService,
         indexer
     );
+    private final ApiStateDomainService apiStateDomainService = new ApiStateDomainServiceLegacyWrapper(apiStateService);
 
     private final MigrateApiUseCase useCase = new MigrateApiUseCase(
         apiCrudService,
         auditDomainService,
         apiIndexerDomainService,
         apiPrimaryOwnerDomainService,
-        planCrudService
+        planCrudService,
+        apiStateDomainService
     );
 
     @BeforeEach
     void setUp() {
+        lenient().when(apiStateService.isSynchronized(any(), any())).thenReturn(true);
         primaryOwnerDomainService.add(
             API_ID,
             PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build()
@@ -199,6 +210,28 @@ class MigrateApiUseCaseTest {
                 new MigrateApiUseCase.Output.Issue(
                     "Cannot upgrade an API which is not a v2 definition",
                     MigrateApiUseCase.Output.State.IMPOSSIBLE
+                )
+            );
+    }
+
+    @Test
+    void should_return_fail_when_api_is_not_synchronized() {
+        // Given
+        when(apiStateService.isSynchronized(any(), any())).thenReturn(false);
+        var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        apiCrudService.initWith(List.of(api));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrateApiUseCase.Output.State.CAN_BE_FORCED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+        assertThat(result.issues())
+            .containsExactly(
+                new MigrateApiUseCase.Output.Issue(
+                    "Cannot upgrade an API which is out of sync",
+                    MigrateApiUseCase.Output.State.CAN_BE_FORCED
                 )
             );
     }
