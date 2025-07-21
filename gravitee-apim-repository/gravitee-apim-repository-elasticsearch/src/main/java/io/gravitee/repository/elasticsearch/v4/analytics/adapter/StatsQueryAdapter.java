@@ -26,6 +26,7 @@ public class StatsQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private String field;
+    private long seconds; // duration in seconds
 
     public String adapt(StatsQuery query) {
         ObjectNode root = MAPPER.createObjectNode();
@@ -41,6 +42,12 @@ public class StatsQueryAdapter {
 
         // Set field for use in adaptResponse
         this.field = query.field();
+
+        // Calculate seconds for time range
+        this.seconds = (query.timeRange().to() - query.timeRange().from()) / 1000;
+        if (this.seconds <= 0) {
+            this.seconds = 1;
+        }
 
         return root.toString();
     }
@@ -105,6 +112,10 @@ public class StatsQueryAdapter {
         float min = agg.getMin();
         float max = agg.getMax();
 
-        return Optional.of(new StatsAggregate(this.field, count, sum, avg, min, max));
+        float rps = (float) count / this.seconds;
+        float rpm = (float) count / (this.seconds / 60f);
+        float rph = (float) count / (this.seconds / 3600f);
+
+        return Optional.of(new StatsAggregate(this.field, count, sum, avg, min, max, rps, rpm, rph));
     }
 }
