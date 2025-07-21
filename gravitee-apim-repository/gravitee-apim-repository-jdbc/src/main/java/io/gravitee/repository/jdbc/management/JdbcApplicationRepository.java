@@ -613,6 +613,18 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         }
     }
 
+    @Override
+    public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
+        String sql =
+            "SELECT EXISTS (SELECT 1 FROM " +
+            APPLICATION_METADATA +
+            " am JOIN " +
+            tableName +
+            " a ON a.id = am.application_id " +
+            "WHERE am.k=? AND am.v=? AND a.environment_id=?)";
+        return jdbcTemplate.queryForObject(sql, Boolean.class, key, value, environmentId);
+    }
+
     private String toSortDirection(Sortable sortable) {
         if (sortable != null) {
             return Order.DESC.equals(sortable.order()) ? "desc" : "asc";
