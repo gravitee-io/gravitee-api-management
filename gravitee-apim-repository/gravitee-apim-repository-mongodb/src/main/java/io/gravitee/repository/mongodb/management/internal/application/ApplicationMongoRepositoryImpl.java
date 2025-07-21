@@ -132,4 +132,12 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
         List<ApplicationMongo> applications = mongoTemplate.find(query, ApplicationMongo.class);
         return new LinkedHashSet<>(applications);
     }
+
+    @Override
+    public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("environmentId").is(environmentId));
+        query.addCriteria(Criteria.where("metadata." + key).is(value));
+        return mongoTemplate.exists(query, ApplicationMongo.class);
+    }
 }
