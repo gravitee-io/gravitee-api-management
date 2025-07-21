@@ -1,3 +1,10 @@
+# [6.2.0-alpha.4](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.3...6.2.0-alpha.4) (2025-07-21)
+
+
+### Features
+
+* add more metrics in ES index template ([1ca98de](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/1ca98deff82f1ed7f5e00877253f7b324ebfaacb))
+
 # [6.2.0-alpha.3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.2...6.2.0-alpha.3) (2025-07-17)
 
 
