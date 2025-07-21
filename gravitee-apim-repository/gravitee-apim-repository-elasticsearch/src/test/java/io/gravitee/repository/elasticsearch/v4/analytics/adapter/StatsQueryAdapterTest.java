@@ -61,10 +61,10 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldAdaptResponseCorrectly() {
-            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 2L)));
+            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 3601L)));
 
             Aggregation agg = new Aggregation();
-            agg.setCount(10f);
+            agg.setCount(3600f);
             agg.setSum(100f);
             agg.setAvg(10f);
             agg.setMin(1f);
@@ -80,11 +80,14 @@ class StatsQueryAdapterTest {
             assertTrue(result.isPresent());
             StatsAggregate stats = result.get();
             assertEquals(FIELD, stats.field());
-            assertEquals(10L, stats.count()); // count is long
+            assertEquals(3600L, stats.count());
             assertEquals(100f, stats.sum());
             assertEquals(10f, stats.avg());
             assertEquals(1f, stats.min());
             assertEquals(20f, stats.max());
+            assertEquals(1200f, stats.rps());
+            assertEquals(72000f, stats.rpm());
+            assertEquals(4320000f, stats.rph());
         }
 
         @Test

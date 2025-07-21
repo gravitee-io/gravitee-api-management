@@ -109,10 +109,5 @@ public interface ApiAnalyticsMapper {
         return analytics;
     }
 
-    @Mapping(target = "avg", source = "avg")
-    @Mapping(target = "min", source = "min")
-    @Mapping(target = "max", source = "max")
-    @Mapping(target = "sum", source = "sum")
-    @Mapping(target = "count", source = "count")
     io.gravitee.rest.api.management.v2.rest.model.StatsAnalytics map(StatsAnalytics statsAnalytics);
 }

@@ -359,7 +359,10 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     statsAggregate.min(),
                     statsAggregate.max(),
                     statsAggregate.sum(),
-                    statsAggregate.count()
+                    statsAggregate.count(),
+                    statsAggregate.rps(),
+                    statsAggregate.rpm(),
+                    statsAggregate.rph()
                 )
             );
     }

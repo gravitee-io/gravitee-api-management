@@ -641,7 +641,8 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             @Test
             void should_return_stats_analytics_response() {
                 apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-                fakeAnalyticsQueryService.statsAnalytics = new io.gravitee.apim.core.analytics.model.StatsAnalytics(1f, 2f, 3f, 4f, 5);
+                fakeAnalyticsQueryService.statsAnalytics =
+                    new io.gravitee.apim.core.analytics.model.StatsAnalytics(1f, 2f, 3f, 4f, 5, 6f, 7f, 8f);
 
                 var response = rootTarget()
                     .queryParam("type", "STATS")
@@ -663,6 +664,9 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         assertThat(stats.getMax()).isEqualTo(3f);
                         assertThat(stats.getSum()).isEqualTo(4f);
                         assertThat(stats.getCount()).isEqualTo(5);
+                        assertThat(stats.getRps()).isEqualTo(6f);
+                        assertThat(stats.getRpm()).isEqualTo(7f);
+                        assertThat(stats.getRph()).isEqualTo(8f);
                     });
             }
 

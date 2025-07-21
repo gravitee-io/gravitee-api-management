@@ -391,7 +391,17 @@ class AnalyticsQueryServiceImplTest {
 
         @Test
         void should_map_stats_aggregate_to_stats_analytics() {
-            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate("field", 10, 100.0f, 10.0f, 1.0f, 20.0f);
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate(
+                "field",
+                10,
+                100.0f,
+                10.0f,
+                1.0f,
+                20.0f,
+                2.0f,
+                3.0f,
+                4.0f
+            );
             when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
             var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now());
@@ -404,6 +414,9 @@ class AnalyticsQueryServiceImplTest {
                     assertThat(statsAnalytics.avg()).isEqualTo(10.0f);
                     assertThat(statsAnalytics.min()).isEqualTo(1.0f);
                     assertThat(statsAnalytics.max()).isEqualTo(20.0f);
+                    assertThat(statsAnalytics.rps()).isEqualTo(2.0f);
+                    assertThat(statsAnalytics.rpm()).isEqualTo(3.0f);
+                    assertThat(statsAnalytics.rph()).isEqualTo(4.0f);
                 });
         }
     }
