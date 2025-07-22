@@ -1,3 +1,10 @@
+# [6.2.0-alpha.5](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.4...6.2.0-alpha.5) (2025-07-22)
+
+
+### Features
+
+* update index pattern in event metrics templates ([3d6e6e0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/3d6e6e00e315a69ce4b443660846894ddef562b8))
+
 # [6.2.0-alpha.4](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.3...6.2.0-alpha.4) (2025-07-21)
 
 
