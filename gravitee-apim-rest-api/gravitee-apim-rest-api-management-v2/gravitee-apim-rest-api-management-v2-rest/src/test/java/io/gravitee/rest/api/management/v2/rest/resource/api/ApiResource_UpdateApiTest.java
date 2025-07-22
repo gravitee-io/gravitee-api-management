@@ -21,6 +21,8 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
@@ -255,6 +257,37 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
             .extracting(Api::getApiFederated)
             .extracting(ApiFederated::getName, ApiFederated::getDescription, ApiFederated::getApiVersion, ApiFederated::getLifecycleState)
             .containsExactly(updatedName, updatedDescription, updatedVersion, updatedLifecycle);
+    }
+
+    @Test
+    public void should_add_label_and_update_api() {
+        String labelToAdd = "new-label";
+        primaryOwnerInit();
+        io.gravitee.rest.api.model.PrimaryOwnerEntity expectedPrimaryOwner = io.gravitee.rest.api.model.PrimaryOwnerEntity
+            .builder()
+            .id(USER_NAME)
+            .type(String.valueOf(Membership.Type.USER))
+            .displayName("John Doe")
+            .build();
+        ApiEntity existingApi = ApiFixtures.aModelApiV4().toBuilder().id(API).labels(List.of()).primaryOwner(expectedPrimaryOwner).build();
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4().toBuilder().labels(List.of(labelToAdd)).build();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(existingApi);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(existingApi))).thenReturn(true);
+        when(apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME)))
+            .thenAnswer(invocation -> {
+                UpdateApiEntity updateEntity = invocation.getArgument(2);
+                return existingApi.toBuilder().labels(updateEntity.getLabels()).primaryOwner(expectedPrimaryOwner).build();
+            });
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(OK_200, response.getStatus());
+
+        final ApiV4 apiV4 = response.readEntity(ApiV4.class);
+        assertEquals(API, apiV4.getId());
+        assertTrue(apiV4.getLabels().contains(labelToAdd));
+        assertNotNull(apiV4.getPrimaryOwner());
+        assertEquals("John Doe", apiV4.getPrimaryOwner().getDisplayName());
     }
 
     void primaryOwnerInit() {
