@@ -388,9 +388,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 MembershipReferenceType.API,
                 apiId
             );
+            PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(
+                executionContext,
+                userId,
+                PrimaryOwnerEntity
+                    .builder()
+                    .type(primaryOwnerMembership.getMemberType().name())
+                    .id(primaryOwnerMembership.getMemberId())
+                    .build()
+            );
 
             Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-            final ApiEntity existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwnerMembership, false);
+            final ApiEntity existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, false);
 
             apiValidationService.validateAndSanitizeUpdateApi(
                 executionContext,
