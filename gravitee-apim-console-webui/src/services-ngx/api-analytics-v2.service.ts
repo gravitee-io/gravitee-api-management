@@ -27,6 +27,7 @@ import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/ana
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
 import { HistogramAnalyticsResponse } from '../entities/management-api-v2/analytics/analyticsHistogram';
+import { GroupByAnalyticsResponse } from '../entities/management-api-v2/analytics/analyticsGroupBy';
 
 @Injectable({
   providedIn: 'root',
@@ -100,5 +101,10 @@ export class ApiAnalyticsV2Service {
   getHistogramAnalytics(apiId: string, aggregations: string, { from, to, interval }: TimeRangeParams) {
     const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=HISTOGRAM&from=${from}&to=${to}&interval=${interval}&aggregations=${aggregations}`;
     return this.http.get<HistogramAnalyticsResponse>(url);
+  }
+
+  getGroupByAnalytics(apiId: string, ranges: string, { from, to, interval }: TimeRangeParams) {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=GROUP_BY&field=status&ranges=${ranges}&interval=${interval}&from=${from}&to=${to}`;
+    return this.http.get<GroupByAnalyticsResponse>(url);
   }
 }

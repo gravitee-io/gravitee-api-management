@@ -15,20 +15,18 @@
     limitations under the License.
 
 -->
+
 <mat-card class="card">
   <mat-card-header>
     <mat-card-title class="card__title"
-      >{{ config().title }} <mat-icon [matTooltip]="config().tooltip" matTooltipPosition="after" svgIcon="gio:info"></mat-icon
-    ></mat-card-title>
+      >{{ config().title }} <mat-icon [matTooltip]="config().tooltip" matTooltipPosition="after" svgIcon="gio:info"
+    /></mat-card-title>
   </mat-card-header>
-
   <div class="card__line"></div>
 
-  @if (isLoading) {
-    <div class="card__loader">
-      <gio-loader></gio-loader>
-    </div>
+  @if (config().type === 'pie') {
+    <pie-chart-widget [config]="config()" />
   } @else {
-    <gio-chart-line [data]="chartInput" [options]="chartOptions"></gio-chart-line>
+    <line-chart-widget [config]="config()" />
   }
 </mat-card>

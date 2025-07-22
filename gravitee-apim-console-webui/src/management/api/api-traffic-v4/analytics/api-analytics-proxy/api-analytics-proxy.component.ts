@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Component } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-import { ChartWidgetComponent, ChartWidgetConfig } from '../components/chart-widget/chart-widget.component';
 import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
 import { AggregationFields, AggregationTypes } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import { ChartWidgetConfig } from '../../../../../entities/management-api-v2/analytics/analytics';
+import { ChartWidgetComponent } from '../components/chart-widget/chart-widget.component';
 
 @Component({
   selector: 'api-analytics-proxy',
@@ -32,6 +34,14 @@ import { AggregationFields, AggregationTypes } from '../../../../../entities/man
 export class ApiAnalyticsProxyComponent {
   public chartWidgetConfigs: ChartWidgetConfig[] = [
     {
+      type: 'pie',
+      apiId: this.activatedRoute.snapshot.params.apiId,
+      title: 'HTTP Status Repartition',
+      tooltip: 'Displays the distribution of HTTP status codes returned by the API',
+      shouldSortBuckets: true,
+    },
+    {
+      type: 'line',
       apiId: this.activatedRoute.snapshot.params.apiId,
       aggregations: [
         {
@@ -44,6 +54,7 @@ export class ApiAnalyticsProxyComponent {
       shouldSortBuckets: true,
     },
     {
+      type: 'line',
       apiId: this.activatedRoute.snapshot.params.apiId,
       aggregations: [
         {

@@ -15,12 +15,11 @@
     limitations under the License.
 
 -->
-<div class="api-analytics">
-  <api-analytics-filters-bar />
 
-  <div class="chart-widgets">
-    @for (widget of chartWidgetConfigs; track widget.title) {
-      <chart-widget [config]="widget" />
-    }
+@if (isLoading) {
+  <gio-loader />
+} @else {
+  <div class="chart">
+    <gio-chart-pie [input]="chartInput" [showLegend]="true" height="35%" />
   </div>
-</div>
+}
