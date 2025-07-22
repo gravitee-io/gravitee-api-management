@@ -235,20 +235,6 @@ public class ApiMapper {
     public ApiEntity toEntity(
         final ExecutionContext executionContext,
         final Api api,
-        final MembershipEntity primaryOwnerMembership,
-        final boolean readDatabaseFlows
-    ) {
-        PrimaryOwnerEntity primaryOwner = PrimaryOwnerEntity
-            .builder()
-            .type(primaryOwnerMembership.getMemberType().name())
-            .id(primaryOwnerMembership.getMemberId())
-            .build();
-        return toEntity(executionContext, api, primaryOwner, readDatabaseFlows);
-    }
-
-    public ApiEntity toEntity(
-        final ExecutionContext executionContext,
-        final Api api,
         final PrimaryOwnerEntity primaryOwner,
         final boolean readDatabaseFlows
     ) {
