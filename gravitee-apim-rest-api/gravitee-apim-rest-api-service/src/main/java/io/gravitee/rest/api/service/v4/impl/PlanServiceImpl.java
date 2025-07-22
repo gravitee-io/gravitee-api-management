@@ -351,7 +351,11 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 // There is no need for a validation when authentication is KEY_LESS, force to AUTO
                 newPlan.setValidation(Plan.PlanValidationType.AUTO);
             } else {
-                newPlan.setValidation(Plan.PlanValidationType.valueOf(updatePlan.getValidation().name()));
+                if (updatePlan.getValidation() != null) {
+                    newPlan.setValidation(Plan.PlanValidationType.valueOf(updatePlan.getValidation().name()));
+                } else {
+                    newPlan.setValidation(Plan.PlanValidationType.valueOf(oldPlan.getValidation().name()));
+                }
             }
 
             newPlan.setCharacteristics(updatePlan.getCharacteristics());
