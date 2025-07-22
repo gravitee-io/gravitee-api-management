@@ -79,8 +79,13 @@ public class ApiTagServiceImpl implements ApiTagService {
     }
 
     private void removeTag(ExecutionContext executionContext, Api api, String tagId) throws TechnicalManagementException {
-        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
-            log.debug("skipping tag removal for FEDERATED API: {}", api.getId());
+        // Skip if API is federated or has origin Kubernetes
+        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED || Api.ORIGIN_KUBERNETES.equals(api.getOrigin())) {
+            log.debug(
+                "Skipping tag removal for API: {}, reason: {}",
+                api.getId(),
+                api.getDefinitionVersion() == DefinitionVersion.FEDERATED ? "FEDERATED" : "KUBERNETES-origin"
+            );
             return;
         }
         log.debug(
