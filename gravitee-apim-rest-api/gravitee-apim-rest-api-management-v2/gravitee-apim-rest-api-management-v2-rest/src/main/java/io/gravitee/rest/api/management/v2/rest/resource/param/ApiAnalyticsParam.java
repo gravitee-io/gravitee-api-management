@@ -58,6 +58,9 @@ public class ApiAnalyticsParam {
     @QueryParam("order")
     private String order;
 
+    @QueryParam("query")
+    private String query;
+
     public List<Range> getRanges() {
         if (ranges == null || ranges.isEmpty()) {
             return List.of();
@@ -140,7 +143,8 @@ public class ApiAnalyticsParam {
             param.getInterval(),
             param.getField(),
             groups,
-            order
+            order,
+            param.getQuery() // propagate query parameter
         );
     }
 

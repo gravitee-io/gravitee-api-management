@@ -366,13 +366,36 @@ class AnalyticsQueryServiceImplTest {
 
             when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
-            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, interval);
+            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, interval, null);
 
             var result = cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
 
             assertThat(result).isPresent();
             var analytics = result.get();
             assertThat(analytics.getValues()).containsExactlyInAnyOrderEntriesOf(values);
+        }
+
+        @Test
+        void should_pass_query_parameter_to_repository() {
+            var from = Instant.parse("2024-01-01T00:00:00Z");
+            var to = Instant.parse("2024-01-02T00:00:00Z");
+            var interval = Duration.ofHours(1);
+            var apiId = "api-1";
+            var field = "status";
+            var queryString = "status:200 AND method:GET";
+
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate("aggName", field, Map.of("200", 10L));
+            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
+
+            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, interval, queryString);
+
+            cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
+
+            ArgumentCaptor<io.gravitee.repository.log.v4.model.analytics.GroupByQuery> repoQueryCaptor = ArgumentCaptor.forClass(
+                io.gravitee.repository.log.v4.model.analytics.GroupByQuery.class
+            );
+            verify(analyticsRepository).searchGroupBy(any(QueryContext.class), repoQueryCaptor.capture());
+            assertThat(repoQueryCaptor.getValue().query()).isEqualTo(queryString);
         }
     }
 

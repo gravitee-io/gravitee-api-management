@@ -723,7 +723,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, null);
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, null, null);
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -748,6 +748,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 null,
                 from,
                 to,
+                null,
                 null
             );
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
@@ -758,6 +759,25 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(aggregate.name()).isEqualTo("by_response-time_range");
                     assertThat(aggregate.field()).isEqualTo("response-time");
                     assertThat(aggregate.values()).containsKeys("0.0-100.0", "100.0-200.0");
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_terms_with_query_parameter() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var queryString = "status:404 AND http-method:8";
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, null, queryString);
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsExactlyEntriesOf(Map.of("http-get", 1L));
                 });
         }
     }

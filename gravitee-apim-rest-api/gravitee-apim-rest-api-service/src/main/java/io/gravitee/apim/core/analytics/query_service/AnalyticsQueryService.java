@@ -85,7 +85,16 @@ public interface AnalyticsQueryService {
 
     record HistogramQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
 
-    record GroupByQuery(String apiId, Instant from, Instant to, String field, List<Group> groups, Order order, Duration interval) {
+    record GroupByQuery(
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        List<Group> groups,
+        Order order,
+        Duration interval,
+        String query
+    ) {
         public record Group(long from, long to) {}
         public record Order(String field, boolean order, String type) {
             public static Order valueOf(String param) {
