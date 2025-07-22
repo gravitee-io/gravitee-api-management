@@ -1087,6 +1087,71 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             mockExcludedGroups.add(Group.builder().id("excludedGroup2").environmentId("environmentId").name("Group 2").build());
             return mockExcludedGroups;
         }
+
+        @Test
+        public void should_return_bad_request_if_validation_field_missing() {
+            planCrudServiceInMemory.initWith(
+                List.of(
+                    fixtures.core.model.PlanFixtures
+                        .aPlanHttpV4()
+                        .toBuilder()
+                        .apiId(API)
+                        .id(PLAN)
+                        .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
+                        .build()
+                )
+            );
+            apiCrudServiceInMemory.initWith(List.of(fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().id(API).build()));
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN))
+                .thenReturn(PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build());
+
+            when(groupService.findAllByEnvironment(anyString())).thenReturn(mockExcludedGroups());
+
+            final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanV4();
+            updatePlanV4.setValidation(null);
+
+            final Response response = target.request().put(Entity.json(updatePlanV4));
+
+            // Then: Expect 400 Bad Request
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+        }
+
+        @Test
+        public void should_update_successfully_if_validation_field_is_present() {
+            planCrudServiceInMemory.initWith(
+                List.of(
+                    fixtures.core.model.PlanFixtures
+                        .aPlanHttpV4()
+                        .toBuilder()
+                        .apiId(API)
+                        .id(PLAN)
+                        .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
+                        .build()
+                )
+            );
+            apiCrudServiceInMemory.initWith(List.of(fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().id(API).build()));
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN))
+                .thenReturn(PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build());
+            when(groupService.findAllByEnvironment(anyString())).thenReturn(mockExcludedGroups());
+            when(updatePlanDomainService.update(any(), any(), any(), any(), any()))
+                .thenAnswer(invocation -> {
+                    io.gravitee.apim.core.plan.model.Plan updated = invocation.getArgument(0);
+                    updated.setCreatedAt(null);
+                    updated.setUpdatedAt(null);
+                    return updated;
+                });
+            final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanV4();
+            final Response response = target.request().put(Entity.json(updatePlanV4));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(PlanV4.class)
+                .satisfies(plan -> {
+                    assertThat(plan.getId()).isEqualTo(PLAN);
+                    assertThat(plan.getApiId()).isEqualTo(API);
+                    assertThat(plan.getValidation()).isEqualTo(updatePlanV4.getValidation());
+                });
+        }
     }
 
     @Nested
