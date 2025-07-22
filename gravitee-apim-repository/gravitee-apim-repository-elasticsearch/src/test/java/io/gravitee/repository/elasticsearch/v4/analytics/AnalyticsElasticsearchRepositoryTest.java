@@ -719,7 +719,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_group_by_aggregate_for_terms() {
-            var query = new GroupByQuery(API_ID, null, "entrypoint-id", null, null, null, null, null);
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, null);
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -733,14 +737,17 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_group_by_aggregate_for_range() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
             var query = new GroupByQuery(
                 API_ID,
-                null,
                 "response-time",
                 List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200)),
                 null,
-                null,
-                null,
+                from,
+                to,
                 null
             );
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);

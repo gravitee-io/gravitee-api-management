@@ -19,20 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
-public record GroupByQuery(
-    String apiId,
-    TimeRange timeRange,
-    String field,
-    List<Group> groups,
-    Order order,
-    Instant from,
-    Instant to,
-    Duration interval
-) {
-    public record TimeRange(Range range) {
-        public record Range(long from, long to) {}
-    }
-
+public record GroupByQuery(String apiId, String field, List<Group> groups, Order order, Instant from, Instant to, Duration interval) {
     public record Group(long from, long to) {}
     public record Order(String field, boolean order, String type) {}
 }
