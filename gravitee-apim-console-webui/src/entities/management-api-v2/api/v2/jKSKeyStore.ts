@@ -29,4 +29,12 @@ export interface JKSKeyStore extends BaseKeyStore {
    * The password of the key store
    */
   password?: string;
+  /**
+   * The alias of the certificate
+   */
+  alias?: string;
+  /**
+   * The password of the key
+   */
+  keyPassword?: string;
 }

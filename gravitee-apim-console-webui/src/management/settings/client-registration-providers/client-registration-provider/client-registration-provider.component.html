@@ -45,7 +45,7 @@
   <mat-card class="client-registration-provider__card">
     <mat-card-content class="client-registration-provider__card__content">
       <h2>Configuration</h2>
-      <strong>OpenID Connect - Dynamic Client Registration</strong>
+      <strong>OpenID Connect - Dynamic Client Registrations</strong>
 
       <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
         <mat-label>OpenID Connect Discovery Endpoint</mat-label>
@@ -91,6 +91,185 @@
         </mat-form-field>
       </ng-container>
 
+      <mat-card appearance="outlined" class="client-registration-provider__card">
+        <mat-card-content class="client-registration-provider__card__content">
+          <strong>Trust Store Configuration</strong>
+
+          <div formGroupName="trust_store">
+            <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
+              <mat-label>Trust Store Type</mat-label>
+              <mat-select formControlName="type">
+                <mat-option *ngFor="let type of trustStoreTypes" [value]="type.value">
+                  {{ type.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-radio-group
+              *ngIf="isTrustStoreType('JKS') || isTrustStoreType('PKCS12')"
+              formControlName="pathOrContent"
+              aria-label="Select input type"
+            >
+              <mat-radio-button value="PATH">Path</mat-radio-button>
+              <mat-radio-button value="CONTENT">Content (Base64)</mat-radio-button>
+            </mat-radio-group>
+
+            <!-- JKS Configuration -->
+            <ng-container *ngIf="isTrustStoreType('JKS')">
+              <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
+                <mat-label>JKS Password</mat-label>
+                <input type="password" matInput formControlName="jksPassword" autocomplete="off" required />
+                <mat-error *ngIf="trustStoreForm.get('jksPassword')?.hasError('required')"> Password is required </mat-error>
+              </mat-form-field>
+              <div class="pathOrContent">
+                <mat-form-field
+                  *ngIf="trustStoreForm.get('pathOrContent').value === 'PATH'"
+                  appearance="outline"
+                  class="client-registration-provider__card__content__form-field"
+                >
+                  <mat-label>JKS Path</mat-label>
+                  <input matInput formControlName="jksPath" autocomplete="off" />
+                  <mat-hint>Path to the trust store file</mat-hint>
+                </mat-form-field>
+                <mat-form-field
+                  *ngIf="trustStoreForm.get('pathOrContent').value === 'CONTENT'"
+                  appearance="outline"
+                  class="client-registration-provider__card__content__form-field"
+                >
+                  <mat-label>JKS Content (Base64)</mat-label>
+                  <textarea matInput formControlName="jksContent" rows="2"></textarea>
+                  <mat-hint>Binary content as Base64</mat-hint>
+                </mat-form-field>
+              </div>
+            </ng-container>
+
+            <!-- PKCS12 Configuration -->
+            <ng-container *ngIf="isTrustStoreType('PKCS12')">
+              <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
+                <mat-label>PKCS12 Password</mat-label>
+                <input type="password" matInput formControlName="pkcs12Password" autocomplete="off" required />
+                <mat-error *ngIf="trustStoreForm.get('pkcs12Password')?.hasError('required')"> Password is required </mat-error>
+              </mat-form-field>
+
+              <div class="pathOrContent">
+                <mat-form-field
+                  *ngIf="trustStoreForm.get('pathOrContent').value === 'PATH'"
+                  appearance="outline"
+                  class="client-registration-provider__card__content__form-field"
+                >
+                  <mat-label>PKCS12 Path</mat-label>
+                  <input matInput formControlName="pkcs12Path" autocomplete="off" />
+                  <mat-hint>Path to the trust store file</mat-hint>
+                </mat-form-field>
+                <mat-form-field
+                  *ngIf="trustStoreForm.get('pathOrContent').value === 'CONTENT'"
+                  appearance="outline"
+                  class="client-registration-provider__card__content__form-field"
+                >
+                  <mat-label>PKCS12 Content (Base64)</mat-label>
+                  <textarea matInput formControlName="pkcs12Content" rows="2"></textarea>
+                  <mat-hint>Binary content as Base64</mat-hint>
+                </mat-form-field>
+              </div>
+            </ng-container>
+          </div>
+          <strong>Key Store Configuration</strong>
+          <div formGroupName="key_store">
+            <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
+              <mat-label>Key Store Type</mat-label>
+              <mat-select formControlName="type">
+                <mat-option *ngFor="let type of keyStoreTypes" [value]="type.value">
+                  {{ type.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-radio-group
+              *ngIf="isKeyStoreType('JKS') || isKeyStoreType('PKCS12')"
+              formControlName="pathOrContent"
+              aria-label="Select input type"
+            >
+              <mat-radio-button value="PATH">Path</mat-radio-button>
+              <mat-radio-button value="CONTENT">Content (Base64)</mat-radio-button>
+            </mat-radio-group>
+
+            <!-- JKS Key Store -->
+            <ng-container *ngIf="isKeyStoreType('JKS')">
+              <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
+                <mat-label>JKS Password</mat-label>
+                <input type="password" matInput formControlName="jksPassword" autocomplete="off" required />
+                <mat-error *ngIf="keyStoreForm.get('jksPassword').hasError('required')"> Password is required </mat-error>
+              </mat-form-field>
+
+              <div class="pathOrContent">
+                <mat-form-field
+                  *ngIf="keyStoreForm.get('pathOrContent').value === 'PATH'"
+                  appearance="outline"
+                  class="client-registration-provider__card__content__form-field"
+                >
+                  <mat-label>JKS Path</mat-label>
+                  <input matInput formControlName="jksPath" autocomplete="off" />
+                  <mat-hint>Path to the key store file(.jks)</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field
+                  *ngIf="keyStoreForm.get('pathOrContent').value === 'CONTENT'"
+                  appearance="outline"
+                  class="client-registration-provider__card__content__form-field"
+                >
+                  <mat-label>JKS Content (Base64)</mat-label>
+                  <textarea matInput formControlName="jksContent" rows="2"></textarea>
+                  <mat-hint>Binary JKS content as Base64</mat-hint>
+                </mat-form-field>
+              </div>
+            </ng-container>
+
+            <!-- PKCS12 Key Store -->
+            <ng-container *ngIf="isKeyStoreType('PKCS12')">
+              <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
+                <mat-label>PKCS12 Password</mat-label>
+                <input type="password" matInput formControlName="pkcs12Password" autocomplete="off" required />
+                <mat-error *ngIf="keyStoreForm.get('pkcs12Password').hasError('required')"> Password is required </mat-error>
+              </mat-form-field>
+
+              <div class="pathOrContent">
+                <mat-form-field
+                  *ngIf="keyStoreForm.get('pathOrContent').value === 'PATH'"
+                  appearance="outline"
+                  class="client-registration-provider__card__content__form-field"
+                >
+                  <mat-label>PKCS12 Path</mat-label>
+                  <input matInput formControlName="pkcs12Path" autocomplete="off" />
+                  <mat-hint>Path to the key store file(.p12)</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field
+                  *ngIf="keyStoreForm.get('pathOrContent').value === 'CONTENT'"
+                  appearance="outline"
+                  class="client-registration-provider__card__content__form-field"
+                >
+                  <mat-label>PKCS12 Content (Base64)</mat-label>
+                  <textarea matInput formControlName="pkcs12Content" rows="2"></textarea>
+                  <mat-hint>Binary PKCS12 content as Base64</mat-hint>
+                </mat-form-field>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="isKeyStoreType('JKS') || isKeyStoreType('PKCS12')">
+              <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
+                <mat-label>Alias</mat-label>
+                <input matInput formControlName="alias" type="text" />
+                <mat-hint>Alias of the key to use</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
+                <mat-label>Key Password</mat-label>
+                <input matInput formControlName="keyPassword" type="password" autocomplete="off" />
+                <mat-hint>Password protecting the individual key</mat-hint>
+              </mat-form-field>
+            </ng-container>
+          </div>
+        </mat-card-content>
+      </mat-card>
       <h3>Renew client_secret (outside DCR specification)</h3>
 
       <gio-form-slide-toggle>
