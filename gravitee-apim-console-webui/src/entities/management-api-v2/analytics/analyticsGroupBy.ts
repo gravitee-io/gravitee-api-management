@@ -13,16 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-.gio-chart-line {
-  padding: 16px;
-
-  &__chart {
-    display: block;
-  }
-
-  &__no-data {
-    display: flex;
-    justify-content: center;
-  }
+export interface GroupByAnalyticsResponse {
+  analyticsType: 'GROUP_BY';
+  values: Record<string, number>;
 }

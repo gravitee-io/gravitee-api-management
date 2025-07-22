@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-.gio-chart-line {
-  padding: 16px;
+import { GroupByAnalyticsResponse } from './analyticsGroupBy';
 
-  &__chart {
-    display: block;
-  }
+export const fakeGroupByAnalyticsResponse = (modifier?: Partial<GroupByAnalyticsResponse>): GroupByAnalyticsResponse => {
+  const base: GroupByAnalyticsResponse = {
+    analyticsType: 'GROUP_BY',
 
-  &__no-data {
-    display: flex;
-    justify-content: center;
-  }
-}
+    values: {
+      '100-199': 111,
+      '200-299': 33333,
+    },
+  };
+
+  return {
+    ...base,
+    ...modifier,
+  };
+};

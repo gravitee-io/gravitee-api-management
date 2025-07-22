@@ -13,98 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, input, OnInit } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
+
+import { Component, input } from '@angular/core';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatTooltip } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
-import { switchMap } from 'rxjs/operators';
+import { MatTooltip } from '@angular/material/tooltip';
 
-import { GioChartLineModule } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.module';
-import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
-import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
-import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import {
-  AnalyticsHistogramAggregation,
-  Bucket,
-  HistogramAnalyticsResponse,
-} from '../../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import { PieChartWidgetComponent } from './components/pie-chart-widget/pie-chart-widget.component';
+import { LineChartWidgetComponent } from './components/line-chart-widget/line-chart-widget.component';
 
-export interface ChartWidgetConfig {
-  apiId: string;
-  aggregations: AnalyticsHistogramAggregation[];
-  title: string;
-  tooltip: string;
-  shouldSortBuckets?: boolean;
-}
-
-const namesFormatted = {
-  'avg_gateway-response-time-ms': 'Gateway Response Time',
-  'avg_endpoint-response-time-ms': 'Endpoint Response Time',
-};
+import { ChartWidgetConfig } from '../../../../../../entities/management-api-v2/analytics/analytics';
+import { GioChartPieModule } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 
 @Component({
   selector: 'chart-widget',
-  imports: [MatCardModule, GioChartLineModule, GioLoaderModule, MatTooltip, MatIcon],
+  imports: [
+    PieChartWidgetComponent,
+    LineChartWidgetComponent,
+    GioChartPieModule,
+    GioLoaderModule,
+    MatCardModule,
+    MatIcon,
+    MatTooltip,
+    MatIcon,
+  ],
   templateUrl: './chart-widget.component.html',
   styleUrl: './chart-widget.component.scss',
 })
-export class ChartWidgetComponent implements OnInit {
-  public chartInput: GioChartLineData[];
-  public isLoading = true;
-  public chartOptions: GioChartLineOptions;
+export class ChartWidgetComponent {
   public config = input<ChartWidgetConfig>();
-
-  constructor(
-    private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
-    private readonly destroyRef: DestroyRef,
-    private readonly snackBarService: SnackBarService,
-  ) {}
-
-  private buildAggregationsParams(aggregations: AnalyticsHistogramAggregation[]): string {
-    return aggregations.reduce((acc, aggregation, index) => {
-      return acc + `${aggregation.type}:${aggregation.field}${index !== aggregations.length - 1 ? ',' : ''}`;
-    }, '');
-  }
-
-  private mapResponseToChartData(res: HistogramAnalyticsResponse): GioChartLineData[] {
-    return res.values
-      .reduce((acc: Bucket[], value): Bucket[] => {
-        return [...acc, ...value.buckets];
-      }, [])
-      .map(({ name, data }) => ({ name: namesFormatted[name] || name, values: data }));
-  }
-
-  ngOnInit() {
-    this.apiAnalyticsV2Service
-      .timeRangeFilter()
-      .pipe(
-        switchMap((timeRangeParams) => {
-          this.isLoading = true;
-          const aggregationsParams = this.buildAggregationsParams(this.config().aggregations);
-          return this.apiAnalyticsV2Service.getHistogramAnalytics(this.config().apiId, aggregationsParams, timeRangeParams);
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (res) => {
-          this.isLoading = false;
-          this.chartInput = this.mapResponseToChartData(res);
-
-          if (this.config().shouldSortBuckets) {
-            this.chartInput = this.chartInput.sort((a, b) => +a.name - +b.name);
-          }
-
-          this.chartOptions = {
-            pointStart: res.timestamp.from,
-            pointInterval: res.timestamp.interval,
-          };
-        },
-        error: ({ error }) => {
-          this.isLoading = false;
-          this.snackBarService.error(error.message);
-        },
-      });
-  }
 }

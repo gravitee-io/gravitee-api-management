@@ -39,6 +39,12 @@ export class GioChartPieComponent implements OnInit {
   @Input()
   public totalInputDescription = 'Total';
 
+  @Input()
+  public showLegend = false;
+
+  @Input()
+  public height = '100%';
+
   Highcharts: typeof Highcharts = Highcharts;
   chartOptions: Highcharts.Options;
 
@@ -58,14 +64,13 @@ export class GioChartPieComponent implements OnInit {
       },
       credits: { enabled: false },
       chart: {
-        height: '100%',
+        height: this.height,
         backgroundColor: 'transparent',
         spacing: [0, 0, 0, 0],
         // Add bottom left total
         events: {
           load: function () {
             const total = this.series[0].data[0].total;
-
             this.setSubtitle({
               text: totalInputDescription + ': ' + total,
               align: 'left',
@@ -82,6 +87,7 @@ export class GioChartPieComponent implements OnInit {
       },
       plotOptions: {
         pie: {
+          showInLegend: this.showLegend,
           dataLabels: {
             enabled: true,
             distance: 25,

@@ -31,6 +31,8 @@ import {
   AggregationTypes,
   HistogramAnalyticsResponse,
 } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import { fakeGroupByAnalyticsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
+import { GroupByAnalyticsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -72,6 +74,7 @@ describe('ApiAnalyticsProxyComponent', () => {
     beforeEach(async () => {
       await initComponent();
       expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
+      expectGetGroupByAnalytics();
     });
 
     it('should serialize SINGLE aggregation into request params', async () => {
@@ -161,6 +164,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       const filtersBar = await componentHarness.getFiltersBarHarness();
       await filtersBar.refresh();
       expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
+      expectGetGroupByAnalytics();
     });
   });
 
@@ -174,6 +178,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
         await initComponent(testParams.input);
         expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
+        expectGetGroupByAnalytics();
 
         const filtersBar = await componentHarness.getFiltersBarHarness();
 
@@ -187,6 +192,18 @@ describe('ApiAnalyticsProxyComponent', () => {
 
   function expectGetHistogramAnalytics(res: HistogramAnalyticsResponse = fakeAnalyticsHistogram(), numberOfRequests: number = 1) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=HISTOGRAM`;
+    const requests = httpTestingController.match((req) => {
+      return req.url.startsWith(url);
+    });
+
+    expect(requests.length).toBe(numberOfRequests);
+    requests.forEach((request) => {
+      request.flush(res);
+    });
+  }
+
+  function expectGetGroupByAnalytics(res: GroupByAnalyticsResponse = fakeGroupByAnalyticsResponse(), numberOfRequests: number = 1) {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=GROUP_BY&field=status`;
     const requests = httpTestingController.match((req) => {
       return req.url.startsWith(url);
     });

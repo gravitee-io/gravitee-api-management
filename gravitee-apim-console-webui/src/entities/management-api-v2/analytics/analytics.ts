@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AnalyticsHistogramAggregation } from './analyticsHistogram';
 
-.gio-chart-line {
-  padding: 16px;
+export type WidgetType = 'line' | 'pie';
 
-  &__chart {
-    display: block;
-  }
-
-  &__no-data {
-    display: flex;
-    justify-content: center;
-  }
+export interface ChartWidgetConfig {
+  type?: WidgetType;
+  apiId: string;
+  aggregations?: AnalyticsHistogramAggregation[];
+  title: string;
+  tooltip: string;
+  shouldSortBuckets?: boolean;
 }

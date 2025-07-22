@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-.gio-chart-line {
+:host {
+  display: block;
+}
+
+.chart {
   padding: 16px;
-
-  &__chart {
-    display: block;
-  }
-
-  &__no-data {
-    display: flex;
-    justify-content: center;
-  }
 }
