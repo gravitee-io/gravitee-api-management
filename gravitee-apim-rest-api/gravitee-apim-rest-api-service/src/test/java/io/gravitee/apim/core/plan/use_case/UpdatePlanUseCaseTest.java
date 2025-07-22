@@ -519,4 +519,34 @@ class UpdatePlanUseCaseTest {
             .order(2)
             .build();
     }
+
+    @Test
+    void should_use_existing_validation_when_null_is_passed() {
+        var existingPlan = PlanFixtures
+            .aPlanHttpV4()
+            .toBuilder()
+            .id(PLAN_ID)
+            .apiId(API_ID)
+            .validation(Plan.PlanValidationType.AUTO)
+            .build();
+        planCrudService.initWith(List.of(existingPlan));
+
+        var updatePlan = planMinimal()
+            .toBuilder()
+            .validation(null) // <- null validation in update request
+            .build();
+
+        var input = new UpdatePlanUseCase.Input(
+            updatePlan,
+            _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
+            API_ID,
+            new AuditInfo("user-id", "user-name", AuditActor.builder().build())
+        );
+        var output = updatePlanUseCase.execute(input);
+        assertThat(output)
+            .isNotNull()
+            .extracting(UpdatePlanUseCase.Output::updated)
+            .extracting(PlanWithFlows::getValidation)
+            .isEqualTo(Plan.PlanValidationType.AUTO);
+    }
 }
