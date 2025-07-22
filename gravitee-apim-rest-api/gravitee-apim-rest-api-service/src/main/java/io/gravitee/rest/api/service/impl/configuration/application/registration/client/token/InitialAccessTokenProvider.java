@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.application.registration.client.token;
 
+import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
+import io.gravitee.rest.api.model.configuration.application.registration.TrustStoreEntity;
 import java.util.Map;
 
 /**
@@ -22,5 +24,5 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface InitialAccessTokenProvider {
-    String get(Map<String, String> attributes);
+    String get(Map<String, String> attributes, TrustStoreEntity trustStore, KeyStoreEntity keyStore);
 }
