@@ -19,9 +19,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
+import io.gravitee.rest.api.model.configuration.application.registration.TrustStoreEntity;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.DynamicClientRegistrationException;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.common.SecureHttpClientUtils;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.NameValuePair;
@@ -62,7 +69,7 @@ public class ClientCredentialsInitialAccessTokenProvider implements InitialAcces
     }
 
     @Override
-    public String get(Map<String, String> attributes) {
+    public String get(Map<String, String> attributes, TrustStoreEntity trustStore, KeyStoreEntity keyStore) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
         String tokenEndpoint = attributes.get("token_endpoint");
@@ -85,6 +92,8 @@ public class ClientCredentialsInitialAccessTokenProvider implements InitialAcces
         tokenRequest.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
         try {
             tokenRequest.setEntity(new UrlEncodedFormEntity(tokenRequestParams));
+
+            httpClient = SecureHttpClientUtils.createHttpClient(trustStore, keyStore);
 
             return httpClient.execute(
                 tokenRequest,

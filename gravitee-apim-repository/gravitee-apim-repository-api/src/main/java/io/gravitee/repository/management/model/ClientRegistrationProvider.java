@@ -79,6 +79,26 @@ public class ClientRegistrationProvider {
 
     private String softwareId;
 
+    private String trustStoreType;
+
+    private String trustStorePath;
+
+    private String trustStoreContent;
+
+    private String trustStorePassword;
+
+    private String keyStoreType;
+
+    private String keyStorePath;
+
+    private String keyStoreContent;
+
+    private String keyStorePassword;
+
+    private String keyStoreAlias;
+
+    private String keyPassword;
+
     /**
      * Client registration provider creation date
      */
@@ -215,6 +235,86 @@ public class ClientRegistrationProvider {
 
     public void setSoftwareId(String softwareId) {
         this.softwareId = softwareId;
+    }
+
+    public String getTrustStoreType() {
+        return trustStoreType;
+    }
+
+    public void setTrustStoreType(String trustStoreType) {
+        this.trustStoreType = trustStoreType;
+    }
+
+    public String getTrustStorePath() {
+        return trustStorePath;
+    }
+
+    public void setTrustStorePath(String trustStorePath) {
+        this.trustStorePath = trustStorePath;
+    }
+
+    public String getTrustStoreContent() {
+        return trustStoreContent;
+    }
+
+    public void setTrustStoreContent(String trustStoreContent) {
+        this.trustStoreContent = trustStoreContent;
+    }
+
+    public String getTrustStorePassword() {
+        return trustStorePassword;
+    }
+
+    public void setTrustStorePassword(String trustStorePassword) {
+        this.trustStorePassword = trustStorePassword;
+    }
+
+    public String getKeyStoreType() {
+        return keyStoreType;
+    }
+
+    public void setKeyStoreType(String keyStoreType) {
+        this.keyStoreType = keyStoreType;
+    }
+
+    public String getKeyStorePath() {
+        return keyStorePath;
+    }
+
+    public void setKeyStorePath(String keyStorePath) {
+        this.keyStorePath = keyStorePath;
+    }
+
+    public String getKeyStoreContent() {
+        return keyStoreContent;
+    }
+
+    public void setKeyStoreContent(String keyStoreContent) {
+        this.keyStoreContent = keyStoreContent;
+    }
+
+    public String getKeyStorePassword() {
+        return keyStorePassword;
+    }
+
+    public void setKeyStorePassword(String keyStorePassword) {
+        this.keyStorePassword = keyStorePassword;
+    }
+
+    public String getKeyStoreAlias() {
+        return keyStoreAlias;
+    }
+
+    public void setKeyStoreAlias(String keyStoreAlias) {
+        this.keyStoreAlias = keyStoreAlias;
+    }
+
+    public String getKeyPassword() {
+        return keyPassword;
+    }
+
+    public void setKeyPassword(String keyPassword) {
+        this.keyPassword = keyPassword;
     }
 
     @Override
