@@ -48,6 +48,9 @@ public class UpdatePlanUseCase {
         if (!planEntity.getApiId().equals(input.apiId)) {
             throw new PlanNotFoundException(input.planToUpdate.getId());
         }
+        if (input.planToUpdate.getValidation() == null) {
+            input.planToUpdate.setValidation(planEntity.getValidation());
+        }
 
         var updatedEntity = input.planToUpdate.applyTo(planEntity);
 
