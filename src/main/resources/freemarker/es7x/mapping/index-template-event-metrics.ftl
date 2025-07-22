@@ -1,6 +1,6 @@
 <#ftl output_format="JSON">
 {
-    "index_patterns": ["event-metrics*"],
+    "index_patterns": ["${indexName}*"],
     "data_stream": {},
     "settings": {
         "index.mode": "time_series",
