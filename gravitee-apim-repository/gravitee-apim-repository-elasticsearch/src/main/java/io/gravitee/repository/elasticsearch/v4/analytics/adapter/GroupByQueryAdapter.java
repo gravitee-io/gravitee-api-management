@@ -73,6 +73,13 @@ public class GroupByQueryAdapter {
         termNode.set("term", MAPPER.createObjectNode().put("api-id", query.apiId()));
         filterArray.add(termNode);
 
+        // Add query_string if query.query() is present
+        if (query.query() != null && !query.query().isEmpty()) {
+            ObjectNode queryStringNode = MAPPER.createObjectNode();
+            queryStringNode.set("query_string", MAPPER.createObjectNode().put("query", query.query()));
+            filterArray.add(queryStringNode);
+        }
+
         // Time range (from/to are never null)
         ObjectNode rangeNode = MAPPER.createObjectNode();
         ObjectNode tsRange = MAPPER.createObjectNode();

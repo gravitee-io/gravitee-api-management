@@ -53,7 +53,8 @@ public class SearchGroupByAnalyticsUseCase {
             input.field(),
             input.groups(),
             input.order(),
-            Duration.ofMillis(input.interval())
+            Duration.ofMillis(input.interval()),
+            input.query() // pass query parameter
         );
         var result = analyticsQueryService.searchGroupByAnalytics(executionContext, groupByQuery).orElse(null);
 
@@ -122,7 +123,8 @@ public class SearchGroupByAnalyticsUseCase {
         long interval,
         String field,
         List<AnalyticsQueryService.GroupByQuery.Group> groups,
-        AnalyticsQueryService.GroupByQuery.Order order
+        AnalyticsQueryService.GroupByQuery.Order order,
+        String query // new query parameter
     ) {}
 
     public record Output(GroupByAnalytics analytics, Map<String, Map<String, String>> metadata) {}

@@ -103,6 +103,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                     3600000L,
                     "api-id",
                     null,
+                    null,
                     null
                 )
             )
@@ -122,6 +123,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                     INSTANT_NOW.toEpochMilli(),
                     3600000L,
                     "api-id",
+                    null,
                     null,
                     null
                 )
@@ -143,6 +145,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                     3600000L,
                     "api-id",
                     null,
+                    null,
                     null
                 )
             )
@@ -161,6 +164,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                     INSTANT_NOW.toEpochMilli(),
                     3600000L,
                     "api-id",
+                    null,
                     null,
                     null
                 )
@@ -182,6 +186,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                     INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
                     3600000L,
                     "api-id",
+                    null,
                     null,
                     null
                 )
@@ -207,6 +212,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                 3600000L,
                 "api-id",
                 null,
+                null,
                 null
             )
         );
@@ -224,5 +230,31 @@ class SearchGroupByAnalyticsUseCaseTest {
             softly.assertThat(queryCaptor.getValue().to()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS));
             softly.assertThat(queryCaptor.getValue().field()).isEqualTo("api-id");
         });
+    }
+
+    @Test
+    void should_propagate_query_parameter_to_group_by_query() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
+        GraviteeContext.setCurrentEnvironment(ENV_ID);
+        String queryString = "status:200 AND method:GET";
+        analyticsQueryService.groupByAnalytics = new GroupByAnalytics();
+
+        useCase.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchGroupByAnalyticsUseCase.Input(
+                MY_API,
+                INSTANT_NOW.minus(2, ChronoUnit.DAYS).toEpochMilli(),
+                INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli(),
+                3600000L,
+                "api-id",
+                null,
+                null,
+                queryString
+            )
+        );
+
+        var queryCaptor = ArgumentCaptor.forClass(io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery.class);
+        verify(analyticsQueryService).searchGroupByAnalytics(any(), queryCaptor.capture());
+        assertThat(queryCaptor.getValue().query()).isEqualTo(queryString);
     }
 }
