@@ -26,6 +26,7 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
@@ -68,15 +69,29 @@ import org.springframework.stereotype.Service;
 public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
 
     private final AnalyticsRepository analyticsRepository;
+    public static final String ENTRYPOINT_ID_FIELD = "entrypoint-id";
 
     public AnalyticsQueryServiceImpl(@Lazy AnalyticsRepository analyticsRepository) {
         this.analyticsRepository = analyticsRepository;
     }
 
     @Override
-    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
+    public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, CountQuery countPrameters) {
+        String aggregationField = ENTRYPOINT_ID_FIELD;
+
+        if (countPrameters.aggregations() != null && !countPrameters.aggregations().isEmpty()) {
+            var agg = countPrameters.aggregations().get(0);
+            if (AggregationType.FIELD.name().equals(agg.getAggregationType().name())) {
+                aggregationField = agg.getField();
+            }
+        }
+
         return analyticsRepository
-            .searchRequestsCount(executionContext.getQueryContext(), new RequestsCountQuery(apiId, from, to))
+            .searchRequestsCount(
+                executionContext.getQueryContext(),
+                new RequestsCountQuery(countPrameters.apiId(), countPrameters.from(), countPrameters.to()),
+                aggregationField
+            )
             .map(countAggregate ->
                 RequestsCount.builder().total(countAggregate.getTotal()).countsByEntrypoint(countAggregate.getCountBy()).build()
             );

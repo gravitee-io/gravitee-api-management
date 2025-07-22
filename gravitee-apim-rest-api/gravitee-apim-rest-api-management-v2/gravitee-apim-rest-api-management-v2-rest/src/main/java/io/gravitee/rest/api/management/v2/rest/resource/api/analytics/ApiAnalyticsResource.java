@@ -17,23 +17,21 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
-import io.gravitee.apim.core.analytics.use_case.SearchGroupByAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
-import io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
-import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.CountAnalytics;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiAnalyticsParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -42,6 +40,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
@@ -80,12 +79,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Inject
     private SearchHistogramAnalyticsUseCase searchHistogramAnalyticsUseCase;
 
-    @Inject
-    private SearchGroupByAnalyticsUseCase searchGroupByAnalyticsUseCase;
-
-    @Inject
-    private SearchStatsUseCase searchStatsUseCase;
-
+    /*
     @Path("/requests-count")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -102,6 +96,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             .map(ApiAnalyticsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No requests count found for api: " + apiId));
     }
+    */
 
     @Path("/average-messages-per-request")
     @GET
@@ -199,6 +194,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         return ApiAnalyticsMapper.INSTANCE.map(result);
     }
 
+    /*
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
@@ -208,27 +204,61 @@ public class ApiAnalyticsResource extends AbstractResource {
         @BeanParam ApiAnalyticsParam apiAnalyticsParam
     ) {
         if (apiAnalyticsParam.getType() == AnalyticsType.HISTOGRAM) {
-            var input = ApiAnalyticsParam.toHistogramInput(apiId, apiAnalyticsParam);
+            var input = new SearchHistogramAnalyticsUseCase.Input(
+                apiId,
+                apiAnalyticsParam.getFrom(),
+                apiAnalyticsParam.getTo(),
+                apiAnalyticsParam.getInterval(),
+                ApiAnalyticsMapper.INSTANCE.mapAggregations(apiAnalyticsParam.getAggregations())
+            );
             var output = searchHistogramAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
             var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
             histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
             return new ApiAnalyticsResponse(histogramResponse);
         }
-        if (apiAnalyticsParam.getType() == AnalyticsType.GROUP_BY) {
-            var input = ApiAnalyticsParam.toGroupByInput(apiId, apiAnalyticsParam);
-            var output = searchGroupByAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-            var groupByResponse = ApiAnalyticsMapper.INSTANCE.mapGroupByAnalytics(output.analytics(), output.metadata());
-            return new ApiAnalyticsResponse(groupByResponse);
-        }
-        if (apiAnalyticsParam.getType() == AnalyticsType.STATS) {
-            var input = ApiAnalyticsParam.toStatsInput(apiId, apiAnalyticsParam);
-            var output = searchStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-            if (output.analytics() == null) {
-                throw new NotFoundException("No stats analytics found for api: " + apiId);
-            }
-            var statsResponse = ApiAnalyticsMapper.INSTANCE.map(output.analytics());
-            return new ApiAnalyticsResponse(statsResponse);
-        }
         return new ApiAnalyticsResponse();
+    }
+*/
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public ApiAnalyticsResponse performApiAnalytics(
+        @PathParam("envId") String envId,
+        @PathParam("apiId") String apiId,
+        @BeanParam ApiAnalyticsParam apiAnalyticsParam
+    ) {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        if (apiAnalyticsParam.getType() == AnalyticsType.HISTOGRAM) {
+            var input = new SearchHistogramAnalyticsUseCase.Input(
+                apiId,
+                apiAnalyticsParam.getFrom(),
+                apiAnalyticsParam.getTo(),
+                apiAnalyticsParam.getInterval(),
+                ApiAnalyticsMapper.INSTANCE.mapAggregations(apiAnalyticsParam.getAggregations())
+            );
+            var output = searchHistogramAnalyticsUseCase.execute(executionContext, input);
+
+            var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
+            histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
+
+            return new ApiAnalyticsResponse(histogramResponse);
+        } else if (apiAnalyticsParam.getType() == AnalyticsType.COUNT) {
+            var input = new SearchRequestsCountAnalyticsUseCase.Input(
+                apiId,
+                apiAnalyticsParam.getFrom(),
+                apiAnalyticsParam.getTo(),
+                apiAnalyticsParam.getInterval(),
+                ApiAnalyticsMapper.INSTANCE.mapAggregations(apiAnalyticsParam.getAggregations())
+            );
+
+            var output = searchRequestsCountAnalyticsUseCase.execute(executionContext, input);
+
+            CountAnalytics countAnalytics = ApiAnalyticsMapper.INSTANCE.mapToCountAnalytics(output.result());
+            return new ApiAnalyticsResponse(countAnalytics);
+        }
+
+        // optionally throw if type is unsupported
+        throw new BadRequestException("Unsupported analytics type: " + apiAnalyticsParam.getType());
     }
 }

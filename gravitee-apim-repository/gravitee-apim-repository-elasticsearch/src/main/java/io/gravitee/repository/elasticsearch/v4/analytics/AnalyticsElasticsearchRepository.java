@@ -84,14 +84,18 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery query) {
+    public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery query, String aggregationField) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        String fieldToUse = aggregationField.isEmpty() ? ENTRYPOINT_ID_FIELD : aggregationField;
 
-        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
-            .map(types -> types.stream().allMatch(KEYWORD::equals))
-            .flatMap(isEntrypointIdKeyword ->
-                this.client.search(index, null, SearchRequestsCountQueryAdapter.adapt(query, isEntrypointIdKeyword))
-            )
+        return this.client.getFieldTypes(index, fieldToUse)
+            .map(types -> {
+                boolean isKeyword = types.stream().allMatch(KEYWORD::equals);
+                return isKeyword;
+            })
+            .flatMap(isEntrypointIdKeyword -> {
+                return this.client.search(index, null, SearchRequestsCountQueryAdapter.adapt(query, isEntrypointIdKeyword));
+            })
             .map(SearchRequestsCountResponseAdapter::adapt)
             .blockingGet();
     }
