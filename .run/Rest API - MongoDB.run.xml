@@ -1,5 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Rest API - MongoDB" type="Application" factoryName="Application" folderName="Rest API">
+    <envs>
+      <env name="gravitee_license_key" value="Ic5OXgAAACAAAAACAAAADAAAAAhhbGVydC1lbmdpbmVpbmNsdWRlZAAAACAAAAACAAAABwAAAA1jb21wYW55R3Jhdml0ZWUgRGV2cwAAACkAAAACAAAABQAAABhlbWFpbGFsZWtzQGdyYXZpdGVlc291cmNlLmNvbQAAABoAAAALAAAACmV4cGlyeURhdGUAAAGbdtqn/wAAABQAAAACAAAACAAAAABmZWF0dXJlcwAAACEAAAAMAAAACWxpY2Vuc2VJZJ+3tupzW9emsI8FXUY0SmkAAAEcAAAAAQAAABAAAAEAbGljZW5zZVNpZ25hdHVyZTpNPXjo196BGEpBIbu8OATRMsYMI6jXnwZGUcFhHf/njN7gf6xkGMsStPKBAnCrfshXPAgMlnBJrKjpzzUdi0PbQJk2j4jEY5lti9l/3jYZte6aaWyB9EVA/NU2yV7uC3FHP1EKeEhQ03TMUXczqlqvDVQQqSZBPouTyhRKmuvmGQjbnTlNJPONmF6ykW7/mrEn2O1Loua8GU1VtiKzQmvv73GOvSD6UYNUS5iSWNxdK8R7l6GYm3tr9Tz0EvmpEOHD4yOs2dAW2y/aDnMMvojsnCjNphr948rFjIQ91p/V9sBu7ElcnuUzdfRU5FXz5h5KLtT9qdLrUBVboViY6GQAAAARAAAAAgAAAAUAAAAAcGFja3MAAAAiAAAAAgAAAA8AAAAHc2lnbmF0dXJlRGlnZXN0U0hBLTI1NgAAABgAAAACAAAABAAAAAh0aWVydW5pdmVyc2U=" />
+    </envs>
     <option name="MAIN_CLASS_NAME" value="io.gravitee.rest.api.standalone.GraviteeApisContainer" />
     <module name="gravitee-apim-rest-api-standalone-container" />
     <option name="VM_PARAMETERS" value="-Dgravitee.home=$ProjectFileDir$/gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution" />

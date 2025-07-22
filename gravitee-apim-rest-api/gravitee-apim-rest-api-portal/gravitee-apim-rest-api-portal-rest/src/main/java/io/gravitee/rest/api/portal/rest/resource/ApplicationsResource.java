@@ -90,7 +90,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE) })
-    public Response createApplication(@Valid @NotNull(message = "Input must not be null.") ApplicationInput applicationInput) {
+        public Response createApplication(@Valid @NotNull(message = "Input must not be null.") ApplicationInput applicationInput) {
         NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
         newApplicationEntity.setDescription(applicationInput.getDescription());
         newApplicationEntity.setDomain(applicationInput.getDomain());
@@ -120,6 +120,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
                 ocs.setApplicationType(oauthAppInput.getApplicationType());
                 ocs.setGrantTypes(oauthAppInput.getGrantTypes());
                 ocs.setRedirectUris(oauthAppInput.getRedirectUris());
+                ocs.setAdditionalClientMetadata(oauthAppInput.getAdditionalClientMetadata());
                 newApplicationEntitySettings.setOauth(ocs);
             }
 
