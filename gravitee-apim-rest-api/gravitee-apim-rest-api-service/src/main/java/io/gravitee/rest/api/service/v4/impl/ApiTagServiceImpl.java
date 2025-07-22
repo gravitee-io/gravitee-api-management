@@ -80,12 +80,12 @@ public class ApiTagServiceImpl implements ApiTagService {
 
     private void removeTag(ExecutionContext executionContext, Api api, String tagId) throws TechnicalManagementException {
         // Skip if API is federated or has origin Kubernetes
-        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED || Api.ORIGIN_KUBERNETES.equals(api.getOrigin())) {
-            log.debug(
-                "Skipping tag removal for API: {}, reason: {}",
-                api.getId(),
-                api.getDefinitionVersion() == DefinitionVersion.FEDERATED ? "FEDERATED" : "KUBERNETES-origin"
-            );
+        if (
+            api.getDefinitionVersion() == DefinitionVersion.FEDERATED ||
+            api.getDefinitionVersion() == DefinitionVersion.FEDERATED_AGENT ||
+            Api.ORIGIN_KUBERNETES.equals(api.getOrigin())
+        ) {
+            log.debug("Skipping tag removal for API: {}", api.getId());
             return;
         }
         log.debug(
@@ -97,7 +97,7 @@ public class ApiTagServiceImpl implements ApiTagService {
         try {
             Api previousApi = new Api(api);
             Api updated = null;
-            if (api.getDefinitionVersion() != DefinitionVersion.V4 && api.getDefinitionVersion() != DefinitionVersion.FEDERATED_AGENT) {
+            if (api.getDefinitionVersion() != DefinitionVersion.V4) {
                 final io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
                     api.getDefinition(),
                     io.gravitee.definition.model.Api.class
