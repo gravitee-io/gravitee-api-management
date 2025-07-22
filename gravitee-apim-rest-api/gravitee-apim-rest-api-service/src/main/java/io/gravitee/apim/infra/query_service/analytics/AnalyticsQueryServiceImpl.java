@@ -327,7 +327,6 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             );
         return new io.gravitee.repository.log.v4.model.analytics.GroupByQuery(
             groupByQuery.apiId(),
-            null,
             groupByQuery.field(),
             repoGroups,
             repoOrder,

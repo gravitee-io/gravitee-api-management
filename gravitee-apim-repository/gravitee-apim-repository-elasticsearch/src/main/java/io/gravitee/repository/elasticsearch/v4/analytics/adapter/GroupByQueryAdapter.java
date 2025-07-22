@@ -73,17 +73,15 @@ public class GroupByQueryAdapter {
         termNode.set("term", MAPPER.createObjectNode().put("api-id", query.apiId()));
         filterArray.add(termNode);
 
-        // Time range
-        if (query.timeRange() != null && query.timeRange().range() != null) {
-            ObjectNode rangeNode = MAPPER.createObjectNode();
-            ObjectNode tsRange = MAPPER.createObjectNode();
-            tsRange.put("from", query.timeRange().range().from());
-            tsRange.put("to", query.timeRange().range().to());
-            tsRange.put("include_lower", true);
-            tsRange.put("include_upper", true);
-            rangeNode.set("@timestamp", tsRange);
-            filterArray.add(MAPPER.createObjectNode().set("range", rangeNode));
-        }
+        // Time range (from/to are never null)
+        ObjectNode rangeNode = MAPPER.createObjectNode();
+        ObjectNode tsRange = MAPPER.createObjectNode();
+        tsRange.put("from", query.from().toEpochMilli());
+        tsRange.put("to", query.to().toEpochMilli());
+        tsRange.put("include_lower", true);
+        tsRange.put("include_upper", true);
+        rangeNode.set("@timestamp", tsRange);
+        filterArray.add(MAPPER.createObjectNode().set("range", rangeNode));
 
         ObjectNode bool = MAPPER.createObjectNode();
         bool.set("filter", filterArray);
