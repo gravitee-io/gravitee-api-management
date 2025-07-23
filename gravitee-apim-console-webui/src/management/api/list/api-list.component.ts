@@ -28,6 +28,7 @@ import { Constants } from '../../../entities/Constants';
 import {
   Api,
   ApiLifecycleState,
+  ApiSearchQuery,
   apiSortByParamFromString,
   ApisResponse,
   ApiState,
@@ -42,6 +43,15 @@ import {
   TcpListener,
 } from '../../../entities/management-api-v2';
 import { CategoryService } from '../../../services-ngx/category.service';
+import { TagService } from 'src/services-ngx/tag.service';
+
+export enum FilterType {
+  API_TYPE,
+  STATUS,
+  TAGS,
+  CATEGORIES,
+  PUBLISHED,
+}
 
 const availableDisplayedColumns = [
   'picture',
@@ -78,6 +88,14 @@ export type ApisTableDS = {
   categories: string[];
 }[];
 
+interface ApiListTableWrapperFilters extends GioTableWrapperFilters {
+  apiTypes?: string[];
+  statuses?: string[];
+  tags?: string[];
+  categories?: string[];
+  published?: string[];
+}
+
 @Component({
   selector: 'api-list',
   templateUrl: './api-list.component.html',
@@ -89,7 +107,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
   displayedColumns = availableDisplayedColumns;
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
-  filters: GioTableWrapperFilters = {
+  filters: ApiListTableWrapperFilters = {
     pagination: { index: 1, size: 25 },
     searchTerm: '',
   };
@@ -97,12 +115,18 @@ export class ApiListComponent implements OnInit, OnDestroy {
   searchLabel = 'Search';
   isLoadingData = true;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
+  private filters$ = new BehaviorSubject<ApiListTableWrapperFilters>(this.filters);
   private visibilitiesIcons = {
     PUBLIC: 'public',
     PRIVATE: 'lock',
   };
   public categoriesNames = new Map<string, string>();
+  tags: string[] = [];
+  checkedApiTypes: string[];
+  checkedStatuses: string[];
+  checkedTags: string[];
+  checkedCategories: string[];
+  checkedPublished: string[];
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -110,6 +134,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     @Inject(Constants) private readonly constants: Constants,
     private readonly apiService: ApiService,
     private readonly apiServiceV2: ApiV2Service,
+    private readonly tagService: TagService,
     private readonly titleCasePipe: TitleCasePipe,
     private readonly categoryService: CategoryService,
   ) {}
@@ -126,6 +151,8 @@ export class ApiListComponent implements OnInit, OnDestroy {
       this.displayedColumns.splice(5, 0, 'qualityScore');
     }
 
+    this.tagService.list().subscribe((tags) => (this.tags = tags.map((tag) => tag.id)));
+
     this.categoryService
       .list()
       .pipe(map((cats) => cats.forEach((cat) => this.categoriesNames.set(cat.key, cat.name))))
@@ -135,38 +162,54 @@ export class ApiListComponent implements OnInit, OnDestroy {
       .pipe(
         debounceTime(100),
         distinctUntilChanged(isEqual),
-        map(({ pagination, searchTerm, status, sort }) => {
+        map((filters: ApiListTableWrapperFilters) => {
           let order: string;
-          if (sort?.direction) {
-            order = toOrder(sort);
-          } else if (!searchTerm && !sort?.direction) {
+          if (filters.sort?.direction) {
+            order = toOrder(filters.sort);
+          } else if (!filters.searchTerm && !filters.sort?.direction) {
             order = 'name';
-          } else if (searchTerm && !sort?.direction) {
+          } else if (filters.searchTerm && !filters.sort?.direction) {
             order = undefined;
           } else {
-            order = toOrder(sort);
+            order = toOrder(filters.sort);
           }
-
-          return {
-            pagination,
-            searchTerm,
-            status,
-            order,
-          };
+          return { filters, order };
         }),
-        tap(({ pagination, searchTerm, status, order }) => {
+        tap(({ filters, order }) => {
           // Change url params
           this.router.navigate([], {
             relativeTo: this.activatedRoute,
-            queryParams: { q: searchTerm, page: pagination.index, size: pagination.size, status, order },
+            queryParams: {
+              q: filters.searchTerm,
+              page: filters.pagination.index,
+              size: filters.pagination.size,
+              status,
+              order,
+              apiTypes: filters.apiTypes,
+              statuses: filters.statuses,
+              tags: filters.tags,
+              categories: filters.categories,
+              published: filters.published,
+            },
             queryParamsHandling: 'merge',
           });
         }),
-        switchMap(({ pagination, searchTerm, order }) =>
-          this.apiServiceV2
-            .search({ query: searchTerm }, apiSortByParamFromString(order), pagination.index, pagination.size)
-            .pipe(catchError(() => of(new PagedResult<Api>()))),
-        ),
+        switchMap(({ filters, order }) => {
+          let body: ApiSearchQuery = {
+            query: filters.searchTerm,
+            apiTypes: this.filters.apiTypes,
+            statuses: this.filters.statuses,
+            tags: this.filters.tags,
+            categories: this.filters.categories,
+            published:
+              this.filters.published && this.filters.published.includes('UNPUBLISHED')
+                ? [...this.filters.published, 'CREATED', 'DEPRECATED', 'ARCHIVED']
+                : this.filters.published,
+          };
+          return this.apiServiceV2
+            .search(body, apiSortByParamFromString(order), filters.pagination.index, filters.pagination.size)
+            .pipe(catchError(() => of(new PagedResult<Api>())));
+        }),
         tap((apisPage) => {
           this.apisTableDS = this.toApisTableDS(apisPage);
           this.apisTableDSUnpaginatedLength = apisPage.pagination.totalCount;
@@ -177,7 +220,32 @@ export class ApiListComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  onFiltersChanged(filters: GioTableWrapperFilters) {
+  onAdditionalFiltersChanged(type: FilterType) {
+    this.filters.pagination = {
+      ...this.filters.pagination,
+      index: 1,
+    };
+    switch (type) {
+      case FilterType.API_TYPE:
+        this.filters = { ...this.filters, apiTypes: this.checkedApiTypes };
+        break;
+      case FilterType.STATUS:
+        this.filters = { ...this.filters, statuses: this.checkedStatuses };
+        break;
+      case FilterType.TAGS:
+        this.filters = { ...this.filters, tags: this.checkedTags };
+        break;
+      case FilterType.CATEGORIES:
+        this.filters = { ...this.filters, categories: this.checkedCategories };
+        break;
+      case FilterType.PUBLISHED:
+        this.filters = { ...this.filters, published: this.checkedPublished };
+        break;
+    }
+    this.filters$.next(this.filters);
+  }
+
+  onFiltersChanged(filters: ApiListTableWrapperFilters) {
     this.filters = { ...this.filters, ...filters };
     this.filters$.next(this.filters);
   }
@@ -200,6 +268,27 @@ export class ApiListComponent implements OnInit, OnDestroy {
         size: initialPageSize,
       },
     };
+    const queryParams = this.activatedRoute.snapshot.queryParams;
+    if (queryParams.apiTypes) {
+      this.filters.apiTypes = castArray(queryParams.apiTypes);
+      this.checkedApiTypes = this.filters.apiTypes;
+    }
+    if (queryParams.statuses) {
+      this.filters.statuses = castArray(queryParams.statuses);
+      this.checkedStatuses = this.filters.statuses;
+    }
+    if (queryParams.tags) {
+      this.filters.tags = castArray(queryParams.tags);
+      this.checkedTags = this.filters.tags;
+    }
+    if (queryParams.categories) {
+      this.filters.categories = castArray(queryParams.categories);
+      this.checkedCategories = this.filters.categories;
+    }
+    if (queryParams.published) {
+      this.filters.published = castArray(queryParams.published);
+      this.checkedPublished = this.filters.published;
+    }
     this.filters$.next(this.filters);
   }
 
