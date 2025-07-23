@@ -15,16 +15,22 @@
     limitations under the License.
 
 -->
-<mat-card>
-  <mat-card-content>
-    @if (reporterSettingsForm) {
-      <form [formGroup]="reporterSettingsForm">
-        <gio-form-slide-toggle>
-          <gio-form-label>Enable metrics reporting</gio-form-label>
-          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Report event metrics"></mat-slide-toggle>
-          <mat-hint>Enabling it will report event metrics in ElasticSearch or OpenSearch</mat-hint>
-        </gio-form-slide-toggle>
-      </form>
+@if (api$ | async; as api) {
+  @switch (api.type) {
+    @case ('MESSAGE') {
+      // TODO add it in next commit
     }
-  </mat-card-content>
-</mat-card>
+    @case ('PROXY') {
+      // TODO add it in next commit
+    }
+    @case ('NATIVE') {
+      <reporter-settings-native [api]="api"></reporter-settings-native>
+    }
+  }
+} @else {
+  <gio-card-empty-state
+    icon="shield-alert"
+    title="Report settings not available"
+    subtitle="The reporter settings are not available for your API."
+  ></gio-card-empty-state>
+}

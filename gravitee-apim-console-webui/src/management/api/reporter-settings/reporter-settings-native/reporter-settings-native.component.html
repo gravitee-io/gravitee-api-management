@@ -15,7 +15,16 @@
     limitations under the License.
 
 -->
-<ng-container *ngIf="api$ | async as api">
-  <api-runtime-logs-message-settings *ngIf="api && 'MESSAGE' === api.type" [api]="$any(api)"></api-runtime-logs-message-settings>
-  <api-runtime-logs-proxy-settings *ngIf="api && 'PROXY' === api.type"></api-runtime-logs-proxy-settings>
-</ng-container>
+<mat-card>
+  <mat-card-content>
+    @if (reporterSettingsForm) {
+      <form [formGroup]="reporterSettingsForm">
+        <gio-form-slide-toggle>
+          <gio-form-label>Enable metrics reporting</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Report event metrics"></mat-slide-toggle>
+          <mat-hint>Enabling it will report event metrics in ElasticSearch or OpenSearch</mat-hint>
+        </gio-form-slide-toggle>
+      </form>
+    }
+  </mat-card-content>
+</mat-card>
