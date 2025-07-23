@@ -93,11 +93,14 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_METADATA = "metadata";
     public static final String FIELD_METADATA_SPLIT = "metadata_split";
     public static final String FIELD_DEFINITION_VERSION = "definition_version";
+    public static final String FIELD_API_TYPE = "api_type";
     public static final String FIELD_API_TYPE_SORTED = "api_type_sorted";
     public static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
     public static final String FIELD_ORIGIN = "origin";
     public static final String FIELD_HAS_HEALTH_CHECK = "has_health_check";
+    public static final String FIELD_STATUS = "status";
     public static final String FIELD_STATUS_SORTED = "status_sorted";
+    public static final String FIELD_API_LIFECYCLE_STATE = "api_lifecycle_state";
     public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
 
     private final ApiService apiService;
@@ -114,7 +117,9 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         doc.add(new StringField(FIELD_ID, api.getId(), YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, YES));
 
+        doc.add(new StringField(FIELD_STATUS, api.getState().name(), Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
+        doc.add(new StringField(FIELD_API_LIFECYCLE_STATE, api.getLifecycleState().name(), Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
 
         // If no definition version or name, the api is being deleted. No need for more info in doc.
@@ -124,6 +129,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
 
         if (api.getDefinitionVersion() != null) {
             doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), NO));
+            doc.add(new StringField(FIELD_API_TYPE, api.getDefinitionVersion().name(), NO));
             doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(api.getDefinitionVersion().name())));
         }
 

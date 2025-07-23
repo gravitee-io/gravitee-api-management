@@ -37,6 +37,80 @@
   (filtersChange)="onFiltersChanged($event)"
   [paginationPageSizeOptions]="[25, 50, 100, 200]"
 >
+  <div gio-additional-filters>
+    <mat-form-field class="api-type-filter">
+      <mat-label>API Type</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedApiTypes"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.API_TYPE)"
+        [panelWidth]="'200px'"
+      >
+        <mat-option value="V2">V2</mat-option>
+        <mat-option value="V4_PROXY">V4 Proxy</mat-option>
+        <mat-option value="V4_MESSAGE">V4 Message</mat-option>
+        <mat-option value="V4_NATIVE">V4 Native</mat-option>
+        <mat-option value="FEDERATED">Federated</mat-option>
+        <mat-option value="FEDERATED_AGENT">Federated Agent</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="status-filter">
+      <mat-label>Status</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedStatuses"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.STATUS)"
+        [panelWidth]="'160px'"
+      >
+        <mat-option value="STARTED">Started</mat-option>
+        <mat-option value="STOPPED">Stopped</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="published-filter">
+      <mat-label>Published</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedPublished"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.PUBLISHED)"
+        [panelWidth]="'180px'"
+      >
+        <mat-option value="PUBLISHED">Published</mat-option>
+        <mat-option value="UNPUBLISHED">Unpublished</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="tags-filter">
+      <mat-label>Sharding Tags</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedTags"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.TAGS)"
+        [panelWidth]="'200px'"
+      >
+        <mat-option *ngFor="let tag of tags" [value]="tag">{{ tag }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="categories-filter">
+      <mat-label>Categories</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedCategories"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.CATEGORIES)"
+        [panelWidth]="'200px'"
+      >
+        <mat-option *ngFor="let category of categoriesNames | keyvalue" [value]="category.key">{{ category.value }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
   <table mat-table matSort [dataSource]="apisTableDS" id="apisTable" aria-label="Apis table">
     <!-- Picture Column -->
     <ng-container matColumnDef="picture">
