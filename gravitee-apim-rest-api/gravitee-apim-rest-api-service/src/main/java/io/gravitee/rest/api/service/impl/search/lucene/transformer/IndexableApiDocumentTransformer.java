@@ -16,9 +16,12 @@
 package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_ASC_SORTED;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_DESC_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CREATED_AT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION_SPLIT;
@@ -38,14 +41,19 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER_MAIL;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS_SPLIT;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS_ASC_SORTED;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS_DESC_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_UPDATED_AT;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_VISIBILITY_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.SPECIAL_CHARS;
 
 import io.gravitee.apim.core.api.model.Api;
@@ -60,7 +68,6 @@ import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import java.text.CollationKey;
 import java.text.Collator;
-import java.util.Base64;
 import java.util.Locale;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -68,9 +75,10 @@ import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.stereotype.Component;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 @Component
 public class IndexableApiDocumentTransformer implements DocumentTransformer<IndexableApi> {
@@ -93,6 +101,9 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
 
+        doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getLifecycleState().name())));
+        doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
+
         // If no definition version or name, the api is being deleted. No need for more info in doc.
         if (api.getDefinitionVersion() == null && api.getName() == null) {
             return doc;
@@ -100,6 +111,13 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         if (api.getDefinitionVersion() != null) {
             doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
+            String apiType;
+            if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+                apiType = api.getDefinitionVersion().name() + "_" + api.getType().name();
+            } else {
+                apiType = api.getDefinitionVersion().name();
+            }
+            doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(apiType)));
         }
 
         if (indexableApi.getReferenceId() != null) {
@@ -120,6 +138,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         }
         if (primaryOwner != null) {
             doc.add(new StringField(FIELD_OWNER, primaryOwner.displayName(), Field.Store.NO));
+            doc.add(new SortedDocValuesField(FIELD_OWNER_SORTED, toSortedValue(primaryOwner.displayName())));
             doc.add(new StringField(FIELD_OWNER_LOWERCASE, primaryOwner.displayName().toLowerCase(), Field.Store.NO));
             if (primaryOwner.email() != null) {
                 doc.add(new TextField(FIELD_OWNER_MAIL, primaryOwner.email(), Field.Store.NO));
@@ -136,11 +155,15 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         }
 
         // categories
-        if (categories != null) {
+        if (categories != null && !categories.isEmpty()) {
             for (String category : categories) {
                 doc.add(new StringField(FIELD_CATEGORIES, category, Field.Store.NO));
                 doc.add(new TextField(FIELD_CATEGORIES_SPLIT, category, Field.Store.NO));
             }
+            String categoriesAsc = categories.stream().sorted().collect(Collectors.joining(","));
+            String categoriesDesc = categories.stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
+            doc.add(new SortedDocValuesField(FIELD_CATEGORIES_ASC_SORTED, toSortedValue(categoriesAsc)));
+            doc.add(new SortedDocValuesField(FIELD_CATEGORIES_DESC_SORTED, toSortedValue(categoriesDesc)));
         }
 
         if (api.getCreatedAt() != null) {
@@ -195,11 +218,15 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         }
 
         // tags
-        if (apiDefinitionV4.getTags() != null) {
+        if (apiDefinitionV4.getTags() != null && !apiDefinitionV4.getTags().isEmpty()) {
             for (String tag : apiDefinitionV4.getTags()) {
                 doc.add(new StringField(FIELD_TAGS, tag, Field.Store.NO));
                 doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
             }
+            String tagsAsc = apiDefinitionV4.getTags().stream().sorted().collect(Collectors.joining(","));
+            String tagsDesc = apiDefinitionV4.getTags().stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
+            doc.add(new SortedDocValuesField(FIELD_TAGS_ASC_SORTED, toSortedValue(tagsAsc)));
+            doc.add(new SortedDocValuesField(FIELD_TAGS_DESC_SORTED, toSortedValue(tagsDesc)));
         }
     }
 
