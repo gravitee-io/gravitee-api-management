@@ -18,7 +18,7 @@
 @if (api$ | async; as api) {
   @switch (api.type) {
     @case ('MESSAGE') {
-      // TODO add it in next commit
+      <reporter-settings-message [api]="api"></reporter-settings-message>
     }
     @case ('PROXY') {
       <reporter-settings-proxy [api]="api"></reporter-settings-proxy>

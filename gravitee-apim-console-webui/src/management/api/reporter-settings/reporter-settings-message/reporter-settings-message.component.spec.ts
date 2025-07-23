@@ -20,15 +20,15 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiRuntimeLogsMessageSettingsModule } from './api-runtime-logs-message-settings.module';
-import { ApiRuntimeLogsMessageSettingsComponent } from './api-runtime-logs-message-settings.component';
-import { ApiRuntimeLogsMessageSettingsHarness } from './api-runtime-logs-message-settings.harness';
+import { ReporterSettingsMessageComponent } from './reporter-settings-message.component';
+import { ReporterSettingsMessageHarness } from './reporter-settings-message.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
-import { ConsoleSettings } from '../../../../../entities/consoleSettings';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { Constants } from '../../../../../entities/Constants';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { ConsoleSettings } from '../../../../entities/consoleSettings';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../entities/Constants';
+import { ReporterSettingsComponent } from '../reporter-settings.component';
 
 describe('ApiRuntimeLogsSettingsComponent', () => {
   const API_ID = 'apiId';
@@ -78,23 +78,22 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       },
     },
   };
-  let fixture: ComponentFixture<ApiRuntimeLogsMessageSettingsComponent>;
+  let fixture: ComponentFixture<ReporterSettingsComponent>;
   let httpTestingController: HttpTestingController;
-  let componentHarness: ApiRuntimeLogsMessageSettingsHarness;
+  let componentHarness: ReporterSettingsMessageHarness;
 
   const initComponent = async (api: ApiV4 = testApi, settings: ConsoleSettings = testSettings) => {
-    fixture = TestBed.createComponent(ApiRuntimeLogsMessageSettingsComponent);
+    fixture = TestBed.createComponent(ReporterSettingsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsMessageSettingsHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ReporterSettingsMessageHarness);
 
-    fixture.componentInstance.api = api;
+    expectApiGetRequest(api);
     expectConsoleSettingsGetRequest(settings);
-    fixture.detectChanges();
   };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, ApiRuntimeLogsMessageSettingsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ReporterSettingsMessageComponent, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
@@ -372,19 +371,14 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expect(await componentHarness.getSamplingValue()).toStrictEqual(testApi.analytics.sampling.value);
 
       await componentHarness.addSamplingValue(null);
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-      expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
       expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
       expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
       await componentHarness.addSamplingValue('5');
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-      expect(fixture.componentInstance.form.get('samplingValue').hasError('min')).toBeTruthy();
       expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than 40.']);
       expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
       await componentHarness.addSamplingValue('42');
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
       expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
       expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
     });
@@ -395,25 +389,18 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expect(await componentHarness.getSamplingType()).toStrictEqual('Probabilistic');
 
       await componentHarness.addSamplingValue(null);
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-      expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
       expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
       expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
       await componentHarness.addSamplingValue('-1');
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-      expect(fixture.componentInstance.form.get('samplingValue').hasError('min')).toBeTruthy();
       expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than 0.01.']);
       expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
       await componentHarness.addSamplingValue('42');
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-      expect(fixture.componentInstance.form.get('samplingValue').hasError('max')).toBeTruthy();
       expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be lower than 0.52.']);
       expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
       await componentHarness.addSamplingValue('0.3');
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
       expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
       expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
     });
@@ -424,28 +411,20 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expect(await componentHarness.getSamplingType()).toStrictEqual('Temporal');
 
       await componentHarness.addSamplingValue(null);
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-      expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
       expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
       expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
       await componentHarness.addSamplingValue('PT1S');
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-      expect(fixture.componentInstance.form.get('samplingValue').hasError('minTemporal')).toBeTruthy();
       expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than PT10S.']);
       expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
       await componentHarness.addSamplingValue('PT');
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-      expect(fixture.componentInstance.form.get('samplingValue').hasError('invalidISO8601Duration')).toBeTruthy();
       expect(await componentHarness.getSamplingValueErrors()).toEqual([
         'The sampling value should use ISO-8601 duration format, e.g. PT10S.',
       ]);
       expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
       await componentHarness.addSamplingValue('PT11S');
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
-      expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
       expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
       expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
     });
@@ -474,6 +453,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         method: 'GET',
       })
       .flush(api);
+    fixture.detectChanges();
   }
 
   function expectApiPutRequest(api: ApiV4) {
