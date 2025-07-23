@@ -34,19 +34,19 @@ import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import jakarta.annotation.Nullable;
 import java.text.CollationKey;
 import java.text.Collator;
-import java.util.Base64;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -69,12 +69,15 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_DESCRIPTION_LOWERCASE = "description_lowercase";
     public static final String FIELD_DESCRIPTION_SPLIT = "description_split";
     public static final String FIELD_OWNER = "ownerName";
+    public static final String FIELD_OWNER_SORTED = "owner_sorted";
     public static final String FIELD_OWNER_LOWERCASE = "ownerName_lowercase";
     public static final String FIELD_OWNER_MAIL = "ownerMail";
     public static final String FIELD_LABELS = "labels";
     public static final String FIELD_LABELS_LOWERCASE = "labels_lowercase";
     public static final String FIELD_LABELS_SPLIT = "labels_split";
     public static final String FIELD_CATEGORIES = "categories";
+    public static final String FIELD_CATEGORIES_ASC_SORTED = "categories_asc_sorted";
+    public static final String FIELD_CATEGORIES_DESC_SORTED = "categories_desc_sorted";
     public static final String FIELD_CATEGORIES_SPLIT = "categories_split";
     public static final String FIELD_CREATED_AT = "createdAt";
     public static final String FIELD_UPDATED_AT = "updatedAt";
@@ -84,13 +87,18 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_PATHS_SPLIT = "paths_split";
     public static final String FIELD_HOSTS_SPLIT = "hosts_split";
     public static final String FIELD_TAGS = "tags";
+    public static final String FIELD_TAGS_ASC_SORTED = "tags_asc_sorted";
+    public static final String FIELD_TAGS_DESC_SORTED = "tags_desc_sorted";
     public static final String FIELD_TAGS_SPLIT = "tags_split";
     public static final String FIELD_METADATA = "metadata";
     public static final String FIELD_METADATA_SPLIT = "metadata_split";
     public static final String FIELD_DEFINITION_VERSION = "definition_version";
+    public static final String FIELD_API_TYPE_SORTED = "api_type_sorted";
     public static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
     public static final String FIELD_ORIGIN = "origin";
     public static final String FIELD_HAS_HEALTH_CHECK = "has_health_check";
+    public static final String FIELD_STATUS_SORTED = "status_sorted";
+    public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
 
     private final ApiService apiService;
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);
@@ -106,6 +114,9 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         doc.add(new StringField(FIELD_ID, api.getId(), YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, YES));
 
+        doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
+        doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
+
         // If no definition version or name, the api is being deleted. No need for more info in doc.
         if (api.getDefinitionVersion() == null && api.getName() == null) {
             return doc;
@@ -113,6 +124,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
 
         if (api.getDefinitionVersion() != null) {
             doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), NO));
+            doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(api.getDefinitionVersion().name())));
         }
 
         if (api.getReferenceId() != null) {
@@ -133,6 +145,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         }
         if (api.getPrimaryOwner() != null) {
             doc.add(new StringField(FIELD_OWNER, api.getPrimaryOwner().getDisplayName(), NO));
+            doc.add(new SortedDocValuesField(FIELD_OWNER_SORTED, toSortedValue(api.getPrimaryOwner().getDisplayName())));
             doc.add(new StringField(FIELD_OWNER_LOWERCASE, api.getPrimaryOwner().getDisplayName().toLowerCase(), NO));
             if (api.getPrimaryOwner().getEmail() != null) {
                 doc.add(new TextField(FIELD_OWNER_MAIL, api.getPrimaryOwner().getEmail(), NO));
@@ -168,15 +181,27 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         }
 
         // FIELD_CATEGORIES*
-        for (String category : safeIterate(api.getCategories())) {
-            doc.add(new StringField(FIELD_CATEGORIES, category, NO));
-            doc.add(new TextField(FIELD_CATEGORIES_SPLIT, category, NO));
+        if (api.getCategories() != null && !api.getCategories().isEmpty()) {
+            for (String category : api.getCategories()) {
+                doc.add(new StringField(FIELD_CATEGORIES, category, Field.Store.NO));
+                doc.add(new TextField(FIELD_CATEGORIES_SPLIT, category, Field.Store.NO));
+            }
+            String categoriesAsc = api.getCategories().stream().sorted().collect(Collectors.joining(","));
+            String categoriesDesc = api.getCategories().stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
+            doc.add(new SortedDocValuesField(FIELD_CATEGORIES_ASC_SORTED, toSortedValue(categoriesAsc)));
+            doc.add(new SortedDocValuesField(FIELD_CATEGORIES_DESC_SORTED, toSortedValue(categoriesDesc)));
         }
 
         // FIELD_TAGS*
-        for (String tag : safeIterate(api.getTags())) {
-            doc.add(new StringField(FIELD_TAGS, tag, NO));
-            doc.add(new TextField(FIELD_TAGS_SPLIT, tag, NO));
+        if (api.getTags() != null && !api.getTags().isEmpty()) {
+            for (String tag : api.getTags()) {
+                doc.add(new StringField(FIELD_TAGS, tag, Field.Store.NO));
+                doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
+            }
+            String tagsAsc = api.getTags().stream().sorted().collect(Collectors.joining(","));
+            String tagsDesc = api.getTags().stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
+            doc.add(new SortedDocValuesField(FIELD_TAGS_ASC_SORTED, toSortedValue(tagsAsc)));
+            doc.add(new SortedDocValuesField(FIELD_TAGS_DESC_SORTED, toSortedValue(tagsDesc)));
         }
 
         if (api.getCreatedAt() != null) {

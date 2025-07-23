@@ -61,8 +61,8 @@
     </ng-container>
 
     <!-- Display Definition Version Column -->
-    <ng-container matColumnDef="definitionVersion">
-      <th mat-header-cell *matHeaderCellDef id="definitionVersion">Definition</th>
+    <ng-container matColumnDef="apiType">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="apiType">API Type</th>
       <td mat-cell *matCellDef="let element">
         <span>{{ element.definitionVersion.label }}</span>
 
@@ -74,7 +74,7 @@
 
     <!-- Display States Column -->
     <ng-container matColumnDef="states">
-      <th mat-header-cell *matHeaderCellDef id="states">Status</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="states">Status</th>
       <td mat-cell *matCellDef="let element">
         @if (element.state === 'STARTED') {
           <mat-icon matTooltip="Started" class="states__api-started" size="20" svgIcon="gio:play-circle" />
@@ -126,17 +126,22 @@
 
     <!-- Display Tags Column -->
     <ng-container matColumnDef="tags">
-      <th mat-header-cell *matHeaderCellDef id="tags">Tags</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="tags">Tags</th>
       <td mat-cell *matCellDef="let element">
-        <a>{{ element.tags?.sort()?.join(', ') }}</a>
+        <a>{{ displayFirstTag(element) }}</a>
+        @if (element.tags.length - 1 > 0) {
+          <span class="access__badge gio-badge-neutral" [matTooltip]="element.tags.sort().join(', ')">
+            {{ element.tags.length - 1 }} more
+          </span>
+        }
       </td>
     </ng-container>
 
     <!-- Display Category Column -->
     <ng-container matColumnDef="categories">
-      <th mat-header-cell *matHeaderCellDef id="categories">Categories</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="categories">Categories</th>
       <td mat-cell *matCellDef="let element">
-        <a>{{ element.categories?.sort()?.[0] }}</a>
+        <a>{{ displayFirstCategory(element) }}</a>
         @if (element.categories.length - 1 > 0) {
           <span class="access__badge gio-badge-neutral" [matTooltip]="element.categories.sort().join(', ')">
             {{ element.categories.length - 1 }} more
@@ -157,7 +162,7 @@
 
     <!-- Display Owner Column -->
     <ng-container matColumnDef="owner">
-      <th mat-header-cell *matHeaderCellDef id="owner">Owner</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="owner">Owner</th>
       <td mat-cell *matCellDef="let element">
         <a [matTooltip]="element.ownerEmail ?? null">{{ element.owner }}</a>
       </td>
@@ -165,7 +170,7 @@
 
     <!-- Display Visibility Column -->
     <ng-container matColumnDef="visibility">
-      <th mat-header-cell *matHeaderCellDef id="visibility">Visibility</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="visibility">Visibility</th>
       <td mat-cell *matCellDef="let element">
         <mat-icon class="visibility" size="20" [matTooltip]="element.visibility.label | titlecase">{{ element.visibility.icon }} </mat-icon>
       </td>
