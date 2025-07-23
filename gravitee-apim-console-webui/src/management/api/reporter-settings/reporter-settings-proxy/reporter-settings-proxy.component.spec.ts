@@ -21,23 +21,22 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiRuntimeLogsProxySettingsModule } from './api-runtime-logs-proxy-settings.module';
-import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-settings.component';
-import { ApiRuntimeLogsProxySettingsHarness } from './api-runtime-logs-proxy-settings.harness';
+import { ReporterSettingsProxyHarness } from './reporter-settings-proxy.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { ApiV4, fakeApiV4, fakeProxyApiV4 } from '../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { ApiV4, fakeProxyApiV4 } from '../../../../entities/management-api-v2';
+import { ReporterSettingsComponent } from '../reporter-settings.component';
 
 describe('ApiRuntimeLogsProxySettingsComponent', () => {
   const API_ID = 'api-id';
-  let fixture: ComponentFixture<ApiRuntimeLogsProxySettingsComponent>;
+  let fixture: ComponentFixture<ReporterSettingsComponent>;
   let httpTestingController: HttpTestingController;
-  let componentHarness: ApiRuntimeLogsProxySettingsHarness;
+  let componentHarness: ReporterSettingsProxyHarness;
 
   const initComponent = async (api: ApiV4) => {
-    fixture = TestBed.createComponent(ApiRuntimeLogsProxySettingsComponent);
+    fixture = TestBed.createComponent(ReporterSettingsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsProxySettingsHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ReporterSettingsProxyHarness);
 
     fixture.detectChanges();
     expectApiGetRequest(api);
@@ -45,7 +44,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, ApiRuntimeLogsProxySettingsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ReporterSettingsComponent, MatIconTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).compileComponents();
   });
@@ -155,14 +154,6 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
       expect(await componentHarness.getCondition()).toStrictEqual('condition');
     });
 
-    it('should disable the fields when it is a kubernetes API', async () => {
-      const apiKubernetes = fakeApiV4({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } });
-      await initComponent(apiKubernetes);
-      expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(true);
-      expect(await componentHarness.isEndpointDisabled()).toStrictEqual(true);
-      await checkLoggingFieldsDisabled();
-    });
-
     it('should discard the changes', async () => {
       await componentHarness.toggleEntrypoint();
       await componentHarness.toggleEndpoint();
@@ -192,6 +183,42 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
       expect(await componentHarness.isHeadersChecked()).toStrictEqual(false);
       expect(await componentHarness.isPayloadChecked()).toStrictEqual(false);
       expect(await componentHarness.getCondition()).toStrictEqual('');
+      await checkLoggingFieldsDisabled();
+    });
+  });
+
+  describe('with an API published using the GKO', () => {
+    const api = fakeProxyApiV4({
+      id: API_ID,
+      definitionContext: { origin: 'KUBERNETES' },
+      analytics: { enabled: true, logging: { mode: { entrypoint: false, endpoint: false } } },
+    });
+
+    beforeEach(async () => {
+      await initComponent(api);
+    });
+
+    it('should disable the fields when it is a kubernetes API', async () => {
+      expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(true);
+      expect(await componentHarness.isEndpointDisabled()).toStrictEqual(true);
+      await checkLoggingFieldsDisabled();
+    });
+  });
+
+  describe('with an API published using the GKO', () => {
+    const api = fakeProxyApiV4({
+      id: API_ID,
+      definitionContext: { origin: 'KUBERNETES' },
+      analytics: { enabled: true, logging: { mode: { entrypoint: false, endpoint: false } } },
+    });
+
+    beforeEach(async () => {
+      await initComponent(api);
+    });
+
+    it('should disable the form fields when it is a kubernetes API', async () => {
+      expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(true);
+      expect(await componentHarness.isEndpointDisabled()).toStrictEqual(true);
       await checkLoggingFieldsDisabled();
     });
   });
