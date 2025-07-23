@@ -43,17 +43,17 @@ public interface AnalyticsQueryService {
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
 
     Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(
-        ExecutionContext executionContext,
-        String apiId,
-        Instant from,
-        Instant to
+            ExecutionContext executionContext,
+            String apiId,
+            Instant from,
+            Instant to
     );
 
     Optional<AverageConnectionDuration> searchAverageConnectionDuration(
-        ExecutionContext executionContext,
-        String apiId,
-        Instant from,
-        Instant to
+            ExecutionContext executionContext,
+            String apiId,
+            Instant from,
+            Instant to
     );
 
     Optional<ResponseStatusRanges> searchResponseStatusRanges(ExecutionContext executionContext, AnalyticsQueryParameters queryParameters);
@@ -61,12 +61,12 @@ public interface AnalyticsQueryService {
     Optional<TopHitsApis> searchTopHitsApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     Maybe<Map<String, Double>> searchAvgResponseTimeOverTime(
-        ExecutionContext executionContext,
-        List<String> apiIds,
-        Instant startTime,
-        Instant endTime,
-        Duration interval,
-        Collection<DefinitionVersion> versions
+            ExecutionContext executionContext,
+            List<String> apiIds,
+            Instant startTime,
+            Instant endTime,
+            Duration interval,
+            Collection<DefinitionVersion> versions
     );
 
     ResponseStatusOvertime searchResponseStatusOvertime(ExecutionContext executionContext, ResponseStatusOverTimeQuery query);
@@ -83,10 +83,19 @@ public interface AnalyticsQueryService {
 
     Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery);
 
-    record HistogramQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
+    Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query);
 
-    record GroupByQuery(String apiId, Instant from, Instant to, String field, List<Group> groups, Order order, Duration interval) {
-        public record Group(long from, long to) {}
+    record CountQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {
+    }
+
+    record HistogramQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {
+    }
+
+    record GroupByQuery(String apiId, Instant from, Instant to, String field, List<Group> groups, Order order,
+                        Duration interval) {
+        public record Group(long from, long to) {
+        }
+
         public record Order(String field, boolean order, String type) {
             public static Order valueOf(String param) {
                 String field = null;
@@ -107,21 +116,22 @@ public interface AnalyticsQueryService {
         }
     }
 
-    record StatsQuery(String apiId, String field, Instant from, Instant to) {}
+    record StatsQuery(String apiId, String field, Instant from, Instant to) {
+    }
 
     record ResponseStatusOverTimeQuery(
-        List<String> apiIds,
-        Instant from,
-        Instant to,
-        Duration interval,
-        Collection<DefinitionVersion> versions
-    ) {
-        public ResponseStatusOverTimeQuery(
             List<String> apiIds,
             Instant from,
             Instant to,
             Duration interval,
             Collection<DefinitionVersion> versions
+    ) {
+        public ResponseStatusOverTimeQuery(
+                List<String> apiIds,
+                Instant from,
+                Instant to,
+                Duration interval,
+                Collection<DefinitionVersion> versions
         ) {
             this.apiIds = apiIds;
             this.from = from;

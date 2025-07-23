@@ -29,7 +29,6 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
-import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
@@ -114,19 +113,6 @@ class AnalyticsQueryServiceImplTest {
             )
                 .isEmpty();
         }
-
-        //        @Test
-        //        void should_map_repository_response_to_requests_count() {
-        //            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any(), any()))
-        //                .thenReturn(
-        //                    Optional.of(CountAggregate.builder().total(10).countBy(Map.of("first", 3L, "second", 4L, "third", 3L)).build())
-        //                );
-        //            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), new AnalyticsQueryService.CountQuery("api#1", null, null, null,null ))
-        //                .hasValueSatisfying(requestsCount -> {
-        //                    assertThat(requestsCount.getTotal()).isEqualTo(10);
-        //                    assertThat(requestsCount.getCountsByEntrypoint()).containsAllEntriesOf(Map.of("first", 3L, "second", 4L, "third", 3L));
-        //                });
-        //        }
 
         @Test
         void should_return_request_status_ranges() {

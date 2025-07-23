@@ -17,12 +17,14 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchGroupByAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
@@ -83,6 +85,12 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchHistogramAnalyticsUseCase searchHistogramAnalyticsUseCase;
+
+    @Inject
+    private SearchGroupByAnalyticsUseCase searchGroupByAnalyticsUseCase;
+
+    @Inject
+    private SearchStatsUseCase searchStatsUseCase;
 
     @Path("/requests-count")
     @GET

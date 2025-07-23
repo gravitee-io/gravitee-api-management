@@ -39,14 +39,6 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
         return Optional.empty();
     }
 
-    public Optional<CountAggregate> searchRequestsCountByEvent(
-        QueryContext queryContext,
-        RequestsCountQuery requestsCountQuery,
-        String aggregationField
-    ) {
-        return Optional.empty();
-    }
-
     @Override
     public Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query) {
         return Optional.empty();

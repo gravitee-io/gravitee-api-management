@@ -22,6 +22,7 @@ import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.analytics.query.count.CountQuery;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
@@ -62,11 +63,6 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
-        return Optional.ofNullable(requestsCount);
-    }
-
-    @Override
-    public Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query) {
         return Optional.ofNullable(requestsCount);
     }
 

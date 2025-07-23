@@ -31,6 +31,7 @@ import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
@@ -687,6 +688,84 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
     }
 
+    @Test
+    void should_return_histogram_aggregates_for_avg_gateway_response_time_ms() {
+        var now = Instant.now();
+        var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+        var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+        var interval = Duration.ofMinutes(30);
+
+        var query = io.gravitee.repository.log.v4.model.analytics.HistogramQuery
+            .builder()
+            .from(from)
+            .to(to)
+            .interval(interval)
+            .apiId(API_ID)
+            .aggregations(List.of(new Aggregation("gateway-response-time-ms", AggregationType.AVG)))
+            .build();
+
+        var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
+
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+
+        var histogram = result.getFirst();
+        assertThat(histogram.getBuckets()).isNotNull();
+        assertThat(histogram.getBuckets()).containsOnlyKeys("avg_gateway-response-time-ms");
+
+        var avgBucket = (List<Double>) histogram.getBuckets().get("avg_gateway-response-time-ms");
+        assertThat(avgBucket).isNotEmpty();
+        assertThat(avgBucket.stream().filter(v -> v > 0).count()).isEqualTo(2);
+    }
+
+    @Nested
+    class GroupByAggregate {
+
+        @Test
+        void should_return_group_by_aggregate_for_terms() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, null);
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_range() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new GroupByQuery(
+                API_ID,
+                "response-time",
+                List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200)),
+                null,
+                from,
+                to,
+                null
+            );
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_response-time_range");
+                    assertThat(aggregate.field()).isEqualTo("response-time");
+                    assertThat(aggregate.values()).containsKeys("0.0-100.0", "100.0-200.0");
+                });
+        }
+    }
+
     @Nested
     class StatsAnalytics {
 
@@ -708,10 +787,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .isPresent()
                 .hasValueSatisfying(stats -> {
                     assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
-                    assertThat(stats.count()).isEqualTo(7.0f);
-                    assertThat(stats.sum()).isEqualTo(131845.0f);
-                    assertThat(stats.avg()).isEqualTo(18835.0f);
-                    assertThat(stats.min()).isEqualTo(20.0f);
+                    assertThat(stats.count()).isEqualTo(8L);
+                    assertThat(stats.sum()).isEqualTo(131864.0f);
+                    assertThat(stats.avg()).isEqualTo(16483.0f);
+                    assertThat(stats.min()).isEqualTo(19.0f);
                     assertThat(stats.max()).isEqualTo(60000.0f);
                 });
         }

@@ -67,18 +67,6 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
         var result = analyticsRepository.searchRequestsCountByEvent(queryContext, new RequestsCountQuery(API_ID), "user_agent.name");
 
         assertNotNull(result);
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    public void testSearchRequestsCountByEvent() throws Exception {
-        Assert.assertNotNull(analyticsRepository);
-
-        var result = analyticsRepository.searchRequestsCountByEvent(queryContext, new RequestsCountQuery(API_ID), "user_agent.name");
-
-        assertNotNull(result);
-
         assertTrue(result.isEmpty());
     }
 

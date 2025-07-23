@@ -27,10 +27,12 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountRe
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CountAnalytics;
+import io.gravitee.rest.api.management.v2.rest.model.GroupByAnalytics;
 import io.gravitee.rest.api.management.v2.rest.model.HistogramAnalytics;
 import io.gravitee.rest.api.management.v2.rest.model.HistogramAnalyticsAllOfValues;
 import io.gravitee.rest.api.management.v2.rest.model.HistogramTimestamp;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiAnalyticsParam;
+import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
@@ -124,4 +126,20 @@ public interface ApiAnalyticsMapper {
         range.setInterval(timestamp.getInterval().toMillis());
         return range;
     }
+
+    default GroupByAnalytics mapGroupByAnalytics(
+        io.gravitee.apim.core.analytics.model.GroupByAnalytics source,
+        Map<String, Map<String, String>> metadata
+    ) {
+        if (source == null) {
+            return null;
+        }
+        GroupByAnalytics analytics = new GroupByAnalytics();
+        analytics.analyticsType(AnalyticsType.GROUP_BY);
+        analytics.setValues(source.getValues());
+        analytics.setMetadata(metadata);
+        return analytics;
+    }
+
+    io.gravitee.rest.api.management.v2.rest.model.StatsAnalytics map(StatsAnalytics statsAnalytics);
 }
