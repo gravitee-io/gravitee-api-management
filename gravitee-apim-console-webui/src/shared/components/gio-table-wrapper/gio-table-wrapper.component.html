@@ -17,23 +17,29 @@
 -->
 
 <div class="gio-table-wrapper__header-bar">
-  <div>
-    <mat-form-field *ngIf="!disableSearchInput" class="gio-table-wrapper__header-bar__search-field">
-      <mat-icon matIconPrefix svgIcon="gio:search"></mat-icon>
-      <mat-label data-testid="search">{{ searchLabel }}</mat-label>
-      <input class="search-input" [formControl]="inputSearch" type="search" matInput />
-    </mat-form-field>
+  <div class="additional-filters">
+    <ng-content select="[gio-additional-filters]"></ng-content>
   </div>
 
-  <mat-paginator
-    class="gio-table-wrapper__header-bar__paginator"
-    #paginatorTop
-    [length]="length"
-    [pageSizeOptions]="paginationPageSizeOptions"
-    [hidePageSize]="disablePageSize"
-    aria-label="Select page"
-    data-testid="paginator-header"
-  ></mat-paginator>
+  <div class="gio-table-wrapper__header-bar__pagination-part">
+    <div>
+      <mat-form-field *ngIf="!disableSearchInput" class="gio-table-wrapper__header-bar__search-field">
+        <mat-icon matIconPrefix svgIcon="gio:search"></mat-icon>
+        <mat-label data-testid="search">{{ searchLabel }}</mat-label>
+        <input class="search-input" [formControl]="inputSearch" type="search" matInput />
+      </mat-form-field>
+    </div>
+
+    <mat-paginator
+      class="gio-table-wrapper__header-bar__paginator"
+      #paginatorTop
+      [length]="length"
+      [pageSizeOptions]="paginationPageSizeOptions"
+      [hidePageSize]="disablePageSize"
+      aria-label="Select page"
+      data-testid="paginator-header"
+    ></mat-paginator>
+  </div>
 </div>
 
 <div class="gio-table-wrapper__table"><ng-content select="[mat-table]"></ng-content></div>
