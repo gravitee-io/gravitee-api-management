@@ -26,7 +26,11 @@
     "marked-highlight": "^2.2.1"
   },
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "ngx-dynamic-hooks": "^3.1.2"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "devDependencies": {
+    "ngx-dynamic-hooks": "^3.1.2"
+  }
 }

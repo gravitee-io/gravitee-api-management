@@ -34,9 +34,15 @@ import { takeUntil } from 'rxjs/operators';
 
 import { GraviteeMonacoEditorConfig, GRAVITEE_MONACO_EDITOR_CONFIG } from './data/gravitee-monaco-editor-config';
 import { GraviteeMonacoWrapperService } from './gravitee-monaco-wrapper.service';
+import { componentLibrarySuggestions } from '../component-library/components/index.suggestions';
 
 export type MonacoEditorLanguageConfig = {
-  language: 'markdown';
+  language: 'markdown' | 'html';
+};
+
+// Default language configuration
+export const DEFAULT_LANGUAGE_CONFIG: MonacoEditorLanguageConfig = {
+  language: 'html'
 };
 
 @Component({
@@ -53,7 +59,7 @@ export type MonacoEditorLanguageConfig = {
 })
 export class GraviteeMonacoWrapperComponent implements ControlValueAccessor, AfterViewInit, OnDestroy {
   // Signal inputs
-  languageConfig = input<MonacoEditorLanguageConfig | undefined>(undefined);
+  languageConfig = input<MonacoEditorLanguageConfig | undefined>(DEFAULT_LANGUAGE_CONFIG);
   options = input<Monaco.editor.IStandaloneEditorConstructionOptions>({});
   disableMiniMap = input<boolean>(false);
   disableAutoFormat = input<boolean>(false);
@@ -82,6 +88,10 @@ export class GraviteeMonacoWrapperComponent implements ControlValueAccessor, Aft
     },
     automaticLayout: true,
     scrollBeyondLastLine: false,
+    acceptSuggestionOnEnter: 'on',
+    autoClosingBrackets: 'always',
+    autoClosingQuotes: 'always',
+    autoClosingOvertype: 'always',
   };
 
   constructor(
@@ -160,9 +170,33 @@ export class GraviteeMonacoWrapperComponent implements ControlValueAccessor, Aft
     const domElement = this.hostElement.nativeElement;
     const settings = {
       value: this.value,
-      language: this.languageConfig()?.language ?? (isJsonString(this.value) ? 'json' : 'plaintext'),
+      language: 'html', // Use HTML for better component syntax highlighting
       uri: `code-${uniqueId()}`,
     };
+
+    // Register completion provider for HTML
+    const completionProvider = monaco.languages.registerCompletionItemProvider('html', {
+      provideCompletionItems: (model: any, position: any) => {
+        const word = model.getWordUntilPosition(position);
+        const range = {
+          startLineNumber: position.lineNumber,
+          endLineNumber: position.lineNumber,
+          startColumn: word.startColumn,
+          endColumn: word.endColumn
+        };        
+        // Check the context to determine if we need to include the opening "<"
+        const lineContent = model.getLineContent(position.lineNumber);
+        const beforeCursor = lineContent.substring(0, position.column - 1);
+        const needsOpeningTag = !beforeCursor.trim().endsWith('<');
+        
+        return {
+          suggestions: componentLibrarySuggestions(range, needsOpeningTag),
+        };
+      },
+    });
+    
+    // Add to disposables to clean up later
+    this.toDisposes.push(completionProvider);
 
     this.ngZone.runOutsideAngular(() => {
       this.textModel = monaco.editor.createModel(settings.value, settings.language, monaco.Uri.parse(settings.uri));

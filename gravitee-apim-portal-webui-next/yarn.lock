@@ -2780,6 +2780,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gravitee/gravitee-markdown@workspace:projects/gravitee-markdown"
   dependencies:
+    ngx-dynamic-hooks: "npm:^3.1.2"
     tslib: "npm:^2.3.0"
   peerDependencies:
     "@angular/common": ^19.2.0
@@ -2794,6 +2795,7 @@ __metadata:
     marked-extended-tables: ^1.1.1
     marked-gfm-heading-id: ^3.2.0
     marked-highlight: ^2.2.1
+    ngx-dynamic-hooks: ^1.0.0
   languageName: unknown
   linkType: soft
 
@@ -14383,6 +14385,20 @@ __metadata:
   bin:
     ng-packagr: cli/main.js
   checksum: 10c0/1f2802f2ea418b2a88503a3142c1b04bff4a7cd1673bced2fcb5189260fe78fd9b575f6746255268757d17ce456d019e9a96a1d6dd33995bc1212be776e24321
+  languageName: node
+  linkType: hard
+
+"ngx-dynamic-hooks@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "ngx-dynamic-hooks@npm:3.1.2"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/common": ">=17"
+    "@angular/core": ">=17"
+    "@angular/platform-browser": ">=17"
+    rxjs: ">=7"
+  checksum: 10c0/99d1b3b07f12aabd31fe1a5b3f763232451f41d35fea9b08ab79649e4e5ec6b4e10a12d9f287baf1807bf755f8a585a61a124eb080e1eb7228b64d9f96d73dc4
   languageName: node
   linkType: hard
 

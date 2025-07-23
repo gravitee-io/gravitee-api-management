@@ -1,55 +1,22 @@
 # Gravitee Markdown Library
 
-A comprehensive markdown library for Angular applications with viewer and editor components.
+A comprehensive markdown library for Angular applications with support for dynamic component rendering.
 
 ## Features
 
-- **Markdown Viewer**: Renders markdown content with syntax highlighting
-- **Markdown Editor**: Full-featured editor with live preview using Monaco Editor
-- **Split View**: Edit on the left, preview on the right
-- **Real-time Preview**: See changes as you type
-- **Syntax Highlighting**: Code blocks with language-specific highlighting
-- **GitHub Flavored Markdown**: Full GFM support
+- **Markdown Viewer**: Render markdown content with syntax highlighting
+- **Markdown Editor**: Edit markdown content with Monaco editor integration
+- **Dynamic Components**: Embed custom Angular components in markdown content
+- **Dark Theme Support**: Toggle between light and dark themes
+- **Custom Components**: Register your own components for dynamic rendering
 
 ## Installation
 
 ```bash
-yarn add @gravitee/gravitee-markdown
+npm install @gravitee/gravitee-markdown
 ```
 
-## Usage
-
-### Markdown Editor
-
-The markdown editor uses Monaco Editor directly for a better development experience:
-
-```typescript
-import { GraviteeMarkdownEditorComponent } from '@gravitee/gravitee-markdown';
-
-@Component({
-  selector: 'app-editor',
-  template: `
-    <gravitee-markdown-editor
-      placeholder="Start writing your markdown..."
-      [darkTheme]="false"
-      (contentChange)="onContentChange($event)"
-      (errorChange)="onErrorChange($event)">
-    </gravitee-markdown-editor>
-  `,
-  imports: [GraviteeMarkdownEditorComponent]
-})
-export class EditorComponent {
-  onContentChange(content: string) {
-    console.log('Content changed:', content);
-  }
-
-  onErrorChange(error: string | null) {
-    if (error) {
-      console.error('Editor error:', error);
-    }
-  }
-}
-```
+## Basic Usage
 
 ### Markdown Viewer
 
@@ -57,44 +24,188 @@ export class EditorComponent {
 import { GraviteeMarkdownViewerComponent } from '@gravitee/gravitee-markdown';
 
 @Component({
-  selector: 'app-viewer',
+  selector: 'app-example',
   template: `
     <gravitee-markdown-viewer
       [content]="markdownContent"
-      baseUrl="https://example.com"
-      pageBaseUrl="https://example.com/docs">
-    </gravitee-markdown-viewer>
+      [darkTheme]="false"
+      [baseUrl]="'/api'"
+      [pageBaseUrl]="'/pages'"
+    ></gravitee-markdown-viewer>
   `,
-  imports: [GraviteeMarkdownViewerComponent]
+  imports: [GraviteeMarkdownViewerComponent],
+  standalone: true
 })
-export class ViewerComponent {
-  markdownContent = `# Hello World
+export class ExampleComponent {
+  markdownContent = `
+# Hello World
 
-This is **bold** text and *italic* text.
-
-\`\`\`javascript
-console.log('Hello, World!');
-\`\`\`
-`;
+This is some **markdown** content with <app-copy-code text="console.log('Hello World')"></app-copy-code>.
+  `;
 }
 ```
 
-## Editor Features
+## Dynamic Components
 
-- **Monaco Editor Integration**: Uses Monaco Editor directly for better performance
-- **Live Preview**: Real-time markdown rendering
-- **Split View**: Edit and preview side by side
-- **Theme Support**: Light and dark themes
-- **Error Handling**: Content validation and error reporting
-- **Responsive Design**: Works on desktop and mobile
+The library supports rendering custom Angular components within markdown content. You can register components that will be dynamically rendered when referenced in the markdown.
 
-## Dependencies
+### Registering Components
 
-- `monaco-editor`: For the code editor functionality
-- `marked`: For markdown parsing
-- `highlight.js`: For syntax highlighting
-- Angular 19+ components
+```typescript
+import { GraviteeMarkdownViewerRegistryService, CopyCodeComponent } from '@gravitee/gravitee-markdown';
 
-## Migration from ngx-monaco-editor-v2
+@Component({
+  // ... your component
+})
+export class AppComponent {
+  constructor(private registryService: GraviteeMarkdownViewerRegistryService) {
+    // Register the copy-code component
+    this.registryService.registerComponent({
+      selector: 'app-copy-code',
+      component: CopyCodeComponent,
+      inputs: {
+        text: 'default-text'
+      }
+    });
+  }
+}
+```
 
-This library previously used `ngx-monaco-editor-v2` but has been migrated to use Monaco Editor directly for better performance and reliability. The API remains the same, so no changes are needed in your existing code.
+### Using Dynamic Components in Markdown
+
+Once registered, you can use your components in markdown content:
+
+```markdown
+# Example
+
+Here's some code you can copy:
+
+<app-copy-code text="console.log('Hello from dynamic component!')"></app-copy-code>
+
+This will render the CopyCodeComponent with the specified text.
+```
+
+### Creating Custom Components
+
+You can create your own components for dynamic rendering:
+
+```typescript
+import { Component, input } from '@angular/core';
+
+@Component({
+  selector: 'app-custom-component',
+  standalone: true,
+  template: `
+    <div class="custom-component">
+      <h3>{{ title() }}</h3>
+      <p>{{ content() }}</p>
+    </div>
+  `
+})
+export class CustomComponent {
+  title = input<string>('');
+  content = input<string>('');
+}
+```
+
+Then register it:
+
+```typescript
+this.registryService.registerComponent({
+  selector: 'app-custom-component',
+  component: CustomComponent
+});
+```
+
+And use it in markdown:
+
+```markdown
+<app-custom-component title="My Title" content="My content"></app-custom-component>
+```
+
+## API Reference
+
+### GraviteeMarkdownViewerComponent
+
+#### Inputs
+
+- `content: string` - The markdown content to render
+- `darkTheme: boolean` - Enable dark theme (default: false)
+- `highlightTheme: string` - Syntax highlighting theme (default: 'github')
+- `baseUrl: string` - Base URL for media links
+- `pageBaseUrl: string` - Base URL for page links
+
+### GraviteeMarkdownViewerRegistryService
+
+#### Methods
+
+- `registerComponent(config: DynamicComponentConfig): void` - Register a component for dynamic rendering
+- `registerComponents(configs: DynamicComponentConfig[]): void` - Register multiple components
+- `getComponent(selector: string): DynamicComponentConfig | undefined` - Get a registered component
+- `getAllComponents(): DynamicComponentConfig[]` - Get all registered components
+- `hasComponent(selector: string): boolean` - Check if a component is registered
+- `clear(): void` - Clear all registered components
+
+### DynamicComponentConfig
+
+```typescript
+interface DynamicComponentConfig {
+  selector: string;           // The HTML tag name to match
+  component: Type<any>;       // The Angular component class
+  inputs?: Record<string, any>; // Default input values
+}
+```
+
+## Examples
+
+### Complete Setup Example
+
+```typescript
+import { Component, OnInit } from '@angular/core';
+import { 
+  GraviteeMarkdownViewerComponent,
+  GraviteeMarkdownViewerRegistryService,
+  CopyCodeComponent
+} from '@gravitee/gravitee-markdown';
+
+@Component({
+  selector: 'app-documentation',
+  template: `
+    <gravitee-markdown-viewer
+      [content]="documentationContent"
+      [darkTheme]="isDarkTheme"
+    ></gravitee-markdown-viewer>
+  `,
+  imports: [GraviteeMarkdownViewerComponent],
+  standalone: true
+})
+export class DocumentationComponent implements OnInit {
+  documentationContent = `
+# API Documentation
+
+Here's how to make a request:
+
+<app-copy-code text="curl -X GET https://api.example.com/v1/users"></app-copy-code>
+
+## Response Format
+
+The API returns JSON responses.
+  `;
+
+  isDarkTheme = false;
+
+  constructor(private registryService: GraviteeMarkdownViewerRegistryService) {}
+
+  ngOnInit() {
+    // Register the copy-code component
+    this.registryService.registerComponent({
+      selector: 'app-copy-code',
+      component: CopyCodeComponent
+    });
+  }
+}
+```
+
+## License
+
+Apache License 2.0
