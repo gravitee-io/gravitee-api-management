@@ -19,14 +19,13 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatCardHarness } from '@angular/material/card/testing';
 
-import { ReporterSettingsComponent } from './reporter-settings.component';
-
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ReporterSettingsComponent } from '../reporter-settings.component';
 
 describe('ReporterSettingsComponent', () => {
   const API_ID = 'xyz-abc-pqr';
@@ -44,7 +43,7 @@ describe('ReporterSettingsComponent', () => {
         },
         {
           provide: ActivatedRoute,
-          useValue: { params: of({ apiId: API_ID }) },
+          useValue: { snapshot: { params: { apiId: API_ID } } },
         },
       ],
     })
@@ -85,22 +84,9 @@ describe('ReporterSettingsComponent', () => {
       expectGetAPI('V2', 'HTTP', API_ID, {
         enabled: true,
       });
-      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness);
+      const emptyState = await harnessLoader.getHarness(MatCardHarness);
 
-      expect(await toggle.isDisabled()).toEqual(true);
-      expect(await toggle.isChecked()).toEqual(true);
-    });
-
-    it('should disable toggle when not NATIVE API', async () => {
-      await init(['api-definition-r', 'api-definition-u']);
-      fixture.detectChanges();
-      expectGetAPI('V4', 'HTTP', API_ID, {
-        enabled: true,
-      });
-      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness);
-
-      expect(await toggle.isDisabled()).toEqual(true);
-      expect(await toggle.isChecked()).toEqual(true);
+      expect(await emptyState.getText()).toContain('The reporter settings are not available for your API.');
     });
 
     it('should not be checked when analytics is null', async () => {

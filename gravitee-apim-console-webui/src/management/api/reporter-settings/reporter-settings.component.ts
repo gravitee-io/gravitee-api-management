@@ -13,72 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { map, switchMap, tap } from 'rxjs/operators';
-import { MatCardModule } from '@angular/material/card';
-import { GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
-import { MatHint } from '@angular/material/form-field';
+import { AsyncPipe } from '@angular/common';
+import { Observable } from 'rxjs';
+import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
+
+import { ReporterSettingsNativeComponent } from './reporter-settings-native/reporter-settings-native.component';
 
 import { ApiV4 } from '../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { onlyApiV4Filter } from '../../../util/apiFilter.operator';
 
 @Component({
   selector: 'reporter-settings',
-  imports: [MatCardModule, FormsModule, GioFormSlideToggleModule, MatSlideToggle, ReactiveFormsModule, MatHint],
+  imports: [AsyncPipe, ReporterSettingsNativeComponent, GioCardEmptyStateModule],
   templateUrl: './reporter-settings.component.html',
-  styleUrl: './reporter-settings.component.scss',
 })
-export class ReporterSettingsComponent implements OnInit {
-  reporterSettingsForm: FormGroup<{ enabled: FormControl<boolean> }>;
-  private destroyRef: DestroyRef = inject(DestroyRef);
-  private api: ApiV4;
+export class ReporterSettingsComponent {
+  api$: Observable<ApiV4> = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter());
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
-    private permissionService: GioPermissionService,
   ) {}
-
-  ngOnInit(): void {
-    this.activatedRoute.params
-      .pipe(
-        map((params) => params.apiId),
-        switchMap((apiId) =>
-          this.apiService.get(apiId).pipe(
-            tap((response: ApiV4) => {
-              this.api = response;
-            }),
-            map((api: ApiV4) => ({
-              value: api.analytics ? api.analytics.enabled : false,
-              disabled:
-                api.definitionVersion !== 'V4' || api.type !== 'NATIVE' || !this.permissionService.hasAnyMatching(['api-definition-u']),
-            })),
-          ),
-        ),
-        tap((formControlState) => {
-          this.reporterSettingsForm = new FormGroup({
-            enabled: new FormControl<boolean>(formControlState),
-          });
-        }),
-        switchMap(() =>
-          this.reporterSettingsForm.get('enabled')!.valueChanges.pipe(
-            tap((value) => {
-              if (!this.api.analytics) {
-                this.api.analytics = { enabled: value };
-              } else {
-                this.api.analytics.enabled = value;
-              }
-            }),
-            switchMap(() => this.apiService.update(this.api.id, this.api)),
-          ),
-        ),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
-  }
 }
