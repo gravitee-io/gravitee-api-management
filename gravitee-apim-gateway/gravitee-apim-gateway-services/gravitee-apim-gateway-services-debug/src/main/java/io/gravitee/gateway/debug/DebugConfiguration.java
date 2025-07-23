@@ -425,9 +425,10 @@ public class DebugConfiguration {
 
     @Bean
     public ReactorHandlerRegistry debugReactorHandlerRegistry(
-        @Qualifier("debugReactorHandlerFactoryManager") ReactorFactoryManager reactorFactoryManager
+        @Qualifier("debugReactorHandlerFactoryManager") ReactorFactoryManager reactorFactoryManager,
+        EventManager eventManager
     ) {
-        return new DefaultReactorHandlerRegistry(reactorFactoryManager);
+        return new DefaultReactorHandlerRegistry(reactorFactoryManager, eventManager);
     }
 
     @Bean

@@ -30,9 +30,6 @@ import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.license.ForbiddenFeatureException;
 import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.secrets.api.discovery.DefinitionMetadata;
-import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
-import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -216,10 +213,6 @@ public class ApiManagerImpl implements ApiManager {
                 for (String plan : plans) {
                     log.debug("\t- {}", plan);
                 }
-                eventManager.publishEvent(
-                    SecretDiscoveryEventType.DISCOVER,
-                    new SecretDiscoveryEvent(api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision()))
-                );
                 apis.put(api.getId(), api);
                 eventManager.publishEvent(ReactorEvent.DEPLOY, api);
                 log.info("{} has been deployed", api);
@@ -259,10 +252,6 @@ public class ApiManagerImpl implements ApiManager {
             for (String plan : plans) {
                 log.debug("\t- {}", plan);
             }
-            eventManager.publishEvent(
-                SecretDiscoveryEventType.DISCOVER,
-                new SecretDiscoveryEvent(api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision()))
-            );
             apis.put(api.getId(), api);
             eventManager.publishEvent(ReactorEvent.UPDATE, api);
             log.info("{} has been updated", api);
@@ -283,14 +272,6 @@ public class ApiManagerImpl implements ApiManager {
             MDC.put("api", apiId);
             log.debug("Undeployment of {}", currentApi);
             eventManager.publishEvent(ReactorEvent.UNDEPLOY, currentApi);
-            eventManager.publishEvent(
-                SecretDiscoveryEventType.REVOKE,
-                new SecretDiscoveryEvent(
-                    currentApi.getEnvironmentId(),
-                    currentApi.getDefinition(),
-                    new DefinitionMetadata(currentApi.getRevision())
-                )
-            );
             log.info("{} has been undeployed", currentApi);
             MDC.remove("api");
         }
