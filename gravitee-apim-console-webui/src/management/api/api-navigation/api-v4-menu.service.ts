@@ -392,9 +392,6 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Logs',
         icon: 'align-justify',
         routerLink: hasTcpListeners ? 'DISABLED' : 'v4/runtime-logs',
-        header: {
-          title: 'Runtime Logs',
-        },
       };
     }
     return null;

@@ -19,6 +19,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
+import { RouterLink } from '@angular/router';
 
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsListModule, ApiRuntimeLogsQuickFiltersModule } from './components';
@@ -33,6 +34,7 @@ import { QuickFiltersStoreService } from './services';
     MatIconModule,
     GioLoaderModule,
     MatCardModule,
+    RouterLink,
   ],
   declarations: [ApiRuntimeLogsComponent],
   exports: [ApiRuntimeLogsComponent],
