@@ -17,20 +17,19 @@ import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { of } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiRuntimeLogsProxySettingsModule } from './api-runtime-logs-proxy-settings.module';
-import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-settings.component';
+import { ReporterSettingsProxyComponent } from './reporter-settings-proxy.component';
 
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiV4, fakeProxyApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiV4, fakeProxyApiV4 } from '../../../../entities/management-api-v2';
 
 const api = fakeProxyApiV4();
 
 export default {
   title: 'API / Logs / Settings / Proxy',
-  component: ApiRuntimeLogsProxySettingsComponent,
+  component: ReporterSettingsProxyComponent,
   decorators: [
     moduleMetadata({
-      imports: [ApiRuntimeLogsProxySettingsModule],
+      imports: [ReporterSettingsProxyComponent],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: api.id } } } },
         {
@@ -51,7 +50,7 @@ export default {
   render: (args) => ({
     template: `
       <div style="width: 870px">
-        <api-runtime-logs-proxy-settings></api-runtime-logs-proxy-settings>
+        <reporter-settings-proxy [api]="api"></reporter-settings-proxy>
       </div>
     `,
     props: args,
@@ -59,4 +58,4 @@ export default {
 } as Meta;
 
 export const Default: StoryObj = {};
-Default.args = {};
+Default.args = { api };

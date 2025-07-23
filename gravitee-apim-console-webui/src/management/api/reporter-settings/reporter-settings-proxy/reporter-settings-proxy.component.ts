@@ -13,15 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { EMPTY, merge, Subject } from 'rxjs';
-import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Component, DestroyRef, inject, input, InputSignal, OnInit } from '@angular/core';
+import { FormsModule, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { EMPTY, merge } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { GioBannerModule, GioFormSlideToggleModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiV4 } from '../../../../../entities/management-api-v2';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiV4 } from '../../../../entities/management-api-v2';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 type DefaultConfiguration = {
   entrypoint: boolean;
@@ -36,15 +46,32 @@ type DefaultConfiguration = {
 };
 
 @Component({
-  selector: 'api-runtime-logs-proxy-settings',
-  templateUrl: './api-runtime-logs-proxy-settings.component.html',
-  styleUrls: ['./api-runtime-logs-proxy-settings.component.scss'],
-  standalone: false,
+  selector: 'reporter-settings-proxy',
+  templateUrl: './reporter-settings-proxy.component.html',
+  styleUrls: ['./reporter-settings-proxy.component.scss'],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatSnackBarModule,
+    ReactiveFormsModule,
+
+    GioBannerModule,
+    GioIconsModule,
+    GioSaveBarModule,
+    GioFormSlideToggleModule,
+    MatSlideToggle,
+  ],
 })
-export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+export class ReporterSettingsProxyComponent implements OnInit {
+  api: InputSignal<ApiV4> = input.required<ApiV4>();
   form: UntypedFormGroup;
   defaultConfiguration: DefaultConfiguration;
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -53,20 +80,7 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.apiService
-      .get(this.activatedRoute.snapshot.params.apiId)
-      .pipe(
-        tap((api: ApiV4) => {
-          this.initForm(api);
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
-  }
-
-  ngOnDestroy() {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
+    this.initForm(this.api());
   }
 
   submit() {
@@ -115,7 +129,7 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
           this.defaultConfiguration = this.form.getRawValue();
           this.form.reset(this.defaultConfiguration, { emitEvent: false });
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
@@ -188,7 +202,7 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
             this.form.get('tracingEnabled').disable();
           }
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
 
@@ -201,7 +215,7 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
             this.clearAndDisableLoggingFormFields();
           }
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
@@ -217,7 +231,7 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
             this.form.get('tracingVerbose').enable();
           }
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }

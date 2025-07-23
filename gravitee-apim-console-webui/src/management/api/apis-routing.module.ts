@@ -52,7 +52,6 @@ import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.com
 import { ApiEventsComponent } from './audit/events/api-events.component';
 import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-endpoint-group.component';
 import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/create/api-endpoint-group-create.component';
-import { ApiRuntimeLogsSettingsComponent } from './api-traffic-v4/runtime-logs-settings/api-runtime-logs-settings.component';
 import { ApiRuntimeLogsComponent } from './api-traffic-v4/runtime-logs/api-runtime-logs.component';
 import { ApiListComponent } from './list/api-list.component';
 import { ApiCreationGetStartedComponent } from './creation-get-started/api-creation-get-started.component';
@@ -1046,18 +1045,6 @@ const apisRoutes: Routes = [
           },
         },
         component: ApiRuntimeLogsDetailsComponent,
-      },
-      {
-        path: 'v4/runtime-logs-settings',
-        data: {
-          permissions: {
-            anyOf: ['api-log-u'],
-          },
-          docs: {
-            page: 'management-api-logs',
-          },
-        },
-        component: ApiRuntimeLogsSettingsComponent,
       },
       {
         path: 'v4/entrypoints',
