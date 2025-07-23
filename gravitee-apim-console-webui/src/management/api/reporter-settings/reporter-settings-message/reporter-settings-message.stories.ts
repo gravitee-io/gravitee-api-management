@@ -18,12 +18,12 @@ import { of } from 'rxjs';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiRuntimeLogsMessageSettingsModule } from './api-runtime-logs-message-settings.module';
-import { ApiRuntimeLogsMessageSettingsComponent } from './api-runtime-logs-message-settings.component';
+import { ReporterSettingsMessageComponent } from './reporter-settings-message.component';
 
-import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { GioPermissionService, GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { GioPermissionService, GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { PortalConfigurationService } from '../../../../services-ngx/portal-configuration.service';
 
 const api = fakeApiV4({
   analytics: {
@@ -44,10 +44,10 @@ const api = fakeApiV4({
 
 export default {
   title: 'API / Logs / Settings / Message',
-  component: ApiRuntimeLogsMessageSettingsComponent,
+  component: ReporterSettingsMessageComponent,
   decorators: [
     moduleMetadata({
-      imports: [ApiRuntimeLogsMessageSettingsModule, BrowserAnimationsModule],
+      imports: [ReporterSettingsMessageComponent, BrowserAnimationsModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: api.id } } } },
         {
@@ -58,6 +58,31 @@ export default {
             },
             update: (_: ApiV4) => {
               return of(api);
+            },
+          },
+        },
+        {
+          provide: PortalConfigurationService,
+          useValue: {
+            get: () => {
+              return of({
+                logging: {
+                  messageSampling: {
+                    probabilistic: {
+                      limit: 0.52,
+                      default: 0.33322,
+                    },
+                    count: {
+                      limit: 40,
+                      default: 666,
+                    },
+                    temporal: {
+                      limit: 'PT10S',
+                      default: 'PT10S',
+                    },
+                  },
+                },
+              });
             },
           },
         },
@@ -78,7 +103,7 @@ export default {
   render: (args) => ({
     template: `
       <div style="width: 870px">
-        <api-runtime-logs-message-settings [api]="api"></api-runtime-logs-message-settings>
+        <reporter-settings-message [api]="api"></reporter-settings-message>
       </div>
     `,
     props: args,
@@ -86,6 +111,4 @@ export default {
 } as Meta;
 
 export const Default: StoryObj = {};
-Default.args = {
-  api,
-};
+Default.args = { api };

@@ -21,6 +21,7 @@ import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
 
 import { ReporterSettingsNativeComponent } from './reporter-settings-native/reporter-settings-native.component';
 import { ReporterSettingsProxyComponent } from './reporter-settings-proxy/reporter-settings-proxy.component';
+import { ReporterSettingsMessageComponent } from './reporter-settings-message/reporter-settings-message.component';
 
 import { ApiV4 } from '../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
@@ -28,7 +29,13 @@ import { onlyApiV4Filter } from '../../../util/apiFilter.operator';
 
 @Component({
   selector: 'reporter-settings',
-  imports: [AsyncPipe, ReporterSettingsNativeComponent, GioCardEmptyStateModule, ReporterSettingsProxyComponent],
+  imports: [
+    AsyncPipe,
+    ReporterSettingsNativeComponent,
+    GioCardEmptyStateModule,
+    ReporterSettingsProxyComponent,
+    ReporterSettingsMessageComponent,
+  ],
   templateUrl: './reporter-settings.component.html',
 })
 export class ReporterSettingsComponent {

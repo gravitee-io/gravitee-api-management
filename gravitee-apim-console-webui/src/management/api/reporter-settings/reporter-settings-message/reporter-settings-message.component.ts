@@ -13,33 +13,71 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, merge, Subject } from 'rxjs';
-import { duration } from 'moment/moment';
+
 import { ActivatedRoute } from '@angular/router';
+import { duration } from 'moment/moment';
+import { EMPTY, merge } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import {
+  AbstractControl,
+  ReactiveFormsModule,
+  UntypedFormControl,
+  UntypedFormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
+import { Component, DestroyRef, inject, input, InputSignal, OnInit } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
+import { GioBannerModule, GioFormSlideToggleModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { isIso8601DateValid } from './iso-8601-date.validator';
 
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { Analytics, ApiV4, SamplingTypeEnum } from '../../../../../entities/management-api-v2';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { PortalConfiguration } from '../../../../../entities/portal/portalSettings';
-import { PortalConfigurationService } from '../../../../../services-ngx/portal-configuration.service';
+import { PortalConfiguration } from '../../../../entities/portal/portalSettings';
+import { Analytics, ApiV4, SamplingTypeEnum } from '../../../../entities/management-api-v2';
+import { PortalConfigurationService } from '../../../../services-ngx/portal-configuration.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
-  selector: 'api-runtime-logs-message-settings',
-  templateUrl: './api-runtime-logs-message-settings.component.html',
-  styleUrls: ['./api-runtime-logs-message-settings.component.scss'],
-  standalone: false,
+  selector: 'reporter-settings-message',
+  templateUrl: './reporter-settings-message.component.html',
+  styleUrls: ['./reporter-settings-message.component.scss'],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatSlideToggleModule,
+    MatSnackBarModule,
+    MatTooltipModule,
+    ReactiveFormsModule,
+
+    GioBannerModule,
+    GioFormSlideToggleModule,
+    GioIconsModule,
+    GioSaveBarModule,
+  ],
 })
-export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy {
-  @Input() public api: ApiV4;
+export class ReporterSettingsMessageComponent implements OnInit {
   form: UntypedFormGroup;
   initialFormValue: unknown;
   settings: PortalConfiguration;
-  private unsubscribe$: Subject<void> = new Subject<void>();
+  api: InputSignal<ApiV4> = input.required<ApiV4>();
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -51,7 +89,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   public ngOnInit(): void {
     this.portalConfigService
       .get()
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((settings) => {
         this.settings = settings;
         this.initForm();
@@ -60,11 +98,6 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
         this.handleSamplingTypeChanges();
         this.handleLoggingModeChanges();
       });
-  }
-
-  public ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
   }
 
   public save(): void {
@@ -102,8 +135,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
           };
           return this.apiService.update(api.id, { ...api, analytics });
         }),
-        tap((api: ApiV4) => {
-          this.api = api;
+        tap(() => {
           this.initialFormValue = this.form.getRawValue();
           this.form.markAsPristine();
         }),
@@ -114,15 +146,16 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
 
   private initForm(): void {
-    const analyticsEnabled = this.api.analytics?.enabled;
-    const loggingModeDisabled = !(this.api?.analytics?.logging?.mode?.entrypoint || this.api?.analytics?.logging?.mode?.endpoint);
-    const isReadOnly = this.api.definitionContext?.origin === 'KUBERNETES';
+    const api = this.api();
+    const analyticsEnabled = api.analytics?.enabled;
+    const loggingModeDisabled = !(api?.analytics?.logging?.mode?.entrypoint || api?.analytics?.logging?.mode?.endpoint);
+    const isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
 
     this.form = new UntypedFormGroup({
       enabled: new UntypedFormControl({
@@ -130,66 +163,66 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
         disabled: isReadOnly,
       }),
       entrypoint: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.mode?.entrypoint ?? false,
+        value: api?.analytics?.logging?.mode?.entrypoint ?? false,
         disabled: !analyticsEnabled || isReadOnly,
       }),
       endpoint: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.mode?.endpoint ?? false,
+        value: api?.analytics?.logging?.mode?.endpoint ?? false,
         disabled: !analyticsEnabled || isReadOnly,
       }),
       tracingEnabled: new UntypedFormControl({
-        value: this.api.analytics?.tracing?.enabled ?? false,
+        value: api.analytics?.tracing?.enabled ?? false,
         disabled: !analyticsEnabled || isReadOnly,
       }),
       tracingVerbose: new UntypedFormControl({
-        value: this.api.analytics?.tracing?.verbose ?? false,
-        disabled: !analyticsEnabled || !this.api.analytics?.tracing?.enabled || isReadOnly,
+        value: api.analytics?.tracing?.verbose ?? false,
+        disabled: !analyticsEnabled || !api.analytics?.tracing?.enabled || isReadOnly,
       }),
       request: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.phase?.request ?? false,
+        value: api?.analytics?.logging?.phase?.request ?? false,
         disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       response: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.phase?.response ?? false,
+        value: api?.analytics?.logging?.phase?.response ?? false,
         disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       messageContent: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.content?.messagePayload ?? false,
+        value: api?.analytics?.logging?.content?.messagePayload ?? false,
         disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       messageHeaders: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.content?.messageHeaders ?? false,
+        value: api?.analytics?.logging?.content?.messageHeaders ?? false,
         disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       messageMetadata: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.content?.messageMetadata ?? false,
+        value: api?.analytics?.logging?.content?.messageMetadata ?? false,
         disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       headers: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.content?.headers ?? false,
+        value: api?.analytics?.logging?.content?.headers ?? false,
         disabled: !analyticsEnabled || loggingModeDisabled || isReadOnly,
       }),
       requestCondition: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.condition,
+        value: api?.analytics?.logging?.condition,
         disabled: !analyticsEnabled || isReadOnly,
       }),
       messageCondition: new UntypedFormControl({
-        value: this.api?.analytics?.logging?.messageCondition,
+        value: api?.analytics?.logging?.messageCondition,
         disabled: !analyticsEnabled || isReadOnly,
       }),
       samplingType: new UntypedFormControl(
         {
-          value: this.api?.analytics?.sampling?.type,
+          value: api?.analytics?.sampling?.type,
           disabled: !analyticsEnabled || isReadOnly,
         },
         Validators.required,
       ),
       samplingValue: new UntypedFormControl(
         {
-          value: this.api?.analytics?.sampling?.value ?? this.getSamplingDefaultValue(this.api?.analytics?.sampling?.type),
+          value: api?.analytics?.sampling?.value ?? this.getSamplingDefaultValue(api?.analytics?.sampling?.type),
           disabled: !analyticsEnabled || isReadOnly,
         },
-        this.getSamplingValueValidators(this.api?.analytics?.sampling?.type),
+        this.getSamplingValueValidators(api?.analytics?.sampling?.type),
       ),
     });
     this.initialFormValue = this.form.getRawValue();
@@ -198,7 +231,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   private handleEnabledChanges(): void {
     this.form
       .get('enabled')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((enabled) => {
         if (!enabled) {
           Object.entries(this.form.controls)
@@ -226,7 +259,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   private handleTracingEnabledChanges(): void {
     this.form
       .get('tracingEnabled')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((tracingEnabled) => {
         if (!tracingEnabled) {
           this.disableAndUncheck('tracingVerbose');
@@ -239,7 +272,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   private handleSamplingTypeChanges(): void {
     this.form
       .get('samplingType')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
         const samplingValueControl = this.form.get('samplingValue');
         samplingValueControl.setValue(this.getSamplingDefaultValue(value));
@@ -251,7 +284,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
 
   private handleLoggingModeChanges(): void {
     merge(this.form.get('entrypoint').valueChanges, this.form.get('endpoint').valueChanges)
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         const formValues = this.form.getRawValue();
         const loggingModeDisabled = !(formValues.entrypoint || formValues.endpoint);
@@ -297,8 +330,8 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
 
   private getSamplingDefaultValue(samplingType: SamplingTypeEnum): string | number | null {
     // If a value is already set for the selected sampling type, then choose the one from api.
-    if (this.api?.analytics?.sampling?.type === samplingType) {
-      return this?.api.analytics?.sampling?.value;
+    if (this.api()?.analytics?.sampling?.type === samplingType) {
+      return this?.api().analytics?.sampling?.value;
     }
     switch (samplingType) {
       case 'PROBABILITY':
