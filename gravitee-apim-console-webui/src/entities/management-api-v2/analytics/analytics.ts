@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 import { AnalyticsHistogramAggregation } from './analyticsHistogram';
+import { GroupByField } from './analyticsGroupBy';
 
-export type WidgetType = 'line' | 'pie';
+export type WidgetType = 'line' | 'pie' | 'table';
 
-export interface ChartWidgetConfig {
-  type?: WidgetType;
+export interface WidgetConfig {
+  type: WidgetType;
   apiId: string;
   aggregations?: AnalyticsHistogramAggregation[];
   title: string;
   tooltip: string;
   shouldSortBuckets?: boolean;
+  groupByField?: GroupByField;
 }

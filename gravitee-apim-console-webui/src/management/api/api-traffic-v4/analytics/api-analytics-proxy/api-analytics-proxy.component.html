@@ -18,9 +18,17 @@
 <div class="api-analytics">
   <api-analytics-filters-bar />
 
-  <div class="chart-widgets">
-    @for (widget of chartWidgetConfigs; track widget.title) {
-      <chart-widget [config]="widget" />
-    }
+  <div class="widgets">
+    <div class="left-column">
+      @for (widget of chartWidgets; track widget.title) {
+        <chart-widget [config]="widget" />
+      }
+    </div>
+
+    <div class="right-column">
+      @for (widget of tableWidgets; track widget.title) {
+        <chart-widget [config]="widget" />
+      }
+    </div>
   </div>
 </div>

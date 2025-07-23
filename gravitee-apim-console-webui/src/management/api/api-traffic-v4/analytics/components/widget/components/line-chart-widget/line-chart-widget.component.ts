@@ -28,7 +28,7 @@ import {
   Bucket,
   HistogramAnalyticsResponse,
 } from '../../../../../../../../entities/management-api-v2/analytics/analyticsHistogram';
-import { ChartWidgetConfig } from '../../../../../../../../entities/management-api-v2/analytics/analytics';
+import { WidgetConfig } from '../../../../../../../../entities/management-api-v2/analytics/analytics';
 
 const namesFormatted = {
   'avg_gateway-response-time-ms': 'Gateway Response Time',
@@ -45,7 +45,7 @@ export class LineChartWidgetComponent implements OnInit {
   public chartInput: GioChartLineData[];
   public isLoading = true;
   public chartOptions: GioChartLineOptions;
-  public config = input<ChartWidgetConfig>();
+  public config = input<WidgetConfig>();
 
   constructor(
     private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,

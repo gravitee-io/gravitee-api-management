@@ -20,6 +20,6 @@
   <gio-loader />
 } @else {
   <div class="chart">
-    <gio-chart-pie [input]="chartInput" [showLegend]="true" height="35%" />
+    <gio-chart-line [data]="chartInput" [options]="chartOptions" />
   </div>
 }

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-:host {
-  display: block;
+tr.mat-mdc-row {
+  height: 28px;
 }
 
-.chart {
-  padding: 16px;
+.table-widget {
+  margin-top: 0 !important;
+  margin-bottom: 6px;
 }

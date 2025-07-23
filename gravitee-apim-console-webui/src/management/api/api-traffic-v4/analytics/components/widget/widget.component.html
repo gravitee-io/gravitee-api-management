@@ -22,11 +22,19 @@
       >{{ config().title }} <mat-icon [matTooltip]="config().tooltip" matTooltipPosition="after" svgIcon="gio:info"
     /></mat-card-title>
   </mat-card-header>
-  <div class="card__line"></div>
 
-  @if (config().type === 'pie') {
-    <pie-chart-widget [config]="config()" />
-  } @else {
-    <line-chart-widget [config]="config()" />
+  @switch (config().type) {
+    @case ('pie') {
+      <pie-chart-widget [config]="config()" />
+    }
+    @case ('line') {
+      <line-chart-widget [config]="config()" />
+    }
+    @case ('table') {
+      <table-widget [config]="config()" />
+    }
+    @default {
+      <p>Widget not found</p>
+    }
   }
 </mat-card>

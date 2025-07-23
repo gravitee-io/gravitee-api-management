@@ -32,11 +32,6 @@ $borderColor: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20')
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-
-  &__line {
-    background-color: $borderColor;
-    margin-top: 16px;
-    height: 1px;
+    margin-bottom: 16px;
   }
 }

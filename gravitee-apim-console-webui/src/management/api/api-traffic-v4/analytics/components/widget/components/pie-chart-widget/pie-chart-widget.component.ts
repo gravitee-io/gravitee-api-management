@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Component, DestroyRef, input, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
@@ -23,10 +24,10 @@ import { ApiAnalyticsV2Service } from '../../../../../../../../services-ngx/api-
 import { SnackBarService } from '../../../../../../../../services-ngx/snack-bar.service';
 import { GioChartPieInput } from '../../../../../../../../shared/components/gio-chart-pie/gio-chart-pie.component';
 import { GioChartPieModule } from '../../../../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
-import { ChartWidgetConfig } from '../../../../../../../../entities/management-api-v2/analytics/analytics';
+import { WidgetConfig } from '../../../../../../../../entities/management-api-v2/analytics/analytics';
 
 export const colors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
-export const labels = ['1xx', '2xx', '3xx', '4xx', '5xx'];
+export const labels = ['100-199', '200-299', '300-399', '400-499', '500-599'];
 
 @Component({
   selector: 'pie-chart-widget',
@@ -36,10 +37,16 @@ export const labels = ['1xx', '2xx', '3xx', '4xx', '5xx'];
   styleUrl: './pie-chart-widget.component.scss',
 })
 export class PieChartWidgetComponent implements OnInit {
-  public config = input<ChartWidgetConfig>();
+  public config = input<WidgetConfig>();
   public isLoading = true;
 
   public chartInput: GioChartPieInput[];
+  public labelFormatter = function () {
+    const value = this.point.y;
+    return `<div style="text-align: center;">
+            <div style="font-size: 14px; color: #666; font-weight: 700;">${value}</div>
+          </div>`;
+  };
 
   constructor(
     private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
@@ -54,7 +61,7 @@ export class PieChartWidgetComponent implements OnInit {
         switchMap((timeRangeParams) => {
           this.isLoading = true;
           const ranges = '100:199;200:299;300:399;400:499;500:599';
-          return this.apiAnalyticsV2Service.getGroupByAnalytics(this.config().apiId, ranges, timeRangeParams);
+          return this.apiAnalyticsV2Service.getGroupBy(this.config().apiId, timeRangeParams, { ranges, field: this.config().groupByField });
         }),
         takeUntilDestroyed(this.destroyRef),
       )

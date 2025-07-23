@@ -17,6 +17,39 @@
 import { Component, Input, OnInit } from '@angular/core';
 import * as Highcharts from 'highcharts';
 
+const defaultLabelFormatter = function () {
+  const name = this.point.name;
+  const value = this.point.y;
+  const percentage = this.point.percentage;
+
+  // Split long names into multiple lines (max 15 characters per line)
+  const maxCharsPerLine = 15;
+  let formattedName = name;
+
+  if (name.length > maxCharsPerLine) {
+    const words = name.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    for (const word of words) {
+      if ((currentLine + word).length <= maxCharsPerLine) {
+        currentLine += (currentLine ? ' ' : '') + word;
+      } else {
+        if (currentLine) lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+
+    formattedName = lines.join('<br/>');
+  }
+
+  return `<div style="text-align: center;">
+                <div style="font-weight: bold; margin-bottom: 2px;">${formattedName}</div>
+                <div style="font-size: 11px; color: #666;">${value} (${percentage.toFixed(1)}%)</div>
+              </div>`;
+};
+
 export interface GioChartPieInput {
   label: string;
   value: number;
@@ -43,6 +76,9 @@ export class GioChartPieComponent implements OnInit {
   public showLegend = false;
 
   @Input()
+  public labelFormatter = defaultLabelFormatter;
+
+  @Input()
   public height = '100%';
 
   Highcharts: typeof Highcharts = Highcharts;
@@ -65,7 +101,7 @@ export class GioChartPieComponent implements OnInit {
       credits: { enabled: false },
       chart: {
         height: this.height,
-        backgroundColor: 'transparent',
+        plotBackgroundColor: '#F7F7F8',
         spacing: [0, 0, 0, 0],
         // Add bottom left total
         events: {
@@ -97,38 +133,7 @@ export class GioChartPieComponent implements OnInit {
               fontSize: '12px',
               fontFamily: 'Manrope, sans-serif',
             },
-            formatter: function () {
-              const name = this.point.name;
-              const value = this.point.y;
-              const percentage = this.point.percentage;
-
-              // Split long names into multiple lines (max 15 characters per line)
-              const maxCharsPerLine = 15;
-              let formattedName = name;
-
-              if (name.length > maxCharsPerLine) {
-                const words = name.split(' ');
-                const lines = [];
-                let currentLine = '';
-
-                for (const word of words) {
-                  if ((currentLine + word).length <= maxCharsPerLine) {
-                    currentLine += (currentLine ? ' ' : '') + word;
-                  } else {
-                    if (currentLine) lines.push(currentLine);
-                    currentLine = word;
-                  }
-                }
-                if (currentLine) lines.push(currentLine);
-
-                formattedName = lines.join('<br/>');
-              }
-
-              return `<div style="text-align: center;">
-                <div style="font-weight: bold; margin-bottom: 2px;">${formattedName}</div>
-                <div style="font-size: 11px; color: #666;">${value} (${percentage.toFixed(1)}%)</div>
-              </div>`;
-            },
+            formatter: this.labelFormatter,
             useHTML: true,
           },
         },
