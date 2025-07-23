@@ -133,6 +133,44 @@
           }
         }
       }
+    },
+    "gravitee-markdown": {
+      "projectType": "library",
+      "root": "projects/gravitee-markdown",
+      "sourceRoot": "projects/gravitee-markdown/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/gravitee-markdown/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/gravitee-markdown/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/gravitee-markdown/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-builders/jest:run",
+          "options": {
+            "tsConfig": "tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/gravitee-markdown/**/*.ts",
+              "projects/gravitee-markdown/**/*.html"
+            ]
+          }
+        }
+      }
     }
   },
   "cli": {

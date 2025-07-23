@@ -18,6 +18,11 @@
     "target": "ES2022",
     "module": "ES2022",
     "useDefineForClassFields": false,
+    "paths": {
+      "gravitee-markdown": [
+        "./dist/gravitee-markdown"
+      ],
+    },
     "lib": ["ES2022", "dom"],
     "types": ["@angular/localize", "jest"]
   },

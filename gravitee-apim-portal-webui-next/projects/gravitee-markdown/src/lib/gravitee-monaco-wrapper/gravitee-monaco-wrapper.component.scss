@@ -1,0 +1,31 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+.monaco-editor {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+// Single line mode styling
+:host.single-line {
+  .monaco-editor {
+    height: 40px;
+    min-height: 40px;
+  }
+}
+
+// Loading state
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  background-color: #f5f5f5;
+  color: #666;
+  font-size: 14px;
+} 

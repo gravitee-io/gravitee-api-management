@@ -1,0 +1,32 @@
+{
+  "name": "@gravitee/gravitee-markdown",
+  "version": "0.0.1",
+  "description": "Gravitee Markdown library with viewer and editor components",
+  "keywords": [
+    "gravitee",
+    "markdown",
+    "viewer",
+    "editor",
+    "angular"
+  ],
+  "author": "Gravitee Team",
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@angular/common": "^19.2.0",
+    "@angular/core": "^19.2.0",
+    "@angular/forms": "^19.2.0",
+    "@angular/platform-browser": "^19.2.0",
+    "@emoji-mart/data": "^1.2.1",
+    "highlight.js": "^11.11.1",
+    "marked": "^12.0.2",
+    "marked-alert": "^2.1.2",
+    "marked-emoji": "^1.4.3",
+    "marked-extended-tables": "^1.1.1",
+    "marked-gfm-heading-id": "^3.2.0",
+    "marked-highlight": "^2.2.1"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

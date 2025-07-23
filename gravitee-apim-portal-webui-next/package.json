@@ -1,6 +1,9 @@
 {
   "name": "gravitee-apim-portal-webui-next",
   "version": "0.0.0",
+  "workspaces": [
+    "projects/*"
+  ],
   "scripts": {
     "ng": "ng",
     "serve": "ng serve",
@@ -8,6 +11,8 @@
     "build": "ng build",
     "build:prod": "NODE_OPTIONS=--max_old_space_size=8192 ng build --configuration production",
     "build:i18n": "yarn build:prod --localize",
+    "build:libraries": "ng build gravitee-markdown",
+    "build:libraries:watch": "ng build gravitee-markdown --watch",
     "watch": "ng build --watch --configuration development",
     "extract": "ng extract-i18n --output-path src/locale",
     "merge:i18n": "sh ./scripts/update_angular_json.sh && yarn build:i18n",
@@ -96,6 +101,7 @@
     "@types/lodash": "4.17.17",
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/parser": "7.18.0",
+    "css-loader": "^7.1.2",
     "eslint": "8.57.1",
     "eslint-config-prettier": "9.1.0",
     "eslint-import-resolver-typescript": "3.8.7",
@@ -106,9 +112,12 @@
     "jest-junit": "16.0.0",
     "jest-preset-angular": "14.6.0",
     "license-check-and-add": "4.0.5",
+    "monaco-editor": "0.50.0",
+    "ng-packagr": "^19.0.0",
     "prettier": "3.5.3",
     "prettier-eslint": "16.4.1",
     "storybook": "8.6.14",
+    "style-loader": "^4.0.0",
     "stylelint": "16.15.0",
     "stylelint-config-idiomatic-order": "10.0.0",
     "stylelint-config-prettier-scss": "1.0.0",
