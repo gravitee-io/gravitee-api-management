@@ -59,6 +59,7 @@ import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrap
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.List;
 import java.util.stream.Stream;
@@ -84,6 +85,7 @@ class MigrateApiUseCaseTest {
         .build();
 
     private final ApiStateService apiStateService = mock(ApiStateService.class);
+    private final ApiService apiService = mock(ApiService.class);
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final IndexerInMemory indexer = new IndexerInMemory();
@@ -116,7 +118,7 @@ class MigrateApiUseCaseTest {
         apiCategoryQueryService,
         indexer
     );
-    private final ApiStateDomainService apiStateDomainService = new ApiStateDomainServiceLegacyWrapper(apiStateService);
+    private final ApiStateDomainService apiStateDomainService = new ApiStateDomainServiceLegacyWrapper(apiStateService, apiService);
 
     private final MigrateApiUseCase useCase = new MigrateApiUseCase(
         apiCrudService,
