@@ -22,13 +22,16 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
 import { RouterModule } from '@angular/router';
+import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { FormsModule } from '@angular/forms';
 
 import { ApiListComponent } from './api-list.component';
 
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { MapProviderNamePipe } from '../../integrations/pipes/map-provider-name.pipe';
-import { MatSelectModule } from '@angular/material/select';
 
 @NgModule({
   declarations: [ApiListComponent],
@@ -47,6 +50,9 @@ import { MatSelectModule } from '@angular/material/select';
     RouterModule,
     MapProviderNamePipe,
     MatSelectModule,
+    MatMenuModule,
+    MatCheckboxModule,
+    FormsModule,
   ],
 })
 export class ApiListModule {}

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
@@ -20,6 +21,7 @@ import { castArray, isEqual } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 
+import { TagService } from '../../../services-ngx/tag.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { ApiService } from '../../../services-ngx/api.service';
@@ -43,7 +45,6 @@ import {
   TcpListener,
 } from '../../../entities/management-api-v2';
 import { CategoryService } from '../../../services-ngx/category.service';
-import { TagService } from 'src/services-ngx/tag.service';
 
 export enum FilterType {
   API_TYPE,
@@ -104,7 +105,8 @@ interface ApiListTableWrapperFilters extends GioTableWrapperFilters {
   standalone: false,
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = availableDisplayedColumns;
+  FilterType = FilterType;
+  displayedColumns = [...availableDisplayedColumns];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: ApiListTableWrapperFilters = {
@@ -128,6 +130,16 @@ export class ApiListComponent implements OnInit, OnDestroy {
   checkedCategories: string[];
   checkedPublished: string[];
 
+  checkedVisibleColumns = {
+    apiType: true,
+    states: true,
+    access: true,
+    tags: true,
+    categories: true,
+    owner: true,
+    visibility: true,
+  };
+
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
@@ -145,17 +157,42 @@ export class ApiListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`)) {
+      const storedColumns = JSON.parse(localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`));
+      if (storedColumns.every((column) => availableDisplayedColumns.includes(column))) {
+        this.displayedColumns = storedColumns;
+        this.checkedVisibleColumns = {
+          apiType: this.displayedColumns.includes('apiType'),
+          states: this.displayedColumns.includes('states'),
+          access: this.displayedColumns.includes('access'),
+          tags: this.displayedColumns.includes('tags'),
+          categories: this.displayedColumns.includes('categories'),
+          owner: this.displayedColumns.includes('owner'),
+          visibility: this.displayedColumns.includes('visibility'),
+        };
+      }
+    }
+
     this.initFilters();
     this.isQualityDisplayed = this.constants.env.settings.apiQualityMetrics && this.constants.env.settings.apiQualityMetrics.enabled;
     if (this.isQualityDisplayed) {
       this.displayedColumns.splice(5, 0, 'qualityScore');
     }
 
-    this.tagService.list().subscribe((tags) => (this.tags = tags.map((tag) => tag.id)));
+    this.tagService
+      .list()
+      .pipe(
+        map((tags) => (this.tags = tags.map((tag) => tag.id))),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
 
     this.categoryService
       .list()
-      .pipe(map((cats) => cats.forEach((cat) => this.categoriesNames.set(cat.key, cat.name))))
+      .pipe(
+        map((cats) => cats.forEach((cat) => this.categoriesNames.set(cat.key, cat.name))),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe();
 
     this.filters$
@@ -195,7 +232,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
           });
         }),
         switchMap(({ filters, order }) => {
-          let body: ApiSearchQuery = {
+          const body: ApiSearchQuery = {
             query: filters.searchTerm,
             apiTypes: this.filters.apiTypes,
             statuses: this.filters.statuses,
@@ -243,6 +280,14 @@ export class ApiListComponent implements OnInit, OnDestroy {
         break;
     }
     this.filters$.next(this.filters);
+  }
+
+  updateVisibleColumns() {
+    const checkedColumns = Object.entries(this.checkedVisibleColumns)
+      .filter(([_k, v]) => v)
+      .map(([k]) => k);
+    this.displayedColumns = ['picture', 'name', ...checkedColumns, 'actions'];
+    localStorage.setItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`, JSON.stringify(this.displayedColumns));
   }
 
   onFiltersChanged(filters: ApiListTableWrapperFilters) {

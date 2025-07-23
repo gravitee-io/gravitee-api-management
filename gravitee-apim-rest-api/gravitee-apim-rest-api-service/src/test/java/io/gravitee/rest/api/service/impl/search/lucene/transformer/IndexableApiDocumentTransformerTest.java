@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer.FIELD_REFERENCE_ID;
 import static io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer.FIELD_REFERENCE_TYPE;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_LIFECYCLE_STATE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
@@ -39,10 +40,10 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER_MAIL;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS_SPLIT;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.SPECIAL_CHARS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -59,11 +60,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import org.apache.logging.log4j.util.PropertySource;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
 import org.assertj.core.api.SoftAssertions;
@@ -85,16 +83,23 @@ public class IndexableApiDocumentTransformerTest {
     @Test
     void should_transform_id_and_type_only_when_definition_version_and_name_are_null() {
         // Given
-        var indexable = new IndexableApi(Api.builder().id(API_ID).build(), PRIMARY_OWNER, Map.of(), Set.of());
+        var indexable = new IndexableApi(
+            Api.builder().id(API_ID).lifecycleState(Api.LifecycleState.STARTED).build(),
+            PRIMARY_OWNER,
+            Map.of(),
+            Set.of()
+        );
 
         // When
         var result = cut.transform(indexable);
 
         // Then
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(result.getFields()).hasSize(2);
+            softly.assertThat(result.getFields()).hasSize(6);
             softly.assertThat(result.getField(FIELD_ID).stringValue()).isEqualTo(API_ID);
             softly.assertThat(result.getField(FIELD_TYPE).stringValue()).isEqualTo("api");
+            softly.assertThat(result.getField(FIELD_STATUS).stringValue()).isEqualTo(Api.LifecycleState.STARTED.name());
+            softly.assertThat(result.getField(FIELD_API_LIFECYCLE_STATE).stringValue()).isEqualTo(Api.ApiLifecycleState.CREATED.name());
         });
     }
 
@@ -214,7 +219,14 @@ public class IndexableApiDocumentTransformerTest {
     void should_transform_a_federated_api() {
         // Given
         var indexable = new IndexableApi(
-            ApiFixtures.aFederatedApi().toBuilder().id(API_ID).description("A Description").labels(List.of("Label1, Label2")).build(),
+            ApiFixtures
+                .aFederatedApi()
+                .toBuilder()
+                .id(API_ID)
+                .lifecycleState(Api.LifecycleState.STARTED)
+                .description("A Description")
+                .labels(List.of("Label1, Label2"))
+                .build(),
             PRIMARY_OWNER,
             Map.of(),
             Set.of("Category1", "Category2")

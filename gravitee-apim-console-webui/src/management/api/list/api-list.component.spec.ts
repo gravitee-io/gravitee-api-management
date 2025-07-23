@@ -67,12 +67,12 @@ describe('ApisListComponent', () => {
             actions: '',
             access: 'Access',
             categories: 'Categories',
-            definitionVersion: 'Definition',
+            apiType: 'API Type',
             name: 'Name',
             owner: 'Owner',
             picture: '',
             states: 'Status',
-            tags: 'Tags',
+            tags: 'Sharding Tags',
             visibility: 'Visibility',
           },
         ]);
@@ -335,15 +335,22 @@ describe('ApisListComponent', () => {
         expectApisListRequest([api], 'name');
         loader = TestbedHarnessEnvironment.loader(fixture);
         expectSyncedApi(api.id, true);
+        expectTagsRequest();
         expectQualityRequest(api.id, score);
+        httpTestingController.verify();
         fixture.detectChanges();
       }
 
-      function expectQualityRequest(apiId: string, score: number) {
+      function expectTagsRequest() {
         // wait debounceTime
         fixture.detectChanges();
         tick();
 
+        const reqTags = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/tags`);
+        reqTags.flush([{ id: 'tag-1' }, { id: 'tag-2' }]);
+      }
+
+      function expectQualityRequest(apiId: string, score: number) {
         const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/quality`);
         expect(req.request.method).toEqual('GET');
         req.flush({ score });
@@ -351,7 +358,6 @@ describe('ApisListComponent', () => {
         const reqCat = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/categories`);
         expect(reqCat.request.method).toEqual('GET');
         reqCat.flush([]);
-        httpTestingController.verify();
       }
     });
   });
@@ -391,13 +397,13 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           access: 'Access',
-          definitionVersion: 'Definition',
+          apiType: 'API Type',
           name: 'Name',
           owner: 'Owner',
           picture: '',
           qualityScore: 'Quality',
           states: 'Status',
-          tags: 'Tags',
+          tags: 'Sharding Tags',
           categories: 'Categories',
           visibility: 'Visibility',
         },
