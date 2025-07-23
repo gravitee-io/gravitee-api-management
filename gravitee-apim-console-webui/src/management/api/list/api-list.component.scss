@@ -162,3 +162,19 @@ div[gio-additional-filters] mat-form-field {
 .categories-filter {
   width: 130px;
 }
+
+.apply-visible-columns {
+  display: block;
+  margin: 0 auto;
+  width: 90%;
+  margin-top: 4px;
+}
+
+.visible-columns-menu {
+  display: flex;
+  flex-direction: column;
+
+  mat-checkbox {
+    margin-right: 32px;
+  }
+}
