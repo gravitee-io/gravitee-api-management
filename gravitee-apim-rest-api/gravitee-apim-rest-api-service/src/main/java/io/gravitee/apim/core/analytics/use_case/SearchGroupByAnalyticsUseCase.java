@@ -27,7 +27,6 @@ import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,6 @@ public class SearchGroupByAnalyticsUseCase {
             input.field(),
             input.groups(),
             input.order(),
-            Duration.ofMillis(input.interval()),
             input.query() // pass query parameter
         );
         var result = analyticsQueryService.searchGroupByAnalytics(executionContext, groupByQuery).orElse(null);
@@ -120,7 +118,6 @@ public class SearchGroupByAnalyticsUseCase {
         String api,
         long from,
         long to,
-        long interval,
         String field,
         List<AnalyticsQueryService.GroupByQuery.Group> groups,
         AnalyticsQueryService.GroupByQuery.Order order,

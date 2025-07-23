@@ -140,7 +140,6 @@ public class ApiAnalyticsParam {
             apiId,
             param.getFrom(),
             param.getTo(),
-            param.getInterval(),
             param.getField(),
             groups,
             order,
