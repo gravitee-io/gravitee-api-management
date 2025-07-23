@@ -32,6 +32,7 @@ import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
@@ -649,14 +650,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var interval = Duration.ofMinutes(30);
 
-            var query = io.gravitee.repository.log.v4.model.analytics.HistogramQuery
-                .builder()
-                .from(from)
-                .to(to)
-                .interval(interval)
-                .apiId(API_ID)
-                .aggregations(List.of(new Aggregation("status", AggregationType.FIELD)))
-                .build();
+            var query = new HistogramQuery(
+                API_ID,
+                from,
+                to,
+                interval,
+                List.of(new Aggregation("status", AggregationType.FIELD)),
+                Optional.empty()
+            );
 
             var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
 
@@ -690,14 +691,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var interval = Duration.ofMinutes(30);
 
-            var query = io.gravitee.repository.log.v4.model.analytics.HistogramQuery
-                .builder()
-                .from(from)
-                .to(to)
-                .interval(interval)
-                .apiId(API_ID)
-                .aggregations(List.of(new Aggregation("gateway-response-time-ms", AggregationType.AVG)))
-                .build();
+            var query = new HistogramQuery(
+                API_ID,
+                from,
+                to,
+                interval,
+                List.of(new Aggregation("gateway-response-time-ms", AggregationType.AVG)),
+                Optional.empty()
+            );
 
             var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
 
@@ -711,6 +712,38 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var avgBucket = (List<Double>) histogram.getBuckets().get("avg_gateway-response-time-ms");
             assertThat(avgBucket).isNotEmpty();
             assertThat(avgBucket.stream().filter(v -> v > 0).count()).isEqualTo(2);
+        }
+
+        @Test
+        void should_return_histogram_aggregates_for_a_given_api_with_query_string() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var interval = Duration.ofMinutes(30);
+
+            var query = new HistogramQuery(
+                API_ID,
+                from,
+                to,
+                interval,
+                List.of(new Aggregation("status", AggregationType.FIELD)),
+                Optional.of("status:404")
+            );
+
+            var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result).isNotNull();
+            assertThat(result).hasSize(1);
+
+            var histogram = result.getFirst();
+            assertThat(histogram.getBuckets()).isNotNull();
+            assertThat(histogram.getBuckets()).hasSize(1);
+
+            assertThat(histogram.getBuckets().keySet()).containsExactly("404");
+
+            var bucket404 = histogram.getBuckets().get("404");
+            assertThat(bucket404).hasSizeGreaterThan(61);
+            assertThat(bucket404.get(61)).isEqualTo(2L);
         }
     }
 

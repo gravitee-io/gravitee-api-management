@@ -324,7 +324,14 @@ class AnalyticsQueryServiceImplTest {
             when(analyticsRepository.searchHistogram(any(QueryContext.class), any(HistogramQuery.class)))
                 .thenReturn(List.of(rootAggregate));
 
-            AnalyticsQueryService.HistogramQuery query = new AnalyticsQueryService.HistogramQuery("api-1", from, to, interval, null);
+            AnalyticsQueryService.HistogramQuery query = new AnalyticsQueryService.HistogramQuery(
+                "api-1",
+                from,
+                to,
+                interval,
+                null,
+                Optional.empty()
+            );
 
             Optional<HistogramAnalytics> result = cut.searchHistogramAnalytics(GraviteeContext.getExecutionContext(), query);
 

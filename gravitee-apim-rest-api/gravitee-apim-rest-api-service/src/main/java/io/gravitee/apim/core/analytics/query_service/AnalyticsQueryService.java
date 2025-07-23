@@ -83,7 +83,14 @@ public interface AnalyticsQueryService {
 
     Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery);
 
-    record HistogramQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
+    record HistogramQuery(
+        String apiId,
+        Instant from,
+        Instant to,
+        Duration interval,
+        List<Aggregation> aggregations,
+        Optional<String> query
+    ) {}
 
     record GroupByQuery(
         String apiId,

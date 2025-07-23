@@ -30,6 +30,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +54,8 @@ class SearchHistogramQueryAdapterTest {
                 FROM,
                 TO,
                 INTERVAL,
-                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD))
+                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
+                Optional.empty()
             );
 
             String result = cut.adapt(query);
@@ -139,7 +141,8 @@ class SearchHistogramQueryAdapterTest {
                 FROM,
                 TO,
                 INTERVAL,
-                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG))
+                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG)),
+                Optional.empty()
             );
 
             String result = cut.adapt(query);
@@ -217,6 +220,98 @@ class SearchHistogramQueryAdapterTest {
                         )
                 );
         }
+
+        @Test
+        void should_generate_expected_histogram_query_json_with_query_parameter() {
+            HistogramQuery query = new HistogramQuery(
+                API_ID,
+                FROM,
+                TO,
+                INTERVAL,
+                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
+                Optional.of("status:200 AND method:GET")
+            );
+
+            String result = cut.adapt(query);
+
+            assertThatJson(result)
+                .isEqualTo(
+                    """
+                    {
+                      "size": 0,
+                      "query": {
+                        "bool": {
+                          "filter": [
+                            {
+                              "bool": {
+                                "minimum_should_match": 1,
+                                "should": [
+                                  {
+                                    "bool": {
+                                      "must": [
+                                        {
+                                          "terms": {
+                                            "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                          }
+                                        },
+                                        {
+                                          "terms": {
+                                            "entrypoint-id": [ "http-post", "http-get", "http-proxy" ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "range": {
+                                "@timestamp": {
+                                  "from": %d,
+                                  "to": %d,
+                                  "include_lower": true,
+                                  "include_upper": true
+                                }
+                              }
+                            },
+                            {
+                              "query_string": {
+                                "query": "status:200 AND method:GET"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "aggregations": {
+                        "by_date": {
+                          "date_histogram": {
+                            "field": "@timestamp",
+                            "fixed_interval": "1800000ms",
+                            "min_doc_count": 0,
+                            "extended_bounds": {
+                              "min": %d,
+                              "max": %d
+                            }
+                          },
+                          "aggregations": {
+                            "by_status": {
+                              "terms": {
+                                "field": "status"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                    """.formatted(
+                            FROM.toEpochMilli(),
+                            TO.toEpochMilli(),
+                            FROM.toEpochMilli(),
+                            TO.toEpochMilli()
+                        )
+                );
+        }
     }
 
     @Nested
@@ -274,7 +369,8 @@ class SearchHistogramQueryAdapterTest {
                     FROM,
                     TO,
                     INTERVAL,
-                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD))
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
+                    Optional.empty()
                 )
             );
 
@@ -329,7 +425,8 @@ class SearchHistogramQueryAdapterTest {
                     FROM,
                     TO,
                     INTERVAL,
-                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG))
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG)),
+                    Optional.empty()
                 )
             );
 

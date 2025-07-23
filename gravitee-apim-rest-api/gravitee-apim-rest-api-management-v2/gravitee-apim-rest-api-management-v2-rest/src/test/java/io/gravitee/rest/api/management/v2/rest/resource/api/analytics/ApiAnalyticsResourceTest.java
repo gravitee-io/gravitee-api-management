@@ -572,6 +572,66 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .hasHttpStatus(400)
                     .hasMessage("Invalid aggregation type: INVALID");
             }
+
+            @Test
+            void should_return_histogram_analytics_response_with_query_parameter() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+
+                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
+                    Instant.now().minusSeconds(60),
+                    Instant.now(),
+                    Duration.ofMinutes(10)
+                );
+                String query = "status:200 AND method:GET";
+
+                var expectedBuckets = List.of(
+                    io.gravitee.apim.core.analytics.model.Bucket
+                        .builder()
+                        .name("by_status")
+                        .field("status")
+                        .buckets(
+                            List.of(
+                                new Bucket(null, "status", "200", List.of(0L, 0L, 1L), null),
+                                new Bucket(null, "status", "404", List.of(0L, 2L, 0L), null)
+                            )
+                        )
+                        .build()
+                );
+                fakeAnalyticsQueryService.histogramAnalytics =
+                    io.gravitee.apim.core.analytics.model.HistogramAnalytics
+                        .builder()
+                        .timestamp(expectedTimestamp)
+                        .values(expectedBuckets)
+                        .build();
+
+                var response = rootTarget()
+                    .queryParam("type", "HISTOGRAM")
+                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
+                    .queryParam("interval", expectedTimestamp.getInterval().toMillis())
+                    .queryParam("aggregations", "FIELD:status")
+                    .queryParam("query", query)
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
+                    .satisfies(result -> {
+                        var histogram = result.getHistogramAnalytics();
+                        assertThat(histogram).isNotNull();
+                        assertThat(histogram.getTimestamp()).isNotNull();
+                        assertThat(histogram.getTimestamp().getFrom()).isEqualTo(expectedTimestamp.getFrom().toEpochMilli());
+                        assertThat(histogram.getTimestamp().getTo()).isEqualTo(expectedTimestamp.getTo().toEpochMilli());
+                        assertThat(histogram.getTimestamp().getInterval()).isEqualTo(expectedTimestamp.getInterval().toMillis());
+                        assertThat(histogram.getValues()).hasSize(1);
+                        var bucket = histogram.getValues().getFirst();
+                        assertThat(bucket.getName()).isEqualTo("by_status");
+                        assertThat(bucket.getField()).isEqualTo("status");
+                        assertThat(bucket.getBuckets()).size().isEqualTo(2);
+                    });
+            }
         }
 
         @Nested
