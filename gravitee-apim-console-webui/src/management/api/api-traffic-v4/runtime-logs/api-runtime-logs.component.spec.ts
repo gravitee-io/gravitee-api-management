@@ -174,7 +174,7 @@ describe('ApiRuntimeLogsComponent', () => {
 
     it('should navigate to logs settings', async () => {
       await componentHarness.clickOpenSettings();
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['../runtime-logs-settings'], {
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../reporter-settings'], {
         relativeTo: expect.anything(),
       });
     });
@@ -646,7 +646,7 @@ describe('ApiRuntimeLogsComponent', () => {
 
     it('should navigate to logs settings', async () => {
       await componentHarness.clickOpenSettings();
-      expect(routerNavigateSpy).toHaveBeenCalledWith(['../runtime-logs-settings'], {
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../../reporter-settings'], {
         relativeTo: expect.anything(),
       });
     });
