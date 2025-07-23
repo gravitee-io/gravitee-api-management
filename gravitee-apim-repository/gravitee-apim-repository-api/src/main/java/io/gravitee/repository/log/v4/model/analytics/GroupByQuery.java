@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -26,7 +25,6 @@ public record GroupByQuery(
     Order order,
     Instant from,
     Instant to,
-    Duration interval,
     String query // optional query string
 ) {
     public record Group(long from, long to) {}

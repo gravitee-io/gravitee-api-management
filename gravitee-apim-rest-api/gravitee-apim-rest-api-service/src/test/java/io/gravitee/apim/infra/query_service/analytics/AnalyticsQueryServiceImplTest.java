@@ -357,7 +357,6 @@ class AnalyticsQueryServiceImplTest {
         void should_map_group_by_aggregate_to_group_by_analytics() {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
-            var interval = Duration.ofHours(1);
             var apiId = "api-1";
             var field = "status";
             var values = Map.of("200", 10L, "404", 2L);
@@ -366,7 +365,7 @@ class AnalyticsQueryServiceImplTest {
 
             when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
-            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, interval, null);
+            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, null);
 
             var result = cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
 
@@ -379,7 +378,6 @@ class AnalyticsQueryServiceImplTest {
         void should_pass_query_parameter_to_repository() {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
-            var interval = Duration.ofHours(1);
             var apiId = "api-1";
             var field = "status";
             var queryString = "status:200 AND method:GET";
@@ -387,7 +385,7 @@ class AnalyticsQueryServiceImplTest {
             var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate("aggName", field, Map.of("200", 10L));
             when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
-            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, interval, queryString);
+            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, queryString);
 
             cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
 
