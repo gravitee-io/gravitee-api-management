@@ -22,8 +22,9 @@ import { MatTooltip } from '@angular/material/tooltip';
 
 import { PieChartWidgetComponent } from './components/pie-chart-widget/pie-chart-widget.component';
 import { LineChartWidgetComponent } from './components/line-chart-widget/line-chart-widget.component';
+import { TableWidgetComponent } from './components/table-widget/table-widget.component';
 
-import { ChartWidgetConfig } from '../../../../../../entities/management-api-v2/analytics/analytics';
+import { WidgetConfig } from '../../../../../../entities/management-api-v2/analytics/analytics';
 import { GioChartPieModule } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 
 @Component({
@@ -37,10 +38,11 @@ import { GioChartPieModule } from '../../../../../../shared/components/gio-chart
     MatIcon,
     MatTooltip,
     MatIcon,
+    TableWidgetComponent,
   ],
-  templateUrl: './chart-widget.component.html',
-  styleUrl: './chart-widget.component.scss',
+  templateUrl: './widget.component.html',
+  styleUrl: './widget.component.scss',
 })
-export class ChartWidgetComponent {
-  public config = input<ChartWidgetConfig>();
+export class WidgetComponent {
+  public config = input<WidgetConfig>();
 }

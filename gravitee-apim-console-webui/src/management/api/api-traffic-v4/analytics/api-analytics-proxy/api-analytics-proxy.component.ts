@@ -22,23 +22,34 @@ import { CommonModule } from '@angular/common';
 
 import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
 import { AggregationFields, AggregationTypes } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
-import { ChartWidgetConfig } from '../../../../../entities/management-api-v2/analytics/analytics';
-import { ChartWidgetComponent } from '../components/chart-widget/chart-widget.component';
+import { WidgetConfig } from '../../../../../entities/management-api-v2/analytics/analytics';
+import { WidgetComponent } from '../components/widget/widget.component';
 
 @Component({
   selector: 'api-analytics-proxy',
-  imports: [CommonModule, MatCardModule, GioLoaderModule, GioCardEmptyStateModule, ApiAnalyticsFiltersBarComponent, ChartWidgetComponent],
+  imports: [CommonModule, MatCardModule, GioLoaderModule, GioCardEmptyStateModule, ApiAnalyticsFiltersBarComponent, WidgetComponent],
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
 })
 export class ApiAnalyticsProxyComponent {
-  public chartWidgetConfigs: ChartWidgetConfig[] = [
+  public tableWidgets: WidgetConfig[] = [
+    {
+      type: 'table',
+      apiId: this.activatedRoute.snapshot.params.apiId,
+      title: 'Top Applications',
+      tooltip: 'Applications ranked by total API calls over time',
+      shouldSortBuckets: false,
+      groupByField: 'application-id',
+    },
+  ];
+
+  public chartWidgets: WidgetConfig[] = [
     {
       type: 'pie',
       apiId: this.activatedRoute.snapshot.params.apiId,
       title: 'HTTP Status Repartition',
       tooltip: 'Displays the distribution of HTTP status codes returned by the API',
-      shouldSortBuckets: true,
+      groupByField: 'status',
     },
     {
       type: 'line',
@@ -68,6 +79,7 @@ export class ApiAnalyticsProxyComponent {
       ],
       title: 'Response Time Over Time',
       tooltip: 'Measures response time for gateway and endpoint',
+      shouldSortBuckets: false,
     },
   ];
 

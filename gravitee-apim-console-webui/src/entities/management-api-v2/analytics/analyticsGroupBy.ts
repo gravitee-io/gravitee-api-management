@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface GroupByAnalyticsResponse {
+export interface GroupByResponse {
   analyticsType: 'GROUP_BY';
   values: Record<string, number>;
+  metadata: Metadata;
 }
+
+export type Metadata = Record<string, { name: string; unknown?: boolean }>;
+
+export type GroupByField = 'status' | 'application-id';
