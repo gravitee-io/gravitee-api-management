@@ -22,6 +22,7 @@ import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.QueryParam;
 import java.util.List;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -121,7 +122,14 @@ public class ApiAnalyticsParam {
             .filter(java.util.Objects::nonNull)
             .toList();
 
-        return new SearchHistogramAnalyticsUseCase.Input(apiId, param.getFrom(), param.getTo(), param.getInterval(), aggregations);
+        return new SearchHistogramAnalyticsUseCase.Input(
+            apiId,
+            param.getFrom(),
+            param.getTo(),
+            param.getInterval(),
+            aggregations,
+            Optional.ofNullable(param.getQuery())
+        );
     }
 
     public static SearchGroupByAnalyticsUseCase.Input toGroupByInput(String apiId, ApiAnalyticsParam param) {

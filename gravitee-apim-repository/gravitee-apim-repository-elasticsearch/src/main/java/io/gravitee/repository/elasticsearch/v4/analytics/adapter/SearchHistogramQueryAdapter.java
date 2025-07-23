@@ -79,6 +79,15 @@ public class SearchHistogramQueryAdapter {
         filterArray.add(createApiFilterNode(query));
         filterArray.add(createTimeRangeFilterNode(query));
 
+        // Add query string filter if present
+        query
+            .query()
+            .ifPresent(queryString -> {
+                if (!queryString.trim().isEmpty()) {
+                    filterArray.add(createQueryStringFilterNode(queryString));
+                }
+            });
+
         ObjectNode bool = MAPPER.createObjectNode();
         bool.set("filter", filterArray);
 
@@ -87,8 +96,18 @@ public class SearchHistogramQueryAdapter {
         return queryNode;
     }
 
+    private ObjectNode createQueryStringFilterNode(String queryString) {
+        ObjectNode queryStringNode = MAPPER.createObjectNode();
+        queryStringNode.put("query", queryString);
+
+        ObjectNode queryString2 = MAPPER.createObjectNode();
+        queryString2.set("query_string", queryStringNode);
+
+        return queryString2;
+    }
+
     private ObjectNode createApiFilterNode(HistogramQuery query) {
-        var apiIds = List.of(query.getApiId());
+        var apiIds = List.of(query.apiId());
         var mustArray = MAPPER.createArrayNode();
         var apiTerms = MAPPER.createObjectNode();
         apiTerms.set("terms", MAPPER.createObjectNode().set("api-id", MAPPER.valueToTree(apiIds)));
@@ -113,8 +132,8 @@ public class SearchHistogramQueryAdapter {
 
     private ObjectNode createTimeRangeFilterNode(HistogramQuery query) {
         ObjectNode range = MAPPER.createObjectNode();
-        range.put("from", query.getFrom().toEpochMilli());
-        range.put("to", query.getTo().toEpochMilli());
+        range.put("from", query.from().toEpochMilli());
+        range.put("to", query.to().toEpochMilli());
         range.put("include_lower", true);
         range.put("include_upper", true);
 
@@ -135,11 +154,11 @@ public class SearchHistogramQueryAdapter {
         ObjectNode byDate = MAPPER.createObjectNode();
         ObjectNode dateHistogram = MAPPER.createObjectNode();
         dateHistogram.put("field", "@timestamp");
-        dateHistogram.put("fixed_interval", query.getInterval().toMillis() + "ms");
+        dateHistogram.put("fixed_interval", query.interval().toMillis() + "ms");
         dateHistogram.put("min_doc_count", 0);
         ObjectNode extendedBounds = MAPPER.createObjectNode();
-        extendedBounds.put("min", query.getFrom().toEpochMilli());
-        extendedBounds.put("max", query.getTo().toEpochMilli());
+        extendedBounds.put("min", query.from().toEpochMilli());
+        extendedBounds.put("max", query.to().toEpochMilli());
         dateHistogram.set("extended_bounds", extendedBounds);
         byDate.set("date_histogram", dateHistogram);
 
@@ -153,7 +172,7 @@ public class SearchHistogramQueryAdapter {
 
     private ObjectNode createChildAggregationNodes(HistogramQuery query) {
         ObjectNode subAggs = MAPPER.createObjectNode();
-        for (io.gravitee.repository.log.v4.model.analytics.Aggregation agg : query.getAggregations()) {
+        for (io.gravitee.repository.log.v4.model.analytics.Aggregation agg : query.aggregations()) {
             String aggName = AGGREGATION_PREFIX.get(agg.getType()) + agg.getField();
             String aggType = AGGREGATION_NAME.get(agg.getType());
             ObjectNode subAgg = MAPPER.createObjectNode();

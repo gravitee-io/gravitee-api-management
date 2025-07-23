@@ -281,7 +281,8 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 histogramParameters.from(),
                 histogramParameters.to(),
                 histogramParameters.interval(),
-                repoAggregations
+                repoAggregations,
+                histogramParameters.query()
             )
         );
 
