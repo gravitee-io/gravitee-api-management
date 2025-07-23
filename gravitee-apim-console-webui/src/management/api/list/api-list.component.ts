@@ -16,7 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
-import { isEqual } from 'lodash';
+import { castArray, isEqual } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 
@@ -42,6 +42,19 @@ import {
   TcpListener,
 } from '../../../entities/management-api-v2';
 import { CategoryService } from '../../../services-ngx/category.service';
+
+const availableDisplayedColumns = [
+  'picture',
+  'name',
+  'apiType',
+  'states',
+  'access',
+  'tags',
+  'categories',
+  'owner',
+  'visibility',
+  'actions',
+];
 
 export type ApisTableDS = {
   id: string;
@@ -73,7 +86,7 @@ export type ApisTableDS = {
   standalone: false,
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'definitionVersion', 'states', 'access', 'tags', 'categories', 'owner', 'visibility', 'actions'];
+  displayedColumns = availableDisplayedColumns;
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
@@ -81,7 +94,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     searchTerm: '',
   };
   isQualityDisplayed: boolean;
-  searchLabel = 'Search APIs | name:"My api *" ownerName:admin';
+  searchLabel = 'Search';
   isLoadingData = true;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
@@ -124,7 +137,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
         distinctUntilChanged(isEqual),
         map(({ pagination, searchTerm, status, sort }) => {
           let order: string;
-          if (!searchTerm && !sort?.direction) {
+          if (sort?.direction) {
+            order = toOrder(sort);
+          } else if (!searchTerm && !sort?.direction) {
             order = 'name';
           } else if (searchTerm && !sort?.direction) {
             order = undefined;
@@ -268,6 +283,20 @@ export class ApiListComponent implements OnInit, OnDestroy {
     }
 
     return '';
+  }
+
+  displayFirstTag(element) {
+    if (this.filters.sort?.active === 'tags' && this.filters.sort?.direction === 'desc') {
+      return element.tags?.sort()?.reverse()[0];
+    }
+    return element.tags?.sort()?.[0];
+  }
+
+  displayFirstCategory(element) {
+    if (this.filters.sort?.active === 'categories' && this.filters.sort?.direction === 'desc') {
+      return element.categories?.sort()?.reverse()[0];
+    }
+    return element.categories?.sort()?.[0];
   }
 
   private getWorkflowBadge(api: Api) {

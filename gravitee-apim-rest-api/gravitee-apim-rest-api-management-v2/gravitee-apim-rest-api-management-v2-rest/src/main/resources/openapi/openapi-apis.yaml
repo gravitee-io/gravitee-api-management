@@ -8056,8 +8056,20 @@ components:
                 enum:
                     - name
                     - -name
+                    - api_type
+                    - -api_type
+                    - status
+                    - -status
                     - paths
                     - -paths
+                    - tags_asc
+                    - -tags_desc
+                    - categories_asc
+                    - -categories_desc
+                    - owner
+                    - -owner
+                    - visibility
+                    - -visibility
         apiMetadataSortByParam:
             name: sortBy
             in: query
