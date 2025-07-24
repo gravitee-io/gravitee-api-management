@@ -3,7 +3,9 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "path": ["./node_modules/path-browserify"]
+      "path": ["./node_modules/path-browserify"],
+        "gravitee-markdown": [
+          "../gravitee-apim-portal-webui-next/dist/gravitee-markdown"]
     },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -34,4 +36,5 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   }
+
 }

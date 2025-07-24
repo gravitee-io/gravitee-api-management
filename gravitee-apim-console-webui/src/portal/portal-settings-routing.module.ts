@@ -33,6 +33,7 @@ import { PortalApiListComponent } from './customization/api/api-list/portal-api-
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
 import { EnvironmentGuard } from '../management/environment.guard';
+import {HomepageComponent} from "./customization/homepage/homepage.component";
 
 const portalRoutes: Routes = [
   {
@@ -134,6 +135,14 @@ const portalRoutes: Routes = [
           {
             path: 'theme',
             component: PortalThemeComponent,
+            data: {
+              permissions: {
+                anyOf: ['environment-theme-r', 'environment-theme-u'],
+              },
+            },
+          },{
+            path: 'homepage',
+            component: HomepageComponent,
             data: {
               permissions: {
                 anyOf: ['environment-theme-r', 'environment-theme-u'],
