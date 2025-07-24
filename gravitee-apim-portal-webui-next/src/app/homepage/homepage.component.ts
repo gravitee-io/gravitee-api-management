@@ -1,10 +1,17 @@
-import { Component } from '@angular/core';
-import { GraviteeMarkdownViewerComponent } from 'gravitee-markdown';
+import { Component, inject } from '@angular/core';
+import { GRAVITEE_MARKDOWN_BASE_URL, GraviteeMarkdownViewerComponent } from 'gravitee-markdown';
 import { InnerLinkDirective } from '../../directives/inner-link.directive';
+import { ConfigService } from '../../services/config.service';
 
 @Component({
   selector: 'app-homepage',
   imports: [GraviteeMarkdownViewerComponent, InnerLinkDirective],
+  providers: [
+    // {
+    //     provide: GRAVITEE_MARKDOWN_BASE_URL,
+    //     useValue: 'http://localhost:8083',
+    //   },
+  ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.scss'
 })
@@ -65,8 +72,7 @@ export class HomepageComponent {
 </app-grid>
 
 
-# Discover the latest APIs
-content here
+<app-latest-apis maxApis="3"></app-latest-apis>
 
 
 # See what you can build

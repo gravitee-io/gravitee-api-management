@@ -15,11 +15,11 @@
  */
 import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, inject, provideAppInitializer } from '@angular/core';
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
-import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
+import { catchError, combineLatest, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { routes } from './app.routes';
@@ -29,6 +29,10 @@ import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 import { PortalMenuLinksService } from '../services/portal-menu-links.service';
 import { ThemeService } from '../services/theme.service';
+import { GRAVITEE_MARKDOWN_BASE_URL, GRAVITEE_MARKDOWN_MOCK_MODE } from '../../projects/gravitee-markdown/src/lib/services/configuration';
+
+
+let resolvedBaseURL: string;
 
 function initApp(
   configService: ConfigService,
@@ -47,12 +51,16 @@ function initApp(
           portalMenuLinksService.loadCustomLinks(),
         ]),
       ),
+      tap(_ => {
+        resolvedBaseURL = configService.baseURL;
+      }),
       catchError(error => {
         router.navigate(['/503'], { state: error });
         return of({});
       }),
     );
 }
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -69,6 +77,14 @@ export const appConfig: ApplicationConfig = {
       );
       return initializerFn();
     }),
+    {
+      provide: GRAVITEE_MARKDOWN_BASE_URL,
+      useValue: 'http://localhost:4041/portal',
+    },
+    {
+      provide: GRAVITEE_MARKDOWN_MOCK_MODE,
+      useValue: false,
+    },
     // Ripple does not work with hsl mixing
     {
       provide: MAT_RIPPLE_GLOBAL_OPTIONS,
@@ -80,5 +96,6 @@ export const appConfig: ApplicationConfig = {
       provide: DATE_PIPE_DEFAULT_OPTIONS,
       useValue: { dateFormat: 'YYYY-MM-dd HH:mm:ss.SSS' },
     },
+
   ],
 };
