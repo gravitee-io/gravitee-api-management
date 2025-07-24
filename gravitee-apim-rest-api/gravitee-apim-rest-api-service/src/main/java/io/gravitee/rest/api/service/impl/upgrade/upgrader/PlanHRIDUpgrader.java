@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -39,14 +40,26 @@ public class PlanHRIDUpgrader implements Upgrader {
 
     @Lazy
     @Autowired
+    private ApiRepository apiRepository;
+
+    @Lazy
+    @Autowired
     private EnvironmentRepository environmentRepository;
 
     @Override
     public boolean upgrade() {
         try {
-            for (var environment : environmentRepository.findAll()) {
-                setHRIDs(new ExecutionContext(environment));
-            }
+            planRepository
+                .findAll()
+                .forEach(plan -> {
+                    plan.setHrid(plan.getId());
+                    try {
+                        planRepository.update(plan);
+                    } catch (TechnicalException e) {
+                        log.error("Unable to set HRID for Plan {}", plan.getId(), e);
+                        throw new RuntimeException(e);
+                    }
+                });
             return true;
         } catch (TechnicalException e) {
             log.error("Error applying upgrader", e);
@@ -57,21 +70,5 @@ public class PlanHRIDUpgrader implements Upgrader {
     @Override
     public int getOrder() {
         return UpgraderOrder.PLAN_HRID_UPGRADER;
-    }
-
-    private void setHRIDs(ExecutionContext executionContext) throws TechnicalException {
-        planRepository
-            .findAll()
-            .stream()
-            .filter(plan -> plan.getEnvironmentId().equals(executionContext.getEnvironmentId()))
-            .forEach(plan -> {
-                plan.setHrid(plan.getId());
-                try {
-                    planRepository.update(plan);
-                } catch (TechnicalException e) {
-                    log.error("Unable to set HRID for Plan {}", plan.getId(), e);
-                    throw new RuntimeException(e);
-                }
-            });
     }
 }
