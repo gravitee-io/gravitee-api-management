@@ -47,7 +47,7 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
 
         return switch (api.getDefinitionVersion()) {
             case V4 -> apiStateService.isSynchronized(executionContext, apiAdapter.toApiEntity(api));
-            case V1, V2 -> apiStateService.isSynchronized(executionContext, apiService.findById(executionContext, api.getId()));
+            case V1, V2 -> apiService.isSynchronized(executionContext, api.getId());
             case FEDERATED_AGENT, FEDERATED -> true;
         };
     }
