@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input, computed, ContentChildren, QueryList, AfterContentInit } from '@angular/core';
+import { Component, input, computed, signal} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CardActionsComponent } from './card-actions.component';
 
 @Component({
   selector: 'app-card',
@@ -103,7 +102,7 @@ import { CardActionsComponent } from './card-actions.component';
     }
   `]
 })
-export class CardComponent implements AfterContentInit {
+export class CardComponent {
   // Content inputs
   title = input<string>('');
   
@@ -113,39 +112,27 @@ export class CardComponent implements AfterContentInit {
   // Styling inputs
   borderRadius = input<string>('8px');
   backgroundColor = input<string>('#ffffff');
-  borderColor = input<string>('#e0e0e0');
+  borderColor = input<string>('transparent');
   borderWidth = input<string>('1px');
-  elevation = input<1 | 2 | 3 | 4 | 5>(2);
-  
-  // Content children
-  @ContentChildren(CardActionsComponent) cardActions!: QueryList<CardActionsComponent>;
-  
-  // Computed properties
-  hasCardActions = computed(() => this.cardActions.length > 0);
-  
-  ngAfterContentInit() {
-    // This method is required by AfterContentInit interface
-    // The computed property will automatically update when cardActions changes
-  }
-  
+  markdownContent = input<string>('');
+  elevation = input<0 | 1 | 2 | 3 | 4 | 5>(0);
+
+  renderedMarkdownContent = signal<string>('');
+
   getCardContentClasses(): string {
     const classes: string[] = [];
     
     if (this.centered()) {
       classes.push('card-content-centered');
     }
-    
-    if (this.hasCardActions() && this.centered()) {
-      classes.push('card-content-with-actions-centered');
-    }
-    
+        
     return classes.join(' ');
   }
   
   // Computed properties
   cardClasses = computed(() => {
     const classes = ['app-card'];
-    if (this.elevation()) {
+    if (this.elevation() > 0) {
       classes.push(`elevation-${this.elevation()}`);
     }
     return classes.join(' ');
@@ -174,5 +161,6 @@ export class CardComponent implements AfterContentInit {
       .map(([key, value]) => `${key}: ${value}`)
       .join('; ');
   });
-  
+
+
 } 

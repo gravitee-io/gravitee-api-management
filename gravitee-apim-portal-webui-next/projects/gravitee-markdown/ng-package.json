@@ -12,6 +12,7 @@
     "marked-gfm-heading-id",
     "marked-highlight",
     "highlight.js",
-    "@emoji-mart/data"
+    "@emoji-mart/data",
+    "ngx-dynamic-hooks"
   ]
 }

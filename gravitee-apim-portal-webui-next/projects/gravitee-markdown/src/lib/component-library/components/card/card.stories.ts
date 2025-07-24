@@ -37,8 +37,8 @@ const meta: Meta<CardComponent> = {
     },
     elevation: {
       control: { type: 'select' },
-      options: [1, 2, 3, 4, 5],
-      description: 'Shadow elevation level (1-5)',
+      options: [0, 1, 2, 3, 4, 5],
+      description: 'Shadow elevation level (0-5, 0 = no shadow)',
     },
   },
   decorators: [
@@ -228,6 +228,7 @@ export const AllElevations: Story = {
   render: () => ({
     template: `
       <div style="display: flex; flex-direction: column; gap: 16px;">
+        <app-card title="Elevation 0 (Default)" [elevation]="0">Card with no elevation (default)</app-card>
         <app-card title="Elevation 1" [elevation]="1">Card with elevation 1</app-card>
         <app-card title="Elevation 2" [elevation]="2">Card with elevation 2</app-card>
         <app-card title="Elevation 3" [elevation]="3">Card with elevation 3</app-card>
@@ -242,12 +243,25 @@ export const ColorVariants: Story = {
   render: () => ({
     template: `
       <div style="display: flex; flex-direction: column; gap: 16px;">
-        <app-card title="Default" backgroundColor="#ffffff" borderColor="#e0e0e0">Default card styling</app-card>
+        <app-card title="Default (Transparent Border)" backgroundColor="#ffffff" borderColor="transparent">Default card styling with transparent border</app-card>
+        <app-card title="With Border" backgroundColor="#ffffff" borderColor="#e0e0e0">Card with visible border</app-card>
         <app-card title="Success" backgroundColor="#d4edda" borderColor="#28a745">Success themed card</app-card>
         <app-card title="Warning" backgroundColor="#fff3cd" borderColor="#ffc107">Warning themed card</app-card>
         <app-card title="Danger" backgroundColor="#f8d7da" borderColor="#dc3545">Danger themed card</app-card>
         <app-card title="Info" backgroundColor="#d1ecf1" borderColor="#17a2b8">Info themed card</app-card>
       </div>
+    `,
+  }),
+};
+
+export const DefaultCard: Story = {
+  args: {},
+  render: (args) => ({
+    props: args,
+    template: `
+      <app-card title="Default Card">
+        This is the default card with 0 elevation and transparent border. It has a clean, minimal appearance.
+      </app-card>
     `,
   }),
 };

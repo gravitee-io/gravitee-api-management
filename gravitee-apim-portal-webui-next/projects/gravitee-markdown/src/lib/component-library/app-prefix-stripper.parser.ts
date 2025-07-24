@@ -35,5 +35,5 @@ export const appPrefixStripperParsers: HookParserEntry[] = [
   {
     component: GridCellComponent,
     selector: 'app-grid-cell',
-  }
+  },
 ];

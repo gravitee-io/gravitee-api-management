@@ -13,7 +13,7 @@ export const cardSuggestions = (range: IRange, needsOpeningTag: boolean = false)
       insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Basic card component',
-      documentation: 'Creates a card with title and content',
+      documentation: 'Creates a card with title and content (default: 0 elevation, transparent border)',
     },
     {
       label: 'card-centered',
@@ -22,7 +22,16 @@ export const cardSuggestions = (range: IRange, needsOpeningTag: boolean = false)
       insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Centered card component',
-      documentation: 'Creates a card with centered title and content',
+      documentation: 'Creates a card with centered title and content (default: 0 elevation, transparent border)',
+    },
+    {
+      label: 'card-with-border',
+      insertText: prefix + 'app-card title="${1:Card Title}" borderColor="${2:#e0e0e0}"' + suffix + '\n\t${3:Card content goes here...}\n' + closingTag,
+      kind: languages.CompletionItemKind.Snippet,
+      insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Card with visible border',
+      documentation: 'Creates a card with a visible border (default has transparent border)',
     },
     {
       label: 'card-with-actions',
@@ -40,7 +49,7 @@ export const cardSuggestions = (range: IRange, needsOpeningTag: boolean = false)
       insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Card with custom elevation',
-      documentation: 'Creates a card with custom shadow elevation (1-5)',
+      documentation: 'Creates a card with custom shadow elevation (0-5, 0 = no shadow)',
     },
     {
       label: 'card-custom-styled',
@@ -49,7 +58,7 @@ export const cardSuggestions = (range: IRange, needsOpeningTag: boolean = false)
       insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Custom styled card',
-      documentation: 'Creates a card with custom background, border, and border radius',
+      documentation: 'Creates a card with custom background, border, and border radius (default: transparent border)',
     },
     {
       label: 'card-complete',
@@ -58,7 +67,7 @@ export const cardSuggestions = (range: IRange, needsOpeningTag: boolean = false)
       insertTextRules: languages.CompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Complete card with all options',
-      documentation: 'Creates a fully customized card with all styling and action options',
+      documentation: 'Creates a fully customized card with all styling and action options (default: 0 elevation, transparent border)',
     },
     {
       label: 'card-external-actions',

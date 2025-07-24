@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import * as emojiData from '@emoji-mart/data';
-import { Emoji } from '@emoji-mart/data';
 import hljs from 'highlight.js';
 import { marked, Renderer, RendererObject } from 'marked';
-import markedAlert from 'marked-alert';
-import { markedEmoji } from 'marked-emoji';
-// marked-extended-tables does not support proper typescript import so we need to import it like this pointing to the src/index file.
-// @ts-expect-error Please do not change this import before checking if the issue is fixed in the library.
-import markedExtendedTables from 'marked-extended-tables/src/index';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { markedHighlight } from 'marked-highlight';
 
 @Injectable({
   providedIn: 'root',
 })
-export class GraviteeMarkdownViewerService {
+export class MarkdownService {
   constructor() {
     marked.use(gfmHeadingId());
     marked.use(
@@ -37,13 +30,10 @@ export class GraviteeMarkdownViewerService {
         langPrefix: 'hljs language-',
         highlight(_code, language) {
           const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
-          return hljs.highlight(validLanguage, { language }).value;
+          return hljs.highlight(validLanguage, { language: validLanguage }).value;
         },
       }),
     );
-    marked.use(markedEmojiExtension());
-    marked.use(markedExtendedTables());
-    marked.use(markedAlertExtension());
     marked.setOptions({
       breaks: true,
       gfm: true,
@@ -98,6 +88,10 @@ export class GraviteeMarkdownViewerService {
 
         return defaultRenderer.link(href, title, text);
       },
+      html(html, _block) {
+        // Hack to make the markdown work in the components...
+        return html;
+      },
     };
   }
 
@@ -117,44 +111,3 @@ export class GraviteeMarkdownViewerService {
 
 const ANCHOR_CLASSNAME = 'anchor';
 const INTERNAL_LINK_CLASSNAME = 'internal-link';
-
-const markedEmojiExtension = () => {
-  const nameToEmoji: Record<string, string> = {};
-  const data = emojiData as { emojis: Record<string, Emoji> };
-  Object.values(data.emojis).forEach(emoji => {
-    nameToEmoji[emoji.id] = emoji.skins[0].native;
-  });
-
-  return markedEmoji({
-    emojis: nameToEmoji,
-    renderer: token => token.emoji,
-  });
-};
-
-const markedAlertExtension = () => {
-  const icon = (icon: string, type: string) => `<span class="mat-icon marked-alert-icons marked-alert-icons--${type}">${icon}</span>`;
-  return markedAlert({
-    variants: [
-      {
-        type: 'note',
-        icon: icon('info', 'note'),
-      },
-      {
-        type: 'tip',
-        icon: icon('lightbulb', 'tip'),
-      },
-      {
-        type: 'important',
-        icon: icon('error', 'important'),
-      },
-      {
-        type: 'warning',
-        icon: icon('warning', 'warning'),
-      },
-      {
-        type: 'caution',
-        icon: icon('report', 'caution'),
-      },
-    ],
-  });
-};

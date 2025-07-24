@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as monaco from 'monaco-editor';
+import {languages, editor} from 'monaco-editor';
 
 // Custom language ID
 export const CUSTOM_MARKDOWN_LANGUAGE_ID = 'custom-markdown';
@@ -21,7 +21,7 @@ export const CUSTOM_MARKDOWN_LANGUAGE_ID = 'custom-markdown';
 // Custom components that should be highlighted as HTML tags
 const CUSTOM_COMPONENTS = [
   'app-card',
-  'card-actions', 
+  'card-actions',
   'app-button',
   'copy-code'
 ];
@@ -29,10 +29,10 @@ const CUSTOM_COMPONENTS = [
 // Register the custom language
 export function registerCustomMarkdownLanguage(): void {
   // Register the language
-  monaco.languages.register({ id: CUSTOM_MARKDOWN_LANGUAGE_ID });
+  languages.register({ id: CUSTOM_MARKDOWN_LANGUAGE_ID });
 
   // Set the language configuration
-  monaco.languages.setLanguageConfiguration(CUSTOM_MARKDOWN_LANGUAGE_ID, {
+  languages.setLanguageConfiguration(CUSTOM_MARKDOWN_LANGUAGE_ID, {
     comments: {
       lineComment: '<!--',
       blockComment: ['<!--', '-->']
@@ -68,7 +68,7 @@ export function registerCustomMarkdownLanguage(): void {
   });
 
   // Set the monarch language definition
-  monaco.languages.setMonarchTokensProvider(CUSTOM_MARKDOWN_LANGUAGE_ID, {
+  languages.setMonarchTokensProvider(CUSTOM_MARKDOWN_LANGUAGE_ID, {
     // Set defaultToken to invalid to see what you do not tokenize as a default state
     defaultToken: '',
 
@@ -76,39 +76,39 @@ export function registerCustomMarkdownLanguage(): void {
       root: [
         // Markdown headers
         [/^(#{1,6})\s+(.*)$/, 'heading'],
-        
+
         // Markdown emphasis
         [/\*\*(.*?)\*\*/, 'strong'],
         [/\*(.*?)\*/, 'emphasis'],
         [/__(.*?)__/, 'strong'],
         [/_(.*?)_/, 'emphasis'],
-        
+
         // Markdown code blocks
         [/```[\s\S]*?```/, 'code'],
         [/`([^`]+)`/, 'code'],
-        
+
         // Markdown links and images
         [/\[([^\]]+)\]\(([^)]+)\)/, 'link'],
         [/!\[([^\]]+)\]\(([^)]+)\)/, 'image'],
-        
+
         // Markdown lists
         [/^(\s*)([-*+]|\d+\.)\s+/, 'list'],
-        
+
         // Markdown blockquotes
         [/^>\s+.*$/, 'quote'],
-        
+
         // HTML tags (including custom components)
         [/<(\/?)([a-zA-Z][a-zA-Z0-9-]*)/, [
           { token: 'tag', next: '@tag.$2' }
         ]],
-        
+
         // HTML attributes
         [/"([^"]*)"/, 'string'],
         [/'([^']*)'/, 'string'],
-        
+
         // Markdown horizontal rules
         [/^([-*_]){3,}$/, 'hr'],
-        
+
         // Everything else
         [/./, 'text']
       ],
@@ -122,17 +122,17 @@ export function registerCustomMarkdownLanguage(): void {
         // HTML attributes
         [/\s+([a-zA-Z][a-zA-Z0-9-]*)\s*=\s*/, 'attribute'],
         [/\s+([a-zA-Z][a-zA-Z0-9-]*)\s*/, 'attribute'],
-        
+
         // String values
         [/"([^"]*)"/, 'string'],
         [/'([^']*)'/, 'string'],
-        
+
         // Self-closing tags
         [/\//, 'tag'],
-        
+
         // Closing tags
         [/>/, { token: 'tag', next: '@root' }],
-        
+
         // Everything else
         [/./, 'tag']
       ]
@@ -140,7 +140,7 @@ export function registerCustomMarkdownLanguage(): void {
   });
 
   // Define the theme colors for our custom language
-  monaco.editor.defineTheme('custom-markdown-theme', {
+  editor.defineTheme('custom-markdown-theme', {
     base: 'vs',
     inherit: true,
     rules: [
@@ -160,4 +160,4 @@ export function registerCustomMarkdownLanguage(): void {
     ],
     colors: {}
   });
-} 
+}

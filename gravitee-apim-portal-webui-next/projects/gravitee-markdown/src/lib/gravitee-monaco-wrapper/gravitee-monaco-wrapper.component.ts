@@ -28,7 +28,7 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { isEqual, isString, uniqueId } from 'lodash';
-import * as Monaco from 'monaco-editor';
+import Monaco from 'monaco-editor';
 import { ReplaySubject, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -183,18 +183,18 @@ export class GraviteeMonacoWrapperComponent implements ControlValueAccessor, Aft
           endLineNumber: position.lineNumber,
           startColumn: word.startColumn,
           endColumn: word.endColumn
-        };        
+        };
         // Check the context to determine if we need to include the opening "<"
         const lineContent = model.getLineContent(position.lineNumber);
         const beforeCursor = lineContent.substring(0, position.column - 1);
         const needsOpeningTag = !beforeCursor.trim().endsWith('<');
-        
+
         return {
           suggestions: componentLibrarySuggestions(range, needsOpeningTag),
         };
       },
     });
-    
+
     // Add to disposables to clean up later
     this.toDisposes.push(completionProvider);
 
@@ -284,7 +284,7 @@ export class GraviteeMonacoWrapperComponent implements ControlValueAccessor, Aft
   private setupContentChangeHandler(): void {
     const onDidChangeContent = this.textModel?.onDidChangeContent(() => {
       const textModelValue = this.textModel?.getValue() ?? '';
-      
+
       if (this.singleLineMode()) {
         this.handleSingleLineContentChange(textModelValue);
         return;

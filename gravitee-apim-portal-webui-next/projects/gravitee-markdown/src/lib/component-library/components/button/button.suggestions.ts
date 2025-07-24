@@ -1,9 +1,9 @@
-import { IRange, languages } from "monaco-editor";
+import Monaco, { languages } from "monaco-editor";
 
-export const buttonSuggestions = (range: IRange, needsOpeningTag: boolean = false): languages.CompletionItem[] => {
+export const buttonSuggestions = (range: Monaco.IRange, needsOpeningTag: boolean = false): languages.CompletionItem[] => {
   const prefix = needsOpeningTag ? '<' : '';
   const suffix = needsOpeningTag ? '>' : '';
-  
+
   return [
     {
       label: 'button',
@@ -60,4 +60,4 @@ export const buttonSuggestions = (range: IRange, needsOpeningTag: boolean = fals
       documentation: 'Creates a button with custom background color, text color, and border radius',
     },
   ];
-}; 
+};

@@ -15,58 +15,26 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { GraviteeMarkdownViewerComponent } from './gravitee-markdown-viewer.component';
-import { GraviteeMarkdownViewerService } from './gravitee-markdown-viewer.service';
-import { GraviteeMarkdownViewerRegistryService } from './gravitee-markdown-viewer-registry.service';
-import { CopyCodeComponent } from '../component-library/components/copy-code/copy-code.component';
+import { MarkdownService } from '../services/markdown.service';
 
 describe('GraviteeMarkdownViewerComponent', () => {
   let component: GraviteeMarkdownViewerComponent;
   let fixture: ComponentFixture<GraviteeMarkdownViewerComponent>;
-  let registryService: GraviteeMarkdownViewerRegistryService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GraviteeMarkdownViewerComponent],
       providers: [
-        GraviteeMarkdownViewerService,
-        GraviteeMarkdownViewerRegistryService
+        MarkdownService
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(GraviteeMarkdownViewerComponent);
     component = fixture.componentInstance;
-    registryService = TestBed.inject(GraviteeMarkdownViewerRegistryService);
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should register dynamic components', () => {
-    registryService.registerComponent({
-      selector: 'app-copy-code',
-      component: CopyCodeComponent
-    });
-
-    expect(registryService.hasComponent('app-copy-code')).toBe(true);
-  });
-
-  it('should render markdown with dynamic components', () => {
-    const markdownContent = `
-# Test
-
-Here's some code:
-
-<app-copy-code text="console.log('test')"></app-copy-code>
-    `;
-
-    registryService.registerComponent({
-      selector: 'app-copy-code',
-      component: CopyCodeComponent
-    });
-
-    // Test that the component can be created and registry works
-    expect(component).toBeTruthy();
-    expect(registryService.hasComponent('app-copy-code')).toBe(true);
-  });
 });

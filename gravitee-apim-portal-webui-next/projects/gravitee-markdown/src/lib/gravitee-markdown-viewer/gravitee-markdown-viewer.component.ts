@@ -1,11 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, input, ViewEncapsulation, effect, signal } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
 import { DynamicHooksComponent, ParseOptions } from 'ngx-dynamic-hooks';
 
-import { GraviteeMarkdownViewerService } from './gravitee-markdown-viewer.service';
-import { GraviteeMarkdownViewerRegistryService } from './gravitee-markdown-viewer-registry.service';
 import { appPrefixStripperParsers } from '../component-library/app-prefix-stripper.parser';
+import { MarkdownService } from '../services/markdown.service';
 
 @Component({
   selector: 'gravitee-markdown-viewer',
@@ -31,7 +29,6 @@ export class GraviteeMarkdownViewerComponent {
   pageBaseUrl = input<string>('');
 
   renderedContent!: string;
-  // dynamicParsers = signal<HookParserEntry[]>(appPrefixStripperParsers);
   parsers = appPrefixStripperParsers;
   dynamicContext = signal<any>({});
   options: ParseOptions | null = {
@@ -39,12 +36,10 @@ export class GraviteeMarkdownViewerComponent {
   }
 
   constructor(
-    private graviteeMarkdownViewerService: GraviteeMarkdownViewerService,
-    private domSanitizer: DomSanitizer,
-    private registryService: GraviteeMarkdownViewerRegistryService,
+    private markdownService: MarkdownService,
   ) {
     effect(() => {
-      const renderedContent = this.graviteeMarkdownViewerService.render(this.content(), this.baseUrl(), this.pageBaseUrl());
+      const renderedContent = this.markdownService.render(this.content(), this.baseUrl(), this.pageBaseUrl());
       const parser = new DOMParser();
       const document = parser.parseFromString(renderedContent, 'text/html');
       this.renderedContent = document.body.outerHTML;

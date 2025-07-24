@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input, computed, effect, ContentChild, ElementRef, AfterContentInit, AfterViewInit } from '@angular/core';
+import { Component, input, computed, effect, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GraviteeMarkdownViewerService } from '../../../gravitee-markdown-viewer/gravitee-markdown-viewer.service';
+import { MarkdownService } from '../../../services/markdown.service';
 
 @Component({
   selector: 'app-grid-cell',
@@ -23,8 +23,9 @@ import { GraviteeMarkdownViewerService } from '../../../gravitee-markdown-viewer
   imports: [CommonModule],
   template: `
     <div class="app-grid-cell" [class]="cellClasses()" [style]="cellStyles()">
-      <div *ngIf="markdown()" [innerHTML]="renderedContent"></div>
-      <ng-content *ngIf="!markdown()"></ng-content>
+
+        <ng-content></ng-content>
+
     </div>
   `,
   styles: [`
@@ -33,6 +34,10 @@ import { GraviteeMarkdownViewerService } from '../../../gravitee-markdown-viewer
       flex-direction: column;
       min-height: 0;
       overflow: hidden;
+    }
+
+    .hide {
+      display: none;
     }
 
     /* Cell sizing options */
@@ -131,9 +136,9 @@ import { GraviteeMarkdownViewerService } from '../../../gravitee-markdown-viewer
     }
   `]
 })
-export class GridCellComponent implements AfterViewInit {
+export class GridCellComponent {
   // Content inputs
-  markdown = input<boolean>(false);
+  markdown = input<boolean>(true);
   
   // Layout inputs
   span = input<1 | 2 | 3 | 4>(1);
@@ -153,26 +158,27 @@ export class GridCellComponent implements AfterViewInit {
   renderedContent!: string;
   
   constructor(
-    private graviteeMarkdownViewerService: GraviteeMarkdownViewerService,
+    private markdownService: MarkdownService,
     private elementRef: ElementRef
   ) {
-    effect(() => {
-      if (this.markdown()) {
-        this.renderMarkdownContent();
-      }
-    });
+    // effect(() => {
+      // if (this.markdown()) {
+      //   console.log('effect');
+      //   this.renderMarkdownContent();
+      // }
+    // });
   }
-  
-//   ngAfterContentInit() {
-
-//   }
   
   private renderMarkdownContent() {
     console.log(this.elementRef.nativeElement);
+    console.log(document.querySelector('.hide'));
     
+    const contentHide = this.elementRef.nativeElement.querySelector('.hide');
+    const innerText = contentHide?.innerText || '';
+
     const content = this.elementRef.nativeElement.textContent || '';
-    if (content.trim()) {
-      const renderedContent = this.graviteeMarkdownViewerService.render(content, '', '');
+    if (innerText.trim()) {
+      const renderedContent = this.markdownService.render(innerText, '', '');
       const parser = new DOMParser();
       const document = parser.parseFromString(renderedContent, 'text/html');
       this.renderedContent = document.body.outerHTML;
@@ -237,10 +243,9 @@ export class GridCellComponent implements AfterViewInit {
       .join('; ');
   });
 
-  ngAfterViewInit() {
-    console.log("after view init", this.elementRef.nativeElement);
-    if (this.markdown()) {
-        this.renderMarkdownContent();
-      }
-  }
+  // ngAfterViewInit() {
+  //   if (this.markdown()) {
+  //       this.renderMarkdownContent();
+  //     }
+  // }
 } 
