@@ -20,7 +20,7 @@ import {
   Component,
   ElementRef,
   Inject,
-  input,
+  Input,
   NgZone,
   OnDestroy,
   Optional,
@@ -28,13 +28,13 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { isEqual, isString, uniqueId } from 'lodash';
-import Monaco from 'monaco-editor';
 import { ReplaySubject, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { GraviteeMonacoEditorConfig, GRAVITEE_MONACO_EDITOR_CONFIG } from './data/gravitee-monaco-editor-config';
 import { GraviteeMonacoWrapperService } from './gravitee-monaco-wrapper.service';
 import { componentLibrarySuggestions } from '../component-library/components/index.suggestions';
+import { IMonaco, IMonacoRange } from './monaco-facade';
 
 export type MonacoEditorLanguageConfig = {
   language: 'markdown' | 'html';
@@ -54,34 +54,34 @@ export const DEFAULT_LANGUAGE_CONFIG: MonacoEditorLanguageConfig = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   host: {
-    '[class.single-line]': 'singleLineMode()'
+    '[class.single-line]': 'singleLineMode'
   }
 })
 export class GraviteeMonacoWrapperComponent implements ControlValueAccessor, AfterViewInit, OnDestroy {
   // Signal inputs
-  languageConfig = input<MonacoEditorLanguageConfig | undefined>(DEFAULT_LANGUAGE_CONFIG);
-  options = input<Monaco.editor.IStandaloneEditorConstructionOptions>({});
-  disableMiniMap = input<boolean>(false);
-  disableAutoFormat = input<boolean>(false);
-  singleLineMode = input<boolean>(false);
+  @Input() languageConfig: MonacoEditorLanguageConfig | undefined = DEFAULT_LANGUAGE_CONFIG;
+  @Input() options: any = {};
+  @Input() disableMiniMap: boolean = false;
+  @Input() disableAutoFormat: boolean = false;
+  @Input() singleLineMode: boolean = false;
 
   // Public properties
   public loaded$ = new ReplaySubject<boolean>(1);
   public value = '';
   public readOnly = false;
-  public standaloneCodeEditor?: Monaco.editor.IStandaloneCodeEditor;
+  public standaloneCodeEditor?: any;
 
   // Protected properties
   protected _onChange: (_value: string | null) => void = () => ({});
   protected _onTouched: () => void = () => ({});
 
   // Private properties
-  private textModel?: Monaco.editor.ITextModel;
-  private toDisposes: Monaco.IDisposable[] = [];
+  private textModel?: any;
+  private toDisposes: any[] = [];
   private unsubscribe$ = new Subject<void>();
 
   // Default editor options
-  private readonly defaultOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
+  private readonly defaultOptions: any = {
     contextmenu: false,
     minimap: {
       enabled: true,
@@ -162,7 +162,7 @@ export class GraviteeMonacoWrapperComponent implements ControlValueAccessor, Aft
     }
   }
 
-  private setupEditor(monaco: typeof Monaco): void {
+  private setupEditor(monaco: IMonaco): void {
     if (!this.hostElement) {
       throw new Error('No editor ref found.');
     }
@@ -202,18 +202,18 @@ export class GraviteeMonacoWrapperComponent implements ControlValueAccessor, Aft
       this.textModel = monaco.editor.createModel(settings.value, settings.language, monaco.Uri.parse(settings.uri));
     });
 
-    const options = Object.assign({}, this.defaultOptions, this.options(), {
+    const options = Object.assign({}, this.defaultOptions, this.options, {
       readOnly: this.readOnly,
       theme: this.config.theme ?? 'vs',
       model: this.textModel,
       minimap: {
-        enabled: !this.disableMiniMap(),
+        enabled: !this.disableMiniMap,
       },
     });
 
     this.standaloneCodeEditor = monaco.editor.create(domElement, options);
 
-    if (!this.disableAutoFormat()) {
+    if (!this.disableAutoFormat) {
       setTimeout(() => {
         this.standaloneCodeEditor?.getAction('editor.action.formatDocument')?.run();
       }, 80);
@@ -222,11 +222,11 @@ export class GraviteeMonacoWrapperComponent implements ControlValueAccessor, Aft
     this.setupSingleLineMode(monaco);
     this.setupContentChangeHandler();
     this.setupBlurHandler();
-    this.setupLanguage(settings.uri, this.languageConfig());
+    this.setupLanguage(settings.uri, this.languageConfig);
   }
 
-  private setupSingleLineMode(monaco: typeof Monaco): void {
-    if (!this.singleLineMode()) {
+  private setupSingleLineMode(monaco: IMonaco): void {
+    if (!this.singleLineMode) {
       return;
     }
 
@@ -285,7 +285,7 @@ export class GraviteeMonacoWrapperComponent implements ControlValueAccessor, Aft
     const onDidChangeContent = this.textModel?.onDidChangeContent(() => {
       const textModelValue = this.textModel?.getValue() ?? '';
 
-      if (this.singleLineMode()) {
+      if (this.singleLineMode) {
         this.handleSingleLineContentChange(textModelValue);
         return;
       }

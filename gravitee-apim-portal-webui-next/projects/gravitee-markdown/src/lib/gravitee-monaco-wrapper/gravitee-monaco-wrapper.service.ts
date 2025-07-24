@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 import { inject, Injectable } from '@angular/core';
-import Monaco from 'monaco-editor';
 import { ReplaySubject } from 'rxjs';
 
 import { GRAVITEE_MONACO_EDITOR_CONFIG, GraviteeMonacoEditorConfig } from './data/gravitee-monaco-editor-config';
-
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    require: any;
-    monaco: typeof Monaco;
-  }
-}
+import { IMonaco } from './monaco-facade';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GraviteeMonacoWrapperService {
   private readonly config: GraviteeMonacoEditorConfig = inject(GRAVITEE_MONACO_EDITOR_CONFIG);
-  public loaded$ = new ReplaySubject<{ monaco: typeof Monaco }>(1);
+  public loaded$ = new ReplaySubject<{ monaco: IMonaco }>(1);
   private loaded = false;
 
   public loadEditor(): Promise<void> {
@@ -44,7 +36,7 @@ export class GraviteeMonacoWrapperService {
 
     return new Promise<void>(resolve => {
       // Monaco is already loaded
-      if (typeof window.monaco === 'object') {
+      if (typeof (window as any).monaco === 'object') {
         resolve();
         return;
       }
@@ -52,17 +44,17 @@ export class GraviteeMonacoWrapperService {
       const onGotAmdLoader = () => {
         const baseUrl = this.config.baseUrl || (window.location.origin + window.location.pathname).replace(/\/$/, '');
         // Load Monaco
-        window.require.config({
+        (window as any).require.config({
           paths: { vs: baseUrl + '/assets/monaco-editor/min/vs' },
         });
 
-        window.require(['vs/editor/editor.main'], () => {
+        (window as any).require(['vs/editor/editor.main'], () => {
           resolve();
         });
       };
 
       // Load AMD loader if necessary
-      if (!window.require) {
+      if (!(window as any).require) {
         const loaderScript = document.createElement('script');
         loaderScript.type = 'text/javascript';
         loaderScript.src = 'assets/monaco-editor/min/vs/loader.js';
@@ -72,7 +64,7 @@ export class GraviteeMonacoWrapperService {
         onGotAmdLoader();
       }
     }).then(() => {
-      this.loaded$.next({ monaco: window.monaco });
+      this.loaded$.next({ monaco: (window as any).monaco as IMonaco });
     });
   }
 }

@@ -20,13 +20,13 @@ const config: StorybookConfig = {
     { from: '../node_modules/monaco-editor', to: '/assets/monaco-editor' },
 
   ],
-  webpackFinal: async (config:any) => {
-    config.module.rules.push({
-      test: /node_modules\/monaco-editor\/.*\.css$/,
-      use: ['style-loader', 'css-loader'],
-    });
-    return config;
-  },
+  // webpackFinal: async (config:any) => {
+  //   config.module.rules.push({
+  //     test: /node_modules\/monaco-editor\/.*\.css$/,
+  //     use: ['style-loader', 'css-loader'],
+  //   });
+  //   return config;
+  // },
 };
 
 export default config;

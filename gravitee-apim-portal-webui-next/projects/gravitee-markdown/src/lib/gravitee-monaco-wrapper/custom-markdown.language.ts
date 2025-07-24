@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {languages, editor} from 'monaco-editor';
+import { getMonaco } from './monaco-facade';
 
 // Custom language ID
 export const CUSTOM_MARKDOWN_LANGUAGE_ID = 'custom-markdown';
@@ -28,11 +28,13 @@ const CUSTOM_COMPONENTS = [
 
 // Register the custom language
 export function registerCustomMarkdownLanguage(): void {
+  const monaco = getMonaco();
+  
   // Register the language
-  languages.register({ id: CUSTOM_MARKDOWN_LANGUAGE_ID });
+  monaco.languages.register({ id: CUSTOM_MARKDOWN_LANGUAGE_ID });
 
   // Set the language configuration
-  languages.setLanguageConfiguration(CUSTOM_MARKDOWN_LANGUAGE_ID, {
+  monaco.languages.setLanguageConfiguration(CUSTOM_MARKDOWN_LANGUAGE_ID, {
     comments: {
       lineComment: '<!--',
       blockComment: ['<!--', '-->']
@@ -68,7 +70,7 @@ export function registerCustomMarkdownLanguage(): void {
   });
 
   // Set the monarch language definition
-  languages.setMonarchTokensProvider(CUSTOM_MARKDOWN_LANGUAGE_ID, {
+  monaco.languages.setMonarchTokensProvider(CUSTOM_MARKDOWN_LANGUAGE_ID, {
     // Set defaultToken to invalid to see what you do not tokenize as a default state
     defaultToken: '',
 
@@ -140,7 +142,7 @@ export function registerCustomMarkdownLanguage(): void {
   });
 
   // Define the theme colors for our custom language
-  editor.defineTheme('custom-markdown-theme', {
+  (monaco as any).editor.defineTheme('custom-markdown-theme', {
     base: 'vs',
     inherit: true,
     rules: [
