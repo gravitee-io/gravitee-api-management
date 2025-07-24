@@ -83,6 +83,10 @@ public interface AnalyticsQueryService {
 
     Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery);
 
+    Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query);
+
+    record CountQuery(String apiId, Instant from, Instant to) {}
+
     record HistogramQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
 
     record GroupByQuery(
@@ -96,6 +100,7 @@ public interface AnalyticsQueryService {
         String query
     ) {
         public record Group(long from, long to) {}
+
         public record Order(String field, boolean order, String type) {
             public static Order valueOf(String param) {
                 String field = null;

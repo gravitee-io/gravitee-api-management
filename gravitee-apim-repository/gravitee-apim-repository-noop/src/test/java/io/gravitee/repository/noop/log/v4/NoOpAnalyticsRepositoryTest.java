@@ -24,6 +24,7 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
@@ -138,5 +139,14 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
 
         // Verify that the result is null
         assertNotNull(result);
+    }
+
+    @Test
+    public void testSearchRequestsCountByEvent() throws Exception {
+        Assert.assertNotNull(analyticsRepository);
+
+        var result = analyticsRepository.searchRequestsCountByEvent(queryContext, new RequestsCountByEventQuery(API_ID));
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 }
