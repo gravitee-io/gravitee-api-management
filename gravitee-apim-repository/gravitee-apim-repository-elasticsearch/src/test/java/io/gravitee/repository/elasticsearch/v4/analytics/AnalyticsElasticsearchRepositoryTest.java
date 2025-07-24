@@ -779,6 +779,46 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(aggregate.values()).containsExactlyEntriesOf(Map.of("http-get", 1L));
                 });
         }
+
+        @Test
+        void should_return_group_by_aggregate_for_terms_with_order_avg() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, from, to, null);
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
+                    assertThat(aggregate.order()).containsExactly("http-get", "http-post");
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_terms_with_order_value() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var order = new GroupByQuery.Order("_key", true, "VALUE");
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, from, to, null);
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
+                    assertThat(aggregate.order()).containsExactly("http-get", "http-post");
+                });
+        }
     }
 
     @Nested

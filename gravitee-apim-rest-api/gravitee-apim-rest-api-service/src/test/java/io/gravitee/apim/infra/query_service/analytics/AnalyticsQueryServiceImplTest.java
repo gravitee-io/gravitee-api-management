@@ -360,8 +360,9 @@ class AnalyticsQueryServiceImplTest {
             var apiId = "api-1";
             var field = "status";
             var values = Map.of("200", 10L, "404", 2L);
+            var order = List.of("200", "404");
 
-            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate("aggName", field, values);
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate("aggName", field, values, order);
 
             when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
@@ -381,8 +382,14 @@ class AnalyticsQueryServiceImplTest {
             var apiId = "api-1";
             var field = "status";
             var queryString = "status:200 AND method:GET";
+            var order = List.of("200");
 
-            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate("aggName", field, Map.of("200", 10L));
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate(
+                "aggName",
+                field,
+                Map.of("200", 10L),
+                order
+            );
             when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
             var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, queryString);

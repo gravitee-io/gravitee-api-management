@@ -38,6 +38,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
@@ -195,8 +196,7 @@ class SearchGroupByAnalyticsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         var values = Map.of("k1", 10L, "k2", 20L);
-        analyticsQueryService.groupByAnalytics = new GroupByAnalytics();
-        analyticsQueryService.groupByAnalytics.setValues(values);
+        analyticsQueryService.groupByAnalytics = GroupByAnalytics.builder().values(values).order(List.of("k1", "k2")).build();
 
         var result = useCase.execute(
             GraviteeContext.getExecutionContext(),
@@ -231,7 +231,7 @@ class SearchGroupByAnalyticsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         String queryString = "status:200 AND method:GET";
-        analyticsQueryService.groupByAnalytics = new GroupByAnalytics();
+        analyticsQueryService.groupByAnalytics = GroupByAnalytics.builder().order(Collections.emptyList()).build();
 
         useCase.execute(
             GraviteeContext.getExecutionContext(),
