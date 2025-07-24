@@ -48,6 +48,7 @@ type OAuthFormType = FormGroup<{
     grant_types: FormArray;
     client_secret: FormControl<string>;
     client_id: FormControl<string>;
+    additionalClientMetadata: FormArray;
   }>;
   tls: FormGroup<{ client_certificate: FormControl<string> }>;
 }>;
@@ -141,6 +142,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
             client_id: new FormControl(this.application.settings.oauth.client_id, null),
             redirect_uris: new FormArray([]),
             grant_types: new FormArray([]),
+            additionalClientMetadata: new FormArray([]),
           }),
           tls: this.formBuilder.group({
             client_certificate: new FormControl(this.application.settings?.tls?.client_certificate, null),
@@ -206,6 +208,18 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       this.application.settings.oauth.redirect_uris.forEach(value => {
         this.redirectURIs.push(new FormControl(value));
       });
+
+      this.additionalClientMetadata.clear();
+      if (this.application.settings.oauth.additional_client_metadata) {
+        Object.keys(this.application.settings.oauth.additional_client_metadata).forEach(key => {
+          this.additionalClientMetadata.push(
+            this.formBuilder.group({
+              key: new FormControl(key, Validators.required),
+              value: new FormControl(this.application.settings.oauth.additional_client_metadata[key], Validators.required),
+            }),
+          );
+        });
+      }
     }
   }
 
@@ -243,10 +257,53 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     return (this.requiresRedirectUris && this.redirectURIs.length > 0) || !this.requiresRedirectUris;
   }
 
+  addMetadata() {
+    this.additionalClientMetadata.push(
+      this.formBuilder.group({
+        key: new FormControl('', Validators.required),
+        value: new FormControl('', Validators.required),
+      }),
+    );
+    this.applicationForm.markAsDirty();
+  }
+
+  removeMetadata(i: number) {
+    this.additionalClientMetadata.removeAt(i);
+    this.applicationForm.markAsDirty();
+  }
+
+  get metadataControls() {
+    return this.additionalClientMetadata.controls as FormGroup[];
+  }
+
+  get additionalClientMetadata() {
+    return this.applicationForm.get('settings.oauth.additionalClientMetadata') as FormArray;
+  }
+
   submit() {
     this.isSaving = true;
+
+    const formValue = this.applicationForm.getRawValue();
+
+    if (this.isOAuth()) {
+      const oauthSettings = (formValue.settings as any).oauth;
+      if (oauthSettings && oauthSettings.additionalClientMetadata) {
+        const metadataArray = oauthSettings.additionalClientMetadata;
+        const metadataObject = {};
+
+        metadataArray.forEach(item => {
+          if (item.key && item.value) {
+            metadataObject[item.key] = item.value;
+          }
+        });
+
+        oauthSettings.additional_client_metadata = metadataObject;
+        delete oauthSettings.additionalClientMetadata;
+      }
+    }
+
     this.applicationService
-      .updateApplicationByApplicationId({ applicationId: this.application.id, application: this.applicationForm.getRawValue() })
+      .updateApplicationByApplicationId({ applicationId: this.application.id, application: formValue })
       .toPromise()
       .then(application => {
         this.application = application;

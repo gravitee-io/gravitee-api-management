@@ -132,6 +132,7 @@ public class ApplicationResource extends AbstractResource {
                 OAuthClientSettings oacs = appEntity.getSettings().getOauth();
                 oacs.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
                 oacs.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
+                oacs.setAdditionalClientMetadata(application.getSettings().getOauth().getAdditionalClientMetadata());
                 settings.setOauth(oacs);
             }
             if (application.getSettings().getTls() != null) {
