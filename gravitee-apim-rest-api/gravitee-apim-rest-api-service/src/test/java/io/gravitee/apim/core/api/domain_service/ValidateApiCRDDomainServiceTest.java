@@ -138,7 +138,7 @@ class ValidateApiCRDDomainServiceTest {
         when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any())))
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
@@ -187,7 +187,7 @@ class ValidateApiCRDDomainServiceTest {
         when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any())))
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
@@ -234,7 +234,7 @@ class ValidateApiCRDDomainServiceTest {
         when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any())))
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))

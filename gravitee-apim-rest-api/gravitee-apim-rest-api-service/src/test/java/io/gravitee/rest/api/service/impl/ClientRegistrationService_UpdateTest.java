@@ -43,6 +43,8 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
+import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
+import io.gravitee.rest.api.model.configuration.application.registration.TrustStoreEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -230,5 +232,63 @@ public class ClientRegistrationService_UpdateTest {
         assertNotNull("Result is null", providerUpdated);
 
         assertEquals("https://example.com/policy", providerUpdated.getPolicyUri());
+    }
+
+    @Test
+    public void shouldUpdateProviderWithTrustStoreAndOrKeyStore() throws TechnicalException {
+        UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
+        providerPayload.setName("name");
+        providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+
+        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+
+        existingPayload.setTrustStoreType("PKCS12");
+        existingPayload.setTrustStoreContent("my-client-registration-provider-truststore-content");
+        existingPayload.setTrustStorePassword("my-client-registration-provider-truststore-password");
+        existingPayload.setKeyStoreType("PKCS12");
+        existingPayload.setKeyStoreContent("my-client-registration-provider-keystore-content");
+        existingPayload.setKeyStorePassword("my-client-registration-provider-keystore-password");
+
+        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+
+        wireMockServer.stubFor(
+            get(urlEqualTo("/am"))
+                .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
+        );
+
+        ClientRegistrationProvider providerUpdatedMock = new ClientRegistrationProvider();
+        providerUpdatedMock.setId(existingPayload.getId());
+        providerUpdatedMock.setName(existingPayload.getName());
+        when(
+            mockClientRegistrationProviderRepository.update(
+                argThat(p ->
+                    Objects.equals(p.getId(), existingPayload.getId()) &&
+                    Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
+                    Objects.equals(p.getName(), providerPayload.getName()) &&
+                    p.getUpdatedAt() != null
+                )
+            )
+        )
+            .thenReturn(providerUpdatedMock);
+
+        ClientRegistrationProviderEntity providerUpdated = clientRegistrationService.update(
+            GraviteeContext.getExecutionContext(),
+            existingPayload.getId(),
+            providerPayload
+        );
+        assertNotNull("Result is null", providerUpdated);
+
+        verify(mockAuditService, times(1))
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
+                any(),
+                any(),
+                any()
+            );
+        verify(mockClientRegistrationProviderRepository, times(1)).update(any());
     }
 }

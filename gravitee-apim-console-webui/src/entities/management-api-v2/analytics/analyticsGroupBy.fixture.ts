@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-import { GroupByAnalyticsResponse } from './analyticsGroupBy';
+import { GroupByResponse } from './analyticsGroupBy';
 
-export const fakeGroupByAnalyticsResponse = (modifier?: Partial<GroupByAnalyticsResponse>): GroupByAnalyticsResponse => {
-  const base: GroupByAnalyticsResponse = {
+export const fakeGroupByResponse = (modifier?: Partial<GroupByResponse>): GroupByResponse => {
+  const base: GroupByResponse = {
     analyticsType: 'GROUP_BY',
 
     values: {
       '100-199': 111,
       '200-299': 33333,
+    },
+
+    metadata: {
+      test: {
+        name: 'test',
+      },
     },
   };
 

@@ -28,6 +28,5 @@ import lombok.Setter;
 @EqualsAndHashCode(callSuper = false)
 public class LegacySharedPolicyGroupSpec extends SharedPolicyGroupSpec {
 
-    private String id;
     private String crossId;
 }

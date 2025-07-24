@@ -1,0 +1,52 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.settings {
+  &__headerRightBtn {
+    margin: auto 0 auto auto;
+  }
+
+  &__form-control {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+
+    &__title {
+      justify-items: center;
+      margin-bottom: 0;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'default');
+      @include mat.m2-typography-level($typography, 'subtitle-2');
+    }
+
+    &__subtitle {
+      margin-bottom: 16px;
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, 'body-2');
+    }
+
+    mat-slide-toggle[formcontrolname='enabled'],
+    mat-checkbox[formcontrolname='entrypoint'],
+    mat-checkbox[formcontrolname='request'],
+    mat-checkbox[formcontrolname='headers'] {
+      margin-bottom: 16px;
+    }
+  }
+
+  &__save {
+    margin-top: 24px;
+  }
+
+  gio-banner-info {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+  }
+}

@@ -15,13 +15,15 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.application.registration.client;
 
+import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
+import io.gravitee.rest.api.model.configuration.application.registration.TrustStoreEntity;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.common.SecureHttpClientUtils;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.discovery.DiscoveryResponse;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.InitialAccessTokenProvider;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -32,22 +34,27 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
 
     private final String discoveryEndpoint;
     private final InitialAccessTokenProvider initialAccessTokenProvider;
+    private final TrustStoreEntity trustStore;
+    private final KeyStoreEntity keyStore;
     private final Map<String, String> attributes = new HashMap<>();
     private final Map<String, Object> metadata = new HashMap<>();
 
     public DiscoveryBasedDynamicClientRegistrationProviderClient(
         String discoveryEndpoint,
-        InitialAccessTokenProvider initialAccessTokenProvider
+        InitialAccessTokenProvider initialAccessTokenProvider,
+        TrustStoreEntity trustStore,
+        KeyStoreEntity keyStore
     ) {
         this.discoveryEndpoint = discoveryEndpoint;
         this.initialAccessTokenProvider = initialAccessTokenProvider;
+        this.trustStore = trustStore;
+        this.keyStore = keyStore;
         initialize();
     }
 
     private void initialize() {
-        httpClient = HttpClients.createDefault();
-
         try {
+            httpClient = SecureHttpClientUtils.createHttpClient(trustStore, keyStore);
             DiscoveryResponse discovery = httpClient.execute(
                 new HttpGet(discoveryEndpoint),
                 response -> {
@@ -90,6 +97,6 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
 
     @Override
     public String getInitialAccessToken() {
-        return initialAccessTokenProvider.get(attributes);
+        return initialAccessTokenProvider.get(attributes, this.trustStore, this.keyStore);
     }
 }

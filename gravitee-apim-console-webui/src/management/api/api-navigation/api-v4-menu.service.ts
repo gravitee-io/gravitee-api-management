@@ -48,8 +48,9 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addConsumersMenuEntry(hasTcpListeners),
       this.addDocumentationMenuEntry(api),
-      this.addDeploymentMenuEntry(api),
+      this.addDeploymentMenuEntry(),
       ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
+      ...(api.type !== 'NATIVE' ? [this.addLogs(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...this.addAlertsMenuEntry(),
       ...(api.type === 'PROXY' ? [this.addDebugMenuEntry()] : []),
@@ -322,7 +323,7 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addDeploymentMenuEntry(api: ApiV4): MenuItem {
+  private addDeploymentMenuEntry(): MenuItem {
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
@@ -339,7 +340,7 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
-    if (this.permissionService.hasAnyMatching(['api-definition-r']) && api.type === 'NATIVE') {
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
       tabs.push({
         displayName: 'Reporter Settings',
         routerLink: 'reporter-settings',
@@ -352,7 +353,7 @@ export class ApiV4MenuService implements ApiMenuService {
       routerLink: '',
       header: {
         title: 'Deployment',
-        subtitle: 'Manage sharding tags and track every change of your API',
+        subtitle: 'Manage sharding tags, reporter settings and track every change of your API',
       },
       tabs: tabs,
     };
@@ -372,36 +373,25 @@ export class ApiV4MenuService implements ApiMenuService {
   }
 
   private addApiTrafficMenuEntry(hasTcpListeners: boolean): MenuItem {
-    const apiTrafficTabs = [];
-
     if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
-      apiTrafficTabs.push({
-        displayName: 'Analytics',
-        routerLink: 'v4/analytics',
-      });
-    }
-
-    if (this.permissionService.hasAnyMatching(['api-log-r'])) {
-      apiTrafficTabs.push({
-        displayName: 'Runtime Logs',
-        routerLink: 'v4/runtime-logs',
-      });
-    }
-    if (this.permissionService.hasAnyMatching(['api-definition-u', 'api-log-u'])) {
-      apiTrafficTabs.push({
-        displayName: 'Settings',
-        routerLink: 'v4/runtime-logs-settings',
-      });
-    }
-    if (apiTrafficTabs.length > 0) {
       return {
         displayName: 'API Traffic',
         icon: 'bar-chart-2',
-        routerLink: hasTcpListeners ? 'DISABLED' : '',
+        routerLink: hasTcpListeners ? 'DISABLED' : 'v4/analytics',
         header: {
           title: 'API Traffic',
         },
-        tabs: apiTrafficTabs,
+      };
+    }
+    return null;
+  }
+
+  private addLogs(hasTcpListeners: boolean): MenuItem {
+    if (this.permissionService.hasAnyMatching(['api-log-r', 'api-log-u'])) {
+      return {
+        displayName: 'Logs',
+        icon: 'align-justify',
+        routerLink: hasTcpListeners ? 'DISABLED' : 'v4/runtime-logs',
       };
     }
     return null;

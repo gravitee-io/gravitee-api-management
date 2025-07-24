@@ -44,11 +44,15 @@ public interface SharedPolicyGroupMapper {
     @Mapping(target = "errors", ignore = true)
     SharedPolicyGroupState toState(SharedPolicyGroup sharedPolicyGroup);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "crossId", ignore = true)
     @Mapping(target = "errors", ignore = true)
     @Mapping(target = "organizationId", ignore = true)
     @Mapping(target = "environmentId", ignore = true)
     SharedPolicyGroupState toState(LegacySharedPolicyGroupSpec spec);
 
+    @Mapping(target = "id", source = "status.id")
+    @Mapping(target = "crossId", source = "status.crossId")
     @Mapping(target = "steps", ignore = true)
     @Mapping(target = "prerequisiteMessage", ignore = true)
     @Mapping(target = "phase", ignore = true)

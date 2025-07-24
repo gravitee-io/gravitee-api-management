@@ -23,7 +23,7 @@ import { duration } from 'moment/moment';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
-import { isIso8601DateValid } from '../../api/api-traffic-v4/runtime-logs-settings/runtime-logs-message-settings/iso-8601-date.validator';
+import { isIso8601DateValid } from '../../api/reporter-settings/reporter-settings-message/iso-8601-date.validator';
 
 @Component({
   selector: 'api-logging',

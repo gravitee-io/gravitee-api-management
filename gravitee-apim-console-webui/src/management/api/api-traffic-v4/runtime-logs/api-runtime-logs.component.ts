@@ -101,7 +101,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   }
 
   openLogsSettings() {
-    this.router.navigate(['../runtime-logs-settings'], {
+    this.router.navigate(['../../reporter-settings'], {
       relativeTo: this.activatedRoute,
     });
   }

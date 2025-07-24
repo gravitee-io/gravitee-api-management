@@ -67,6 +67,12 @@ public class ClientRegistrationProviderEntity {
     @JsonProperty("software_id")
     private String softwareId;
 
+    @JsonProperty("trust_store")
+    private TrustStoreEntity trustStore = new TrustStoreEntity();
+
+    @JsonProperty("key_store")
+    private KeyStoreEntity keyStore = new KeyStoreEntity();
+
     public String getId() {
         return id;
     }
@@ -185,6 +191,22 @@ public class ClientRegistrationProviderEntity {
 
     public void setSoftwareId(String softwareId) {
         this.softwareId = softwareId;
+    }
+
+    public TrustStoreEntity getTrustStore() {
+        return trustStore;
+    }
+
+    public void setTrustStore(TrustStoreEntity trustStore) {
+        this.trustStore = trustStore;
+    }
+
+    public KeyStoreEntity getKeyStore() {
+        return keyStore;
+    }
+
+    public void setKeyStore(KeyStoreEntity keyStore) {
+        this.keyStore = keyStore;
     }
 
     @Override

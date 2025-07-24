@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { KeyStore, PEMKeyStore, PEMTrustStore, TrustStore } from '../management-api-v2';
+
 export class ClientRegistrationProvider {
   public id: string;
   public name: string;
@@ -29,4 +31,6 @@ export class ClientRegistrationProvider {
   public renew_client_secret_method: string;
   public software_id: string;
   public updated_at: number;
+  public trust_store?: Exclude<TrustStore, PEMTrustStore>;
+  public key_store?: Exclude<KeyStore, PEMKeyStore>;
 }

@@ -81,4 +81,24 @@ public class ClientRegistrationProviderMongo extends Auditable {
     private String renewClientSecretMethod;
 
     private String softwareId;
+
+    private String trustStoreType;
+
+    private String trustStorePath;
+
+    private String trustStoreContent;
+
+    private String trustStorePassword;
+
+    private String keyStoreType;
+
+    private String keyStorePath;
+
+    private String keyStoreContent;
+
+    private String keyStorePassword;
+
+    private String keyStoreAlias;
+
+    private String keyPassword;
 }

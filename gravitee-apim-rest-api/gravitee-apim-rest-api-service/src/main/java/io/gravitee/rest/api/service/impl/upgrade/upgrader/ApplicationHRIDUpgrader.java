@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Slf4j
@@ -57,7 +57,7 @@ public class ApplicationHRIDUpgrader implements Upgrader {
 
     @Override
     public int getOrder() {
-        return UpgraderOrder.API_HRID_UPGRADER;
+        return UpgraderOrder.APPLICATION_HRID_UPGRADER;
     }
 
     private void setHRIDs(ExecutionContext executionContext) throws TechnicalException {

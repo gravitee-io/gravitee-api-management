@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.use_case;
 
 import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -205,7 +206,12 @@ public class ImportApiCRDUseCase {
                     Map.entry(
                         entry.getKey(),
                         createPlanDomainService
-                            .create(initPlanFromCRD(entry.getValue(), createdApi), entry.getValue().getFlows(), createdApi, input.auditInfo)
+                            .create(
+                                initPlanFromCRD(entry.getKey(), entry.getValue(), createdApi),
+                                entry.getValue().getFlows(),
+                                createdApi,
+                                input.auditInfo
+                            )
                             .getId()
                     )
                 )
@@ -286,14 +292,14 @@ public class ImportApiCRDUseCase {
                         return Map.entry(
                             key,
                             updatePlanDomainService
-                                .update(initPlanFromCRD(plan, api), plan.getFlows(), existingPlanStatuses, api, input.auditInfo)
+                                .update(initPlanFromCRD(key, plan, api), plan.getFlows(), existingPlanStatuses, api, input.auditInfo)
                                 .getId()
                         );
                     }
 
                     return Map.entry(
                         key,
-                        createPlanDomainService.create(initPlanFromCRD(plan, api), plan.getFlows(), api, input.auditInfo).getId()
+                        createPlanDomainService.create(initPlanFromCRD(key, plan, api), plan.getFlows(), api, input.auditInfo).getId()
                     );
                 })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -362,10 +368,11 @@ public class ImportApiCRDUseCase {
         reorderPlanDomainService.refreshOrderAfterDelete(api.getId());
     }
 
-    private Plan initPlanFromCRD(PlanCRD planCRD, Api api) {
+    private Plan initPlanFromCRD(String hrid, PlanCRD planCRD, Api api) {
         Plan plan = Plan
             .builder()
             .id(planCRD.getId())
+            .hrid(hrid)
             .name(planCRD.getName())
             .description(planCRD.getDescription())
             .characteristics(planCRD.getCharacteristics())
@@ -431,7 +438,11 @@ public class ImportApiCRDUseCase {
         }
 
         var now = Date.from(TimeProvider.now().toInstant());
-        var pages = pageCRDs.values().stream().map(PageModelFactory::fromCRDSpec).toList();
+        var pages = pageCRDs
+            .entrySet()
+            .stream()
+            .map(entry -> PageModelFactory.fromCRDSpec(entry.getKey(), entry.getValue()))
+            .collect(toList());
 
         pages.forEach(page -> {
             page.setReferenceId(apiId);

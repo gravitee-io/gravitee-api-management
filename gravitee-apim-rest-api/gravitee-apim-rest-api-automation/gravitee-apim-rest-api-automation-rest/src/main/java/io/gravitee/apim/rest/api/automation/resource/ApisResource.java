@@ -16,15 +16,20 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.rest.api.automation.mapper.ApiMapper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
 import io.gravitee.apim.rest.api.automation.model.FlowV4;
+import io.gravitee.apim.rest.api.automation.model.LegacyAPIV4Spec;
+import io.gravitee.apim.rest.api.automation.model.PageV4;
+import io.gravitee.apim.rest.api.automation.model.PlanV4;
 import io.gravitee.apim.rest.api.automation.model.StepV4;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -74,7 +79,11 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
-    public Response createOrUpdate(@Valid @NotNull ApiV4Spec spec, @QueryParam("dryRun") boolean dryRun) {
+    public Response createOrUpdate(
+        @Valid @NotNull LegacyAPIV4Spec spec,
+        @QueryParam("dryRun") boolean dryRun,
+        @QueryParam("legacy") boolean legacy
+    ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -92,17 +101,21 @@ public class ApisResource extends AbstractResource {
             )
             .build();
 
+        checkPlanAndPagesUnicity(spec);
+
+        ApiCRDSpec apiCRDSpec = io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper.INSTANCE.map(
+            ApiMapper.INSTANCE.apiV4SpecToApiCRDSpec(spec)
+        );
+
+        // Just for backward compatibility with old code
+        if (legacy) {
+            apiCRDSpec.setId(spec.getHrid());
+        }
+
         if (dryRun) {
             var statusBuilder = ApiCRDStatus.builder();
             validateApiCRDDomainService
-                .validateAndSanitize(
-                    new ValidateApiCRDDomainService.Input(
-                        audit,
-                        io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper.INSTANCE.map(
-                            ApiMapper.INSTANCE.apiV4SpecToApiCRDSpec(spec)
-                        )
-                    )
-                )
+                .validateAndSanitize(new ValidateApiCRDDomainService.Input(audit, apiCRDSpec))
                 .peek(
                     sanitized ->
                         statusBuilder
@@ -117,23 +130,32 @@ public class ApisResource extends AbstractResource {
 
         mapSharedPolicyGroupHrid(spec, audit);
 
-        ApiCRDStatus apiCRDStatus = importApiCRDUseCase
-            .execute(
-                new ImportApiCRDUseCase.Input(
-                    audit,
-                    io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper.INSTANCE.map(ApiMapper.INSTANCE.apiV4SpecToApiCRDSpec(spec))
-                )
-            )
-            .status();
+        ApiCRDStatus apiCRDStatus = importApiCRDUseCase.execute(new ImportApiCRDUseCase.Input(audit, apiCRDSpec)).status();
 
         return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, apiCRDStatus)).build();
+    }
+
+    private void checkPlanAndPagesUnicity(@Valid @NotNull LegacyAPIV4Spec spec) {
+        if (
+            spec.getPlans() != null &&
+            spec.getPlans().size() != CollectionUtils.stream(spec.getPlans()).map(PlanV4::getHrid).distinct().count()
+        ) {
+            throw new ValidationDomainException("Duplicate hrid found in plans");
+        }
+
+        if (
+            spec.getPages() != null &&
+            spec.getPages().size() != CollectionUtils.stream(spec.getPages()).map(PageV4::getHrid).distinct().count()
+        ) {
+            throw new ValidationDomainException("Duplicate hrid found in pages");
+        }
     }
 
     private void mapSharedPolicyGroupHrid(ApiV4Spec spec, AuditInfo audit) {
         CollectionUtils.stream(spec.getFlows()).forEach(f -> mapSharedPolicyGroupHrid(f, audit));
         if (spec.getPlans() != null) {
             CollectionUtils
-                .stream(spec.getPlans().values())
+                .stream(spec.getPlans())
                 .flatMap(p -> CollectionUtils.stream(p.getFlows()))
                 .forEach(f -> mapSharedPolicyGroupHrid(f, audit));
         }

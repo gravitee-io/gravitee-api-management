@@ -29,7 +29,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -66,7 +65,11 @@ public class ApplicationsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = { RolePermissionAction.CREATE }) })
-    public Response createOrUpdate(@Valid @NotNull ApplicationSpec spec, @QueryParam("dryRun") boolean dryRun) {
+    public Response createOrUpdate(
+        @Valid @NotNull ApplicationSpec spec,
+        @QueryParam("dryRun") boolean dryRun,
+        @QueryParam("legacy") boolean legacy
+    ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -87,6 +90,12 @@ public class ApplicationsResource extends AbstractResource {
         ApplicationCRDSpec applicationCRDSpec = io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper.INSTANCE.map(
             ApplicationMapper.INSTANCE.applicationSpecToApplicationCRDSpec(spec)
         );
+
+        // Just for backward compatibility with old code
+        if (legacy) {
+            applicationCRDSpec.setId(spec.getHrid());
+        }
+
         if (dryRun) {
             ApplicationCRDStatus status = validateApplicationCRDUseCase
                 .execute(new ImportApplicationCRDUseCase.Input(auditInfo, applicationCRDSpec))

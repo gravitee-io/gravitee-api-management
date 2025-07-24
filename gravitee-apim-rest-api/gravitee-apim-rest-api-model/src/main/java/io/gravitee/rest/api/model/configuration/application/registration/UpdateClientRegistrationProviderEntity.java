@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.configuration.application.registration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
@@ -60,6 +61,14 @@ public class UpdateClientRegistrationProviderEntity {
 
     @JsonProperty("software_id")
     private String softwareId;
+
+    @JsonProperty("trust_store")
+    @Valid
+    private TrustStoreEntity trustStore = new TrustStoreEntity();
+
+    @JsonProperty("key_store")
+    @Valid
+    private KeyStoreEntity keyStore = new KeyStoreEntity();
 
     public String getName() {
         return name;
@@ -155,6 +164,22 @@ public class UpdateClientRegistrationProviderEntity {
 
     public void setSoftwareId(String softwareId) {
         this.softwareId = softwareId;
+    }
+
+    public TrustStoreEntity getTrustStore() {
+        return trustStore;
+    }
+
+    public void setTrustStore(TrustStoreEntity trustStore) {
+        this.trustStore = trustStore;
+    }
+
+    public KeyStoreEntity getKeyStore() {
+        return keyStore;
+    }
+
+    public void setKeyStore(KeyStoreEntity keyStore) {
+        this.keyStore = keyStore;
     }
 
     @Override
