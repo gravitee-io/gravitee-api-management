@@ -5432,7 +5432,11 @@ components:
                 application_type:
                     type: string
                 renew_client_secret_supported:
-                    type: boolean
+                  type: boolean
+                additional_client_metadata:
+                    type: object
+                    additionalProperties:
+                      type: string
         TlsClientSettings:
             properties:
                 client_certificate:

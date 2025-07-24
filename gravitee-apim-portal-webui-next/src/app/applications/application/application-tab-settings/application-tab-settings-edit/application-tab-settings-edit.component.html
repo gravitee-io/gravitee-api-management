@@ -125,6 +125,61 @@
               >Grant types allowed for the client. Please set only grant types you need for security reasons</mat-hint
             >
           </mat-form-field>
+
+          <!-- Additional Client Metadata Section -->
+          <div class="settings__form__content__integration__metadata">
+            <div class="settings__form__content__integration__metadata__header">
+              <button mat-button type="button" (click)="addMetadata()" data-testId="addMetadata" i18n="@@addMetadataApplicationSettings">
+                <mat-icon>add</mat-icon>
+                Add Metadata
+              </button>
+            </div>
+
+            @if (metadataControls.length > 0) {
+              <div class="settings__form__content__integration__metadata__table">
+                <!-- Table Header -->
+                <div class="metadata-header">
+                  <div class="metadata-header-cell" i18n="@@metadataKeyApplicationSettings">Metadata Key</div>
+                  <div class="metadata-header-cell" i18n="@@metadataValueApplicationSettings">Metadata Value</div>
+                  <div class="metadata-header-cell"></div>
+                </div>
+
+                <!-- Table Rows -->
+                @for (metadataGroup of metadataControls; track i; let i = $index) {
+                  <div class="metadata-row">
+                    <div class="metadata-cell">
+                      <mat-form-field class="settings__form__content__integration__metadata__field">
+                        <input
+                          matInput
+                          [formControl]="getMetadataKeyControl(metadataGroup)"
+                          placeholder="Additional metadata key"
+                          data-testId="metadataKey" />
+                      </mat-form-field>
+                    </div>
+                    <div class="metadata-cell">
+                      <mat-form-field class="settings__form__content__integration__metadata__field">
+                        <input
+                          matInput
+                          [formControl]="getMetadataValueControl(metadataGroup)"
+                          placeholder="Value of metadata key"
+                          data-testId="metadataValue" />
+                      </mat-form-field>
+                    </div>
+                    <div class="metadata-cell">
+                      <button
+                        mat-icon-button
+                        type="button"
+                        (click)="removeMetadata(i)"
+                        data-testId="removeMetadata"
+                        aria-label="Remove metadata">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
         }
       </div>
     </div>

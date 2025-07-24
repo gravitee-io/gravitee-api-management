@@ -76,6 +76,7 @@ export interface ApplicationSettingsOAuth {
   renew_client_secret_supported: boolean;
   response_types: string[];
   grant_types: string[];
+  additional_client_metadata?: Record<string, string>;
 }
 
 export interface ApplicationSettingsTls {

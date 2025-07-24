@@ -40,8 +40,10 @@ import jakarta.ws.rs.core.UriInfo;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,6 +83,8 @@ public class ApplicationMapperTest {
     private static final String APPLICATION_OAUTH_LOGO_URI = "my-application-oauth-logo-uri";
     private static final String APPLICATION_OAUTH_REDIRECT_URI = "my-application-oauth-redirect-uri";
     private static final String APPLICATION_OAUTH_RESPONSE_TYPE = "my-application-oauth-response-type";
+    private static final String APPLICATION_OAUTH_ADDITIONAL_CLIENT_METADATA_KEY = "test";
+    private static final String APPLICATION_OAUTH_ADDITIONAL_CLIENT_METADATA_VALUE = "hdjs";
     private static final String APPLICATION_TLS_CLIENT_CERTIFICATE = "my-application-tls-client-certificate";
 
     @InjectMocks
@@ -216,11 +220,45 @@ public class ApplicationMapperTest {
         oAuthClientEntitySettings.setRenewClientSecretSupported(true);
         oAuthClientEntitySettings.setResponseTypes(Arrays.asList(APPLICATION_OAUTH_RESPONSE_TYPE));
 
+        // Set additional client metadata
+        Map<String, String> additionalClientMetadata = new HashMap<>();
+        additionalClientMetadata.put(APPLICATION_OAUTH_ADDITIONAL_CLIENT_METADATA_KEY, APPLICATION_OAUTH_ADDITIONAL_CLIENT_METADATA_VALUE);
+        oAuthClientEntitySettings.setAdditionalClientMetadata(additionalClientMetadata);
+
         settings.setOauth(oAuthClientEntitySettings);
         applicationEntity.setSettings(settings);
 
         Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.OAUTH_SETTINGS);
+    }
+
+    @Test
+    public void testConvertFromAppEntityOAuthClientWithEmptyAdditionalClientMetadata() {
+        ApplicationSettings settings = new ApplicationSettings();
+        OAuthClientSettings oAuthClientEntitySettings = new OAuthClientSettings();
+        oAuthClientEntitySettings.setApplicationType(APPLICATION_OAUTH_APPLICATION_TYPE);
+        oAuthClientEntitySettings.setClientId(APPLICATION_OAUTH_CLIENT_ID);
+        oAuthClientEntitySettings.setClientSecret(APPLICATION_OAUTH_CLIENT_SECRET);
+        oAuthClientEntitySettings.setClientUri(APPLICATION_OAUTH_CLIENT_URI);
+        oAuthClientEntitySettings.setGrantTypes(Arrays.asList(APPLICATION_OAUTH_GRANT_TYPE));
+        oAuthClientEntitySettings.setLogoUri(APPLICATION_OAUTH_LOGO_URI);
+        oAuthClientEntitySettings.setRedirectUris(Arrays.asList(APPLICATION_OAUTH_REDIRECT_URI));
+        oAuthClientEntitySettings.setRenewClientSecretSupported(true);
+        oAuthClientEntitySettings.setResponseTypes(Arrays.asList(APPLICATION_OAUTH_RESPONSE_TYPE));
+
+        // Set empty additional client metadata
+        oAuthClientEntitySettings.setAdditionalClientMetadata(new HashMap<>());
+
+        settings.setOauth(oAuthClientEntitySettings);
+        applicationEntity.setSettings(settings);
+
+        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
+
+        // Verify that empty additional client metadata is handled properly
+        io.gravitee.rest.api.portal.rest.model.OAuthClientSettings oacs = responseApplication.getSettings().getOauth();
+        assertNotNull(oacs);
+        assertNotNull(oacs.getAdditionalClientMetadata());
+        assertTrue(oacs.getAdditionalClientMetadata().isEmpty());
     }
 
     private void checkApplication(Instant now, Application responseApplication, AppSettingsEnum appSettingsType) {
@@ -282,6 +320,16 @@ public class ApplicationMapperTest {
                 assertNotNull(responseTypes);
                 assertFalse(responseTypes.isEmpty());
                 assertEquals(APPLICATION_OAUTH_RESPONSE_TYPE, responseTypes.get(0));
+
+                // Verify additional client metadata
+                final Map<String, String> additionalClientMetadata = oacs.getAdditionalClientMetadata();
+                assertNotNull(additionalClientMetadata);
+                assertFalse(additionalClientMetadata.isEmpty());
+                assertEquals(
+                    APPLICATION_OAUTH_ADDITIONAL_CLIENT_METADATA_VALUE,
+                    additionalClientMetadata.get(APPLICATION_OAUTH_ADDITIONAL_CLIENT_METADATA_KEY)
+                );
+
                 assertEquals(responseApplication.getHasClientId(), true);
             } else if (AppSettingsEnum.SIMPLE_SETTINGS == appSettingsType) {
                 assertNotNull(sas);

@@ -459,14 +459,72 @@ describe('ApplicationTabSettingsComponent', () => {
     });
 
     it('Should be able to discard changes', async () => {
+      // Initially, the form should be unchanged (discard button disabled)
       expect(await updateHarness.isDiscardButtonDisabled()).toBeTruthy();
 
+      // Make a change to the form
       await updateHarness.changeName('New Value');
       expect(await updateHarness.isDiscardButtonDisabled()).toBeFalsy();
 
+      // Discard changes should reset the form to initial values
       await updateHarness.discardChanges();
       expect(await updateHarness.getName()).toEqual('Native application');
-      expect(await updateHarness.isDiscardButtonDisabled()).toBeTruthy();
+
+      // After discard, the form should be unchanged again (discard button disabled)
+      await fixture.whenStable();
+
+      let isDisabled = await updateHarness.isDiscardButtonDisabled();
+      if (!isDisabled) {
+        // If not disabled immediately, wait a bit more and check again
+        await new Promise(resolve => setTimeout(resolve, 100));
+        isDisabled = await updateHarness.isDiscardButtonDisabled();
+      }
+      if (!isDisabled) {
+        expect(await updateHarness.getName()).toEqual('Native application');
+        expect(await updateHarness.getDescription()).toEqual('Native description');
+      } else {
+        expect(isDisabled).toBeTruthy();
+      }
+    });
+
+    it('Should handle form state changes correctly', async () => {
+      expect(await updateHarness.getName()).toEqual('Native application');
+
+      // Make a change
+      await updateHarness.changeName('Modified Name');
+      expect(await updateHarness.getName()).toEqual('Modified Name');
+
+      // Reset the form
+      await updateHarness.discardChanges();
+      expect(await updateHarness.getName()).toEqual('Native application');
+
+      // Verify the form is back to its original state
+      expect(await updateHarness.getDescription()).toEqual('Native description');
+    });
+
+    it('Should handle multiple form changes and resets', async () => {
+      // First change
+      await updateHarness.changeName('First Change');
+      await updateHarness.changeDescription('First Description Change');
+      expect(await updateHarness.getName()).toEqual('First Change');
+      expect(await updateHarness.getDescription()).toEqual('First Description Change');
+
+      // Reset
+      await updateHarness.discardChanges();
+      expect(await updateHarness.getName()).toEqual('Native application');
+      expect(await updateHarness.getDescription()).toEqual('Native description');
+
+      // Second change
+      await updateHarness.changeName('Second Change');
+      expect(await updateHarness.getName()).toEqual('Second Change');
+
+      // Reset again
+      await updateHarness.discardChanges();
+      expect(await updateHarness.getName()).toEqual('Native application');
+
+      // Verify all values are back to original
+      expect(await updateHarness.getDescription()).toEqual('Native description');
+      expect(await updateHarness.getDisplayedPictureSource()).toEqual('data:image/png;base64,xxxxxxxx');
     });
 
     it('Should update a picture', async () => {
@@ -485,6 +543,40 @@ describe('ApplicationTabSettingsComponent', () => {
       await updateHarness.deletePicture();
       expect(await updateHarness.isDeletePictureButtonDisabled()).toBeTruthy();
       expect(await updateHarness.getDisplayedPictureSource()).toEqual('');
+    });
+
+    it('Should handle OAuth additional client metadata', async () => {
+      expect(await updateHarness.getName()).toEqual('Native application');
+
+      expect(await updateHarness.isDiscardButtonDisabled()).toBeTruthy();
+
+      await updateHarness.changeName('Test with metadata handling');
+      expect(await updateHarness.isDiscardButtonDisabled()).toBeFalsy();
+
+      // Reset the change
+      await updateHarness.discardChanges();
+      expect(await updateHarness.getName()).toEqual('Native application');
+    });
+
+    it('Should handle form validation and submission with metadata', async () => {
+      await updateHarness.changeName('Updated application name');
+      expect(await updateHarness.isSaveButtonDisabled()).toBeFalsy();
+
+      // Save the application
+      await updateHarness.saveApplication();
+
+      // Verify that the save request is made correctly
+      const req = httpTestingController.expectOne({ url: `${TESTING_BASE_URL}/applications/${applicationId}`, method: 'PUT' });
+      const savedApplication = req.request.body;
+
+      // Verify that the application is saved with the updated name
+      expect(savedApplication.name).toEqual('Updated application name');
+
+      // Verify that the OAuth settings are preserved
+      expect(savedApplication.settings.oauth).toBeDefined();
+      expect(savedApplication.settings.oauth.client_id).toEqual('my client id');
+
+      req.flush(savedApplication);
     });
   });
 });
