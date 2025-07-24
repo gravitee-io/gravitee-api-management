@@ -18,6 +18,8 @@ import { applicationConfig, moduleMetadata } from '@storybook/angular';
 
 import { GraviteeMarkdownEditorComponent } from './gravitee-markdown-editor.component';
 import { GRAVITEE_MONACO_EDITOR_CONFIG } from '../gravitee-monaco-wrapper/data/gravitee-monaco-editor-config';
+import { GRAVITEE_MARKDOWN_BASE_URL, GRAVITEE_MARKDOWN_MOCK_MODE } from '../services/configuration';
+import { provideHttpClient } from '@angular/common/http';
 
 const meta: Meta<GraviteeMarkdownEditorComponent> = {
   title: 'Gravitee Markdown/Editor',
@@ -38,6 +40,15 @@ const meta: Meta<GraviteeMarkdownEditorComponent> = {
             theme: 'vs' as const,
           },
         },
+        {
+          provide: GRAVITEE_MARKDOWN_BASE_URL,
+          useValue: 'https://gravitee.io',
+        },
+        {
+          provide: GRAVITEE_MARKDOWN_MOCK_MODE,
+          useValue: true,
+        },
+        provideHttpClient(),
       ],
     }),
   ],

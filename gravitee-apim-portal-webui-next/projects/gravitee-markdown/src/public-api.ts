@@ -26,5 +26,14 @@ export * from './lib/component-library/components/card/card-actions.component';
 export * from './lib/component-library/components/image/image.component';
 export * from './lib/component-library/components/grid/grid.component';
 export * from './lib/component-library/components/grid/grid-cell.component';
+export * from './lib/component-library/components/latest-apis/latest-apis.component';
 export * from './lib/gravitee-monaco-wrapper/gravitee-monaco-wrapper.module';
 export * from './lib/gravitee-monaco-wrapper/gravitee-monaco-wrapper.component';
+
+// Services
+export * from './lib/services/markdown.service';
+export * from './lib/services/api-search.service';
+export * from './lib/services/mock/mock-api-search.service';
+export * from './lib/services/api-search.factory';
+export * from './lib/services/mock/mock-data';
+export * from './lib/services/configuration';

@@ -6,6 +6,7 @@ import { CardActionsComponent } from './components/card/card-actions.component';
 import { ImageComponent } from './components/image/image.component';
 import { GridComponent } from './components/grid/grid.component';
 import { GridCellComponent } from './components/grid/grid-cell.component';
+import { LatestApisComponent } from './components/latest-apis/latest-apis.component';
 
 export const appPrefixStripperParsers: HookParserEntry[] = [
   {
@@ -35,5 +36,9 @@ export const appPrefixStripperParsers: HookParserEntry[] = [
   {
     component: GridCellComponent,
     selector: 'app-grid-cell',
+  },
+  {
+    component: LatestApisComponent,
+    selector: 'app-latest-apis',
   },
 ];

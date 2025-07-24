@@ -1,0 +1,73 @@
+<div class="latest-apis-container">
+  <div class="latest-apis-header">
+    <div class="latest-apis-header-content">
+        @if (title()) {
+            <h2 class="latest-apis-title">{{ title() }}</h2>
+        }
+        @if (subtitle()) {
+            <p class="latest-apis-subtitle">{{ subtitle() }}</p>
+        }
+    </div>
+    <div class="latest-apis-header-actions">
+        <app-button variant="outlined" type="internal" href="/catalog">View all APIs</app-button>
+    </div>
+  </div>
+  
+  <div class="latest-apis-grid">
+    @for (api of apis(); track api.id; let i = $index) {
+                <app-card 
+            [title]="api.name"
+            [elevation]="cardElevation()"
+            [backgroundColor]="cardBackgroundColor()"
+            [borderRadius]="cardBorderRadius()"
+            [borderColor]="'#e0e0e0'"
+            [borderWidth]="'1px'"
+          >
+        <div class="api-content">
+          @if (api.description) {
+            <p class="api-description">{{ api.description }}</p>
+          }
+          <div class="api-meta">
+            <span class="api-version">Version: {{ api.version }}</span>
+          </div>
+          @if (api.tags && api.tags.length > 0) {
+            <div class="api-tags">
+              @for (tag of api.tags; track tag) {
+                <span class="api-tag">{{ tag }}</span>
+              }
+            </div>
+          }
+        </div>
+        
+        <card-actions>
+          <app-button 
+            [href]="apiDetailsUrls()[i].url"
+            [text]="actionButtonText()"
+            [variant]="actionButtonVariant()"
+            [type]="actionButtonType()"
+          >
+            {{ actionButtonText() }}
+          </app-button>
+        </card-actions>
+      </app-card>
+    }
+  </div>
+  
+  @if (loading()) {
+    <div class="loading-container">
+      <p>Loading APIs...</p>
+    </div>
+  }
+  
+  @if (error()) {
+    <div class="error-container">
+      <p>Error loading APIs: {{ error() }}</p>
+    </div>
+  }
+  
+  @if (apis().length === 0 && !loading() && !error()) {
+    <div class="empty-container">
+      <p>No APIs found.</p>
+    </div>
+  }
+</div> 
