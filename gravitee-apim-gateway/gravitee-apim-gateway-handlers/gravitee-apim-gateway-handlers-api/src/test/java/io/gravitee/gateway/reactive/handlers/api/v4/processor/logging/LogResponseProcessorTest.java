@@ -29,11 +29,15 @@ import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.LogEntrypointResponse;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
 import io.gravitee.reporter.api.v4.log.Log;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -96,5 +100,39 @@ class LogResponseProcessorTest extends AbstractV4ProcessorTest {
     @Test
     void shouldReturnId() {
         assertEquals(ID, cut.getId());
+    }
+
+    @Test
+    void shouldSetStatusForSSERequestWithOKStatus() {
+        when(ctx.request().headers().get(HttpHeaderNames.ACCEPT)).thenReturn(HttpHeaderValues.TEXT_EVENT_STREAM.toString());
+
+        when(ctx.response().status()).thenReturn(HttpResponseStatus.OK.code());
+
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+        obs.assertComplete();
+
+        Mockito.verify(mockMetrics).setStatus(HttpResponseStatus.OK.code());
+    }
+
+    @Test
+    void shouldNotSetStatusForNonSSERequest() {
+        when(ctx.request().headers().get(HttpHeaderNames.ACCEPT)).thenReturn("application/json");
+
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+        obs.assertComplete();
+
+        Mockito.verify(mockMetrics, Mockito.never()).setStatus(Mockito.anyInt());
+    }
+
+    @Test
+    void shouldNotSetStatusForSSERequestWithNonOKStatus() {
+        when(ctx.request().headers().get(HttpHeaderNames.ACCEPT)).thenReturn(HttpHeaderValues.TEXT_EVENT_STREAM.toString());
+
+        when(ctx.response().status()).thenReturn(HttpResponseStatus.BAD_REQUEST.code());
+
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+        obs.assertComplete();
+
+        Mockito.verify(mockMetrics, Mockito.never()).setStatus(Mockito.anyInt());
     }
 }
