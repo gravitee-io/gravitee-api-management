@@ -567,7 +567,7 @@ components:
                 The organization ID of the API.
               type: string
 
-    Error:
+    HttpError:
       description: Error
       type: object
       properties:
@@ -1565,12 +1565,6 @@ components:
       properties:
         hrid:
           $ref: "#/components/schemas/Hrid"
-        id:
-          type: string
-          description: Page's uuid.
-          examples:
-            - 00f8c9e7-78fc-4907-b8c9-e778fc790750
-          readOnly: true
         crossId:
           type: string
           description: Page's cross uuid.
@@ -2155,25 +2149,25 @@ components:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Error"
+              $ref: "#/components/schemas/HttpError"
     Unauthorized:
       description: Unauthorized
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/HttpError"
     Unauthenticated:
       description: Unauthenticated
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/HttpError"
     BadRequest:
       description: Request is invalid
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/HttpError"
     Error:
       description: Default error
       content:
@@ -2181,7 +2175,7 @@ components:
           schema:
             type: object
             allOf:
-              - $ref: "#/components/schemas/Error"
+              - $ref: "#/components/schemas/HttpError"
   parameters:
     envIdParam:
       name: envId
