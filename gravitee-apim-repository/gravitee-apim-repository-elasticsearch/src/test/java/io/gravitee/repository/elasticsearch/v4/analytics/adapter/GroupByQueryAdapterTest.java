@@ -103,6 +103,37 @@ class GroupByQueryAdapterTest {
             }
             assertTrue(hasQueryString, "Should contain query_string filter");
         }
+
+        @Test
+        void shouldGenerateTermsQueryWithAvgOrderAggregation() throws Exception {
+            GroupByQuery.Order order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
+            GroupByQuery query = new GroupByQuery(API_ID, FIELD, null, order, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), null);
+            String json = cut.adapt(query);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(json);
+
+            assertEquals("desc", node.at("/aggregations/by_status/terms/order/gateway-response-time-ms").asText());
+            assertEquals(
+                "gateway-response-time-ms",
+                node.at("/aggregations/by_status/aggregations/gateway-response-time-ms/avg/field").asText()
+            );
+        }
+
+        @Test
+        void shouldGenerateTermsQueryWithCountOrder() throws Exception {
+            GroupByQuery.Order order = new GroupByQuery.Order("status", true, "COUNT");
+            GroupByQuery query = new GroupByQuery(API_ID, FIELD, null, order, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), null);
+            String json = cut.adapt(query);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(json);
+
+            assertEquals("asc", node.at("/aggregations/by_status/terms/order/status").asText());
+            assertTrue(
+                node.at("/aggregations/by_status/aggregations").isMissingNode() || node.at("/aggregations/by_status/aggregations").isNull()
+            );
+        }
     }
 
     @Nested

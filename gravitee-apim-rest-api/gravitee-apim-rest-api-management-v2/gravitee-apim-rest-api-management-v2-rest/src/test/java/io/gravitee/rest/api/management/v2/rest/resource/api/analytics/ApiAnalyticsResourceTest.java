@@ -591,19 +591,20 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 var expectedAnalytics = io.gravitee.apim.core.analytics.model.GroupByAnalytics
                     .builder()
                     .values(Map.of("100:199", 0L, "200:299", 5L, "300:399", 0L, "400:499", 1L, "500:599", 0L))
+                    .order(List.of("100:199", "200:299", "300:399", "400:499", "500:599"))
                     .build();
 
                 var expectedMetadata = Map.of(
                     "100:199",
-                    Map.of("name", "100:199"),
+                    Map.of("name", "100:199", "order", "0"),
                     "200:299",
-                    Map.of("name", "200:299"),
+                    Map.of("name", "200:299", "order", "1"),
                     "300:399",
-                    Map.of("name", "300:399"),
+                    Map.of("name", "300:399", "order", "2"),
                     "400:499",
-                    Map.of("name", "400:499"),
+                    Map.of("name", "400:499", "order", "3"),
                     "500:599",
-                    Map.of("name", "500:599")
+                    Map.of("name", "500:599", "order", "4")
                 );
 
                 fakeAnalyticsQueryService.groupByAnalytics = expectedAnalytics;
@@ -648,19 +649,20 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 var expectedAnalytics = io.gravitee.apim.core.analytics.model.GroupByAnalytics
                     .builder()
                     .values(Map.of("100:199", 0L, "200:299", 5L, "300:399", 0L, "400:499", 1L, "500:599", 0L))
+                    .order(List.of("100:199", "200:299", "300:399", "400:499", "500:599"))
                     .build();
 
                 var expectedMetadata = Map.of(
                     "100:199",
-                    Map.of("name", "100:199"),
+                    Map.of("name", "100:199", "order", "0"),
                     "200:299",
-                    Map.of("name", "200:299"),
+                    Map.of("name", "200:299", "order", "1"),
                     "300:399",
-                    Map.of("name", "300:399"),
+                    Map.of("name", "300:399", "order", "2"),
                     "400:499",
-                    Map.of("name", "400:499"),
+                    Map.of("name", "400:499", "order", "3"),
                     "500:599",
-                    Map.of("name", "500:599")
+                    Map.of("name", "500:599", "order", "4")
                 );
 
                 fakeAnalyticsQueryService.groupByAnalytics = expectedAnalytics;

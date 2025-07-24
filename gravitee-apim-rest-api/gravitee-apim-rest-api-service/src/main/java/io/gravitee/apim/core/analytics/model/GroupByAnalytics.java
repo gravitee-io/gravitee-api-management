@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.analytics.model;
 
+import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,4 +29,5 @@ import lombok.NoArgsConstructor;
 public class GroupByAnalytics {
 
     private Map<String, Long> values;
+    private List<String> order;
 }

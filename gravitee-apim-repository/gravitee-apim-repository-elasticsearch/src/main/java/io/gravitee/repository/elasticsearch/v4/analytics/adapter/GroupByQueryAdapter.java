@@ -21,6 +21,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -124,10 +125,21 @@ public class GroupByQueryAdapter {
                 ObjectNode orderNode = MAPPER.createObjectNode();
                 orderNode.put(query.order().field(), query.order().order() ? "asc" : "desc");
                 termsAgg.set("order", orderNode);
+
+                if (query.order().type() != null && query.order().type().equalsIgnoreCase("AVG")) {
+                    ObjectNode aggregationsNode = MAPPER.createObjectNode();
+                    ObjectNode avgAgg = MAPPER.createObjectNode();
+                    ObjectNode avgField = MAPPER.createObjectNode();
+                    avgField.put("field", query.order().field());
+                    avgAgg.set("avg", avgField);
+                    aggregationsNode.set(query.order().field(), avgAgg);
+                    byTerms.set("aggregations", aggregationsNode);
+                }
             }
             byTerms.set("terms", termsAgg);
             aggs.set("by_" + query.field(), byTerms);
         }
+
         return aggs;
     }
 
@@ -140,13 +152,15 @@ public class GroupByQueryAdapter {
             return Optional.empty();
         }
         Map<String, Long> values = new HashMap<>();
+        List<String> order = new ArrayList<>(agg.getBuckets().size());
         agg
             .getBuckets()
             .forEach(bucket -> {
                 String key = bucket.get("key").asText();
                 long count = bucket.get("doc_count").asLong();
                 values.put(key, count);
+                order.add(key);
             });
-        return Optional.of(new GroupByAggregate(this.aggName, this.fieldName, values));
+        return Optional.of(new GroupByAggregate(this.aggName, this.fieldName, values, order));
     }
 }

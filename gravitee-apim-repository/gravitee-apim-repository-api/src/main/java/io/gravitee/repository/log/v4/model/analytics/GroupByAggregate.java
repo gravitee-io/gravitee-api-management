@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
+import java.util.List;
 import java.util.Map;
 
-public record GroupByAggregate(String name, String field, Map<String, Long> values) {}
+public record GroupByAggregate(String name, String field, Map<String, Long> values, List<String> order) {}

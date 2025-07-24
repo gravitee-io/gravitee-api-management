@@ -2115,12 +2115,12 @@ paths:
           - name: order
             in: query
             required: false
-            description: Order of the results
+            description: |-
+              Parameter format `<descending '-'><type 'avg' or 'count'>:<field>`.  
+              Example: `-avg:gateway-response-time-ms` will sort descending by average response time,  
+              `count:_key` will order ascending by count in bucket.
             schema:
               type: string
-              enum:
-                  - ASC
-                  - DESC
           - name: query
             in: query
             required: false

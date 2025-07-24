@@ -310,6 +310,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .map(groupByAggregate -> {
                 GroupByAnalytics analytics = new GroupByAnalytics();
                 analytics.setValues(groupByAggregate.values());
+                analytics.setOrder(groupByAggregate.order());
                 return analytics;
             });
     }
