@@ -24,6 +24,7 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
@@ -37,6 +38,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,5 +140,14 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
 
         // Verify that the result is null
         assertNotNull(result);
+    }
+
+    @Test
+    public void testSearchRequestsCountByEvent() throws Exception {
+        Assert.assertNotNull(analyticsRepository);
+
+        var result = analyticsRepository.searchRequestsCountByEvent(queryContext, new RequestsCountByEventQuery(Map.of("api", API_ID)));
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 }

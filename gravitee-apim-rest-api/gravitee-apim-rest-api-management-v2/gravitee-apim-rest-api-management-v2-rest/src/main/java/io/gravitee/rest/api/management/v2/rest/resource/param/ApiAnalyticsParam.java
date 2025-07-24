@@ -167,6 +167,17 @@ public class ApiAnalyticsParam {
         );
     }
 
+    public static io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input toRequestsCountInput(
+        String apiId,
+        ApiAnalyticsParam param
+    ) {
+        return new io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input(
+            apiId,
+            param.getFrom(),
+            param.getTo()
+        );
+    }
+
     @Getter
     @Setter
     public static class Range {

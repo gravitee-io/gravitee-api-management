@@ -31,6 +31,7 @@ import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQu
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
@@ -367,6 +368,16 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     statsAggregate.rph()
                 )
             );
+    }
+
+    @Override
+    public Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery countParameters) {
+        return analyticsRepository
+            .searchRequestsCountByEvent(
+                executionContext.getQueryContext(),
+                new RequestsCountByEventQuery(countParameters.terms(), countParameters.from(), countParameters.to())
+            )
+            .map(countAggregate -> RequestsCount.builder().total(countAggregate.getTotal()).build());
     }
 
     private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(

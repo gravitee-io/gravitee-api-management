@@ -843,5 +843,32 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     });
             }
         }
+
+        @Nested
+        class RequestsCountAggregateAnalytics {
+
+            @Test
+            void should_return_requests_count() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                fakeAnalyticsQueryService.requestsCount =
+                    RequestsCount.builder().total(11L).countsByEntrypoint(Map.of("http-get", 10L, "sse", 1L)).build();
+
+                final Response response = rootTarget()
+                    .queryParam("type", "COUNT")
+                    .queryParam("apiId", "api-id")
+                    .queryParam("from", 1000L)
+                    .queryParam("to", 2000L)
+                    .request()
+                    .get(); //requestsCountTarget.request().get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
+                    .satisfies(r -> {
+                        assertThat(r.getCountAnalytics().getCount()).isEqualTo(11L);
+                    });
+            }
+        }
     }
 }
