@@ -51,6 +51,7 @@ import { applicationPermissionResolver, applicationResolver, applicationTypeReso
 import { categoriesResolver } from '../resolvers/categories.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
+import { HomepageComponent } from './homepage/homepage.component';
 
 const apiRoutes: Routes = [
   {
@@ -123,10 +124,14 @@ const apiRoutes: Routes = [
 ];
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'catalog', pathMatch: 'full' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  {
+    path: 'home',    
+    canActivateChild: [redirectGuard],
+    component: HomepageComponent,
+  },
   {
     path: 'catalog',
-    canActivateChild: [redirectGuard],
     data: { breadcrumb: 'Catalog' },
     children: [
       {
