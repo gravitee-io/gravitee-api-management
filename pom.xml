@@ -68,7 +68,7 @@
         <gravitee-gateway-api.version>3.8.1</gravitee-gateway-api.version>
         <gravitee-integration-api.version>4.1.0</gravitee-integration-api.version>
         <gravitee-scoring-api.version>0.3.0</gravitee-scoring-api.version>
-        <gravitee-node.version>6.8.0</gravitee-node.version>
+        <gravitee-node.version>6.8.2</gravitee-node.version>
         <gravitee-kubernetes.version>3.6.1</gravitee-kubernetes.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-plugin.version>4.1.0</gravitee-plugin.version>
