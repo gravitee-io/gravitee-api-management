@@ -34,6 +34,7 @@ import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQu
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
@@ -930,6 +931,22 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(stats.rps()).isEqualTo(1.1574074E-5f);
                     assertThat(stats.rpm()).isEqualTo(6.9444446E-4f);
                     assertThat(stats.rph()).isEqualTo(0.041666668f);
+                });
+        }
+    }
+
+    @Nested
+    class RequestCountByEvent {
+
+        @Test
+        void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
+            var result = cut.searchRequestsCountByEvent(
+                new QueryContext("org#1", "env#1"),
+                new RequestsCountByEventQuery(Map.of("api-id", API_ID))
+            );
+            assertThat(result)
+                .hasValueSatisfying(countAggregate -> {
+                    assertThat(countAggregate.getTotal()).isEqualTo(11);
                 });
         }
     }

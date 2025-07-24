@@ -20,6 +20,7 @@ import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestA
 import io.gravitee.apim.core.analytics.use_case.SearchGroupByAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
@@ -85,6 +86,9 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchStatsUseCase searchStatsUseCase;
+
+    @Inject
+    private SearchRequestsCountByEventAnalyticsUseCase searchRequestsCountByEventAnalyticsUseCase;
 
     @Path("/requests-count")
     @GET
@@ -228,6 +232,15 @@ public class ApiAnalyticsResource extends AbstractResource {
             }
             var statsResponse = ApiAnalyticsMapper.INSTANCE.map(output.analytics());
             return new ApiAnalyticsResponse(statsResponse);
+        }
+        if (apiAnalyticsParam.getType() == AnalyticsType.COUNT) {
+            var input = ApiAnalyticsParam.toRequestsCountInput(apiId, apiAnalyticsParam);
+            var output = searchRequestsCountByEventAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+            if (output.result() == null) {
+                throw new NotFoundException("No Count analytics found for api: " + apiId);
+            }
+            var countAnalytics = ApiAnalyticsMapper.INSTANCE.mapToCountAnalytics(output.result());
+            return new ApiAnalyticsResponse(countAnalytics);
         }
         return new ApiAnalyticsResponse();
     }

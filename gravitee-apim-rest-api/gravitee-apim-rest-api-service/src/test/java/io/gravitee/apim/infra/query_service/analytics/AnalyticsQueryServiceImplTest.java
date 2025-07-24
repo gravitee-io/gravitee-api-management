@@ -31,6 +31,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
@@ -486,6 +487,44 @@ class AnalyticsQueryServiceImplTest {
                 });
             verify(analyticsRepository)
                 .searchStats(any(QueryContext.class), argThat(arg -> arg.query().isPresent() && arg.query().get().equals(queryString)));
+        }
+    }
+
+    @Nested
+    class SearchRequestCountsAnalytics {
+
+        @Test
+        void should_return_empty_requests_count() {
+            var from = Instant.parse("2024-01-01T00:00:00Z");
+            var to = Instant.parse("2024-01-02T00:00:00Z");
+            var query = new AnalyticsQueryService.CountQuery(Map.of("api", "api#1"), from, to);
+            when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any())).thenReturn(Optional.empty());
+            assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query)).isEmpty();
+        }
+
+        @Test
+        void should_map_repository_response_to_requests_count() {
+            var from = Instant.parse("2024-01-01T00:00:00Z");
+            var to = Instant.parse("2024-01-02T00:00:00Z");
+            var query = new AnalyticsQueryService.CountQuery(Map.of("api", "api#1"), from, to);
+            when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any()))
+                .thenReturn(Optional.of(new CountByAggregate(10)));
+            assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query))
+                .hasValueSatisfying(requestsCount -> {
+                    assertThat(requestsCount.getTotal()).isEqualTo(10);
+                });
+        }
+
+        @Test
+        void should_return_empty_requests_count_by_event() {
+            when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any())).thenReturn(Optional.empty());
+            assertThat(
+                cut.searchRequestsCountByEvent(
+                    GraviteeContext.getExecutionContext(),
+                    new AnalyticsQueryService.CountQuery(Map.of("api", "api#1"), null, null)
+                )
+            )
+                .isEmpty();
         }
     }
 }
