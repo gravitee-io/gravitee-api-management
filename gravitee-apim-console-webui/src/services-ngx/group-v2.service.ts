@@ -47,6 +47,10 @@ export class GroupV2Service {
     });
   }
 
+  listById(idList: string[] = []): Observable<GroupsResponse> {
+    return this.http.post<GroupsResponse>(`${this.constants.env.v2BaseURL}/groups/by-ids`, { idList });
+  }
+
   public getPermissions(groupId: string): Observable<Record<string, string>> {
     return this.http.get<Record<string, string>>(`${this.constants.env.v2BaseURL}/groups/${groupId}/permissions`);
   }
