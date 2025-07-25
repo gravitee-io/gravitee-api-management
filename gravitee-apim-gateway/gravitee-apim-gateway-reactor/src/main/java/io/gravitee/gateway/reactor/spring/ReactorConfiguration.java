@@ -206,8 +206,8 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public ReactorHandlerRegistry reactorHandlerRegistry(ReactorFactoryManager reactorFactoryManager) {
-        return new DefaultReactorHandlerRegistry(reactorFactoryManager);
+    public ReactorHandlerRegistry reactorHandlerRegistry(ReactorFactoryManager reactorFactoryManager, EventManager eventManager) {
+        return new DefaultReactorHandlerRegistry(reactorFactoryManager, eventManager);
     }
 
     @Bean

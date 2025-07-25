@@ -15,11 +15,17 @@
  */
 package io.gravitee.gateway.reactor.handler.impl;
 
+import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private final ReactorFactoryManager reactorFactoryManager;
+    private final EventManager eventManager;
     private final Map<Reactable, List<ReactableAcceptors>> reactables = new ConcurrentHashMap<>();
     private final Map<Class<? extends Acceptor<?>>, List<Acceptor<?>>> acceptors = new ConcurrentHashMap<>();
     private final Map<Class<? extends Acceptor<?>>, Class<? extends Acceptor<?>>> acceptorsClassMapping = new ConcurrentHashMap<>();
@@ -81,7 +88,21 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         reactableAcceptors.add(new ReactableAcceptors(handler, handlerAcceptors));
         reactables.put(reactable, reactableAcceptors);
 
+        // Discover secrets for newly created handler
+        discoverSecrets(handler);
+
         registerAcceptors(handlerAcceptors);
+    }
+
+    private void discoverSecrets(ReactorHandler handlerAcceptors) {
+        if (handlerAcceptors instanceof ApiReactor<?> apiReactor) {
+            ReactableApi<?> api = apiReactor.api();
+
+            eventManager.publishEvent(
+                SecretDiscoveryEventType.DISCOVER,
+                new SecretDiscoveryEvent(api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision()))
+            );
+        }
     }
 
     @Override
@@ -108,16 +129,39 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                 newReactorHandlers.forEach(reactorHandler -> register(reactable, reactorHandler));
 
                 removeAcceptors(reactable, previousReactableAcceptors);
+
+                // Revoke secrets for the previous reactable
+                revokeSecrets(previousReactableAcceptors);
             }
         } else {
             create(reactable);
         }
     }
 
+    private void revokeSecrets(List<ReactableAcceptors> reactableAcceptors) {
+        if (reactableAcceptors == null || reactableAcceptors.isEmpty()) {
+            return;
+        }
+        reactableAcceptors.forEach(reactableAcceptor -> {
+            if (reactableAcceptor.handler() instanceof ApiReactor<?> apiReactor) {
+                ReactableApi<?> currentApi = apiReactor.api();
+                eventManager.publishEvent(
+                    SecretDiscoveryEventType.REVOKE,
+                    new SecretDiscoveryEvent(
+                        currentApi.getEnvironmentId(),
+                        currentApi.getDefinition(),
+                        new DefinitionMetadata(currentApi.getRevision())
+                    )
+                );
+            }
+        });
+    }
+
     @Override
     public void remove(Reactable reactable) {
         final List<ReactableAcceptors> reactableAcceptors = reactables.get(reactable);
         removeAcceptors(reactable, reactableAcceptors, true);
+        revokeSecrets(reactableAcceptors);
     }
 
     @Override
@@ -126,6 +170,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         while (reactableIte.hasNext()) {
             final Map.Entry<Reactable, List<ReactableAcceptors>> next = reactableIte.next();
             removeAcceptors(next.getKey(), next.getValue(), false);
+            revokeSecrets(next.getValue());
             reactableIte.remove();
         }
     }
