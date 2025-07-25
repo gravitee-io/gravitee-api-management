@@ -96,7 +96,7 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
                 updateEntity.getApi(),
                 updateEntity.getQualityRule()
             );
-            if (!optionalApiQualityRule.isPresent()) {
+            if (optionalApiQualityRule.isEmpty()) {
                 throw new ApiQualityRuleNotFoundException(updateEntity.getApi(), updateEntity.getQualityRule());
             }
             final ApiQualityRule apiQualityRule = apiQualityRuleRepository.update(convert(updateEntity));

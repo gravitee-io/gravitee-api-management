@@ -328,8 +328,8 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
             throw new TechnicalManagementException("An error has occurred trying to delete media", e);
 =======
             throw new TechnicalManagementException(
-                    String.format("An error has occurred trying to delete media for API %s with hash %s", apiId, hash),
-                    e
+                String.format("An error has occurred trying to delete media for API %s with hash %s", apiId, hash),
+                e
             );
 >>>>>>> b692fc8b67 (chore(logs): Added logs for debug, removed multiple logs for the same Exception and used Slf4j logger (if its not an interface))
         }

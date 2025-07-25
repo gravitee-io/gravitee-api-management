@@ -103,7 +103,7 @@ public class ApiGroupServiceImpl implements ApiGroupService {
             apiRepository.update(api);
             apiNotificationService.triggerUpdateNotification(executionContext, api);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to add group {} to API {}: {}", group, apiId, ex);
+            log.error("An error occurs while trying to add group {} to API {}", group, apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to add group " + group + " to API " + apiId, ex);
         }
     }
@@ -125,7 +125,7 @@ public class ApiGroupServiceImpl implements ApiGroupService {
                 apiNotificationService.triggerUpdateNotification(executionContext, api);
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to remove group {} from API {}: {}", group, apiId, ex);
+            log.error("An error occurs while trying to remove group {} from API {}", group, apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to remove group " + group + " from API " + apiId, ex);
         }
     }
