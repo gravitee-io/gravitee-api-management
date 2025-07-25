@@ -133,6 +133,12 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         category: 'Apis',
       },
       {
+        icon: 'gio:cluster',
+        routerLink: './clusters',
+        displayName: 'Kafka Clusters',
+        category: 'Kafka Clusters',
+      },
+      {
         icon: 'gio:box',
         routerLink: './integrations',
         displayName: 'Integrations',
