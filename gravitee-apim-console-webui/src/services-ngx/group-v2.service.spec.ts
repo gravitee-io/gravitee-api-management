@@ -118,6 +118,71 @@ describe('GroupV2Service', () => {
     });
   });
 
+  describe('listById', () => {
+    it('should call API with a valid idList', (done) => {
+      const validIdList = ['id1', 'id2'];
+      const groupsResponse: GroupsResponse = fakeGroupsResponse();
+
+      groupService.listById(validIdList).subscribe((groups) => {
+        expect(groups).toMatchObject(groupsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/by-ids`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual({ idList: validIdList });
+
+      req.flush(groupsResponse);
+    });
+
+    it('should call API with an empty idList', (done) => {
+      const groupsResponse: GroupsResponse = fakeGroupsResponse();
+
+      groupService.listById([]).subscribe((groups) => {
+        expect(groups).toMatchObject(groupsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/by-ids`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual({ idList: [] });
+
+      req.flush(groupsResponse);
+    });
+
+    it('should call API with default empty idList when no parameter is provided', (done) => {
+      const groupsResponse: GroupsResponse = fakeGroupsResponse();
+
+      groupService.listById().subscribe((groups) => {
+        expect(groups).toMatchObject(groupsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/by-ids`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual({ idList: [] });
+
+      req.flush(groupsResponse);
+    });
+
+    it('should handle error response', (done) => {
+      const validIdList = ['id1', 'id2'];
+      const errorMessage = 'Error occurred while fetching groups by ID';
+      const emptyGroupResponse: GroupsResponse = { data: [] };
+
+      groupService.listById(validIdList).subscribe({
+        next: (groups) => {
+          expect(groups).toEqual(emptyGroupResponse);
+          done();
+        },
+        error: () => done(),
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/groups/by-ids`);
+      req.flush({ message: errorMessage }, { status: 500, statusText: 'Internal Server Error' });
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

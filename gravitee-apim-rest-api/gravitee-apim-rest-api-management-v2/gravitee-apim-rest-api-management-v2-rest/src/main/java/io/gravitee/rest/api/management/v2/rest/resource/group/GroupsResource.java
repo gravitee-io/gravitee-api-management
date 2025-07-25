@@ -46,11 +46,15 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Path("/environments/{envId}/groups")
@@ -73,6 +77,20 @@ public class GroupsResource extends AbstractResource {
             .data(mapper.map(groupsSubset))
             .pagination(PaginationInfo.computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
             .links(computePaginationLinks(groups.size(), paginationParam));
+    }
+
+    @POST
+    @Path("/by-ids")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { RolePermissionAction.READ }) })
+    public List<GroupEntity> listGroupsByIdList(@Valid Map<String, List<String>> requestBody) {
+        List<String> idList = requestBody.get("idList");
+        if (idList == null || idList.isEmpty()) return Collections.emptyList();
+
+        Set<GroupEntity> groupEntities = groupService.findByIds(new HashSet<>(idList));
+
+        return new ArrayList<>(groupEntities);
     }
 
     @GET

@@ -17,10 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.group;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.MemberModelFixtures.aGroupMember;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,21 +32,20 @@ import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.GroupEventRuleEntity;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -289,6 +285,65 @@ public class GroupsResourceTest extends AbstractResourceTest {
                         .links(Links.builder().self(target.getUri().toString()).build())
                         .build()
                 );
+        }
+    }
+
+    @Nested
+    class ListGroupsByIdList {
+
+        @Test
+        public void should_return_empty_list_when_no_ids_provided() {
+            Map<String, List<String>> requestBody = Map.of("idList", List.of());
+
+            when(groupService.findByIds(any())).thenReturn(Set.of());
+
+            final Response response = target.path("/by-ids").request().post(Entity.json(requestBody));
+
+            assertThat(response).hasStatus(OK_200);
+            List<GroupEntity> groups = response.readEntity(new GenericType<List<GroupEntity>>() {});
+            assertThat(groups).isEmpty();
+        }
+
+        @Test
+        public void should_return_unique_groups_when_duplicate_ids_provided() {
+            GroupEntity group1 = GroupEntity.builder().id("group-1").name("Group 1").build();
+            Map<String, List<String>> requestBody = Map.of("idList", List.of("group-1", "group-1"));
+
+            when(groupService.findByIds(new HashSet<>(List.of("group-1")))).thenReturn(Set.of(group1));
+
+            final Response response = target.path("/by-ids").request().post(Entity.json(requestBody));
+
+            List<GroupEntity> groups = response.readEntity(new GenericType<List<GroupEntity>>() {});
+            assertThat(response).hasStatus(OK_200);
+            assertThat(groups).containsExactly(group1);
+        }
+
+        @Test
+        public void should_return_empty_list_when_no_matching_ids() {
+            Map<String, List<String>> requestBody = Map.of("idList", List.of("non-existing-id"));
+
+            when(groupService.findByIds(new HashSet<>(List.of("non-existing-id")))).thenReturn(Set.of());
+
+            final Response response = target.path("/by-ids").request().post(Entity.json(requestBody));
+
+            assertThat(response).hasStatus(OK_200);
+            List<GroupEntity> groups = response.readEntity(new GenericType<List<GroupEntity>>() {});
+            assertThat(groups).isEmpty();
+        }
+
+        @Test
+        public void should_return_groups_for_valid_ids() {
+            GroupEntity group1 = GroupEntity.builder().id("group-1").name("Group 1").build();
+            GroupEntity group2 = GroupEntity.builder().id("group-2").name("Group 2").build();
+            Map<String, List<String>> requestBody = Map.of("idList", List.of("group-1", "group-2"));
+
+            when(groupService.findByIds(new HashSet<>(List.of("group-1", "group-2")))).thenReturn(Set.of(group1, group2));
+
+            final Response response = target.path("/by-ids").request().post(Entity.json(requestBody));
+
+            assertThat(response).hasStatus(OK_200);
+            List<GroupEntity> groups = response.readEntity(new GenericType<List<GroupEntity>>() {});
+            assertThat(groups).containsExactlyInAnyOrder(group1, group2);
         }
     }
 }
