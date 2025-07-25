@@ -22,6 +22,7 @@ export function fakeCluster(overrides: Partial<Cluster> = {}): Cluster {
     bootstrapServer: 'http://localhost:8083',
     security: 'none',
     updatedAt: new Date('2023-01-01T00:00:00Z'),
+    createdAt: new Date('2023-01-01T00:00:00Z'),
     ...overrides,
   };
 }

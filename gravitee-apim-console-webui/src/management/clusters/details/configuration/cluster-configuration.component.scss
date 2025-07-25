@@ -1,0 +1,28 @@
+@use 'sass:map';
+@use '../../../../../node_modules/@angular/material/index' as mat;
+@use '../../../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
+
+@use '../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.cluster-configuration {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.configuration-card {
+  &__title {
+    margin-top: 0;
+    margin-bottom: 16px;
+  }
+
+  &__description {
+    margin-bottom: 0;
+  }
+}

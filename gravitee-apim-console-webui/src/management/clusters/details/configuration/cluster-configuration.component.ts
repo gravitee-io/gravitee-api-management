@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface Cluster {
-  id: string;
-  name: string;
-  description?: string;
-  bootstrapServer: string;
-  security: string;
-  updatedAt: Date;
-  createdAt: Date;
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+
+@Component({
+  selector: 'cluster-configuration',
+  templateUrl: './cluster-configuration.component.html',
+  styleUrls: ['./cluster-configuration.component.scss'],
+  standalone: true,
+  imports: [CommonModule, MatCardModule],
+})
+export class ClusterConfigurationComponent {
+  // Simple empty component as requested
 }
