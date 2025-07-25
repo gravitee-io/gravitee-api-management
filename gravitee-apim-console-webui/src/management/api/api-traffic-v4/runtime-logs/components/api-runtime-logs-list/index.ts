@@ -14,4 +14,3 @@
  * limitations under the License.
  */
 export * from './api-runtime-logs-list.harness';
-export * from './api-runtime-logs-list.module';
