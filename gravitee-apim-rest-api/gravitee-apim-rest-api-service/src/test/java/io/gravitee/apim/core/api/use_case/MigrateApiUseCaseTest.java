@@ -61,6 +61,8 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
@@ -445,6 +447,49 @@ class MigrateApiUseCaseTest {
             .containsExactly(
                 "Policy unknown-policy is not a Gravitee policy. Please ensure it is compatible with V4 API before migrating to V4"
             );
+    }
+
+    @Test
+    void should_migrate_api_with_properties() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+
+        var properties = new Properties(
+            List.of(
+                new Property("key1", "value1", false),
+                new Property("key2", "value2", true),
+                new Property("key3", "value3", false, true)
+            )
+        );
+        v2Api.getApiDefinition().setProperties(properties);
+
+        apiCrudService.initWith(List.of(v2Api));
+
+        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+        planCrudService.initWith(List.of(plan));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var upgradedApiOpt = apiCrudService.findById(API_ID);
+        assertThat(upgradedApiOpt)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedProperties = api.getApiDefinitionHttpV4().getProperties();
+
+                assertThat(migratedProperties)
+                    .containsExactlyInAnyOrder(
+                        new io.gravitee.definition.model.v4.property.Property("key1", "value1", false, false),
+                        new io.gravitee.definition.model.v4.property.Property("key2", "value2", true, false),
+                        new io.gravitee.definition.model.v4.property.Property("key3", "value3", true, false)
+                    );
+            });
     }
 
     private static void assertApiV4(Api upgradedApi) {
