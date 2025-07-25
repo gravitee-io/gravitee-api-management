@@ -68,9 +68,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -80,6 +79,7 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class LogsServiceImpl implements LogsService {
 
@@ -99,7 +99,6 @@ public class LogsServiceImpl implements LogsService {
     private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
     private static final char separator = ';';
     private static final CsvUtils csvUtils = new CsvUtils(separator);
-    private final Logger logger = LoggerFactory.getLogger(LogsServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -178,7 +177,7 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to retrieve logs: ", ae);
+            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -207,10 +206,10 @@ public class LogsServiceImpl implements LogsService {
             }
             return toApiRequest(executionContext, log);
         } catch (AnalyticsException ae) {
-            logger.error("Unable to retrieve log: " + id, ae);
+            log.error("Unable to retrieve log: " + id, ae);
             throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);
         } catch (ApiNotFoundException anfe) {
-            logger.warn("Requested log [" + id + "] is not attached to environment [" + executionContext.getEnvironmentId() + "]", anfe);
+            log.warn("Requested log [" + id + "] is not attached to environment [" + executionContext.getEnvironmentId() + "]", anfe);
             throw new LogNotFoundException(id);
         }
     }
@@ -268,7 +267,7 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to retrieve logs: ", ae);
+            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -327,7 +326,7 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            logger.error("Unable to retrieve logs: ", ae);
+            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -335,19 +334,19 @@ public class LogsServiceImpl implements LogsService {
     @Override
     public ApplicationRequest findApplicationLog(ExecutionContext executionContext, String applicationId, String id, Long timestamp) {
         try {
-            ExtendedLog log = logRepository.findById(executionContext.getQueryContext(), id, timestamp);
-            if (log == null) {
+            ExtendedLog extendedLog = logRepository.findById(executionContext.getQueryContext(), id, timestamp);
+            if (extendedLog == null) {
                 return null;
             }
 
-            if (!applicationId.equalsIgnoreCase(log.getApplication())) {
-                logger.warn("Requested log [" + id + "] is not attached to application [" + applicationId + "]");
+            if (!applicationId.equalsIgnoreCase(extendedLog.getApplication())) {
+                log.warn("Requested log [{}] is not attached to application [{}]", id, applicationId);
                 throw new LogNotFoundException(id);
             }
 
-            return toApplicationRequest(executionContext, log);
+            return toApplicationRequest(executionContext, extendedLog);
         } catch (AnalyticsException ae) {
-            logger.error("Unable to retrieve log: " + id, ae);
+            log.error("Unable to retrieve log: " + id, ae);
             if (ae.getMessage().equals("Request [" + id + "] does not exist")) {
                 throw new LogNotFoundException(id);
             }
@@ -442,19 +441,21 @@ public class LogsServiceImpl implements LogsService {
         };
     }
 
-    private String getSubscription(ExecutionContext executionContext, ExtendedLog log) {
-        if (PlanSecurityType.API_KEY.name().equals(log.getSecurityType())) {
+    private String getSubscription(ExecutionContext executionContext, ExtendedLog extendedLog) {
+        if (PlanSecurityType.API_KEY.name().equals(extendedLog.getSecurityType())) {
             try {
-                return getApiKeySubscription(executionContext, log);
+                return getApiKeySubscription(executionContext, extendedLog);
             } catch (ApiKeyNotFoundException e) {
-                logger.error("Unable to find API Key for log [api={}, application={}]", log.getApi(), log.getApplication());
+                log.warn("Unable to find API Key for log [api={}, application={}]", extendedLog.getApi(), extendedLog.getApplication());
             }
-        } else if (log.getPlan() != null && log.getApplication() != null) {
+        } else if (extendedLog.getPlan() != null && extendedLog.getApplication() != null) {
             try {
-                return getJwtOrOauth2Subscription(executionContext, log);
+                return getJwtOrOauth2Subscription(executionContext, extendedLog);
             } catch (PlanNotFoundException | SubscriptionNotFoundException | IllegalStateException e) {
-                logger.error(
-                    String.format("Unable to find subscription for log [plan=%s, application=%s]", log.getPlan(), log.getApplication()),
+                log.warn(
+                    "Unable to find subscription for log [plan={}, application={}]",
+                    extendedLog.getPlan(),
+                    extendedLog.getApplication(),
                     e
                 );
             }
@@ -462,19 +463,19 @@ public class LogsServiceImpl implements LogsService {
         return null;
     }
 
-    private String getApiKeySubscription(ExecutionContext executionContext, ExtendedLog log) {
+    private String getApiKeySubscription(ExecutionContext executionContext, ExtendedLog extendedLog) {
         return apiKeyService
-            .findByKeyAndApi(executionContext, log.getSecurityToken(), log.getApi())
+            .findByKeyAndApi(executionContext, extendedLog.getSecurityToken(), extendedLog.getApi())
             .getSubscriptions()
             .stream()
-            .filter(s -> s.getApi().equals(log.getApi()))
+            .filter(s -> s.getApi().equals(extendedLog.getApi()))
             .findFirst()
             .map(SubscriptionEntity::getId)
             .orElseThrow(ApiKeyNotFoundException::new);
     }
 
-    private String getJwtOrOauth2Subscription(ExecutionContext executionContext, ExtendedLog log) {
-        GenericPlanEntity plan = planSearchService.findById(executionContext, log.getPlan());
+    private String getJwtOrOauth2Subscription(ExecutionContext executionContext, ExtendedLog extendedLog) {
+        GenericPlanEntity plan = planSearchService.findById(executionContext, extendedLog.getPlan());
         if (plan.getPlanSecurity() == null || plan.getPlanSecurity().getType() == null) {
             return null;
         }
@@ -490,8 +491,8 @@ public class LogsServiceImpl implements LogsService {
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
             executionContext,
-            log.getApplication(),
-            log.getPlan()
+            extendedLog.getApplication(),
+            extendedLog.getPlan()
         );
 
         if (subscriptions.size() > 1) {
@@ -789,31 +790,31 @@ public class LogsServiceImpl implements LogsService {
         return response;
     }
 
-    private ApplicationRequest toApplicationRequest(ExecutionContext executionContext, ExtendedLog log) {
+    private ApplicationRequest toApplicationRequest(ExecutionContext executionContext, ExtendedLog extendedLog) {
         ApplicationRequest req = new ApplicationRequest();
-        req.setId(log.getId());
-        req.setTransactionId(log.getTransactionId());
-        req.setApi(log.getApi());
-        req.setMethod(log.getMethod());
-        req.setUri(log.getUri());
-        req.setPath(new QueryStringDecoder(log.getUri()).toString());
-        req.setPlan(log.getPlan());
-        req.setRequestContentLength(log.getRequestContentLength());
-        req.setResponseContentLength(log.getResponseContentLength());
-        req.setResponseTime(log.getResponseTime());
-        req.setStatus(log.getStatus());
-        req.setTimestamp(log.getTimestamp());
-        req.setRequest(createRequest(log.getClientRequest()));
-        req.setResponse(createResponse(log.getClientResponse()));
-        req.setHost(log.getHost());
-        req.setSecurityType(log.getSecurityType());
-        req.setSecurityToken(log.getSecurityToken());
+        req.setId(extendedLog.getId());
+        req.setTransactionId(extendedLog.getTransactionId());
+        req.setApi(extendedLog.getApi());
+        req.setMethod(extendedLog.getMethod());
+        req.setUri(extendedLog.getUri());
+        req.setPath(new QueryStringDecoder(extendedLog.getUri()).toString());
+        req.setPlan(extendedLog.getPlan());
+        req.setRequestContentLength(extendedLog.getRequestContentLength());
+        req.setResponseContentLength(extendedLog.getResponseContentLength());
+        req.setResponseTime(extendedLog.getResponseTime());
+        req.setStatus(extendedLog.getStatus());
+        req.setTimestamp(extendedLog.getTimestamp());
+        req.setRequest(createRequest(extendedLog.getClientRequest()));
+        req.setResponse(createResponse(extendedLog.getClientResponse()));
+        req.setHost(extendedLog.getHost());
+        req.setSecurityType(extendedLog.getSecurityType());
+        req.setSecurityToken(extendedLog.getSecurityToken());
 
         Map<String, Map<String, String>> metadata = new HashMap<>();
 
-        String api = log.getApi();
-        String plan = log.getPlan();
-        String gateway = log.getGateway();
+        String api = extendedLog.getApi();
+        String plan = extendedLog.getPlan();
+        String gateway = extendedLog.getGateway();
 
         if (api != null) {
             metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
@@ -826,7 +827,7 @@ public class LogsServiceImpl implements LogsService {
         }
 
         req.setMetadata(metadata);
-        req.setUser(log.getUser());
+        req.setUser(extendedLog.getUser());
 
         return req;
     }

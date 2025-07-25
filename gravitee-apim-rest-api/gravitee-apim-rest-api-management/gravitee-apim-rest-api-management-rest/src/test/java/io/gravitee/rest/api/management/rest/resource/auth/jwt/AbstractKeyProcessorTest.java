@@ -32,6 +32,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 
@@ -39,6 +40,7 @@ import org.bouncycastle.util.io.pem.PemWriter;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public abstract class AbstractKeyProcessorTest {
 
     protected static String RSA_KID = "rsa";
@@ -98,7 +100,7 @@ public abstract class AbstractKeyProcessorTest {
 
             return writer.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Unable to format public key", e);
             return "";
         }
     }

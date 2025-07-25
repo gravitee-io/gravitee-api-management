@@ -28,8 +28,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +36,6 @@ import org.springframework.stereotype.Service;
 public class PageRevisionCrudServiceImpl implements PageRevisionCrudService {
 
     private final PageRevisionRepository pageRevisionRepository;
-    private static final Logger logger = LoggerFactory.getLogger(PageRevisionCrudServiceImpl.class);
 
     public PageRevisionCrudServiceImpl(@Lazy PageRevisionRepository pageRevisionRepository) {
         this.pageRevisionRepository = pageRevisionRepository;
@@ -57,8 +54,10 @@ public class PageRevisionCrudServiceImpl implements PageRevisionCrudService {
             var createdPageRevision = pageRevisionRepository.create(PageAdapter.INSTANCE.toPageRevisionRepository(pageRevisionToCreate));
             return PageAdapter.INSTANCE.toEntity(createdPageRevision);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while creating {}", page, e);
-            throw new TechnicalDomainException("Error during PageRevision creation", e);
+            throw new TechnicalDomainException(
+                String.format("An error occurred while creating PageRevision for page %s: %s", page.getId(), page),
+                e
+            );
         }
     }
 

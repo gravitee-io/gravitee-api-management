@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  */
 @Mapper
 public interface ThemeAdapter {
-    Logger LOGGER = LoggerFactory.getLogger(ThemeAdapter.class);
+    Logger log = LoggerFactory.getLogger(ThemeAdapter.class);
     ThemeAdapter INSTANCE = Mappers.getMapper(ThemeAdapter.class);
 
     @Mapping(target = "definition", expression = "java(serializeDefinition(theme))")
@@ -58,10 +58,9 @@ public interface ThemeAdapter {
             try {
                 return GraviteeJacksonMapper.getInstance().readValue(theme.getDefinition(), ThemeDefinition.class);
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while deserializing PORTAL theme definition", ioe);
+                log.error("An error occurred while deserializing PORTAL theme definition for theme id {}", theme.getId(), ioe);
             }
         }
-
         return null;
     }
 
@@ -74,10 +73,9 @@ public interface ThemeAdapter {
                     .getInstance()
                     .readValue(theme.getDefinition(), io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.class);
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while deserializing PORTAL_NEXT theme definition", ioe);
+                log.error("An error occurred while deserializing PORTAL_NEXT theme definition for theme id {}", theme.getId(), ioe);
             }
         }
-
         return null;
     }
 
@@ -92,7 +90,7 @@ public interface ThemeAdapter {
                 try {
                     return GraviteeJacksonMapper.getInstance().writeValueAsString(def);
                 } catch (JsonProcessingException e) {
-                    LOGGER.error("Unable to serialize definition: {}", definition);
+                    log.error("An error occurred while serializing theme definition for theme id {}", theme.getId(), e);
                     return "";
                 }
             })
