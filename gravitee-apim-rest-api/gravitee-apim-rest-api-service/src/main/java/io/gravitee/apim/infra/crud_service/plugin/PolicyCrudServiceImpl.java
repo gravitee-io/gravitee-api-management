@@ -19,7 +19,6 @@ import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.infra.adapter.PolicyPluginAdapter;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
-import io.gravitee.rest.api.service.exceptions.PolicyNotFoundException;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
