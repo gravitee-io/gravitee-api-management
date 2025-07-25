@@ -22,6 +22,7 @@ import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckServ
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -74,7 +75,7 @@ public class Endpoint implements Serializable {
     private EndpointHealthCheckService healthCheck;
 
     @JsonIgnore
-    private transient String configuration;
+    private String configuration;
 
     public Endpoint(String type, String name, String target) {
         this.type = type != null ? type : DEFAULT_TYPE;
@@ -202,12 +203,23 @@ public class Endpoint implements Serializable {
 
         Endpoint endpoint = (Endpoint) o;
 
-        return name.equals(endpoint.name);
+        return (
+            name.equals(endpoint.name) &&
+            target.equals(endpoint.target) &&
+            weight == endpoint.weight &&
+            backup == endpoint.backup &&
+            status == endpoint.status &&
+            Objects.equals(tenants, endpoint.tenants) &&
+            Objects.equals(type, endpoint.type) &&
+            Objects.equals(inherit, endpoint.inherit) &&
+            Objects.equals(healthCheck, endpoint.healthCheck) &&
+            Objects.equals(configuration, endpoint.configuration)
+        );
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return Objects.hash(name, target, configuration);
     }
 
     @JsonIgnore

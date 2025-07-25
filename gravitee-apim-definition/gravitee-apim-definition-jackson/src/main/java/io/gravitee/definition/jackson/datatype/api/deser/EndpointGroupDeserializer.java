@@ -103,8 +103,6 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
         if (httpClientOptionsNode != null) {
             HttpClientOptions httpClientOptions = httpClientOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientOptions.class);
             group.setHttpClientOptions(httpClientOptions);
-        } else {
-            group.setHttpClientOptions(new HttpClientOptions());
         }
 
         JsonNode httpClientSslOptionsNode = node.get("ssl");
