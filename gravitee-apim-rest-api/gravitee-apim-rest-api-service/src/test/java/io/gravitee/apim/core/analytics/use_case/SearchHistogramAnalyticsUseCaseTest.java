@@ -37,6 +37,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -86,7 +87,28 @@ class SearchHistogramAnalyticsUseCaseTest {
         var expectedBuckets = List.of(new Bucket());
         analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
-        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations);
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.empty());
+        var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        assertThat(output).isNotNull();
+        assertThat(output.timestamp()).isEqualTo(expectedTimestamp);
+        assertThat(output.values()).isEqualTo(expectedBuckets);
+    }
+
+    @Test
+    void shouldReturnHistogramAnalyticsWithQuery() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
+        long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
+        long to = INSTANT_NOW.toEpochMilli();
+        long interval = 60000L;
+        List<Aggregation> aggregations = List.of();
+        String queryString = "status:200 AND method:GET";
+
+        var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
+        var expectedBuckets = List.of(new Bucket());
+        analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
+
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.of(queryString));
         var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
         assertThat(output).isNotNull();

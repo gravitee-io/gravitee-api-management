@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,7 +51,8 @@ public class SearchHistogramAnalyticsUseCase {
             Instant.ofEpochMilli(input.from()),
             Instant.ofEpochMilli(input.to()),
             Duration.ofMillis(input.interval()),
-            input.aggregations()
+            input.aggregations(),
+            input.query()
         );
         var result = analyticsQueryService
             .searchHistogramAnalytics(executionContext, histogramQuery)
@@ -99,7 +101,11 @@ public class SearchHistogramAnalyticsUseCase {
         }
     }
 
-    public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations) {}
+    public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations, Optional<String> query) {
+        public Input(String api, long from, long to, long interval, List<Aggregation> aggregations) {
+            this(api, from, to, interval, aggregations, Optional.empty());
+        }
+    }
 
     public record Output(Timestamp timestamp, List<Bucket> values) {}
 }
