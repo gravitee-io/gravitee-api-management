@@ -84,6 +84,9 @@ export class PullRequestsWorkflow {
   ): workflow.WorkflowJob[] {
     dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
 
+    const dangerJSJob = DangerJsJob.create(dynamicConfig);
+    dynamicConfig.addJob(dangerJSJob);
+
     const jobs: workflow.WorkflowJob[] = [
       new workflow.WorkflowJob(orbs.aquasec.jobs.fs_scan, {
         context: config.jobContext,
@@ -102,13 +105,22 @@ export class PullRequestsWorkflow {
           }),
         ],
       }),
+      new workflow.WorkflowJob(dangerJSJob, {
+        name: 'Run Danger JS',
+        context: config.jobContext,
+      }),
     ];
     const requires: string[] = [];
 
     if (!filterJobs || shouldBuildHelm(environment.changedFiles)) {
       const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(apimChartsTestJob);
-      jobs.push(new workflow.WorkflowJob(apimChartsTestJob, { name: 'Helm Chart - Lint & Test', context: config.jobContext }));
+      jobs.push(
+        new workflow.WorkflowJob(apimChartsTestJob, {
+          name: 'Helm Chart - Lint & Test',
+          context: config.jobContext,
+        }),
+      );
 
       requires.push('Helm Chart - Lint & Test');
     }
@@ -120,9 +132,6 @@ export class PullRequestsWorkflow {
       const validateBackendJob = ValidateJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(validateBackendJob);
 
-      const dangerJSJob = DangerJsJob.create(dynamicConfig);
-      dynamicConfig.addJob(dangerJSJob);
-
       const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(buildBackendJob);
 
@@ -132,11 +141,6 @@ export class PullRequestsWorkflow {
           name: 'Validate backend',
           context: config.jobContext,
           requires: ['Setup'],
-        }),
-        new workflow.WorkflowJob(dangerJSJob, {
-          name: 'Run Danger JS',
-          context: config.jobContext,
-          requires: ['Validate backend'],
         }),
         new workflow.WorkflowJob(buildBackendJob, {
           name: 'Build backend',
@@ -218,6 +222,8 @@ export class PullRequestsWorkflow {
       }
 
       if (!filterJobs || shouldTestIntegrationTests(environment.changedFiles)) {
+        // Force validation workflow in case only integration tests have change
+        // addValidationJob = true;
         const testIntegrationJob = TestIntegrationJob.create(dynamicConfig, environment);
         dynamicConfig.addJob(testIntegrationJob);
 
@@ -228,6 +234,7 @@ export class PullRequestsWorkflow {
             requires: ['Build backend'],
           }),
         );
+        requires.push('Integration tests');
       }
 
       if (!filterJobs || shouldTestPlugin(environment.changedFiles)) {
@@ -532,7 +539,10 @@ export class PullRequestsWorkflow {
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
 
     return [
-      new workflow.WorkflowJob(communityBuildJob, { name: 'Check build as Community user', context: config.jobContext }),
+      new workflow.WorkflowJob(communityBuildJob, {
+        name: 'Check build as Community user',
+        context: config.jobContext,
+      }),
       // Trigger SaaS Docker images creation
       new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
         context: [...config.jobContext, 'keeper-orb-publishing'],
