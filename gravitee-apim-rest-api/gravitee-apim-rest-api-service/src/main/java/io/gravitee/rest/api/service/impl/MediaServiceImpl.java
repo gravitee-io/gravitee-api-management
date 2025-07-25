@@ -261,8 +261,8 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
             mediaRepository.deleteByHashAndApi(media.getHash(), apiId);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                    String.format("An error has occurred trying to delete media for API %s with hash %s", apiId, hash),
-                    e
+                String.format("An error has occurred trying to delete media for API %s with hash %s", apiId, hash),
+                e
             );
         }
     }

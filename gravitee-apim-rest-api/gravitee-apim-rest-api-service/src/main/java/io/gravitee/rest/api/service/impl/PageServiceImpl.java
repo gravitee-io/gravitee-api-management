@@ -531,7 +531,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         }
 
                         String inheritContent = translation.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT);
-                        if (inheritContent != null && "false".equals(inheritContent)) {
+                        if ("false".equals(inheritContent)) {
                             foundPageEntity.setContent(translation.getContent());
                         }
                         // translation is used, set the translation page id as the one used to retrieve the content revision
@@ -602,7 +602,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             try {
                 descriptor = swaggerService.parse(pageEntity.getContent());
             } catch (SwaggerDescriptorException sde) {
-                log.error("Parsing error for API id[{}]: {}", genericApiEntity.getId());
+                log.warn("Parsing error for API id[{}]", genericApiEntity.getId());
                 throw sde;
             }
 
@@ -713,7 +713,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                                 p.setName(translationName);
                             }
                             String inheritContent = translation.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT);
-                            if (inheritContent != null && "false".equals(inheritContent)) {
+                            if ("false".equals(inheritContent)) {
                                 p.setContent(translation.getContent());
                             }
                         }
@@ -721,7 +721,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 });
             }
 
-            if (Boolean.TRUE.equals(query != null && query.getPublished() != null && query.getPublished()) || !isAuthenticated()) {
+            if (query != null && query.getPublished() != null && query.getPublished() || !isAuthenticated()) {
                 // remove child of unpublished folders
                 return pages
                     .stream()
@@ -2074,7 +2074,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         try {
             log.debug("Delete Page : {}", pageId);
             Optional<Page> optPage = pageRepository.findById(pageId);
-            if (!optPage.isPresent()) {
+            if (optPage.isEmpty()) {
                 throw new PageNotFoundException(pageId);
             }
             Page page = optPage.get();
@@ -2548,7 +2548,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             .map(Map.Entry::getValue)
             .findFirst();
 
-        if (!urlOpt.isPresent()) {
+        if (urlOpt.isEmpty()) {
             // There is no source to validate.
             return;
         }
@@ -2693,7 +2693,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             return createPage(executionContext, apiId, newPage, (jsonNode.get("id") != null ? jsonNode.get("id").asText() : null));
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to JSON deserialize the Page definition named: %s", newPage == null ? "null" : newPage.getName()),
+                String.format(
+                    "An error occurs while trying to JSON deserialize the Page definition named: %s",
+                    newPage == null ? "null" : newPage.getName()
+                ),
                 e
             );
         }
