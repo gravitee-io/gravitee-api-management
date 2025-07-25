@@ -20,10 +20,9 @@ ENV GRAVITEEIO_HOME=/opt/graviteeio-management-api
 
 # Second stage to add the folder and change the permissions and ownership
 FROM base AS builder
-ADD ./distribution ${GRAVITEEIO_HOME}/
-
+COPY --chown=graviteeio:graviteeio ./distribution ${GRAVITEEIO_HOME}/
 USER root
-RUN chgrp -R graviteeio ${GRAVITEEIO_HOME} && \
+RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
     chmod -R g=u ${GRAVITEEIO_HOME}
 
 # Third stage to build the final docker image. COPY preserves ownership & permissions
@@ -32,5 +31,5 @@ LABEL maintainer="contact@graviteesource.com"
 COPY --from=builder ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8083
-ENTRYPOINT ["./bin/gravitee"]
 USER graviteeio
+ENTRYPOINT ["./bin/gravitee"]
