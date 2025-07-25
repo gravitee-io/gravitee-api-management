@@ -31,6 +31,4 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - kind: fixed
-      description: 'remove helm warning about deprecated annotation kubernetes.io/ingress.class (APIM-10303)'
-    - kind: fixed
       description: 'remove helm warning about ingress pathType for federation and console (APIM-10303)'
