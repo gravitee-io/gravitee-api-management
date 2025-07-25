@@ -173,6 +173,40 @@
               </gv-confirm>
             </div>
 
+            <!-- Added metadeta on edit application -->
+            <div class="metadata-section">
+              <ng-container>
+                <gv-button link (:gv-button:click)="addMetadata()" icon="code:plus">{{
+                  'applicationType.security.additionalClientMetadata.add' | translate
+                }}</gv-button>
+                <md-table-container *ngIf="additionalClientMetadata.controls.length > 0">
+                  <table md-table class="gv-table-dense metadata-table">
+                    <thead md-head>
+                      <tr md-row>
+                        <th md-column nowrap>Metadata Key</th>
+                        <th md-column nowrap>Metadata Value</th>
+                      </tr>
+                    </thead>
+                    <tbody md-body formArrayName="additionalClientMetadata">
+                      <tr md-row *ngFor="let metadataPair of metadataControls; let i = index" [formGroup]="metadataPair">
+                        <td md-cell>
+                          <gv-input placeholder="Additional metadata key" formControlName="key" ngDefaultControl></gv-input>
+                        </td>
+                        <td md-cell>
+                          <gv-input placeholder="Value of metadata key" formControlName="value" ngDefaultControl></gv-input>
+                        </td>
+                        <td md-cell>
+                          <gv-button link (:gv-button:click)="removeMetadata(i)" icon="general:close">{{
+                            'applicationType.security.additionalClientMetadata.remove' | translate
+                          }}</gv-button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </md-table-container>
+              </ng-container>
+            </div>
+
             <div class="grid-content">
               <div class="grid-column">
                 <div class="form__control" formArrayName="grant_types">

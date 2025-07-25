@@ -193,6 +193,7 @@ public class ApplicationMapper {
                             .redirectUris(oAuthClientEntitySettings.getRedirectUris())
                             .responseTypes(oAuthClientEntitySettings.getResponseTypes())
                             .renewClientSecretSupported(oAuthClientEntitySettings.isRenewClientSecretSupported())
+                            .additionalClientMetadata(oAuthClientEntitySettings.getAdditionalClientMetadata())
                     );
                     application.setHasClientId(oAuthClientEntitySettings.getClientId() != null);
                 } else {
