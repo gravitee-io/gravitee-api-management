@@ -4682,6 +4682,7 @@ components:
                     FEDERATED: "#/components/schemas/UpdatePlanFederated"
             required:
                 - definitionVersion
+                - validation
         UpdatePlanV2:
             type: object
             title: "UpdatePlanV2"
