@@ -57,7 +57,7 @@ export class LatestApisComponent implements OnInit {
   apiDetailsUrls = computed(() => {
     return this.apis().map(api => ({
       id: api.id,
-      url: `/apis/${api.id}`
+      url: `/catalog/api/${api.id}`
     }));
   });
 
