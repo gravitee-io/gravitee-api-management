@@ -20,6 +20,7 @@ import io.gravitee.apim.core.analytics.model.Bucket;
 import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
@@ -309,6 +310,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .map(groupByAggregate -> {
                 GroupByAnalytics analytics = new GroupByAnalytics();
                 analytics.setValues(groupByAggregate.values());
+                analytics.setOrder(groupByAggregate.order());
                 return analytics;
             });
     }
@@ -326,14 +328,43 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             );
         return new io.gravitee.repository.log.v4.model.analytics.GroupByQuery(
             groupByQuery.apiId(),
-            null,
             groupByQuery.field(),
             repoGroups,
             repoOrder,
             groupByQuery.from(),
             groupByQuery.to(),
-            groupByQuery.interval()
+            groupByQuery.query()
         );
+    }
+
+    @Override
+    public Optional<StatsAnalytics> searchStatsAnalytics(
+        ExecutionContext executionContext,
+        io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.StatsQuery statsQuery
+    ) {
+        var repoQuery = new io.gravitee.repository.log.v4.model.analytics.StatsQuery(
+            statsQuery.field(),
+            statsQuery.apiId(),
+            new io.gravitee.repository.log.v4.model.analytics.StatsQuery.TimeRange(
+                statsQuery.from().toEpochMilli(),
+                statsQuery.to().toEpochMilli()
+            )
+        );
+
+        return analyticsRepository
+            .searchStats(executionContext.getQueryContext(), repoQuery)
+            .map(statsAggregate ->
+                new StatsAnalytics(
+                    statsAggregate.avg(),
+                    statsAggregate.min(),
+                    statsAggregate.max(),
+                    statsAggregate.sum(),
+                    statsAggregate.count(),
+                    statsAggregate.rps(),
+                    statsAggregate.rpm(),
+                    statsAggregate.rph()
+                )
+            );
     }
 
     private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(

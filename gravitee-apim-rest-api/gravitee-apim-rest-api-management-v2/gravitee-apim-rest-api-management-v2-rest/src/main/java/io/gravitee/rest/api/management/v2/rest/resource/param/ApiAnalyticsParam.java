@@ -58,6 +58,9 @@ public class ApiAnalyticsParam {
     @QueryParam("order")
     private String order;
 
+    @QueryParam("query")
+    private String query;
+
     public List<Range> getRanges() {
         if (ranges == null || ranges.isEmpty()) {
             return List.of();
@@ -137,10 +140,19 @@ public class ApiAnalyticsParam {
             apiId,
             param.getFrom(),
             param.getTo(),
-            param.getInterval(),
             param.getField(),
             groups,
-            order
+            order,
+            param.getQuery() // propagate query parameter
+        );
+    }
+
+    public static io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input toStatsInput(String apiId, ApiAnalyticsParam param) {
+        return new io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input(
+            apiId,
+            param.getFrom(),
+            param.getTo(),
+            param.getField()
         );
     }
 

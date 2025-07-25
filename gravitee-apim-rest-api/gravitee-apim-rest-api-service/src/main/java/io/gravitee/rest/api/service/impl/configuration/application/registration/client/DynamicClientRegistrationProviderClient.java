@@ -22,6 +22,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
+import io.gravitee.rest.api.model.configuration.application.registration.TrustStoreEntity;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.common.SecureHttpClientUtils;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationRequest;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.io.IOException;
@@ -55,7 +58,12 @@ public abstract class DynamicClientRegistrationProviderClient {
 
     protected String registrationEndpoint;
 
-    protected ClientRegistrationResponse register(String initialAccessToken, ClientRegistrationRequest request) {
+    protected ClientRegistrationResponse register(
+        String initialAccessToken,
+        ClientRegistrationRequest request,
+        TrustStoreEntity trustStore,
+        KeyStoreEntity keyStore
+    ) {
         HttpPost registerRequest = new HttpPost(registrationEndpoint);
 
         registerRequest.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + initialAccessToken);
@@ -68,6 +76,8 @@ public abstract class DynamicClientRegistrationProviderClient {
                     ContentType.create(MediaType.APPLICATION_JSON, Charset.defaultCharset())
                 )
             );
+
+            httpClient = SecureHttpClientUtils.createHttpClient(trustStore, keyStore);
 
             return httpClient.execute(
                 registerRequest,
@@ -289,12 +299,12 @@ public abstract class DynamicClientRegistrationProviderClient {
         }
     }
 
-    public ClientRegistrationResponse register(ClientRegistrationRequest request) {
+    public ClientRegistrationResponse register(ClientRegistrationRequest request, TrustStoreEntity trustStore, KeyStoreEntity keyStore) {
         // 1_ Generate an access_token
         String accessToken = getInitialAccessToken();
 
         // 2_ Register the client
-        return register(accessToken, request);
+        return register(accessToken, request, trustStore, keyStore);
     }
 
     public abstract String getInitialAccessToken();

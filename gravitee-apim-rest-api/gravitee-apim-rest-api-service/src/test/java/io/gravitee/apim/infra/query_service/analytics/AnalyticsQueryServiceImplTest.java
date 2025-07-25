@@ -357,22 +357,95 @@ class AnalyticsQueryServiceImplTest {
         void should_map_group_by_aggregate_to_group_by_analytics() {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
-            var interval = Duration.ofHours(1);
             var apiId = "api-1";
             var field = "status";
             var values = Map.of("200", 10L, "404", 2L);
+            var order = List.of("200", "404");
 
-            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate("aggName", field, values);
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate("aggName", field, values, order);
 
             when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
-            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, interval);
+            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, null);
 
             var result = cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
 
             assertThat(result).isPresent();
             var analytics = result.get();
             assertThat(analytics.getValues()).containsExactlyInAnyOrderEntriesOf(values);
+        }
+
+        @Test
+        void should_pass_query_parameter_to_repository() {
+            var from = Instant.parse("2024-01-01T00:00:00Z");
+            var to = Instant.parse("2024-01-02T00:00:00Z");
+            var apiId = "api-1";
+            var field = "status";
+            var queryString = "status:200 AND method:GET";
+            var order = List.of("200");
+
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.GroupByAggregate(
+                "aggName",
+                field,
+                Map.of("200", 10L),
+                order
+            );
+            when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
+
+            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, queryString);
+
+            cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
+
+            ArgumentCaptor<io.gravitee.repository.log.v4.model.analytics.GroupByQuery> repoQueryCaptor = ArgumentCaptor.forClass(
+                io.gravitee.repository.log.v4.model.analytics.GroupByQuery.class
+            );
+            verify(analyticsRepository).searchGroupBy(any(QueryContext.class), repoQueryCaptor.capture());
+            assertThat(repoQueryCaptor.getValue().query()).isEqualTo(queryString);
+        }
+    }
+
+    @Nested
+    class SearchStatsAnalyticsTest {
+
+        @Test
+        void should_return_empty_when_repository_returns_empty() {
+            when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.empty());
+
+            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now());
+            var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_map_stats_aggregate_to_stats_analytics() {
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate(
+                "field",
+                10,
+                100.0f,
+                10.0f,
+                1.0f,
+                20.0f,
+                2.0f,
+                3.0f,
+                4.0f
+            );
+            when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
+
+            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now());
+            var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
+
+            assertThat(result)
+                .hasValueSatisfying(statsAnalytics -> {
+                    assertThat(statsAnalytics.count()).isEqualTo(10);
+                    assertThat(statsAnalytics.sum()).isEqualTo(100.0f);
+                    assertThat(statsAnalytics.avg()).isEqualTo(10.0f);
+                    assertThat(statsAnalytics.min()).isEqualTo(1.0f);
+                    assertThat(statsAnalytics.max()).isEqualTo(20.0f);
+                    assertThat(statsAnalytics.rps()).isEqualTo(2.0f);
+                    assertThat(statsAnalytics.rpm()).isEqualTo(3.0f);
+                    assertThat(statsAnalytics.rph()).isEqualTo(4.0f);
+                });
         }
     }
 }

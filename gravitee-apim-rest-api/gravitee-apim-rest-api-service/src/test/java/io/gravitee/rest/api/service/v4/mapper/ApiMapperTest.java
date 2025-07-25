@@ -573,25 +573,4 @@ public class ApiMapperTest {
         assertThat(nativeEntity.getFlows()).isNotNull();
         assertThat(nativeEntity.getFlows().size()).isEqualTo(2);
     }
-
-    @Test
-    public void shouldCreateEntity_withMembershipEntity_verifyPrimaryOwner() {
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Api api = Api.builder().build();
-        MembershipEntity primaryOwnerMembership = MembershipEntity
-            .builder()
-            .memberType(MembershipMemberType.GROUP)
-            .memberId("group-1")
-            .build();
-        boolean readDatabaseFlows = false;
-
-        ApiEntity apiEntity = apiMapper.toEntity(executionContext, api, primaryOwnerMembership, readDatabaseFlows);
-
-        assertAll(
-            () -> assertThat(apiEntity.getPrimaryOwner().getId()).isEqualTo(primaryOwnerMembership.getMemberId()),
-            () -> assertThat(apiEntity.getPrimaryOwner().getType()).isEqualTo(primaryOwnerMembership.getMemberType().name()),
-            () -> assertThat(apiEntity.getPrimaryOwner().getEmail()).isNull(),
-            () -> assertThat(apiEntity.getPrimaryOwner().getDisplayName()).isNull()
-        );
-    }
 }

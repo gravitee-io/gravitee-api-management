@@ -62,6 +62,8 @@ export class ClientRegistrationProvidersService {
         renew_client_secret_endpoint: clientRegistrationProvider.renew_client_secret_endpoint,
         renew_client_secret_method: clientRegistrationProvider.renew_client_secret_method,
         software_id: clientRegistrationProvider.software_id,
+        trust_store: clientRegistrationProvider.trust_store,
+        key_store: clientRegistrationProvider.key_store,
       },
     );
   }

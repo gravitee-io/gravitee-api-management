@@ -15,11 +15,12 @@
  */
 
 .gio-chart-line {
-  padding: 0 16px 16px 16px;
+  padding: 16px;
 
   &__chart {
     display: block;
   }
+
   &__no-data {
     display: flex;
     justify-content: center;

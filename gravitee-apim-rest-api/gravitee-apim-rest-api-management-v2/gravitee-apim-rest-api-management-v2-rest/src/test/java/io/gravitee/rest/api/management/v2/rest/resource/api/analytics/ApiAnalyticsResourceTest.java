@@ -591,19 +591,20 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 var expectedAnalytics = io.gravitee.apim.core.analytics.model.GroupByAnalytics
                     .builder()
                     .values(Map.of("100:199", 0L, "200:299", 5L, "300:399", 0L, "400:499", 1L, "500:599", 0L))
+                    .order(List.of("100:199", "200:299", "300:399", "400:499", "500:599"))
                     .build();
 
                 var expectedMetadata = Map.of(
                     "100:199",
-                    Map.of("name", "100:199"),
+                    Map.of("name", "100:199", "order", "0"),
                     "200:299",
-                    Map.of("name", "200:299"),
+                    Map.of("name", "200:299", "order", "1"),
                     "300:399",
-                    Map.of("name", "300:399"),
+                    Map.of("name", "300:399", "order", "2"),
                     "400:499",
-                    Map.of("name", "400:499"),
+                    Map.of("name", "400:499", "order", "3"),
                     "500:599",
-                    Map.of("name", "500:599")
+                    Map.of("name", "500:599", "order", "4")
                 );
 
                 fakeAnalyticsQueryService.groupByAnalytics = expectedAnalytics;
@@ -612,7 +613,6 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .queryParam("type", "GROUP_BY")
                     .queryParam("field", "status")
                     .queryParam("ranges", ranges)
-                    .queryParam("interval", expectedTimestamp.getInterval().toMillis())
                     .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
                     .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
                     .request()
@@ -632,6 +632,122 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         assertThat(groupBy.getValues()).containsEntry("400:499", 1L);
                         assertThat(groupBy.getMetadata()).isEqualTo(expectedMetadata);
                     });
+            }
+
+            @Test
+            void should_return_group_by_analytics_response_with_query_parameter() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+
+                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
+                    Instant.now().minusSeconds(60),
+                    Instant.now(),
+                    Duration.ofMinutes(10)
+                );
+                String ranges = "100:199;200:299;300:399;400:499;500:599";
+                String query = "status:200 AND method:GET";
+
+                var expectedAnalytics = io.gravitee.apim.core.analytics.model.GroupByAnalytics
+                    .builder()
+                    .values(Map.of("100:199", 0L, "200:299", 5L, "300:399", 0L, "400:499", 1L, "500:599", 0L))
+                    .order(List.of("100:199", "200:299", "300:399", "400:499", "500:599"))
+                    .build();
+
+                var expectedMetadata = Map.of(
+                    "100:199",
+                    Map.of("name", "100:199", "order", "0"),
+                    "200:299",
+                    Map.of("name", "200:299", "order", "1"),
+                    "300:399",
+                    Map.of("name", "300:399", "order", "2"),
+                    "400:499",
+                    Map.of("name", "400:499", "order", "3"),
+                    "500:599",
+                    Map.of("name", "500:599", "order", "4")
+                );
+
+                fakeAnalyticsQueryService.groupByAnalytics = expectedAnalytics;
+
+                var response = rootTarget()
+                    .queryParam("type", "GROUP_BY")
+                    .queryParam("field", "status")
+                    .queryParam("ranges", ranges)
+                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
+                    .queryParam("query", query)
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
+                    .satisfies(result -> {
+                        var groupBy = result.getGroupByAnalytics();
+                        assertThat(groupBy).isNotNull();
+                        assertThat(groupBy.getAnalyticsType())
+                            .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.AnalyticsType.GROUP_BY);
+                        assertThat(groupBy.getValues()).hasSize(5);
+                        assertThat(groupBy.getValues()).containsEntry("200:299", 5L);
+                        assertThat(groupBy.getValues()).containsEntry("400:499", 1L);
+                        assertThat(groupBy.getMetadata()).isEqualTo(expectedMetadata);
+                    });
+            }
+        }
+
+        @Nested
+        class StatsAnalytics {
+
+            @Test
+            void should_return_stats_analytics_response() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                fakeAnalyticsQueryService.statsAnalytics =
+                    new io.gravitee.apim.core.analytics.model.StatsAnalytics(1f, 2f, 3f, 4f, 5, 6f, 7f, 8f);
+
+                var response = rootTarget()
+                    .queryParam("type", "STATS")
+                    .queryParam("field", "response-time")
+                    .queryParam("from", 1000L)
+                    .queryParam("to", 2000L)
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
+                    .satisfies(result -> {
+                        var stats = result.getStatsAnalytics();
+                        assertThat(stats).isNotNull();
+                        assertThat(stats.getAvg()).isEqualTo(1f);
+                        assertThat(stats.getMin()).isEqualTo(2f);
+                        assertThat(stats.getMax()).isEqualTo(3f);
+                        assertThat(stats.getSum()).isEqualTo(4f);
+                        assertThat(stats.getCount()).isEqualTo(5);
+                        assertThat(stats.getRps()).isEqualTo(6f);
+                        assertThat(stats.getRpm()).isEqualTo(7f);
+                        assertThat(stats.getRph()).isEqualTo(8f);
+                    });
+            }
+
+            @Test
+            void should_return_not_found_when_no_data() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                fakeAnalyticsQueryService.statsAnalytics = null;
+
+                var response = rootTarget()
+                    .queryParam("type", "STATS")
+                    .queryParam("field", "response-time")
+                    .queryParam("from", 1000L)
+                    .queryParam("to", 2000L)
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(404)
+                    .asError()
+                    .hasHttpStatus(404)
+                    .hasMessage("No stats analytics found for api: " + API);
             }
         }
     }

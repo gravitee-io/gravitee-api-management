@@ -28,8 +28,15 @@
   }
 }
 
-.chart-widgets {
+.widgets {
   display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  grid-gap: 24px;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.left-column,
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }

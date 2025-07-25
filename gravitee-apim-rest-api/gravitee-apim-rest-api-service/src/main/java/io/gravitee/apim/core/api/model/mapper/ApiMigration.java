@@ -20,6 +20,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -44,42 +45,26 @@ import org.jspecify.annotations.Nullable;
 class ApiMigration {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final String HTTP_PROXY = "http-proxy";
 
-    Api mapApi(Api source) {
-        return new Api(
-            source.getId(),
-            source.getEnvironmentId(),
-            source.getCrossId(),
-            source.getHrid(),
-            source.getName(),
-            source.getDescription(),
-            source.getVersion(),
-            source.getOriginContext(),
-            DefinitionVersion.V4,
-            apiDefinitionHttpV4(source.getApiDefinition()),
-            null,
-            null,
-            null,
-            null,
-            ApiType.PROXY,
-            source.getDeployedAt(),
-            source.getCreatedAt(),
-            source.getUpdatedAt(),
-            source.getVisibility(),
-            source.getLifecycleState(),
-            source.getPicture(),
-            source.getGroups(),
-            source.getCategories(),
-            source.getLabels(),
-            source.isDisableMembershipNotifications(),
-            source.getApiLifecycleState(),
-            source.getBackground()
-        );
+    MigrationResult<Api> mapApi(Api source) {
+        return apiDefinitionHttpV4(source.getApiDefinition())
+            .map(definition ->
+                source
+                    .toBuilder()
+                    .definitionVersion(DefinitionVersion.V4)
+                    .apiDefinitionHttpV4(definition)
+                    .apiDefinition(null)
+                    .type(ApiType.PROXY)
+                    .build()
+            );
     }
 
-    private io.gravitee.definition.model.v4.Api apiDefinitionHttpV4(io.gravitee.definition.model.Api apiDefinitionV2) {
+    private MigrationResult<io.gravitee.definition.model.v4.Api> apiDefinitionHttpV4(io.gravitee.definition.model.Api apiDefinitionV2) {
         if (apiDefinitionV2 == null) {
-            throw new IllegalArgumentException("apiDefinitionV2 must not be null");
+            return MigrationResult.issues(
+                List.of(new MigrationResult.Issue("apiDefinitionV2 must not be null", MigrationResult.State.IMPOSSIBLE))
+            );
         }
         List<Listener> listeners = List.of(
             HttpListener
@@ -93,7 +78,7 @@ class ApiMigration {
                         .toList()
                 )
                 .pathMappingsPattern(apiDefinitionV2.getPathMappings())
-                .entrypoints(List.of(Entrypoint.builder().type("http-proxy").build()))
+                .entrypoints(List.of(Entrypoint.builder().type(HTTP_PROXY).build()))
                 .build()
         );
 
@@ -128,7 +113,7 @@ class ApiMigration {
         a.setType(ApiType.PROXY);
         a.setProperties(List.of()); // TODO apiDefinitionV2.getProperties())
         a.setResources(List.of()); // TODO apiDefinitionV2.getResources());
-        return a;
+        return MigrationResult.value(a);
     }
 
     private EndpointGroup mapEndpointGroup(io.gravitee.definition.model.EndpointGroup source) {
@@ -136,7 +121,7 @@ class ApiMigration {
         return EndpointGroup
             .builder()
             .name(source.getName())
-            .type("http-proxy")
+            .type(HTTP_PROXY)
             .loadBalancer(mapLoadBalancer(source.getLoadBalancer()))
             .endpoints(endpoints)
             //.services(source.getServices())
@@ -157,7 +142,7 @@ class ApiMigration {
         return Endpoint
             .builder()
             .name(lb.getName())
-            .type(lb.getType())
+            .type(HTTP_PROXY)
             .secondary(lb.isBackup())
             .tenants(lb.getTenants())
             .weight(lb.getWeight())

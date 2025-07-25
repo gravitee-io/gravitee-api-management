@@ -34,6 +34,7 @@ public class Page {
      * Pages promoted between environments will share the same crossId.
      */
     private String crossId;
+    private String hrid;
 
     private String referenceId;
     private Page.ReferenceType referenceType;

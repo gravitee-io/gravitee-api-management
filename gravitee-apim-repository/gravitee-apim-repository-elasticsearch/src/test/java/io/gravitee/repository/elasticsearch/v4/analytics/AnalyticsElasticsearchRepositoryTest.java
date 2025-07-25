@@ -38,6 +38,8 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -717,7 +719,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_group_by_aggregate_for_terms() {
-            var query = new GroupByQuery(API_ID, null, "entrypoint-id", null, null, null, null, null);
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, null);
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -731,14 +737,17 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_group_by_aggregate_for_range() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
             var query = new GroupByQuery(
                 API_ID,
-                null,
                 "response-time",
                 List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200)),
                 null,
-                null,
-                null,
+                from,
+                to,
                 null
             );
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
@@ -750,6 +759,108 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(aggregate.field()).isEqualTo("response-time");
                     assertThat(aggregate.values()).containsKeys("0.0-100.0", "100.0-200.0");
                 });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_terms_with_query_parameter() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var queryString = "status:404 AND http-method:8";
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, queryString);
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsExactlyEntriesOf(Map.of("http-get", 1L));
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_terms_with_order_avg() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, from, to, null);
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
+                    assertThat(aggregate.order()).containsExactly("http-get", "http-post");
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_terms_with_order_value() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var order = new GroupByQuery.Order("_key", true, "VALUE");
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, from, to, null);
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
+                    assertThat(aggregate.order()).containsExactly("http-get", "http-post");
+                });
+        }
+    }
+
+    @Nested
+    class StatsAnalytics {
+
+        @Test
+        void should_return_stats_for_a_given_api_and_field() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new StatsQuery(
+                "gateway-response-time-ms",
+                API_ID,
+                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli())
+            );
+
+            Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(stats -> {
+                    assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
+                    assertThat(stats.count()).isEqualTo(8L);
+                    assertThat(stats.sum()).isEqualTo(131864.0f);
+                    assertThat(stats.avg()).isEqualTo(16483.0f);
+                    assertThat(stats.min()).isEqualTo(19.0f);
+                    assertThat(stats.max()).isEqualTo(60000.0f);
+                });
+        }
+
+        @Test
+        void should_return_empty_if_no_stats_found() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.DAYS);
+            var to = from.plus(Duration.ofDays(1));
+
+            var query = new StatsQuery("non-existent-field", API_ID, new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()));
+
+            Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result).isEmpty();
         }
     }
 }

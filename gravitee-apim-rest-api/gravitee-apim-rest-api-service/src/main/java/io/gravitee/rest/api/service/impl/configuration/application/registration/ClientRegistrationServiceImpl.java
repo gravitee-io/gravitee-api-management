@@ -20,7 +20,6 @@ import static java.util.Collections.singletonMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.gravitee.common.http.HttpMethod;
@@ -31,10 +30,11 @@ import io.gravitee.repository.management.api.ClientRegistrationProviderRepositor
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
-import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
+import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
+import io.gravitee.rest.api.model.configuration.application.registration.TrustStoreEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -332,7 +332,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             clientRegistrationRequest.setSoftwareId(provider.getSoftwareId());
         }
 
-        return registrationProviderClient.register(clientRegistrationRequest);
+        return registrationProviderClient.register(clientRegistrationRequest, provider.getTrustStore(), provider.getKeyStore());
     }
 
     private ClientRegistrationRequest convert(NewApplicationEntity application) {
@@ -368,7 +368,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 DiscoveryBasedDynamicClientRegistrationProviderClient registrationProviderClient =
                     new DiscoveryBasedDynamicClientRegistrationProviderClient(
                         clientRegistrationProvider.getDiscoveryEndpoint(),
-                        atProvider
+                        atProvider,
+                        clientRegistrationProvider.getTrustStore(),
+                        clientRegistrationProvider.getKeyStore()
                     );
 
                 // Provider ID may be null when we are trying to test a client registration provider
@@ -383,7 +385,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                     () ->
                         new DiscoveryBasedDynamicClientRegistrationProviderClient(
                             clientRegistrationProvider.getDiscoveryEndpoint(),
-                            atProvider
+                            atProvider,
+                            clientRegistrationProvider.getTrustStore(),
+                            clientRegistrationProvider.getKeyStore()
                         )
                 );
             }
@@ -527,6 +531,36 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             entity.setInitialAccessToken(clientRegistrationProvider.getInitialAccessToken());
         }
 
+        // TrustStore
+        TrustStoreEntity trustStoreEntity = new TrustStoreEntity();
+        try {
+            trustStoreEntity.setType(TrustStoreEntity.Type.valueOf(clientRegistrationProvider.getTrustStoreType()));
+        } catch (Exception ex) {
+            trustStoreEntity.setType(TrustStoreEntity.Type.NONE);
+        }
+        if (trustStoreEntity.getType() != null && trustStoreEntity.getType() != TrustStoreEntity.Type.NONE) {
+            trustStoreEntity.setPath(clientRegistrationProvider.getTrustStorePath());
+            trustStoreEntity.setContent(clientRegistrationProvider.getTrustStoreContent());
+            trustStoreEntity.setPassword(clientRegistrationProvider.getTrustStorePassword());
+        }
+        entity.setTrustStore(trustStoreEntity);
+
+        // KeyStore
+        KeyStoreEntity keyStoreEntity = new KeyStoreEntity();
+        try {
+            keyStoreEntity.setType(KeyStoreEntity.Type.valueOf(clientRegistrationProvider.getKeyStoreType()));
+        } catch (Exception ex) {
+            keyStoreEntity.setType(KeyStoreEntity.Type.NONE);
+        }
+        if (keyStoreEntity.getType() != null && keyStoreEntity.getType() != KeyStoreEntity.Type.NONE) {
+            keyStoreEntity.setPath(clientRegistrationProvider.getKeyStorePath());
+            keyStoreEntity.setContent(clientRegistrationProvider.getKeyStoreContent());
+            keyStoreEntity.setPassword(clientRegistrationProvider.getKeyStorePassword());
+            keyStoreEntity.setAlias(clientRegistrationProvider.getKeyStoreAlias());
+            keyStoreEntity.setKeyPassword(clientRegistrationProvider.getKeyPassword());
+        }
+        entity.setKeyStore(keyStoreEntity);
+
         entity.setCreatedAt(clientRegistrationProvider.getCreatedAt());
         entity.setUpdatedAt(clientRegistrationProvider.getUpdatedAt());
 
@@ -554,6 +588,28 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             provider.setInitialAccessToken(newClientRegistrationProvider.getInitialAccessToken());
         }
 
+        TrustStoreEntity trustStoreEntity = newClientRegistrationProvider.getTrustStore();
+        if (trustStoreEntity != null && trustStoreEntity.getType() != null && trustStoreEntity.getType() != TrustStoreEntity.Type.NONE) {
+            provider.setTrustStoreType(trustStoreEntity.getType().name());
+            provider.setTrustStorePath(trustStoreEntity.getPath());
+            provider.setTrustStoreContent(trustStoreEntity.getContent());
+            provider.setTrustStorePassword(trustStoreEntity.getPassword());
+        } else {
+            provider.setTrustStoreType(TrustStoreEntity.Type.NONE.name());
+        }
+
+        KeyStoreEntity keyStoreEntity = newClientRegistrationProvider.getKeyStore();
+        if (keyStoreEntity != null && keyStoreEntity.getType() != null && keyStoreEntity.getType() != KeyStoreEntity.Type.NONE) {
+            provider.setKeyStoreType(keyStoreEntity.getType().name());
+            provider.setKeyStorePath(keyStoreEntity.getPath());
+            provider.setKeyStoreContent(keyStoreEntity.getContent());
+            provider.setKeyStorePassword(keyStoreEntity.getPassword());
+            provider.setKeyStoreAlias(keyStoreEntity.getAlias());
+            provider.setKeyPassword(keyStoreEntity.getKeyPassword());
+        } else {
+            provider.setKeyStoreType(KeyStoreEntity.Type.NONE.name());
+        }
+
         return provider;
     }
 
@@ -576,6 +632,28 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         } else {
             provider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.INITIAL_ACCESS_TOKEN);
             provider.setInitialAccessToken(updateClientRegistrationProvider.getInitialAccessToken());
+        }
+
+        TrustStoreEntity trustStoreEntity = updateClientRegistrationProvider.getTrustStore();
+        if (trustStoreEntity != null && trustStoreEntity.getType() != null && trustStoreEntity.getType() != TrustStoreEntity.Type.NONE) {
+            provider.setTrustStoreType(trustStoreEntity.getType().name());
+            provider.setTrustStorePath(trustStoreEntity.getPath());
+            provider.setTrustStoreContent(trustStoreEntity.getContent());
+            provider.setTrustStorePassword(trustStoreEntity.getPassword());
+        } else {
+            provider.setTrustStoreType(TrustStoreEntity.Type.NONE.name());
+        }
+
+        KeyStoreEntity keyStoreEntity = updateClientRegistrationProvider.getKeyStore();
+        if (keyStoreEntity != null && keyStoreEntity.getType() != null && keyStoreEntity.getType() != KeyStoreEntity.Type.NONE) {
+            provider.setKeyStoreType(keyStoreEntity.getType().name());
+            provider.setKeyStorePath(keyStoreEntity.getPath());
+            provider.setKeyStoreContent(keyStoreEntity.getContent());
+            provider.setKeyStorePassword(keyStoreEntity.getPassword());
+            provider.setKeyStoreAlias(keyStoreEntity.getAlias());
+            provider.setKeyPassword(keyStoreEntity.getKeyPassword());
+        } else {
+            provider.setKeyStoreType(KeyStoreEntity.Type.NONE.name());
         }
 
         return provider;

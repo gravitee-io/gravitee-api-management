@@ -31,6 +31,8 @@ import {
   AggregationTypes,
   HistogramAnalyticsResponse,
 } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
+import { GroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -72,11 +74,15 @@ describe('ApiAnalyticsProxyComponent', () => {
     beforeEach(async () => {
       await initComponent();
       expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
+      expectGetGroup(fakeGroupByResponse(), 2);
     });
 
     it('should serialize SINGLE aggregation into request params', async () => {
-      fixture.componentInstance.chartWidgetConfigs = [
+      fixture.componentInstance.tableWidgets = [];
+      fixture.componentInstance.chartWidgets = [
         {
+          type: 'line',
+          shouldSortBuckets: true,
           apiId: API_ID,
           aggregations: [
             {
@@ -110,8 +116,11 @@ describe('ApiAnalyticsProxyComponent', () => {
     });
 
     it('should serialize MULTIPLE aggregation into request params params', async () => {
-      fixture.componentInstance.chartWidgetConfigs = [
+      fixture.componentInstance.tableWidgets = [];
+      fixture.componentInstance.chartWidgets = [
         {
+          type: 'line',
+          shouldSortBuckets: true,
           apiId: API_ID,
           aggregations: [
             {
@@ -131,6 +140,7 @@ describe('ApiAnalyticsProxyComponent', () => {
           tooltip: 'Measures latency trend for gateway and downstream systems (API) ',
         },
       ];
+      fixture.detectChanges();
 
       const expectedMultipleSerialization = 'AVG:gateway-response-time-ms,AVG:endpoint-response-time-ms,MAX:endpoint-response-time-ms';
 
@@ -161,6 +171,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       const filtersBar = await componentHarness.getFiltersBarHarness();
       await filtersBar.refresh();
       expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
+      expectGetGroup(fakeGroupByResponse(), 2);
     });
   });
 
@@ -174,6 +185,7 @@ describe('ApiAnalyticsProxyComponent', () => {
       it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
         await initComponent(testParams.input);
         expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
+        expectGetGroup(fakeGroupByResponse(), 2);
 
         const filtersBar = await componentHarness.getFiltersBarHarness();
 
@@ -187,6 +199,18 @@ describe('ApiAnalyticsProxyComponent', () => {
 
   function expectGetHistogramAnalytics(res: HistogramAnalyticsResponse = fakeAnalyticsHistogram(), numberOfRequests: number = 1) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=HISTOGRAM`;
+    const requests = httpTestingController.match((req) => {
+      return req.url.startsWith(url);
+    });
+
+    expect(requests.length).toBe(numberOfRequests);
+    requests.forEach((request) => {
+      request.flush(res);
+    });
+  }
+
+  function expectGetGroup(res: GroupByResponse = fakeGroupByResponse(), numberOfRequests: number = 1) {
+    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=GROUP_BY`;
     const requests = httpTestingController.match((req) => {
       return req.url.startsWith(url);
     });

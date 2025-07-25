@@ -12,7 +12,7 @@
       "policy": "rate-limit",
       "configuration": {
         "async": false,
-        "addHeaders":  true,
+        "addHeaders": true,
         "rate": {
           "useKeyOnly": false,
           "periodTime": 1,

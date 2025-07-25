@@ -21,6 +21,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,17 +74,22 @@ public class GroupByQueryAdapter {
         termNode.set("term", MAPPER.createObjectNode().put("api-id", query.apiId()));
         filterArray.add(termNode);
 
-        // Time range
-        if (query.timeRange() != null && query.timeRange().range() != null) {
-            ObjectNode rangeNode = MAPPER.createObjectNode();
-            ObjectNode tsRange = MAPPER.createObjectNode();
-            tsRange.put("from", query.timeRange().range().from());
-            tsRange.put("to", query.timeRange().range().to());
-            tsRange.put("include_lower", true);
-            tsRange.put("include_upper", true);
-            rangeNode.set("@timestamp", tsRange);
-            filterArray.add(MAPPER.createObjectNode().set("range", rangeNode));
+        // Add query_string if query.query() is present
+        if (query.query() != null && !query.query().isEmpty()) {
+            ObjectNode queryStringNode = MAPPER.createObjectNode();
+            queryStringNode.set("query_string", MAPPER.createObjectNode().put("query", query.query()));
+            filterArray.add(queryStringNode);
         }
+
+        // Time range (from/to are never null)
+        ObjectNode rangeNode = MAPPER.createObjectNode();
+        ObjectNode tsRange = MAPPER.createObjectNode();
+        tsRange.put("from", query.from().toEpochMilli());
+        tsRange.put("to", query.to().toEpochMilli());
+        tsRange.put("include_lower", true);
+        tsRange.put("include_upper", true);
+        rangeNode.set("@timestamp", tsRange);
+        filterArray.add(MAPPER.createObjectNode().set("range", rangeNode));
 
         ObjectNode bool = MAPPER.createObjectNode();
         bool.set("filter", filterArray);
@@ -119,10 +125,21 @@ public class GroupByQueryAdapter {
                 ObjectNode orderNode = MAPPER.createObjectNode();
                 orderNode.put(query.order().field(), query.order().order() ? "asc" : "desc");
                 termsAgg.set("order", orderNode);
+
+                if (query.order().type() != null && query.order().type().equalsIgnoreCase("AVG")) {
+                    ObjectNode aggregationsNode = MAPPER.createObjectNode();
+                    ObjectNode avgAgg = MAPPER.createObjectNode();
+                    ObjectNode avgField = MAPPER.createObjectNode();
+                    avgField.put("field", query.order().field());
+                    avgAgg.set("avg", avgField);
+                    aggregationsNode.set(query.order().field(), avgAgg);
+                    byTerms.set("aggregations", aggregationsNode);
+                }
             }
             byTerms.set("terms", termsAgg);
             aggs.set("by_" + query.field(), byTerms);
         }
+
         return aggs;
     }
 
@@ -135,13 +152,15 @@ public class GroupByQueryAdapter {
             return Optional.empty();
         }
         Map<String, Long> values = new HashMap<>();
+        List<String> order = new ArrayList<>(agg.getBuckets().size());
         agg
             .getBuckets()
             .forEach(bucket -> {
                 String key = bucket.get("key").asText();
                 long count = bucket.get("doc_count").asLong();
                 values.put(key, count);
+                order.add(key);
             });
-        return Optional.of(new GroupByAggregate(this.aggName, this.fieldName, values));
+        return Optional.of(new GroupByAggregate(this.aggName, this.fieldName, values, order));
     }
 }

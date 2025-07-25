@@ -2115,12 +2115,18 @@ paths:
           - name: order
             in: query
             required: false
-            description: Order of the results
+            description: |-
+              Parameter format `<descending '-'><type 'avg' or 'count'>:<field>`.  
+              Example: `-avg:gateway-response-time-ms` will sort descending by average response time,  
+              `count:_key` will order ascending by count in bucket.
             schema:
               type: string
-              enum:
-                  - ASC
-                  - DESC
+          - name: query
+            in: query
+            required: false
+            description: Custom search query
+            schema:
+              type: string
         responses:
           "200":
             $ref: "#/components/responses/ApiAnalyticsResponse"
@@ -7704,14 +7710,42 @@ components:
                 HISTOGRAM: "#/components/schemas/HistogramAnalytics"
                 GROUP_BY: "#/components/schemas/GroupByAnalytics"
         StatsAnalytics:
-
-          allOf:
-            - $ref: "#/components/schemas/GenericAnalytics"
-            - type: object
-              properties:
-                count:
-                  type: integer
-                  format: int64
+                  allOf:
+                    - $ref: "#/components/schemas/GenericAnalytics"
+                    - type: object
+                      properties:
+                        avg:
+                          type: number
+                          format: float
+                          description: Average value of the metric.
+                        min:
+                          type: number
+                          format: float
+                          description: Minimum value of the metric.
+                        max:
+                          type: number
+                          format: float
+                          description: Maximum value of the metric.
+                        sum:
+                          type: number
+                          format: float
+                          description: Sum of all metric values.
+                        count:
+                          type: integer
+                          format: int64
+                          description: Total number of data points.
+                        rps:
+                          type: number
+                          format: float
+                          description: Requests per second.
+                        rpm:
+                          type: number
+                          format: float
+                          description: Requests per minute.
+                        rph:
+                          type: number
+                          format: float
+                          description: Requests per hour.
         CountAnalytics:
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"

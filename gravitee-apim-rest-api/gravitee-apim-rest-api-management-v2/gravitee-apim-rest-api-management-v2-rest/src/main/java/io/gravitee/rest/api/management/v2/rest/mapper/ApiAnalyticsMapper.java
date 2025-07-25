@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.analytics.model.Bucket;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
@@ -107,4 +108,6 @@ public interface ApiAnalyticsMapper {
         analytics.setMetadata(metadata);
         return analytics;
     }
+
+    io.gravitee.rest.api.management.v2.rest.model.StatsAnalytics map(StatsAnalytics statsAnalytics);
 }
