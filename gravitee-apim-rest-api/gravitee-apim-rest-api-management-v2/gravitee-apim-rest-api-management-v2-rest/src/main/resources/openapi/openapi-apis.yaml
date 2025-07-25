@@ -3761,6 +3761,26 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/DefinitionVersion"
+                apiTypes:
+                    type: array
+                    items:
+                        type: string
+                statuses:
+                    type: array
+                    items:
+                        type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+                categories:
+                  type: array
+                  items:
+                    type: string
+                published:
+                  type: array
+                  items:
+                    type: string
         ApiType:
             type: string
             description: API's type.
@@ -8056,8 +8076,20 @@ components:
                 enum:
                     - name
                     - -name
+                    - api_type
+                    - -api_type
+                    - status
+                    - -status
                     - paths
                     - -paths
+                    - tags_asc
+                    - -tags_desc
+                    - categories_asc
+                    - -categories_desc
+                    - owner
+                    - -owner
+                    - visibility
+                    - -visibility
         apiMetadataSortByParam:
             name: sortBy
             in: query
