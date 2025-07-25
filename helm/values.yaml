@@ -1314,7 +1314,7 @@ gateway:
       ingress:
         enabled: false
         ingressClassName: ""
-        pathType: Prefix
+        pathType: ImplementationSpecific
         path: /_(.*)
         hosts:
           - apim.example.com
