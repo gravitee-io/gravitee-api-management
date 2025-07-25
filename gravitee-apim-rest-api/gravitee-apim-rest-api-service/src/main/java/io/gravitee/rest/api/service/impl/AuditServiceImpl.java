@@ -450,7 +450,18 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         try {
             auditRepository.create(audit);
         } catch (TechnicalException e) {
+<<<<<<< HEAD
             log.error("Error occurs during the creation of an Audit Log {}.", e);
+=======
+            LOGGER.error(
+                "Error occurs during the creation of an Audit Log id={}, with organization id {} and environment id {} for user {}.",
+                audit.getId(),
+                audit.getOrganizationId(),
+                audit.getEnvironmentId(),
+                audit.getUser(),
+                e
+            );
+>>>>>>> 05f96a3fd7 (chore(logs): Fixed basics issues on Optional and the number of parameters for a log)
         }
     }
 

@@ -412,6 +412,24 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         }
     }
 
+    private void validatePathParameters(Api api, UpdatePlanEntity updatePlan) throws TechnicalException {
+        final Set<Plan> plans = planRepository.findByApi(api.getId());
+        final Stream<Flow> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
+
+        Stream<Flow> planFlows = plans
+            .stream()
+            .map(plan -> {
+                if (plan.getId().equals(updatePlan.getId())) {
+                    return updatePlan.getFlows();
+                } else {
+                    return flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
+                }
+            })
+            .flatMap(Collection::stream);
+
+        pathParametersValidationService.validate(api.getType(), apiFlows, planFlows);
+    }
+
     private void checkStatusOfGeneralConditions(Plan plan) {
         if (plan.getGeneralConditions() != null && !plan.getGeneralConditions().isEmpty()) {
             PageEntity generalConditions = pageService.findById(plan.getGeneralConditions());

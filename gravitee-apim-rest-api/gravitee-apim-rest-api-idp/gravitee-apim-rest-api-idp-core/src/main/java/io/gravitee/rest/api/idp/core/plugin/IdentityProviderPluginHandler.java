@@ -67,7 +67,11 @@ public class IdentityProviderPluginHandler implements PluginHandler {
         try {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
+<<<<<<< HEAD
             log.error("Unable to instantiate class: {}", ex);
+=======
+            LOGGER.error("Unable to instantiate class: {}", clazz, ex);
+>>>>>>> 05f96a3fd7 (chore(logs): Fixed basics issues on Optional and the number of parameters for a log)
             throw ex;
         }
     }

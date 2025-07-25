@@ -96,8 +96,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
@@ -183,19 +184,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     @Override
     public ApiEntity createWithImportedDefinition(final ExecutionContext executionContext, Object apiDefinitionOrURL) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
+        ImportApiJsonNode apiJsonInput = null;
         ImportApiJsonNode apiJsonNode = null;
         try {
-            // Read the whole input API definition and recalculate its ID
-            apiJsonNode =
-                apiIdsCalculatorService.recalculateApiDefinitionIds(
-                    executionContext,
-                    new ImportApiJsonNode(objectMapper.readTree(apiDefinition))
-                );
+            ApiJsonNodes nodes = readAndRecalculateIds(executionContext, apiDefinition, null);
+            apiJsonInput = nodes.input();
+            apiJsonNode = nodes.recalculated();
 
-            // check API consistency before import
             checkApiJsonConsistency(apiJsonNode);
-
-            // import
             UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
 
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(
@@ -208,59 +204,80 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             // No need to create ASIDE Folder when the origin is Kubernetes
             if (!createdApiEntity.getDefinitionContext().isOriginKubernetes()) {
+                log.debug("Creating pages and media (non-Kubernetes origin)");
                 createPageAndMedia(executionContext, createdApiEntity, apiJsonNode);
             }
             return createdApiEntity;
         } catch (IOException e) {
-            throw new TechnicalManagementException(
-                String.format(
-                    "An error occurs while trying to JSON deserialize the API definition with id %s",
-                    apiJsonNode == null ? "null" : apiJsonNode.getId()
-                ),
-                e
-            );
+            throw new TechnicalManagementException(this.getDeserializeIssueMessage(apiJsonInput, apiJsonNode), e);
         }
     }
 
     @Override
     public ApiEntity updateWithImportedDefinition(final ExecutionContext executionContext, String urlApiId, Object apiDefinitionOrURL) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
-
+        ImportApiJsonNode apiJsonInput = null;
+        ImportApiJsonNode apiJsonNode = null;
         try {
-            // Read the whole input API definition, and recalculate its ID
-            ImportApiJsonNode apiJsonNode = apiIdsCalculatorService.recalculateApiDefinitionIds(
-                executionContext,
-                new ImportApiJsonNode(objectMapper.readTree(apiDefinition)),
-                urlApiId
-            );
+            ApiJsonNodes nodes = readAndRecalculateIds(executionContext, apiDefinition, urlApiId);
+            apiJsonInput = nodes.input();
+            apiJsonNode = nodes.recalculated();
 
             UpdateApiEntity importedApi = convertToEntity(executionContext, apiJsonNode.toString(), apiJsonNode);
-
-            if (DefinitionVersion.V1.equals(DefinitionVersion.valueOfLabel(importedApi.getGraviteeDefinitionVersion()))) {
-                throw new ApiDefinitionVersionNotSupportedException(importedApi.getGraviteeDefinitionVersion());
-            }
-
-            // ensure user has required permission to update target API
-            if (
-                !isAuthenticated() ||
-                !(isEnvironmentAdmin() || permissionService.hasPermission(executionContext, API_DEFINITION, apiJsonNode.getId(), UPDATE))
-            ) {
-                throw new ForbiddenAccessException();
-            }
-
-            // check API consistency before import
+            checkPermissionsAndVersion(executionContext, importedApi, apiJsonNode);
             checkApiJsonConsistency(executionContext, apiJsonNode, urlApiId);
 
-            // import
             ApiEntity updatedApiEntity = apiService.update(executionContext, apiJsonNode.getId(), importedApi);
             createOrUpdateApiNestedEntities(executionContext, updatedApiEntity, apiJsonNode);
             return updatedApiEntity;
         } catch (IOException e) {
-            throw new TechnicalManagementException(
-                String.format("An error occurs while trying to JSON deserialize the API definition %s.", apiDefinition),
-                e
-            );
+            throw new TechnicalManagementException(getDeserializeIssueMessage(apiJsonInput, apiJsonNode), e);
         }
+    }
+
+    private record ApiJsonNodes(ImportApiJsonNode input, ImportApiJsonNode recalculated) {}
+
+    private ApiJsonNodes readAndRecalculateIds(ExecutionContext executionContext, String apiDefinition, String providedApiId)
+        throws IOException {
+        log.debug("Reading the input API definition and recalculating its ID");
+        ImportApiJsonNode apiJsonInput = new ImportApiJsonNode(objectMapper.readTree(apiDefinition));
+        ImportApiJsonNode apiJsonNode;
+
+        if (providedApiId == null) {
+            apiJsonNode = apiIdsCalculatorService.recalculateApiDefinitionIds(executionContext, apiJsonInput);
+        } else {
+            apiJsonNode = apiIdsCalculatorService.recalculateApiDefinitionIds(executionContext, apiJsonInput, providedApiId);
+        }
+        log.debug(
+            "API definition read, id={}, calculatedId={}, providedApiId={}",
+            apiJsonInput.getId(),
+            apiJsonNode.getId(),
+            providedApiId
+        );
+
+        return new ApiJsonNodes(apiJsonInput, apiJsonNode);
+    }
+
+    private void checkPermissionsAndVersion(ExecutionContext ctx, UpdateApiEntity importedApi, ImportApiJsonNode apiJsonNode) {
+        log.debug("Checking definition version");
+        if (DefinitionVersion.V1.equals(DefinitionVersion.valueOfLabel(importedApi.getGraviteeDefinitionVersion()))) {
+            throw new ApiDefinitionVersionNotSupportedException(importedApi.getGraviteeDefinitionVersion());
+        }
+        log.debug("Checking API permissions to update target API");
+        if (
+            !isAuthenticated() ||
+            !(isEnvironmentAdmin() || permissionService.hasPermission(ctx, API_DEFINITION, apiJsonNode.getId(), UPDATE))
+        ) {
+            throw new ForbiddenAccessException();
+        }
+    }
+
+    private String getDeserializeIssueMessage(ImportApiJsonNode apiJsonInput, ImportApiJsonNode apiJsonNode) {
+        return String.format(
+            "An error occurs while trying to JSON deserialize the API definition with id %s and its calculated id %s",
+            apiJsonInput == null ? "null" : apiJsonInput.getId(),
+            apiJsonNode == null ? "null" : apiJsonNode.getId()
+        );
     }
 
     @Override
@@ -329,6 +346,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     private UpdateApiEntity convertToEntity(final ExecutionContext executionContext, String apiDefinition, ImportApiJsonNode apiJsonNode)
         throws IOException {
+        log.debug("Converting API JSON to UpdateApiEntity");
         final UpdateApiEntity importedApi = objectMapper
             // because definition could contains other values than the api itself (pages, members)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -402,8 +420,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return categoryMapper.toCategoryId(environmentId, categories);
     }
 
-    private void createPageAndMedia(final ExecutionContext executionContext, ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode)
-        throws JsonProcessingException {
+    private void createPageAndMedia(final ExecutionContext executionContext, ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode) {
         for (ImportJsonNode media : apiJsonNode.getMedia()) {
             mediaService.createWithDefinition(executionContext, createdApiEntity.getId(), media.toString());
         }
@@ -441,6 +458,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         ApiEntity apiEntity,
         ImportApiJsonNode apiJsonNode
     ) throws IOException {
+        log.debug("Creating or updating nested API entities");
         createOrUpdateMembers(executionContext, apiEntity, apiJsonNode);
         createOrUpdatePages(executionContext, apiEntity, apiJsonNode);
         createOrUpdatePlans(executionContext, apiEntity, apiJsonNode);
@@ -688,17 +706,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                             unfe
                         );
                     } catch (Exception e) {
-                        log.warn(
-                            "Unable to add role '{}' to member '{}' on API '{}' due to : {}",
-                            role,
-                            userEntity.getId(),
-                            apiId,
-                            e.getMessage(),
-                            e
-                        );
+                        log.warn("Unable to add role '{}' to member '{}' on API '{}'", role, userEntity.getId(), apiId, e);
                     }
                 });
             } catch (UserNotFoundException unfe) {
+<<<<<<< HEAD
                 log.debug(
                     "UserNotFoundException while adding or updating member '{}' (source: '{}', sourceId: '{}') on API '{}': {}",
                     memberToImport,
@@ -708,6 +720,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     unfe.getMessage(),
                     unfe
                 );
+=======
+                log.warn("Unable to add member '{}' on API '{}'", memberToImport.getSourceId(), apiId, unfe);
+>>>>>>> 05f96a3fd7 (chore(logs): Fixed basics issues on Optional and the number of parameters for a log)
             }
         }
     }
@@ -752,6 +767,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             membershipService.deleteMemberForApi(executionContext, apiId, userEntity.getId());
         } catch (UserNotFoundException unfe) {
             log.debug(
+<<<<<<< HEAD
                 "UserNotFoundException while deleting member '{}' (source: '{}', sourceId: '{}') from API '{}': {}",
                 memberToImport,
                 memberToImport.getSource(),
@@ -762,6 +778,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             );
         } catch (Exception e) {
             log.warn("Unable to delete membership from API '{}' due to : {}", apiId, e.getMessage(), e);
+=======
+                "User not found when trying to delete member '{}' on API '{}'. Skipping deletion.",
+                memberToImport.getSourceId(),
+                apiId,
+                unfe
+            );
+        } catch (Exception e) {
+            log.warn("Failed to delete membership for user '{}' on API '{}'", memberToImport.getSourceId(), apiId, e);
+>>>>>>> 05f96a3fd7 (chore(logs): Fixed basics issues on Optional and the number of parameters for a log)
         }
     }
 
@@ -776,6 +801,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             futurePo != null &&
             !(futurePo.getSource().equals(currentPo.getSource()) && futurePo.getSourceId().equals(currentPo.getSourceId()))
         ) {
+<<<<<<< HEAD
             try {
                 UserEntity userEntity = userService.findBySource(
                     executionContext.getOrganizationId(),
@@ -803,6 +829,24 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     unfe
                 );
             }
+=======
+            UserEntity userEntity = userService.findBySource(
+                executionContext.getOrganizationId(),
+                futurePo.getSource(),
+                futurePo.getSourceId(),
+                false
+            );
+            List<RoleEntity> roleEntity = null;
+            if (roleUsedInTransfert != null && !roleUsedInTransfert.isEmpty()) {
+                roleEntity = roleUsedInTransfert.stream().map(roleService::findById).toList();
+            }
+            membershipService.transferApiOwnership(
+                executionContext,
+                apiId,
+                new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
+                roleEntity
+            );
+>>>>>>> 05f96a3fd7 (chore(logs): Fixed basics issues on Optional and the number of parameters for a log)
         }
     }
 
@@ -1019,6 +1063,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
+    @Getter
+    @Setter
     protected static class MemberToImport {
 
         private String source;
@@ -1032,38 +1078,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             this.source = source;
             this.sourceId = sourceId;
             this.roles = roles;
-            this.role = role;
-        }
-
-        public String getSource() {
-            return source;
-        }
-
-        public void setSource(String source) {
-            this.source = source;
-        }
-
-        public String getSourceId() {
-            return sourceId;
-        }
-
-        public void setSourceId(String sourceId) {
-            this.sourceId = sourceId;
-        }
-
-        public List<String> getRoles() {
-            return roles;
-        }
-
-        public void setRoles(List<String> roles) {
-            this.roles = roles;
-        }
-
-        public String getRole() {
-            return role;
-        }
-
-        public void setRole(String role) {
             this.role = role;
         }
 
@@ -1118,6 +1132,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private void checkApiJsonConsistency(ImportApiJsonNode apiJsonNode) {
+        log.debug("Checking API consistency");
         checkPagesConsistency(apiJsonNode);
         checkPlansConsistency(apiJsonNode);
     }
@@ -1157,7 +1172,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                             CronExpression.parse(cron); // Validate cron
                         } catch (IllegalArgumentException e) {
                             String pageName = pageNode.path("name").asText("Unnamed Page");
-                            throw new ApiImportException("Invalid fetchCron expression in page '" + pageName + "': " + e.getMessage());
+                            throw new ApiImportException(
+                                String.format("Invalid fetchCron expression in page '%s': %s", pageName, e.getMessage())
+                            );
                         }
                     }
                 }

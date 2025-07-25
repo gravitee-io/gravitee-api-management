@@ -55,6 +55,7 @@ public class DefaultParameterInitializer implements Initializer {
 
     @Override
     public boolean initialize() {
+        Parameter managementURLParam = null;
         try {
             String envPortalURL = environment.getProperty("portalURL", Key.MANAGEMENT_URL.defaultValue());
             if (envPortalURL != null) {
@@ -64,20 +65,20 @@ public class DefaultParameterInitializer implements Initializer {
                     ParameterReferenceType.ORGANIZATION
                 );
                 if (!optionalParameter.isPresent()) {
-                    Parameter managementURLParam = new Parameter();
+                    managementURLParam = new Parameter();
                     managementURLParam.setKey(Key.MANAGEMENT_URL.key());
                     managementURLParam.setValue(envPortalURL);
                     managementURLParam.setReferenceType(ParameterReferenceType.ORGANIZATION);
                     managementURLParam.setReferenceId(GraviteeContext.getDefaultOrganization());
                     parameterRepository.create(managementURLParam);
                 } else if (StringUtils.isEmpty(optionalParameter.get().getValue())) {
-                    Parameter managementURLParam = optionalParameter.get();
+                    managementURLParam = optionalParameter.get();
                     managementURLParam.setValue(envPortalURL);
                     parameterRepository.update(managementURLParam);
                 }
             }
         } catch (TechnicalException e) {
-            logger.error("Error while updating 'management.url' parameter : {}", e);
+            logger.error("Error while updating 'management.url' parameter : {}", managementURLParam, e);
         }
         return true;
     }
