@@ -13,7 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api-runtime-logs-empty';
 export * from './api-runtime-logs-list';
-export * from './api-runtime-logs-list-row';
 export * from './api-runtime-logs-quick-filters';

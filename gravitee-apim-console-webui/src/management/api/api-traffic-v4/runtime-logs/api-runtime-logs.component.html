@@ -36,10 +36,7 @@
       <api-runtime-logs-list
         *ngIf="apiLogsSubject$ | async as response"
         [pagination]="response.pagination"
-        [logEnabled]="apiLogsEnabled$ | async"
-        [isMessageApi]="isMessageApi$ | async"
         [logs]="response.data"
-        (navigateToSettings)="openLogsSettings()"
         (paginationUpdated)="paginationUpdated($event)"
       ></api-runtime-logs-list>
     </ng-container>

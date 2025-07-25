@@ -14,40 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatPaginatorHarness } from '@angular/material/paginator/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
-
-import { ApiRuntimeLogsEmptyHarness } from '../api-runtime-logs-empty';
-import { ApiRuntimeLogsListRowHarness } from '../api-runtime-logs-list-row';
 
 export class ApiRuntimeLogsListHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-list';
-
-  private emptyPanel = this.locatorForOptional(ApiRuntimeLogsEmptyHarness);
-  private impactBanner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
-  private openSettingsButtonInBanner = this.locatorFor(MatButtonHarness.with({ selector: '[data-testId=banner-open-settings-button]' }));
-
-  public paginator = this.locatorForOptional(MatPaginatorHarness);
-  public rows = this.locatorForAll(ApiRuntimeLogsListRowHarness);
-
-  async isEmptyPanelDisplayed(): Promise<boolean> {
-    return (await this.emptyPanel()) !== null;
-  }
-
-  async isImpactBannerDisplayed(): Promise<boolean> {
-    return (await this.impactBanner()) !== null;
-  }
-
-  async clickOpenSettings(): Promise<void> {
-    const panel = await this.emptyPanel();
-    const impactBanner = await this.impactBanner();
-
-    if (panel != null) {
-      return panel.openSettingsButton().then((button) => button.click());
-    }
-    if (impactBanner != null) {
-      return this.openSettingsButtonInBanner().then((button) => button.click());
-    }
-  }
 }

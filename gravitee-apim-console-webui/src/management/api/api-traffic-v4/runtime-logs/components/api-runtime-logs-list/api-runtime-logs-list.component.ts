@@ -23,25 +23,16 @@ import { ConnectionLog, Pagination } from '../../../../../../entities/management
   selector: 'api-runtime-logs-list',
   templateUrl: './api-runtime-logs-list.component.html',
   styleUrls: ['./api-runtime-logs-list.component.scss'],
-  standalone: false,
+  standalone: true,
 })
 export class ApiRuntimeLogsListComponent {
-  @Input()
-  logEnabled: boolean;
-
-  @Input()
-  isMessageApi: boolean;
-
   @Input()
   logs: ConnectionLog[];
 
   @Output()
   paginationUpdated: EventEmitter<PageEvent> = new EventEmitter<PageEvent>();
-  @Output()
-  navigateToSettings = new EventEmitter<void>();
 
   private _pagination?: Pagination;
-
   pageSizeOptions: number[] = [10, 25, 50, 100];
 
   @Input()

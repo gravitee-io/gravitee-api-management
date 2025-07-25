@@ -22,19 +22,20 @@ import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
-import { ApiRuntimeLogsListModule, ApiRuntimeLogsQuickFiltersModule } from './components';
+import { ApiRuntimeLogsQuickFiltersModule } from './components';
 import { QuickFiltersStoreService } from './services';
+import { ApiRuntimeLogsListComponent } from './components/api-runtime-logs-list/api-runtime-logs-list.component';
 
 @NgModule({
   imports: [
     CommonModule,
-    ApiRuntimeLogsListModule,
     ApiRuntimeLogsQuickFiltersModule,
     MatButtonModule,
     MatIconModule,
     GioLoaderModule,
     MatCardModule,
     RouterLink,
+    ApiRuntimeLogsListComponent,
   ],
   declarations: [ApiRuntimeLogsComponent],
   exports: [ApiRuntimeLogsComponent],
