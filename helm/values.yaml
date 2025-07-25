@@ -617,6 +617,7 @@ api:
       enabled: false
       prometheus:
         enabled: true
+        concurrencyLimit: 3
     bridge:
       enabled: false
       # host: localhost
@@ -853,7 +854,7 @@ api:
       enabled: true
       ingressClassName: ""
       path: /integration-controller(/.*)?
-      pathType: Prefix
+      pathType: ImplementationSpecific
 #      hosts:
 #        - apim.example.com
       annotations:
@@ -1293,6 +1294,7 @@ gateway:
       enabled: false
       prometheus:
         enabled: true
+        concurrencyLimit: 3
     tracing:
       enabled: false
       type: jaeger
@@ -1781,7 +1783,7 @@ ui:
   # annotations:
   ingress:
     enabled: true
-    pathType: Prefix
+    pathType: ImplementationSpecific
     path: /console(/.*)?
     ingressClassName: ""
     # Used to create an Ingress record.
