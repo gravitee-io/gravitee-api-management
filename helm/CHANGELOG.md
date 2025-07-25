@@ -6,7 +6,6 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 ### 4.8.3
 
-- remove helm warning about deprecated annotation kubernetes.io/ingress.class (APIM-10303)
 - remove helm warning about ingress pathType for federation and console (APIM-10303)
 
 ### 4.8.0
