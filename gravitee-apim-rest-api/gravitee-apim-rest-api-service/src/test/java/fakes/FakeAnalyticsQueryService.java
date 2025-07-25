@@ -158,4 +158,9 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery) {
         return Optional.ofNullable(statsAnalytics);
     }
+
+    @Override
+    public Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query) {
+        return Optional.ofNullable(requestsCount);
+    }
 }

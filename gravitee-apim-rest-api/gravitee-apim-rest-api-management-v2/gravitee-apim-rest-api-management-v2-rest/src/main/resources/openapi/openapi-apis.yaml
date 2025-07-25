@@ -7754,12 +7754,6 @@ components:
                 count:
                   type: integer
                   format: int64
-                metadata:
-                  type: object
-                  additionalProperties:
-                    type: object
-                    additionalProperties:
-                      type: string
         HistogramAnalytics:
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"

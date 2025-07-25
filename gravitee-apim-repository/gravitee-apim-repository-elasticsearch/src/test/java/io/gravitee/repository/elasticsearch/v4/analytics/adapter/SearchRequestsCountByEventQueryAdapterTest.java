@@ -1,0 +1,98 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.gravitee.elasticsearch.model.SearchHits;
+import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.elasticsearch.model.TotalHits;
+import io.gravitee.repository.log.v4.model.analytics.CountByEventAggregate;
+import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
+import java.time.Instant;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+
+public class SearchRequestsCountByEventQueryAdapterTest {
+
+    @Test
+    void shouldAdaptQueryWithAllFields() {
+        var query = RequestsCountByEventQuery
+            .builder()
+            .apiId(Optional.of("api-123"))
+            .from(Optional.ofNullable(Instant.ofEpochMilli(1650000000000L)))
+            .to(Optional.ofNullable(Instant.ofEpochMilli(1650003600000L)))
+            .build();
+
+        String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
+
+        assertNotNull(result);
+        assertTrue(result.contains("\"size\":0"));
+        assertTrue(result.contains("\"term\":{\"api-id\":\"api-123\"}"));
+        assertTrue(result.contains("\"range\":{\"@timestamp\":{\"from\":1650000000000,\"include_lower\":true"));
+        assertTrue(result.contains("\"to\":1650003600000,\"include_upper\":true"));
+    }
+
+    @Test
+    void shouldAdaptQueryWithOnlyTimestamps() {
+        var query = RequestsCountByEventQuery
+            .builder()
+            .apiId(Optional.empty())
+            .from(Optional.ofNullable(Instant.ofEpochMilli(1650000000000L)))
+            .to(Optional.ofNullable(Instant.ofEpochMilli(1650003600000L)))
+            .build();
+
+        String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
+
+        assertNotNull(result);
+        assertTrue(result.contains("\"range\":{\"@timestamp\":"));
+        assertFalse(result.contains("api-id"));
+    }
+
+    @Test
+    void shouldAdaptQueryWithNullQuery() {
+        String result = SearchRequestsCountByEventQueryAdapter.adapt(null);
+
+        assertNotNull(result);
+        assertEquals("{\"size\":0}", result);
+    }
+
+    @Test
+    void shouldAdaptResponseWithValidSearchResponse() {
+        var totalHits = new TotalHits(123L);
+        //totalHits.setValue(123L);
+
+        var searchHits = new SearchHits();
+        searchHits.setTotal(totalHits);
+
+        var searchResponse = new SearchResponse();
+        searchResponse.setSearchHits(searchHits);
+
+        Optional<CountByEventAggregate> result = SearchRequestsCountByEventQueryAdapter.adaptResponse(searchResponse);
+
+        assertTrue(result.isPresent());
+        assertEquals(123L, result.get().getTotal());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenSearchResponseIsNull() {
+        Optional<CountByEventAggregate> result = SearchRequestsCountByEventQueryAdapter.adaptResponse(null);
+        assertTrue(result.isEmpty());
+    }
+}
