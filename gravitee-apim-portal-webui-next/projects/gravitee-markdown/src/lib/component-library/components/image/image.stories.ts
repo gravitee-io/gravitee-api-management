@@ -53,6 +53,61 @@ export const Default: Story = {
     src: 'https://picsum.photos/400/300',
     alt: 'Random placeholder image',
   },
+  render: (args) => ({
+    props: {
+      ...args,
+      generateCode: () => {
+        const attributes: string[] = [];
+        
+        if (args.src) {
+          attributes.push(`src="${args.src}"`);
+        }
+        if (args.alt) {
+          attributes.push(`alt="${args.alt}"`);
+        }
+        if (args.centered) {
+          attributes.push('centered');
+        }
+        if (args.rounded && args.rounded !== 'none') {
+          attributes.push(`rounded="${args.rounded}"`);
+        }
+        if (args.maxWidth) {
+          attributes.push(`maxWidth="${args.maxWidth}"`);
+        }
+        if (args.maxHeight) {
+          attributes.push(`maxHeight="${args.maxHeight}"`);
+        }
+        if (args.width) {
+          attributes.push(`width="${args.width}"`);
+        }
+        if (args.height) {
+          attributes.push(`height="${args.height}"`);
+        }
+        
+        const attributesStr = attributes.length > 0 ? ' ' + attributes.join(' ') : '';
+        return `<app-image${attributesStr}></app-image>`;
+      }
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <app-image 
+          [src]="src" 
+          [alt]="alt"
+          [centered]="centered"
+          [rounded]="rounded"
+          [maxWidth]="maxWidth"
+          [maxHeight]="maxHeight"
+          [width]="width"
+          [height]="height"
+        ></app-image>
+        
+        <div style="margin-top: 20px; padding: 16px; background: #f5f5f5; border-radius: 8px; font-family: monospace; font-size: 14px; max-width: 600px; width: 100%;">
+          <div style="margin-bottom: 8px; font-weight: bold; color: #333;">Generated Code:</div>
+          <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">{{ generateCode() }}</pre>
+        </div>
+      </div>
+    `,
+  }),
 };
 
 export const Centered: Story = {

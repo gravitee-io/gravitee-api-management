@@ -56,11 +56,56 @@ export const Default: Story = {
     title: 'Card Title',
   },
   render: (args) => ({
-    props: args,
+    props: {
+      ...args,
+      generateCode: () => {
+        const attributes: string[] = [];
+        
+        if (args.title) {
+          attributes.push(`title="${args.title}"`);
+        }
+        if (args.centered) {
+          attributes.push('centered');
+        }
+        if (args.borderRadius && args.borderRadius !== '8px') {
+          attributes.push(`borderRadius="${args.borderRadius}"`);
+        }
+        if (args.backgroundColor && args.backgroundColor !== '#ffffff') {
+          attributes.push(`backgroundColor="${args.backgroundColor}"`);
+        }
+        if (args.borderColor && args.borderColor !== 'transparent') {
+          attributes.push(`borderColor="${args.borderColor}"`);
+        }
+        if (args.borderWidth && args.borderWidth !== '1px') {
+          attributes.push(`borderWidth="${args.borderWidth}"`);
+        }
+        if (args.elevation !== 0) {
+          attributes.push(`elevation="${args.elevation}"`);
+        }
+        
+        const attributesStr = attributes.length > 0 ? ' ' + attributes.join(' ') : '';
+        return `<app-card${attributesStr}>This is the card content. You can put any text, HTML, or other components here.</app-card>`;
+      }
+    },
     template: `
-      <app-card [title]="title" [borderRadius]="borderRadius" [backgroundColor]="backgroundColor" [borderColor]="borderColor" [borderWidth]="borderWidth" [elevation]="elevation">
-        This is the card content. You can put any text, HTML, or other components here.
-      </app-card>
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <app-card 
+          [title]="title" 
+          [centered]="centered"
+          [borderRadius]="borderRadius" 
+          [backgroundColor]="backgroundColor" 
+          [borderColor]="borderColor" 
+          [borderWidth]="borderWidth" 
+          [elevation]="elevation"
+        >
+          This is the card content. You can put any text, HTML, or other components here.
+        </app-card>
+        
+        <div style="margin-top: 20px; padding: 16px; background: #f5f5f5; border-radius: 8px; font-family: monospace; font-size: 14px; max-width: 600px; width: 100%;">
+          <div style="margin-bottom: 8px; font-weight: bold; color: #333;">Generated Code:</div>
+          <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">{{ generateCode() }}</pre>
+        </div>
+      </div>
     `,
   }),
 };

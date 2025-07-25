@@ -89,22 +89,76 @@ export const Basic: Story = {
     align: 'stretch',
   },
   render: (args) => ({
-    props: args,
+    props: {
+      ...args,
+      generateCode: () => {
+        const attributes: string[] = [];
+        
+        if (args.columns && args.columns !== 3) {
+          attributes.push(`columns="${args.columns}"`);
+        }
+        if (args.gap && args.gap !== 'medium') {
+          attributes.push(`gap="${args.gap}"`);
+        }
+        if (args.align && args.align !== 'stretch') {
+          attributes.push(`align="${args.align}"`);
+        }
+        if (args.backgroundColor && args.backgroundColor !== 'transparent') {
+          attributes.push(`backgroundColor="${args.backgroundColor}"`);
+        }
+        if (args.padding && args.padding !== '0') {
+          attributes.push(`padding="${args.padding}"`);
+        }
+        if (args.borderRadius && args.borderRadius !== '0') {
+          attributes.push(`borderRadius="${args.borderRadius}"`);
+        }
+        
+        const attributesStr = attributes.length > 0 ? ' ' + attributes.join(' ') : '';
+        return `<app-grid${attributesStr}>
+  <app-grid-cell>
+    <h3>Cell 1</h3>
+    <p>This is the first cell content. It can contain any markdown or custom components.</p>
+  </app-grid-cell>
+  <app-grid-cell>
+    <h3>Cell 2</h3>
+    <p>This is the second cell content. The grid is responsive and will adapt to different screen sizes.</p>
+  </app-grid-cell>
+  <app-grid-cell>
+    <h3>Cell 3</h3>
+    <p>This is the third cell content. On mobile, cells stack vertically. On tablet and desktop, they display in columns.</p>
+  </app-grid-cell>
+</app-grid>`;
+      }
+    },
     template: `
-      <app-grid [columns]="columns" [gap]="gap" [align]="align">
-        <app-grid-cell>
-          <h3>Cell 1</h3>
-          <p>This is the first cell content. It can contain any markdown or custom components.</p>
-        </app-grid-cell>
-        <app-grid-cell>
-          <h3>Cell 2</h3>
-          <p>This is the second cell content. The grid is responsive and will adapt to different screen sizes.</p>
-        </app-grid-cell>
-        <app-grid-cell>
-          <h3>Cell 3</h3>
-          <p>This is the third cell content. On mobile, cells stack vertically. On tablet and desktop, they display in columns.</p>
-        </app-grid-cell>
-      </app-grid>
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <app-grid 
+          [columns]="columns" 
+          [gap]="gap" 
+          [align]="align"
+          [backgroundColor]="backgroundColor"
+          [padding]="padding"
+          [borderRadius]="borderRadius"
+        >
+          <app-grid-cell>
+            <h3>Cell 1</h3>
+            <p>This is the first cell content. It can contain any markdown or custom components.</p>
+          </app-grid-cell>
+          <app-grid-cell>
+            <h3>Cell 2</h3>
+            <p>This is the second cell content. The grid is responsive and will adapt to different screen sizes.</p>
+          </app-grid-cell>
+          <app-grid-cell>
+            <h3>Cell 3</h3>
+            <p>This is the third cell content. On mobile, cells stack vertically. On tablet and desktop, they display in columns.</p>
+          </app-grid-cell>
+        </app-grid>
+        
+        <div style="margin-top: 20px; padding: 16px; background: #f5f5f5; border-radius: 8px; font-family: monospace; font-size: 14px; max-width: 600px; width: 100%;">
+          <div style="margin-bottom: 8px; font-weight: bold; color: #333;">Generated Code:</div>
+          <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">{{ generateCode() }}</pre>
+        </div>
+      </div>
     `,
   }),
 };

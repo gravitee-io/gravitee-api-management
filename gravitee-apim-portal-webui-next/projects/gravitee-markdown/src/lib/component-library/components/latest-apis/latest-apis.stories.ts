@@ -102,6 +102,73 @@ export const Default: Story = {
     actionButtonVariant: 'outlined',
     actionButtonType: 'internal',
   },
+  render: (args) => ({
+    props: {
+      ...args,
+      generateCode: () => {
+        const attributes: string[] = [];
+        
+        if (args.title && args.title !== 'Discover the latest APIs') {
+          attributes.push(`title="${args.title}"`);
+        }
+        if (args.subtitle) {
+          attributes.push(`subtitle="${args.subtitle}"`);
+        }
+        if (args.maxApis && args.maxApis !== 5) {
+          attributes.push(`maxApis="${args.maxApis}"`);
+        }
+        if (args.category && args.category !== 'all') {
+          attributes.push(`category="${args.category}"`);
+        }
+        if (args.searchQuery) {
+          attributes.push(`searchQuery="${args.searchQuery}"`);
+        }
+        if (args.cardElevation !== 0) {
+          attributes.push(`cardElevation="${args.cardElevation}"`);
+        }
+        if (args.cardBackgroundColor && args.cardBackgroundColor !== '#ffffff') {
+          attributes.push(`cardBackgroundColor="${args.cardBackgroundColor}"`);
+        }
+        if (args.cardBorderRadius && args.cardBorderRadius !== '8px') {
+          attributes.push(`cardBorderRadius="${args.cardBorderRadius}"`);
+        }
+        if (args.actionButtonText && args.actionButtonText !== 'View Details') {
+          attributes.push(`actionButtonText="${args.actionButtonText}"`);
+        }
+        if (args.actionButtonVariant && args.actionButtonVariant !== 'outlined') {
+          attributes.push(`actionButtonVariant="${args.actionButtonVariant}"`);
+        }
+        if (args.actionButtonType && args.actionButtonType !== 'internal') {
+          attributes.push(`actionButtonType="${args.actionButtonType}"`);
+        }
+        
+        const attributesStr = attributes.length > 0 ? ' ' + attributes.join(' ') : '';
+        return `<app-latest-apis${attributesStr}></app-latest-apis>`;
+      }
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <app-latest-apis 
+          [title]="title"
+          [subtitle]="subtitle"
+          [maxApis]="maxApis"
+          [category]="category"
+          [searchQuery]="searchQuery"
+          [cardElevation]="cardElevation"
+          [cardBackgroundColor]="cardBackgroundColor"
+          [cardBorderRadius]="cardBorderRadius"
+          [actionButtonText]="actionButtonText"
+          [actionButtonVariant]="actionButtonVariant"
+          [actionButtonType]="actionButtonType"
+        ></app-latest-apis>
+        
+        <div style="margin-top: 20px; padding: 16px; background: #f5f5f5; border-radius: 8px; font-family: monospace; font-size: 14px; max-width: 600px; width: 100%;">
+          <div style="margin-bottom: 8px; font-weight: bold; color: #333;">Generated Code:</div>
+          <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">{{ generateCode() }}</pre>
+        </div>
+      </div>
+    `,
+  }),
 };
 
 export const Featured: Story = {

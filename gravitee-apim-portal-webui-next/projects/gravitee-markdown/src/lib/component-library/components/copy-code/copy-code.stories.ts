@@ -23,6 +23,31 @@ export const Default: Story = {
   args: {
     text: 'npm install @angular/core',
   },
+  render: (args) => ({
+    props: {
+      ...args,
+      generateCode: () => {
+        const attributes: string[] = [];
+        
+        if (args.text) {
+          attributes.push(`text="${args.text}"`);
+        }
+        
+        const attributesStr = attributes.length > 0 ? ' ' + attributes.join(' ') : '';
+        return `<app-copy-code${attributesStr}></app-copy-code>`;
+      }
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <app-copy-code [text]="text"></app-copy-code>
+        
+        <div style="margin-top: 20px; padding: 16px; background: #f5f5f5; border-radius: 8px; font-family: monospace; font-size: 14px; max-width: 600px; width: 100%;">
+          <div style="margin-bottom: 8px; font-weight: bold; color: #333;">Generated Code:</div>
+          <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">{{ generateCode() }}</pre>
+        </div>
+      </div>
+    `,
+  }),
 };
 
 export const LongCode: Story = {

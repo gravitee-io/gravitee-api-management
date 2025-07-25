@@ -53,8 +53,57 @@ export const Default: Story = {
     variant: 'filled',
   },
   render: (args) => ({
-    props: args,
-    template: '<app-button [href]="href" [type]="type" [variant]="variant">Click Me</app-button>',
+    props: {
+      ...args,
+      generateCode: () => {
+        const attributes: string[] = [];
+        
+        if (args.href) {
+          attributes.push(`href="${args.href}"`);
+        }
+        if (args.type && args.type !== 'internal') {
+          attributes.push(`type="${args.type}"`);
+        }
+        if (args.variant && args.variant !== 'filled') {
+          attributes.push(`variant="${args.variant}"`);
+        }
+        if (args.borderRadius && args.borderRadius !== '4px') {
+          attributes.push(`borderRadius="${args.borderRadius}"`);
+        }
+        if (args.backgroundColor) {
+          attributes.push(`backgroundColor="${args.backgroundColor}"`);
+        }
+        if (args.textColor) {
+          attributes.push(`textColor="${args.textColor}"`);
+        }
+        if (args.textTransform && args.textTransform !== 'none') {
+          attributes.push(`textTransform="${args.textTransform}"`);
+        }
+        
+        const attributesStr = attributes.length > 0 ? ' ' + attributes.join(' ') : '';
+        return `<app-button${attributesStr}>Click Me</app-button>`;
+      }
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+        <app-button 
+          [href]="href" 
+          [type]="type" 
+          [variant]="variant"
+          [borderRadius]="borderRadius"
+          [backgroundColor]="backgroundColor"
+          [textColor]="textColor"
+          [textTransform]="textTransform"
+        >
+          Click Me
+        </app-button>
+        
+        <div style="margin-top: 20px; padding: 16px; background: #f5f5f5; border-radius: 8px; font-family: monospace; font-size: 14px; max-width: 600px; width: 100%;">
+          <div style="margin-bottom: 8px; font-weight: bold; color: #333;">Generated Code:</div>
+          <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">{{ generateCode() }}</pre>
+        </div>
+      </div>
+    `,
   }),
 };
 
