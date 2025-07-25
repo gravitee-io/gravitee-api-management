@@ -26,14 +26,15 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, map, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { isEqual } from 'lodash';
+import { RouterLink } from '@angular/router';
 
-import { GioTableWrapperFilters, Sort } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
-import { SnackBarService } from '../../services-ngx/snack-bar.service';
-import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
-import { ClustersService } from '../../services-ngx/clusters.service';
-import { ClustersSortByParam } from '../../entities/management-api-v2';
+import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { ClustersService } from '../../../services-ngx/clusters.service';
+import { ClustersSortByParam } from '../../../entities/management-api-v2';
 
 type PageTableVM = {
   items: {
@@ -61,6 +62,7 @@ type PageTableVM = {
     GioIconsModule,
     GioPermissionModule,
     GioTableWrapperModule,
+    RouterLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
@@ -131,19 +133,13 @@ export class ClustersListPageComponent implements OnInit {
 
   protected addCluster() {
     // TODO
-    // eslint-disable-next-line angular/log
+    // eslint-disable-next-line
     console.log('Add cluster button clicked');
-  }
-
-  protected edit(clusterId: string) {
-    // TODO
-    // eslint-disable-next-line angular/log
-    console.log('Edit cluster button clicked for cluster ID:', clusterId);
   }
 
   protected remove(clusterId: string) {
     // TODO
-    // eslint-disable-next-line angular/log
+    // eslint-disable-next-line
     console.log('Remove cluster button clicked for cluster ID:', clusterId);
   }
 }

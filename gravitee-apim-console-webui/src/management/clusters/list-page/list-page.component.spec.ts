@@ -20,8 +20,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ClustersListPageComponent } from './list-page.component';
 import { ClustersListPageHarness } from './list-page.harness';
 
-import { GioTestingModule } from '../../shared/testing';
-import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
+import { GioTestingModule } from '../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ClustersListPageComponent', () => {
   let fixture: ComponentFixture<ClustersListPageComponent>;

@@ -13,12 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface Cluster {
-  id: string;
-  name: string;
-  description?: string;
-  bootstrapServer: string;
-  security: string;
-  updatedAt: Date;
-  createdAt: Date;
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.cluster-navigation-tabs {
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  &__link__icon {
+    margin-left: 8px;
+  }
+}
+
+.header {
+  margin-bottom: 24px;
+
+  &__subtitle {
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    @include mat.m2-typography-level($typography, 'body-2');
+  }
 }

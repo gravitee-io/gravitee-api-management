@@ -35,6 +35,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { UserComponent } from './user/my-accout/user.component';
 import { AuthModule } from './auth/auth.module';
 import { GioFormJsonSchemaExtendedModule } from './shared/components/form-json-schema-extended/form-json-schema-extended.module';
+import { ClusterRoutingModule } from './management/clusters/cluster-routing.module';
 
 @NgModule({
   declarations: [AppComponent, UserComponent],
@@ -46,6 +47,7 @@ import { GioFormJsonSchemaExtendedModule } from './shared/components/form-json-s
     UpgradeModule,
     MatMomentDateModule,
     AppRoutingModule,
+    ClusterRoutingModule,
     GioPendoModule.forRoot(),
     GioMatConfigModule,
     AuthModule,

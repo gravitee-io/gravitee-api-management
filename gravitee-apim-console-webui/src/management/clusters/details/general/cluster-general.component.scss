@@ -1,0 +1,99 @@
+@use 'sass:map';
+@use '../../../../../node_modules/@angular/material/index' as mat;
+@use '../../../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
+
+@use '../../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.cluster-general {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.details-card {
+  &__header {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: center;
+    align-items: stretch;
+    gap: 16px;
+
+    &__info-inputs {
+      flex: 1 1 auto;
+
+      &__first-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 16px;
+
+        &__name-field {
+          flex: 6 1 auto;
+        }
+      }
+
+      &__second-row {
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        &__bootstrap-server-field {
+          flex: 1 1 auto;
+        }
+
+        &__security-field {
+          flex: 1 1 auto;
+        }
+      }
+    }
+
+    &__right-coll {
+      flex: 0 1 auto;
+
+      @include gio-layout.apply-to-equal-and-larger-breakpoints('desktop') {
+        flex: 0 0 292px;
+      }
+
+      &__info {
+        margin-top: 16px;
+      }
+    }
+
+    @include gio-layout.apply-to-equal-and-larger-breakpoints('desktop') {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+  }
+}
+
+.danger-card {
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
+
+  &__title {
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+
+    &__action {
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+      justify-content: space-between;
+      height: 48px;
+    }
+  }
+}

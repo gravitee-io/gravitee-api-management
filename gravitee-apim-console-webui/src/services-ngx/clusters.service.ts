@@ -25,11 +25,12 @@ import { Cluster, ClustersSortByParam, CreateCluster, fakePagedResult, PagedResu
 export class ClustersService {
   private fakeClusters: Cluster[] = [
     {
-      id: '1',
+      id: 'clusterId',
       name: 'Production Cluster',
       bootstrapServer: 'kafka-prod.example.com:9092',
       security: 'SSL',
       updatedAt: new Date('2023-01-15'),
+      createdAt: new Date('2022-12-01'),
     },
     {
       id: '2',
@@ -37,6 +38,7 @@ export class ClustersService {
       bootstrapServer: 'kafka-dev.example.com:9092',
       security: 'SASL_PLAINTEXT',
       updatedAt: new Date('2023-02-20'),
+      createdAt: new Date('2022-11-15'),
     },
     {
       id: '3',
@@ -44,6 +46,7 @@ export class ClustersService {
       bootstrapServer: 'kafka-test.example.com:9092',
       security: 'PLAINTEXT',
       updatedAt: new Date('2023-03-10'),
+      createdAt: new Date('2022-10-05'),
     },
     {
       id: '4',
@@ -51,6 +54,7 @@ export class ClustersService {
       bootstrapServer: 'kafka-staging.example.com:9092',
       security: 'SASL_SSL',
       updatedAt: new Date('2023-04-05'),
+      createdAt: new Date('2022-09-20'),
     },
   ];
 
@@ -107,6 +111,7 @@ export class ClustersService {
       ...cluster,
       id: Math.random().toString(36).substring(2, 11),
       updatedAt: new Date(),
+      createdAt: new Date(),
       security: 'PLAINTEXT',
     };
     this.fakeClusters.push(newCluster);

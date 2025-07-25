@@ -1,0 +1,63 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<ng-container *ngIf="cluster">
+  <div class="cluster-navigation">
+    @if (subMenuItems.length > 1) {
+      <div class="cluster-navigation__menu">
+        <gio-submenu class="cluster-navigation__submenu">
+          <div gioSubmenuTitle class="cluster-navigation__submenu__title">{{ cluster.name }}</div>
+          <ng-container *ngFor="let item of subMenuItems">
+            <ng-container *ngIf="!item.tabs?.length">
+              <a *ngIf="item.routerLink" [routerLink]="item.routerLink">
+                <gio-submenu-item tabIndex="1" [active]="isActive(item)">{{ item.displayName }}</gio-submenu-item>
+              </a>
+            </ng-container>
+            <ng-container *ngIf="item.tabs?.length">
+              <a [routerLink]="item.tabs[0].routerLink">
+                <gio-submenu-item tabIndex="1" [active]="isTabActive(item.tabs)">{{ item.displayName }}</gio-submenu-item>
+              </a>
+            </ng-container>
+          </ng-container>
+        </gio-submenu>
+      </div>
+    }
+    <div class="cluster-navigation__content">
+      <div class="cluster-navigation__content__view">
+        <gio-breadcrumb *ngIf="hasBreadcrumb" class="cluster-navigation__breadcrumb">
+          <span *gioBreadcrumbItem class="cluster-navigation__breadcrumb__item">Clusters</span>
+          <div *gioBreadcrumbItem gioSubmenuTitle class="cluster-navigation__menu__title">{{ cluster.name }}</div>
+          <ng-template ngFor let-item [ngForOf]="computeBreadcrumbItems()">
+            <span *gioBreadcrumbItem class="cluster-navigation__breadcrumb__item">{{ item }}</span>
+          </ng-template>
+        </gio-breadcrumb>
+
+        <cluster-navigation-tabs
+          *ngIf="selectedItemWithTabs"
+          class="cluster-navigation__content__tabs"
+          [tabMenuItems]="selectedItemWithTabs.tabs"
+          [menuItemHeader]="selectedItemWithTabs?.header"
+        >
+          <router-outlet></router-outlet>
+        </cluster-navigation-tabs>
+        <ng-container *ngIf="!selectedItemWithTabs">
+          <router-outlet></router-outlet>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</ng-container>
