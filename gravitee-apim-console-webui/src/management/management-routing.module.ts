@@ -192,6 +192,16 @@ const managementRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'clusters',
+        loadComponent: () => import('../clusters/list-page/list-page.component').then((m) => m.ClustersListPageComponent),
+        data: {
+          permissions: {
+            // TODO: When we have a permission for clusters
+            // anyOf: [],
+          },
+        },
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'home' },
     ],
