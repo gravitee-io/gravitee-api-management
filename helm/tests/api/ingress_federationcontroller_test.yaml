@@ -34,10 +34,6 @@ tests:
       api:
         federation:
           enabled: true
-          ingress:
-            enabled: true
-            hosts:
-              - host1.example.com
     asserts:
       - hasDocuments:
           count: 1
@@ -47,14 +43,15 @@ tests:
           of: networking.k8s.io/v1
       - equal:
           path: spec.rules[0].host
-          value: host1.example.com
+          value: apim.example.com
       - equal:
           path: spec.rules[0].http.paths[0].path
           value: /integration-controller(/.*)?
       - equal:
           path: metadata.annotations
           value:
-            nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+            kubernetes.io/ingress.class: nginx
+            nginx.ingress.kubernetes.io/proxy-read-timeout: 3600                                                                                                                                              │
             nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
             nginx.ingress.kubernetes.io/rewrite-target: /$1
 
