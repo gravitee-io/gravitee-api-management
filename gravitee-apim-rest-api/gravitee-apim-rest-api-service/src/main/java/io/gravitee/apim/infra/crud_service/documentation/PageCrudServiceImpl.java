@@ -95,7 +95,7 @@ public class PageCrudServiceImpl implements PageCrudService {
         } catch (TechnicalException e) {
             throw new ApiPageInvalidReferenceTypeException(
                 ids.iterator().next(),
-                String.format("An error occurred while unsetting homepage for Page ids %s", ids, e.getMessage())
+                String.format("An error occurred while unsetting homepage for Page ids %s: %s", ids, e.getMessage())
             );
         }
     }

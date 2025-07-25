@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.ResourceService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
@@ -47,7 +46,7 @@ public class ResourceCrudServiceImplTest {
     class FindById {
 
         @Test
-        void should_return_resource_and_adapt_it() throws TechnicalException {
+        void should_return_resource_and_adapt_it() {
             // Given
             var resourceId = "resource-id";
             when(resourceService.findById(resourceId))
@@ -84,7 +83,7 @@ public class ResourceCrudServiceImplTest {
         }
 
         @Test
-        void should_throw_when_no_resource_found() throws TechnicalException {
+        void should_throw_when_no_resource_found() {
             // Given
             String resourceId = "unknown";
             when(resourceService.findById(resourceId)).thenThrow(PluginNotFoundException.class);

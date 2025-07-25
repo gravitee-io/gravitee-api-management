@@ -304,7 +304,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             log.debug("Connection of {}", userId);
             Optional<User> checkUser = userRepository.findById(userId);
-            if (!checkUser.isPresent()) {
+            if (checkUser.isEmpty()) {
                 throw new UserNotFoundException(userId);
             }
 
@@ -432,7 +432,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             return userRepository
                 .findById(userId)
                 .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
-                .map(user -> convertWithFlags(executionContext, user))
+                .map(user -> convertWithFlags(user))
                 .orElseThrow(() -> new UserNotFoundException(userId)); // should never happen
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(String.format("An error occurs while trying to find user using its ID %s", userId), ex);
@@ -1179,7 +1179,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             log.debug("Updating {}", updateUserEntity);
             Optional<User> checkUser = userRepository.findById(id);
-            if (!checkUser.isPresent()) {
+            if (checkUser.isEmpty()) {
                 throw new UserNotFoundException(id);
             }
 
@@ -1476,7 +1476,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .findById(id)
                 .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
 
-            if (!optionalUser.isPresent()) {
+            if (optionalUser.isEmpty()) {
                 throw new UserNotFoundException(id);
             }
             final User user = optionalUser.get();
@@ -1561,7 +1561,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         );
     }
 
-    private UserEntity convertWithFlags(final ExecutionContext executionContext, User user) {
+    private UserEntity convertWithFlags(User user) {
         UserEntity userEntity = convert(user, true, userMetadataService.findAllByUserId(user.getId()), true);
         populateUserFlags(user.getOrganizationId(), List.of(userEntity));
         return userEntity;
@@ -1676,7 +1676,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user = refreshExistingUser(executionContext, socialProvider, attrs, email);
         } catch (UserNotFoundException unfe) {
             created = true;
-            user = createNewExternalUser(executionContext, socialProvider, userInfo, attrs, email);
+            user = createNewExternalUser(executionContext, socialProvider, attrs, email);
         }
 
         // Memberships must be refreshed only when it is a user creation context or mappings should be synced during
@@ -1762,7 +1762,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     private UserEntity createNewExternalUser(
         ExecutionContext executionContext,
         final SocialIdentityProviderEntity socialProvider,
-        final String userInfo,
         HashMap<String, String> attrs,
         String email
     ) {
@@ -1967,7 +1966,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             boolean match = evalCondition(userInfo, mapping.getCondition(), templateEngine);
 
-            log.trace("the expression {} {} on user's info id= {}",mapping.getCondition(), match ? "matched":"didn't match", userId);
+            log.trace("the expression {} {} on user's info id= {}", mapping.getCondition(), match ? "matched" : "didn't match", userId);
 
             // Get groups
             if (match) {

@@ -157,9 +157,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private ObjectMapper objectMapper;
     private ApiConverter apiConverter;
 
-    private ObjectMapper objectMapper;
-    private ApiConverter apiConverter;
-
     @Lazy
     @Autowired
     private ApiRepository apiRepository;
@@ -444,6 +441,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity createWithApiDefinition(ExecutionContext executionContext, UpdateApiEntity api, String userId, JsonNode apiDefinition)
         throws ApiAlreadyExistsException {
+        log.debug("Creating ApiEntity based on ApiDefinition");
         if (DefinitionVersion.V1.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
             throw new ApiDefinitionVersionNotSupportedException(api.getGraviteeDefinitionVersion());
         }
