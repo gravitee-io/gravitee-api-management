@@ -673,7 +673,7 @@ api:
         hosts:
           - apim.example.com
         annotations: {}
-        #  kubernetes.io/ingress.class: nginx
+        #  kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
         #  nginx.ingress.kubernetes.io/ssl-redirect: "false"
         #  nginx.ingress.kubernetes.io/enable-rewrite-log: "true"
         #  kubernetes.io/app-root: /api
@@ -705,7 +705,7 @@ api:
 #          hosts:
 #            - apim.example.com
 #          annotations:
-#            kubernetes.io/ingress.class: nginx
+#            kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
 #            nginx.ingress.kubernetes.io/rewrite-target: /_$1
         service:
 #       If you choose to enable this service, you'll need to expose the technical api
@@ -774,12 +774,12 @@ api:
       scheme: https # should be https or http
       pathType: Prefix
       path: /management
-      ingressClassName: ""
+      ingressClassName: "" #keep empty to use default ingress
       # Used to create an Ingress record.
       hosts:
         - apim.example.com
-      annotations:
-        kubernetes.io/ingress.class: nginx
+      annotations: {}
+      # kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
         #nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_pass_header if-match;\n"
         # kubernetes.io/tls-acme: "true"
       # tls:
@@ -796,8 +796,8 @@ api:
       # Used to create an Ingress record.
       hosts:
         - apim.example.com
-      annotations:
-        kubernetes.io/ingress.class: nginx
+      annotations: {}
+        # kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
         # kubernetes.io/tls-acme: "true"
       # tls:
         # Secrets must be manually created in the namespace.
@@ -854,12 +854,12 @@ api:
       enabled: true
       ingressClassName: ""
       path: /integration-controller(/.*)?
-      pathType: Prefix
+      pathType: ImplementationSpecific
 #      hosts:
 #        - apim.example.com
       annotations:
-        kubernetes.io/ingress.class: nginx
-        nginx.ingress.kubernetes.io/proxy-read-timeout: 3600                                                                                                                                              │
+#        kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
+        nginx.ingress.kubernetes.io/proxy-read-timeout: 3600
         nginx.ingress.kubernetes.io/proxy-send-timeout: 3600
         nginx.ingress.kubernetes.io/rewrite-target: /$1
 #      tls:
@@ -950,7 +950,7 @@ gateway:
 #        hosts:
 #          - apim.example.com
 #        annotations:
-#          kubernetes.io/ingress.class: nginx
+#          kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
 #          nginx.ingress.kubernetes.io/ssl-redirect: "false"
 #          # nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_set_header if-match \"\";\n"
 #          # kubernetes.io/tls-acme: "true"
@@ -1214,7 +1214,7 @@ gateway:
         hosts:
           - apim.example.com
         annotations: {}
-#            kubernetes.io/ingress.class: nginx
+#            kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
 #            nginx.ingress.kubernetes.io/rewrite-target: /_$1
       service:
 #       If you choose to enable this service, you'll need to expose the technical api
@@ -1278,7 +1278,7 @@ gateway:
         hosts:
           - apim.example.com
         annotations: {}
-      #     kubernetes.io/ingress.class: nginx
+      #     kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
       #     nginx.ingress.kubernetes.io/ssl-redirect: "false"
       #     nginx.ingress.kubernetes.io/enable-rewrite-log: "true"
       #     kubernetes.io/app-root: /gateway
@@ -1404,9 +1404,9 @@ gateway:
 #    behavior:
   ingress:
     enabled: true
+    ingressClassName: ""
     pathType: Prefix
     path: /
-    ingressClassName: ""
     # Used to create an Ingress record.
     # Multiple hostnames supported
     # - hosts:
@@ -1414,8 +1414,8 @@ gateway:
     #     - chart-example2.local
     hosts:
       - apim.example.com
-    annotations:
-      kubernetes.io/ingress.class: nginx
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
       # nginx.ingress.kubernetes.io/ssl-redirect: "false"
       # nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_set_header if-match \"\";\n"
       # kubernetes.io/tls-acme: "true"
@@ -1587,14 +1587,14 @@ portal:
   # annotations:
   ingress:
     enabled: true
+    ingressClassName: ""
     pathType: Prefix
     path: /
-    ingressClassName: ""
     # Used to create an Ingress record.
     hosts:
       - apim.example.com
     annotations:
-      kubernetes.io/ingress.class: nginx
+      # kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
       nginx.ingress.kubernetes.io/rewrite-target: /
     #tls:
       # Secrets must be manually created in the namespace.
@@ -1783,14 +1783,14 @@ ui:
   # annotations:
   ingress:
     enabled: true
-    pathType: Prefix
-    path: /console(/.*)?
     ingressClassName: ""
+    pathType: ImplementationSpecific
+    path: /console(/.*)?
     # Used to create an Ingress record.
     hosts:
       - apim.example.com
     annotations:
-      kubernetes.io/ingress.class: nginx
+      # kubernetes.io/ingress.class: nginx # Annotation kubernetes.io/ingress.class is deprecated since 1.18
       nginx.ingress.kubernetes.io/rewrite-target: /$1
     # tls:
       # Secrets must be manually created in the namespace.
