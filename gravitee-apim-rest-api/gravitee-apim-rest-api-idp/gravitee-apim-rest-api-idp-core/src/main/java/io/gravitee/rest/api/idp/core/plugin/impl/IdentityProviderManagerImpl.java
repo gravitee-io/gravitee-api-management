@@ -180,7 +180,7 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         try {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            LOGGER.error("Unable to instantiate class: {}", ex);
+            LOGGER.error("Unable to instantiate class: {}", clazz, ex);
             throw ex;
         }
     }
