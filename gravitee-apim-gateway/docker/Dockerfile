@@ -27,8 +27,10 @@ RUN apk update  \
 # Second stage to add the folder and change the permissions and ownership
 FROM base AS builder
 ADD ./distribution ${GRAVITEEIO_HOME}/
-RUN chgrp -R graviteeio ${GRAVITEEIO_HOME} && \
-    chmod -R g=u ${GRAVITEEIO_HOME}
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
+    chmod -R g+rwX ${GRAVITEEIO_HOME} && \
+    chmod +x /usr/local/bin/entrypoint.sh
 
 # Third stage to build the final docker image. COPY preserves ownership & permissions
 FROM base
@@ -36,5 +38,4 @@ LABEL maintainer="contact@graviteesource.com"
 COPY --from=builder ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082
-ENTRYPOINT ["./bin/gravitee"]
-USER graviteeio
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
