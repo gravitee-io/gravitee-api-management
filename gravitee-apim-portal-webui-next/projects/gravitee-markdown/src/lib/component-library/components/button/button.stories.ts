@@ -9,10 +9,6 @@ const meta: Meta<ButtonComponent> = {
   },
   tags: ['autodocs'],
   argTypes: {
-    text: {
-      control: 'text',
-      description: 'The text displayed on the button',
-    },
     href: {
       control: 'text',
       description: 'The URL the button links to',
@@ -52,52 +48,66 @@ type Story = StoryObj<ButtonComponent>;
 
 export const Default: Story = {
   args: {
-    text: 'Click Me',
     href: '/example',
     type: 'internal',
     variant: 'filled',
   },
+  render: (args) => ({
+    props: args,
+    template: '<app-button [href]="href" [type]="type" [variant]="variant">Click Me</app-button>',
+  }),
 };
 
 export const Filled: Story = {
   args: {
-    text: 'Primary Action',
     href: '/primary',
     type: 'internal',
     variant: 'filled',
   },
+  render: (args) => ({
+    props: args,
+    template: '<app-button [href]="href" [type]="type" [variant]="variant">Primary Action</app-button>',
+  }),
 };
 
 export const Outlined: Story = {
   args: {
-    text: 'Secondary Action',
     href: '/secondary',
     type: 'internal',
     variant: 'outlined',
   },
+  render: (args) => ({
+    props: args,
+    template: '<app-button [href]="href" [type]="type" [variant]="variant">Secondary Action</app-button>',
+  }),
 };
 
 export const Text: Story = {
   args: {
-    text: 'Text Button',
     href: '/text',
     type: 'internal',
     variant: 'text',
   },
+  render: (args) => ({
+    props: args,
+    template: '<app-button [href]="href" [type]="type" [variant]="variant">Text Button</app-button>',
+  }),
 };
 
 export const ExternalLink: Story = {
   args: {
-    text: 'External Link',
     href: 'https://example.com',
     type: 'external',
     variant: 'filled',
   },
+  render: (args) => ({
+    props: args,
+    template: '<app-button [href]="href" [type]="type" [variant]="variant">External Link</app-button>',
+  }),
 };
 
 export const CustomStyling: Story = {
   args: {
-    text: 'Custom Styled',
     href: '/custom',
     type: 'internal',
     variant: 'filled',
@@ -106,11 +116,14 @@ export const CustomStyling: Story = {
     textColor: '#ffffff',
     textTransform: 'uppercase',
   },
+  render: (args) => ({
+    props: args,
+    template: '<app-button [href]="href" [type]="type" [variant]="variant" [borderRadius]="borderRadius" [backgroundColor]="backgroundColor" [textColor]="textColor" [textTransform]="textTransform">Custom Styled</app-button>',
+  }),
 };
 
 export const Rounded: Story = {
   args: {
-    text: 'Rounded Button',
     href: '/rounded',
     type: 'internal',
     variant: 'filled',
@@ -118,15 +131,19 @@ export const Rounded: Story = {
     backgroundColor: '#4ecdc4',
     textColor: '#ffffff',
   },
+  render: (args) => ({
+    props: args,
+    template: '<app-button [href]="href" [type]="type" [variant]="variant" [borderRadius]="borderRadius" [backgroundColor]="backgroundColor" [textColor]="textColor">Rounded Button</app-button>',
+  }),
 };
 
 export const AllVariants: Story = {
   render: () => ({
     template: `
       <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
-        <app-button text="Filled" href="/filled" variant="filled"></app-button>
-        <app-button text="Outlined" href="/outlined" variant="outlined"></app-button>
-        <app-button text="Text" href="/text" variant="text"></app-button>
+        <app-button href="/filled" variant="filled">Filled</app-button>
+        <app-button href="/outlined" variant="outlined">Outlined</app-button>
+        <app-button href="/text" variant="text">Text</app-button>
       </div>
     `,
     imports: [ButtonComponent],
@@ -137,9 +154,9 @@ export const ExternalLinks: Story = {
   render: () => ({
     template: `
       <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
-        <app-button text="GitHub" href="https://github.com" type="external" variant="filled"></app-button>
-        <app-button text="Documentation" href="https://docs.example.com" type="external" variant="outlined"></app-button>
-        <app-button text="Support" href="https://support.example.com" type="external" variant="text"></app-button>
+        <app-button href="https://github.com" type="external" variant="filled">GitHub</app-button>
+        <app-button href="https://docs.example.com" type="external" variant="outlined">Documentation</app-button>
+        <app-button href="https://support.example.com" type="external" variant="text">Support</app-button>
       </div>
     `,
     imports: [ButtonComponent],
@@ -150,10 +167,10 @@ export const CustomColors: Story = {
   render: () => ({
     template: `
       <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
-        <app-button text="Success" href="/success" backgroundColor="#28a745" textColor="#ffffff"></app-button>
-        <app-button text="Warning" href="/warning" backgroundColor="#ffc107" textColor="#000000"></app-button>
-        <app-button text="Danger" href="/danger" backgroundColor="#dc3545" textColor="#ffffff"></app-button>
-        <app-button text="Info" href="/info" backgroundColor="#17a2b8" textColor="#ffffff"></app-button>
+        <app-button href="/success" backgroundColor="#28a745" textColor="#ffffff">Success</app-button>
+        <app-button href="/warning" backgroundColor="#ffc107" textColor="#000000">Warning</app-button>
+        <app-button href="/danger" backgroundColor="#dc3545" textColor="#ffffff">Danger</app-button>
+        <app-button href="/info" backgroundColor="#17a2b8" textColor="#ffffff">Info</app-button>
       </div>
     `,
     imports: [ButtonComponent],
@@ -164,9 +181,9 @@ export const DifferentSizes: Story = {
   render: () => ({
     template: `
       <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
-        <app-button text="Small" href="/small" borderRadius="4px" backgroundColor="#6c757d"></app-button>
-        <app-button text="Medium" href="/medium" borderRadius="8px" backgroundColor="#007bff"></app-button>
-        <app-button text="Large" href="/large" borderRadius="12px" backgroundColor="#28a745"></app-button>
+        <app-button href="/small" borderRadius="4px" backgroundColor="#6c757d">Small</app-button>
+        <app-button href="/medium" borderRadius="8px" backgroundColor="#007bff">Medium</app-button>
+        <app-button href="/large" borderRadius="12px" backgroundColor="#28a745">Large</app-button>
       </div>
     `,
     imports: [ButtonComponent],

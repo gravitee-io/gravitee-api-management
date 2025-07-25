@@ -6,6 +6,62 @@ export const gridSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
   const closingTag = needsOpeningTag ? '</app-grid>' : '';
   
   return [
+    // Individual attribute suggestions for grid
+    {
+      label: 'grid:columns',
+      insertText: 'columns="${1|2,3,4,5,6|}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid columns attribute',
+      documentation: 'Sets the number of columns in the grid (2-6)',
+    },
+    {
+      label: 'grid:gap',
+      insertText: 'gap="${1|small,medium,large,xl|}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid gap attribute',
+      documentation: 'Sets the gap between grid items (small, medium, large, xl)',
+    },
+    {
+      label: 'grid:align',
+      insertText: 'align="${1|start,center,end,stretch|}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid alignment attribute',
+      documentation: 'Sets the vertical alignment of grid items (start, center, end, stretch)',
+    },
+    {
+      label: 'grid:backgroundColor',
+      insertText: 'backgroundColor="${1:transparent}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid background color',
+      documentation: 'Sets the background color of the grid (CSS color value)',
+    },
+    {
+      label: 'grid:padding',
+      insertText: 'padding="${1:0}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid padding',
+      documentation: 'Sets the padding of the grid (CSS length value)',
+    },
+    {
+      label: 'grid:borderRadius',
+      insertText: 'borderRadius="${1:0}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid border radius',
+      documentation: 'Sets the border radius of the grid (CSS length value)',
+    },
+    // Existing snippets with improved documentation
     {
       label: 'grid',
       insertText: prefix + 'app-grid columns="${1:3}"' + suffix + '\n\t<app-grid-cell>\n\t\t${2:Cell content goes here...}\n\t</app-grid-cell>\n' + closingTag,
@@ -13,7 +69,7 @@ export const gridSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Basic grid component',
-      documentation: 'Creates a responsive grid with configurable columns',
+      documentation: 'Creates a responsive grid with configurable columns\n\nAvailable attributes:\n• columns: Number of columns (2-6)\n• gap: Gap between items (small/medium/large/xl)\n• align: Vertical alignment (start/center/end/stretch)\n• backgroundColor: Background color\n• padding: Grid padding\n• borderRadius: Border radius',
     },
     {
       label: 'grid-with-markdown',
@@ -22,7 +78,7 @@ export const gridSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Grid with markdown cells',
-      documentation: 'Creates a grid with cells that render markdown content',
+      documentation: 'Creates a grid with cells that render markdown content\n\nAvailable attributes:\n• columns: Number of columns (2-6)\n• gap: Gap between items (small/medium/large/xl)\n• align: Vertical alignment (start/center/end/stretch)\n• backgroundColor: Background color\n• padding: Grid padding\n• borderRadius: Border radius',
     },
     {
       label: 'grid-2-columns',
@@ -31,7 +87,7 @@ export const gridSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: '2-column grid',
-      documentation: 'Creates a 2-column responsive grid',
+      documentation: 'Creates a 2-column responsive grid\n\nAvailable attributes:\n• columns: Number of columns (2-6)\n• gap: Gap between items (small/medium/large/xl)\n• align: Vertical alignment (start/center/end/stretch)\n• backgroundColor: Background color\n• padding: Grid padding\n• borderRadius: Border radius',
     },
     {
       label: 'grid-3-columns',
@@ -40,7 +96,7 @@ export const gridSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: '3-column grid',
-      documentation: 'Creates a 3-column responsive grid',
+      documentation: 'Creates a 3-column responsive grid\n\nAvailable attributes:\n• columns: Number of columns (2-6)\n• gap: Gap between items (small/medium/large/xl)\n• align: Vertical alignment (start/center/end/stretch)\n• backgroundColor: Background color\n• padding: Grid padding\n• borderRadius: Border radius',
     },
     {
       label: 'grid-4-columns',
@@ -49,7 +105,7 @@ export const gridSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: '4-column grid',
-      documentation: 'Creates a 4-column responsive grid',
+      documentation: 'Creates a 4-column responsive grid\n\nAvailable attributes:\n• columns: Number of columns (2-6)\n• gap: Gap between items (small/medium/large/xl)\n• align: Vertical alignment (start/center/end/stretch)\n• backgroundColor: Background color\n• padding: Grid padding\n• borderRadius: Border radius',
     },
     {
       label: 'grid-styled',
@@ -58,7 +114,7 @@ export const gridSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Styled grid component',
-      documentation: 'Creates a grid with custom gap and alignment',
+      documentation: 'Creates a grid with custom gap and alignment\n\nAvailable attributes:\n• columns: Number of columns (2-6)\n• gap: Gap between items (small/medium/large/xl)\n• align: Vertical alignment (start/center/end/stretch)\n• backgroundColor: Background color\n• padding: Grid padding\n• borderRadius: Border radius',
     },
     {
       label: 'grid-with-cards',
@@ -67,7 +123,7 @@ export const gridSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Grid with cards',
-      documentation: 'Creates a grid containing card components',
+      documentation: 'Creates a grid containing card components\n\nAvailable attributes:\n• columns: Number of columns (2-6)\n• gap: Gap between items (small/medium/large/xl)\n• align: Vertical alignment (start/center/end/stretch)\n• backgroundColor: Background color\n• padding: Grid padding\n• borderRadius: Border radius',
     },
     {
       label: 'grid-feature-showcase',
@@ -76,7 +132,7 @@ export const gridSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Feature showcase grid',
-      documentation: 'Creates a grid showcasing various cell styling options',
+      documentation: 'Creates a grid showcasing various cell styling options\n\nAvailable attributes:\n• columns: Number of columns (2-6)\n• gap: Gap between items (small/medium/large/xl)\n• align: Vertical alignment (start/center/end/stretch)\n• backgroundColor: Background color\n• padding: Grid padding\n• borderRadius: Border radius',
     },
   ];
 };
@@ -87,6 +143,89 @@ export const gridCellSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
   const closingTag = needsOpeningTag ? '</app-grid-cell>' : '';
   
   return [
+    // Individual attribute suggestions for grid-cell
+    {
+      label: 'grid-cell:markdown',
+      insertText: 'markdown="true"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid cell markdown attribute',
+      documentation: 'Enables markdown rendering for cell content (boolean)',
+    },
+    {
+      label: 'grid-cell:span',
+      insertText: 'span="${1|1,2,3,4|}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid cell span attribute',
+      documentation: 'Sets how many columns the cell spans (1-4)',
+    },
+    {
+      label: 'grid-cell:padding',
+      insertText: 'padding="${1|none,small,medium,large|}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid cell padding attribute',
+      documentation: 'Sets the padding of the cell (none, small, medium, large)',
+    },
+    {
+      label: 'grid-cell:border',
+      insertText: 'border="true"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid cell border attribute',
+      documentation: 'Adds a border to the cell (boolean)',
+    },
+    {
+      label: 'grid-cell:shadow',
+      insertText: 'shadow="${1|none,small,elevated|}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid cell shadow attribute',
+      documentation: 'Sets the shadow style (none, small, elevated)',
+    },
+    {
+      label: 'grid-cell:backgroundColor',
+      insertText: 'backgroundColor="${1|none,light,white,primary,success,warning,danger,info|}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid cell background color',
+      documentation: 'Sets the background color variant (none, light, white, primary, success, warning, danger, info)',
+    },
+    {
+      label: 'grid-cell:customBackgroundColor',
+      insertText: 'customBackgroundColor="${1:#f8f9fa}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid cell custom background color',
+      documentation: 'Sets a custom background color (CSS color value)',
+    },
+    {
+      label: 'grid-cell:customBorderColor',
+      insertText: 'customBorderColor="${1:#dee2e6}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid cell custom border color',
+      documentation: 'Sets a custom border color (CSS color value)',
+    },
+    {
+      label: 'grid-cell:customBorderRadius',
+      insertText: 'customBorderRadius="${1:8px}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Grid cell custom border radius',
+      documentation: 'Sets a custom border radius (CSS length value)',
+    },
+    // Existing snippets with improved documentation
     {
       label: 'grid-cell',
       insertText: prefix + 'app-grid-cell' + suffix + '\n\t${1:Cell content goes here...}\n' + closingTag,
@@ -94,7 +233,7 @@ export const gridCellSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Basic grid cell',
-      documentation: 'Creates a basic grid cell with content projection',
+      documentation: 'Creates a basic grid cell with content projection\n\nAvailable attributes:\n• markdown: Enable markdown rendering (boolean)\n• span: Column span (1-4)\n• padding: Cell padding (none/small/medium/large)\n• border: Add border (boolean)\n• shadow: Shadow style (none/small/elevated)\n• backgroundColor: Background variant\n• customBackgroundColor: Custom background color\n• customBorderColor: Custom border color\n• customBorderRadius: Custom border radius',
     },
     {
       label: 'grid-cell-markdown',
@@ -103,7 +242,7 @@ export const gridCellSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Grid cell with markdown rendering',
-      documentation: 'Creates a grid cell that renders its content as markdown',
+      documentation: 'Creates a grid cell that renders its content as markdown\n\nAvailable attributes:\n• markdown: Enable markdown rendering (boolean)\n• span: Column span (1-4)\n• padding: Cell padding (none/small/medium/large)\n• border: Add border (boolean)\n• shadow: Shadow style (none/small/elevated)\n• backgroundColor: Background variant\n• customBackgroundColor: Custom background color\n• customBorderColor: Custom border color\n• customBorderRadius: Custom border radius',
     },
     {
       label: 'grid-cell-styled',
@@ -112,7 +251,7 @@ export const gridCellSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Styled grid cell',
-      documentation: 'Creates a grid cell with custom styling',
+      documentation: 'Creates a grid cell with custom styling\n\nAvailable attributes:\n• markdown: Enable markdown rendering (boolean)\n• span: Column span (1-4)\n• padding: Cell padding (none/small/medium/large)\n• border: Add border (boolean)\n• shadow: Shadow style (none/small/elevated)\n• backgroundColor: Background variant\n• customBackgroundColor: Custom background color\n• customBorderColor: Custom border color\n• customBorderRadius: Custom border radius',
     },
     {
       label: 'grid-cell-wide',
@@ -121,7 +260,7 @@ export const gridCellSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Wide grid cell',
-      documentation: 'Creates a grid cell that spans 2 columns',
+      documentation: 'Creates a grid cell that spans 2 columns\n\nAvailable attributes:\n• markdown: Enable markdown rendering (boolean)\n• span: Column span (1-4)\n• padding: Cell padding (none/small/medium/large)\n• border: Add border (boolean)\n• shadow: Shadow style (none/small/elevated)\n• backgroundColor: Background variant\n• customBackgroundColor: Custom background color\n• customBorderColor: Custom border color\n• customBorderRadius: Custom border radius',
     },
     {
       label: 'grid-cell-featured',
@@ -130,7 +269,7 @@ export const gridCellSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Featured grid cell',
-      documentation: 'Creates a featured grid cell spanning 3 columns',
+      documentation: 'Creates a featured grid cell spanning 3 columns\n\nAvailable attributes:\n• markdown: Enable markdown rendering (boolean)\n• span: Column span (1-4)\n• padding: Cell padding (none/small/medium/large)\n• border: Add border (boolean)\n• shadow: Shadow style (none/small/elevated)\n• backgroundColor: Background variant\n• customBackgroundColor: Custom background color\n• customBorderColor: Custom border color\n• customBorderRadius: Custom border radius',
     },
     {
       label: 'grid-cell-with-card',
@@ -139,7 +278,7 @@ export const gridCellSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Grid cell with card',
-      documentation: 'Creates a grid cell containing a card component',
+      documentation: 'Creates a grid cell containing a card component\n\nAvailable attributes:\n• markdown: Enable markdown rendering (boolean)\n• span: Column span (1-4)\n• padding: Cell padding (none/small/medium/large)\n• border: Add border (boolean)\n• shadow: Shadow style (none/small/elevated)\n• backgroundColor: Background variant\n• customBackgroundColor: Custom background color\n• customBorderColor: Custom border color\n• customBorderRadius: Custom border radius',
     },
     {
       label: 'grid-cell-with-image',
@@ -148,7 +287,7 @@ export const gridCellSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Grid cell with image',
-      documentation: 'Creates a grid cell containing an image component',
+      documentation: 'Creates a grid cell containing an image component\n\nAvailable attributes:\n• markdown: Enable markdown rendering (boolean)\n• span: Column span (1-4)\n• padding: Cell padding (none/small/medium/large)\n• border: Add border (boolean)\n• shadow: Shadow style (none/small/elevated)\n• backgroundColor: Background variant\n• customBackgroundColor: Custom background color\n• customBorderColor: Custom border color\n• customBorderRadius: Custom border radius',
     },
   ];
 }; 

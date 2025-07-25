@@ -21,6 +21,80 @@ export const imageSuggestions = (range: IMonacoRange, needsOpeningTag: boolean =
   const closingTag = needsOpeningTag ? '</app-image>' : '';
 
   return [
+    // Individual attribute suggestions
+    {
+      label: 'image:src',
+      insertText: 'src="${1:https://example.com/image.jpg}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Image source attribute',
+      documentation: 'Sets the source URL of the image',
+    },
+    {
+      label: 'image:alt',
+      insertText: 'alt="${1:Image description}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Image alt text attribute',
+      documentation: 'Sets the alternative text for accessibility',
+    },
+    {
+      label: 'image:centered',
+      insertText: 'centered="true"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Image centered attribute',
+      documentation: 'Centers the image horizontally (boolean)',
+    },
+    {
+      label: 'image:rounded',
+      insertText: 'rounded="${1|none,sm,md,lg,full|}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Image rounded attribute',
+      documentation: 'Sets the border radius style (none, sm, md, lg, full)',
+    },
+    {
+      label: 'image:maxWidth',
+      insertText: 'maxWidth="${1:100%}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Image max width',
+      documentation: 'Sets the maximum width of the image (CSS length value)',
+    },
+    {
+      label: 'image:maxHeight',
+      insertText: 'maxHeight="${1:auto}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Image max height',
+      documentation: 'Sets the maximum height of the image (CSS length value)',
+    },
+    {
+      label: 'image:width',
+      insertText: 'width="${1:auto}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Image width',
+      documentation: 'Sets the width of the image (CSS length value)',
+    },
+    {
+      label: 'image:height',
+      insertText: 'height="${1:auto}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Image height',
+      documentation: 'Sets the height of the image (CSS length value)',
+    },
+    // Existing snippets with improved documentation
     {
       label: 'image',
       insertText: prefix + 'app-image src="${1:https://example.com/image.jpg}" alt="${2:Image description}"' + suffix + closingTag,
@@ -28,7 +102,7 @@ export const imageSuggestions = (range: IMonacoRange, needsOpeningTag: boolean =
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Basic image component',
-      documentation: 'Creates an image with source and alt text',
+      documentation: 'Creates an image with source and alt text\n\nAvailable attributes:\n• src: Image source URL\n• alt: Alternative text\n• centered: Center image (boolean)\n• rounded: Border radius style (none/sm/md/lg/full)\n• maxWidth: Maximum width\n• maxHeight: Maximum height\n• width: Fixed width\n• height: Fixed height',
     },
     {
       label: 'image-centered',
@@ -37,7 +111,7 @@ export const imageSuggestions = (range: IMonacoRange, needsOpeningTag: boolean =
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Centered image',
-      documentation: 'Creates a centered image with source and alt text',
+      documentation: 'Creates a centered image with source and alt text\n\nAvailable attributes:\n• src: Image source URL\n• alt: Alternative text\n• centered: Center image (boolean)\n• rounded: Border radius style (none/sm/md/lg/full)\n• maxWidth: Maximum width\n• maxHeight: Maximum height\n• width: Fixed width\n• height: Fixed height',
     },
     {
       label: 'image-rounded',
@@ -46,7 +120,7 @@ export const imageSuggestions = (range: IMonacoRange, needsOpeningTag: boolean =
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Rounded image',
-      documentation: 'Creates an image with rounded corners (sm, md, lg, full)',
+      documentation: 'Creates an image with rounded corners\n\nAvailable attributes:\n• src: Image source URL\n• alt: Alternative text\n• centered: Center image (boolean)\n• rounded: Border radius style (none/sm/md/lg/full)\n• maxWidth: Maximum width\n• maxHeight: Maximum height\n• width: Fixed width\n• height: Fixed height',
     },
     {
       label: 'image-custom-size',
@@ -55,7 +129,7 @@ export const imageSuggestions = (range: IMonacoRange, needsOpeningTag: boolean =
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Image with custom size',
-      documentation: 'Creates an image with custom maximum width and height',
+      documentation: 'Creates an image with custom maximum width and height\n\nAvailable attributes:\n• src: Image source URL\n• alt: Alternative text\n• centered: Center image (boolean)\n• rounded: Border radius style (none/sm/md/lg/full)\n• maxWidth: Maximum width\n• maxHeight: Maximum height\n• width: Fixed width\n• height: Fixed height',
     },
     {
       label: 'image-complete',
@@ -64,7 +138,7 @@ export const imageSuggestions = (range: IMonacoRange, needsOpeningTag: boolean =
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Complete image with all options',
-      documentation: 'Creates a fully customized image with centering, rounded corners, and size constraints',
+      documentation: 'Creates a fully customized image with centering, rounded corners, and size constraints\n\nAvailable attributes:\n• src: Image source URL\n• alt: Alternative text\n• centered: Center image (boolean)\n• rounded: Border radius style (none/sm/md/lg/full)\n• maxWidth: Maximum width\n• maxHeight: Maximum height\n• width: Fixed width\n• height: Fixed height',
     },
     {
       label: 'image-avatar',
@@ -73,7 +147,7 @@ export const imageSuggestions = (range: IMonacoRange, needsOpeningTag: boolean =
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Avatar image',
-      documentation: 'Creates a circular avatar image with fixed dimensions',
+      documentation: 'Creates a circular avatar image with fixed dimensions\n\nAvailable attributes:\n• src: Image source URL\n• alt: Alternative text\n• centered: Center image (boolean)\n• rounded: Border radius style (none/sm/md/lg/full)\n• maxWidth: Maximum width\n• maxHeight: Maximum height\n• width: Fixed width\n• height: Fixed height',
     },
     {
       label: 'image-banner',
@@ -82,7 +156,7 @@ export const imageSuggestions = (range: IMonacoRange, needsOpeningTag: boolean =
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Banner image',
-      documentation: 'Creates a centered banner image with responsive width and fixed height',
+      documentation: 'Creates a centered banner image with responsive width and fixed height\n\nAvailable attributes:\n• src: Image source URL\n• alt: Alternative text\n• centered: Center image (boolean)\n• rounded: Border radius style (none/sm/md/lg/full)\n• maxWidth: Maximum width\n• maxHeight: Maximum height\n• width: Fixed width\n• height: Fixed height',
     },
     {
       label: 'image-thumbnail',
@@ -91,7 +165,7 @@ export const imageSuggestions = (range: IMonacoRange, needsOpeningTag: boolean =
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Thumbnail image',
-      documentation: 'Creates a small thumbnail image with slightly rounded corners',
+      documentation: 'Creates a small thumbnail image with slightly rounded corners\n\nAvailable attributes:\n• src: Image source URL\n• alt: Alternative text\n• centered: Center image (boolean)\n• rounded: Border radius style (none/sm/md/lg/full)\n• maxWidth: Maximum width\n• maxHeight: Maximum height\n• width: Fixed width\n• height: Fixed height',
     },
   ];
 };

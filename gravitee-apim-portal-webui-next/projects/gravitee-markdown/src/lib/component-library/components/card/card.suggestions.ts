@@ -6,6 +6,90 @@ export const cardSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
   const closingTag = needsOpeningTag ? '</app-card>' : '';
   
   return [
+    // Individual attribute suggestions
+    {
+      label: 'card:title',
+      insertText: 'title="${1:Card Title}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Card title attribute',
+      documentation: 'Sets the title displayed in the card header',
+    },
+    {
+      label: 'card:centered',
+      insertText: 'centered="true"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Center card content',
+      documentation: 'Centers the card title and content (boolean: true/false)',
+    },
+    {
+      label: 'card:elevation',
+      insertText: 'elevation="${1|0,1,2,3,4,5|}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Card shadow elevation',
+      documentation: 'Sets the shadow elevation level (0-5, 0 = no shadow)',
+    },
+    {
+      label: 'card:backgroundColor',
+      insertText: 'backgroundColor="${1:#ffffff}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Card background color',
+      documentation: 'Sets the background color of the card (CSS color value)',
+    },
+    {
+      label: 'card:borderColor',
+      insertText: 'borderColor="${1:transparent}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Card border color',
+      documentation: 'Sets the border color (default: transparent)',
+    },
+    {
+      label: 'card:borderWidth',
+      insertText: 'borderWidth="${1:1px}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Card border width',
+      documentation: 'Sets the border width (CSS length value)',
+    },
+    {
+      label: 'card:borderRadius',
+      insertText: 'borderRadius="${1:8px}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Card border radius',
+      documentation: 'Sets the border radius for rounded corners (CSS length value)',
+    },
+    {
+      label: 'card:markdownContent',
+      insertText: 'markdownContent="${1:Markdown content}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Markdown content',
+      documentation: 'Sets markdown content to be rendered inside the card',
+    },
+    // Card-actions attribute suggestions
+    {
+      label: 'card-actions',
+      insertText: prefix + 'card-actions' + suffix + '\n\t${1:Action buttons go here...}\n</card-actions>',
+      kind: MonacoCompletionItemKind.Snippet,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Card actions container',
+      documentation: 'Container for action buttons within a card (no attributes available)',
+    },
+    // Existing snippets with improved documentation
     {
       label: 'card',
       insertText: prefix + 'app-card title="${1:Card Title}"' + suffix + '\n\t${2:Card content goes here...}\n' + closingTag,
@@ -13,7 +97,7 @@ export const cardSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Basic card component',
-      documentation: 'Creates a card with title and content (default: 0 elevation, transparent border)',
+      documentation: 'Creates a card with title and content\n\nAvailable attributes:\n• title: Card title\n• centered: Center content (true/false)\n• elevation: Shadow level (0-5)\n• backgroundColor: Background color\n• borderColor: Border color\n• borderWidth: Border width\n• borderRadius: Border radius\n• markdownContent: Markdown content',
     },
     {
       label: 'card-centered',
@@ -22,7 +106,7 @@ export const cardSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Centered card component',
-      documentation: 'Creates a card with centered title and content (default: 0 elevation, transparent border)',
+      documentation: 'Creates a card with centered title and content\n\nAvailable attributes:\n• title: Card title\n• centered: Center content (true/false)\n• elevation: Shadow level (0-5)\n• backgroundColor: Background color\n• borderColor: Border color\n• borderWidth: Border width\n• borderRadius: Border radius\n• markdownContent: Markdown content',
     },
     {
       label: 'card-with-border',
@@ -31,7 +115,7 @@ export const cardSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Card with visible border',
-      documentation: 'Creates a card with a visible border (default has transparent border)',
+      documentation: 'Creates a card with a visible border\n\nAvailable attributes:\n• title: Card title\n• centered: Center content (true/false)\n• elevation: Shadow level (0-5)\n• backgroundColor: Background color\n• borderColor: Border color\n• borderWidth: Border width\n• borderRadius: Border radius\n• markdownContent: Markdown content',
     },
     {
       label: 'card-with-actions',
@@ -40,7 +124,7 @@ export const cardSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Card with action buttons',
-      documentation: 'Creates a card with title, content, and action buttons using card-actions component',
+      documentation: 'Creates a card with title, content, and action buttons\n\nCard attributes:\n• title: Card title\n• centered: Center content (true/false)\n• elevation: Shadow level (0-5)\n• backgroundColor: Background color\n• borderColor: Border color\n• borderWidth: Border width\n• borderRadius: Border radius\n• markdownContent: Markdown content\n\nCard-actions: Container for action buttons (no attributes)',
     },
     {
       label: 'card-elevated',
@@ -49,7 +133,7 @@ export const cardSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Card with custom elevation',
-      documentation: 'Creates a card with custom shadow elevation (0-5, 0 = no shadow)',
+      documentation: 'Creates a card with custom shadow elevation\n\nAvailable attributes:\n• title: Card title\n• centered: Center content (true/false)\n• elevation: Shadow level (0-5)\n• backgroundColor: Background color\n• borderColor: Border color\n• borderWidth: Border width\n• borderRadius: Border radius\n• markdownContent: Markdown content',
     },
     {
       label: 'card-custom-styled',
@@ -58,7 +142,7 @@ export const cardSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Custom styled card',
-      documentation: 'Creates a card with custom background, border, and border radius (default: transparent border)',
+      documentation: 'Creates a card with custom background, border, and border radius\n\nAvailable attributes:\n• title: Card title\n• centered: Center content (true/false)\n• elevation: Shadow level (0-5)\n• backgroundColor: Background color\n• borderColor: Border color\n• borderWidth: Border width\n• borderRadius: Border radius\n• markdownContent: Markdown content',
     },
     {
       label: 'card-complete',
@@ -67,7 +151,7 @@ export const cardSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Complete card with all options',
-      documentation: 'Creates a fully customized card with all styling and action options (default: 0 elevation, transparent border)',
+      documentation: 'Creates a fully customized card with all styling and action options\n\nAvailable attributes:\n• title: Card title\n• centered: Center content (true/false)\n• elevation: Shadow level (0-5)\n• backgroundColor: Background color\n• borderColor: Border color\n• borderWidth: Border width\n• borderRadius: Border radius\n• markdownContent: Markdown content\n\nCard-actions: Container for action buttons (no attributes)',
     },
     {
       label: 'card-external-actions',
@@ -76,7 +160,7 @@ export const cardSuggestions = (range: IMonacoRange, needsOpeningTag: boolean = 
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Card with external action links',
-      documentation: 'Creates a card with action buttons that open external links in new tabs',
+      documentation: 'Creates a card with action buttons that open external links\n\nAvailable attributes:\n• title: Card title\n• centered: Center content (true/false)\n• elevation: Shadow level (0-5)\n• backgroundColor: Background color\n• borderColor: Border color\n• borderWidth: Border width\n• borderRadius: Border radius\n• markdownContent: Markdown content\n\nCard-actions: Container for action buttons (no attributes)',
     },
   ];
 }; 

@@ -5,6 +5,17 @@ export const copyCodeSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
   const suffix = needsOpeningTag ? '>' : '';
   
   return [
+    // Individual attribute suggestions
+    {
+      label: 'copy-code:text',
+      insertText: 'text="${1:Code to copy}"',
+      kind: MonacoCompletionItemKind.Property,
+      insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
+      range,
+      detail: 'Copy code text attribute',
+      documentation: 'Sets the text content to be copied to clipboard',
+    },
+    // Existing snippets with improved documentation
     {
       label: 'copy-code',
       insertText: prefix + 'copy-code text="${1:text}"' + suffix,
@@ -12,7 +23,7 @@ export const copyCodeSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Copy code component with text attribute',
-      documentation: 'Inserts a copy-code component that allows users to copy text to clipboard',
+      documentation: 'Inserts a copy-code component that allows users to copy text to clipboard\n\nAvailable attributes:\n• text: Text content to be copied',
     },
     {
       label: 'copy-code (self-closing)',
@@ -21,7 +32,7 @@ export const copyCodeSuggestions = (range: IMonacoRange, needsOpeningTag: boolea
       insertTextRules: MonacoCompletionItemInsertTextRule.InsertAsSnippet,
       range,
       detail: 'Copy code component (self-closing)',
-      documentation: 'Inserts a self-closing copy-code component',
+      documentation: 'Inserts a self-closing copy-code component\n\nAvailable attributes:\n• text: Text content to be copied',
     },
   ];
 };
