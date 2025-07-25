@@ -4,7 +4,7 @@ import { CardActionsComponent } from './card-actions.component';
 import { ButtonComponent } from '../button/button.component';
 
 const meta: Meta<CardComponent> = {
-  title: 'Components/Card',
+  title: 'Gravitee Markdown/Components/Card',
   component: CardComponent,
   parameters: {
     layout: 'centered',

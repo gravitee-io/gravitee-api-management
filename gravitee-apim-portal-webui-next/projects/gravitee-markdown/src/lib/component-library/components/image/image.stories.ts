@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/angular';
 import { ImageComponent } from './image.component';
 
 const meta: Meta<ImageComponent> = {
-  title: 'Components/Image',
+  title: 'Gravitee Markdown/Components/Image',
   component: ImageComponent,
   parameters: {
     layout: 'centered',

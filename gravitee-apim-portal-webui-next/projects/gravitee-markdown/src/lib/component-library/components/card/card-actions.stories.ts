@@ -3,7 +3,7 @@ import { CardActionsComponent } from './card-actions.component';
 import { ButtonComponent } from '../button/button.component';
 
 const meta: Meta<CardActionsComponent> = {
-  title: 'Components/Card Actions',
+  title: 'Gravitee Markdown/Components/Card Actions',
   component: CardActionsComponent,
   parameters: {
     layout: 'centered',

@@ -8,7 +8,7 @@ import { ButtonComponent } from '../button/button.component';
 import { ImageComponent } from '../image/image.component';
 
 const meta: Meta<GridComponent> = {
-  title: 'Components/Grid',
+  title: 'Gravitee Markdown/Components/Grid',
   component: GridComponent,
   decorators: [
     moduleMetadata({

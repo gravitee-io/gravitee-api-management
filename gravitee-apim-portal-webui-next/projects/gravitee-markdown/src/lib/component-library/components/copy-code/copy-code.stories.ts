@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/angular';
 import { CopyCodeComponent } from './copy-code.component';
 
 const meta: Meta<CopyCodeComponent> = {
-  title: 'Components/Copy Code',
+  title: 'Gravitee Markdown/Components/Copy Code',
   component: CopyCodeComponent,
   parameters: {
     layout: 'centered',

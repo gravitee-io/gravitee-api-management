@@ -6,7 +6,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { GRAVITEE_MONACO_EDITOR_CONFIG } from '../../../gravitee-monaco-wrapper/data/gravitee-monaco-editor-config';
 
 const meta: Meta<LatestApisComponent> = {
-  title: 'Components/Latest APIs',
+  title: 'Gravitee Markdown/Components/Latest APIs',
   component: LatestApisComponent,
   parameters: {
     layout: 'padded',
