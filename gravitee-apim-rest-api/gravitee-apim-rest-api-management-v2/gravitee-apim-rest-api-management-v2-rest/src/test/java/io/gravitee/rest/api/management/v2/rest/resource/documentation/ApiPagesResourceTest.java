@@ -1119,6 +1119,51 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        public void should_create_unpublished_folder_by_default() {
+            var folderToCreate = CreateDocumentationFolder
+                .builder()
+                .name("default unpublished folder")
+                .type(CreateDocumentation.TypeEnum.FOLDER)
+                .parentId(null)
+                .visibility(Visibility.PUBLIC)
+                .build(); // 'published' is not explicitly set
+
+            final Response response = rootTarget().request().post(Entity.json(folderToCreate));
+            var createdPage = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+
+            assertThat(createdPage).isNotNull().hasFieldOrPropertyWithValue("published", false);
+
+            assertThat(createdPage.getId()).isNotNull();
+        }
+
+        @Test
+        public void should_create_published_folder() {
+            var folderToCreate = CreateDocumentationFolder
+                .builder()
+                .name("published folder")
+                .type(CreateDocumentation.TypeEnum.FOLDER)
+                .parentId(null)
+                .visibility(Visibility.PUBLIC)
+                .published(true) // 'published' is set to true
+                .build();
+
+            final Response response = rootTarget().request().post(Entity.json(folderToCreate));
+            var createdPage = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+
+            assertThat(createdPage)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("type", PageType.FOLDER)
+                .hasFieldOrPropertyWithValue("name", folderToCreate.getName())
+                .hasFieldOrPropertyWithValue("order", 0)
+                .hasFieldOrPropertyWithValue("parentId", folderToCreate.getParentId())
+                .hasFieldOrPropertyWithValue("visibility", folderToCreate.getVisibility())
+                .hasFieldOrPropertyWithValue("published", true);
+
+            assertThat(createdPage.getId()).isNotNull();
+            assertThat(createdPage.getUpdatedAt()).isNotNull();
+        }
+
+        @Test
         public void should_not_allow_null_name() {
             var request = CreateDocumentationMarkdown
                 .builder()
