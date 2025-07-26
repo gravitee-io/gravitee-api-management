@@ -6846,6 +6846,10 @@ components:
                     description: List of access controls.
                     items:
                         $ref: "#/components/schemas/AccessControl"
+                published:
+                  type: boolean
+                  description: Flag to publish the document.
+                  default: false
             required:
                 - name
                 - type
