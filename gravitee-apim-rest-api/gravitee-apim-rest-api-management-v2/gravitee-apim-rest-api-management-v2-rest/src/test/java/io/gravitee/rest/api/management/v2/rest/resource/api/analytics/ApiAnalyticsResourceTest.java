@@ -809,6 +809,39 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .hasHttpStatus(404)
                     .hasMessage("No stats analytics found for api: " + API);
             }
+
+            @Test
+            void should_return_stats_with_query_param() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                fakeAnalyticsQueryService.statsAnalytics =
+                    new io.gravitee.apim.core.analytics.model.StatsAnalytics(1f, 2f, 3f, 4f, 5, 6f, 7f, 8f);
+
+                var response = rootTarget()
+                    .queryParam("type", "STATS")
+                    .queryParam("field", "response-time")
+                    .queryParam("from", 1000L)
+                    .queryParam("to", 2000L)
+                    .queryParam("query", "status:200 AND method:GET")
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
+                    .satisfies(result -> {
+                        var stats = result.getStatsAnalytics();
+                        assertThat(stats).isNotNull();
+                        assertThat(stats.getAvg()).isEqualTo(1f);
+                        assertThat(stats.getMin()).isEqualTo(2f);
+                        assertThat(stats.getMax()).isEqualTo(3f);
+                        assertThat(stats.getSum()).isEqualTo(4f);
+                        assertThat(stats.getCount()).isEqualTo(5);
+                        assertThat(stats.getRps()).isEqualTo(6f);
+                        assertThat(stats.getRpm()).isEqualTo(7f);
+                        assertThat(stats.getRph()).isEqualTo(8f);
+                    });
+            }
         }
     }
 }

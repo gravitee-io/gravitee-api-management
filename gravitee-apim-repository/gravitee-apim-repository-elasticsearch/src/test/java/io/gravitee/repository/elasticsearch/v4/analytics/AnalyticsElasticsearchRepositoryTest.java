@@ -866,7 +866,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var query = new StatsQuery(
                 "gateway-response-time-ms",
                 API_ID,
-                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli())
+                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()),
+                Optional.empty()
             );
 
             Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
@@ -889,11 +890,47 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var from = now.minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
 
-            var query = new StatsQuery("non-existent-field", API_ID, new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()));
+            var query = new StatsQuery(
+                "non-existent-field",
+                API_ID,
+                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()),
+                Optional.empty()
+            );
 
             Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_stats_for_a_given_api_and_field_with_query_string() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var queryString = "status:404 AND http-method:8";
+
+            var query = new StatsQuery(
+                "gateway-response-time-ms",
+                API_ID,
+                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()),
+                Optional.of(queryString)
+            );
+
+            Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(stats -> {
+                    assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
+                    assertThat(stats.count()).isEqualTo(2L);
+                    assertThat(stats.sum()).isEqualTo(70000.0f);
+                    assertThat(stats.avg()).isEqualTo(35000.0f);
+                    assertThat(stats.min()).isEqualTo(30000.0f);
+                    assertThat(stats.max()).isEqualTo(40000.0f);
+                    assertThat(stats.rps()).isEqualTo(1.1574074E-5f);
+                    assertThat(stats.rpm()).isEqualTo(6.9444446E-4f);
+                    assertThat(stats.rph()).isEqualTo(0.041666668f);
+                });
         }
     }
 }

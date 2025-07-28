@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.param;
 
+import static java.util.Optional.ofNullable;
+
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.analytics.use_case.SearchGroupByAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase;
@@ -160,7 +162,8 @@ public class ApiAnalyticsParam {
             apiId,
             param.getFrom(),
             param.getTo(),
-            param.getField()
+            param.getField(),
+            ofNullable(param.getQuery())
         );
     }
 

@@ -42,7 +42,7 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldGenerateCorrectQueryJson() throws Exception {
-            StatsQuery query = new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(FROM, TO));
+            StatsQuery query = new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(FROM, TO), Optional.empty());
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -54,6 +54,40 @@ class StatsQueryAdapterTest {
             assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/to").asLong());
             assertEquals(FIELD, node.at("/aggregations/by_response-time/stats/field").asText());
         }
+
+        @Test
+        void shouldIncludeQueryStringIfPresent() throws Exception {
+            String queryString = "status:200 AND method:GET";
+            StatsQuery query = new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(FROM, TO), java.util.Optional.of(queryString));
+            String json = cut.adapt(query);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(json);
+            assertEquals(queryString, node.at("/query/bool/filter/0/query_string/query").asText());
+            assertEquals(API_ID, node.at("/query/bool/filter/1/term/api-id").asText());
+        }
+
+        @Test
+        void shouldNotIncludeQueryStringIfEmptyOrBlank() throws Exception {
+            StatsQuery query = new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(FROM, TO), java.util.Optional.of("   "));
+            String json = cut.adapt(query);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(json);
+            assertTrue(node.at("/query/bool/filter/0/query_string/query").isEmpty());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/term/api-id").asText());
+        }
+
+        @Test
+        void shouldNotIncludeQueryStringIfNotPresent() throws Exception {
+            StatsQuery query = new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(FROM, TO), java.util.Optional.empty());
+            String json = cut.adapt(query);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(json);
+            assertTrue(node.at("/query/bool/filter/0/query_string/query").isEmpty());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/term/api-id").asText());
+        }
     }
 
     @Nested
@@ -61,7 +95,7 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldAdaptResponseCorrectly() {
-            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 3601L)));
+            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 3601L), Optional.empty()));
 
             Aggregation agg = new Aggregation();
             agg.setCount(3600f);
@@ -92,7 +126,7 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldReturnEmptyIfNoAggregations() {
-            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 2L)));
+            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 2L), Optional.empty()));
             SearchResponse response = new SearchResponse();
             response.setAggregations(null);
             assertTrue(cut.adaptResponse(response).isEmpty());
@@ -100,7 +134,7 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldReturnEmptyIfNoMatchingAggregation() {
-            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 2L)));
+            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 2L), Optional.empty()));
             SearchResponse response = new SearchResponse();
             response.setAggregations(new HashMap<>());
             assertTrue(cut.adaptResponse(response).isEmpty());

@@ -349,7 +349,8 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             new io.gravitee.repository.log.v4.model.analytics.StatsQuery.TimeRange(
                 statsQuery.from().toEpochMilli(),
                 statsQuery.to().toEpochMilli()
-            )
+            ),
+            statsQuery.query()
         );
 
         return analyticsRepository
