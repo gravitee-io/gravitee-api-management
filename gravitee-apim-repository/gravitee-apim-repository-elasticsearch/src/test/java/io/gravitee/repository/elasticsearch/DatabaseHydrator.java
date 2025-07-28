@@ -24,7 +24,7 @@ import io.vertx.core.buffer.Buffer;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class DatabaseHydrator {
 
