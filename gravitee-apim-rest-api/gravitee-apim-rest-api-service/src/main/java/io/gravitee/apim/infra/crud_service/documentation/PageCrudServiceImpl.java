@@ -53,7 +53,7 @@ public class PageCrudServiceImpl implements PageCrudService {
             return PageAdapter.INSTANCE.toEntity(updatedPage);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while updating homepage attribute from id %s: %s", pageToUpdate.getId(), pageToUpdate),
+                String.format("An error occurred while updating page %s with id %s", pageToUpdate.getName(),pageToUpdate.getId()),
                 e
             );
         }
@@ -100,7 +100,7 @@ public class PageCrudServiceImpl implements PageCrudService {
             return pageRepository.create(page);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while creating Page with id %s: %s", page.getId(), page),
+                String.format("An error occurred while creating Page %s with id %s", page.getName(), page.getId()),
                 e
             );
         }
