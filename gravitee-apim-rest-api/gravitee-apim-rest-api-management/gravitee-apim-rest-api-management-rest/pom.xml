@@ -110,11 +110,6 @@
 			<artifactId>swagger-jaxrs2-jakarta</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-		</dependency>
-
 		<!-- Jackson dependencies -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
