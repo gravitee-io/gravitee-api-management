@@ -55,7 +55,7 @@ public class PageRevisionCrudServiceImpl implements PageRevisionCrudService {
             return PageAdapter.INSTANCE.toEntity(createdPageRevision);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while creating PageRevision for page %s: %s", page.getId(), page),
+                String.format("An error occurred while creating PageRevision for page [%s, %s]", page.getName(), page.getId()),
                 e
             );
         }
@@ -69,7 +69,7 @@ public class PageRevisionCrudServiceImpl implements PageRevisionCrudService {
             byte[] digest = md.digest();
             pageRevision.setHash(Hex.encodeHexString(digest));
         } catch (NoSuchAlgorithmException e) {
-            throw new TechnicalManagementException("Unable to instantiate MessageDigest", e);
+            throw new TechnicalManagementException(String.format("Unable to instantiate MessageDigest for page [%s, %s]", pageRevision.getName(), pageRevision.getPageId()), e);
         }
     }
 
