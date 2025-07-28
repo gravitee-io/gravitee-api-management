@@ -227,7 +227,7 @@ public interface PlanAdapter {
         try {
             return GraviteeJacksonMapper.getInstance().writeValueAsString(source);
         } catch (IOException ioe) {
-            log.error("An error occurred while serializing federated plan definition", ioe);
+            log.error("An error occurred while serializing federated plan definition id: {}", source.getId(), ioe);
             return null;
         }
     }
@@ -237,7 +237,7 @@ public interface PlanAdapter {
             try {
                 return GraviteeJacksonMapper.getInstance().writeValueAsString(plan.getPaths());
             } catch (IOException ioe) {
-                log.error("An error occurred while serializing v2 plan paths", ioe);
+                log.error("An error occurred while serializing v2 plan paths. Name: {}, id:{}", plan.getName(), plan.getId(), ioe);
                 return null;
             }
         } else {

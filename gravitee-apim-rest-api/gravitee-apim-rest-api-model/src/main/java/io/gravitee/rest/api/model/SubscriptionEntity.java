@@ -22,9 +22,17 @@ import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+<<<<<<< HEAD
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+=======
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+>>>>>>> 59630ad612 (chore(logs): Fixed toStrings and log format)
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,20 +43,30 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
+@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
 public class SubscriptionEntity {
 
+    @ToString.Include
     private String id;
 
     private String api;
 
+    @ToString.Include
     private String environmentId;
 
     private String plan;
 
     private String application;
 
+<<<<<<< HEAD
     private String applicationName;
 
+=======
+    @ToString.Include
+>>>>>>> 59630ad612 (chore(logs): Fixed toStrings and log format)
     private SubscriptionStatus status;
 
     @JsonProperty("consumerStatus")
@@ -68,9 +86,11 @@ public class SubscriptionEntity {
     private String reason;
 
     @JsonProperty("starting_at")
+    @ToString.Include
     private Date startingAt;
 
     @JsonProperty("ending_at")
+    @ToString.Include
     private Date endingAt;
 
     /**
@@ -117,6 +137,7 @@ public class SubscriptionEntity {
 
     private String failureCause;
 
+<<<<<<< HEAD
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -130,5 +151,10 @@ public class SubscriptionEntity {
     @Override
     public int hashCode() {
         return id.hashCode();
+=======
+    public SubscriptionEntity setEnvironmentId(final String environmentId) {
+        this.environmentId = environmentId;
+        return this;
+>>>>>>> 59630ad612 (chore(logs): Fixed toStrings and log format)
     }
 }

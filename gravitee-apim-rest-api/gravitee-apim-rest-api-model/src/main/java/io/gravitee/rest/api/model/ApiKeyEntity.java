@@ -25,6 +25,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,22 +36,28 @@ import lombok.Setter;
 @Builder(toBuilder = true)
 @Getter
 @Setter
+@ToString(onlyExplicitlyIncluded = true)
 public class ApiKeyEntity {
 
+    @ToString.Include
     private String id;
 
+    @ToString.Include
     private String key;
 
     @Builder.Default
     private Set<SubscriptionEntity> subscriptions = new HashSet<>();
 
+    @ToString.Include
     private String environmentId;
 
     private ApplicationEntity application;
 
+    @ToString.Include
     @JsonProperty("expire_at")
     private Date expireAt;
 
+    @ToString.Include
     @JsonProperty("created_at")
     private Date createdAt;
 
