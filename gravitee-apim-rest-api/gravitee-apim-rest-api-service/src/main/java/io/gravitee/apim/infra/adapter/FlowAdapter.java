@@ -65,6 +65,10 @@ public interface FlowAdapter {
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     Flow toRepository(io.gravitee.definition.model.flow.Flow source, FlowReferenceType referenceType, String referenceId, int order);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
+    Flow toRepositoryUpdate(@MappingTarget Flow repository, io.gravitee.definition.model.flow.Flow source, int order);
+
     io.gravitee.definition.model.v4.flow.Flow toFlowV4(Flow source);
     List<io.gravitee.definition.model.v4.flow.Flow> toFlowV4(List<Flow> source);
 

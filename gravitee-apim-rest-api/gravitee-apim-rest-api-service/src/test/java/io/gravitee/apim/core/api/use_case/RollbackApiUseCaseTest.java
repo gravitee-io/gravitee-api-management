@@ -35,6 +35,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
@@ -59,6 +60,9 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -66,6 +70,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -107,6 +112,7 @@ class RollbackApiUseCaseTest {
     private final SubscriptionQueryServiceInMemory subscriptionCrudService = new SubscriptionQueryServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
+    private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
 
     @Mock
     CreatePlanDomainService createPlanDomainService;
@@ -148,7 +154,8 @@ class RollbackApiUseCaseTest {
                 updatePlanDomainService,
                 closePlanDomainService,
                 planCrudService,
-                auditDomainService
+                auditDomainService,
+                flowCrudService
             );
 
         // Add existing API
@@ -168,7 +175,8 @@ class RollbackApiUseCaseTest {
                 userCrudService,
                 subscriptionCrudService,
                 apiCrudService,
-                subscriptionQueryService
+                subscriptionQueryService,
+                flowCrudService
             )
             .forEach(InMemoryAlternative::reset);
         reset(delegateApiService);
@@ -639,6 +647,137 @@ class RollbackApiUseCaseTest {
             });
 
             assertThat(planCrudService.storage()).containsOnly(rolledBackPlan);
+
+            // Verify audit log was created
+            assertRollbackAuditHasBeenCreated();
+        }
+
+        @Test
+        void should_rollback_api_and_flows() throws JsonProcessingException {
+            // Given
+            var existingV4Api = apiV4()
+                .definition(
+                    """
+                            {"id": "my-id", "name": "api-name", "type": "proxy", "apiVersion": "1.0.0", "definitionVersion": "4.0.0", "listeners": [{"type": "http", "entrypoints": [{ "type": "http-proxy", "configuration": {} }], "paths": [{ "path": "/http_proxy" }]}], "endpointGroups": [{"name": "default-group", "type": "http-proxy", "endpoints": [{"name": "default-endpoint", "type": "http-proxy", "configuration": { "target": "https://api.gravitee.io/echo" }}]}], "flows": [{"name": "v4-api-flow", "enabled": true, "selectors": [ { "type": "HTTP", "path": "/", "pathOperator": "STARTS_WITH" } ], "request": [], "response": [], "subscribe": [], "publish": []}]}
+                            """
+                )
+                .build();
+            apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
+            flowCrudService.saveApiFlows(
+                existingV4Api.getId(),
+                List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("v4-api-flow").build())
+            );
+
+            givenExistingPlan(
+                PlanFixtures
+                    .aPlanHttpV4()
+                    .toBuilder()
+                    .id("plan-to-rollback")
+                    .apiId(existingV4Api.getId())
+                    .name("plan-current-name")
+                    .description("Current plan description")
+                    .planDefinitionHttpV4(
+                        PlanFixtures
+                            .aPlanHttpV4()
+                            .getPlanDefinitionHttpV4()
+                            .toBuilder()
+                            .flows(List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("v4-plan-flow").build()))
+                            .build()
+                    )
+                    .build()
+            );
+            flowCrudService.savePlanFlows(
+                "plan-to-rollback",
+                List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("v4-plan-flow").build())
+            );
+
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api
+                .builder()
+                .id(existingV4Api.getId())
+                .name("api-previous-name")
+                .version("api-previous-version")
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(
+                    Proxy
+                        .builder()
+                        .virtualHosts(List.of(new VirtualHost("/api-previous-path")))
+                        .groups(
+                            Set.of(
+                                EndpointGroup
+                                    .builder()
+                                    .name("default-endpoint")
+                                    .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+                .flows(List.of(Flow.builder().name("v2-api-flow").build()))
+                .plans(
+                    Map.of(
+                        "plan-to-rollback",
+                        io.gravitee.definition.model.Plan
+                            .builder()
+                            .id("plan-to-rollback")
+                            .name("plan-previous-name")
+                            .status("PUBLISHED")
+                            .security("KEY_LESS")
+                            .flows(List.of(Flow.builder().name("v2-plan-flow").build()))
+                            .build()
+                    )
+                )
+                .build();
+
+            var apiRepositoryModel = Api
+                .builder()
+                .id(eventV2ApiDefinition.getId())
+                .name(eventV2ApiDefinition.getName())
+                .version(eventV2ApiDefinition.getVersion())
+                .definitionVersion(DefinitionVersion.V2)
+                .visibility(Visibility.PUBLIC)
+                .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
+                .build();
+
+            var event = Event
+                .builder()
+                .id("rollback-event-id")
+                .type(EventType.PUBLISH_API)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+                .build();
+            eventQueryService.initWith(List.of(event));
+
+            // When
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            // Then
+            var rolledBackApi = apiCrudService.get(existingV4Api.getId());
+            assertSoftly(softly -> {
+                softly.assertThat(rolledBackApi.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
+                softly.assertThat(rolledBackApi.getName()).isEqualTo("api-previous-name");
+                softly.assertThat(rolledBackApi.getVersion()).isEqualTo("api-previous-version");
+                softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+            });
+
+            var apiDefinition = rolledBackApi.getApiDefinition();
+            assertSoftly(softly -> {
+                softly.assertThat(apiDefinition.getName()).isEqualTo("api-previous-name");
+                softly.assertThat(apiDefinition.getVersion()).isEqualTo("api-previous-version");
+                softly.assertThat(apiDefinition.getProxy().getVirtualHosts().getFirst().getPath()).isEqualTo("/api-previous-path");
+            });
+
+            var rolledBackPlan = planCrudService.getById("plan-to-rollback");
+            assertSoftly(softly -> {
+                softly.assertThat(rolledBackPlan.getName()).isEqualTo("plan-previous-name");
+                softly.assertThat(rolledBackPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
+                softly.assertThat(rolledBackPlan.getUpdatedAt()).isEqualTo(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()));
+            });
+
+            assertThat(planCrudService.storage()).containsOnly(rolledBackPlan);
+
+            assertThat(flowCrudService.getApiV4Flows("plan-to-rollback")).isEmpty();
+            assertThat(flowCrudService.getApiV2Flows(existingV4Api.getId())).map(Flow::getName).containsOnly("v2-api-flow");
+            assertThat(flowCrudService.getPlanV2Flows("plan-to-rollback")).map(Flow::getName).containsOnly("v2-plan-flow");
 
             // Verify audit log was created
             assertRollbackAuditHasBeenCreated();

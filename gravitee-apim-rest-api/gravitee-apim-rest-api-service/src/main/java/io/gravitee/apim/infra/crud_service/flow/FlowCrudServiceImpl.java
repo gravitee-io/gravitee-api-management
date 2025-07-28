@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.infra.crud_service.flow;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.infra.adapter.FlowAdapter;
@@ -36,6 +39,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +56,14 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     @Override
     public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
         return FlowAdapter.INSTANCE.toFlowV4(save(FlowReferenceType.PLAN, planId, flows));
+    }
+
+    public void savePlanFlowsV2(String planId, List<io.gravitee.definition.model.flow.Flow> flows) {
+        saveV2(FlowReferenceType.PLAN, planId, flows);
+    }
+
+    public void saveApiFlowsV2(String apiId, List<io.gravitee.definition.model.flow.Flow> flows) {
+        saveV2(FlowReferenceType.API, apiId, flows);
     }
 
     @Override
@@ -186,6 +198,41 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to get flows for " + flowReferenceType + ": " + referenceId;
             log.error(error, ex);
+            throw new TechnicalDomainException(error, ex);
+        }
+    }
+
+    private void saveV2(
+        FlowReferenceType flowReferenceType,
+        String referenceId,
+        @Nullable List<io.gravitee.definition.model.flow.Flow> flows
+    ) {
+        try {
+            log.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
+            if (isEmpty(flows)) {
+                flowRepository.deleteByReferenceIdAndReferenceType(referenceId, flowReferenceType);
+                return;
+            }
+            var dbFlowsById = stream(flowRepository.findByReference(flowReferenceType, referenceId))
+                .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
+
+            var flowIdsToSave = flows.stream().flatMap(f -> Stream.ofNullable(f.getId())).collect(Collectors.toSet());
+
+            var flowIdsToDelete = dbFlowsById.keySet().stream().filter(Predicate.not(flowIdsToSave::contains)).collect(Collectors.toSet());
+            if (!flowIdsToDelete.isEmpty()) {
+                flowRepository.deleteAllById(flowIdsToDelete);
+            }
+
+            for (int order = 0; order < flows.size(); ++order) {
+                var flow = flows.get(order);
+                if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
+                    flowRepository.create(FlowAdapter.INSTANCE.toRepository(flow, flowReferenceType, referenceId, order));
+                } else {
+                    flowRepository.update(FlowAdapter.INSTANCE.toRepositoryUpdate(dbFlowsById.get(flow.getId()), flow, order));
+                }
+            }
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while trying to save flows for " + flowReferenceType + ": " + referenceId;
             throw new TechnicalDomainException(error, ex);
         }
     }
