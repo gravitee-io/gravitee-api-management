@@ -45,13 +45,19 @@ import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDoma
 import io.gravitee.apim.core.notification.model.hook.portal.FederatedApisIngestionCompleteHookContext;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -76,6 +82,10 @@ public class IngestFederatedApisUseCase {
     private final PageQueryService pageQueryService;
     private final CreateApiDomainService createApiDomainService;
     private final UpdateFederatedApiDomainService updateFederatedApiDomainService;
+    private final SubscriptionQueryService subscriptionQueryService;
+    private final CloseSubscriptionDomainService closeSubscriptionDomainService;
+    private final DeleteSubscriptionDomainService deleteSubscriptionDomainService;
+    private final DeletePlanDomainService deletePlanDomainService;
     private final CreatePlanDomainService createPlanDomainService;
     private final UpdatePlanDomainService updatePlanDomainService;
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
@@ -180,18 +190,39 @@ public class IngestFederatedApisUseCase {
         try {
             UnaryOperator<Api> updater = update(federatedApi);
             updateFederatedApiDomainService.update(federatedApi.getId(), updater, auditInfo, primaryOwner, bulk.get());
+            Collection<Plan> plans = planCrudService.findByApiId(federatedApi.getId());
+            Map<String, Plan> existingPlanMap = plans.stream().collect(Collectors.toMap(Plan::getId, p -> p));
+            Map<String, Plan> integrationPlanMap = stream(integrationApi.plans())
+                .map(plan -> PlanModelFactory.fromIntegration(plan, federatedApi))
+                .collect(Collectors.toMap(Plan::getId, p -> p));
 
-            stream(integrationApi.plans())
-                .map(p -> PlanModelFactory.fromIntegration(p, federatedApi))
-                .forEach(p ->
-                    planCrudService
-                        .findById(p.getId())
-                        .ifPresentOrElse(
-                            existingPlan -> updatePlanDomainService.update(p, List.of(), Map.of(), null, bulk.auditInfo()),
-                            () -> createPlanDomainService.create(p, List.of(), federatedApi, bulk.auditInfo())
-                        )
-                );
+            for (Plan existing : plans) {
+                if (!integrationPlanMap.containsKey(existing.getId())) {
+                    log.debug("Plan has been removed in provider, so close and delete all subscriptions from APIM");
+                    subscriptionQueryService
+                        .findActiveSubscriptionsByPlan(existing.getId())
+                        .forEach(activeSubscription ->
+                            closeSubscriptionDomainService.closeSubscription(activeSubscription.getId(), auditInfo)
+                        );
 
+                    //Delete all subscriptions
+                    subscriptionQueryService
+                        .findSubscriptionsByPlan(existing.getId())
+                        .forEach(subscription -> deleteSubscriptionDomainService.delete(subscription, auditInfo));
+                    log.debug("Plan has been removed in provider, so finally delete the plan from APIM");
+                    deletePlanDomainService.delete(existing, bulk.auditInfo());
+                }
+            }
+            for (String integratedPlanId : integrationPlanMap.keySet()) {
+                Plan planToUpdate = integrationPlanMap.get(integratedPlanId);
+                if (existingPlanMap.containsKey(integratedPlanId)) {
+                    log.debug("Plan has been updated in provider, so update in APIM");
+                    updatePlanDomainService.update(planToUpdate, List.of(), Map.of(), null, bulk.auditInfo());
+                } else {
+                    log.debug("New plan in provider, so create in APIM");
+                    createPlanDomainService.create(planToUpdate, List.of(), federatedApi, bulk.auditInfo());
+                }
+            }
             var ingestedPagesNames = integrationApi.pages().stream().map(IntegrationApi.Page::filename).toList();
             clearIngestedApiDocumentationDomainService.clearIngestedPagesOf(federatedApi.getId(), ingestedPagesNames, bulk.auditInfo());
             var existingPages = pageQueryService

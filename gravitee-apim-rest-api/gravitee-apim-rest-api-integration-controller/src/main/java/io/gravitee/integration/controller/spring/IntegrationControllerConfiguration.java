@@ -75,7 +75,7 @@ public class IntegrationControllerConfiguration {
     @Bean("integrationControllerCommandHandlerFactory")
     public IntegrationControllerCommandHandlerFactory integrationControllerCommandHandlerFactory(
         final CheckIntegrationUseCase checkIntegrationUseCase,
-        final IngestFederatedApisUseCase ingestFederatedApisUseCase
+        final @Lazy IngestFederatedApisUseCase ingestFederatedApisUseCase
     ) {
         return new IntegrationControllerCommandHandlerFactory(checkIntegrationUseCase, ingestFederatedApisUseCase);
     }
