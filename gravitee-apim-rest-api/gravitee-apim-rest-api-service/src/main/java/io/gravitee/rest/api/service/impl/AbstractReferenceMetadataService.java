@@ -101,7 +101,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
 
             return allMetadata;
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurred while trying to find all metadata by REFERENCE", ex);
+            throw new TechnicalManagementException(String.format("An error occurred while trying to find all metadata by REFERENCE. Reference id: %s, reference type: %s, env id: %s", referenceId, referenceType, environmentId), ex);
         }
     }
 
@@ -111,6 +111,7 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
         final String referenceId,
         final Optional<String> environmentId
     ) {
+        log.debug("Find metadata by id {} and reference {} / {}", metadataId, referenceType, referenceId);
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(referenceType, referenceId, environmentId);
         final Optional<ReferenceMetadataEntity> optMetadata = allMetadata.stream().filter(m -> metadataId.equals(m.getKey())).findAny();
         if (optMetadata.isPresent()) {
