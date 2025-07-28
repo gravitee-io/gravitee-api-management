@@ -23,6 +23,7 @@ import io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore;
 import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore;
 import java.io.Serial;
 import java.io.Serializable;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
@@ -39,6 +40,7 @@ import lombok.Getter;
     }
 )
 @Getter
+@EqualsAndHashCode
 public abstract class KeyStore implements Serializable {
 
     @Serial
