@@ -23,6 +23,7 @@ import io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore;
 import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore;
 import java.io.Serial;
 import java.io.Serializable;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
@@ -44,6 +45,7 @@ import lombok.Getter;
     }
 )
 @Getter
+@EqualsAndHashCode
 public abstract class TrustStore implements Serializable {
 
     @Serial
