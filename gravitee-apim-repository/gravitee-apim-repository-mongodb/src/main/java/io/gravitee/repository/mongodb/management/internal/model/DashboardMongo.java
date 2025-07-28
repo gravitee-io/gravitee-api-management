@@ -31,7 +31,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id", callSuper = false)
-public class DashboardMongo extends Auditable {
+public class DashboardMongo extends DeprecatedAuditable {
 
     @Id
     private String id;

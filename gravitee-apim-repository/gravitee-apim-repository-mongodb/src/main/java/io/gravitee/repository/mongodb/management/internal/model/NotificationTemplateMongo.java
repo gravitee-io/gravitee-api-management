@@ -29,7 +29,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}notificationTemplates")
-public class NotificationTemplateMongo extends Auditable {
+public class NotificationTemplateMongo extends DeprecatedAuditable {
 
     @Id
     private String id;

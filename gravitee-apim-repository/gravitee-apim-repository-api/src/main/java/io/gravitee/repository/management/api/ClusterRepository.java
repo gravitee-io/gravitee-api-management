@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.model;
+package io.gravitee.repository.management.api;
 
-import java.time.Instant;
-import lombok.Getter;
-import lombok.Setter;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.ClusterCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.model.Cluster;
 
-@Setter
-@Getter
-abstract class Auditable {
-
-    private Instant createdAt;
-    private Instant updatedAt;
+public interface ClusterRepository extends CrudRepository<Cluster, String> {
+    Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Sortable sortable);
 }

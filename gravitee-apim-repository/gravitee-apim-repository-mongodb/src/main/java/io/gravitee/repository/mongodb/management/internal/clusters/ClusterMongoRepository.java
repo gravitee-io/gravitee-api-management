@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.model;
+package io.gravitee.repository.mongodb.management.internal.clusters;
 
-import java.time.Instant;
-import lombok.Getter;
-import lombok.Setter;
+import io.gravitee.repository.mongodb.management.internal.model.ClusterMongo;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
-@Setter
-@Getter
-abstract class Auditable {
-
-    private Instant createdAt;
-    private Instant updatedAt;
-}
+@Repository
+public interface ClusterMongoRepository extends MongoRepository<ClusterMongo, String>, ClusterMongoRepositoryCustom {}

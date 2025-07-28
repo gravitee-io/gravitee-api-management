@@ -34,6 +34,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -298,9 +299,14 @@ public class JdbcObjectMapper<T> {
             } else {
                 return null;
             }
-        } else if ((column.javaType == Date.class) && (value instanceof Timestamp)) {
+        } else if (value instanceof Timestamp) {
             final Timestamp timestampValue = (Timestamp) value;
-            return new Date(timestampValue.getTime());
+            if (column.javaType == Date.class) {
+                return new Date(timestampValue.getTime());
+            }
+            if (column.javaType == Instant.class) {
+                return timestampValue.toInstant();
+            }
         } else if (column.javaType == byte.class) {
             return parseByte(value.toString());
         } else if (column.javaType == Long.class) {
@@ -360,6 +366,8 @@ public class JdbcObjectMapper<T> {
                 } else if (value instanceof Date) {
                     final Date date = (Date) value;
                     stmt.setTimestamp(idx, new Timestamp(date.getTime()));
+                } else if (value instanceof Instant) {
+                    stmt.setTimestamp(idx, Timestamp.from((Instant) value));
                 } else if (value instanceof InputStream && column.jdbcType == Types.BLOB) {
                     stmt.setBlob(idx, (InputStream) value);
                 } else if (value instanceof byte[] && column.jdbcType == Types.BLOB) {

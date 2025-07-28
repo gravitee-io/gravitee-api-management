@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -23,40 +22,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
-@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}sharedpolicygroups")
-public class SharedPolicyGroupMongo extends DeprecatedAuditable {
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}clusters")
+public class ClusterMongo extends Auditable {
 
     @Id
     private String id;
 
-    private String organizationId;
-
     private String environmentId;
-
-    private String hrid;
-
-    private String crossId;
-
+    private String organizationId;
     private String name;
-
     private String description;
-
-    private String prerequisiteMessage;
-
-    private Integer version;
-
-    private String apiType;
-
-    /**
-     * The origin of the api (management, kubernetes, ...).
-     */
-    private String origin;
-
-    private String phase;
-
     private String definition;
-
-    private Date deployedAt;
-
-    private String lifecycleState;
 }
