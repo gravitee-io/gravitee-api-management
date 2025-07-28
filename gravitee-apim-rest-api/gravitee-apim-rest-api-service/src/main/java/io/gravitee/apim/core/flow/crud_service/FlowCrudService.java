@@ -32,6 +32,10 @@ public interface FlowCrudService {
 
     List<io.gravitee.definition.model.flow.Flow> getPlanV2Flows(String planId);
 
+    void savePlanFlowsV2(String planId, List<io.gravitee.definition.model.flow.Flow> flows);
+
+    void saveApiFlowsV2(String apiId, List<io.gravitee.definition.model.flow.Flow> flows);
+
     //    Native APIs
     List<NativeFlow> saveNativeApiFlows(String apiId, List<NativeFlow> flows);
 
