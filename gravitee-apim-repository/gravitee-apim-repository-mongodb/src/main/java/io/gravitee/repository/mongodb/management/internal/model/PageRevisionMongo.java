@@ -31,7 +31,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @ToString
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}page_revisions")
-public class PageRevisionMongo extends Auditable {
+public class PageRevisionMongo extends DeprecatedAuditable {
 
     @Id
     private PageRevisionPkMongo id;

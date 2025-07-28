@@ -13,16 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.model;
+package io.gravitee.repository.management.api.search;
 
-import java.time.Instant;
-import lombok.Getter;
-import lombok.Setter;
-
-@Setter
-@Getter
-abstract class Auditable {
-
-    private Instant createdAt;
-    private Instant updatedAt;
-}
+public class ClusterCriteria {}
