@@ -173,7 +173,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             return newApiKeyEntity;
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to renew an API Key for %s", subscription.getId()),
+                String.format("An error occurs while trying to renew an API Key for subscription:%s on environment:%s", subscription.getId(), subscription.getEnvironmentId()),
                 ex
             );
         }
@@ -213,7 +213,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             return newApiKeyEntity;
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to renew an API Key for application %s", application.getId()),
+                String.format("An error occurs while trying to renew an API Key for application %s: %s on environment: %s ", application.getName(), application.getId(), application.getEnvironmentId()),
                 ex
             );
         }
@@ -260,7 +260,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 apiKeyRepository.addSubscription(apiKeyEntity.getId(), subscription.getId()).orElseThrow(ApiKeyNotFoundException::new)
             );
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurred while trying to a add subscription to API Key");
+            throw new TechnicalManagementException("An error occurred while trying to a add subscription to API Key" + apiKeyEntity);
         }
     }
 
@@ -375,7 +375,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             return updatedEntity;
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to reactivate an API Key", ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to reactivate the API Key %s", apiKeyEntity), ex);
         }
     }
 
@@ -403,7 +403,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             log.debug("Find API Keys by key");
             return apiKeyRepository.findByKey(apiKey).stream().map(apiKey1 -> convert(executionContext, apiKey1)).collect(toList());
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while finding API Keys", e);
+            throw new TechnicalManagementException(String.format("An error occurs while finding API Keys with id %s", apiKey), e);
         }
     }
 
@@ -417,7 +417,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .map(apiKey1 -> convert(executionContext, apiKey1))
                 .collect(toList());
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while finding API Keys", e);
+            throw new TechnicalManagementException(String.format("An error occurs while finding API key by Environment id %s and Key %s",executionContext.getEnvironmentId(), apiKey), e);
         }
     }
 
@@ -428,6 +428,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
             Set<ApiKey> keys = apiKeyRepository.findBySubscription(subscriptionEntity.getId());
+
+            log.debug("Found {} API Keys for subscription {}", keys.size(), subscription);
             return keys
                 .stream()
                 .map(apiKey -> convert(executionContext, apiKey))
@@ -448,7 +450,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             ApiKey key = apiKeyRepository.findByKeyAndApi(apiKey, apiId).orElseThrow(ApiKeyNotFoundException::new);
             return convert(executionContext, key);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException(String.format("An error occurs while trying to find an API Key for API %s", apiId), ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to find an API Key by API id:%s and apiKey:%s", apiId, apiKey), ex);
         }
     }
 
@@ -492,30 +494,38 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Override
     public ApiKeyEntity updateDaysToExpirationOnLastNotification(
-        ExecutionContext executionContext,
-        ApiKeyEntity apiKeyEntity,
-        Integer value
+            ExecutionContext executionContext,
+            ApiKeyEntity apiKeyEntity,
+            Integer value
     ) {
+        ApiKey apiKey;
+
         try {
-            return apiKeyRepository
-                .findById(apiKeyEntity.getId())
-                .map(dbApiKey -> {
-                    dbApiKey.setDaysToExpirationOnLastNotification(value);
-                    try {
-                        return apiKeyRepository.update(dbApiKey);
-                    } catch (TechnicalException ex) {
-                        throw new TechnicalManagementException(
-                            String.format("An error occurs while trying to update ApiKey with id %s", dbApiKey.getId()),
-                            ex
-                        );
-                    }
-                })
-                .map(apiKey -> convert(executionContext, apiKey))
-                .orElseThrow(ApiKeyNotFoundException::new);
+            log.debug("Fetching API key with id {}", apiKeyEntity.getId());
+            apiKey = apiKeyRepository.findById(apiKeyEntity.getId())
+                    .orElseThrow(ApiKeyNotFoundException::new);
+            log.debug("API key with id {} successfully retrieved", apiKeyEntity.getId());
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to update apiKey", ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurred while retrieving the API key with id %s", apiKeyEntity.getId()),
+                    ex
+            );
+        }
+
+        log.debug("Setting daysToExpirationOnLastNotification to {} for API key with id {}", value, apiKey.getId());
+        apiKey.setDaysToExpirationOnLastNotification(value);
+
+        try {
+            log.debug("Updating API key with id {}", apiKey.getId());
+            return convert(executionContext, apiKeyRepository.update(apiKey));
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                    String.format("An error occurred while updating the API key with id %s and adding %s days", apiKey.getId(), value),
+                    ex
+            );
         }
     }
+
 
     @Override
     public boolean canCreate(ExecutionContext executionContext, String apiKeyValue, SubscriptionEntity subscription) {
