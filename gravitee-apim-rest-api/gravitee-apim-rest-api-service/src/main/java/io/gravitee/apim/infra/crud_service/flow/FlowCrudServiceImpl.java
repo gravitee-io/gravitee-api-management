@@ -31,7 +31,6 @@ import io.gravitee.rest.api.service.impl.TransactionalService;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -118,11 +117,11 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     ) {
         try {
             log.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
-            if (flows == null || flows.isEmpty()) {
+            if (isEmpty(flows)) {
                 flowRepository.deleteByReferenceIdAndReferenceType(referenceId, flowReferenceType);
                 return List.of();
             }
-            Map<String, io.gravitee.repository.management.model.flow.Flow> dbFlowsById = flowRepository
+            var dbFlowsById = flowRepository
                 .findByReference(flowReferenceType, referenceId)
                 .stream()
                 .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
@@ -138,19 +137,14 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
                 flowRepository.deleteAllById(flowIdsToDelete);
             }
 
-            List<io.gravitee.repository.management.model.flow.Flow> savedFlows = new ArrayList<>();
-            io.gravitee.repository.management.model.flow.Flow dbFlow;
+            var savedFlows = new ArrayList<io.gravitee.repository.management.model.flow.Flow>();
             for (int order = 0; order < flows.size(); ++order) {
                 var flow = flows.get(order);
-                if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
-                    dbFlow =
-                        flowRepository.create(FlowAdapter.INSTANCE.toRepositoryFromAbstract(flow, flowReferenceType, referenceId, order));
-                } else {
-                    dbFlow =
-                        flowRepository.update(
-                            FlowAdapter.INSTANCE.toRepositoryUpdateFromAbstract(dbFlowsById.get(flow.getId()), flow, order)
-                        );
-                }
+                var dbFlow = (flow.getId() == null || !dbFlowsById.containsKey(flow.getId()))
+                    ? flowRepository.create(FlowAdapter.INSTANCE.toRepositoryFromAbstract(flow, flowReferenceType, referenceId, order))
+                    : flowRepository.update(
+                        FlowAdapter.INSTANCE.toRepositoryUpdateFromAbstract(dbFlowsById.get(flow.getId()), flow, order)
+                    );
                 savedFlows.add(dbFlow);
             }
             return savedFlows;
