@@ -15,44 +15,20 @@
  */
 package io.gravitee.rest.api.model.api.header;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import java.util.Objects;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class NewApiHeaderEntity {
 
+    @EqualsAndHashCode.Include
     private String name;
 
     private String value;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NewApiHeaderEntity that = (NewApiHeaderEntity) o;
-        return Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
-    }
 }
