@@ -27,6 +27,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +46,8 @@ public class SearchStatsUseCase {
             input.api(),
             input.field(),
             Instant.ofEpochMilli(input.from()),
-            Instant.ofEpochMilli(input.to())
+            Instant.ofEpochMilli(input.to()),
+            input.query()
         );
         var result = analyticsQueryService.searchStatsAnalytics(executionContext, statsQuery).orElse(null);
 
@@ -88,7 +90,7 @@ public class SearchStatsUseCase {
         }
     }
 
-    public record Input(String api, long from, long to, String field) {}
+    public record Input(String api, long from, long to, String field, Optional<String> query) {}
 
     public record Output(StatsAnalytics analytics) {}
 }

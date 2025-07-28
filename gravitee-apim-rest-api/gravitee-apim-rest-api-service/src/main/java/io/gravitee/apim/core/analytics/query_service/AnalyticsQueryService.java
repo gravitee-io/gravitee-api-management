@@ -114,7 +114,7 @@ public interface AnalyticsQueryService {
         }
     }
 
-    record StatsQuery(String apiId, String field, Instant from, Instant to) {}
+    record StatsQuery(String apiId, String field, Instant from, Instant to, Optional<String> query) {}
 
     record ResponseStatusOverTimeQuery(
         List<String> apiIds,

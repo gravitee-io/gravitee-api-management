@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -418,7 +419,7 @@ class AnalyticsQueryServiceImplTest {
         void should_return_empty_when_repository_returns_empty() {
             when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.empty());
 
-            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now());
+            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now(), Optional.empty());
             var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
 
             assertThat(result).isEmpty();
@@ -439,7 +440,7 @@ class AnalyticsQueryServiceImplTest {
             );
             when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
-            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now());
+            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now(), Optional.empty());
             var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
 
             assertThat(result)
@@ -453,6 +454,38 @@ class AnalyticsQueryServiceImplTest {
                     assertThat(statsAnalytics.rpm()).isEqualTo(3.0f);
                     assertThat(statsAnalytics.rph()).isEqualTo(4.0f);
                 });
+        }
+
+        @Test
+        void should_pass_query_argument_to_repository() {
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate(
+                "field",
+                5,
+                50.0f,
+                10.0f,
+                2.0f,
+                20.0f,
+                1.0f,
+                2.0f,
+                3.0f
+            );
+            when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
+
+            var queryString = "status:200 AND method:GET";
+            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now(), Optional.of(queryString));
+            var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
+
+            assertThat(result)
+                .hasValueSatisfying(statsAnalytics -> {
+                    assertThat(statsAnalytics.count()).isEqualTo(5);
+                    assertThat(statsAnalytics.sum()).isEqualTo(50.0f);
+                    assertThat(statsAnalytics.avg()).isEqualTo(10.0f);
+                    assertThat(statsAnalytics.min()).isEqualTo(2.0f);
+                    assertThat(statsAnalytics.max()).isEqualTo(20.0f);
+                    assertThat(statsAnalytics.rps()).isEqualTo(1.0f);
+                });
+            verify(analyticsRepository)
+                .searchStats(any(QueryContext.class), argThat(arg -> arg.query().isPresent() && arg.query().get().equals(queryString)));
         }
     }
 }
