@@ -43,9 +43,11 @@ import {
   labels
 } from "../../../../../shared/components/widget/components/pie-chart-widget/pie-chart-widget.component";
 import { GioChartLineData } from "../../../../../shared/components/gio-chart-line/gio-chart-line.component";
-import {
-  namesFormatted
-} from "../../../../../shared/components/widget/components/line-chart-widget/line-chart-widget.component";
+
+export const namesFormatted = {
+  'avg_gateway-response-time-ms': 'Gateway Response Time',
+  'avg_endpoint-response-time-ms': 'Endpoint Response Time',
+};
 
 @Component({
   selector: "api-analytics-proxy",
@@ -87,6 +89,7 @@ export class ApiAnalyticsProxyComponent implements OnInit {
     tooltip: "Visualizes the breakdown of HTTP status codes (2xx, 4xx, 5xx) across time",
     data: [],
     isLoading: true,
+    chartOptions: null,
   }
 
   public responseTimeOverTime: WidgetConfig =     {
@@ -106,6 +109,7 @@ export class ApiAnalyticsProxyComponent implements OnInit {
     tooltip: "Measures response time for gateway and endpoint",
     data: [],
     isLoading: true,
+    chartOptions: null,
   }
 
   constructor(
@@ -186,6 +190,7 @@ export class ApiAnalyticsProxyComponent implements OnInit {
       .pipe(
         filter(val => !!val),
         switchMap((timeRangeParams) => {
+          this.responseStatusOverTimeConfig = { ...this.responseStatusOverTimeConfig, data: [], isLoading: true, chartOptions: null };
           const aggregationsParams = this.buildAggregationsParams(this.responseStatusOverTimeConfig.aggregations);
           return this.apiAnalyticsV2Service.getHistogramAnalytics(this.apiId, aggregationsParams, timeRangeParams);
         }),
@@ -212,6 +217,7 @@ export class ApiAnalyticsProxyComponent implements OnInit {
       .pipe(
         filter(val => !!val),
         switchMap((timeRangeParams) => {
+          this.responseTimeOverTime = { ...this.responseTimeOverTime, data: [], isLoading: true, chartOptions: null };
           const aggregationsParams = this.buildAggregationsParams(this.responseTimeOverTime.aggregations);
           return this.apiAnalyticsV2Service.getHistogramAnalytics(this.apiId, aggregationsParams, timeRangeParams);
         }),

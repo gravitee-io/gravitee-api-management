@@ -19,22 +19,35 @@
 <mat-card class="card">
   <mat-card-header>
     <mat-card-title class="card__title"
-      >{{ config().title }} <mat-icon [matTooltip]="config().tooltip" matTooltipPosition="after" svgIcon="gio:info"
-    /></mat-card-title>
+    >{{ config().title }}
+      <mat-icon [matTooltip]="config().tooltip" matTooltipPosition="after" svgIcon="gio:info"
+      />
+    </mat-card-title>
   </mat-card-header>
 
-  @switch (config().type) {
-    @case ('pie') {
-      <pie-chart-widget [config]="config()" />
-    }
-    @case ('line') {
-      <line-chart-widget [config]="config()" />
-    }
-    @case ('table') {
-      <table-widget [config]="config()"/>
-    }
-    @default {
-      <p>Widget not found</p>
+  @if (config().isLoading) {
+    <gio-loader />
+  } @else {
+
+    @switch (config().type) {
+      @case ('pie') {
+        <div class="pie-chart">
+          <pie-chart-widget [config]="config()" />
+        </div>
+      }
+      @case ('line') {
+        <div class="line-chart">
+          <gio-chart-line [data]="config().data" [options]="config().chartOptions" />
+        </div>
+      }
+      @case ('table') {
+        <table-widget [config]="config()" />
+      }
+      @default {
+        <p>Widget not found</p>
+      }
     }
   }
+
+
 </mat-card>

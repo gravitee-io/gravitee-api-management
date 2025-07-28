@@ -32,7 +32,6 @@ export const labels = ['100-199', '200-299', '300-399', '400-499', '500-599'];
   standalone: true,
   imports: [MatCardModule, GioLoaderModule, GioChartPieModule],
   templateUrl: './pie-chart-widget.component.html',
-  styleUrl: './pie-chart-widget.component.scss',
 })
 export class PieChartWidgetComponent implements OnChanges {
   public config = input<WidgetConfig>();
@@ -48,5 +47,4 @@ export class PieChartWidgetComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     this.chartInput = changes.config.currentValue.data;
   }
-
 }
