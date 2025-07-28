@@ -24,11 +24,12 @@ import { PieChartWidgetComponent } from './components/pie-chart-widget/pie-chart
 import { LineChartWidgetComponent } from './components/line-chart-widget/line-chart-widget.component';
 import { TableWidgetComponent } from './components/table-widget/table-widget.component';
 
-import { WidgetConfig } from '../../../../../../entities/management-api-v2/analytics/analytics';
-import { GioChartPieModule } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
+import { GioChartPieModule } from "../gio-chart-pie/gio-chart-pie.module";
+import { WidgetConfig } from "../../../entities/management-api-v2/analytics/analytics";
+
 
 @Component({
-  selector: 'chart-widget',
+  selector: 'widget',
   imports: [
     PieChartWidgetComponent,
     LineChartWidgetComponent,

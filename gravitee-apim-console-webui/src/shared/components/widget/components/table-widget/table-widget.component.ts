@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, input, OnInit } from '@angular/core';
-import { switchMap } from 'rxjs';
+import { Component, input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
 import { DecimalPipe } from '@angular/common';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { GioTableWrapperModule } from '../../../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { GioTableWrapperFilters } from '../../../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { gioTableFilterCollection } from '../../../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
-import { ApiAnalyticsV2Service } from '../../../../../../../../services-ngx/api-analytics-v2.service';
-import { SnackBarService } from '../../../../../../../../services-ngx/snack-bar.service';
-import { WidgetConfig } from '../../../../../../../../entities/management-api-v2/analytics/analytics';
+import { GioTableWrapperModule } from "../../../gio-table-wrapper/gio-table-wrapper.module";
+import { GioTableWrapperFilters } from "../../../gio-table-wrapper/gio-table-wrapper.component";
+import { gioTableFilterCollection } from "../../../gio-table-wrapper/gio-table-wrapper.util";
+import { WidgetConfig } from "../../../../../entities/management-api-v2/analytics/analytics";
+
 
 const tableConfig = {
   'application-id': {
@@ -37,7 +34,7 @@ const tableConfig = {
   },
 };
 
-interface TableWidgetDataItem {
+export interface TableWidgetDataItem {
   name: string;
   count: number;
   id: string;
@@ -51,13 +48,13 @@ interface TableWidgetDataItem {
   templateUrl: './table-widget.component.html',
   styleUrl: './table-widget.component.scss',
 })
-export class TableWidgetComponent implements OnInit {
+export class TableWidgetComponent implements OnInit, OnChanges {
   public config = input<WidgetConfig>();
+
   public displayedColumns = ['name', 'count'];
   public nameLabel: string = '';
   public countLabel: string = '';
-
-  private data: TableWidgetDataItem[] = [];
+  public data: TableWidgetDataItem[];
 
   public filteredTableData: TableWidgetDataItem[] = [];
   public tableFilters: GioTableWrapperFilters = {
@@ -67,48 +64,22 @@ export class TableWidgetComponent implements OnInit {
       direction: 'desc',
     },
   };
-  totalLength: number;
+  totalLength: number = 1;
 
   constructor(
-    private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
-    private readonly destroyRef: DestroyRef,
-    private readonly snackBarService: SnackBarService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
   ) {}
+
+  ngOnChanges(changes:SimpleChanges) {
+    this.data = changes.config.currentValue.data;
+    this.runFilters(this.tableFilters);
+  }
 
   ngOnInit() {
     const { nameLabel, countLabel } = tableConfig[this.config().groupByField];
     this.nameLabel = nameLabel || 'Name';
     this.countLabel = countLabel || 'Count';
-
-    this.apiAnalyticsV2Service
-      .timeRangeFilter()
-      .pipe(
-        switchMap((timeRangeParams) => {
-          return this.apiAnalyticsV2Service.getGroupBy(this.config().apiId, timeRangeParams, { field: this.config().groupByField });
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (res) => {
-          this.data = Object.entries(res.metadata).reduce((acc, [id, metadataRecord]) => {
-            const dataItem: TableWidgetDataItem = {
-              id,
-              name: metadataRecord.name,
-              count: res.values[id],
-              isUnknown: !!metadataRecord.unknown,
-            };
-            return [...acc, dataItem];
-          }, []);
-
-          this.totalLength = this.data.length;
-          this.runFilters(this.tableFilters);
-        },
-        error: ({ error }) => {
-          this.snackBarService.error(error.message);
-        },
-      });
   }
 
   navigate(id: string) {
@@ -120,5 +91,6 @@ export class TableWidgetComponent implements OnInit {
   runFilters(filters: GioTableWrapperFilters) {
     const filtered = gioTableFilterCollection(this.data, filters);
     this.filteredTableData = filtered.filteredCollection;
+    this.totalLength = this.filteredTableData.length;
   }
 }

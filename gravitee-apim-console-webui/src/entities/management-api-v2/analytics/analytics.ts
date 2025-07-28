@@ -16,14 +16,20 @@
 import { AnalyticsHistogramAggregation } from './analyticsHistogram';
 import { GroupByField } from './analyticsGroupBy';
 
+import { TableWidgetDataItem } from "../../../shared/components/widget/components/table-widget/table-widget.component";
+import { GioChartLineOptions } from "../../../shared/components/gio-chart-line/gio-chart-line.component";
+
 export type WidgetType = 'line' | 'pie' | 'table';
 
 export interface WidgetConfig {
   type: WidgetType;
-  apiId: string;
+  apiId?: string;
   aggregations?: AnalyticsHistogramAggregation[];
   title: string;
   tooltip: string;
-  shouldSortBuckets?: boolean;
   groupByField?: GroupByField;
+  data?: TableWidgetDataItem[] | any,
+  chartOptions?: GioChartLineOptions;
+  isLoading?: boolean
 }
+
