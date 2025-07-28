@@ -31,7 +31,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @ToString
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}memberships")
-public class MembershipMongo extends Auditable {
+public class MembershipMongo extends DeprecatedAuditable {
 
     @Id
     private String id;

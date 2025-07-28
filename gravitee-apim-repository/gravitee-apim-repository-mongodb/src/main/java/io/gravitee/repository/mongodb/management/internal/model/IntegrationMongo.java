@@ -32,7 +32,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @NoArgsConstructor
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}integrations")
-public class IntegrationMongo extends Auditable {
+public class IntegrationMongo extends DeprecatedAuditable {
 
     public enum AgentStatus {
         CONNECTED,

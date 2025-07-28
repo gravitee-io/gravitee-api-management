@@ -81,6 +81,7 @@ import org.junit.runners.Suite;
         TokenRepositoryTest.class,
         UserRepositoryTest.class,
         WorkflowRepositoryTest.class,
+        ClusterRepositoryTest.class,
     }
 )
 public class RepositoryTestSuite {}
