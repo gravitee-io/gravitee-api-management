@@ -41,6 +41,7 @@ import { ResourceTypeService } from '../../../../shared/components/form-json-sch
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
 import { getApiProtocolTypeFromApi } from '../../../../entities/management-api-v2/plugin/apiProtocolType';
+import { set } from 'lodash';
 
 @Component({
   selector: 'api-v4-policy-studio-design',
@@ -174,6 +175,18 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
   onSave(outputSave: SaveOutput) {
     const { commonFlows, plansToUpdate, flowExecution } = outputSave;
+
+    // TODO in ui-P or add an option for this no ?
+    // find all shared-policy-group-policy in flows and add Id in the configuration
+    commonFlows
+      .flatMap((flow) => flow.request)
+      .filter((plugin) => plugin.policy === 'shared-policy-group-policy')
+      .forEach((plugin) => {
+        if (plugin.configuration instanceof Object) {
+          set(plugin.configuration, 'id', this.activatedRoute.snapshot.params.apiId);
+        }
+        return plugin;
+      });
 
     const updates$: Observable<unknown>[] = [];
     if (commonFlows || flowExecution) {

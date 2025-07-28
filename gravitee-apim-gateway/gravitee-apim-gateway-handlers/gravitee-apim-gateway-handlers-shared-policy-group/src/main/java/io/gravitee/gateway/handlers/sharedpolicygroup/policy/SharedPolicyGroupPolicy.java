@@ -80,6 +80,7 @@ public class SharedPolicyGroupPolicy implements HttpPolicy {
             .ofNullable(
                 sharedPolicyGroupRegistry.get(
                     policyConfiguration.getSharedPolicyGroupId(),
+                    policyConfiguration.id,
                     ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)
                 )
             )
