@@ -69,7 +69,10 @@ public class PageRevisionCrudServiceImpl implements PageRevisionCrudService {
             byte[] digest = md.digest();
             pageRevision.setHash(Hex.encodeHexString(digest));
         } catch (NoSuchAlgorithmException e) {
-            throw new TechnicalManagementException(String.format("Unable to instantiate MessageDigest for page [%s, %s]", pageRevision.getName(), pageRevision.getPageId()), e);
+            throw new TechnicalManagementException(
+                String.format("Unable to instantiate MessageDigest for page [%s, %s]", pageRevision.getName(), pageRevision.getPageId()),
+                e
+            );
         }
     }
 
