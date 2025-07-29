@@ -2065,6 +2065,83 @@ public class UserServiceTest {
         verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ENVIRONMENT);
     }
 
+    @Test
+    public void shouldCreateUserWithGroupRolesWhenNoOrgDefaultRoles() throws Exception {
+        reset(identityProvider, userRepository, groupService, roleService, membershipService);
+        mockDefaultEnvironment();
+        // Group mapping
+        GroupMappingEntity mapping = new GroupMappingEntity();
+        mapping.setCondition("true");
+        mapping.setGroups(List.of("Group with roles"));
+        when(identityProvider.getGroupMappings()).thenReturn(List.of(mapping));
+        // No existing user
+        when(userRepository.findBySource(any(), any(), eq(ORGANIZATION))).thenReturn(Optional.empty());
+        when(identityProvider.getId()).thenReturn("oauth2");
+
+        User createdUser = mockUser();
+        when(userRepository.create(any())).thenReturn(createdUser);
+
+        // Mock group with overrides
+        GroupEntity group = new GroupEntity();
+        group.setId("group-1");
+        group.setRoles(Map.of(RoleScope.API, "API_OVERRIDE", RoleScope.APPLICATION, "APP_OVERRIDE"));
+        when(groupService.findById(EXECUTION_CONTEXT, "Group with roles")).thenReturn(group);
+
+        // No org default roles
+        when(roleService.findDefaultRoleByScopes(eq(ORGANIZATION), any())).thenReturn(Collections.emptyList());
+        // Membership update expectation
+        when(
+            membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(EXECUTION_CONTEXT),
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group-1")),
+                eq(new MembershipService.MembershipMember(createdUser.getId(), null, MembershipMemberType.USER)),
+                argThat(roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "API_OVERRIDE")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "APP_OVERRIDE"))
+                ),
+                eq("oauth2")
+            )
+        )
+            .thenReturn(List.of(mockMemberEntity()));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        verify(membershipService).updateRolesToMemberOnReferenceBySource(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void shouldNotAssignRolesWhenNoOrgOrGroupDefaultRoles() throws Exception {
+        reset(identityProvider, userRepository, groupService, roleService, membershipService);
+        mockDefaultEnvironment();
+        // Group mapping
+        GroupMappingEntity mapping = new GroupMappingEntity();
+        mapping.setCondition("true");
+        mapping.setGroups(List.of("Group without roles"));
+        when(identityProvider.getGroupMappings()).thenReturn(List.of(mapping));
+
+        // No existing user
+        when(userRepository.findBySource(any(), any(), eq(ORGANIZATION))).thenReturn(Optional.empty());
+        when(identityProvider.getId()).thenReturn("oauth2");
+
+        User createdUser = mockUser();
+        when(userRepository.create(any())).thenReturn(createdUser);
+
+        // Mock group with no roles
+        GroupEntity group = new GroupEntity();
+        group.setId("group-2");
+        group.setRoles(Collections.emptyMap());
+        when(groupService.findById(EXECUTION_CONTEXT, "Group without roles")).thenReturn(group);
+
+        // No org default roles
+        when(roleService.findDefaultRoleByScopes(eq(ORGANIZATION), any())).thenReturn(Collections.emptyList());
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+
+        // No memberships should be created
+        verify(membershipService, never()).updateRolesToMemberOnReferenceBySource(any(), any(), any(), any(), any());
+    }
+
     private void mockDefaultEnvironment() {
         Map<String, String> userProfileMapping = new HashMap<>();
         userProfileMapping.put(SocialIdentityProviderEntity.UserProfile.EMAIL, "email");
