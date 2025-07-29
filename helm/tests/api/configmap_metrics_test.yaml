@@ -8,10 +8,10 @@ tests:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: |
-           \s metrics:
-           \s   enabled: false
-           \s   prometheus:
-           \s     enabled: true
+            \s metrics:
+            \s   enabled: false
+            \s   prometheus:
+            \s     enabled: true
             \s     concurrencyLimit: 3
   - it: Enable metrics service and set `labels`
     template: api/api-configmap.yaml
