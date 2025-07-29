@@ -12,7 +12,7 @@ tests:
             \s   enabled: false
             \s   prometheus:
             \s     enabled: true
-            \s     concurrencyLimit
+            \s     concurrencyLimit: 3
   - it: Enable metrics service and set `labels`
     template: gateway/gateway-configmap.yaml
     set:
@@ -37,6 +37,7 @@ tests:
             \s   - remote
             \s   prometheus:
             \s     enabled: true
+            \s     concurrencyLimit: 3
 
   - it: Enable metrics service and don't set any `labels`
     template: gateway/gateway-configmap.yaml
@@ -56,4 +57,4 @@ tests:
             \s   enabled: true
             \s   prometheus:
             \s     enabled: true
-            \s     concurrencyLimit
+            \s     concurrencyLimit: 3

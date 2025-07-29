@@ -37,6 +37,7 @@ tests:
             \s   - remote
             \s   prometheus:
             \s     enabled: true
+            \s     concurrencyLimit: 3
 
   - it: Enable metrics service and don't set any `labels`
     template: api/api-configmap.yaml
@@ -56,4 +57,4 @@ tests:
             \s   enabled: true
             \s   prometheus:
             \s     enabled: true
-            \s     concurrencyLimit
+            \s     concurrencyLimit: 3
