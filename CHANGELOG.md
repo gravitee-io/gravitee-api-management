@@ -1,3 +1,10 @@
+## [1.6.3](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.2...1.6.3) (2025-07-29)
+
+
+### Bug Fixes
+
+* clientIdentifier validation for unauthorised error ([1d637f9](https://github.com/gravitee-io/gravitee-reporter-common/commit/1d637f95b18b9073678dd96a1279eb309ed729d6))
+
 ## [1.6.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.1...1.6.2) (2025-06-02)
 
 
