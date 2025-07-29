@@ -99,8 +99,7 @@ public interface ApiCRDAdapter {
         var plansMap = new HashMap<String, PlanCRD>();
         var nonClosedPlans = definition.getPlans().stream().filter(plan -> !plan.isClosed()).toList();
         for (var plan : nonClosedPlans) {
-            var key = plansMap.containsKey(plan.getName()) ? randomize(plan.getName()) : plan.getName();
-            plansMap.put(key, toCRDPlan(plan));
+            plansMap.put(plan.getHrid(), toCRDPlan(plan));
         }
         return plansMap;
     }
@@ -115,7 +114,7 @@ public interface ApiCRDAdapter {
     }
 
     default String pageKey(PageCRD page) {
-        return page.getName() == null ? page.getId() : page.getName();
+        return page.getHrid();
     }
 
     default Set<MemberCRD> mapMembers(ExportApiEntity definition) {

@@ -566,53 +566,6 @@ components:
               description:
                 The organization ID of the API.
               type: string
-
-    HttpError:
-      description: Error
-      type: object
-      properties:
-        httpStatus:
-          type: integer
-          format: int32
-          description: Error code
-          examples:
-            - 200
-            - 400
-        message:
-          type: string
-          description: Error message
-          examples:
-            - Bad request
-        technicalCode:
-          type: string
-          description: A technical code to identify the error
-          examples:
-            - invalid.import.definition
-        parameters:
-          type: object
-          description: A map of parameters to be used in the error message
-          additionalProperties:
-            type: string
-        details:
-          type: array
-          description: A list of details about the error
-          items:
-            type: object
-            properties:
-              message:
-                type: string
-                description: The error message
-                examples:
-                  - Bad request
-              location:
-                type: string
-                description: The json path of the field in error.
-                examples:
-                  - updateApi.properties[0].key
-              invalidValue:
-                type: string
-                description: The invalid value.
-
     ApplicationSpec:
       description: ApplicationSpec defines the desired state of Application.
       type: object
@@ -644,12 +597,6 @@ components:
           items:
             type: string
           type: array
-        status:
-          type: string
-          description: Application's status
-          enum:
-            - ACTIVE
-            - ARCHIVED
         pictureUrl:
           type: string
           description: Application's picture Url.
@@ -663,12 +610,6 @@ components:
         background:
           type: string
           description: Application's background.
-        origin:
-          type: string
-          description: The origin of the Application.
-          enum:
-            - kubernetes
-            - management
         primaryOwner:
           $ref: "#/components/schemas/PrimaryOwner"
         settings:
@@ -811,32 +752,6 @@ components:
                 The organization ID of the Subscription.
               type: string
 
-    Errors:
-      description: >-
-        When a resource has been created regardless of errors, this field
-        is used to persist the error message encountered during
-        admission
-      properties:
-        severe:
-          description: >-
-            severe errors do not pass admission and will block
-            reconcile hence, this field should always be populated during the admission
-            phase and is very unlikely to be persisted in the status
-          items:
-            type: string
-          type: array
-        warning:
-          description: >-
-            warning errors do not block object reconciliation,
-
-            most of the time because the value is ignored or
-            defaulted
-
-            when the resource gets synced with APIM
-          items:
-            type: string
-          type: array
-      type: object
     SharedPolicyGroupState:
       description: State of Shared Policy Groups that has been created/updated
       allOf:
@@ -1076,6 +991,7 @@ components:
     Visibility:
       type: string
       description: The visibility of the resource regarding the portal.
+      default: PUBLIC
       examples:
         - PUBLIC
       enum:
@@ -2142,6 +2058,78 @@ components:
         - STARTED
         - STOPPED
         - STOPPING
+    HttpError:
+      description: Error
+      type: object
+      properties:
+        httpStatus:
+          type: integer
+          format: int32
+          description: Error code
+          examples:
+            - 200
+            - 400
+        message:
+          type: string
+          description: Error message
+          examples:
+            - Bad request
+        technicalCode:
+          type: string
+          description: A technical code to identify the error
+          examples:
+            - invalid.import.definition
+        parameters:
+          type: object
+          description: A map of parameters to be used in the error message
+          additionalProperties:
+            type: string
+        details:
+          type: array
+          description: A list of details about the error
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                description: The error message
+                examples:
+                  - Bad request
+              location:
+                type: string
+                description: The json path of the field in error.
+                examples:
+                  - updateApi.properties[0].key
+              invalidValue:
+                type: string
+                description: The invalid value.
+
+    Errors:
+      description: >-
+        When a resource has been created regardless of errors, this field
+        is used to persist the error message encountered during
+        admission
+      properties:
+        severe:
+          description: >-
+            severe errors do not pass admission and will block
+            reconcile hence, this field should always be populated during the admission
+            phase and is very unlikely to be persisted in the status
+          items:
+            type: string
+          type: array
+        warning:
+          description: >-
+            warning errors do not block object reconciliation,
+
+            most of the time because the value is ignored or
+            defaulted
+
+            when the resource gets synced with APIM
+          items:
+            type: string
+          type: array
+      type: object
 
   responses:
     NotFound:

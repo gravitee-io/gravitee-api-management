@@ -42,6 +42,7 @@ import lombok.experimental.SuperBuilder;
 public class BasePlanEntity implements GenericPlanEntity {
 
     private String id;
+    private String hrid;
 
     @Builder.Default
     private DefinitionVersion definitionVersion = DefinitionVersion.V4;

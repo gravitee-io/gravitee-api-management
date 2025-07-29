@@ -25,6 +25,7 @@ import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
@@ -68,10 +69,14 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
-        if (input.settings().getApp() != null) {
-            return validateAndSanitizeSimpleSettings(input);
+        if (input.settings() != null) {
+            if (input.settings().getApp() != null) {
+                return validateAndSanitizeSimpleSettings(input);
+            }
+            return validateAndSanitizeOAuthSettings(input);
         }
-        return validateAndSanitizeOAuthSettings(input);
+        // default to empty simple app
+        return Result.ofValue(input.sanitized(ApplicationSettings.builder().app(new SimpleApplicationSettings()).build()));
     }
 
     private Result<Input> validateAndSanitizeSimpleSettings(Input input) {
