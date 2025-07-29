@@ -54,10 +54,10 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
     @Override
     public List<ApiQualityRuleEntity> findByApi(final String api) {
         try {
-            log.debug("Find quality rules by API");
+            log.debug("Find quality rules by API {}", api);
             return apiQualityRuleRepository.findByApi(api).stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to find quality rules by API", ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to find quality rules by API %s", api), ex);
         }
     }
 

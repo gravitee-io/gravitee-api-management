@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class CorsValidationServiceImpl extends TransactionalService implements CorsValidationService {
 
     private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$");
@@ -43,6 +45,7 @@ public class CorsValidationServiceImpl extends TransactionalService implements C
 
     @Override
     public Cors validateAndSanitize(Cors cors) {
+        log.debug("Check CORS Allow-origin format");
         if (cors != null) {
             final Set<String> accessControlAllowOrigin = cors.getAccessControlAllowOrigin();
             if (accessControlAllowOrigin != null && !accessControlAllowOrigin.isEmpty()) {

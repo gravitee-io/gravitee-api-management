@@ -101,7 +101,15 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
 
             return allMetadata;
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException(String.format("An error occurred while trying to find all metadata by REFERENCE. Reference id: %s, reference type: %s, env id: %s", referenceId, referenceType, environmentId), ex);
+            throw new TechnicalManagementException(
+                String.format(
+                    "An error occurred while trying to find all metadata by REFERENCE. Reference id: %s, reference type: %s, env id: %s",
+                    referenceId,
+                    referenceType,
+                    environmentId
+                ),
+                ex
+            );
         }
     }
 
