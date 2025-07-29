@@ -64,6 +64,7 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
     @Override
     public Result<VerifyApiPathDomainService.Input> validateAndSanitize(VerifyApiPathDomainService.Input input) {
+        log.debug("Format context-path and check if context path is unique for API {}", input.apiId);
         if (CollectionUtils.isEmpty(input.paths)) {
             return Result.ofErrors(List.of(Error.severe("HTTP listener requires a minimum of one path")));
         }

@@ -250,6 +250,7 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
 
     @Override
     public void updateApiCategories(String apiId, Set<String> categoryIds) {
+        log.debug("Updating API categories for API {}...", apiId);
         if (Objects.isNull(categoryIds)) {
             return;
         }

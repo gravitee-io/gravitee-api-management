@@ -162,7 +162,10 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 .map(this::convert)
                 .collect(toList());
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException(String.format("An error occurs while trying to find all header for environment id:%s", environmentId), e);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find all header for environment id:%s", environmentId),
+                e
+            );
         }
     }
 
