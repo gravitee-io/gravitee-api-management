@@ -53,7 +53,7 @@ public class PageCrudServiceImpl implements PageCrudService {
             return PageAdapter.INSTANCE.toEntity(updatedPage);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while updating page %s with id %s", pageToUpdate.getName(),pageToUpdate.getId()),
+                String.format("An error occurred while updating page %s with id %s", pageToUpdate.getName(), pageToUpdate.getId()),
                 e
             );
         }

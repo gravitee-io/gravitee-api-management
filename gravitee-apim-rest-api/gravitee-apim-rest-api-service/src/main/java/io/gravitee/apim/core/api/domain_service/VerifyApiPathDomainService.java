@@ -30,7 +30,6 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +64,7 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
     @Override
     public Result<VerifyApiPathDomainService.Input> validateAndSanitize(VerifyApiPathDomainService.Input input) {
+        log.debug("Format context-path and check if context path is unique for API {}", input.apiId);
         if (CollectionUtils.isEmpty(input.paths)) {
             return Result.ofErrors(List.of(Error.severe("HTTP listener requires a minimum of one path")));
         }
