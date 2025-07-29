@@ -181,6 +181,8 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                     .requestId("req1")
                                     .transactionId("transaction-id")
                                     .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .gatewayResponseTime(42)
+                                    .uri("/my-api")
                             )
                         )
                         .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L))
@@ -312,6 +314,8 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     .status(200)
                     .clientIdentifier("client-identifier")
                     .requestEnded(true)
+                    .gatewayResponseTime(42)
+                    .uri("/my-api")
                     .transactionId("transaction-id");
 
             assertThat(response)
@@ -366,6 +370,8 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     .clientIdentifier("client-identifier")
                     .requestEnded(true)
                     .transactionId("transaction-id")
+                    .gatewayResponseTime(42)
+                    .uri("/my-api")
                     .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC));
 
             assertThat(response)
@@ -409,6 +415,8 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     .clientIdentifier("client-identifier")
                     .requestEnded(true)
                     .transactionId("transaction-id")
+                    .gatewayResponseTime(42)
+                    .uri("/my-api")
                     .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC));
 
             assertThat(response)
@@ -460,6 +468,8 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                     .transactionId("transaction-id")
                                     .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
                                     .requestId("req2")
+                                    .gatewayResponseTime(42)
+                                    .uri("/my-api")
                             )
                         )
                         .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L))
@@ -505,6 +515,8 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                     .transactionId("transaction-id")
                                     .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
                                     .requestId("req2")
+                                    .gatewayResponseTime(42)
+                                    .uri("/my-api")
                             )
                         )
                         .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L))

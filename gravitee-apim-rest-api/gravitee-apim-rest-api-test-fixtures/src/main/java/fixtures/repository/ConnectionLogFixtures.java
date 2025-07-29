@@ -31,7 +31,9 @@ public class ConnectionLogFixtures {
         .method(HttpMethod.GET)
         .transactionId("transaction-id")
         .requestEnded(true)
-        .timestamp("2020-02-01T20:00:00.00Z");
+        .timestamp("2020-02-01T20:00:00.00Z")
+        .gatewayResponseTime(42)
+        .uri("/my-api");
 
     public ConnectionLogFixtures(String defaultApiId, String defaultApplicationId, String defaultPlanId) {
         BASE.apiId(defaultApiId).applicationId(defaultApplicationId).planId(defaultPlanId);
