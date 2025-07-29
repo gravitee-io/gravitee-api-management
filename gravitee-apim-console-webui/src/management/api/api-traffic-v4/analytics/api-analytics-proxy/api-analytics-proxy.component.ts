@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, OnInit } from '@angular/core';
+import { Component, DestroyRef } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { of, switchMap } from 'rxjs';
+import { catchError, filter, map, startWith } from 'rxjs/operators';
 
 import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
 import {
@@ -50,10 +50,10 @@ export const namesFormatted = {
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
 })
-export class ApiAnalyticsProxyComponent implements OnInit {
+export class ApiAnalyticsProxyComponent {
   private apiId = this.activatedRoute.snapshot.params.apiId;
 
-  public topApplicationsConfig: WidgetConfig = {
+  private topApplicationsConfig: WidgetConfig = {
     type: 'table',
     title: 'Top Applications',
     tooltip: 'Applications ranked by total API calls over time',
@@ -62,7 +62,34 @@ export class ApiAnalyticsProxyComponent implements OnInit {
     isLoading: true,
   };
 
-  public httpStatusRepartitionConfig: WidgetConfig = {
+  public topApplicationsConfig$ = this.apiAnalyticsV2Service.timeRangeFilter().pipe(
+    filter((val) => !!val),
+    switchMap((timeRangeParams) => {
+      return this.apiAnalyticsV2Service.getGroupBy(this.apiId, timeRangeParams, { field: this.topApplicationsConfig.groupByField }).pipe(
+        map((res) => {
+          const data: TableWidgetDataItem[] = Object.entries(res.metadata).reduce((acc, [id, metadataRecord]) => {
+            const dataItem: TableWidgetDataItem = {
+              id,
+              name: metadataRecord.name,
+              count: res.values[id],
+              isUnknown: !!metadataRecord.unknown,
+            };
+            return [...acc, dataItem];
+          }, []);
+
+          return { ...this.topApplicationsConfig, data, isLoading: false };
+        }),
+        startWith({ ...this.topApplicationsConfig, isLoading: true }),
+        catchError((error) => {
+          this.snackBarService.error(error.error.message);
+          return of({ ...this.topApplicationsConfig, isLoading: false, data: [] }); // toDo: handle error state more explicitly when design ready
+        }),
+      );
+    }),
+    takeUntilDestroyed(this.destroyRef),
+  );
+
+  private httpStatusRepartitionConfig: WidgetConfig = {
     type: 'pie',
     title: 'HTTP Status Repartition',
     tooltip: 'Displays the distribution of HTTP status codes returned by the API',
@@ -71,7 +98,42 @@ export class ApiAnalyticsProxyComponent implements OnInit {
     isLoading: true,
   };
 
-  public responseStatusOverTimeConfig: WidgetConfig = {
+  public httpStatusRepartitionConfig$ = this.apiAnalyticsV2Service.timeRangeFilter().pipe(
+    filter((val) => !!val),
+    switchMap((timeRangeParams) => {
+      const ranges = '100:199;200:299;300:399;400:499;500:599';
+      return this.apiAnalyticsV2Service
+        .getGroupBy(this.apiId, timeRangeParams, {
+          ranges,
+          field: this.httpStatusRepartitionConfig.groupByField,
+        })
+        .pipe(
+          map((res) => {
+            const data = Object.entries(res.values)
+              .filter(([, value]) => value > 0)
+              .map(([label, value]) => {
+                const index = +label.charAt(0) - 1;
+                return {
+                  label: labels[index],
+                  value: value as number,
+                  color: colors[index],
+                };
+              })
+              .sort((a, b) => a.label.localeCompare(b.label));
+
+            return { ...this.httpStatusRepartitionConfig, data, isLoading: false };
+          }),
+          startWith({ ...this.httpStatusRepartitionConfig, isLoading: true }),
+          catchError((error) => {
+            this.snackBarService.error(error.error.message);
+            return of({ ...this.httpStatusRepartitionConfig, isLoading: false, data: [] });
+          }),
+        );
+    }),
+    takeUntilDestroyed(this.destroyRef),
+  );
+
+  private responseStatusOverTimeConfig: WidgetConfig = {
     type: 'line',
     aggregations: [
       {
@@ -86,7 +148,31 @@ export class ApiAnalyticsProxyComponent implements OnInit {
     chartOptions: null,
   };
 
-  public responseTimeOverTime: WidgetConfig = {
+  public responseStatusOverTimeConfig$ = this.apiAnalyticsV2Service.timeRangeFilter().pipe(
+    filter((val) => !!val),
+    switchMap((timeRangeParams) => {
+      return this.apiAnalyticsV2Service
+        .getHistogramAnalytics(this.apiId, this.buildAggregationsParams(this.responseStatusOverTimeConfig.aggregations), timeRangeParams)
+        .pipe(
+          map((res) => {
+            const data: GioChartLineData[] = this.mapResponseToChartLineData(res).sort((a, b) => +a.name - +b.name);
+            const chartOptions = {
+              pointStart: res.timestamp.from,
+              pointInterval: res.timestamp.interval,
+            };
+            return { ...this.responseStatusOverTimeConfig, data, isLoading: false, chartOptions };
+          }),
+          startWith({ ...this.responseStatusOverTimeConfig, data: [], isLoading: true, chartOptions: null }),
+          catchError(({ error }) => {
+            this.snackBarService.error(error.message);
+            return of({ ...this.responseStatusOverTimeConfig, data: [], isLoading: false, chartOptions: null });
+          }),
+        );
+    }),
+    takeUntilDestroyed(this.destroyRef),
+  );
+
+  private responseTimeOverTimeConfig: WidgetConfig = {
     type: 'line',
     apiId: this.activatedRoute.snapshot.params.apiId,
     aggregations: [
@@ -106,6 +192,30 @@ export class ApiAnalyticsProxyComponent implements OnInit {
     chartOptions: null,
   };
 
+  public responseTimeOverTimeConfig$ = this.apiAnalyticsV2Service.timeRangeFilter().pipe(
+    filter((val) => !!val),
+    switchMap((timeRangeParams) => {
+      return this.apiAnalyticsV2Service
+        .getHistogramAnalytics(this.apiId, this.buildAggregationsParams(this.responseTimeOverTimeConfig.aggregations), timeRangeParams)
+        .pipe(
+          map((res) => {
+            const data = this.mapResponseToChartLineData(res);
+            const chartOptions = {
+              pointStart: res.timestamp.from,
+              pointInterval: res.timestamp.interval,
+            };
+            return { ...this.responseTimeOverTimeConfig, data, isLoading: false, chartOptions };
+          }),
+          startWith({ ...this.responseTimeOverTimeConfig, data: [], isLoading: true, chartOptions: null }),
+          catchError(({ error }) => {
+            this.snackBarService.error(error.message);
+            return of({ ...this.responseTimeOverTimeConfig, data: [], isLoading: false, chartOptions: null });
+          }),
+        );
+    }),
+    takeUntilDestroyed(this.destroyRef),
+  );
+
   constructor(
     private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service,
     private readonly destroyRef: DestroyRef,
@@ -113,125 +223,7 @@ export class ApiAnalyticsProxyComponent implements OnInit {
     private readonly activatedRoute: ActivatedRoute,
   ) {}
 
-  ngOnInit() {
-    // top applications
-    this.apiAnalyticsV2Service
-      .timeRangeFilter()
-      .pipe(
-        filter((val) => !!val),
-        switchMap((timeRangeParams) => {
-          this.topApplicationsConfig.isLoading = true;
-          return this.apiAnalyticsV2Service.getGroupBy(this.apiId, timeRangeParams, { field: this.topApplicationsConfig.groupByField });
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (res) => {
-          const data: TableWidgetDataItem[] = Object.entries(res.metadata).reduce((acc, [id, metadataRecord]) => {
-            const dataItem: TableWidgetDataItem = {
-              id,
-              name: metadataRecord.name,
-              count: res.values[id],
-              isUnknown: !!metadataRecord.unknown,
-            };
-            return [...acc, dataItem];
-          }, []);
-
-          this.topApplicationsConfig = { ...this.topApplicationsConfig, data, isLoading: false };
-        },
-        error: (error) => {
-          this.snackBarService.error(error.error.message);
-        },
-      });
-
-    // httpStatusRepartition
-    this.apiAnalyticsV2Service
-      .timeRangeFilter()
-      .pipe(
-        filter((val) => !!val),
-        switchMap((timeRangeParams) => {
-          this.httpStatusRepartitionConfig.isLoading = true;
-          const ranges = '100:199;200:299;300:399;400:499;500:599';
-          return this.apiAnalyticsV2Service.getGroupBy(this.apiId, timeRangeParams, {
-            ranges,
-            field: this.httpStatusRepartitionConfig.groupByField,
-          });
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (res) => {
-          const data = Object.entries(res.values)
-            .filter((data) => data[1] > 0)
-            .map(([label, value]) => {
-              return {
-                label: labels[+label.charAt(0) - 1],
-                value: value,
-                color: colors[+label.charAt(0) - 1],
-              };
-            })
-            .sort((a, b) => a.label.localeCompare(b.label));
-          this.httpStatusRepartitionConfig = { ...this.httpStatusRepartitionConfig, data, isLoading: false };
-        },
-        error: (error) => {
-          this.snackBarService.error(error.error.message);
-        },
-      });
-
-    // Response Status Over Time
-    this.apiAnalyticsV2Service
-      .timeRangeFilter()
-      .pipe(
-        filter((val) => !!val),
-        switchMap((timeRangeParams) => {
-          this.responseStatusOverTimeConfig = { ...this.responseStatusOverTimeConfig, data: [], isLoading: true, chartOptions: null };
-          const aggregationsParams = this.buildAggregationsParams(this.responseStatusOverTimeConfig.aggregations);
-          return this.apiAnalyticsV2Service.getHistogramAnalytics(this.apiId, aggregationsParams, timeRangeParams);
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (res) => {
-          const data = this.mapResponseToChartData(res).sort((a, b) => +a.name - +b.name);
-          const chartOptions = {
-            pointStart: res.timestamp.from,
-            pointInterval: res.timestamp.interval,
-          };
-          this.responseStatusOverTimeConfig = { ...this.responseStatusOverTimeConfig, data, isLoading: false, chartOptions };
-        },
-        error: ({ error }) => {
-          this.snackBarService.error(error.message);
-        },
-      });
-
-    // Response Time Over Time
-    this.apiAnalyticsV2Service
-      .timeRangeFilter()
-      .pipe(
-        filter((val) => !!val),
-        switchMap((timeRangeParams) => {
-          this.responseTimeOverTime = { ...this.responseTimeOverTime, data: [], isLoading: true, chartOptions: null };
-          const aggregationsParams = this.buildAggregationsParams(this.responseTimeOverTime.aggregations);
-          return this.apiAnalyticsV2Service.getHistogramAnalytics(this.apiId, aggregationsParams, timeRangeParams);
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (res) => {
-          const data = this.mapResponseToChartData(res);
-          const chartOptions = {
-            pointStart: res.timestamp.from,
-            pointInterval: res.timestamp.interval,
-          };
-          this.responseTimeOverTime = { ...this.responseTimeOverTime, data, isLoading: false, chartOptions };
-        },
-        error: ({ error }) => {
-          this.snackBarService.error(error.message);
-        },
-      });
-  }
-
-  private mapResponseToChartData(res: HistogramAnalyticsResponse): GioChartLineData[] {
+  private mapResponseToChartLineData(res: HistogramAnalyticsResponse): GioChartLineData[] {
     return res.values
       .reduce((acc: Bucket[], value): Bucket[] => {
         return [...acc, ...value.buckets];

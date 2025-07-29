@@ -20,13 +20,23 @@
 
   <div class="widgets">
     <div class="left-column">
-      <widget [config]="httpStatusRepartitionConfig" />
-      <widget [config]="responseStatusOverTimeConfig" />
-      <widget [config]="responseTimeOverTime" />
+      @if (httpStatusRepartitionConfig$ | async; as config) {
+        <widget [config]="config" />
+      }
+
+      @if (responseStatusOverTimeConfig$ | async; as config) {
+        <widget [config]="config"></widget>
+      }
+
+      @if (responseTimeOverTimeConfig$ | async; as config) {
+        <widget [config]="config" />
+      }
     </div>
 
     <div class="right-column">
-      <widget [config]="topApplicationsConfig" />
+      @if (topApplicationsConfig$ | async; as config) {
+        <widget [config]="config" />
+      }
     </div>
   </div>
 </div>
