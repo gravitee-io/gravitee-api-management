@@ -2860,6 +2860,30 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # NewAI
+    /environments/{envId}/apis/{apiId}/el/_generate:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      post:
+        tags:
+          - newtai
+        summary: Generate Expression Language
+        description: |-
+          Generate Expression Language.
+        operationId: generateEl
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateExpressionLanguage"
+          required: true
+        responses:
+          "200":
+            $ref: "#/components/responses/GenerateExpressionLanguageResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
     # DebugMode
     /environments/{envId}/apis/{apiId}/debug:
         parameters:
@@ -3711,6 +3735,16 @@ components:
                 order:
                     type: number
                     description: New order for the specified API
+
+        GenerateExpressionLanguage:
+          type: object
+          description: Request an expression language generation
+          required:
+            - message
+          properties:
+            message:
+              description: Prompt of generation.
+              type: string
 
         ApiDeployment:
             type: object
@@ -7970,6 +8004,17 @@ components:
             - MIGRATABLE
             - CAN_BE_FORCED
             - IMPOSSIBLE
+        
+        FeedbackRequestId:
+          description: newt AI feedback request id.
+          type: object
+          properties:
+            chatId:
+              type: string
+            userMessageId:
+              type: string
+            agentMessageId:
+              type: string
 
     parameters:
         #############
@@ -8988,6 +9033,19 @@ components:
                           type: string
                         state:
                           $ref: '#/components/schemas/MigrationStateType'
+
+        GenerateExpressionLanguageResponse:
+          description: Response an expression language generation
+          content:
+            application/json:
+              schema:
+                title: "GenerateExpressionLanguageResponse"
+                properties:
+                  message:
+                    description: Expression language generated.
+                    type: string
+                  feedbackRequestId:
+                    $ref: '#/components/schemas/FeedbackRequestId'
 
 
     securitySchemes:
