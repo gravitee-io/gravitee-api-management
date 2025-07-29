@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, input } from "@angular/core";
+import { Component, input } from '@angular/core';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -23,10 +23,9 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { PieChartWidgetComponent } from './components/pie-chart-widget/pie-chart-widget.component';
 import { TableWidgetComponent } from './components/table-widget/table-widget.component';
 
-import { GioChartPieModule } from "../gio-chart-pie/gio-chart-pie.module";
-import { WidgetConfig } from "../../../entities/management-api-v2/analytics/analytics";
-import { GioChartLineModule } from "../gio-chart-line/gio-chart-line.module";
-
+import { GioChartPieModule } from '../gio-chart-pie/gio-chart-pie.module';
+import { WidgetConfig } from '../../../entities/management-api-v2/analytics/analytics';
+import { GioChartLineModule } from '../gio-chart-line/gio-chart-line.module';
 
 @Component({
   selector: 'widget',
@@ -39,7 +38,7 @@ import { GioChartLineModule } from "../gio-chart-line/gio-chart-line.module";
     MatTooltip,
     MatIcon,
     TableWidgetComponent,
-    GioChartLineModule
+    GioChartLineModule,
   ],
   templateUrl: './widget.component.html',
   styleUrl: './widget.component.scss',

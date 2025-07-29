@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, input, OnChanges, SimpleChanges } from "@angular/core";
+import { Component, computed, input, Signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
-import { WidgetConfig } from "../../../../../entities/management-api-v2/analytics/analytics";
-import { GioChartPieModule } from "../../../gio-chart-pie/gio-chart-pie.module";
-import { GioChartPieInput } from "../../../gio-chart-pie/gio-chart-pie.component";
-
-
+import { WidgetConfig } from '../../../../../entities/management-api-v2/analytics/analytics';
+import { GioChartPieModule } from '../../../gio-chart-pie/gio-chart-pie.module';
+import { GioChartPieInput } from '../../../gio-chart-pie/gio-chart-pie.component';
 
 export const colors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
 export const labels = ['100-199', '200-299', '300-399', '400-499', '500-599'];
@@ -33,18 +31,14 @@ export const labels = ['100-199', '200-299', '300-399', '400-499', '500-599'];
   imports: [MatCardModule, GioLoaderModule, GioChartPieModule],
   templateUrl: './pie-chart-widget.component.html',
 })
-export class PieChartWidgetComponent implements OnChanges {
+export class PieChartWidgetComponent {
   public config = input<WidgetConfig>();
+  public chartInput: Signal<GioChartPieInput[]> = computed(() => this.config().data);
 
-  public chartInput: GioChartPieInput[];
-  public labelFormatter = function() {
+  public labelFormatter = function () {
     const value = this.point.y;
     return `<div style="text-align: center;">
             <div style="font-size: 14px; color: #666; font-weight: 700;">${value}</div>
           </div>`;
   };
-
-  ngOnChanges(changes: SimpleChanges) {
-    this.chartInput = changes.config.currentValue.data;
-  }
 }

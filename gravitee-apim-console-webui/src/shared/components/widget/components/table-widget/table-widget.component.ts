@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-import { Component, input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
+import { Component, computed, effect, input, OnInit, Signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { GioTableWrapperModule } from "../../../gio-table-wrapper/gio-table-wrapper.module";
-import { GioTableWrapperFilters } from "../../../gio-table-wrapper/gio-table-wrapper.component";
-import { gioTableFilterCollection } from "../../../gio-table-wrapper/gio-table-wrapper.util";
-import { WidgetConfig } from "../../../../../entities/management-api-v2/analytics/analytics";
-
+import { GioTableWrapperModule } from '../../../gio-table-wrapper/gio-table-wrapper.module';
+import { GioTableWrapperFilters } from '../../../gio-table-wrapper/gio-table-wrapper.component';
+import { gioTableFilterCollection } from '../../../gio-table-wrapper/gio-table-wrapper.util';
+import { WidgetConfig } from '../../../../../entities/management-api-v2/analytics/analytics';
 
 const tableConfig = {
   'application-id': {
@@ -48,13 +47,14 @@ export interface TableWidgetDataItem {
   templateUrl: './table-widget.component.html',
   styleUrl: './table-widget.component.scss',
 })
-export class TableWidgetComponent implements OnInit, OnChanges {
+export class TableWidgetComponent implements OnInit {
   public config = input<WidgetConfig>();
-
+  public data: Signal<TableWidgetDataItem[]> = computed(() => {
+    return this.config().data;
+  });
   public displayedColumns = ['name', 'count'];
   public nameLabel: string = '';
   public countLabel: string = '';
-  public data: TableWidgetDataItem[];
 
   public filteredTableData: TableWidgetDataItem[] = [];
   public tableFilters: GioTableWrapperFilters = {
@@ -69,11 +69,10 @@ export class TableWidgetComponent implements OnInit, OnChanges {
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-  ) {}
-
-  ngOnChanges(changes:SimpleChanges) {
-    this.data = changes.config.currentValue.data;
-    this.runFilters(this.tableFilters);
+  ) {
+    effect(() => {
+      this.runFilters(this.tableFilters);
+    });
   }
 
   ngOnInit() {
@@ -89,7 +88,7 @@ export class TableWidgetComponent implements OnInit, OnChanges {
   }
 
   runFilters(filters: GioTableWrapperFilters) {
-    const filtered = gioTableFilterCollection(this.data, filters);
+    const filtered = gioTableFilterCollection(this.data(), filters);
     this.filteredTableData = filtered.filteredCollection;
     this.totalLength = this.filteredTableData.length;
   }

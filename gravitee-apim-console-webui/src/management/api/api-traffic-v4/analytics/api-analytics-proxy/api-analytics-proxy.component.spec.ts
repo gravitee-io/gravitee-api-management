@@ -26,11 +26,7 @@ import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harnes
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
-import {
-  AggregationFields,
-  AggregationTypes,
-  HistogramAnalyticsResponse,
-} from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import { HistogramAnalyticsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
 import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
 import { GroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy';
 

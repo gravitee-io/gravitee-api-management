@@ -16,8 +16,8 @@
 import { AnalyticsHistogramAggregation } from './analyticsHistogram';
 import { GroupByField } from './analyticsGroupBy';
 
-import { TableWidgetDataItem } from "../../../shared/components/widget/components/table-widget/table-widget.component";
-import { GioChartLineOptions } from "../../../shared/components/gio-chart-line/gio-chart-line.component";
+import { TableWidgetDataItem } from '../../../shared/components/widget/components/table-widget/table-widget.component';
+import { GioChartLineOptions } from '../../../shared/components/gio-chart-line/gio-chart-line.component';
 
 export type WidgetType = 'line' | 'pie' | 'table';
 
@@ -28,8 +28,7 @@ export interface WidgetConfig {
   title: string;
   tooltip: string;
   groupByField?: GroupByField;
-  data?: TableWidgetDataItem[] | any,
+  data?: TableWidgetDataItem[] | any;
   chartOptions?: GioChartLineOptions;
-  isLoading?: boolean
+  isLoading?: boolean;
 }
-

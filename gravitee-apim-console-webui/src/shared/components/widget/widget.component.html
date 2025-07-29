@@ -19,16 +19,14 @@
 <mat-card class="card">
   <mat-card-header>
     <mat-card-title class="card__title"
-    >{{ config().title }}
-      <mat-icon [matTooltip]="config().tooltip" matTooltipPosition="after" svgIcon="gio:info"
-      />
+      >{{ config().title }}
+      <mat-icon [matTooltip]="config().tooltip" matTooltipPosition="after" svgIcon="gio:info" />
     </mat-card-title>
   </mat-card-header>
 
   @if (config().isLoading) {
     <gio-loader />
   } @else {
-
     @switch (config().type) {
       @case ('pie') {
         <div class="pie-chart">
@@ -48,6 +46,4 @@
       }
     }
   }
-
-
 </mat-card>

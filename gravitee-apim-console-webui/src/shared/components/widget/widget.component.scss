@@ -37,12 +37,10 @@ $foreground: map.get(gio.$mat-theme, foreground);
   }
 }
 
-.line-chart {
+.line-chart, .pie-chart {
   border-top: 1px solid mat.m2-get-color-from-palette($foreground, divider);
 }
 
 .pie-chart {
-  border-top: 1px solid mat.m2-get-color-from-palette($foreground, divider);
   padding: 16px;
 }
-
