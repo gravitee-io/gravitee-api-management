@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model.api.header;
 
+import java.util.Objects;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import java.util.Objects;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
