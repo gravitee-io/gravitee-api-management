@@ -71,8 +71,8 @@ type ApplicationFormType = FormGroup<{
 
 function mapToApplicationInput(rawValue): ApplicationInput {
   const result = rawValue as ApplicationInput;
-  if (rawValue.oauth !== undefined) {
-    result.settings.oauth.additional_client_metadata = rawValue.oauth.additionalClientMetadata.reduce((acc, { key, value }) => {
+  if (rawValue.settings.oauth) {
+    result.settings.oauth.additional_client_metadata = rawValue.settings.oauth.additionalClientMetadata.reduce((acc, { key, value }) => {
       acc[key] = value;
       return acc;
     }, {});
