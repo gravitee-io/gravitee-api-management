@@ -13,17 +13,88 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
+import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { tap } from 'rxjs/operators';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { GioFormFocusInvalidModule, GioFormJsonSchemaModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+
+import securityJsonSchema from './security-schema-form.json';
+
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ClustersService } from '../../../../services-ngx/clusters.service';
+import { Cluster, UpdateCluster } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'cluster-configuration',
   templateUrl: './cluster-configuration.component.html',
   styleUrls: ['./cluster-configuration.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatCardModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    GioSaveBarModule,
+    GioFormFocusInvalidModule,
+    MatSnackBarModule,
+    GioFormJsonSchemaModule,
+  ],
 })
-export class ClusterConfigurationComponent {
-  // Simple empty component as requested
+export class ClusterConfigurationComponent implements OnInit {
+  public initialCluster: Cluster;
+  public configForm: UntypedFormGroup;
+  public isLoadingData = true;
+  public isReadOnly = false;
+  public initialConfigFormValue: unknown;
+  public securityJsonSchema = securityJsonSchema as unknown;
+
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly clustersService = inject(ClustersService);
+  private readonly snackBarService = inject(SnackBarService);
+
+  public ngOnInit() {
+    this.isLoadingData = true;
+    this.clustersService
+      .get(this.activatedRoute.snapshot.params.clusterId)
+      .pipe(
+        tap((cluster) => {
+          this.initialCluster = cluster;
+          this.isLoadingData = false;
+
+          this.configForm = new UntypedFormGroup({
+            bootstrapServers: new UntypedFormControl({ value: cluster.bootstrapServer, disabled: this.isReadOnly }, [Validators.required]),
+            security: new UntypedFormControl({ value: cluster.security, disabled: this.isReadOnly }),
+          });
+
+          this.initialConfigFormValue = this.configForm.getRawValue();
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  onSubmit() {
+    const configToUpdate: UpdateCluster = {
+      ...this.initialCluster,
+      bootstrapServer: this.configForm.get('bootstrapServers').value,
+      security: this.configForm.get('security').value,
+    };
+
+    this.clustersService
+      .update(this.initialCluster.id, configToUpdate)
+      .pipe(
+        tap(() => this.snackBarService.success('Cluster configuration successfully updated!')),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 }

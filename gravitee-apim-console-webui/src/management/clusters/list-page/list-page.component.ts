@@ -25,7 +25,7 @@ import { BehaviorSubject, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, map, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
-import { isEqual } from 'lodash';
+import { get, isEqual } from 'lodash';
 import { RouterLink } from '@angular/router';
 
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -108,7 +108,7 @@ export class ClustersListPageComponent implements OnInit {
             id: cluster.id,
             name: cluster.name,
             bootstrapServer: cluster.bootstrapServer,
-            security: cluster.security,
+            security: get(cluster, 'security.protocol', 'PLAINTEXT') as string,
             updatedAt: cluster.updatedAt,
           }));
 

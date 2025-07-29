@@ -17,12 +17,8 @@
 }
 
 .configuration-card {
-  &__title {
-    margin-top: 0;
-    margin-bottom: 16px;
-  }
-
-  &__description {
-    margin-bottom: 0;
+  &__field {
+    width: 100%;
+    margin-bottom: 8px;
   }
 }

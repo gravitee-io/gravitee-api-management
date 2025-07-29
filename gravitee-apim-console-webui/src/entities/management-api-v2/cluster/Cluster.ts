@@ -18,7 +18,7 @@ export interface Cluster {
   name: string;
   description?: string;
   bootstrapServer: string;
-  security: string;
+  security: unknown;
   updatedAt: Date;
   createdAt: Date;
 }

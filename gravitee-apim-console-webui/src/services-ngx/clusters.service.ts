@@ -28,7 +28,7 @@ export class ClustersService {
       id: 'clusterId',
       name: 'Production Cluster',
       bootstrapServer: 'kafka-prod.example.com:9092',
-      security: 'SSL',
+      security: { protocol: 'SSL' },
       updatedAt: new Date('2023-01-15'),
       createdAt: new Date('2022-12-01'),
     },
@@ -36,7 +36,7 @@ export class ClustersService {
       id: '2',
       name: 'Development Cluster',
       bootstrapServer: 'kafka-dev.example.com:9092',
-      security: 'SASL_PLAINTEXT',
+      security: { protocol: 'SASL_PLAINTEXT' },
       updatedAt: new Date('2023-02-20'),
       createdAt: new Date('2022-11-15'),
     },
@@ -44,7 +44,7 @@ export class ClustersService {
       id: '3',
       name: 'Testing Cluster',
       bootstrapServer: 'kafka-test.example.com:9092',
-      security: 'PLAINTEXT',
+      security: { protocol: 'PLAINTEXT' },
       updatedAt: new Date('2023-03-10'),
       createdAt: new Date('2022-10-05'),
     },
@@ -52,7 +52,7 @@ export class ClustersService {
       id: '4',
       name: 'Staging Cluster',
       bootstrapServer: 'kafka-staging.example.com:9092',
-      security: 'SASL_SSL',
+      security: { protocol: 'SASL_SSL' },
       updatedAt: new Date('2023-04-05'),
       createdAt: new Date('2022-09-20'),
     },
@@ -64,10 +64,7 @@ export class ClustersService {
     if (searchQuery) {
       const lowerCaseQuery = searchQuery.toLowerCase();
       filteredClusters = this.fakeClusters.filter(
-        (cluster) =>
-          cluster.name.toLowerCase().includes(lowerCaseQuery) ||
-          cluster.bootstrapServer.toLowerCase().includes(lowerCaseQuery) ||
-          cluster.security.toLowerCase().includes(lowerCaseQuery),
+        (cluster) => cluster.name.toLowerCase().includes(lowerCaseQuery) || cluster.bootstrapServer.toLowerCase().includes(lowerCaseQuery),
       );
     }
 
