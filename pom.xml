@@ -22,7 +22,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>22.3.0</version>
+        <version>22.5.1</version>
     </parent>
 
     <groupId>io.gravitee.reporter</groupId>
@@ -34,7 +34,7 @@
     <properties>
         <gravitee-bom.version>8.2.22</gravitee-bom.version>
         <gravitee-apim.version>4.8.2</gravitee-apim.version>
-        <gravitee-reporter-common.version>1.6.2</gravitee-reporter-common.version>
+        <gravitee-reporter-common.version>1.6.3</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>6.2.0</gravitee-common-elasticsearch.version>
         <gravitee-node-api.version>4.8.7</gravitee-node-api.version>
 
