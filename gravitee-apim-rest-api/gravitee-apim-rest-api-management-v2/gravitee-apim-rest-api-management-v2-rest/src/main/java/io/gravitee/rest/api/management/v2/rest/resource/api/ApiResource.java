@@ -20,6 +20,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
@@ -540,6 +541,7 @@ public class ApiResource extends AbstractResource {
         var userDetails = getAuthenticatedUserDetails();
         var input = new ExportApiCRDUseCase.Input(
             apiId,
+            IDExportStrategy.GUID,
             AuditInfo
                 .builder()
                 .organizationId(executionContext.getOrganizationId())
@@ -579,7 +581,6 @@ public class ApiResource extends AbstractResource {
         final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
 
         GenericApiEntity duplicate;
-        var definitionVersion = currentEntity.getDefinitionVersion();
 
         return switch (currentEntity.getDefinitionVersion()) {
             case V1 -> Response
