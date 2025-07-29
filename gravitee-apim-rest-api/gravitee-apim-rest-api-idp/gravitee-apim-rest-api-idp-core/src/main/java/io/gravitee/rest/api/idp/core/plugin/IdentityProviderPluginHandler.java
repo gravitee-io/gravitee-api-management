@@ -20,8 +20,7 @@ import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
 import io.gravitee.plugin.core.api.PluginHandler;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.Assert;
@@ -31,9 +30,8 @@ import org.springframework.util.Assert;
  * @author GraviteeSource Team
  */
 @Import(IdentityProviderPluginConfiguration.class)
+@Slf4j
 public class IdentityProviderPluginHandler implements PluginHandler {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderPluginHandler.class);
 
     private static final String PLUGIN_TYPE = "identity_provider";
 
@@ -54,14 +52,14 @@ public class IdentityProviderPluginHandler implements PluginHandler {
             ClassLoader classloader = pluginClassLoaderFactory.getOrCreateClassLoader(plugin, this.getClass().getClassLoader());
 
             final Class<?> identityProviderClass = classloader.loadClass(plugin.clazz());
-            LOGGER.info("Register a new identity provider plugin: {} [{}]", plugin.id(), plugin.clazz());
+            log.info("Register a new identity provider plugin: {} [{}]", plugin.id(), plugin.clazz());
 
             Assert.isAssignable(IdentityProvider.class, identityProviderClass);
 
             IdentityProvider identityIdentityProvider = createInstance((Class<IdentityProvider>) identityProviderClass);
             identityProviderManager.register(new IdentityProviderDefinition(identityIdentityProvider, plugin));
         } catch (Exception iae) {
-            LOGGER.error("Unexpected error while create identity provider instance", iae);
+            log.error("Unexpected error while create identity provider instance", iae);
         }
     }
 
@@ -69,7 +67,7 @@ public class IdentityProviderPluginHandler implements PluginHandler {
         try {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            LOGGER.error("Unable to instantiate class: {}", clazz, ex);
+            log.error("Unable to instantiate class: {}", clazz);
             throw ex;
         }
     }
