@@ -16,7 +16,6 @@
 package io.gravitee.apim.rest.api.automation;
 
 import io.gravitee.apim.rest.api.automation.exception.mapping.HRIDNotFoundMapper;
-import io.gravitee.apim.rest.api.automation.exception.mapping.ManagementExceptionMapper;
 import io.gravitee.apim.rest.api.automation.exception.mapping.ValidationDomainMapper;
 import io.gravitee.apim.rest.api.automation.resource.ApisResource;
 import io.gravitee.apim.rest.api.automation.resource.ApplicationsResource;
@@ -26,6 +25,11 @@ import io.gravitee.apim.rest.api.automation.resource.OpenAPIResource;
 import io.gravitee.apim.rest.api.automation.resource.OrganizationResource;
 import io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupsResource;
 import io.gravitee.apim.rest.api.automation.resource.SubscriptionsResource;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.BadRequestExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ConstraintValidationExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.JsonMappingExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ManagementExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.NotAllowedExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import jakarta.inject.Inject;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -52,6 +56,11 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(ValidationDomainMapper.class);
         register(HRIDNotFoundMapper.class);
         register(ManagementExceptionMapper.class);
+        register(ConstraintValidationExceptionMapper.class);
+        register(BadRequestExceptionMapper.class);
+        register(ConstraintValidationExceptionMapper.class);
+        register(JsonMappingExceptionMapper.class);
+        register(NotAllowedExceptionMapper.class);
 
         register(ObjectMapperResolver.class);
 

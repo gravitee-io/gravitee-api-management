@@ -109,6 +109,9 @@ public class UpdateApplicationEntity {
     @Setter
     private String background;
 
+    @Setter
+    private String status;
+
     public void setName(String name) {
         this.name = HtmlSanitizer.sanitize(name);
     }
