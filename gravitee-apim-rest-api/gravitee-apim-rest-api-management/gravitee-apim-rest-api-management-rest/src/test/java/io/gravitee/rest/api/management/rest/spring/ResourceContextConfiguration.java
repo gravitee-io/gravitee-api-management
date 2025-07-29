@@ -46,6 +46,7 @@ import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
@@ -62,10 +63,10 @@ import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
-import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -919,5 +920,15 @@ public class ResourceContextConfiguration {
     @Bean
     public SearchClusterUseCase searchClusterUseCase() {
         return mock(SearchClusterUseCase.class);
+    }
+
+    @Bean
+    public NewtAIProvider newtAIProvider() {
+        return mock(NewtAIProvider.class);
+    }
+
+    @Bean
+    public ApimProductInfo apimProductInfo() {
+        return mock(ApimProductInfo.class);
     }
 }

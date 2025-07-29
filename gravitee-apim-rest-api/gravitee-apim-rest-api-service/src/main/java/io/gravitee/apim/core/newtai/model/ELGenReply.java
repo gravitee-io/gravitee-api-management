@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.utils;
+package io.gravitee.apim.core.newtai.model;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.jspecify.annotations.Nullable;
+public interface ELGenReply {
+    String message();
+    FeedbackId feedbackId();
 
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class StringUtils {
-
-    public static boolean isEmpty(@Nullable CharSequence cs) {
-        return cs == null || cs.isEmpty();
-    }
-
-    public static boolean isNotEmpty(@Nullable CharSequence cs) {
-        return !isEmpty(cs);
+    interface FeedbackId {
+        String chatId();
+        String userMessageId();
+        String agentMessageId();
     }
 }

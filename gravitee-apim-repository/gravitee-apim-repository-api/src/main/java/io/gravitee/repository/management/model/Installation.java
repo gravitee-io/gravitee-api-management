@@ -59,8 +59,9 @@ public class Installation {
         return id;
     }
 
-    public void setId(String id) {
+    public Installation setId(String id) {
         this.id = id;
+        return this;
     }
 
     public Map<String, String> getAdditionalInformation() {

@@ -344,7 +344,7 @@
             <scope>test</scope>
         </dependency>
 
-		<!--  -->
+		<!-- Test -->
 		<dependency>
 			<groupId>io.gravitee.apim.rest.api</groupId>
 			<artifactId>gravitee-apim-rest-api-test-fixtures</artifactId>
@@ -376,6 +376,17 @@
 			<artifactId>wiremock-standalone</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-junit5-rx-java3</artifactId>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 

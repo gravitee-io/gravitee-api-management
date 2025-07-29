@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.utils;
+package io.gravitee.apim.core.newtai.exception;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.jspecify.annotations.Nullable;
+import lombok.Getter;
 
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class StringUtils {
+public class NewtAIReplyException extends RuntimeException {
 
-    public static boolean isEmpty(@Nullable CharSequence cs) {
-        return cs == null || cs.isEmpty();
+    @Getter
+    private final String commandId;
+
+    public NewtAIReplyException(String commandId, String message) {
+        super(message);
+        this.commandId = commandId;
     }
 
-    public static boolean isNotEmpty(@Nullable CharSequence cs) {
-        return !isEmpty(cs);
+    public NewtAIReplyException(String commandId, String message, Throwable cause) {
+        super(message, cause);
+        this.commandId = commandId;
     }
 }

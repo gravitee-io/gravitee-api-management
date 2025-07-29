@@ -13,24 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.utils;
+package io.gravitee.apim.core.newtai.service_provider;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.jspecify.annotations.Nullable;
+import io.gravitee.apim.core.newtai.model.ELGenQuery;
+import io.gravitee.apim.core.newtai.model.ELGenReply;
+import io.reactivex.rxjava3.core.Single;
 
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class StringUtils {
-
-    public static boolean isEmpty(@Nullable CharSequence cs) {
-        return cs == null || cs.isEmpty();
-    }
-
-    public static boolean isNotEmpty(@Nullable CharSequence cs) {
-        return !isEmpty(cs);
-    }
+public interface NewtAIProvider {
+    Single<ELGenReply> generateEL(ELGenQuery query);
 }
