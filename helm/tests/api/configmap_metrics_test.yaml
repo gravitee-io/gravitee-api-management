@@ -12,6 +12,7 @@ tests:
            \s   enabled: false
            \s   prometheus:
            \s     enabled: true
+            \s     concurrencyLimit: 3
   - it: Enable metrics service and set `labels`
     template: api/api-configmap.yaml
     set:
@@ -24,6 +25,7 @@ tests:
               - remote
             prometheus:
               enabled: true
+              concurrencyLimit: 3
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
@@ -45,6 +47,7 @@ tests:
             enabled: true
             prometheus:
               enabled: true
+              concurrencyLimit: 3
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
@@ -53,3 +56,4 @@ tests:
             \s   enabled: true
             \s   prometheus:
             \s     enabled: true
+            \s     concurrencyLimit
