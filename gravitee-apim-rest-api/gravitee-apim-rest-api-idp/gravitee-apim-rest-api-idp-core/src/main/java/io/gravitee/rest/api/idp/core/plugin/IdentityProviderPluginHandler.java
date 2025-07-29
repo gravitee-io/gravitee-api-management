@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  */
 @Slf4j
 @Import(IdentityProviderPluginConfiguration.class)
+@Slf4j
 public class IdentityProviderPluginHandler implements PluginHandler {
 
     private static final String PLUGIN_TYPE = "identity_provider";
@@ -68,10 +69,14 @@ public class IdentityProviderPluginHandler implements PluginHandler {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
 <<<<<<< HEAD
+<<<<<<< HEAD
             log.error("Unable to instantiate class: {}", ex);
 =======
             LOGGER.error("Unable to instantiate class: {}", clazz, ex);
 >>>>>>> 05f96a3fd7 (chore(logs): Fixed basics issues on Optional and the number of parameters for a log)
+=======
+            log.error("Unable to instantiate class: {}", clazz);
+>>>>>>> bcb8dd5b41 (chore(logs): Improving logs)
             throw ex;
         }
     }
