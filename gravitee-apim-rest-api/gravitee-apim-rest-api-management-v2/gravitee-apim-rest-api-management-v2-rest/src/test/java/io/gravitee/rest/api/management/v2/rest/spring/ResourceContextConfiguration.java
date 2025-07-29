@@ -19,7 +19,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fakes.FakePolicyValidationDomainService;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
@@ -56,6 +55,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
+import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
@@ -82,6 +82,7 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
@@ -773,5 +774,15 @@ public class ResourceContextConfiguration {
     @Bean
     public SearchClusterUseCase searchClusterUseCase() {
         return mock(SearchClusterUseCase.class);
+    }
+
+    @Bean
+    public NewtAIProvider newtAIProvider() {
+        return mock(NewtAIProvider.class);
+    }
+
+    @Bean
+    public ApimProductInfo apimProductInfo() {
+        return mock(ApimProductInfo.class);
     }
 }

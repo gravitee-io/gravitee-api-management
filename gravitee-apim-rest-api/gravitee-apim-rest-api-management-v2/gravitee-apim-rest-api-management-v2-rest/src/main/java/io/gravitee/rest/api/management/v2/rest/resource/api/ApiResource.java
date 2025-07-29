@@ -244,6 +244,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiPlansResource.class);
     }
 
+    @Path("/el")
+    public ApiNewtAIResource getApiNewtAIResource() {
+        return resourceContext.getResource(ApiNewtAIResource.class);
+    }
+
     @Path("/subscriptions")
     public ApiSubscriptionsResource getApiSubscriptionsResource() {
         return resourceContext.getResource(ApiSubscriptionsResource.class);
