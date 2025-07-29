@@ -87,6 +87,8 @@ public class SearchApiV4ConnectionLogsUseCase {
             .requestEnded(connectionLog.isRequestEnded())
             .transactionId(connectionLog.getTransactionId())
             .status(connectionLog.getStatus())
+            .gatewayResponseTime(connectionLog.getGatewayResponseTime())
+            .uri(connectionLog.getUri())
             .build();
     }
 

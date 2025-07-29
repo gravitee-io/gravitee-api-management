@@ -6550,6 +6550,14 @@ components:
                     type: boolean
                     description: The flag indicating if the request has ended.
                     example: true
+                gatewayResponseTime:
+                  type: integer
+                  description: The response time in ms
+                  example: 12
+                uri:
+                  type: string
+                  description: URI of the request.
+                  example: /my-api
         ApiMessageLog:
             type: object
             properties:
