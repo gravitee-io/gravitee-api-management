@@ -1,0 +1,44 @@
+// Fixed sizing for delete icons to prevent resizing at different screen resolutions
+ng-md-icon[icon='delete'] {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  flex-shrink: 0 !important;
+
+  svg {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+  }
+}
+
+// Also fix other action icons for consistency
+ng-md-icon[icon='link'],
+ng-md-icon[icon='archive'],
+ng-md-icon[icon='check_box_outline_blank'],
+ng-md-icon[icon='cloud_queue'],
+ng-md-icon[icon='check_box'],
+ng-md-icon[icon='cloud_done'] {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  flex-shrink: 0 !important;
+
+  svg {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+  }
+}

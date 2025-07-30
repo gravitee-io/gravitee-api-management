@@ -56,3 +56,11 @@
 .no-pointer {
   cursor: initial;
 }
+
+// Override Material Design icon button size using ::ng-deep to penetrate view encapsulation
+:host ::ng-deep .mat-mdc-icon-button.mat-mdc-button-base {
+  --mdc-icon-button-state-layer-size: 15% !important;
+  width: var(--mdc-icon-button-state-layer-size) !important;
+  height: var(--mdc-icon-button-state-layer-size) !important;
+  padding: 12px !important;
+}

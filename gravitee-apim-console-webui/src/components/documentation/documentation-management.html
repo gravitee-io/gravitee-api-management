@@ -138,7 +138,7 @@
                   icon="delete"
                   ng-if="!$ctrl.readOnly"
                   ng-click="$ctrl.remove(translation)"
-                  style="font-size: 24px; height: 24px"
+                  size="20"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
@@ -269,7 +269,7 @@
                 <ng-md-icon
                   icon="link"
                   ng-click="$ctrl.createShortCut(page)"
-                  style="font-size: 24px; height: 24px"
+                  size="20"
                   ng-if="!$ctrl.readOnly &&  $ctrl.canCreateShortCut(page.id, page.type)"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
@@ -282,7 +282,7 @@
                   icon="archive"
                   ng-click="$ctrl.moveToFolder(page)"
                   ng-disabled="true"
-                  style="font-size: 24px; height: 24px"
+                  size="20"
                   ng-if="!$ctrl.readOnly && page.type !== 'folder'"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
@@ -295,7 +295,7 @@
                   ng-if="!$ctrl.readOnly && !page.published && !$ctrl.isLink(page.type)"
                   icon="{{$ctrl.isMarkdownTemplate(page.type) ? 'check_box_outline_blank' : 'cloud_queue'}}"
                   ng-click="$ctrl.togglePublish(page)"
-                  style="font-size: 24px; height: 24px"
+                  size="20"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
@@ -307,7 +307,7 @@
                   ng-if="!$ctrl.readOnly && page.published && !$ctrl.isLink(page.type)"
                   icon="{{$ctrl.isMarkdownTemplate(page.type) ? 'check_box' : 'cloud_done'}}"
                   ng-click="$ctrl.togglePublish(page)"
-                  style="font-size: 24px; height: 24px"
+                  size="20"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
@@ -343,7 +343,7 @@
                   ng-if="!$ctrl.readOnly"
                   icon="delete"
                   ng-click="$ctrl.remove(page)"
-                  style="font-size: 24px; height: 24px"
+                  size="20"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
