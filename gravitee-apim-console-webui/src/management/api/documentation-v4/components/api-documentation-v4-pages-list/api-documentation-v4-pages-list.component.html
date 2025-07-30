@@ -89,13 +89,13 @@
       </td>
     </ng-container>
     <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td mat-cell *matCellDef="let page; let i = index">
+      <th mat-header-cell class="documentation-pages-list__table__actions__header" *matHeaderCellDef>Actions</th>
+      <td mat-cell class="documentation-pages-list__table__actions__cell" *matCellDef="let page; let i = index">
         <div class="documentation-pages-list__table__actions">
           <ng-container *gioPermission="{ anyOf: ['api-documentation-u'] }">
             <ng-container *ngIf="page.type === 'FOLDER'">
               <button
-                mat-icon-button
+                mat-button
                 [disabled]="isReadOnly"
                 (click)="onEditFolder.emit(page)"
                 aria-label="Edit folder"
@@ -107,18 +107,12 @@
             </ng-container>
 
             <ng-container *ngIf="page.type !== 'FOLDER'">
-              <button
-                mat-icon-button
-                (click)="onEditPage.emit(page.id)"
-                [disabled]="isReadOnly"
-                aria-label="Edit page"
-                matTooltip="Edit page"
-              >
+              <button mat-button (click)="onEditPage.emit(page.id)" [disabled]="isReadOnly" aria-label="Edit page" matTooltip="Edit page">
                 <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
               </button>
               <ng-container *ngIf="!page.published">
                 <button
-                  mat-icon-button
+                  mat-button
                   (click)="onPublishPage.emit(page.id)"
                   [disabled]="isReadOnly"
                   matTooltip="Publish page"
@@ -130,7 +124,7 @@
                 <button
                   (click)="onUnpublishPage.emit(page.id)"
                   [disabled]="page.generalConditions || isReadOnly"
-                  mat-icon-button
+                  mat-button
                   [matTooltip]="page.generalConditions ? 'Cannot unpublish if used as General Conditions' : 'Unpublish page'"
                   aria-label="Unpublish page"
                 >
@@ -143,7 +137,7 @@
             <div *ngIf="page.type === 'FOLDER'"></div>
             @if (mode == 'PAGE_LIST') {
               <button
-                mat-icon-button
+                mat-button
                 (click)="onMoveUp.emit(page)"
                 [disabled]="i === 0 || page.order === 0 || isReadOnly"
                 aria-label="Move page up"
@@ -152,7 +146,7 @@
                 <mat-icon svgIcon="gio:arrow-up"></mat-icon>
               </button>
               <button
-                mat-icon-button
+                mat-button
                 (click)="onMoveDown.emit(page)"
                 [disabled]="i === dataSource.data.length - 1 || isReadOnly"
                 aria-label="Move page down"
@@ -164,7 +158,7 @@
           </ng-container>
 
           <button
-            mat-icon-button
+            mat-button
             *gioPermission="{ anyOf: ['api-documentation-d'] }"
             (click)="onDeletePage.emit(page)"
             [disabled]="page.generalConditions || isReadOnly"
