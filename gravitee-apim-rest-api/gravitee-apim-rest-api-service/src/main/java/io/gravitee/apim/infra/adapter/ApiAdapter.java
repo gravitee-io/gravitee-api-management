@@ -165,7 +165,7 @@ public interface ApiAdapter {
     default <T> T deserialize(io.gravitee.repository.management.model.Api api, Class<T> clazz) {
         if (api.getDefinition() == null) {
             log.debug(
-                "The API definition is null for api id {}.This can happen when filtering the definition using ApiFieldFilter",
+                "The API definition is null for api id {}. This can happen when filtering the definition using ApiFieldFilter",
                 api.getId()
             );
             return null;

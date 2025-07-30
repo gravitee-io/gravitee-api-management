@@ -251,7 +251,71 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 for (Map.Entry<String, String> property : auditEntity.getProperties().entrySet()) {
                     metadataKey = new StringJoiner(":").add(property.getKey()).add(property.getValue()).add("name").toString();
                     if (!metadata.containsKey(metadataKey)) {
+<<<<<<< HEAD
                         name = getName(property.getKey(), property.getValue(), executionContext, auditEntity);
+=======
+                        name = property.getValue();
+                        try {
+                            switch (Audit.AuditProperties.valueOf(property.getKey())) {
+                                case API:
+                                    Optional<Api> optApi = apiRepository.findById(property.getValue());
+                                    if (optApi.isPresent()) {
+                                        name = optApi.get().getName();
+                                    }
+                                    break;
+                                case APPLICATION:
+                                    Optional<Application> optApp = applicationRepository.findById(property.getValue());
+                                    if (optApp.isPresent()) {
+                                        name = optApp.get().getName();
+                                    }
+                                    break;
+                                case PAGE:
+                                    Optional<io.gravitee.repository.management.model.Page> optPage = pageRepository.findById(
+                                        property.getValue()
+                                    );
+                                    if (optPage.isPresent()) {
+                                        name = optPage.get().getName();
+                                    }
+                                    break;
+                                case PLAN:
+                                    Optional<Plan> optPlan = planRepository.findById(property.getValue());
+                                    if (optPlan.isPresent()) {
+                                        name = optPlan.get().getName();
+                                    }
+                                    break;
+                                case METADATA:
+                                    MetadataReferenceType refType = MetadataReferenceType.parse(auditEntity.getReferenceType().name());
+                                    Optional<Metadata> optMetadata = metadataRepository.findById(
+                                        property.getValue(),
+                                        auditEntity.getReferenceId(),
+                                        refType
+                                    );
+                                    if (optMetadata.isPresent()) {
+                                        name = optMetadata.get().getName();
+                                    }
+                                    break;
+                                case GROUP:
+                                    Optional<Group> optGroup = groupRepository.findById(property.getValue());
+                                    if (optGroup.isPresent()) {
+                                        name = optGroup.get().getName();
+                                    }
+                                    break;
+                                case USER:
+                                    try {
+                                        UserEntity user = userService.findById(executionContext, property.getValue());
+                                        name = user.getDisplayName();
+                                    } catch (UserNotFoundException unfe) {
+                                        name = property.getValue();
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                        } catch (TechnicalException e) {
+                            log.error("Error finding metadata {}", metadataKey);
+                            name = property.getValue();
+                        }
+>>>>>>> 479e3b275d (chore(logs): Improving logs 2)
                         metadata.put(metadataKey, name);
                     }
                 }
@@ -451,6 +515,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             auditRepository.create(audit);
         } catch (TechnicalException e) {
 <<<<<<< HEAD
+<<<<<<< HEAD
             log.error("Error occurs during the creation of an Audit Log {}.", e);
 =======
             LOGGER.error(
@@ -459,6 +524,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 audit.getOrganizationId(),
                 audit.getEnvironmentId(),
                 audit.getUser(),
+=======
+            log.error(
+                "Error occurs during the creation of an Audit Log. Reference {}/{}",
+                audit.getReferenceType(),
+                audit.getReferenceId(),
+>>>>>>> 479e3b275d (chore(logs): Improving logs 2)
                 e
             );
 >>>>>>> 05f96a3fd7 (chore(logs): Fixed basics issues on Optional and the number of parameters for a log)

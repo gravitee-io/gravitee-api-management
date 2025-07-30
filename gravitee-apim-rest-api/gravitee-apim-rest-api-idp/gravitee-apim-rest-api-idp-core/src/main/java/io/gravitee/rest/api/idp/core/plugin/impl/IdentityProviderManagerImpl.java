@@ -25,6 +25,7 @@ import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
 import io.gravitee.rest.api.idp.core.authentication.impl.CompositeIdentityManager;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderDefinition;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
+<<<<<<< HEAD
 import io.gravitee.secrets.api.core.Secret;
 import jakarta.annotation.Nonnull;
 import java.util.Arrays;
@@ -34,6 +35,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+=======
+import java.util.*;
+import javax.annotation.Nonnull;
+>>>>>>> 479e3b275d (chore(logs): Improving logs 2)
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,8 +103,12 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         if (identityProvider != null) {
             return create(identityProviderPlugins.get(identityProvider), identityProvider.authenticationProvider(), properties);
         } else {
+<<<<<<< HEAD
             log.error("No identity provider is registered for type {}", identityProviderType);
             throw new IllegalStateException("No identity provider is registered for type " + identityProviderType);
+=======
+            throw new IllegalStateException(String.format("No identity provider is registered for type %s", identityProviderType));
+>>>>>>> 479e3b275d (chore(logs): Improving logs 2)
         }
     }
 
@@ -110,8 +119,12 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         if (identityProvider != null) {
             return create(identityProviderPlugins.get(identityProvider), identityProvider.identityLookup(), properties);
         } else {
+<<<<<<< HEAD
             log.error("No identity provider is registered for type {}", identityProviderType);
             throw new IllegalStateException("No identity provider is registered for type " + identityProviderType);
+=======
+            throw new IllegalStateException(String.format("No identity provider is registered for type %s", identityProviderType));
+>>>>>>> 479e3b275d (chore(logs): Improving logs 2)
         }
     }
 
@@ -179,10 +192,14 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
 <<<<<<< HEAD
+<<<<<<< HEAD
             log.error("Unable to instantiate class: {}", ex);
 =======
             LOGGER.error("Unable to instantiate class: {}", clazz, ex);
 >>>>>>> 05f96a3fd7 (chore(logs): Fixed basics issues on Optional and the number of parameters for a log)
+=======
+            log.error("Unable to instantiate class: {}", clazz);
+>>>>>>> 479e3b275d (chore(logs): Improving logs 2)
             throw ex;
         }
     }

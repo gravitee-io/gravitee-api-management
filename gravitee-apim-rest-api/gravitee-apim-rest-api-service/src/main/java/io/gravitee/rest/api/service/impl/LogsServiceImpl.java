@@ -177,8 +177,7 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            log.error("Unable to retrieve logs: ", ae);
-            throw new TechnicalManagementException("Unable to retrieve logs", ae);
+            throw new TechnicalManagementException(String.format("Unable to retrieve logs for API %s", api), ae);
         }
     }
 
@@ -206,10 +205,9 @@ public class LogsServiceImpl implements LogsService {
             }
             return toApiRequest(executionContext, log);
         } catch (AnalyticsException ae) {
-            log.error("Unable to retrieve log: " + id, ae);
-            throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);
+            throw new TechnicalManagementException(String.format("Unable to retrieve log: %s", id), ae);
         } catch (ApiNotFoundException anfe) {
-            log.warn("Requested log [" + id + "] is not attached to environment [" + executionContext.getEnvironmentId() + "]", anfe);
+            log.warn("Requested log [{}] is not attached to environment [{}]", id, executionContext.getEnvironmentId(), anfe);
             throw new LogNotFoundException(id);
         }
     }
@@ -267,7 +265,6 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -326,7 +323,6 @@ public class LogsServiceImpl implements LogsService {
 
             return logResponse;
         } catch (AnalyticsException ae) {
-            log.error("Unable to retrieve logs: ", ae);
             throw new TechnicalManagementException("Unable to retrieve logs", ae);
         }
     }
@@ -346,11 +342,10 @@ public class LogsServiceImpl implements LogsService {
 
             return toApplicationRequest(executionContext, extendedLog);
         } catch (AnalyticsException ae) {
-            log.error("Unable to retrieve log: " + id, ae);
             if (ae.getMessage().equals("Request [" + id + "] does not exist")) {
                 throw new LogNotFoundException(id);
             }
-            throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);
+            throw new TechnicalManagementException(String.format("Unable to retrieve log: %s", id), ae);
         }
     }
 
