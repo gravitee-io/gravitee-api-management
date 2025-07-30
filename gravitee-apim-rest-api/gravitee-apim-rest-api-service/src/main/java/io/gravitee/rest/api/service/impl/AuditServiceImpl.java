@@ -443,6 +443,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         Object oldValue,
         Object newValue
     ) {
+        log.debug("Create audit log for reference: {}", referenceId);
         Audit audit = new Audit();
         audit.setId(UuidString.generateRandom());
         audit.setOrganizationId(executionContext.getOrganizationId());
