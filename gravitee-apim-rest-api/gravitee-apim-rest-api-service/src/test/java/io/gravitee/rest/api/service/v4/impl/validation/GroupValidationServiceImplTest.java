@@ -84,6 +84,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             null,
             groups,
+            null,
             new PrimaryOwnerEntity(new UserEntity()),
             true
         );
@@ -110,6 +111,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             null,
             groups,
+            null,
             new PrimaryOwnerEntity(new UserEntity()),
             false
         );
@@ -142,6 +144,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             null,
             groups,
+            null,
             new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL),
             true
         );
@@ -172,6 +175,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             null,
             groups,
+            null,
             new PrimaryOwnerEntity(new UserEntity()),
             true
         );
@@ -209,6 +213,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
+            null,
             new PrimaryOwnerEntity(new UserEntity()),
             true
         );
@@ -247,6 +252,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
+            null,
             new PrimaryOwnerEntity(new UserEntity()),
             true
         );
@@ -284,6 +290,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
+            null,
             new PrimaryOwnerEntity(new UserEntity()),
             true
         );
@@ -322,6 +329,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
+            null,
             new PrimaryOwnerEntity(new UserEntity()),
             true
         );
@@ -363,6 +371,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
+            null,
             new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL),
             true
         );
@@ -387,6 +396,7 @@ public class GroupValidationServiceImplTest {
                     GraviteeContext.getExecutionContext(),
                     null,
                     groups,
+                    null,
                     new PrimaryOwnerEntity(new UserEntity()),
                     true
                 )
@@ -401,6 +411,7 @@ public class GroupValidationServiceImplTest {
             null,
             emptyGroups,
             null,
+            null,
             true
         );
         Assertions.assertThat(validatedGroups).isEmpty();
@@ -408,14 +419,19 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnNull() {
+    public void shouldReturnExistingGroupsWhenGroupsIsNull() {
+        Set<String> existingGroups = Set.of("existing1", "existing2");
+
         Set<String> validatedGroups = groupValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
             null,
             null,
+            existingGroups,
             null,
             false
         );
-        assertThat(validatedGroups).isNull();
+
+        assertThat(validatedGroups).isNotNull();
+        assertThat(validatedGroups).isEqualTo(existingGroups);
     }
 }
