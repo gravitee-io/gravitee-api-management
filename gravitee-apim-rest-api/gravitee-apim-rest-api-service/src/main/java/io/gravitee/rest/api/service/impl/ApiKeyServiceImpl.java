@@ -151,7 +151,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             throw new TechnicalManagementException("Invalid plan security.");
         }
         try {
-            log.debug("Renew API Key for subscription {}", subscription.getId());
+            log.debug("Renew API Key for subscription {}", subscription);
 
             ApiKey newApiKey = generateForSubscription(executionContext, subscription, customApiKey);
             newApiKey = apiKeyRepository.create(newApiKey);
@@ -270,7 +270,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 apiKeyRepository.addSubscription(apiKeyEntity.getId(), subscription.getId()).orElseThrow(ApiKeyNotFoundException::new)
             );
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurred while trying to a add subscription to API Key" + apiKeyEntity);
+            throw new TechnicalManagementException(String.format("An error occurred while trying to a add subscription to API Key %s", apiKeyEntity), e);
         }
     }
 
@@ -357,7 +357,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             ApiKey key = apiKeyRepository.findById(apiKeyEntity.getId()).orElseThrow(ApiKeyNotFoundException::new);
 
-            log.debug("Reactivate API Key id {}", apiKeyEntity.getId());
+            log.debug("Reactivate API Key {}", apiKeyEntity);
 
             if (!key.isRevoked() && !convert(executionContext, key).isExpired()) {
                 throw new ApiKeyAlreadyActivatedException();
@@ -413,7 +413,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public List<ApiKeyEntity> findByKey(ExecutionContext executionContext, String apiKey) {
         try {
-            log.debug("Find API Keys by key");
+            log.debug("Find API Keys by key: {}", apiKey);
             return apiKeyRepository.findByKey(apiKey).stream().map(apiKey1 -> convert(executionContext, apiKey1)).collect(toList());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(String.format("An error occurs while finding API Keys with id %s", apiKey), e);
@@ -496,7 +496,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public ApiKeyEntity update(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity) {
         try {
-            log.debug("Update API Key with id {}", apiKeyEntity.getId());
+            log.debug("Update API Key {}", apiKeyEntity);
             ApiKey key = apiKeyRepository.findById(apiKeyEntity.getId()).orElseThrow(ApiKeyNotFoundException::new);
 
             checkApiKeyExpired(executionContext, key);
@@ -509,7 +509,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             return convert(executionContext, key);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while updating an API Key with id %s", apiKeyEntity.getId()),
+                String.format("An error occurs while updating an API Key %s", apiKeyEntity),
                 ex
             );
         }
@@ -529,12 +529,12 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             log.debug("API key with id {} successfully retrieved", apiKeyEntity.getId());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                String.format("An error occurred while retrieving the API key with id %s", apiKeyEntity.getId()),
+                String.format("An error occurred while retrieving the API key %s", apiKeyEntity),
                 ex
             );
         }
 
-        log.debug("Setting daysToExpirationOnLastNotification to {} for API key with id {}", value, apiKey.getId());
+        log.debug("Setting daysToExpirationOnLastNotification to {} for API key {}", value, apiKey);
         apiKey.setDaysToExpirationOnLastNotification(value);
 
         try {
@@ -542,7 +542,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             return convert(executionContext, apiKeyRepository.update(apiKey));
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
-                String.format("An error occurred while updating the API key with id %s and adding %s days", apiKey.getId(), value),
+                String.format("An error occurred while updating the API key %s and adding %s days", apiKey.getId(), value),
                 ex
             );
         }

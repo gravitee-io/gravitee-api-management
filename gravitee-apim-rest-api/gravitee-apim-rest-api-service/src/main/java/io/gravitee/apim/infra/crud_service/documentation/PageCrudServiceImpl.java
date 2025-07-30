@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.Collection;
 import java.util.Optional;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class PageCrudServiceImpl implements PageCrudService {
             return PageAdapter.INSTANCE.toEntity(updatedPage);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while updating page %s with id %s", pageToUpdate.getName(), pageToUpdate.getId()),
+                String.format("An error occurred while updating page %s.", pageToUpdate),
                 e
             );
         }
@@ -69,7 +70,7 @@ public class PageCrudServiceImpl implements PageCrudService {
         try {
             return pageRepository.findById(id).map(PageAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
-            log.error("An error occurred while finding Page by id {}", id, e);
+            log.error("An error occurred while trying to find Page by id {}", id, e);
         }
         return Optional.empty();
     }
@@ -79,7 +80,7 @@ public class PageCrudServiceImpl implements PageCrudService {
         try {
             pageRepository.delete(id);
         } catch (TechnicalException e) {
-            throw new ApiPageNotDeletedException(String.format("An error occurred while deleting Page by id %s", id), e);
+            throw new ApiPageNotDeletedException(String.format("An error occurred while trying to delete Page by id %s", id), e);
         }
     }
 
@@ -88,10 +89,7 @@ public class PageCrudServiceImpl implements PageCrudService {
         try {
             pageRepository.unsetHomepage(ids);
         } catch (TechnicalException e) {
-            throw new ApiPageInvalidReferenceTypeException(
-                ids.iterator().next(),
-                String.format("An error occurred while unsetting homepage for Page ids %s: %s", ids, e.getMessage())
-            );
+            throw new TechnicalManagementException(String.format("An error occurred while trying to unset homepage for Page ids %s", ids), e);
         }
     }
 

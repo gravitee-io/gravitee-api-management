@@ -25,6 +25,7 @@ import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
 import io.gravitee.rest.api.idp.core.authentication.impl.CompositeIdentityManager;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderDefinition;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
+<<<<<<< HEAD
 import io.gravitee.secrets.api.core.Secret;
 import jakarta.annotation.Nonnull;
 import java.util.Arrays;
@@ -36,6 +37,11 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+=======
+import java.util.*;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+>>>>>>> 479e3b275d (chore(logs): Improving logs 2)
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -52,9 +58,8 @@ import org.springframework.core.env.StandardEnvironment;
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class IdentityProviderManagerImpl implements IdentityProviderManager {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderManagerImpl.class);
 
     private final Map<String, IdentityProvider> identityProviders = new HashMap<>();
     private final Map<IdentityProvider, Plugin> identityProviderPlugins = new HashMap<>();
@@ -94,26 +99,24 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
     }
 
     private AuthenticationProvider authenticationProvider(String identityProviderType, Map<String, Object> properties) {
-        LOGGER.debug("Looking for an authentication provider for [{}]", identityProviderType);
+        log.debug("Looking for an authentication provider for [{}]", identityProviderType);
         IdentityProvider identityProvider = identityProviders.get(identityProviderType);
 
         if (identityProvider != null) {
             return create(identityProviderPlugins.get(identityProvider), identityProvider.authenticationProvider(), properties);
         } else {
-            LOGGER.error("No identity provider is registered for type {}", identityProviderType);
-            throw new IllegalStateException("No identity provider is registered for type " + identityProviderType);
+            throw new IllegalStateException(String.format("No identity provider is registered for type %s", identityProviderType));
         }
     }
 
     private IdentityLookup identityLookup(String identityProviderType, Map<String, Object> properties) {
-        LOGGER.debug("Looking for an identity lookup for [{}]", identityProviderType);
+        log.debug("Looking for an identity lookup for [{}]", identityProviderType);
         IdentityProvider identityProvider = identityProviders.get(identityProviderType);
 
         if (identityProvider != null) {
             return create(identityProviderPlugins.get(identityProvider), identityProvider.identityLookup(), properties);
         } else {
-            LOGGER.error("No identity provider is registered for type {}", identityProviderType);
-            throw new IllegalStateException("No identity provider is registered for type " + identityProviderType);
+            throw new IllegalStateException(String.format("No identity provider is registered for type %s", identityProviderType));
         }
     }
 
@@ -171,7 +174,7 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
 
             return identityObj;
         } catch (Exception ex) {
-            LOGGER.error("An unexpected error occurs while loading identity provider", ex);
+            log.error("An unexpected error occurs while loading identity provider", ex);
             return null;
         }
     }
@@ -180,7 +183,7 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         try {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
-            LOGGER.error("Unable to instantiate class: {}", clazz, ex);
+            log.error("Unable to instantiate class: {}", clazz);
             throw ex;
         }
     }
