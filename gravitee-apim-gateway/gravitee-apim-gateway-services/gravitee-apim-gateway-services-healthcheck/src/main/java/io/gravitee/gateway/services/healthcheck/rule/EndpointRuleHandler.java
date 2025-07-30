@@ -413,6 +413,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                 .property(PROP_MESSAGE, endpointStatus.getSteps().get(0).getMessage())
                 .organization(rule.api().getOrganizationId())
                 .environment(rule.api().getEnvironmentId())
+                .installation((String) node.metadata().get(Node.META_INSTALLATION))
                 .build();
             alertEventProducer.send(event);
         }
