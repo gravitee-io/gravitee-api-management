@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
@@ -35,9 +35,12 @@ import {
 } from '../components/api-analytics-widget/api-analytics-widget.component';
 import { ApiAnalyticsWidgetService } from '../api-analytics-widget.service';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
+import { Stats, StatsField } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
 
 type WidgetDisplayConfig = {
   title: string;
+  statsKey?: Stats;
+  statsUnit?: string;
   tooltip: string;
   shouldSortBuckets?: boolean;
   type: ApiAnalyticsWidgetType;
@@ -51,9 +54,10 @@ interface Range {
 
 type WidgetDataConfig = {
   apiId: string;
-  analyticsType: 'GROUP_BY' | 'HISTOGRAM';
+  analyticsType: 'STATS' | 'GROUP_BY' | 'HISTOGRAM';
   aggregations?: AnalyticsHistogramAggregation[];
   groupByField?: GroupByField;
+  statsField?: StatsField;
   ranges?: Range[];
 };
 
@@ -73,11 +77,70 @@ export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetData
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
 })
-export class ApiAnalyticsProxyComponent implements OnInit {
+export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
+  private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
+
+  public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public rightColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
 
-  private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
+  private topRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
+    {
+      type: 'stats',
+      apiId: this.apiId,
+      title: 'Total Requests',
+      statsKey: 'count',
+      statsUnit: '',
+      tooltip: '',
+      shouldSortBuckets: false,
+      statsField: 'gateway-response-time-ms',
+      analyticsType: 'STATS',
+    },
+    {
+      type: 'stats',
+      apiId: this.apiId,
+      title: 'Min Latency',
+      statsKey: 'min',
+      statsUnit: 'ms',
+      tooltip: '',
+      shouldSortBuckets: false,
+      statsField: 'gateway-response-time-ms',
+      analyticsType: 'STATS',
+    },
+    {
+      type: 'stats',
+      apiId: this.apiId,
+      title: 'Max Latency',
+      statsKey: 'max',
+      statsUnit: 'ms',
+      tooltip: '',
+      shouldSortBuckets: false,
+      statsField: 'gateway-response-time-ms',
+      analyticsType: 'STATS',
+    },
+    {
+      type: 'stats',
+      apiId: this.apiId,
+      title: 'Average',
+      statsKey: 'avg',
+      statsUnit: 'ms',
+      tooltip: '',
+      shouldSortBuckets: false,
+      statsField: 'gateway-response-time-ms',
+      analyticsType: 'STATS',
+    },
+    {
+      type: 'stats',
+      apiId: this.apiId,
+      title: 'RPS',
+      statsKey: 'rps',
+      statsUnit: '',
+      tooltip: '',
+      shouldSortBuckets: false,
+      statsField: 'gateway-response-time-ms',
+      analyticsType: 'STATS',
+    },
+  ];
 
   private leftColumnWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
     {
@@ -129,6 +192,20 @@ export class ApiAnalyticsProxyComponent implements OnInit {
       shouldSortBuckets: false,
       analyticsType: 'HISTOGRAM',
     },
+    {
+      type: 'line',
+      apiId: this.apiId,
+      title: 'Hits By Application',
+      tooltip: 'Hits repartition by application',
+      shouldSortBuckets: false,
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: AggregationTypes.FIELD,
+          field: AggregationFields.APPLICATION_ID,
+        },
+      ],
+    },
   ];
 
   private rightColumnWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
@@ -167,6 +244,10 @@ export class ApiAnalyticsProxyComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.topRowTransformed$ = this.topRowWidgets.map((widgetConfig) => {
+      return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
+    });
+
     this.leftColumnTransformed$ = this.leftColumnWidgets.map((widgetConfig) => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
@@ -174,5 +255,9 @@ export class ApiAnalyticsProxyComponent implements OnInit {
     this.rightColumnTransformed$ = this.rightColumnWidgets.map((widgetConfig) => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
+  }
+
+  ngOnDestroy(): void {
+    this.apiAnalyticsWidgetService.clearStatsCache();
   }
 }

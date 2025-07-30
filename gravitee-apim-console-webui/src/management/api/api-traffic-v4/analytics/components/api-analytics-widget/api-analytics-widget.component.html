@@ -19,6 +19,11 @@
   <div [ngClass]="config().widgetType" gioWidgetLayoutChart>
     @if (config().state === 'success') {
       @switch (config().widgetType) {
+        @case ('stats') {
+          <div>
+            <analytics-stats [input]="statsData()" />
+          </div>
+        }
         @case ('pie') {
           <div>
             <gio-chart-pie [input]="pieData()" [showLegend]="true" [labelFormatter]="pieChartLabelFormatter" height="auto" />

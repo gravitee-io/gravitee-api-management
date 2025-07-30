@@ -15,8 +15,7 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, switchMap } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { BehaviorSubject, Observable, switchMap, filter } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { AnalyticsRequestsCount } from '../entities/management-api-v2/analytics/analyticsRequestsCount';
@@ -28,9 +27,10 @@ import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
 import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
 import { HistogramAnalyticsResponse } from '../entities/management-api-v2/analytics/analyticsHistogram';
 import { GroupByField, GroupByResponse } from '../entities/management-api-v2/analytics/analyticsGroupBy';
+import { AnalyticsStatsResponse, StatsField } from '../entities/management-api-v2/analytics/analyticsStats';
 
 interface UrlParamsData {
-  field?: GroupByField;
+  field?: GroupByField | StatsField;
   order?: string;
   ranges?: string;
 }
@@ -110,8 +110,13 @@ export class ApiAnalyticsV2Service {
   }
 
   getGroupBy(apiId: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlParamsData = {}) {
-    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=GROUP_BY&interval=${interval}&from=${from}&to=${to}${this.buildUrlParams({ ...urlParamsData })}`;
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=GROUP_BY&from=${from}&to=${to}&interval=${interval}${this.buildUrlParams({ ...urlParamsData })}`;
     return this.http.get<GroupByResponse>(url);
+  }
+
+  getStats(apiId: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlParamsData = {}) {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=STATS&from=${from}&to=${to}&interval=${interval}${this.buildUrlParams({ ...urlParamsData })}`;
+    return this.http.get<AnalyticsStatsResponse>(url);
   }
 
   buildUrlParams(params: UrlParamsData) {

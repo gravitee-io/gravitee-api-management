@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,7 +43,8 @@ public class SearchRequestsCountByEventAnalyticsUseCase {
         var countQuery = new AnalyticsQueryService.CountQuery(
             AnalyticsQueryService.SearchTermId.forApi(input.apiId),
             Instant.ofEpochMilli(input.from()),
-            Instant.ofEpochMilli(input.to())
+            Instant.ofEpochMilli(input.to()),
+            input.query()
         );
 
         var result = analyticsQueryService
@@ -52,7 +54,7 @@ public class SearchRequestsCountByEventAnalyticsUseCase {
         return new SearchRequestsCountByEventAnalyticsUseCase.Output(result);
     }
 
-    public record Input(String apiId, long from, long to) {}
+    public record Input(String apiId, long from, long to, Optional<String> query) {}
 
     public record Output(RequestsCount result) {}
 }

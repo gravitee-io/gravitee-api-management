@@ -1,11 +1,11 @@
 /*
- * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,8 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.model.analytics;
 
-import java.util.Optional;
+import { AnalyticsStatsResponse } from './analyticsStats';
 
-public record RequestsCountByEventQuery(SearchTermId searchTermId, TimeRange timeRange, Optional<String> query) {}
+export const fakeAnalyticsStatsResponse = (modifier?: Partial<AnalyticsStatsResponse>): AnalyticsStatsResponse => {
+  const base: AnalyticsStatsResponse = {
+    count: 100,
+    min: 11,
+    max: 12,
+    avg: 13,
+    sum: 14,
+    rps: 15,
+    rpm: 16,
+    rph: 17,
+  };
+
+  return {
+    ...base,
+    ...modifier,
+  };
+};

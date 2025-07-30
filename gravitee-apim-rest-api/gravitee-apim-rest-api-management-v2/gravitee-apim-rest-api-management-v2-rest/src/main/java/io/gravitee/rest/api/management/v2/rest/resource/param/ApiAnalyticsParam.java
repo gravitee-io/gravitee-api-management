@@ -166,7 +166,12 @@ public class ApiAnalyticsParam {
 
     public io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input toRequestsCountInput(String apiId) {
         ApiAnalyticsParamSpecification.forCount().throwIfNotSatisfied(this);
-        return new io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input(apiId, getFrom(), getTo());
+        return new io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input(
+            apiId,
+            getFrom(),
+            getTo(),
+            ofNullable(getQuery())
+        );
     }
 
     @Getter

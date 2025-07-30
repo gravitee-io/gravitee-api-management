@@ -28,6 +28,7 @@ import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
+import io.vertx.core.json.JsonObject;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,8 @@ public class SearchRequestsCountByEventQueryAdapterTest {
     void shouldAdaptQueryWithAllFields() throws Exception {
         var query = new RequestsCountByEventQuery(
             new SearchTermId(SearchTermId.SearchTerm.API, "api-123"),
-            new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L))
+            new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L)),
+            Optional.empty()
         );
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
         assertNotNull(result);
@@ -73,5 +75,37 @@ public class SearchRequestsCountByEventQueryAdapterTest {
     void shouldReturnEmptyWhenSearchResponseIsNull() {
         Optional<CountByAggregate> result = SearchRequestsCountByEventQueryAdapter.adaptResponse(null);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldIncludeQueryStringIfPresent() throws Exception {
+        String queryString = "status:200 AND method:GET";
+        var query = new RequestsCountByEventQuery(
+            new SearchTermId(SearchTermId.SearchTerm.API, "api-123"),
+            new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L)),
+            Optional.of(queryString)
+        );
+
+        String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
+        assertNotNull(result);
+
+        var json = new JsonObject(result);
+
+        assertEquals(0, json.getInteger("size"));
+
+        var boolQuery = json.getJsonObject("query").getJsonObject("bool");
+        var mustArray = boolQuery.getJsonArray("must");
+
+        assertEquals(3, mustArray.size());
+        JsonObject termEntry = mustArray.stream().map(JsonObject.class::cast).filter(o -> o.containsKey("term")).findFirst().orElseThrow();
+        JsonObject queryEntry = mustArray
+            .stream()
+            .map(JsonObject.class::cast)
+            .filter(o -> o.containsKey("query_string"))
+            .findFirst()
+            .orElseThrow();
+
+        assertEquals("api-123", termEntry.getJsonObject("term").getString("api-id"));
+        assertEquals(queryString, queryEntry.getJsonObject("query_string").getString("query"));
     }
 }

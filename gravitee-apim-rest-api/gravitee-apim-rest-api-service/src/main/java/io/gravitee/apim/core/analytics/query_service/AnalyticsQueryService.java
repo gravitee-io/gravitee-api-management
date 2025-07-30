@@ -103,7 +103,7 @@ public interface AnalyticsQueryService {
 
     Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query);
 
-    record CountQuery(SearchTermId searchTermId, Instant from, Instant to) {}
+    record CountQuery(SearchTermId searchTermId, Instant from, Instant to, Optional<String> query) {}
 
     record HistogramQuery(
         SearchTermId searchTermId,
