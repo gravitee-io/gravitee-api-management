@@ -21,6 +21,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.alert.api.event.Event;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
@@ -29,9 +30,13 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.reporter.api.health.EndpointStatus;
+import java.util.Map;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -47,6 +52,9 @@ class HealthCheckManagedEndpointTest {
     public static final String ENDPOINT_NAME = "endpoint_name";
     public static final long TIMESTAMP = System.currentTimeMillis();
     public static final String DEFAULT_STEP = "defaut";
+
+    @Captor
+    ArgumentCaptor<Event> eventCaptor;
 
     @Mock
     private Api api;
@@ -74,6 +82,11 @@ class HealthCheckManagedEndpointTest {
         final Endpoint endpoint = new Endpoint();
         endpoint.setName(ENDPOINT_NAME);
         when(this.managedEndpoint.getDefinition()).thenReturn(endpoint);
+
+        when(node.id()).thenReturn("node.id");
+        when(node.hostname()).thenReturn("node.hostname");
+        when(node.application()).thenReturn("node.application");
+        when(node.metadata()).thenReturn(Map.ofEntries(Map.entry("tenant", "tenant-id"), Map.entry("installation", "installation-id")));
     }
 
     @Test
@@ -109,10 +122,21 @@ class HealthCheckManagedEndpointTest {
 
         cut.reportStatus(false, endpointStatus);
         cut.reportStatus(true, endpointStatus);
-        cut.reportStatus(true, endpointStatus);
 
-        verify(reporterService, times(3)).report(any());
-        verify(alertEventProducer, times(2)).send(any());
+        verify(reporterService, times(2)).report(any());
+        verify(alertEventProducer, times(1)).send(any());
+        verify(alertEventProducer).send(eventCaptor.capture());
+
+        SoftAssertions.assertSoftly(softly -> {
+            var event = eventCaptor.getValue();
+
+            softly
+                .assertThat(event.properties())
+                .containsEntry("tenant", "tenant-id")
+                .containsEntry("installation", "installation-id")
+                .containsEntry("organization", "*")
+                .containsEntry("environment", "*");
+        });
     }
 
     private HealthCheckManagedEndpoint buildHCManagedEndpoint() {
