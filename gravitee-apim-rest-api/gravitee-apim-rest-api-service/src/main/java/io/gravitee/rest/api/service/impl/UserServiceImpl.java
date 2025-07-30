@@ -1841,7 +1841,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
                 boolean match = evalCondition(username, mapping.getCondition(), templateEngine);
 
-                log.trace(username, match, mapping.getCondition());
+                log.debug(username, match, mapping.getCondition());
 
                 return match;
             })
@@ -1887,7 +1887,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             boolean match = evalCondition(username, mapping.getCondition(), templateEngine);
 
-            log.trace(username, match, mapping.getCondition());
+            log.debug(username, match, mapping.getCondition());
 
             // Get roles
             if (match) {
@@ -1972,7 +1972,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             boolean match = evalCondition(userInfo, mapping.getCondition(), templateEngine);
 
-            log.trace("the expression {} {} on user's info id= {}", mapping.getCondition(), match ? "matched" : "didn't match", userId);
+            log.debug("the expression {} {} on user's info id= {}", mapping.getCondition(), match ? "matched" : "didn't match", userId);
 
             // Get groups
             if (match) {
