@@ -88,7 +88,6 @@ public class InstallationServiceImpl implements InstallationService {
         } catch (final Exception ex) {
             throw new TechnicalManagementException("Error while updating installation", ex);
         }
-        log.warn("No installation found");
         throw new InstallationNotFoundException("");
     }
 

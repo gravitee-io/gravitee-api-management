@@ -42,7 +42,6 @@ public class ApiKeyEntity {
     @ToString.Include
     private String id;
 
-    @ToString.Include
     private String key;
 
     @Builder.Default
