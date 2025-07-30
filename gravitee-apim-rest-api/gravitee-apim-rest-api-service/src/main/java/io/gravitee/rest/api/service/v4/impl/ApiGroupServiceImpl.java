@@ -103,8 +103,7 @@ public class ApiGroupServiceImpl implements ApiGroupService {
             apiRepository.update(api);
             apiNotificationService.triggerUpdateNotification(executionContext, api);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to add group {} to API {}", group, apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to add group " + group + " to API " + apiId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to add group %s to API %s", group, apiId), ex);
         }
     }
 
@@ -125,8 +124,7 @@ public class ApiGroupServiceImpl implements ApiGroupService {
                 apiNotificationService.triggerUpdateNotification(executionContext, api);
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to remove group {} from API {}", group, apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to remove group " + group + " from API " + apiId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to remove group %s from API %s", group, apiId), ex);
         }
     }
 
@@ -149,7 +147,7 @@ public class ApiGroupServiceImpl implements ApiGroupService {
                 .peek(member -> member.setRoles(computeMemberRoles(executionContext, api, member)))
                 .collect(groupingBy(MemberEntity::getReferenceId, mapping(GroupMemberEntity::new, toList())));
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error has occurred while trying to retrieve groups for API " + apiId);
+            throw new TechnicalManagementException(String.format("An error has occurred while trying to retrieve groups for API %s", apiId));
         }
     }
 
