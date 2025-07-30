@@ -113,11 +113,11 @@
         <table md-table class="gv-table-dense">
           <thead md-head>
             <tr md-row>
-              <th md-column width="48px">Language</th>
+              <th md-column width="0%">Language</th>
               <th md-column>Name</th>
               <th md-column width="1%" nowrap>Last Update</th>
-              <th md-column width="48px"></th>
-              <th md-column width="48px"></th>
+              <th md-column width="0%"></th>
+              <th md-column width="0%"></th>
             </tr>
           </thead>
           <tbody md-body>
@@ -133,16 +133,18 @@
               <td md-cell>{{translation.name}}</td>
               <td md-cell width="1%" nowrap>{{translation.lastModificationDate | date:'medium'}}</td>
               <td md-cell width="48px">
-                <ng-md-icon
-                  icon="delete"
+                <md-button
                   ng-if="!$ctrl.readOnly"
+                  class="md-icon-button"
                   ng-click="$ctrl.remove(translation)"
-                  style="font-size: 24px; height: 24px"
+                  ng-keydown="$event.keyCode === 13 && $ctrl.remove(translation)"
+                  ng-keyup="$event.keyCode === 32 && $ctrl.remove(translation)"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
+                  <ng-md-icon icon="delete"></ng-md-icon>
                   <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
-                </ng-md-icon>
+                </md-button>
               </td>
             </tr>
           </tbody>
@@ -197,12 +199,12 @@
           <thead md-head>
             <tr md-row>
               <th md-column class="column-with-logo">Name</th>
-              <th md-column width="48px"></th>
-              <th md-column width="48px"></th>
-              <th md-column width="48px"></th>
+              <th md-column width="0%"></th>
+              <th md-column width="0%"></th>
+              <th md-column width="0%"></th>
               <th md-column width="76px"></th>
               <th md-column width="1%" nowrap>Last Update</th>
-              <th md-column width="48px"></th>
+              <th md-column width="0%"></th>
               <th md-column width="24px"></th>
             </tr>
           </thead>
@@ -265,55 +267,63 @@
                 </span>
               </td>
               <td md-cell width="48px">
-                <ng-md-icon
-                  icon="link"
+                <md-button
+                  class="md-icon-button"
                   ng-click="$ctrl.createShortCut(page)"
-                  style="font-size: 24px; height: 24px"
+                  ng-keydown="$event.keyCode === 13 && $ctrl.createShortCut(page)"
+                  ng-keyup="$event.keyCode === 32 && $ctrl.createShortCut(page)"
                   ng-if="!$ctrl.readOnly &&  $ctrl.canCreateShortCut(page.id, page.type)"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
+                  <ng-md-icon icon="link"></ng-md-icon>
                   <md-tooltip md-direction="top" md-visible="false">Create a Link in ...</md-tooltip>
-                </ng-md-icon>
+                </md-button>
               </td>
               <td md-cell width="48px">
-                <ng-md-icon
-                  icon="archive"
+                <md-button
+                  class="md-icon-button"
                   ng-click="$ctrl.moveToFolder(page)"
+                  ng-keydown="$event.keyCode === 13 && $ctrl.moveToFolder(page)"
+                  ng-keyup="$event.keyCode === 32 && $ctrl.moveToFolder(page)"
                   ng-disabled="true"
-                  style="font-size: 24px; height: 24px"
                   ng-if="!$ctrl.readOnly && page.type !== 'folder'"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
+                  <ng-md-icon icon="archive"></ng-md-icon>
                   <md-tooltip md-direction="top" md-visible="false">Move to ...</md-tooltip>
-                </ng-md-icon>
+                </md-button>
               </td>
               <td md-cell width="48px">
-                <ng-md-icon
+                <md-button
                   ng-if="!$ctrl.readOnly && !page.published && !$ctrl.isLink(page.type)"
-                  icon="{{$ctrl.isMarkdownTemplate(page.type) ? 'check_box_outline_blank' : 'cloud_queue'}}"
+                  class="md-icon-button"
                   ng-click="$ctrl.togglePublish(page)"
-                  style="font-size: 24px; height: 24px"
+                  ng-keydown="$event.keyCode === 13 && $ctrl.togglePublish(page)"
+                  ng-keyup="$event.keyCode === 32 && $ctrl.togglePublish(page)"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
+                  <ng-md-icon icon="{{$ctrl.isMarkdownTemplate(page.type) ? 'check_box_outline_blank' : 'cloud_queue'}}"></ng-md-icon>
                   <md-tooltip md-direction="top" md-visible="false">
                     {{$ctrl.isMarkdownTemplate(page.type) ? 'Make template available' : 'Publish this page'}}
                   </md-tooltip>
-                </ng-md-icon>
-                <ng-md-icon
+                </md-button>
+                <md-button
                   ng-if="!$ctrl.readOnly && page.published && !$ctrl.isLink(page.type)"
-                  icon="{{$ctrl.isMarkdownTemplate(page.type) ? 'check_box' : 'cloud_done'}}"
+                  class="md-icon-button"
                   ng-click="$ctrl.togglePublish(page)"
-                  style="font-size: 24px; height: 24px"
+                  ng-keydown="$event.keyCode === 13 && $ctrl.togglePublish(page)"
+                  ng-keyup="$event.keyCode === 32 && $ctrl.togglePublish(page)"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
+                  <ng-md-icon icon="{{$ctrl.isMarkdownTemplate(page.type) ? 'check_box' : 'cloud_done'}}"></ng-md-icon>
                   <md-tooltip md-direction="top" md-visible="false">
                     {{$ctrl.isMarkdownTemplate(page.type) ? 'Make template unavailable' : 'Unpublish this page'}}
                   </md-tooltip>
-                </ng-md-icon>
+                </md-button>
               </td>
               <td md-cell width="76px" nowrap>
                 <ng-md-icon
@@ -338,16 +348,18 @@
               </td>
               <td md-cell width="1%" nowrap>{{page.lastModificationDate | date:'medium'}}</td>
               <td md-cell width="48px">
-                <ng-md-icon
+                <md-button
                   ng-if="!$ctrl.readOnly"
-                  icon="delete"
+                  class="md-icon-button"
                   ng-click="$ctrl.remove(page)"
-                  style="font-size: 24px; height: 24px"
+                  ng-keydown="$event.keyCode === 13 && $ctrl.remove(page)"
+                  ng-keyup="$event.keyCode === 32 && $ctrl.remove(page)"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
+                  <ng-md-icon icon="delete"></ng-md-icon>
                   <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
-                </ng-md-icon>
+                </md-button>
               </td>
               <td md-cell width="24px">
                 <ng-md-icon
