@@ -42,7 +42,7 @@ public class SearchHistogramQueryAdapter {
         AggregationType.MAX,
         "max_",
         AggregationType.MIN,
-        "min"
+        "min_"
     );
     private static final Map<AggregationType, String> AGGREGATION_NAME = Map.of(
         AggregationType.FIELD,
