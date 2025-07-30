@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 
-version: '3.8'
-
 networks:
   frontend:
     name: frontend
@@ -72,7 +70,7 @@ services:
       - storage
 
   alert_engine:
-    image: graviteeio/ae-engine:${AE_VERSION:-2.1.6}
+    image: graviteeio/ae-engine:${AE_VERSION:-2.3.1}
     container_name: gio_ae_engine
     restart: always
     ports:
