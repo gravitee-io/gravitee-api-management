@@ -18,11 +18,11 @@ export default class PolicyStudio {
   static openPolicyStudio(apiId: string, isV4: boolean) {
     cy.visit(`/#!/default/apis/${apiId}${isV4 ? '/v4/' : '/v2/'}policy-studio`);
     cy.url().should('include', '/policy-studio');
-    cy.contains('.list__flowsGroup__header__label', 'Common flows', { timeout: 60000 });
+    cy.contains('.list__flowsGroup__header__label', 'All plans', { timeout: 60000 });
     return new PolicyStudio();
   }
   addCommonFlow() {
-    cy.contains('.list__flowsGroup__header', 'Common flows').find('button').click();
+    cy.contains('.list__flowsGroup__header', 'All plans').find('button').click();
     return this;
   }
 
