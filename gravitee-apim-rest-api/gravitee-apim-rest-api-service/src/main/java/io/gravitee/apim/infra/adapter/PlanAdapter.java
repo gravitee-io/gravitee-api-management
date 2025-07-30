@@ -126,11 +126,11 @@ public interface PlanAdapter {
     }
 
     default io.gravitee.definition.model.Plan deserializeDefinitionV2(io.gravitee.repository.management.model.Plan source) {
-        if (source.getDefinitionVersion() != null) {
-            return null;
-        }
-
-        return toPlanDefinitionV2(source);
+        return switch (source.getDefinitionVersion()) {
+            case V2 -> toPlanDefinitionV2(source);
+            case null -> toPlanDefinitionV2(source);
+            default -> null;
+        };
     }
 
     default FederatedPlan deserializeDefinitionFederated(io.gravitee.repository.management.model.Plan source) {
