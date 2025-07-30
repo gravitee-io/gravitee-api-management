@@ -522,7 +522,12 @@ class AnalyticsQueryServiceImplTest {
         void should_return_empty_requests_count() {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
-            var query = new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), from, to);
+            var query = new AnalyticsQueryService.CountQuery(
+                AnalyticsQueryService.SearchTermId.forApi("api#1"),
+                from,
+                to,
+                Optional.empty()
+            );
             when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any())).thenReturn(Optional.empty());
             assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query)).isEmpty();
         }
@@ -531,7 +536,12 @@ class AnalyticsQueryServiceImplTest {
         void should_map_repository_response_to_requests_count() {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
-            var query = new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), from, to);
+            var query = new AnalyticsQueryService.CountQuery(
+                AnalyticsQueryService.SearchTermId.forApi("api#1"),
+                from,
+                to,
+                Optional.of("host")
+            );
             when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any()))
                 .thenReturn(Optional.of(new CountByAggregate(10)));
             assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query))
@@ -546,7 +556,7 @@ class AnalyticsQueryServiceImplTest {
             assertThat(
                 cut.searchRequestsCountByEvent(
                     GraviteeContext.getExecutionContext(),
-                    new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), null, null)
+                    new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), null, null, null)
                 )
             )
                 .isEmpty();

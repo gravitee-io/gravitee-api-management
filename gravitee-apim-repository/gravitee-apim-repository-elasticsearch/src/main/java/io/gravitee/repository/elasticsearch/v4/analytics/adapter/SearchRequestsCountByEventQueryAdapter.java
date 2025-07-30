@@ -21,7 +21,11 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -45,11 +49,21 @@ public class SearchRequestsCountByEventQueryAdapter {
         List<Object> filters = new ArrayList<>();
         addTermFilter(filters, query.searchTermId());
         filters.add(TimeRangeAdapter.toRangeNode(query.timeRange()));
+        addQueryFilter(filters, query.query());
         Map<String, Object> boolNode = new HashMap<>();
         boolNode.put("must", filters);
         Map<String, Object> queryNode = new HashMap<>();
         queryNode.put("bool", boolNode);
         return queryNode;
+    }
+
+    private static void addQueryFilter(List<Object> filters, Optional<String> query) {
+        // Query string support (as in count.ftl)
+        query.ifPresent(q -> {
+            if (!q.trim().isEmpty()) {
+                filters.add(Map.of("query_string", Map.of("query", q)));
+            }
+        });
     }
 
     private static void addTermFilter(List<Object> filters, SearchTermId terms) {

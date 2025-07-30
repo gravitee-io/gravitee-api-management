@@ -374,7 +374,8 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 executionContext.getQueryContext(),
                 new RequestsCountByEventQuery(
                     toModelSearchTermId(countParameters.searchTermId()),
-                    new TimeRange(countParameters.from(), countParameters.to())
+                    new TimeRange(countParameters.from(), countParameters.to()),
+                    countParameters.query()
                 )
             )
             .map(countAggregate -> RequestsCount.builder().total(countAggregate.total()).build());

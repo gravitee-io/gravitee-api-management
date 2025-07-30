@@ -857,7 +857,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .queryParam("from", 1000L)
                     .queryParam("to", 2000L)
                     .request()
-                    .get(); //requestsCountTarget.request().get();
+                    .get();
 
                 MAPIAssertions
                     .assertThat(response)
@@ -865,6 +865,30 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
                     .satisfies(r -> {
                         assertThat(r.getCountAnalytics().getCount()).isEqualTo(11L);
+                    });
+            }
+
+            @Test
+            void should_return_count_with_query_param() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                fakeAnalyticsQueryService.requestsCount =
+                    RequestsCount.builder().total(11L).countsByEntrypoint(Map.of("http-get", 10L, "sse", 1L)).build();
+
+                var response = rootTarget()
+                    .queryParam("type", "COUNT")
+                    .queryParam("field", "api-id")
+                    .queryParam("from", 1000L)
+                    .queryParam("to", 2000L)
+                    .queryParam("query", "status:200 AND method:GET")
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
+                    .satisfies(result -> {
+                        assertThat(result.getCountAnalytics().getCount()).isNotNull();
                     });
             }
         }

@@ -969,11 +969,36 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var result = cut.searchRequestsCountByEvent(
                 new QueryContext("org#1", "env#1"),
-                new RequestsCountByEventQuery(new SearchTermId(SearchTermId.SearchTerm.API, API_ID), new TimeRange(from, to))
+                new RequestsCountByEventQuery(
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(from, to),
+                    Optional.empty()
+                )
             );
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {
                     assertThat(countAggregate.total()).isEqualTo(11);
+                });
+        }
+
+        @Test
+        void should_return_count_for_a_given_api_and_field_with_query_string() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var queryString = "status:404 AND http-method:8";
+
+            var result = cut.searchRequestsCountByEvent(
+                new QueryContext("org#1", "env#1"),
+                new RequestsCountByEventQuery(
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(from, to),
+                    Optional.of(queryString)
+                )
+            );
+            assertThat(result)
+                .hasValueSatisfying(countAggregate -> {
+                    assertThat(countAggregate.total()).isGreaterThan(0);
                 });
         }
     }
