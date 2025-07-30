@@ -40,17 +40,25 @@
 
     &__actions {
       display: flex;
-      gap: 8px;
       flex: 1 0 auto;
+      justify-content: center;
     }
-    .mat-column-actions {
-      max-width: 232px;
+    &__actions__header {
+      text-align: center;
+    }
+    &__actions__cell {
+      text-align: center;
     }
   }
 }
 
+.mat-column-actions {
+  width: 0%;
+  min-width: 0;
+}
+
 .empty-icon-button {
-  min-width: 40px;
+  min-width: 36px;
 }
 
 .no-pointer {
