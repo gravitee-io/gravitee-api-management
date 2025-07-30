@@ -30,6 +30,7 @@ export enum AggregationFields {
 export interface AnalyticsHistogramAggregation {
   type: AggregationTypes;
   field: AggregationFields;
+  label?: string;
 }
 
 export interface AggregationHistogramTimestamp {
