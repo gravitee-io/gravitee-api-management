@@ -16,9 +16,7 @@
 package io.gravitee.repository.log.v4.model.analytics;
 
 import java.util.Map;
-import lombok.Builder;
 
-@Builder(toBuilder = true)
 public record RequestsCountByEventQuery(Map<String, String> terms, TimeRange timeRange) {
     public RequestsCountByEventQuery(Map<String, String> terms) {
         this(terms, null);

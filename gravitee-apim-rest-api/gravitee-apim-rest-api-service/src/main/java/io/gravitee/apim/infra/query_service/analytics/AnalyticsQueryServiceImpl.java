@@ -372,7 +372,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 executionContext.getQueryContext(),
                 new RequestsCountByEventQuery(countParameters.terms(), new TimeRange(countParameters.from(), countParameters.to()))
             )
-            .map(countAggregate -> RequestsCount.builder().total(countAggregate.getTotal()).build());
+            .map(countAggregate -> RequestsCount.builder().total(countAggregate.total()).build());
     }
 
     private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(
@@ -396,12 +396,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             return null;
         }
 
-        return Bucket
-            .builder()
-            .field(aggregate.getField())
-            .name(aggregate.getName())
-            .buckets(mapValuesToBuckets(aggregate.getBuckets()))
-            .build();
+        return Bucket.builder().field(aggregate.field()).name(aggregate.name()).buckets(mapValuesToBuckets(aggregate.buckets())).build();
     }
 
     private List<Bucket> mapValuesToBuckets(Map<String, ? extends List<?>> buckets) {

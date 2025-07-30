@@ -35,12 +35,10 @@ public class SearchRequestsCountByEventQueryAdapterTest {
 
     @Test
     void shouldAdaptQueryWithAllFields() {
-        var query = RequestsCountByEventQuery
-            .builder()
-            .terms(Map.of("api-id", "api-123"))
-            .timeRange(new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L)))
-            .build();
-
+        var query = new RequestsCountByEventQuery(
+            Map.of("api-id", "api-123"),
+            new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L))
+        );
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
         assertNotNull(result);
 
@@ -73,25 +71,20 @@ public class SearchRequestsCountByEventQueryAdapterTest {
 
     @Test
     void shouldAdaptQueryWithOnlyTimestamps() {
-        var query = RequestsCountByEventQuery
-            .builder()
-            .terms(Map.of())
-            .timeRange(new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L)))
-            .build();
+        var query = new RequestsCountByEventQuery(
+            Map.of(),
+            new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L))
+        );
 
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
+
         assertNotNull(result);
-
         var json = new JsonObject(result);
-
         assertEquals(0, json.getInteger("size"));
-
         var mustArray = json.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
         assertEquals(1, mustArray.size());
-
         var rangeEntry = mustArray.getJsonObject(0).getJsonObject("range");
         var timestamp = rangeEntry.getJsonObject("@timestamp");
-
         assertEquals(1650000000000L, timestamp.getLong("from"));
         assertTrue(timestamp.getBoolean("include_lower"));
         assertEquals(1650003600000L, timestamp.getLong("to"));
@@ -118,7 +111,7 @@ public class SearchRequestsCountByEventQueryAdapterTest {
         Optional<CountByAggregate> result = SearchRequestsCountByEventQueryAdapter.adaptResponse(searchResponse);
 
         assertTrue(result.isPresent());
-        assertEquals(123L, result.get().getTotal());
+        assertEquals(123L, result.get().total());
     }
 
     @Test
