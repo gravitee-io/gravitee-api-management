@@ -92,7 +92,7 @@ public class ResourceCrudServiceImplTest {
             Throwable throwable = catchThrowable(() -> service.get(resourceId));
 
             // Then
-            assertThat(throwable).isInstanceOf(ResourceNotFoundException.class);
+            assertThat(throwable).isInstanceOf(PluginNotFoundException.class);
         }
     }
 }
