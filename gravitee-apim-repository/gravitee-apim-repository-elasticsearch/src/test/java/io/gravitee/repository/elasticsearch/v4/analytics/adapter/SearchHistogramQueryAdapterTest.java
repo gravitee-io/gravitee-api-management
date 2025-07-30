@@ -371,11 +371,11 @@ class SearchHistogramQueryAdapterTest {
 
             assertThat(result).hasSize(1);
             HistogramAggregate<Long> agg = (HistogramAggregate<Long>) result.getFirst();
-            assertThat(agg.getBuckets()).containsOnlyKeys("200", "202", "404");
+            assertThat(agg.buckets()).containsOnlyKeys("200", "202", "404");
 
-            assertThat(agg.getBuckets().get("200")).containsExactly(1L, 0L);
-            assertThat(agg.getBuckets().get("202")).containsExactly(0L, 1L);
-            assertThat(agg.getBuckets().get("404")).containsExactly(0L, 2L);
+            assertThat(agg.buckets().get("200")).containsExactly(1L, 0L);
+            assertThat(agg.buckets().get("202")).containsExactly(0L, 1L);
+            assertThat(agg.buckets().get("404")).containsExactly(0L, 2L);
         }
 
         @Test
@@ -425,8 +425,8 @@ class SearchHistogramQueryAdapterTest {
 
             assertThat(result).hasSize(1);
             HistogramAggregate<Double> agg = (HistogramAggregate<Double>) result.getFirst();
-            assertThat(agg.getBuckets()).containsOnlyKeys("avg_gateway-response-time-ms");
-            assertThat(agg.getBuckets().get("avg_gateway-response-time-ms")).containsExactly(120.5, 110.0);
+            assertThat(agg.buckets()).containsOnlyKeys("avg_gateway-response-time-ms");
+            assertThat(agg.buckets().get("avg_gateway-response-time-ms")).containsExactly(120.5, 110.0);
         }
     }
 }

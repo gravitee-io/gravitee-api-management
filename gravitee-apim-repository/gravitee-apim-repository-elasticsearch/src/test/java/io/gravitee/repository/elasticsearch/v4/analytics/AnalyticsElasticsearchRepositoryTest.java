@@ -665,14 +665,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(result).hasSize(1);
 
             var histogram = result.getFirst();
-            assertThat(histogram.getBuckets()).isNotNull();
-            assertThat(histogram.getBuckets()).hasSize(3);
+            assertThat(histogram.buckets()).isNotNull();
+            assertThat(histogram.buckets()).hasSize(3);
 
-            assertThat(histogram.getBuckets().keySet()).containsExactlyInAnyOrder("200", "202", "404");
+            assertThat(histogram.buckets().keySet()).containsExactlyInAnyOrder("200", "202", "404");
 
-            var bucket200 = histogram.getBuckets().get("200");
-            var bucket202 = histogram.getBuckets().get("202");
-            var bucket404 = histogram.getBuckets().get("404");
+            var bucket200 = histogram.buckets().get("200");
+            var bucket202 = histogram.buckets().get("202");
+            var bucket404 = histogram.buckets().get("404");
 
             assertThat(bucket200).hasSizeGreaterThan(28);
             assertThat(bucket200.get(28)).isEqualTo(1L);
@@ -704,10 +704,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(result).hasSize(1);
 
             var histogram = result.getFirst();
-            assertThat(histogram.getBuckets()).isNotNull();
-            assertThat(histogram.getBuckets()).containsOnlyKeys("avg_gateway-response-time-ms");
+            assertThat(histogram.buckets()).isNotNull();
+            assertThat(histogram.buckets()).containsOnlyKeys("avg_gateway-response-time-ms");
 
-            var avgBucket = (List<Double>) histogram.getBuckets().get("avg_gateway-response-time-ms");
+            var avgBucket = (List<Double>) histogram.buckets().get("avg_gateway-response-time-ms");
             assertThat(avgBucket).isNotEmpty();
             assertThat(avgBucket.stream().filter(v -> v > 0).count()).isEqualTo(2);
         }
@@ -732,12 +732,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(result).hasSize(1);
 
             var histogram = result.getFirst();
-            assertThat(histogram.getBuckets()).isNotNull();
-            assertThat(histogram.getBuckets()).hasSize(1);
+            assertThat(histogram.buckets()).isNotNull();
+            assertThat(histogram.buckets()).hasSize(1);
 
-            assertThat(histogram.getBuckets().keySet()).containsExactly("404");
+            assertThat(histogram.buckets().keySet()).containsExactly("404");
 
-            var bucket404 = histogram.getBuckets().get("404");
+            var bucket404 = histogram.buckets().get("404");
             assertThat(bucket404).hasSizeGreaterThan(61);
             assertThat(bucket404.get(61)).isEqualTo(2L);
         }
@@ -928,7 +928,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {
-                    assertThat(countAggregate.getTotal()).isEqualTo(11);
+                    assertThat(countAggregate.total()).isEqualTo(11);
                 });
         }
     }
