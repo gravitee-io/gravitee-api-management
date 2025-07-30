@@ -187,8 +187,6 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
 
     @Override
     public Stream<EventRepository.EventToClean> findGatewayEvents(String environmentId) {
-        backupEvents();
-
         var nonApiEventTypes = List.of(
             "GATEWAY_STARTED",
             "DEBUG_API",
@@ -207,12 +205,5 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         return mongoTemplate
             .stream(query, EventMongo.class)
             .map(eventMongo -> new EventRepository.EventToClean(eventMongo.getId(), eventMongo.getProperties().get("api_id")));
-    }
-
-    private void backupEvents() {
-        mongoTemplate.dropCollection(backupCollection);
-        log.info("Backing up events to {}", backupCollection);
-        var agg = newAggregation(List.of(out(backupCollection)));
-        mongoTemplate.aggregate(agg, EventMongo.class, Object.class);
     }
 }
