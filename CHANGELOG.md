@@ -1,3 +1,10 @@
+# [1.7.0-alpha.7](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.6...1.7.0-alpha.7) (2025-07-30)
+
+
+### Features
+
+* change index templates to perform only create operations ([4e82695](https://github.com/gravitee-io/gravitee-reporter-common/commit/4e82695895651d262be91afb4465f63fbb645383))
+
 # [1.7.0-alpha.6](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.5...1.7.0-alpha.6) (2025-07-29)
 
 
