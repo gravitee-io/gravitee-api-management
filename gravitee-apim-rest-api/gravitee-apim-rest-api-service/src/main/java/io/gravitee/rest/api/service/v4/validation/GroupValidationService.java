@@ -28,6 +28,7 @@ public interface GroupValidationService {
         final ExecutionContext executionContext,
         final String apiId,
         final Set<String> groups,
+        final Set<String> existingGroups,
         final PrimaryOwnerEntity primaryOwnerEntity,
         final boolean addDefaultGroups
     );
