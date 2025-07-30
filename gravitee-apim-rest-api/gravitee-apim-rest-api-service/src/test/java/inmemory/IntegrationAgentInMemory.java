@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
+import io.gravitee.apim.core.integration.model.DiscoveredApis;
 import io.gravitee.apim.core.integration.model.IngestStarted;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
@@ -105,8 +106,12 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     }
 
     @Override
-    public Flowable<IntegrationApi> discoverApis(String integrationId) {
-        return Flowable.fromIterable(storage).filter(asset -> asset.integrationId().equals(integrationId));
+    public Single<DiscoveredApis> discoverApis(String integrationId) {
+        return Flowable
+            .fromIterable(storage)
+            .filter(asset -> asset.integrationId().equals(integrationId))
+            .toList()
+            .map(discoveredApis -> new DiscoveredApis(discoveredApis, false));
     }
 
     @Override

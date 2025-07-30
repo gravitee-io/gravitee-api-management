@@ -25,7 +25,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { GioCardEmptyStateModule, GioFormSlideToggleModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioCardEmptyStateModule, GioFormSlideToggleModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 
 import { DiscoveryPreviewComponent } from './discovery-preview.component';
 
@@ -55,6 +55,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     GioPermissionModule,
     GioLoaderModule,
     GioCardEmptyStateModule,
+    GioBannerModule,
   ],
 })
 export class DiscoveryPreviewModule {}

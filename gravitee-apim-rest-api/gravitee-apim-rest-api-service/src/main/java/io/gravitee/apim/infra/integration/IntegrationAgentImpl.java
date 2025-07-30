@@ -22,6 +22,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
+import io.gravitee.apim.core.integration.model.DiscoveredApis;
 import io.gravitee.apim.core.integration.model.IngestStarted;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
@@ -45,7 +46,6 @@ import io.gravitee.integration.api.model.Subscription;
 import io.gravitee.integration.api.model.SubscriptionType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
@@ -176,20 +176,31 @@ public class IntegrationAgentImpl implements IntegrationAgent {
     }
 
     @Override
-    public Flowable<IntegrationApi> discoverApis(String integrationId) {
+    public Single<DiscoveredApis> discoverApis(String integrationId) {
         var command = new DiscoverCommand();
 
         log.debug("Discover all assets for [integrationId={}]", integrationId);
         return sendDiscoverCommand(command, integrationId)
-            .toFlowable()
             .flatMap(discoverReply -> {
                 if (discoverReply.getCommandStatus() == CommandStatus.ERROR) {
-                    return Flowable.error(new IntegrationDiscoveryException(discoverReply.getErrorDetails()));
+                    return Single.error(new IntegrationDiscoveryException(discoverReply.getErrorDetails()));
                 }
-                log.debug("Discovered APIs for [integrationId={}] total: [{}]", integrationId, discoverReply.getPayload().apis().size());
-                return Flowable
-                    .fromIterable(discoverReply.getPayload().apis())
-                    .map(api -> IntegrationAdapter.INSTANCE.map(api, integrationId));
+                boolean isPartialDiscovery = discoverReply.getPayload().isPartialDiscovery();
+
+                List<IntegrationApi> integrationApis = discoverReply
+                    .getPayload()
+                    .apis()
+                    .stream()
+                    .map(api -> IntegrationAdapter.INSTANCE.map(api, integrationId))
+                    .toList();
+
+                log.debug(
+                    "Discovered APIs for [integrationId={}] total: [{}], partial discovery: [{}]",
+                    integrationId,
+                    integrationApis.size(),
+                    isPartialDiscovery
+                );
+                return Single.just(new DiscoveredApis(integrationApis, isPartialDiscovery));
             });
     }
 

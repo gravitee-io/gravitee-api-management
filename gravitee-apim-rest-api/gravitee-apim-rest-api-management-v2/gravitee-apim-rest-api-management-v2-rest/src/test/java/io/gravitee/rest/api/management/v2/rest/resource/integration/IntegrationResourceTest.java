@@ -672,6 +672,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .asEntity(IngestionPreviewResponse.class)
                 .isEqualTo(
                     new IngestionPreviewResponse()
+                        .isPartiallyDiscovered(false)
                         .totalCount(1)
                         .newCount(1)
                         .updateCount(0)
