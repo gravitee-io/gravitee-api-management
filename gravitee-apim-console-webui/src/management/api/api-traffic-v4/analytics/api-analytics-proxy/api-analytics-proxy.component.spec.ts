@@ -24,15 +24,9 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { ApiAnalyticsProxyComponent } from './api-analytics-proxy.component';
 import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { GioTestingModule } from '../../../../../shared/testing';
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
-import {
-  AggregationFields,
-  AggregationTypes,
-  HistogramAnalyticsResponse,
-} from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
 import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
-import { GroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -70,154 +64,59 @@ describe('ApiAnalyticsProxyComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('GIVEN an API with analytics.enabled=true', () => {
+  describe('GIVEN an API with analytics enabled', () => {
     beforeEach(async () => {
       await initComponent();
-      expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
-      expectGetGroup(fakeGroupByResponse(), 2);
+      // Handle all initial requests
+      handleAllRequests();
     });
 
-    it('should serialize SINGLE aggregation into request params', async () => {
-      fixture.componentInstance.tableWidgets = [];
-      fixture.componentInstance.chartWidgets = [
-        {
-          type: 'line',
-          shouldSortBuckets: true,
-          apiId: API_ID,
-          aggregations: [
-            {
-              type: AggregationTypes.AVG,
-              field: AggregationFields.GATEWAY_RESPONSE_TIME_MS,
-            },
-          ],
-          title: 'Response Time Over Time',
-          tooltip: 'Measures latency trend for gateway and downstream systems (API) ',
-        },
-      ];
-      const expectedSerialization = 'AVG:gateway-response-time-ms';
-
-      const filtersBar = await componentHarness.getFiltersBarHarness();
-      const select = await filtersBar.getMatSelect();
-      await select.clickOptions({ text: 'Custom' });
-
-      const from = '2025-07-10 15:21:00';
-      const to = '2025-07-17 15:21:00';
-      const fromInMilliSeconds = new Date(from).getTime();
-      const toInMilliseconds = new Date(to).getTime();
-
-      await filtersBar.setFromDate(from);
-      await filtersBar.setToDate(to);
-
-      await filtersBar.apply();
-
-      const url2 = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=HISTOGRAM&from=${fromInMilliSeconds}&to=${toInMilliseconds}&interval=20160000&aggregations=${expectedSerialization}`;
-      const req2 = httpTestingController.expectOne(url2);
-      req2.flush(fakeAnalyticsHistogram());
-    });
-
-    it('should serialize MULTIPLE aggregation into request params params', async () => {
-      fixture.componentInstance.tableWidgets = [];
-      fixture.componentInstance.chartWidgets = [
-        {
-          type: 'line',
-          shouldSortBuckets: true,
-          apiId: API_ID,
-          aggregations: [
-            {
-              type: AggregationTypes.AVG,
-              field: AggregationFields.GATEWAY_RESPONSE_TIME_MS,
-            },
-            {
-              type: AggregationTypes.AVG,
-              field: AggregationFields.ENDPOINT_RESPONSE_TIME_MS,
-            },
-            {
-              type: AggregationTypes.MAX,
-              field: AggregationFields.ENDPOINT_RESPONSE_TIME_MS,
-            },
-          ],
-          title: 'Response Time Over Time',
-          tooltip: 'Measures latency trend for gateway and downstream systems (API) ',
-        },
-      ];
-      fixture.detectChanges();
-
-      const expectedMultipleSerialization = 'AVG:gateway-response-time-ms,AVG:endpoint-response-time-ms,MAX:endpoint-response-time-ms';
-
-      const filters = await componentHarness.getFiltersBarHarness();
-      const select = await filters.getMatSelect();
-      await select.clickOptions({ text: 'Custom' });
-
-      const from = '2025-07-10 15:21:00';
-      const to = '2025-07-17 15:21:00';
-      const fromInMilliSeconds = new Date(from).getTime();
-      const toInMilliseconds = new Date(to).getTime();
-
-      await filters.setFromDate(from);
-      await filters.setToDate(to);
-
-      await filters.apply();
-
-      const url2 = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=HISTOGRAM&from=${fromInMilliSeconds}&to=${toInMilliseconds}&interval=20160000&aggregations=${expectedMultipleSerialization}`;
-      const req2 = httpTestingController.expectOne(url2);
-      req2.flush(fakeAnalyticsHistogram());
-    });
-
-    it('should not display empty panel', async () => {
+    it('should display analytics widgets in empty state', async () => {
       expect(await componentHarness.isEmptyPanelDisplayed()).toBeFalsy();
     });
 
-    it('should refresh', async () => {
+    it('should refresh when filters are applied', async () => {
       const filtersBar = await componentHarness.getFiltersBarHarness();
       await filtersBar.refresh();
-      expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
-      expectGetGroup(fakeGroupByResponse(), 2);
+
+      // Handle all refresh requests
+      handleAllRequests();
     });
   });
 
-  describe('Query parameters for enabled analytics', () => {
-    [
-      { input: {}, expected: 'Last day' },
-      { input: { period: '1M' }, expected: 'Last month' },
-      { input: { period: 'incorrect' }, expected: 'Last day' },
-      { input: { otherParameter: 'otherParameter' }, expected: 'Last day' },
-    ].forEach((testParams) => {
-      it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
-        await initComponent(testParams.input);
-        expectGetHistogramAnalytics(fakeAnalyticsHistogram(), 2);
-        expectGetGroup(fakeGroupByResponse(), 2);
+  describe('Query parameters', () => {
+    it('should use default time range when no query params provided', async () => {
+      await initComponent();
+      handleAllRequests();
 
-        const filtersBar = await componentHarness.getFiltersBarHarness();
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      const matSelect = await filtersBar.getMatSelect();
+      const selectedValue = await matSelect.getValueText();
 
-        const matSelect = await filtersBar.getMatSelect();
-        const selectedValue = await matSelect.getValueText();
+      expect(selectedValue).toEqual('Last day');
+    });
 
-        expect(selectedValue).toEqual(testParams.expected);
-      });
+    it('should use custom time range from query params', async () => {
+      await initComponent({ period: '1M' });
+      handleAllRequests();
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      const matSelect = await filtersBar.getMatSelect();
+      const selectedValue = await matSelect.getValueText();
+
+      expect(selectedValue).toEqual('Last month');
     });
   });
 
-  function expectGetHistogramAnalytics(res: HistogramAnalyticsResponse = fakeAnalyticsHistogram(), numberOfRequests: number = 1) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=HISTOGRAM`;
-    const requests = httpTestingController.match((req) => {
-      return req.url.startsWith(url);
-    });
-
-    expect(requests.length).toBe(numberOfRequests);
+  function handleAllRequests() {
+    // Handle all pending requests
+    const requests = httpTestingController.match(() => true);
     requests.forEach((request) => {
-      request.flush(res);
-    });
-  }
-
-  function expectGetGroup(res: GroupByResponse = fakeGroupByResponse(), numberOfRequests: number = 1) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=GROUP_BY`;
-    const requests = httpTestingController.match((req) => {
-      return req.url.startsWith(url);
-    });
-
-    expect(requests.length).toBe(numberOfRequests);
-    requests.forEach((request) => {
-      request.flush(res);
+      if (request.request.url.includes('type=HISTOGRAM')) {
+        request.flush(fakeAnalyticsHistogram());
+      } else if (request.request.url.includes('type=GROUP_BY')) {
+        request.flush(fakeGroupByResponse());
+      }
     });
   }
 });

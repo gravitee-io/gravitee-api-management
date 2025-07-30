@@ -4,28 +4,11 @@
 @use '../src/scss/gio-layout' as gio-layout;
 
 :host {
-  @include gio-layout.gio-responsive-margin-container;
-}
+  @include gio-layout.gio-full-width-content-container;
 
-.api-analytics {
   display: flex;
   flex-direction: column;
   gap: 24px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  .title {
-    margin: 0;
-  }
-
-  .actions {
-    display: flex;
-    gap: 8px;
-  }
 }
 
 .widgets {
