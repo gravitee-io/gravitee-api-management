@@ -143,7 +143,12 @@ public interface PlanAdapter {
                 .getInstance()
                 .readValue(source.getDefinition(), io.gravitee.definition.model.federation.FederatedPlan.class);
         } catch (IOException ioe) {
-            log.error("An error occurred while deserializing Federated Plan definition for plan named {} with id {}", source.getName(), source.getId(), ioe);
+            log.error(
+                "An error occurred while deserializing Federated Plan definition for plan named {} with id {}",
+                source.getName(),
+                source.getId(),
+                ioe
+            );
             return null;
         }
     }
@@ -208,7 +213,12 @@ public interface PlanAdapter {
             try {
                 return GraviteeJacksonMapper.getInstance().readValue(plan.getDefinition(), new TypeReference<>() {});
             } catch (IOException ioe) {
-                log.error("An error occurred while generating policy definition for plan named {} with id {}", plan.getName(), plan.getId(), ioe);
+                log.error(
+                    "An error occurred while generating policy definition for plan named {} with id {}",
+                    plan.getName(),
+                    plan.getId(),
+                    ioe
+                );
                 return null;
             }
         } else {
