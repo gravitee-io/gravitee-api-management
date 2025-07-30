@@ -34,6 +34,7 @@ import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCri
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -279,9 +280,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             executionContext.getQueryContext(),
             new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
                 histogramParameters.apiId(),
-                histogramParameters.from(),
-                histogramParameters.to(),
-                histogramParameters.interval(),
+                new TimeRange(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval()),
                 repoAggregations,
                 histogramParameters.query()
             )
@@ -333,8 +332,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             groupByQuery.field(),
             repoGroups,
             repoOrder,
-            groupByQuery.from(),
-            groupByQuery.to(),
+            new TimeRange(groupByQuery.from(), groupByQuery.to()),
             groupByQuery.query()
         );
     }
@@ -347,10 +345,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         var repoQuery = new io.gravitee.repository.log.v4.model.analytics.StatsQuery(
             statsQuery.field(),
             statsQuery.apiId(),
-            new io.gravitee.repository.log.v4.model.analytics.StatsQuery.TimeRange(
-                statsQuery.from().toEpochMilli(),
-                statsQuery.to().toEpochMilli()
-            ),
+            new TimeRange(statsQuery.from(), statsQuery.to()),
             statsQuery.query()
         );
 
@@ -375,7 +370,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchRequestsCountByEvent(
                 executionContext.getQueryContext(),
-                new RequestsCountByEventQuery(countParameters.terms(), countParameters.from(), countParameters.to())
+                new RequestsCountByEventQuery(countParameters.terms(), new TimeRange(countParameters.from(), countParameters.to()))
             )
             .map(countAggregate -> RequestsCount.builder().total(countAggregate.getTotal()).build());
     }

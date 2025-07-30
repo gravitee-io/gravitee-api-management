@@ -42,6 +42,7 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggrega
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -653,9 +654,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var query = new HistogramQuery(
                 API_ID,
-                from,
-                to,
-                interval,
+                new TimeRange(from, to, interval),
                 List.of(new Aggregation("status", AggregationType.FIELD)),
                 Optional.empty()
             );
@@ -694,9 +693,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var query = new HistogramQuery(
                 API_ID,
-                from,
-                to,
-                interval,
+                new TimeRange(from, to, interval),
                 List.of(new Aggregation("gateway-response-time-ms", AggregationType.AVG)),
                 Optional.empty()
             );
@@ -724,9 +721,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var query = new HistogramQuery(
                 API_ID,
-                from,
-                to,
-                interval,
+                new TimeRange(from, to, interval),
                 List.of(new Aggregation("status", AggregationType.FIELD)),
                 Optional.of("status:404")
             );
@@ -757,7 +752,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, null);
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, new TimeRange(from, to), null);
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -780,8 +775,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 "response-time",
                 List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200)),
                 null,
-                from,
-                to,
+                new TimeRange(from, to),
                 null
             );
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
@@ -802,7 +796,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
             var queryString = "status:404 AND http-method:8";
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, queryString);
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, new TimeRange(from, to), queryString);
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -821,7 +815,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
             var order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, from, to, null);
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, new TimeRange(from, to), null);
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -841,7 +835,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
             var order = new GroupByQuery.Order("_key", true, "VALUE");
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, from, to, null);
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, new TimeRange(from, to), null);
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -864,12 +858,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
-            var query = new StatsQuery(
-                "gateway-response-time-ms",
-                API_ID,
-                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()),
-                Optional.empty()
-            );
+            var query = new StatsQuery("gateway-response-time-ms", API_ID, new TimeRange(from, to), Optional.empty());
 
             Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
 
@@ -891,12 +880,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var from = now.minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
 
-            var query = new StatsQuery(
-                "non-existent-field",
-                API_ID,
-                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()),
-                Optional.empty()
-            );
+            var query = new StatsQuery("non-existent-field", API_ID, new TimeRange(from, to), Optional.empty());
 
             Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
 
@@ -910,12 +894,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var queryString = "status:404 AND http-method:8";
 
-            var query = new StatsQuery(
-                "gateway-response-time-ms",
-                API_ID,
-                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()),
-                Optional.of(queryString)
-            );
+            var query = new StatsQuery("gateway-response-time-ms", API_ID, new TimeRange(from, to), Optional.of(queryString));
 
             Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
 
@@ -940,9 +919,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var result = cut.searchRequestsCountByEvent(
                 new QueryContext("org#1", "env#1"),
-                new RequestsCountByEventQuery(Map.of("api-id", API_ID))
+                new RequestsCountByEventQuery(Map.of("api-id", API_ID), new TimeRange(from, to))
             );
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {

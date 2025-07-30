@@ -26,6 +26,7 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -51,9 +52,7 @@ class SearchHistogramQueryAdapterTest {
         void should_generate_expected_histogram_query_json() {
             HistogramQuery query = new HistogramQuery(
                 API_ID,
-                FROM,
-                TO,
-                INTERVAL,
+                new TimeRange(FROM, TO, INTERVAL),
                 List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
                 Optional.empty()
             );
@@ -138,9 +137,7 @@ class SearchHistogramQueryAdapterTest {
         void should_generate_expected_avg_aggregation_query_json() {
             HistogramQuery query = new HistogramQuery(
                 API_ID,
-                FROM,
-                TO,
-                INTERVAL,
+                new TimeRange(FROM, TO, INTERVAL),
                 List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG)),
                 Optional.empty()
             );
@@ -225,9 +222,7 @@ class SearchHistogramQueryAdapterTest {
         void should_generate_expected_histogram_query_json_with_query_parameter() {
             HistogramQuery query = new HistogramQuery(
                 API_ID,
-                FROM,
-                TO,
-                INTERVAL,
+                new TimeRange(FROM, TO, INTERVAL),
                 List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
                 Optional.of("status:200 AND method:GET")
             );
@@ -366,9 +361,7 @@ class SearchHistogramQueryAdapterTest {
             cut.adapt(
                 new HistogramQuery(
                     API_ID,
-                    FROM,
-                    TO,
-                    INTERVAL,
+                    new TimeRange(FROM, TO, INTERVAL),
                     List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
                     Optional.empty()
                 )
@@ -422,9 +415,7 @@ class SearchHistogramQueryAdapterTest {
             cut.adapt(
                 new HistogramQuery(
                     API_ID,
-                    FROM,
-                    TO,
-                    INTERVAL,
+                    new TimeRange(FROM, TO, INTERVAL),
                     List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG)),
                     Optional.empty()
                 )

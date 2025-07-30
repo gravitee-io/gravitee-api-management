@@ -24,6 +24,7 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
 import java.util.Map;
@@ -37,8 +38,7 @@ public class SearchRequestsCountByEventQueryAdapterTest {
         var query = RequestsCountByEventQuery
             .builder()
             .terms(Map.of("api-id", "api-123"))
-            .from(Optional.ofNullable(Instant.ofEpochMilli(1650000000000L)))
-            .to(Optional.ofNullable(Instant.ofEpochMilli(1650003600000L)))
+            .timeRange(new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L)))
             .build();
 
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
@@ -76,8 +76,7 @@ public class SearchRequestsCountByEventQueryAdapterTest {
         var query = RequestsCountByEventQuery
             .builder()
             .terms(Map.of())
-            .from(Optional.ofNullable(Instant.ofEpochMilli(1650000000000L)))
-            .to(Optional.ofNullable(Instant.ofEpochMilli(1650003600000L)))
+            .timeRange(new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L)))
             .build();
 
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);

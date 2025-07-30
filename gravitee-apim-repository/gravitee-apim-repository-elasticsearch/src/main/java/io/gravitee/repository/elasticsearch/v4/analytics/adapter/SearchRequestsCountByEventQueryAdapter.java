@@ -20,7 +20,6 @@ import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.time.Instant;
 import java.util.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -43,8 +42,9 @@ public class SearchRequestsCountByEventQueryAdapter {
 
         List<JsonObject> filters = new ArrayList<>();
         addTermFilter(filters, query.terms());
-        addRangeFilter(filters, query.from(), query.to());
-
+        if (query.timeRange() != null) {
+            filters.add(new JsonObject(TimeRangeAdapter.toRangeNode(query.timeRange()).toString()));
+        }
         return filters.isEmpty() ? null : JsonObject.of("bool", JsonObject.of("must", JsonArray.of(filters.toArray())));
     }
 
@@ -54,16 +54,6 @@ public class SearchRequestsCountByEventQueryAdapter {
                 filters.add(JsonObject.of("term", JsonObject.of(field, id)));
             }
         });
-    }
-
-    private static void addRangeFilter(List<JsonObject> filters, Optional<Instant> from, Optional<Instant> to) {
-        if (from.isEmpty() && to.isEmpty()) return;
-
-        JsonObject timestamp = new JsonObject();
-        from.ifPresent(f -> timestamp.put("from", f.toEpochMilli()).put("include_lower", true));
-        to.ifPresent(t -> timestamp.put("to", t.toEpochMilli()).put("include_upper", true));
-
-        filters.add(JsonObject.of("range", JsonObject.of("@timestamp", timestamp)));
     }
 
     public static Optional<CountByAggregate> adaptResponse(SearchResponse searchResponse) {

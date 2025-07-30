@@ -15,18 +15,12 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
-public record RequestsCountByEventQuery(Map<String, String> terms, Optional<Instant> from, Optional<Instant> to) {
+public record RequestsCountByEventQuery(Map<String, String> terms, TimeRange timeRange) {
     public RequestsCountByEventQuery(Map<String, String> terms) {
-        this(terms, Optional.empty(), Optional.empty());
-    }
-
-    public RequestsCountByEventQuery(Map<String, String> terms, Instant from, Instant to) {
-        this(terms, Optional.ofNullable(from), Optional.ofNullable(to));
+        this(terms, null);
     }
 }
