@@ -40,11 +40,15 @@ public class Page {
 
     private String referenceId;
     private Page.ReferenceType referenceType;
+
     @ToString.Include
     private String name;
+
     private String slug;
+
     @ToString.Include
     private Page.Type type;
+
     private String lastContributor;
     private int order;
     private boolean published;
@@ -61,6 +65,7 @@ public class Page {
 
     // Non-Folder attributes
     private String content;
+
     @ToString.Include
     private boolean homepage;
 

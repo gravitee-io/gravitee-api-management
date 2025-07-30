@@ -421,7 +421,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private void createPageAndMedia(final ExecutionContext executionContext, ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode) {
-        log.debug("Creating pages and media for Organization {} and API {}...", executionContext.getOrganizationId(), createdApiEntity.getId());
+        log.debug(
+            "Creating pages and media for Organization {} and API {}...",
+            executionContext.getOrganizationId(),
+            createdApiEntity.getId()
+        );
         for (ImportJsonNode media : apiJsonNode.getMedia()) {
             mediaService.createWithDefinition(executionContext, createdApiEntity.getId(), media.toString());
         }
@@ -1010,7 +1014,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         String pageId = "-1";
         try {
             for (var id : existingPageIds) {
-                pageId=id;
+                pageId = id;
                 pageService.delete(executionContext, id);
             }
         } catch (RuntimeException e) {
