@@ -1831,7 +1831,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     final GraviteeDescriptorEntity descriptorEntity = graviteeDescriptorService.read(getResourceContentAsString(resource));
                     return importDescriptor(executionContext, apiId, pageEntity, fetcher, descriptorEntity);
                 } catch (Exception e) {
-                    throw new FetcherException(e.getMessage(), e);
+                    throw new FetcherException("An error occurs while trying to import descriptor.", e);
                 }
             }
 

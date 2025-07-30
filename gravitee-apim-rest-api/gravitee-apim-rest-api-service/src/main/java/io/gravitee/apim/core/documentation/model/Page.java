@@ -25,6 +25,7 @@ import lombok.*;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(onlyExplicitlyIncluded = true)
 public class Page {
 
     private String id;
@@ -33,11 +34,15 @@ public class Page {
      * The page crossId uniquely identifies a page across environments.
      * Pages promoted between environments will share the same crossId.
      */
+    @ToString.Include
     private String crossId;
 
     private String referenceId;
     private Page.ReferenceType referenceType;
+    @ToString.Include
     private String name;
+    private String slug;
+    @ToString.Include
     private Page.Type type;
     private String lastContributor;
     private int order;
@@ -55,6 +60,7 @@ public class Page {
 
     // Non-Folder attributes
     private String content;
+    @ToString.Include
     private boolean homepage;
 
     @With

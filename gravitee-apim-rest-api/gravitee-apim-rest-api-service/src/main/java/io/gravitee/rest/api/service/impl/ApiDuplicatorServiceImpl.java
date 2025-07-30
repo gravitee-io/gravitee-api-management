@@ -98,6 +98,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
@@ -202,9 +203,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             );
             createOrUpdateApiNestedEntities(executionContext, createdApiEntity, apiJsonNode);
 
-            // No need to create ASIDE Folder when the origin is Kubernetes
             if (!createdApiEntity.getDefinitionContext().isOriginKubernetes()) {
-                log.debug("Creating pages and media (non-Kubernetes origin)");
+                log.debug("Start to create pages and media (for non-Kubernetes origin)");
                 createPageAndMedia(executionContext, createdApiEntity, apiJsonNode);
             }
             return createdApiEntity;
@@ -352,11 +352,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .readValue(apiDefinition, UpdateApiEntity.class);
 
-        // Initialize with a default path
         if (
             Objects.equals(importedApi.getGraviteeDefinitionVersion(), DefinitionVersion.V1.getLabel()) &&
             (importedApi.getPaths() == null || importedApi.getPaths().isEmpty())
         ) {
+            log.debug("API definition does not contain any path, adding a default one");
             importedApi.setPaths(Collections.singletonMap("/", new ArrayList<>()));
         }
 
@@ -421,9 +421,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     private void createPageAndMedia(final ExecutionContext executionContext, ApiEntity createdApiEntity, ImportApiJsonNode apiJsonNode) {
+        log.debug("Creating pages and media for Organization {} and API {}...", executionContext.getOrganizationId(), createdApiEntity.getId());
         for (ImportJsonNode media : apiJsonNode.getMedia()) {
             mediaService.createWithDefinition(executionContext, createdApiEntity.getId(), media.toString());
         }
+        log.debug("Page and Media created: {}", apiJsonNode.getMedia().size());
 
         List<PageEntity> search = pageService.search(
             executionContext.getEnvironmentId(),
@@ -436,7 +438,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         if (search.isEmpty()) {
             pageService.createAsideFolder(executionContext, createdApiEntity.getId());
+            log.debug("ASIDE folder created");
         }
+        log.debug("Page and Media creation done!");
     }
 
     private String fetchApiDefinitionContentFromURL(Object apiDefinitionOrURL) {
@@ -638,7 +642,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 UUID.fromString(roleIdOrName);
                 roleIdsToImport.add(roleIdOrName);
             } catch (IllegalArgumentException e) {
-                log.debug("IllegalArgumentException while getting role ids to import", e);
+                log.info("IllegalArgumentException while getting role ids to import", e);
                 Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(
                     RoleScope.API,
                     roleIdOrName,
@@ -796,7 +800,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 apiMetadataService.update(executionContext, updateApiMetadataEntity);
             }
         } catch (Exception ex) {
-            throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
+            throw new TechnicalManagementException(String.format("An error occurs while creating API Metadata for API %s", apiEntity), ex);
         }
     }
 
@@ -938,12 +942,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         List<String> existingPageIds = existingPages.stream().map(PageEntity::getId).collect(toList());
         existingPageIds.removeIf(givenPageIds::contains);
 
+        String pageId = "-1";
         try {
             for (var id : existingPageIds) {
+                pageId=id;
                 pageService.delete(executionContext, id);
             }
         } catch (RuntimeException e) {
-            log.error("An error as occurred while trying to remove a page with kubernetes origin", e);
+            log.error("An error as occurred while trying to remove the page with id {}, with kubernetes origin", pageId, e);
         }
     }
 
@@ -988,7 +994,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 .map(GroupEntity::getId)
                 .orElseThrow(() -> new GroupNotFoundException(key));
         } catch (GroupNotFoundException e) {
-            log.error("GroupNotFoundException while finding group by id {}", key, e);
+            log.error("Group not found while finding group by id {}", key, e);
             return groupService
                 .findByName(executionContext.getEnvironmentId(), key)
                 .stream()
@@ -1000,14 +1006,13 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     @Getter
     @Setter
+    @NoArgsConstructor
     protected static class MemberToImport {
 
         private String source;
         private String sourceId;
         private List<String> roles; // After v3
         private String role; // Before v3 but now it is used by GKO
-
-        public MemberToImport() {}
 
         public MemberToImport(String source, String sourceId, List<String> roles, String role) {
             this.source = source;
