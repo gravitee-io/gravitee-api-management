@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { PageEvent } from '@angular/material/paginator';
-import { map, shareReplay, skip, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { forkJoin, of, ReplaySubject, Subject } from 'rxjs';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { map, shareReplay, skip, switchMap, tap } from 'rxjs/operators';
+import { forkJoin, of, ReplaySubject } from 'rxjs';
 import moment from 'moment';
 import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { QuickFiltersStoreService } from './services';
 import { LogFiltersInitialValues } from './models';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
 import { ApiLogsParam, ApiLogsResponse, ApiV4 } from '../../../../entities/management-api-v2';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
+import { GioTableWrapperPagination } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-runtime-logs',
@@ -37,12 +38,23 @@ import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-pl
   styleUrls: ['./api-runtime-logs.component.scss'],
   standalone: false,
 })
-export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
-  private api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(shareReplay(1));
+export class ApiRuntimeLogsComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
+  private activatedRoute = inject(ActivatedRoute);
+  private router = inject(Router);
+  private apiLogsService = inject(ApiLogsV2Service);
+  private applicationService = inject(ApplicationService);
+  private planService = inject(ApiPlanV2Service);
+  private quickFilterStore = inject(QuickFiltersStoreService);
+  private connectorPluginsService = inject(ConnectorPluginsV2Service);
+  private apiService = inject(ApiV2Service);
+
+  isReportingDisabled$ = this.apiService
+    .get(this.activatedRoute.snapshot.params.apiId)
+    .pipe(
+      map((api: ApiV4) => !api.analytics.enabled || (!api.analytics.logging?.mode?.endpoint && !api.analytics.logging?.mode?.entrypoint)),
+    );
   apiLogsSubject$ = new ReplaySubject<ApiLogsResponse>(1);
-  isMessageApi$ = this.api$.pipe(map((api: ApiV4) => api?.type === 'MESSAGE'));
-  apiLogsEnabled$ = this.api$.pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
   apiPlans$ = this.planService
     .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
     .pipe(
@@ -59,17 +71,6 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   initialValues: LogFiltersInitialValues;
   loading = true;
 
-  constructor(
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly router: Router,
-    private readonly apiLogsService: ApiLogsV2Service,
-    private readonly apiService: ApiV2Service,
-    private readonly applicationService: ApplicationService,
-    private readonly planService: ApiPlanV2Service,
-    private readonly quickFilterStore: QuickFiltersStoreService,
-    private readonly connectorPluginsService: ConnectorPluginsV2Service,
-  ) {}
-
   ngOnInit(): void {
     this.initData();
     this.quickFilterStore
@@ -81,7 +82,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
           const page = index === 0 ? +(this.activatedRoute.snapshot.queryParams.page ?? 1) : 1;
           return of({ values, page });
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(({ values, page }) => {
         const params = this.quickFilterStore.toLogFilterQueryParam(values, page, +(this.activatedRoute.snapshot.queryParams.perPage ?? 10));
@@ -89,21 +90,10 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
       });
   }
 
-  ngOnDestroy() {
-    this.unsubscribe$.next();
-    this.unsubscribe$.unsubscribe();
-  }
-
-  paginationUpdated(event: PageEvent) {
+  paginationUpdated(event: GioTableWrapperPagination) {
     const logFilters = this.quickFilterStore.getFilters();
-    const params = this.quickFilterStore.toLogFilterQueryParam(logFilters, event.pageIndex + 1, event.pageSize);
+    const params = this.quickFilterStore.toLogFilterQueryParam(logFilters, event.index, event.size);
     this.searchConnectionLogs(params);
-  }
-
-  openLogsSettings() {
-    this.router.navigate(['../../reporter-settings'], {
-      relativeTo: this.activatedRoute,
-    });
   }
 
   refresh() {
@@ -123,14 +113,10 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
             queryParams: queryParam,
           });
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
-
-  private static isLogEnabled = (api: ApiV4) => {
-    return api.analytics.enabled && (api.analytics.logging?.mode?.endpoint === true || api.analytics.logging?.mode?.entrypoint === true);
-  };
 
   private initData() {
     const applicationIds: string[] = this.activatedRoute.snapshot.queryParams?.applicationIds

@@ -26,26 +26,7 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
   public quickFiltersHarness = this.locatorFor(ApiRuntimeLogsQuickFiltersHarness);
   public moreFiltersHarness = this.locatorFor(ApiRuntimeLogsMoreFiltersHarness);
   public loader = this.locatorForOptional(DivHarness.with({ selector: '[data-testId=loader-spinner]' }));
-
-  async isEmptyPanelDisplayed(): Promise<boolean> {
-    return this.listHarness().then((list) => list.isEmptyPanelDisplayed());
-  }
-
-  async isImpactBannerDisplayed(): Promise<boolean> {
-    return this.listHarness().then((list) => list.isImpactBannerDisplayed());
-  }
-
-  async clickOpenSettings(): Promise<void> {
-    return this.listHarness().then((list) => list.clickOpenSettings());
-  }
-
-  async getRows() {
-    return this.listHarness().then((list) => list.rows());
-  }
-
-  async getPaginator() {
-    return this.listHarness().then((list) => list.paginator());
-  }
+  public banner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
 
   async getQuickFiltersChips() {
     return this.quickFiltersHarness().then((quickFilters) => quickFilters.getChips());
@@ -126,10 +107,6 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
     return this.getPlanChip()
       .then((chip) => chip.getRemoveButton())
       .then((button) => button.click());
-  }
-
-  async goToNextPage() {
-    return this.getPaginator().then((paginator) => paginator.goToNextPage());
   }
 
   async moreFiltersButtonClick() {

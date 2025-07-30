@@ -14,37 +14,55 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { PageEvent } from '@angular/material/paginator';
+import { Component, computed, input, output } from '@angular/core';
+import { GioAvatarModule } from '@gravitee/ui-particles-angular';
+import { MatIcon } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
+import { MatSort } from '@angular/material/sort';
+import { RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
 
+import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { ConnectionLog, Pagination } from '../../../../../../entities/management-api-v2';
+import {
+  GioTableWrapperFilters,
+  GioTableWrapperPagination,
+} from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 @Component({
   selector: 'api-runtime-logs-list',
   templateUrl: './api-runtime-logs-list.component.html',
   styleUrls: ['./api-runtime-logs-list.component.scss'],
   standalone: true,
+  imports: [GioAvatarModule, GioTableWrapperModule, MatIcon, MatTableModule, MatSort, RouterLink, MatButtonModule, DatePipe],
 })
 export class ApiRuntimeLogsListComponent {
-  @Input()
-  logs: ConnectionLog[];
+  logs = input.required<ConnectionLog[]>();
+  pagination = input.required<Pagination>();
+  readonly gioTableWrapperFilters = computed(() => {
+    const pagination = this.pagination();
+    return {
+      searchTerm: '',
+      pagination: {
+        index: pagination.page ?? 1,
+        size: pagination.perPage ?? 10,
+      },
+    };
+  });
 
-  @Output()
-  paginationUpdated: EventEmitter<PageEvent> = new EventEmitter<PageEvent>();
-
-  private _pagination?: Pagination;
+  paginationUpdated = output<GioTableWrapperPagination>();
+  displayedColumns = ['timestamp', 'method', 'status', 'URI', 'application', 'responseTime', 'actions'];
   pageSizeOptions: number[] = [10, 25, 50, 100];
 
-  @Input()
-  get pagination(): Pagination {
-    return this._pagination;
-  }
-
-  set pagination(value: Pagination) {
-    this._pagination = value;
-
-    if (this._pagination.totalCount == null) {
-      this._pagination = { ...this._pagination, totalCount: 0 };
+  onFiltersChanged(event: GioTableWrapperFilters) {
+    const eventPagination = event.pagination;
+    const currentPagination = this.pagination();
+    if (
+      (currentPagination.perPage >= 0 && currentPagination.perPage !== eventPagination.size) ||
+      (currentPagination.page >= 0 && currentPagination.page !== eventPagination.index)
+    ) {
+      this.paginationUpdated.emit({ index: eventPagination.index, size: eventPagination.size });
     }
   }
 }
