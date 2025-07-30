@@ -315,7 +315,7 @@ class SearchHistogramQueryAdapterTest {
         @Test
         void should_return_empty_when_no_aggregation() {
             SearchResponse response = new SearchResponse();
-            List<HistogramAggregate<?>> result = cut.adaptResponse(response);
+            List<HistogramAggregate> result = cut.adaptResponse(response);
             assertThat(result).isEmpty();
         }
 
@@ -367,10 +367,10 @@ class SearchHistogramQueryAdapterTest {
                 )
             );
 
-            List<HistogramAggregate<?>> result = cut.adaptResponse(response);
+            List<HistogramAggregate> result = cut.adaptResponse(response);
 
             assertThat(result).hasSize(1);
-            HistogramAggregate<Long> agg = (HistogramAggregate<Long>) result.getFirst();
+            HistogramAggregate agg = result.getFirst();
             assertThat(agg.buckets()).containsOnlyKeys("200", "202", "404");
 
             assertThat(agg.buckets().get("200")).containsExactly(1L, 0L);
@@ -421,12 +421,12 @@ class SearchHistogramQueryAdapterTest {
                 )
             );
 
-            List<HistogramAggregate<?>> result = cut.adaptResponse(response);
+            List<HistogramAggregate> result = cut.adaptResponse(response);
 
             assertThat(result).hasSize(1);
-            HistogramAggregate<Double> agg = (HistogramAggregate<Double>) result.getFirst();
+            HistogramAggregate agg = result.getFirst();
             assertThat(agg.buckets()).containsOnlyKeys("avg_gateway-response-time-ms");
-            assertThat(agg.buckets().get("avg_gateway-response-time-ms")).containsExactly(120.5, 110.0);
+            assertThat(agg.buckets().get("avg_gateway-response-time-ms")).containsExactly(120L, 110L);
         }
     }
 }

@@ -707,7 +707,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(histogram.buckets()).isNotNull();
             assertThat(histogram.buckets()).containsOnlyKeys("avg_gateway-response-time-ms");
 
-            var avgBucket = (List<Double>) histogram.buckets().get("avg_gateway-response-time-ms");
+            var avgBucket = histogram.buckets().get("avg_gateway-response-time-ms");
             assertThat(avgBucket).isNotEmpty();
             assertThat(avgBucket.stream().filter(v -> v > 0).count()).isEqualTo(2);
         }
@@ -867,10 +867,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .hasValueSatisfying(stats -> {
                     assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
                     assertThat(stats.count()).isEqualTo(8L);
-                    assertThat(stats.sum()).isEqualTo(131864.0f);
-                    assertThat(stats.avg()).isEqualTo(16483.0f);
-                    assertThat(stats.min()).isEqualTo(19.0f);
-                    assertThat(stats.max()).isEqualTo(60000.0f);
+                    assertThat(stats.sum()).isEqualTo(131864L);
+                    assertThat(stats.avg()).isEqualTo(16483L);
+                    assertThat(stats.min()).isEqualTo(19L);
+                    assertThat(stats.max()).isEqualTo(60000L);
                 });
         }
 
@@ -903,13 +903,13 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .hasValueSatisfying(stats -> {
                     assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
                     assertThat(stats.count()).isEqualTo(2L);
-                    assertThat(stats.sum()).isEqualTo(70000.0f);
-                    assertThat(stats.avg()).isEqualTo(35000.0f);
-                    assertThat(stats.min()).isEqualTo(30000.0f);
-                    assertThat(stats.max()).isEqualTo(40000.0f);
-                    assertThat(stats.rps()).isEqualTo(1.1574074E-5f);
-                    assertThat(stats.rpm()).isEqualTo(6.9444446E-4f);
-                    assertThat(stats.rph()).isEqualTo(0.041666668f);
+                    assertThat(stats.sum()).isEqualTo(70000L);
+                    assertThat(stats.avg()).isEqualTo(35000L);
+                    assertThat(stats.min()).isEqualTo(30000L);
+                    assertThat(stats.max()).isEqualTo(40000L);
+                    assertThat(stats.rps()).isEqualTo(0L);
+                    assertThat(stats.rpm()).isEqualTo(0L);
+                    assertThat(stats.rph()).isEqualTo(0L);
                 });
         }
     }

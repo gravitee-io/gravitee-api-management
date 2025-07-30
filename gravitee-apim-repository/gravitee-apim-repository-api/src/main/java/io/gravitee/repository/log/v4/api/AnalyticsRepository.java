@@ -68,7 +68,7 @@ public interface AnalyticsRepository {
 
     Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria);
 
-    List<HistogramAggregate<?>> searchHistogram(QueryContext queryContext, HistogramQuery query);
+    List<HistogramAggregate> searchHistogram(QueryContext queryContext, HistogramQuery query);
 
     Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query);
 

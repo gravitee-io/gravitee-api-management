@@ -204,7 +204,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public List<HistogramAggregate<?>> searchHistogram(QueryContext queryContext, HistogramQuery query) {
+    public List<HistogramAggregate> searchHistogram(QueryContext queryContext, HistogramQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var adapter = new SearchHistogramQueryAdapter();
         var esQuery = adapter.adapt(query);

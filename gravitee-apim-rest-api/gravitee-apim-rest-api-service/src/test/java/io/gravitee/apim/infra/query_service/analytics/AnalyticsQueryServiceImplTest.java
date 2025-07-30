@@ -317,10 +317,10 @@ class AnalyticsQueryServiceImplTest {
             Instant to = Instant.parse("2024-01-02T00:00:00Z");
             Duration interval = Duration.ofHours(1);
 
-            HistogramAggregate<Integer> rootAggregate = new HistogramAggregate<>(
+            HistogramAggregate rootAggregate = new HistogramAggregate(
                 "rootField",
                 "rootName",
-                Map.of("200", List.of(0, 0, 1, 0), "202", List.of(0, 0, 0, 1), "404", List.of(0, 0, 0, 2))
+                Map.of("200", List.of(0L, 0L, 1L, 0L), "202", List.of(0L, 0L, 0L, 1L), "404", List.of(0L, 0L, 0L, 2L))
             );
 
             when(analyticsRepository.searchHistogram(any(QueryContext.class), any(HistogramQuery.class)))
@@ -353,9 +353,9 @@ class AnalyticsQueryServiceImplTest {
             Bucket bucket202 = rootBucket.getBuckets().stream().filter(b -> "202".equals(b.getName())).findFirst().orElseThrow();
             Bucket bucket404 = rootBucket.getBuckets().stream().filter(b -> "404".equals(b.getName())).findFirst().orElseThrow();
 
-            assertThat(bucket200.getData()).containsExactly(0, 0, 1, 0);
-            assertThat(bucket202.getData()).containsExactly(0, 0, 0, 1);
-            assertThat(bucket404.getData()).containsExactly(0, 0, 0, 2);
+            assertThat(bucket200.getData()).containsExactly(0L, 0L, 1L, 0L);
+            assertThat(bucket202.getData()).containsExactly(0L, 0L, 0L, 1L);
+            assertThat(bucket404.getData()).containsExactly(0L, 0L, 0L, 2L);
         }
     }
 
@@ -430,14 +430,14 @@ class AnalyticsQueryServiceImplTest {
         void should_map_stats_aggregate_to_stats_analytics() {
             var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate(
                 "field",
-                10,
-                100.0f,
-                10.0f,
-                1.0f,
-                20.0f,
-                2.0f,
-                3.0f,
-                4.0f
+                10L,
+                100L,
+                10L,
+                1L,
+                20L,
+                2L,
+                3L,
+                4L
             );
             when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
@@ -447,29 +447,19 @@ class AnalyticsQueryServiceImplTest {
             assertThat(result)
                 .hasValueSatisfying(statsAnalytics -> {
                     assertThat(statsAnalytics.count()).isEqualTo(10);
-                    assertThat(statsAnalytics.sum()).isEqualTo(100.0f);
-                    assertThat(statsAnalytics.avg()).isEqualTo(10.0f);
-                    assertThat(statsAnalytics.min()).isEqualTo(1.0f);
-                    assertThat(statsAnalytics.max()).isEqualTo(20.0f);
-                    assertThat(statsAnalytics.rps()).isEqualTo(2.0f);
-                    assertThat(statsAnalytics.rpm()).isEqualTo(3.0f);
-                    assertThat(statsAnalytics.rph()).isEqualTo(4.0f);
+                    assertThat(statsAnalytics.sum()).isEqualTo(100L);
+                    assertThat(statsAnalytics.avg()).isEqualTo(10L);
+                    assertThat(statsAnalytics.min()).isEqualTo(1L);
+                    assertThat(statsAnalytics.max()).isEqualTo(20L);
+                    assertThat(statsAnalytics.rps()).isEqualTo(2L);
+                    assertThat(statsAnalytics.rpm()).isEqualTo(3L);
+                    assertThat(statsAnalytics.rph()).isEqualTo(4L);
                 });
         }
 
         @Test
         void should_pass_query_argument_to_repository() {
-            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate(
-                "field",
-                5,
-                50.0f,
-                10.0f,
-                2.0f,
-                20.0f,
-                1.0f,
-                2.0f,
-                3.0f
-            );
+            var repoAggregate = new io.gravitee.repository.log.v4.model.analytics.StatsAggregate("field", 5, 50L, 10L, 2L, 20L, 1L, 2L, 3L);
             when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
             var queryString = "status:200 AND method:GET";
@@ -479,11 +469,11 @@ class AnalyticsQueryServiceImplTest {
             assertThat(result)
                 .hasValueSatisfying(statsAnalytics -> {
                     assertThat(statsAnalytics.count()).isEqualTo(5);
-                    assertThat(statsAnalytics.sum()).isEqualTo(50.0f);
-                    assertThat(statsAnalytics.avg()).isEqualTo(10.0f);
-                    assertThat(statsAnalytics.min()).isEqualTo(2.0f);
-                    assertThat(statsAnalytics.max()).isEqualTo(20.0f);
-                    assertThat(statsAnalytics.rps()).isEqualTo(1.0f);
+                    assertThat(statsAnalytics.sum()).isEqualTo(50L);
+                    assertThat(statsAnalytics.avg()).isEqualTo(10L);
+                    assertThat(statsAnalytics.min()).isEqualTo(2L);
+                    assertThat(statsAnalytics.max()).isEqualTo(20L);
+                    assertThat(statsAnalytics.rps()).isEqualTo(1L);
                 });
             verify(analyticsRepository)
                 .searchStats(any(QueryContext.class), argThat(arg -> arg.query().isPresent() && arg.query().get().equals(queryString)));
