@@ -81,15 +81,8 @@ public class GroupByQueryAdapter {
             filterArray.add(queryStringNode);
         }
 
-        // Time range (from/to are never null)
-        ObjectNode rangeNode = MAPPER.createObjectNode();
-        ObjectNode tsRange = MAPPER.createObjectNode();
-        tsRange.put("from", query.from().toEpochMilli());
-        tsRange.put("to", query.to().toEpochMilli());
-        tsRange.put("include_lower", true);
-        tsRange.put("include_upper", true);
-        rangeNode.set("@timestamp", tsRange);
-        filterArray.add(MAPPER.createObjectNode().set("range", rangeNode));
+        // Time range using TimeRangeAdapter
+        filterArray.add(TimeRangeAdapter.toRangeNode(query.timeRange()));
 
         ObjectNode bool = MAPPER.createObjectNode();
         bool.set("filter", filterArray);

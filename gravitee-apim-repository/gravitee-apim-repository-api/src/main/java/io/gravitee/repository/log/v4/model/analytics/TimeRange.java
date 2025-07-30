@@ -15,16 +15,20 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-import java.util.List;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
 
-public record GroupByQuery(
-    String apiId,
-    String field,
-    List<Group> groups,
-    Order order,
-    TimeRange timeRange,
-    String query // optional query string
-) {
-    public record Group(long from, long to) {}
-    public record Order(String field, boolean order, String type) {}
+public record TimeRange(Instant from, Instant to, Optional<Duration> interval) {
+    public TimeRange(java.time.Instant from, java.time.Instant to) {
+        this(from, to, java.util.Optional.empty());
+    }
+
+    public TimeRange(java.time.Instant from, java.time.Instant to, java.time.Duration interval) {
+        this(from, to, java.util.Optional.of(interval));
+    }
+
+    public long seconds() {
+        return Math.max(1, (to.toEpochMilli() - from.toEpochMilli()) / 1000);
+    }
 }

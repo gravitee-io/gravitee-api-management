@@ -131,43 +131,15 @@ public class SearchHistogramQueryAdapter {
     }
 
     private ObjectNode createTimeRangeFilterNode(HistogramQuery query) {
-        ObjectNode range = MAPPER.createObjectNode();
-        range.put("from", query.from().toEpochMilli());
-        range.put("to", query.to().toEpochMilli());
-        range.put("include_lower", true);
-        range.put("include_upper", true);
-
-        ObjectNode rangeQuery = MAPPER.createObjectNode();
-        rangeQuery.set("@timestamp", range);
-
-        return MAPPER.createObjectNode().set("range", rangeQuery);
+        return TimeRangeAdapter.toRangeNode(query.timeRange());
     }
 
     private ObjectNode createAggregationsNode(HistogramQuery query) {
         ObjectNode aggs = MAPPER.createObjectNode();
-        ObjectNode byDate = createTimestampAggregationNode(query);
+        ObjectNode byDate = TimeRangeAdapter.createTimestampAggregationNode(query);
+        byDate.set("aggregations", createChildAggregationNodes(query));
         aggs.set("by_date", byDate);
         return aggs;
-    }
-
-    private ObjectNode createTimestampAggregationNode(HistogramQuery query) {
-        ObjectNode byDate = MAPPER.createObjectNode();
-        ObjectNode dateHistogram = MAPPER.createObjectNode();
-        dateHistogram.put("field", "@timestamp");
-        dateHistogram.put("fixed_interval", query.interval().toMillis() + "ms");
-        dateHistogram.put("min_doc_count", 0);
-        ObjectNode extendedBounds = MAPPER.createObjectNode();
-        extendedBounds.put("min", query.from().toEpochMilli());
-        extendedBounds.put("max", query.to().toEpochMilli());
-        dateHistogram.set("extended_bounds", extendedBounds);
-        byDate.set("date_histogram", dateHistogram);
-
-        aggFieldMap.put("by_date", "@timestamp");
-
-        ObjectNode subAggs = createChildAggregationNodes(query);
-        byDate.set("aggregations", subAggs);
-
-        return byDate;
     }
 
     private ObjectNode createChildAggregationNodes(HistogramQuery query) {

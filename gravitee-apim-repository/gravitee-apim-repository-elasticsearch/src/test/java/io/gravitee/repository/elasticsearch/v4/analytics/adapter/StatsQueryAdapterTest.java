@@ -23,6 +23,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.util.HashMap;
 import java.util.Optional;
 import org.junit.jupiter.api.Nested;
@@ -42,7 +43,12 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldGenerateCorrectQueryJson() throws Exception {
-            StatsQuery query = new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(FROM, TO), Optional.empty());
+            StatsQuery query = new StatsQuery(
+                FIELD,
+                API_ID,
+                new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
+                Optional.empty()
+            );
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -58,7 +64,12 @@ class StatsQueryAdapterTest {
         @Test
         void shouldIncludeQueryStringIfPresent() throws Exception {
             String queryString = "status:200 AND method:GET";
-            StatsQuery query = new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(FROM, TO), java.util.Optional.of(queryString));
+            StatsQuery query = new StatsQuery(
+                FIELD,
+                API_ID,
+                new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
+                java.util.Optional.of(queryString)
+            );
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -69,7 +80,12 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldNotIncludeQueryStringIfEmptyOrBlank() throws Exception {
-            StatsQuery query = new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(FROM, TO), java.util.Optional.of("   "));
+            StatsQuery query = new StatsQuery(
+                FIELD,
+                API_ID,
+                new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
+                java.util.Optional.of("   ")
+            );
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -80,7 +96,12 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldNotIncludeQueryStringIfNotPresent() throws Exception {
-            StatsQuery query = new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(FROM, TO), java.util.Optional.empty());
+            StatsQuery query = new StatsQuery(
+                FIELD,
+                API_ID,
+                new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
+                java.util.Optional.empty()
+            );
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -95,7 +116,14 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldAdaptResponseCorrectly() {
-            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 3601L), Optional.empty()));
+            cut.adapt(
+                new StatsQuery(
+                    FIELD,
+                    API_ID,
+                    new TimeRange(java.time.Instant.ofEpochMilli(1L), java.time.Instant.ofEpochMilli(3601L)),
+                    Optional.empty()
+                )
+            );
 
             Aggregation agg = new Aggregation();
             agg.setCount(3600f);
@@ -126,7 +154,14 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldReturnEmptyIfNoAggregations() {
-            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 2L), Optional.empty()));
+            cut.adapt(
+                new StatsQuery(
+                    FIELD,
+                    API_ID,
+                    new TimeRange(java.time.Instant.ofEpochMilli(1L), java.time.Instant.ofEpochMilli(2L)),
+                    Optional.empty()
+                )
+            );
             SearchResponse response = new SearchResponse();
             response.setAggregations(null);
             assertTrue(cut.adaptResponse(response).isEmpty());
@@ -134,7 +169,14 @@ class StatsQueryAdapterTest {
 
         @Test
         void shouldReturnEmptyIfNoMatchingAggregation() {
-            cut.adapt(new StatsQuery(FIELD, API_ID, new StatsQuery.TimeRange(1L, 2L), Optional.empty()));
+            cut.adapt(
+                new StatsQuery(
+                    FIELD,
+                    API_ID,
+                    new TimeRange(java.time.Instant.ofEpochMilli(1L), java.time.Instant.ofEpochMilli(2L)),
+                    Optional.empty()
+                )
+            );
             SearchResponse response = new SearchResponse();
             response.setAggregations(new HashMap<>());
             assertTrue(cut.adaptResponse(response).isEmpty());

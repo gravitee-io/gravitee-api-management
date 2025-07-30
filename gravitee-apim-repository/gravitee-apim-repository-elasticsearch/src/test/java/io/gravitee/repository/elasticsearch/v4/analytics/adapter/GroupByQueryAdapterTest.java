@@ -23,6 +23,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,14 @@ class GroupByQueryAdapterTest {
 
         @Test
         void shouldGenerateCorrectTermsQueryJson() throws Exception {
-            GroupByQuery query = new GroupByQuery(API_ID, FIELD, null, null, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), null);
+            GroupByQuery query = new GroupByQuery(
+                API_ID,
+                FIELD,
+                null,
+                null,
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                null
+            );
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -61,7 +69,14 @@ class GroupByQueryAdapterTest {
         @Test
         void shouldGenerateCorrectRangeQueryJson() throws Exception {
             List<GroupByQuery.Group> groups = List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200));
-            GroupByQuery query = new GroupByQuery(API_ID, FIELD, groups, null, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), null);
+            GroupByQuery query = new GroupByQuery(
+                API_ID,
+                FIELD,
+                groups,
+                null,
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                null
+            );
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -84,8 +99,7 @@ class GroupByQueryAdapterTest {
                 FIELD,
                 null,
                 null,
-                Instant.ofEpochMilli(FROM),
-                Instant.ofEpochMilli(TO),
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
                 queryString
             );
             String json = cut.adapt(query);
@@ -107,7 +121,14 @@ class GroupByQueryAdapterTest {
         @Test
         void shouldGenerateTermsQueryWithAvgOrderAggregation() throws Exception {
             GroupByQuery.Order order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
-            GroupByQuery query = new GroupByQuery(API_ID, FIELD, null, order, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), null);
+            GroupByQuery query = new GroupByQuery(
+                API_ID,
+                FIELD,
+                null,
+                order,
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                null
+            );
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -123,7 +144,14 @@ class GroupByQueryAdapterTest {
         @Test
         void shouldGenerateTermsQueryWithCountOrder() throws Exception {
             GroupByQuery.Order order = new GroupByQuery.Order("status", true, "COUNT");
-            GroupByQuery query = new GroupByQuery(API_ID, FIELD, null, order, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), null);
+            GroupByQuery query = new GroupByQuery(
+                API_ID,
+                FIELD,
+                null,
+                order,
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                null
+            );
             String json = cut.adapt(query);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -141,7 +169,9 @@ class GroupByQueryAdapterTest {
 
         @Test
         void shouldAdaptTermsResponseCorrectly() {
-            cut.adapt(new GroupByQuery(API_ID, FIELD, null, null, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), null));
+            cut.adapt(
+                new GroupByQuery(API_ID, FIELD, null, null, new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)), null)
+            );
 
             Aggregation agg = new Aggregation();
             agg.setBuckets(List.of(createBucket("200", 10), createBucket("404", 5)));
@@ -165,7 +195,9 @@ class GroupByQueryAdapterTest {
         @Test
         void shouldAdaptRangeResponseCorrectly() {
             List<GroupByQuery.Group> groups = List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200));
-            cut.adapt(new GroupByQuery(API_ID, FIELD, groups, null, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), null));
+            cut.adapt(
+                new GroupByQuery(API_ID, FIELD, groups, null, new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)), null)
+            );
 
             Aggregation agg = new Aggregation();
             agg.setBuckets(List.of(createBucket("0.0-100.0", 7), createBucket("100.0-200.0", 3)));
@@ -188,7 +220,9 @@ class GroupByQueryAdapterTest {
 
         @Test
         void shouldReturnEmptyIfNoAggregations() {
-            cut.adapt(new GroupByQuery(API_ID, FIELD, null, null, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), null));
+            cut.adapt(
+                new GroupByQuery(API_ID, FIELD, null, null, new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)), null)
+            );
             SearchResponse response = new SearchResponse();
             response.setAggregations(null);
             assertTrue(cut.adaptResponse(response).isEmpty());
@@ -196,7 +230,9 @@ class GroupByQueryAdapterTest {
 
         @Test
         void shouldReturnEmptyIfNoMatchingAggregation() {
-            cut.adapt(new GroupByQuery(API_ID, FIELD, null, null, Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), null));
+            cut.adapt(
+                new GroupByQuery(API_ID, FIELD, null, null, new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)), null)
+            );
             SearchResponse response = new SearchResponse();
             response.setAggregations(new HashMap<>());
             assertTrue(cut.adaptResponse(response).isEmpty());
