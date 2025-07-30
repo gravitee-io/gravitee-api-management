@@ -120,7 +120,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         newApiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApiEntity.getTags()));
         // Validate and clean groups
         newApiEntity.setGroups(
-            groupValidationService.validateAndSanitize(executionContext, null, newApiEntity.getGroups(), primaryOwnerEntity, true)
+            groupValidationService.validateAndSanitize(executionContext, null, newApiEntity.getGroups(), null, primaryOwnerEntity, true)
         );
         // Validate and clean listeners
         newApiEntity.setListeners(
@@ -174,6 +174,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
                 executionContext,
                 updateApiEntity.getId(),
                 updateApiEntity.getGroups(),
+                existingApiEntity.getGroups(),
                 primaryOwnerEntity,
                 false
             )
@@ -230,7 +231,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         apiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, apiEntity.getTags()));
         // Validate and clean groups
         apiEntity.setGroups(
-            groupValidationService.validateAndSanitize(executionContext, null, apiEntity.getGroups(), primaryOwnerEntity, true)
+            groupValidationService.validateAndSanitize(executionContext, null, apiEntity.getGroups(), null, primaryOwnerEntity, true)
         );
         // Validate and clean listeners
         apiEntity.setListeners(
