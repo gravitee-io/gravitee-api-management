@@ -527,7 +527,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     break;
             }
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException(String.format("An error occurs while trying to associate group to all %s", associationType), ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to associate group to all %s", associationType),
+                ex
+            );
         }
     }
 

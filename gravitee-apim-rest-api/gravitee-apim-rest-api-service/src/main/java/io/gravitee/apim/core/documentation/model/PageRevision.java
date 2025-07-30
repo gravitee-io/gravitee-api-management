@@ -31,13 +31,17 @@ public class PageRevision {
 
     @ToString.Include
     private String pageId;
+
     @ToString.Include
     private int revision;
+
     @ToString.Include
     private String name;
+
     private String hash;
     private String content;
     private String contributor;
+
     @ToString.Include
     private Date modificationDate;
 }
