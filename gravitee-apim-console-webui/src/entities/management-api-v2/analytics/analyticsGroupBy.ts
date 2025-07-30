@@ -19,6 +19,6 @@ export interface GroupByResponse {
   metadata: Metadata;
 }
 
-export type Metadata = Record<string, { name: string; unknown?: boolean }>;
+export type Metadata = Record<string, { name: string; unknown?: boolean; order: number }>;
 
 export type GroupByField = 'status' | 'application-id';
