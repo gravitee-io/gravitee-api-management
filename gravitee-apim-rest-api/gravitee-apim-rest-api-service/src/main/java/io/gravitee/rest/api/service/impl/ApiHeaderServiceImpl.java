@@ -78,7 +78,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
             return convert(apiHeaderRepository.create(apiHeader));
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to create a header " + newEntity, e);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to create a header %s", newEntity), e);
         }
     }
 
@@ -163,7 +163,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 .collect(toList());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while trying to find all header for environment id:%s", environmentId),
+                String.format("An error occurs while trying to find all header for environment id: %s", environmentId),
                 e
             );
         }

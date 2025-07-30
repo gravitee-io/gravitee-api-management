@@ -44,8 +44,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
@@ -57,9 +56,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class AuditServiceImpl extends AbstractService implements AuditService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(AuditServiceImpl.class);
 
     private static final Map<Audit.AuditReferenceType, AuditReferenceType> AUDIT_REFERENCE_TYPE_AUDIT_REFERENCE_TYPE_MAP = Map.ofEntries(
         entry(Audit.AuditReferenceType.ORGANIZATION, AuditReferenceType.ORGANIZATION),
@@ -184,7 +182,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 UserEntity user = userService.findById(executionContext, auditEntity.getUser());
                 metadata.put(metadataKey, user.getDisplayName());
             } catch (TechnicalManagementException e) {
-                LOGGER.error("Error finding metadata {}", auditEntity.getUser());
+                log.error("Error finding metadata {}", auditEntity.getUser());
             } catch (UserNotFoundException unfe) {
                 metadata.put(metadataKey, auditEntity.getUser());
             }
@@ -198,7 +196,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                             metadata.put(metadataKey, optOrganization.get().getName());
                         }
                     } catch (TechnicalException e) {
-                        LOGGER.error("Error finding metadata {}", metadataKey);
+                        log.error("Error finding metadata {}", metadataKey);
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
@@ -211,7 +209,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                             metadata.put(metadataKey, optEnvironment.get().getName());
                         }
                     } catch (TechnicalException e) {
-                        LOGGER.error("Error finding metadata {}", metadataKey);
+                        log.error("Error finding metadata {}", metadataKey);
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
@@ -227,7 +225,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                             metadata.put(metadataKey, optApp.get().getName());
                         }
                     } catch (TechnicalException e) {
-                        LOGGER.error("Error finding metadata {}", metadataKey);
+                        log.error("Error finding metadata {}", metadataKey);
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
@@ -242,7 +240,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                             metadata.put(metadataKey, optApi.get().getName());
                         }
                     } catch (TechnicalException e) {
-                        LOGGER.error("Error finding metadata {}", metadataKey);
+                        log.error("Error finding metadata {}", metadataKey);
                         metadata.put(metadataKey, auditEntity.getReferenceId());
                     }
                 }
@@ -307,11 +305,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                     } catch (UserNotFoundException unfe) {
                                         name = property.getValue();
                                     }
+                                    break;
                                 default:
                                     break;
                             }
                         } catch (TechnicalException e) {
-                            LOGGER.error("Error finding metadata {}", metadataKey);
+                            log.error("Error finding metadata {}", metadataKey);
                             name = property.getValue();
                         }
                         metadata.put(metadataKey, name);
@@ -487,12 +486,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         try {
             auditRepository.create(audit);
         } catch (TechnicalException e) {
-            LOGGER.error(
-                "Error occurs during the creation of an Audit Log id={}, with organization id {} and environment id {} for user {}.",
-                audit.getId(),
-                audit.getOrganizationId(),
-                audit.getEnvironmentId(),
-                audit.getUser(),
+            log.error(
+                "Error occurs during the creation of an Audit Log. Reference {}/{}",
+                audit.getReferenceType(),
+                audit.getReferenceId(),
                 e
             );
         }

@@ -20,18 +20,24 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(onlyExplicitlyIncluded = true)
 public class PageRevision {
 
+    @ToString.Include
     private String pageId;
+    @ToString.Include
     private int revision;
+    @ToString.Include
     private String name;
     private String hash;
     private String content;
     private String contributor;
+    @ToString.Include
     private Date modificationDate;
 }

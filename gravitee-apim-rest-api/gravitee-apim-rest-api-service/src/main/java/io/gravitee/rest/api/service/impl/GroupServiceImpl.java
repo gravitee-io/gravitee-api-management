@@ -454,7 +454,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             GroupEntity groupEntity = this.map(executionContext, group.get());
 
             if (groupEntity == null) {
-                throw new TechnicalManagementException("An error occurs while trying to find a group " + groupId);
+                throw new TechnicalManagementException(String.format("An error occurs while trying to find a group %s", groupId));
             }
 
             if (
@@ -527,7 +527,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     break;
             }
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to associate group to all " + associationType, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to associate group to all %s", associationType), ex);
         }
     }
 
