@@ -42,7 +42,7 @@ public class PolicyCrudServiceImpl implements PolicyPluginCrudService {
         try {
             return Optional.of(PolicyPluginAdapter.INSTANCE.map(policyPluginService.findById(policyId)));
         } catch (PluginNotFoundException e) {
-            log.debug("PluginNotFoundException: PolicyPlugin with id {} not found", policyId);
+            log.warn("PluginNotFoundException: PolicyPlugin with id {} not found", policyId);
             return Optional.empty();
         }
     }

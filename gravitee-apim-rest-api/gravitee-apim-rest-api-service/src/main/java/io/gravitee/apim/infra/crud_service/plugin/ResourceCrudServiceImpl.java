@@ -43,7 +43,7 @@ public class ResourceCrudServiceImpl implements ResourcePluginCrudService {
         try {
             return Optional.of(ResourcePluginAdapter.INSTANCE.map(resourceService.findById(resourceId)));
         } catch (PluginNotFoundException e) {
-            throw new ResourceNotFoundException(String.format("An error occurred while finding ResourcePlugin with id %s", resourceId));
+            throw new PluginNotFoundException(String.format("An error occurred while finding Plugin with id %s", resourceId));
         }
     }
 }
