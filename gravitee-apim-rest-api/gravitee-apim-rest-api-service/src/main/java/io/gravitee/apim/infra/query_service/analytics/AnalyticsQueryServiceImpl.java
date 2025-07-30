@@ -375,7 +375,12 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchRequestsCountByEvent(
                 executionContext.getQueryContext(),
-                new RequestsCountByEventQuery(countParameters.terms(), countParameters.from(), countParameters.to())
+                new RequestsCountByEventQuery(
+                    countParameters.terms(),
+                    countParameters.from(),
+                    countParameters.to(),
+                    countParameters.query()
+                )
             )
             .map(countAggregate -> RequestsCount.builder().total(countAggregate.getTotal()).build());
     }

@@ -21,7 +21,11 @@ import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -42,10 +46,20 @@ public class SearchRequestsCountByEventQueryAdapter {
         }
 
         List<JsonObject> filters = new ArrayList<>();
+        addQueryFilter(filters, query.query());
         addTermFilter(filters, query.terms());
         addRangeFilter(filters, query.from(), query.to());
 
         return filters.isEmpty() ? null : JsonObject.of("bool", JsonObject.of("must", JsonArray.of(filters.toArray())));
+    }
+
+    private static void addQueryFilter(List<JsonObject> filters, Optional<String> query) {
+        // Query string support (as in count.ftl)
+        query.ifPresent(q -> {
+            if (!q.trim().isEmpty()) {
+                filters.add(JsonObject.of("query_string", JsonObject.of("query", q)));
+            }
+        });
     }
 
     private static void addTermFilter(List<JsonObject> filters, Map<String, String> terms) {
