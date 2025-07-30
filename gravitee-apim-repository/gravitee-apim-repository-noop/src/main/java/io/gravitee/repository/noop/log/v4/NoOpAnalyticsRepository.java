@@ -80,7 +80,7 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     }
 
     @Override
-    public List<HistogramAggregate<?>> searchHistogram(QueryContext queryContext, HistogramQuery query) {
+    public List<HistogramAggregate> searchHistogram(QueryContext queryContext, HistogramQuery query) {
         return Collections.emptyList();
     }
 

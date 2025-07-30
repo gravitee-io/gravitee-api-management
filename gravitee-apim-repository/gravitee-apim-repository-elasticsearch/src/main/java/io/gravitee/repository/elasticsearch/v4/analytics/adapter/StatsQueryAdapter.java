@@ -110,14 +110,15 @@ public class StatsQueryAdapter {
         }
 
         long count = agg.getCount().longValue();
-        float sum = agg.getSum();
-        float avg = agg.getAvg();
-        float min = agg.getMin();
-        float max = agg.getMax();
 
-        float rps = (float) count / this.seconds;
-        float rpm = (float) count / (this.seconds / 60f);
-        float rph = (float) count / (this.seconds / 3600f);
+        long sum = agg.getSum().longValue();
+        long avg = agg.getAvg().longValue();
+        long min = agg.getMin().longValue();
+        long max = agg.getMax().longValue();
+
+        long rps = count / this.seconds;
+        long rpm = rps * 60L;
+        long rph = rpm * 60L;
 
         return Optional.of(new StatsAggregate(this.field, count, sum, avg, min, max, rps, rpm, rph));
     }

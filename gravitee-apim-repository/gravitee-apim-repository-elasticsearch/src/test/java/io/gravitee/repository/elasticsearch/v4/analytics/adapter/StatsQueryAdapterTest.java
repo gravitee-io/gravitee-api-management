@@ -143,13 +143,13 @@ class StatsQueryAdapterTest {
             StatsAggregate stats = result.get();
             assertEquals(FIELD, stats.field());
             assertEquals(3600L, stats.count());
-            assertEquals(100f, stats.sum());
-            assertEquals(10f, stats.avg());
-            assertEquals(1f, stats.min());
-            assertEquals(20f, stats.max());
-            assertEquals(1200f, stats.rps());
-            assertEquals(72000f, stats.rpm());
-            assertEquals(4320000f, stats.rph());
+            assertEquals(100L, stats.sum());
+            assertEquals(10L, stats.avg());
+            assertEquals(1L, stats.min());
+            assertEquals(20L, stats.max());
+            assertEquals(1200L, stats.rps());
+            assertEquals(72000L, stats.rpm());
+            assertEquals(4320000L, stats.rph());
         }
 
         @Test

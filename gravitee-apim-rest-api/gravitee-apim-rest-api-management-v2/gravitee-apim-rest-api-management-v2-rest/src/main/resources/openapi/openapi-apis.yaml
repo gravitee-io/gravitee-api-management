@@ -7747,36 +7747,36 @@ components:
                     - type: object
                       properties:
                         avg:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Average value of the metric.
                         min:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Minimum value of the metric.
                         max:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Maximum value of the metric.
                         sum:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Sum of all metric values.
                         count:
                           type: integer
                           format: int64
                           description: Total number of data points.
                         rps:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Requests per second.
                         rpm:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Requests per minute.
                         rph:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Requests per hour.
         CountAnalytics:
           allOf:
@@ -7819,7 +7819,8 @@ components:
                             data:
                               type: array
                               items:
-                                type: number
+                                type: integer
+                                format: int64
                       field:
                         type: string
                       name:

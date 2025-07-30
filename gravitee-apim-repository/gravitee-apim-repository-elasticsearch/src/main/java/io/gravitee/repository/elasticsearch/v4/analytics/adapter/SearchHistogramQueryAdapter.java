@@ -158,7 +158,7 @@ public class SearchHistogramQueryAdapter {
         return subAggs;
     }
 
-    public List<HistogramAggregate<?>> adaptResponse(SearchResponse response) {
+    public List<HistogramAggregate> adaptResponse(SearchResponse response) {
         if (response == null || response.getAggregations() == null) {
             return Collections.emptyList();
         }
@@ -169,8 +169,8 @@ public class SearchHistogramQueryAdapter {
         return parseHistogramAggregates(histogramAgg);
     }
 
-    private List<HistogramAggregate<?>> parseHistogramAggregates(Aggregation histogramAgg) {
-        List<HistogramAggregate<?>> result = new ArrayList<>();
+    private List<HistogramAggregate> parseHistogramAggregates(Aggregation histogramAgg) {
+        List<HistogramAggregate> result = new ArrayList<>();
         var histogramSize = histogramAgg.getBuckets().size();
         for (var aggType : aggTypeMap.entrySet()) {
             if (aggType.getValue() == AggregationType.FIELD) {
@@ -182,12 +182,7 @@ public class SearchHistogramQueryAdapter {
         return result;
     }
 
-    private HistogramAggregate<Long> parseFieldHistogramAggregate(
-        Aggregation histogramAgg,
-        String aggName,
-        String fieldName,
-        int histogramSize
-    ) {
+    private HistogramAggregate parseFieldHistogramAggregate(Aggregation histogramAgg, String aggName, String fieldName, int histogramSize) {
         var values = new HashMap<String, List<Long>>();
         List<JsonNode> buckets = histogramAgg.getBuckets();
         for (int i = 0; i < buckets.size(); i++) {
@@ -203,27 +198,27 @@ public class SearchHistogramQueryAdapter {
                 }
             }
         }
-        return new HistogramAggregate<>(aggName, fieldName, values);
+        return new HistogramAggregate(aggName, fieldName, values);
     }
 
-    private HistogramAggregate<Double> parseMetricHistogramAggregate(
+    private HistogramAggregate parseMetricHistogramAggregate(
         Aggregation histogramAgg,
         String aggName,
         String fieldName,
         int histogramSize
     ) {
-        var values = new HashMap<String, List<Double>>();
-        values.put(aggName, new ArrayList<>(Collections.nCopies(histogramSize, 0.0d)));
+        var values = new HashMap<String, List<Long>>();
+        values.put(aggName, new ArrayList<>(Collections.nCopies(histogramSize, 0L)));
         List<JsonNode> buckets = histogramAgg.getBuckets();
         for (int i = 0; i < buckets.size(); i++) {
             var bucket = buckets.get(i);
             if (bucket.has(aggName)) {
                 var aggValue = bucket.get(aggName).get("value");
                 if (!aggValue.isNull()) {
-                    values.get(aggName).set(i, aggValue.asDouble());
+                    values.get(aggName).set(i, aggValue.asLong());
                 }
             }
         }
-        return new HistogramAggregate<>(aggName, fieldName, values);
+        return new HistogramAggregate(aggName, fieldName, values);
     }
 }
