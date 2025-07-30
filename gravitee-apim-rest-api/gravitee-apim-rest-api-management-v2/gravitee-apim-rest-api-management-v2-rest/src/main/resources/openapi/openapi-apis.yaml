@@ -4354,6 +4354,10 @@ components:
                     type: number
                     description: number of update APIs found to ingest
                     example: 4
+                isPartiallyDiscovered:
+                    type: boolean
+                    description: flag to tell if apis where only partially discovered due to timeout
+                    example: false
                 apis:
                     type: array
                     description: number of new APIs found to ingest

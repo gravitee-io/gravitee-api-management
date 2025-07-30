@@ -29,7 +29,7 @@
         color="primary"
         data-testid="proceed-button"
         *gioPermission="{ anyOf: ['environment-integration-c'] }"
-        [disabled]="apiToIngest().length <= 0"
+        [disabled]="apiToIngest().length <= 0 && !this.isPartiallyDiscovered"
         (click)="proceedIngest()"
       >
         Proceed
@@ -42,6 +42,28 @@
   @if (!isLoading && integrationPreview) {
     <div [formGroup]="form" class="preview">
       <section class="preview__toggles">
+        @if (isPartiallyDiscovered) {
+          <gio-banner-warning>
+            Partial API Discovery Warning
+            <span gioBannerBody data-testid="partial-discovery-warning">
+              <p>
+                We were only able to discover <strong>a subset of the APIs</strong> listed below due to an extended discovery time. You can
+                still proceed with ingesting <strong>all available APIs</strong>, but please note the following limitations:
+              </p>
+              <ul>
+                <li>The <strong>preview may not show all APIs</strong>.</li>
+                <li>
+                  <strong>Selective ingestion options</strong> (e.g., “only ingest new” or “update selected”) are currently
+                  <strong>disabled</strong>.
+                </li>
+              </ul>
+              <p>
+                All APIs—both discovered and undiscovered—will be <strong>fully processed</strong>. Existing APIs will be
+                <strong>updated</strong>, and any new ones will be <strong>added</strong>.
+              </p>
+            </span>
+          </gio-banner-warning>
+        }
         <p class="desc">
           {{
             integrationPreview.totalCount === 0
@@ -49,15 +71,17 @@
               : 'The following assets were discovered. You can create or update them in Gravitee:'
           }}
         </p>
-        <gio-form-slide-toggle>
-          <gio-form-label>Create {{ integrationPreview.newCount }} new Federated APIs</gio-form-label>
-          <mat-slide-toggle data-testid="new-items-toggle" gioFormSlideToggle formControlName="NEW"></mat-slide-toggle>
-        </gio-form-slide-toggle>
-        <gio-form-slide-toggle>
-          <gio-form-label>Update {{ integrationPreview.updateCount }} existing Federated APIs</gio-form-label>
-          Some changes you've made to existing Federated APIs will be overridden when the APIs are updated
-          <mat-slide-toggle data-testid="update-items-toggle" gioFormSlideToggle formControlName="UPDATE"></mat-slide-toggle>
-        </gio-form-slide-toggle>
+        @if (!isPartiallyDiscovered) {
+          <gio-form-slide-toggle>
+            <gio-form-label>Create {{ integrationPreview.newCount }} new Federated APIs</gio-form-label>
+            <mat-slide-toggle data-testid="new-items-toggle" gioFormSlideToggle formControlName="NEW"></mat-slide-toggle>
+          </gio-form-slide-toggle>
+          <gio-form-slide-toggle>
+            <gio-form-label>Update {{ integrationPreview.updateCount }} existing Federated APIs</gio-form-label>
+            Some changes you've made to existing Federated APIs will be overridden when the APIs are updated
+            <mat-slide-toggle data-testid="update-items-toggle" gioFormSlideToggle formControlName="UPDATE"></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        }
       </section>
       @if (integrationPreview.totalCount === 0) {
         <div class="preview__empty">
