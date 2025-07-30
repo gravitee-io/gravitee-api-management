@@ -28,10 +28,10 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -58,10 +58,7 @@ public class PageCrudServiceImpl implements PageCrudService {
             var updatedPage = pageRepository.update(PageAdapter.INSTANCE.toRepository(pageToUpdate));
             return PageAdapter.INSTANCE.toEntity(updatedPage);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(
-                String.format("An error occurred while updating page %s.", pageToUpdate),
-                e
-            );
+            throw new TechnicalDomainException(String.format("An error occurred while updating page %s.", pageToUpdate), e);
         }
     }
 
@@ -94,7 +91,10 @@ public class PageCrudServiceImpl implements PageCrudService {
         try {
             pageRepository.unsetHomepage(ids);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException(String.format("An error occurred while trying to unset homepage for Page ids %s", ids), e);
+            throw new TechnicalManagementException(
+                String.format("An error occurred while trying to unset homepage for Page ids %s", ids),
+                e
+            );
         }
     }
 
