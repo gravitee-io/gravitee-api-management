@@ -54,6 +54,12 @@
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
 
+# Configure CORS configuration cache
+#cors:
+#  cache:
+#    max-size: 1000
+#    ttl: 60000
+
 http:
   api:
     # Configure the listening path for the API. Default to /
