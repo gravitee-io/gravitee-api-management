@@ -1,4 +1,4 @@
-{ "index" : { "_index" : "gravitee-v4.metric.EventMetrics-2023.08.28" } }
+{ "create" : { "_index" : "gravitee-v4.metric.EventMetrics-2023.08.28" } }
 {
   "@timestamp": "2025-06-27T09:06:51.866Z",
   "plan-id": "test_plan",

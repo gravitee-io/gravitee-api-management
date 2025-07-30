@@ -3,7 +3,7 @@
 <#-- @ftlvariable name="index" type="java.lang.String" -->
 <#-- @ftlvariable name="metrics" type="io.gravitee.reporter.api.v4.metric.EventMetrics" -->
 <#if index??>
-{ "index": { "_index": "${index}" } }
+{ "create": { "_index": "${index}" } }
 </#if>
 <#--noinspection FtlReferencesInspection-->
 <@compress single_line=true>
