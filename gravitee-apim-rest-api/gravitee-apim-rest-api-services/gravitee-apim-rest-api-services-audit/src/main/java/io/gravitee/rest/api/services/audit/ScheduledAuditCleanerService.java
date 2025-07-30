@@ -42,7 +42,7 @@ public class ScheduledAuditCleanerService extends AbstractService implements Run
     public ScheduledAuditCleanerService(
         @Qualifier("auditTaskScheduler") TaskScheduler scheduler,
         @Value("${services.audit.cron:0 1 * * * *}") String cronTrigger,
-        @Value("${services.audit.enabled:true}") boolean enabled,
+        @Value("${services.audit.enabled:false}") boolean enabled,
         @Value("${services.audit.retention.days:365}") int maxAgeInDays,
         RemoveOldAuditDataUseCase removeOldAuditDataUseCase,
         OrganizationService organizationService,
