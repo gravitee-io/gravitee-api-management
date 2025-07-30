@@ -52,7 +52,7 @@ public class ScheduledEventsCleaningService extends AbstractService implements R
         @Qualifier("eventsCleaningTaskScheduler") TaskScheduler scheduler,
         @Value("${services.events.cron:@daily}") String cronTrigger,
         @Value("${services.events.keep:5}") int eventsKeep,
-        @Value("${services.events.enabled:true}") boolean enabled,
+        @Value("${services.events.enabled:false}") boolean enabled,
         @Value("${services.events.timeToLive:30}") long timeToLive
     ) {
         this.cleanupEventsUseCase = cleanupEventsUseCase;
