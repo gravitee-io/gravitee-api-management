@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 
@@ -36,6 +36,7 @@ import { ApiRuntimeLogsListComponent } from './components/api-runtime-logs-list/
     MatCardModule,
     RouterLink,
     ApiRuntimeLogsListComponent,
+    GioBannerModule,
   ],
   declarations: [ApiRuntimeLogsComponent],
   exports: [ApiRuntimeLogsComponent],

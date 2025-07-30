@@ -1,2 +1,17 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
+
+.table-wrapper {
+  border-top: 0;
+  margin-top: 0 !important;
+}
+
+.table {
+  &__empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 32px;
+  }
+}

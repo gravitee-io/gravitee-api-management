@@ -21,3 +21,11 @@ $typography: map.get(gio.$mat-theme, typography);
     @include mat.m2-typography-level($typography, 'headline-6');
   }
 }
+
+.banner-warning {
+  margin-bottom: 24px;
+  &__content {
+    display: flex;
+    flex-direction: column;
+  }
+}

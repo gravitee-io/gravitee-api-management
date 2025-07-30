@@ -13,8 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { ComponentHarness, parallel } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatPaginatorHarness } from '@angular/material/paginator/testing';
+
+import { GioTableWrapperHarness } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 export class ApiRuntimeLogsListHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-list';
+
+  private getLogsTable = this.locatorFor(MatTableHarness);
+  private getTableWrapper = this.locatorFor(GioTableWrapperHarness);
+  public paginator = this.locatorForOptional(MatPaginatorHarness);
+
+  async countRows(): Promise<number> {
+    return this.getLogsTable()
+      .then((table) => table.getRows())
+      .then((rows) => rows.length);
+  }
+
+  async computeTableCells() {
+    const table = await this.getLogsTable();
+
+    const headerRows = await table.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    return { headerCells, rowCells };
+  }
+
+  async getPaginator() {
+    return this.getTableWrapper().then((table) => table.getPaginator('header'));
+  }
 }
