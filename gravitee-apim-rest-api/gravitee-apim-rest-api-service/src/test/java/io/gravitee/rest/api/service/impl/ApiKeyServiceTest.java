@@ -181,7 +181,7 @@ public class ApiKeyServiceTest {
         when(apiKeyRepository.findByApplication(APPLICATION_ID)).thenReturn(List.of(sharedKey));
 
         // Existing subscription
-        SubscriptionEntity sharedSubscription = new SubscriptionEntity();
+        SubscriptionEntity sharedSubscription = mock(SubscriptionEntity.class);
         sharedSubscription.setId(sharedSubscriptionId);
         when(subscriptionService.findByIdIn(List.of(sharedSubscriptionId))).thenReturn(Set.of(sharedSubscription));
 
@@ -514,7 +514,7 @@ public class ApiKeyServiceTest {
         subscription.setId(SUBSCRIPTION_ID);
 
         String sharedSubscriptionId = "shared-subscription-id";
-        SubscriptionEntity sharedSubscription = new SubscriptionEntity();
+        SubscriptionEntity sharedSubscription = mock(SubscriptionEntity.class);
         sharedSubscription.setId(sharedSubscriptionId);
 
         subscription.setEndingAt(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
