@@ -75,9 +75,7 @@ public class SearchRequestsCountByEventQueryAdapterTest {
             Map.of(),
             new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L))
         );
-
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
-
         assertNotNull(result);
         var json = new JsonObject(result);
         assertEquals(0, json.getInteger("size"));
