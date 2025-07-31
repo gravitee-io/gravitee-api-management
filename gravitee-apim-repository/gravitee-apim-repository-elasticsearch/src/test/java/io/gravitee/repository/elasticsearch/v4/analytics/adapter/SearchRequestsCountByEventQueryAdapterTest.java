@@ -90,14 +90,6 @@ public class SearchRequestsCountByEventQueryAdapterTest {
     }
 
     @Test
-    void shouldAdaptQueryWithNullQuery() {
-        String result = SearchRequestsCountByEventQueryAdapter.adapt(null);
-
-        assertNotNull(result);
-        assertEquals("{\"size\":0}", result);
-    }
-
-    @Test
     void shouldAdaptResponseWithValidSearchResponse() {
         var totalHits = new TotalHits(123L);
         var searchHits = new SearchHits();

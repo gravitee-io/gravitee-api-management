@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -375,7 +376,15 @@ class AnalyticsQueryServiceImplTest {
 
             when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
-            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, null);
+            var groupByQuery = new AnalyticsQueryService.GroupByQuery(
+                apiId,
+                from,
+                to,
+                field,
+                Collections.emptyList(),
+                Optional.empty(),
+                Optional.empty()
+            );
 
             var result = cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
 
@@ -401,7 +410,15 @@ class AnalyticsQueryServiceImplTest {
             );
             when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
-            var groupByQuery = new AnalyticsQueryService.GroupByQuery(apiId, from, to, field, null, null, Optional.of(queryString));
+            var groupByQuery = new AnalyticsQueryService.GroupByQuery(
+                apiId,
+                from,
+                to,
+                field,
+                Collections.emptyList(),
+                Optional.empty(),
+                Optional.of(queryString)
+            );
 
             cut.searchGroupByAnalytics(GraviteeContext.getExecutionContext(), groupByQuery);
 

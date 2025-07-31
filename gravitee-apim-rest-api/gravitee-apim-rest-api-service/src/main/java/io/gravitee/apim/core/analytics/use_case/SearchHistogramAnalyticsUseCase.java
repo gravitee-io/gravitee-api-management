@@ -62,11 +62,7 @@ public class SearchHistogramAnalyticsUseCase {
         );
     }
 
-    public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations, Optional<String> query) {
-        public Input(String api, long from, long to, long interval, List<Aggregation> aggregations) {
-            this(api, from, to, interval, aggregations, Optional.empty());
-        }
-    }
+    public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations, Optional<String> query) {}
 
     public record Output(Timestamp timestamp, List<Bucket> values) {}
 }

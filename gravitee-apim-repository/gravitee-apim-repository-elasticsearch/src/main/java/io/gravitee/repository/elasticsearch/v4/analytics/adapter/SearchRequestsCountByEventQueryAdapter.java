@@ -30,30 +30,20 @@ public class SearchRequestsCountByEventQueryAdapter {
     public static String adapt(RequestsCountByEventQuery query) {
         var jsonContent = new HashMap<String, Object>();
         jsonContent.put("size", 0);
-        Optional.ofNullable(buildElasticQuery(query)).ifPresent(q -> jsonContent.put("query", q));
+        jsonContent.put("query", buildElasticQuery(query));
 
         return new JsonObject(jsonContent).encode();
     }
 
     private static JsonObject buildElasticQuery(RequestsCountByEventQuery query) {
-        if (query == null) {
-            return null;
-        }
-
         List<JsonObject> filters = new ArrayList<>();
         addTermFilter(filters, query.terms());
-        if (query.timeRange() != null) {
-            filters.add(new JsonObject(TimeRangeAdapter.toRangeNode(query.timeRange()).toString()));
-        }
-        return filters.isEmpty() ? null : JsonObject.of("bool", JsonObject.of("must", JsonArray.of(filters.toArray())));
+        filters.add(new JsonObject(TimeRangeAdapter.toRangeNode(query.timeRange()).toString()));
+        return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(filters.toArray())));
     }
 
     private static void addTermFilter(List<JsonObject> filters, Map<String, String> terms) {
-        terms.forEach((field, id) -> {
-            if (id != null && !id.isEmpty()) {
-                filters.add(JsonObject.of("term", JsonObject.of(field, id)));
-            }
-        });
+        terms.forEach((field, id) -> filters.add(JsonObject.of("term", JsonObject.of(field, id))));
     }
 
     public static Optional<CountByAggregate> adaptResponse(SearchResponse searchResponse) {

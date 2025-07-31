@@ -298,13 +298,11 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         ExecutionContext executionContext,
         io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery groupByQuery
     ) {
-        var repoGroups = groupByQuery.groups() == null
-            ? null
-            : groupByQuery
-                .groups()
-                .stream()
-                .map(g -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group(g.from(), g.to()))
-                .toList();
+        var repoGroups = groupByQuery
+            .groups()
+            .stream()
+            .map(g -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group(g.from(), g.to()))
+            .toList();
         var repoQuery = getGroupByQuery(groupByQuery, repoGroups);
         return analyticsRepository
             .searchGroupBy(executionContext.getQueryContext(), repoQuery)
@@ -320,13 +318,10 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         GroupByQuery groupByQuery,
         List<io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group> repoGroups
     ) {
-        var repoOrder = groupByQuery.order() == null
-            ? null
-            : new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Order(
-                groupByQuery.order().field(),
-                groupByQuery.order().order(),
-                groupByQuery.order().type()
-            );
+        var repoOrder = groupByQuery
+            .order()
+            .map(order -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Order(order.field(), order.order(), order.type()));
+
         return new io.gravitee.repository.log.v4.model.analytics.GroupByQuery(
             groupByQuery.apiId(),
             groupByQuery.field(),

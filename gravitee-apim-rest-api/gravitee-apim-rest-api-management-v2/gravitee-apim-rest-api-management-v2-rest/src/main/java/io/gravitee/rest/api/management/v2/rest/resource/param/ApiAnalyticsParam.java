@@ -24,6 +24,7 @@ import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.QueryParam;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
@@ -112,8 +113,8 @@ public class ApiAnalyticsParam {
         var aggregations = param
             .getAggregations()
             .stream()
+            .filter(a -> Objects.nonNull(a.getType()))
             .map(a -> {
-                if (a.getType() == null) return null;
                 try {
                     var type = io.gravitee.apim.core.analytics.model.Aggregation.AggregationType.valueOf(a.getType().toUpperCase());
                     return new io.gravitee.apim.core.analytics.model.Aggregation(a.getField(), type);
@@ -121,7 +122,6 @@ public class ApiAnalyticsParam {
                     throw new BadRequestException("Invalid aggregation type: " + a.getType(), ex);
                 }
             })
-            .filter(java.util.Objects::nonNull)
             .toList();
 
         return new SearchHistogramAnalyticsUseCase.Input(
@@ -141,10 +141,7 @@ public class ApiAnalyticsParam {
             .map(r -> new AnalyticsQueryService.GroupByQuery.Group(r.getFrom(), r.getTo()))
             .toList();
 
-        AnalyticsQueryService.GroupByQuery.Order order = null;
-        if (param.getOrder() != null) {
-            order = AnalyticsQueryService.GroupByQuery.Order.valueOf(param.getOrder());
-        }
+        var order = ofNullable(param.getOrder()).map(AnalyticsQueryService.GroupByQuery.Order::valueOf);
 
         return new SearchGroupByAnalyticsUseCase.Input(
             apiId,
