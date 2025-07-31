@@ -218,20 +218,20 @@ public class ApiAnalyticsResource extends AbstractResource {
         @BeanParam ApiAnalyticsParam apiAnalyticsParam
     ) {
         if (apiAnalyticsParam.getType() == AnalyticsType.HISTOGRAM) {
-            var input = ApiAnalyticsParam.toHistogramInput(apiId, apiAnalyticsParam);
+            var input = apiAnalyticsParam.toHistogramInput(apiId);
             var output = searchHistogramAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
             var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
             histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
             return new ApiAnalyticsResponse(histogramResponse);
         }
         if (apiAnalyticsParam.getType() == AnalyticsType.GROUP_BY) {
-            var input = ApiAnalyticsParam.toGroupByInput(apiId, apiAnalyticsParam);
+            var input = apiAnalyticsParam.toGroupByInput(apiId);
             var output = searchGroupByAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
             var groupByResponse = ApiAnalyticsMapper.INSTANCE.mapGroupByAnalytics(output.analytics(), output.metadata());
             return new ApiAnalyticsResponse(groupByResponse);
         }
         if (apiAnalyticsParam.getType() == AnalyticsType.STATS) {
-            var input = ApiAnalyticsParam.toStatsInput(apiId, apiAnalyticsParam);
+            var input = apiAnalyticsParam.toStatsInput(apiId);
             var output = searchStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
             if (output.analytics() == null) {
                 throw new NotFoundException("No stats analytics found for api: " + apiId);
@@ -240,7 +240,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             return new ApiAnalyticsResponse(statsResponse);
         }
         if (apiAnalyticsParam.getType() == AnalyticsType.COUNT) {
-            var input = ApiAnalyticsParam.toRequestsCountInput(apiId, apiAnalyticsParam);
+            var input = apiAnalyticsParam.toRequestsCountInput(apiId);
             var output = searchRequestsCountByEventAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
             if (output.result() == null) {
                 throw new NotFoundException("No Count analytics found for api: " + apiId);
