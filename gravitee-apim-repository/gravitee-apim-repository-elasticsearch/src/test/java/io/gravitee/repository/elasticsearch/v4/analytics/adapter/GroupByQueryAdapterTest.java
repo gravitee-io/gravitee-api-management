@@ -23,6 +23,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.time.Instant;
 import java.util.Collections;
@@ -48,7 +49,7 @@ class GroupByQueryAdapterTest {
         @Test
         void shouldGenerateCorrectTermsQueryJson() throws Exception {
             GroupByQuery query = new GroupByQuery(
-                API_ID,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 FIELD,
                 Collections.emptyList(),
                 Optional.empty(),
@@ -71,7 +72,7 @@ class GroupByQueryAdapterTest {
         void shouldGenerateCorrectRangeQueryJson() throws Exception {
             List<GroupByQuery.Group> groups = List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200));
             GroupByQuery query = new GroupByQuery(
-                API_ID,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 FIELD,
                 groups,
                 Optional.empty(),
@@ -96,7 +97,7 @@ class GroupByQueryAdapterTest {
         void shouldIncludeQueryStringIfPresent() throws Exception {
             String queryString = "status:200";
             GroupByQuery query = new GroupByQuery(
-                API_ID,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 FIELD,
                 List.of(),
                 Optional.empty(),
@@ -123,7 +124,7 @@ class GroupByQueryAdapterTest {
         void shouldGenerateTermsQueryWithAvgOrderAggregation() throws Exception {
             GroupByQuery.Order order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
             GroupByQuery query = new GroupByQuery(
-                API_ID,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 FIELD,
                 List.of(),
                 Optional.of(order),
@@ -146,7 +147,7 @@ class GroupByQueryAdapterTest {
         void shouldGenerateTermsQueryWithCountOrder() throws Exception {
             GroupByQuery.Order order = new GroupByQuery.Order("status", true, "COUNT");
             GroupByQuery query = new GroupByQuery(
-                API_ID,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 FIELD,
                 List.of(),
                 Optional.of(order),
@@ -172,7 +173,7 @@ class GroupByQueryAdapterTest {
         void shouldAdaptTermsResponseCorrectly() {
             cut.adapt(
                 new GroupByQuery(
-                    API_ID,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     FIELD,
                     List.of(),
                     Optional.empty(),
@@ -205,7 +206,7 @@ class GroupByQueryAdapterTest {
             List<GroupByQuery.Group> groups = List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200));
             cut.adapt(
                 new GroupByQuery(
-                    API_ID,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     FIELD,
                     groups,
                     Optional.empty(),
@@ -237,7 +238,7 @@ class GroupByQueryAdapterTest {
         void shouldReturnEmptyIfNoAggregations() {
             cut.adapt(
                 new GroupByQuery(
-                    API_ID,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     FIELD,
                     List.of(),
                     Optional.empty(),
@@ -254,7 +255,7 @@ class GroupByQueryAdapterTest {
         void shouldReturnEmptyIfNoMatchingAggregation() {
             cut.adapt(
                 new GroupByQuery(
-                    API_ID,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     FIELD,
                     List.of(),
                     Optional.empty(),

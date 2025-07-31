@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
+import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.*;
@@ -37,13 +38,13 @@ public class SearchRequestsCountByEventQueryAdapter {
 
     private static JsonObject buildElasticQuery(RequestsCountByEventQuery query) {
         List<JsonObject> filters = new ArrayList<>();
-        addTermFilter(filters, query.terms());
+        addTermFilter(filters, query.searchTermId());
         filters.add(new JsonObject(TimeRangeAdapter.toRangeNode(query.timeRange()).toString()));
         return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(filters.toArray())));
     }
 
-    private static void addTermFilter(List<JsonObject> filters, Map<String, String> terms) {
-        terms.forEach((field, id) -> filters.add(JsonObject.of("term", JsonObject.of(field, id))));
+    private static void addTermFilter(List<JsonObject> filters, SearchTermId terms) {
+        filters.add(JsonObject.of("term", JsonObject.of(terms.searchTerm().getField(), terms.id())));
     }
 
     public static Optional<CountByAggregate> adaptResponse(SearchResponse searchResponse) {

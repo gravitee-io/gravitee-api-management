@@ -15,4 +15,17 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-public record RequestsCountByEventQuery(SearchTermId searchTermId, TimeRange timeRange) {}
+import lombok.Getter;
+
+public record SearchTermId(SearchTerm searchTerm, String id) {
+    @Getter
+    public enum SearchTerm {
+        API("api-id");
+
+        private final String field;
+
+        SearchTerm(String keyword) {
+            this.field = keyword;
+        }
+    }
+}

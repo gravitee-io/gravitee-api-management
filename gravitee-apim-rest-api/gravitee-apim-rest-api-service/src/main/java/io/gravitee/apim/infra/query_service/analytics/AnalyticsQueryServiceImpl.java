@@ -279,7 +279,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         List<HistogramAggregate> repoResult = analyticsRepository.searchHistogram(
             executionContext.getQueryContext(),
             new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
-                histogramParameters.apiId(),
+                toModelSearchTermId(histogramParameters.searchTermId()),
                 new TimeRange(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval()),
                 repoAggregations,
                 histogramParameters.query()
@@ -291,6 +291,13 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         }
 
         return Optional.of(mapHistogramAggregatesToHistogramAnalytics(repoResult, histogramParameters));
+    }
+
+    private static io.gravitee.repository.log.v4.model.analytics.SearchTermId toModelSearchTermId(SearchTermId searchTermId) {
+        return new io.gravitee.repository.log.v4.model.analytics.SearchTermId(
+            io.gravitee.repository.log.v4.model.analytics.SearchTermId.SearchTerm.valueOf(searchTermId.searchTerm().name()),
+            searchTermId.id()
+        );
     }
 
     @Override
@@ -323,7 +330,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .map(order -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Order(order.field(), order.order(), order.type()));
 
         return new io.gravitee.repository.log.v4.model.analytics.GroupByQuery(
-            groupByQuery.apiId(),
+            toModelSearchTermId(groupByQuery.searchTermId()),
             groupByQuery.field(),
             repoGroups,
             repoOrder,
@@ -339,7 +346,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     ) {
         var repoQuery = new io.gravitee.repository.log.v4.model.analytics.StatsQuery(
             statsQuery.field(),
-            statsQuery.apiId(),
+            toModelSearchTermId(statsQuery.searchTermId()),
             new TimeRange(statsQuery.from(), statsQuery.to()),
             statsQuery.query()
         );
@@ -365,7 +372,10 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchRequestsCountByEvent(
                 executionContext.getQueryContext(),
-                new RequestsCountByEventQuery(countParameters.terms(), new TimeRange(countParameters.from(), countParameters.to()))
+                new RequestsCountByEventQuery(
+                    toModelSearchTermId(countParameters.searchTermId()),
+                    new TimeRange(countParameters.from(), countParameters.to())
+                )
             )
             .map(countAggregate -> RequestsCount.builder().total(countAggregate.total()).build());
     }

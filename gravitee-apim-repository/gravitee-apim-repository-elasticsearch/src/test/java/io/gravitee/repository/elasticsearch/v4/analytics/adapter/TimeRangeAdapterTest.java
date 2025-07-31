@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.time.Duration;
 import java.time.Instant;
@@ -49,7 +50,7 @@ class TimeRangeAdapterTest {
         Instant to = Instant.parse("2025-07-02T00:00:00Z");
         Duration interval = Duration.ofHours(1);
         var query = new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
-            "api-1",
+            new SearchTermId(SearchTermId.SearchTerm.API, "api-1"),
             new TimeRange(from, to, interval),
             java.util.List.of(),
             Optional.empty()
@@ -71,7 +72,7 @@ class TimeRangeAdapterTest {
         Instant from = Instant.parse("2025-07-01T00:00:00Z");
         Instant to = Instant.parse("2025-07-02T00:00:00Z");
         var query = new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
-            "api-1",
+            new SearchTermId(SearchTermId.SearchTerm.API, "api-1"),
             new TimeRange(from, to),
             java.util.List.of(),
             Optional.empty()

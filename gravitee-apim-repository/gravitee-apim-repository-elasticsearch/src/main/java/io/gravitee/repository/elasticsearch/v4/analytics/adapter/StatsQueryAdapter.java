@@ -67,7 +67,7 @@ public class StatsQueryAdapter {
 
         // Root (always "api-id" field)
         ObjectNode termNode = MAPPER.createObjectNode();
-        termNode.set("term", MAPPER.createObjectNode().put("api-id", query.apiId()));
+        termNode.set("term", MAPPER.createObjectNode().put(query.searchTermId().searchTerm().getField(), query.searchTermId().id()));
         filterArray.add(termNode);
 
         // Time range

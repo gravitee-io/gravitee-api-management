@@ -47,7 +47,7 @@ public class SearchGroupByAnalyticsUseCase {
             .throwIfNotSatisfied(apiCrudService.get(input.api()), executionContext, input.from(), input.to());
 
         var groupByQuery = new AnalyticsQueryService.GroupByQuery(
-            input.api(),
+            AnalyticsQueryService.SearchTermId.forApi(input.api()),
             Instant.ofEpochMilli(input.from()),
             Instant.ofEpochMilli(input.to()),
             input.field(),

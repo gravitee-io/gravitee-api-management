@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
 import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
@@ -45,7 +46,7 @@ class StatsQueryAdapterTest {
         void shouldGenerateCorrectQueryJson() throws Exception {
             StatsQuery query = new StatsQuery(
                 FIELD,
-                API_ID,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
                 Optional.empty()
             );
@@ -66,7 +67,7 @@ class StatsQueryAdapterTest {
             String queryString = "status:200 AND method:GET";
             StatsQuery query = new StatsQuery(
                 FIELD,
-                API_ID,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
                 java.util.Optional.of(queryString)
             );
@@ -82,7 +83,7 @@ class StatsQueryAdapterTest {
         void shouldNotIncludeQueryStringIfEmptyOrBlank() throws Exception {
             StatsQuery query = new StatsQuery(
                 FIELD,
-                API_ID,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
                 java.util.Optional.of("   ")
             );
@@ -98,7 +99,7 @@ class StatsQueryAdapterTest {
         void shouldNotIncludeQueryStringIfNotPresent() throws Exception {
             StatsQuery query = new StatsQuery(
                 FIELD,
-                API_ID,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(java.time.Instant.ofEpochMilli(FROM), java.time.Instant.ofEpochMilli(TO)),
                 java.util.Optional.empty()
             );
@@ -119,7 +120,7 @@ class StatsQueryAdapterTest {
             cut.adapt(
                 new StatsQuery(
                     FIELD,
-                    API_ID,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     new TimeRange(java.time.Instant.ofEpochMilli(1L), java.time.Instant.ofEpochMilli(3601L)),
                     Optional.empty()
                 )
@@ -157,7 +158,7 @@ class StatsQueryAdapterTest {
             cut.adapt(
                 new StatsQuery(
                     FIELD,
-                    API_ID,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     new TimeRange(java.time.Instant.ofEpochMilli(1L), java.time.Instant.ofEpochMilli(2L)),
                     Optional.empty()
                 )
@@ -172,7 +173,7 @@ class StatsQueryAdapterTest {
             cut.adapt(
                 new StatsQuery(
                     FIELD,
-                    API_ID,
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     new TimeRange(java.time.Instant.ofEpochMilli(1L), java.time.Instant.ofEpochMilli(2L)),
                     Optional.empty()
                 )

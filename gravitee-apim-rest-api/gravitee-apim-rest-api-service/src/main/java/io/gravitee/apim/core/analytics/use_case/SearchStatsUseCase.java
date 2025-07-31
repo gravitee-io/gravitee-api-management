@@ -40,7 +40,7 @@ public class SearchStatsUseCase {
             .throwIfNotSatisfied(apiCrudService.get(input.api()), executionContext, input.from(), input.to());
 
         var statsQuery = new AnalyticsQueryService.StatsQuery(
-            input.api(),
+            AnalyticsQueryService.SearchTermId.forApi(input.api()),
             input.field(),
             Instant.ofEpochMilli(input.from()),
             Instant.ofEpochMilli(input.to()),
