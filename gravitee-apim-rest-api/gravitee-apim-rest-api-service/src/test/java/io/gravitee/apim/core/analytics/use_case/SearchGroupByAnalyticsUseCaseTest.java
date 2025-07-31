@@ -41,6 +41,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -104,7 +105,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                     "api-id",
                     null,
                     null,
-                    null
+                    Optional.empty()
                 )
             )
         );
@@ -124,7 +125,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                     "api-id",
                     null,
                     null,
-                    null
+                    Optional.empty()
                 )
             )
         );
@@ -144,7 +145,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                     "api-id",
                     null,
                     null,
-                    null
+                    Optional.empty()
                 )
             )
         );
@@ -163,7 +164,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                     "api-id",
                     null,
                     null,
-                    null
+                    Optional.empty()
                 )
             )
         );
@@ -184,7 +185,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                     "api-id",
                     null,
                     null,
-                    null
+                    Optional.empty()
                 )
             )
         );
@@ -207,7 +208,7 @@ class SearchGroupByAnalyticsUseCaseTest {
                 "api-id",
                 null,
                 null,
-                null
+                Optional.empty()
             )
         );
 
@@ -242,12 +243,12 @@ class SearchGroupByAnalyticsUseCaseTest {
                 "api-id",
                 null,
                 null,
-                queryString
+                Optional.of(queryString)
             )
         );
 
         var queryCaptor = ArgumentCaptor.forClass(io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery.class);
         verify(analyticsQueryService).searchGroupByAnalytics(any(), queryCaptor.capture());
-        assertThat(queryCaptor.getValue().query()).isEqualTo(queryString);
+        assertThat(queryCaptor.getValue().query().map(queryString::equals).orElse(false)).isTrue();
     }
 }

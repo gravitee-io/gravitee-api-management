@@ -15,4 +15,6 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-public record StatsQuery(String field, String apiId, TimeRange timeRange, java.util.Optional<String> query) {}
+import java.util.Optional;
+
+public record StatsQuery(String field, String apiId, TimeRange timeRange, Optional<String> query) {}

@@ -153,7 +153,7 @@ public class ApiAnalyticsParam {
             param.getField(),
             groups,
             order,
-            param.getQuery() // propagate query parameter
+            ofNullable(param.getQuery())
         );
     }
 

@@ -75,11 +75,14 @@ public class GroupByQueryAdapter {
         filterArray.add(termNode);
 
         // Add query_string if query.query() is present
-        if (query.query() != null && !query.query().isEmpty()) {
-            ObjectNode queryStringNode = MAPPER.createObjectNode();
-            queryStringNode.set("query_string", MAPPER.createObjectNode().put("query", query.query()));
-            filterArray.add(queryStringNode);
-        }
+        query
+            .query()
+            .filter(q -> !q.isEmpty())
+            .ifPresent(q -> {
+                ObjectNode queryStringNode = MAPPER.createObjectNode();
+                queryStringNode.set("query_string", MAPPER.createObjectNode().put("query", q));
+                filterArray.add(queryStringNode);
+            });
 
         // Time range using TimeRangeAdapter
         filterArray.add(TimeRangeAdapter.toRangeNode(query.timeRange()));

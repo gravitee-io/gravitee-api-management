@@ -52,7 +52,7 @@ class GroupByQueryAdapterTest {
                 null,
                 null,
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                null
+                Optional.empty()
             );
             String json = cut.adapt(query);
 
@@ -75,7 +75,7 @@ class GroupByQueryAdapterTest {
                 groups,
                 null,
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                null
+                Optional.empty()
             );
             String json = cut.adapt(query);
 
@@ -100,7 +100,7 @@ class GroupByQueryAdapterTest {
                 null,
                 null,
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                queryString
+                Optional.of(queryString)
             );
             String json = cut.adapt(query);
 
@@ -127,7 +127,7 @@ class GroupByQueryAdapterTest {
                 null,
                 order,
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                null
+                Optional.empty()
             );
             String json = cut.adapt(query);
 
@@ -150,7 +150,7 @@ class GroupByQueryAdapterTest {
                 null,
                 order,
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                null
+                Optional.empty()
             );
             String json = cut.adapt(query);
 
@@ -170,7 +170,14 @@ class GroupByQueryAdapterTest {
         @Test
         void shouldAdaptTermsResponseCorrectly() {
             cut.adapt(
-                new GroupByQuery(API_ID, FIELD, null, null, new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)), null)
+                new GroupByQuery(
+                    API_ID,
+                    FIELD,
+                    null,
+                    null,
+                    new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                    Optional.empty()
+                )
             );
 
             Aggregation agg = new Aggregation();
@@ -196,7 +203,14 @@ class GroupByQueryAdapterTest {
         void shouldAdaptRangeResponseCorrectly() {
             List<GroupByQuery.Group> groups = List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200));
             cut.adapt(
-                new GroupByQuery(API_ID, FIELD, groups, null, new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)), null)
+                new GroupByQuery(
+                    API_ID,
+                    FIELD,
+                    groups,
+                    null,
+                    new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                    Optional.empty()
+                )
             );
 
             Aggregation agg = new Aggregation();
@@ -221,7 +235,14 @@ class GroupByQueryAdapterTest {
         @Test
         void shouldReturnEmptyIfNoAggregations() {
             cut.adapt(
-                new GroupByQuery(API_ID, FIELD, null, null, new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)), null)
+                new GroupByQuery(
+                    API_ID,
+                    FIELD,
+                    null,
+                    null,
+                    new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                    Optional.empty()
+                )
             );
             SearchResponse response = new SearchResponse();
             response.setAggregations(null);
@@ -231,7 +252,14 @@ class GroupByQueryAdapterTest {
         @Test
         void shouldReturnEmptyIfNoMatchingAggregation() {
             cut.adapt(
-                new GroupByQuery(API_ID, FIELD, null, null, new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)), null)
+                new GroupByQuery(
+                    API_ID,
+                    FIELD,
+                    null,
+                    null,
+                    new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                    Optional.empty()
+                )
             );
             SearchResponse response = new SearchResponse();
             response.setAggregations(new HashMap<>());
