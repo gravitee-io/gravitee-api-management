@@ -6588,6 +6588,10 @@ components:
                   type: string
                   description: URI of the request.
                   example: /my-api
+                endpoint:
+                  type: string
+                  description: The endpoint URL.
+                  example: "https://my-api-example.com"
         ApiMessageLog:
             type: object
             properties:

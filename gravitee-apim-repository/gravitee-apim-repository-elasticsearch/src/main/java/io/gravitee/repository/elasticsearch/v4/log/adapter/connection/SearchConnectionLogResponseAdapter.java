@@ -78,6 +78,7 @@ public class SearchConnectionLogResponseAdapter {
             .requestEnded(asBooleanOrFalse(json.get(ConnectionLogField.REQUEST_ENDED.v4Metrics())))
             .entrypointId(asTextOrNull(json.get(ConnectionLogField.ENTRYPOINT_ID.v4Metrics())))
             .gatewayResponseTime(asIntOr(json.get(ConnectionLogField.GATEWAY_RESPONSE_TIME.v4Metrics()), 0))
+            .endpoint(asTextOrNull(json.get(ConnectionLogField.ENDPOINT.v4Metrics())))
             .build();
     }
 }
