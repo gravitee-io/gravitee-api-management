@@ -36,6 +36,10 @@ sed -i.bak "s|PATHS: '-paths'|_PATHS: '-paths'|" lib/management-v2-webclient-sdk
 sed -i.bak "s|KEY: '-key'|_KEY: '-key'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
 sed -i.bak "s|FORMAT: '-format'|_FORMAT: '-format'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
 sed -i.bak "s|VALUE: '-value'|_VALUE: '-value'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
+sed -i.bak "s|API_TYPE: '-api_type'|_API_TYPE: '-api_type'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
+sed -i.bak "s|STATUS: '-status'|_STATUS: '-status'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
+sed -i.bak "s|OWNER: '-owner'|_OWNER: '-owner'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
+sed -i.bak "s|VISIBILITY: '-visibility'|_VISIBILITY: '-visibility'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
 
 # Remove duplicate `HttpEndpointV2FromJSONTyped` import
 sed -i.bak "s|     HttpEndpointV2FromJSONTyped,||" lib/management-v2-webclient-sdk/src/lib/models/BaseEndpointV2.ts
