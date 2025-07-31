@@ -141,6 +141,15 @@ export class ApiAnalyticsProxyComponent implements OnInit {
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
     },
+    {
+      type: 'table',
+      apiId: this.apiId,
+      title: 'Hits by Host (HTTP Header)',
+      tooltip: 'Distribution of calls by host header (useful if you run APIs on subdomains or multi-tenant hosts)',
+      shouldSortBuckets: false,
+      groupByField: 'host',
+      analyticsType: 'GROUP_BY',
+    },
   ];
 
   constructor(

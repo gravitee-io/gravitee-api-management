@@ -26,7 +26,7 @@ $typography: map.get(gio.$mat-theme, typography);
   &__header-bar {
     min-height: 56px;
     background: mat.m2-get-color-from-palette($background, 'card');
-    padding: 0px 16px 0px 16px;
+    padding: 0 16px 0 16px;
     border-bottom: 1px solid mat.m2-get-color-from-palette($foreground, divider);
 
     .additional-filters {
