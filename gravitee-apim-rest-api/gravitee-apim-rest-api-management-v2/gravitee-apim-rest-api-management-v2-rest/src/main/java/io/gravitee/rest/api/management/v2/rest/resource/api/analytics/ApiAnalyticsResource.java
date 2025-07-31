@@ -94,6 +94,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsRequestsCountResponse getApiAnalyticsRequestCount(@QueryParam("from") Long from, @QueryParam("to") Long to) {
         var end = Optional.ofNullable(to).map(Instant::ofEpochMilli);
         var start = Optional.ofNullable(from).map(Instant::ofEpochMilli);
@@ -111,6 +112,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsAverageMessagesPerRequestResponse getAverageMessagesPerRequest(
         @QueryParam("from") Long from,
         @QueryParam("to") Long to
@@ -131,6 +133,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsAverageConnectionDurationResponse getAverageConnectionDuration(
         @QueryParam("from") Long from,
         @QueryParam("to") Long to
@@ -151,6 +154,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsResponseStatusRangesResponse getResponseStatusRanges(@QueryParam("from") Long from, @QueryParam("to") Long to) {
         var request = new SearchResponseStatusRangesUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), from, to);
 
@@ -165,6 +169,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsOverPeriodResponse getResponseTimeOverTime(@QueryParam("from") Long from, @QueryParam("to") Long to) {
         Instant end = to != null ? Instant.ofEpochMilli(to) : Instant.now();
         Instant start = from != null ? Instant.ofEpochMilli(from) : end.minus(Duration.ofDays(1));
@@ -189,6 +194,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsResponseStatusOvertimeResponse getResponseStatusOvertime(@QueryParam("from") Long from, @QueryParam("to") Long to) {
         Instant end = to != null ? Instant.ofEpochMilli(to) : Instant.now();
         Instant start = from != null ? Instant.ofEpochMilli(from) : end.minus(Duration.ofDays(1));
