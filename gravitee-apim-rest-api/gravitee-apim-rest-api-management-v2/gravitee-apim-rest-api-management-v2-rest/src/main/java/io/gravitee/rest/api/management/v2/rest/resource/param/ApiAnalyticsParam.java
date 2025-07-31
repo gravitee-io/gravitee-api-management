@@ -107,10 +107,9 @@ public class ApiAnalyticsParam {
             .toList();
     }
 
-    public static SearchHistogramAnalyticsUseCase.Input toHistogramInput(String apiId, ApiAnalyticsParam param) {
-        ApiAnalyticsParamSpecification.forHistogram().throwIfNotSatisfied(param);
-        var aggregations = param
-            .getAggregations()
+    public SearchHistogramAnalyticsUseCase.Input toHistogramInput(String apiId) {
+        ApiAnalyticsParamSpecification.forHistogram().throwIfNotSatisfied(this);
+        var aggregations = getAggregations()
             .stream()
             .filter(a -> Objects.nonNull(a.getType()))
             .map(a -> {
@@ -125,56 +124,40 @@ public class ApiAnalyticsParam {
 
         return new SearchHistogramAnalyticsUseCase.Input(
             apiId,
-            param.getFrom(),
-            param.getTo(),
-            param.getInterval(),
+            getFrom(),
+            getTo(),
+            getInterval(),
             aggregations,
-            Optional.ofNullable(param.getQuery())
+            Optional.ofNullable(getQuery())
         );
     }
 
-    public static SearchGroupByAnalyticsUseCase.Input toGroupByInput(String apiId, ApiAnalyticsParam param) {
-        ApiAnalyticsParamSpecification.forGroupBy().throwIfNotSatisfied(param);
-        List<AnalyticsQueryService.GroupByQuery.Group> groups = param
-            .getRanges()
+    public SearchGroupByAnalyticsUseCase.Input toGroupByInput(String apiId) {
+        ApiAnalyticsParamSpecification.forGroupBy().throwIfNotSatisfied(this);
+        List<AnalyticsQueryService.GroupByQuery.Group> groups = getRanges()
             .stream()
             .map(r -> new AnalyticsQueryService.GroupByQuery.Group(r.getFrom(), r.getTo()))
             .toList();
 
-        var order = ofNullable(param.getOrder()).map(AnalyticsQueryService.GroupByQuery.Order::valueOf);
+        var order = ofNullable(getOrder()).map(AnalyticsQueryService.GroupByQuery.Order::valueOf);
 
-        return new SearchGroupByAnalyticsUseCase.Input(
-            apiId,
-            param.getFrom(),
-            param.getTo(),
-            param.getField(),
-            groups,
-            order,
-            ofNullable(param.getQuery())
-        );
+        return new SearchGroupByAnalyticsUseCase.Input(apiId, getFrom(), getTo(), getField(), groups, order, ofNullable(getQuery()));
     }
 
-    public static io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input toStatsInput(String apiId, ApiAnalyticsParam param) {
-        ApiAnalyticsParamSpecification.forStats().throwIfNotSatisfied(param);
+    public io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input toStatsInput(String apiId) {
+        ApiAnalyticsParamSpecification.forStats().throwIfNotSatisfied(this);
         return new io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input(
             apiId,
-            param.getFrom(),
-            param.getTo(),
-            param.getField(),
-            ofNullable(param.getQuery())
+            getFrom(),
+            getTo(),
+            getField(),
+            ofNullable(getQuery())
         );
     }
 
-    public static io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input toRequestsCountInput(
-        String apiId,
-        ApiAnalyticsParam param
-    ) {
-        ApiAnalyticsParamSpecification.forCount().throwIfNotSatisfied(param);
-        return new io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input(
-            apiId,
-            param.getFrom(),
-            param.getTo()
-        );
+    public io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input toRequestsCountInput(String apiId) {
+        ApiAnalyticsParamSpecification.forCount().throwIfNotSatisfied(this);
+        return new io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input(apiId, getFrom(), getTo());
     }
 
     @Getter
