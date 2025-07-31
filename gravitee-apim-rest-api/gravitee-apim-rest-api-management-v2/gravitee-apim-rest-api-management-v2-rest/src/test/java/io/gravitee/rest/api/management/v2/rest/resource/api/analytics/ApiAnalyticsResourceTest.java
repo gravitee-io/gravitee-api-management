@@ -568,7 +568,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .hasStatus(400)
                     .asError()
                     .hasHttpStatus(400)
-                    .hasMessage("Invalid aggregation type: INVALID");
+                    .hasMessage("Aggregation types supported: field, avg, min, max.");
             }
 
             @Test
