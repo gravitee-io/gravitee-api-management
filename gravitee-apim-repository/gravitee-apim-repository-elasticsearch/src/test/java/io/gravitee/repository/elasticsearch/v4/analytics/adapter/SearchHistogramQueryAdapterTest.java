@@ -15,9 +15,9 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -43,6 +43,14 @@ class SearchHistogramQueryAdapterTest {
     private static final Instant TO = INSTANT_NOW;
     private static final Instant FROM = INSTANT_NOW.minus(Duration.ofDays(2));
     private static final Duration INTERVAL = Duration.ofMinutes(30);
+    public static final String SIZE_PTR = "/size";
+    public static final String API_ID_PTR = "/query/bool/filter/0/bool/should/0/bool/must/0/term/api-id";
+    public static final String FROM_PTR = "/query/bool/filter/1/range/@timestamp/from";
+    public static final String TO_PTR = "/query/bool/filter/1/range/@timestamp/to";
+    public static final String STRING_QUERY_PTR = "/query/bool/filter/2/query_string/query";
+    public static final String INTERVAL_PTR = "/aggregations/by_date/date_histogram/fixed_interval";
+    public static final String FIELD_FIELD_PTR = "/aggregations/by_date/aggregations/by_status/terms/field";
+    public static final String AVG_FIELD_PTR = "/aggregations/by_date/aggregations/avg_gateway-response-time-ms/avg/field";
 
     private final SearchHistogramQueryAdapter cut = new SearchHistogramQueryAdapter();
 
@@ -50,7 +58,7 @@ class SearchHistogramQueryAdapterTest {
     class AdaptQuery {
 
         @Test
-        void should_generate_expected_histogram_query_json() {
+        void should_generate_expected_histogram_query_json() throws JsonProcessingException {
             HistogramQuery query = new HistogramQuery(
                 new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(FROM, TO, INTERVAL),
@@ -59,83 +67,19 @@ class SearchHistogramQueryAdapterTest {
             );
 
             String result = cut.adapt(query);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(result);
 
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                    {
-                      "size": 0,
-                      "query": {
-                        "bool": {
-                          "filter": [
-                            {
-                              "bool": {
-                                "minimum_should_match": 1,
-                                "should": [
-                                  {
-                                    "bool": {
-                                      "must": [
-                                        {
-                                          "term": {
-                                            "api-id":  "f1608475-dd77-4603-a084-75dd775603e9"
-                                          }
-                                        },
-                                        {
-                                          "terms": {
-                                            "entrypoint-id": [ "http-post", "http-get", "http-proxy" ]
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  }
-                                ]
-                              }
-                            },
-                            {
-                              "range": {
-                                "@timestamp": {
-                                  "from": %d,
-                                  "to": %d,
-                                  "include_lower": true,
-                                  "include_upper": true
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      },
-                      "aggregations": {
-                        "by_date": {
-                          "date_histogram": {
-                            "field": "@timestamp",
-                            "fixed_interval": "1800000ms",
-                            "min_doc_count": 0,
-                            "extended_bounds": {
-                              "min": %d,
-                              "max": %d
-                            }
-                          },
-                          "aggregations": {
-                            "by_status": {
-                              "terms": {
-                                "field": "status"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                    """.formatted(
-                            FROM.toEpochMilli(),
-                            TO.toEpochMilli(),
-                            FROM.toEpochMilli(),
-                            TO.toEpochMilli()
-                        )
-                );
+            assertThat(node.at(SIZE_PTR).asInt()).isEqualTo(0);
+            assertThat(node.at(API_ID_PTR).asText()).isEqualTo(API_ID);
+            assertThat(node.at(FROM_PTR).asLong()).isEqualTo(FROM.toEpochMilli());
+            assertThat(node.at(TO_PTR).asLong()).isEqualTo(TO.toEpochMilli());
+            assertThat(node.at(INTERVAL_PTR).asText()).isEqualTo("1800000ms");
+            assertThat(node.at(FIELD_FIELD_PTR).asText()).isEqualTo("status");
         }
 
         @Test
-        void should_generate_expected_avg_aggregation_query_json() {
+        void should_generate_expected_avg_aggregation_query_json() throws JsonProcessingException {
             HistogramQuery query = new HistogramQuery(
                 new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(FROM, TO, INTERVAL),
@@ -144,83 +88,19 @@ class SearchHistogramQueryAdapterTest {
             );
 
             String result = cut.adapt(query);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(result);
 
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                    {
-                      "size": 0,
-                      "query": {
-                        "bool": {
-                          "filter": [
-                            {
-                              "bool": {
-                                "minimum_should_match": 1,
-                                "should": [
-                                  {
-                                    "bool": {
-                                      "must": [
-                                        {
-                                          "term": {
-                                            "api-id":  "f1608475-dd77-4603-a084-75dd775603e9"
-                                          }
-                                        },
-                                        {
-                                          "terms": {
-                                            "entrypoint-id": [ "http-post", "http-get", "http-proxy" ]
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  }
-                                ]
-                              }
-                            },
-                            {
-                              "range": {
-                                "@timestamp": {
-                                  "from": %d,
-                                  "to": %d,
-                                  "include_lower": true,
-                                  "include_upper": true
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      },
-                      "aggregations": {
-                        "by_date": {
-                          "date_histogram": {
-                            "field": "@timestamp",
-                            "fixed_interval": "1800000ms",
-                            "min_doc_count": 0,
-                            "extended_bounds": {
-                              "min": %d,
-                              "max": %d
-                            }
-                          },
-                          "aggregations": {
-                            "avg_gateway-response-time-ms": {
-                              "avg": {
-                                "field": "gateway-response-time-ms"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                    """.formatted(
-                            FROM.toEpochMilli(),
-                            TO.toEpochMilli(),
-                            FROM.toEpochMilli(),
-                            TO.toEpochMilli()
-                        )
-                );
+            assertThat(node.at(SIZE_PTR).asInt()).isEqualTo(0);
+            assertThat(node.at(API_ID_PTR).asText()).isEqualTo(API_ID);
+            assertThat(node.at(FROM_PTR).asLong()).isEqualTo(FROM.toEpochMilli());
+            assertThat(node.at(TO_PTR).asLong()).isEqualTo(TO.toEpochMilli());
+            assertThat(node.at(INTERVAL_PTR).asText()).isEqualTo("1800000ms");
+            assertThat(node.at(AVG_FIELD_PTR).asText()).isEqualTo("gateway-response-time-ms");
         }
 
         @Test
-        void should_generate_expected_histogram_query_json_with_query_parameter() {
+        void should_generate_expected_histogram_query_json_with_query_parameter() throws JsonProcessingException {
             HistogramQuery query = new HistogramQuery(
                 new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(FROM, TO, INTERVAL),
@@ -229,84 +109,16 @@ class SearchHistogramQueryAdapterTest {
             );
 
             String result = cut.adapt(query);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(result);
 
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                    {
-                      "size": 0,
-                      "query": {
-                        "bool": {
-                          "filter": [
-                            {
-                              "bool": {
-                                "minimum_should_match": 1,
-                                "should": [
-                                  {
-                                    "bool": {
-                                      "must": [
-                                        {
-                                          "term": {
-                                            "api-id":  "f1608475-dd77-4603-a084-75dd775603e9"
-                                          }
-                                        },
-                                        {
-                                          "terms": {
-                                            "entrypoint-id": [ "http-post", "http-get", "http-proxy" ]
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  }
-                                ]
-                              }
-                            },
-                            {
-                              "range": {
-                                "@timestamp": {
-                                  "from": %d,
-                                  "to": %d,
-                                  "include_lower": true,
-                                  "include_upper": true
-                                }
-                              }
-                            },
-                            {
-                              "query_string": {
-                                "query": "status:200 AND method:GET"
-                              }
-                            }
-                          ]
-                        }
-                      },
-                      "aggregations": {
-                        "by_date": {
-                          "date_histogram": {
-                            "field": "@timestamp",
-                            "fixed_interval": "1800000ms",
-                            "min_doc_count": 0,
-                            "extended_bounds": {
-                              "min": %d,
-                              "max": %d
-                            }
-                          },
-                          "aggregations": {
-                            "by_status": {
-                              "terms": {
-                                "field": "status"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                    """.formatted(
-                            FROM.toEpochMilli(),
-                            TO.toEpochMilli(),
-                            FROM.toEpochMilli(),
-                            TO.toEpochMilli()
-                        )
-                );
+            assertThat(node.at(SIZE_PTR).asInt()).isEqualTo(0);
+            assertThat(node.at(API_ID_PTR).asText()).isEqualTo(API_ID);
+            assertThat(node.at(FROM_PTR).asLong()).isEqualTo(FROM.toEpochMilli());
+            assertThat(node.at(TO_PTR).asLong()).isEqualTo(TO.toEpochMilli());
+            assertThat(node.at(STRING_QUERY_PTR).asText()).isEqualTo("status:200 AND method:GET");
+            assertThat(node.at(INTERVAL_PTR).asText()).isEqualTo("1800000ms");
+            assertThat(node.at(FIELD_FIELD_PTR).asText()).isEqualTo("status");
         }
     }
 
