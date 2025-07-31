@@ -15,12 +15,12 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import java.util.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -28,23 +28,36 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchRequestsCountByEventQueryAdapter {
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     public static String adapt(RequestsCountByEventQuery query) {
         var jsonContent = new HashMap<String, Object>();
         jsonContent.put("size", 0);
         jsonContent.put("query", buildElasticQuery(query));
-
-        return new JsonObject(jsonContent).encode();
+        try {
+            return objectMapper.writeValueAsString(jsonContent);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize query", e);
+        }
     }
 
-    private static JsonObject buildElasticQuery(RequestsCountByEventQuery query) {
-        List<JsonObject> filters = new ArrayList<>();
+    private static Map<String, Object> buildElasticQuery(RequestsCountByEventQuery query) {
+        List<Object> filters = new ArrayList<>();
         addTermFilter(filters, query.searchTermId());
-        filters.add(new JsonObject(TimeRangeAdapter.toRangeNode(query.timeRange()).toString()));
-        return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(filters.toArray())));
+        filters.add(TimeRangeAdapter.toRangeNode(query.timeRange()));
+        Map<String, Object> boolNode = new HashMap<>();
+        boolNode.put("must", filters);
+        Map<String, Object> queryNode = new HashMap<>();
+        queryNode.put("bool", boolNode);
+        return queryNode;
     }
 
-    private static void addTermFilter(List<JsonObject> filters, SearchTermId terms) {
-        filters.add(JsonObject.of("term", JsonObject.of(terms.searchTerm().getField(), terms.id())));
+    private static void addTermFilter(List<Object> filters, SearchTermId terms) {
+        Map<String, Object> termNode = new HashMap<>();
+        termNode.put(terms.searchTerm().getField(), terms.id());
+        Map<String, Object> termWrapper = new HashMap<>();
+        termWrapper.put("term", termNode);
+        filters.add(termWrapper);
     }
 
     public static Optional<CountByAggregate> adaptResponse(SearchResponse searchResponse) {
