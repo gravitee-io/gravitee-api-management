@@ -752,7 +752,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, new TimeRange(from, to), null);
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, new TimeRange(from, to), Optional.empty());
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -776,7 +776,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200)),
                 null,
                 new TimeRange(from, to),
-                null
+                Optional.empty()
             );
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
@@ -796,7 +796,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
             var queryString = "status:404 AND http-method:8";
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, new TimeRange(from, to), queryString);
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, new TimeRange(from, to), Optional.of(queryString));
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -815,7 +815,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
             var order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, new TimeRange(from, to), null);
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, new TimeRange(from, to), Optional.empty());
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -835,7 +835,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
             var order = new GroupByQuery.Order("_key", true, "VALUE");
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, new TimeRange(from, to), null);
+            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, new TimeRange(from, to), Optional.empty());
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
