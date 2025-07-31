@@ -21,4 +21,4 @@ export interface GroupByResponse {
 
 export type Metadata = Record<string, { name: string; unknown?: boolean; order: number }>;
 
-export type GroupByField = 'status' | 'application-id';
+export type GroupByField = 'host' | 'status' | 'application-id';
