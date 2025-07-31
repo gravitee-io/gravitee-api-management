@@ -273,7 +273,7 @@ class V2ToV4MigrationOperatorTest {
             assertThat(v4Definition.getApiVersion()).isEqualTo("2.0.1");
             assertThat(v4Definition.getTags()).containsExactlyInAnyOrder("tag1", "tag2", "tag3");
             assertThat(v4Definition.getType()).isEqualTo(ApiType.PROXY);
-            assertThat(v4Definition.getProperties()).isEmpty();
+            assertThat(v4Definition.getProperties()).isNull();
             assertThat(v4Definition.getResources()).isEmpty();
         }
     }

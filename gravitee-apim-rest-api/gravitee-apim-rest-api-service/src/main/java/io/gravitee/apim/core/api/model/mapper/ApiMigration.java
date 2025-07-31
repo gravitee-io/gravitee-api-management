@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -35,6 +36,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -105,7 +107,7 @@ class ApiMigration {
         api.setApiVersion(apiDefinitionV2.getVersion());
         api.setTags(apiDefinitionV2.getTags());
         api.setType(ApiType.PROXY);
-        api.setProperties(List.of()); // TODO apiDefinitionV2.getProperties())
+        api.setProperties(mapProperties(apiDefinitionV2.getProperties()));
         api.setResources(List.of()); // TODO apiDefinitionV2.getResources());
         return MigrationResult.value(api);
     }
@@ -120,6 +122,13 @@ class ApiMigration {
             .endpoints(endpoints)
             //.services(source.getServices())
             .build();
+    }
+
+    @Nullable
+    private List<Property> mapProperties(@Nullable Properties properties) {
+        return properties == null
+            ? null
+            : stream(properties.getProperties()).map(a -> new Property(a.getKey(), a.getValue(), a.isEncrypted(), a.isDynamic())).toList();
     }
 
     private LoadBalancer mapLoadBalancer(io.gravitee.definition.model.LoadBalancer lb) {
