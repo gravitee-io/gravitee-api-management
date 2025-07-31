@@ -47,6 +47,7 @@ public class ConnectionLogField {
     public static final Field GATEWAY_RESPONSE_TIME = new Field("response-time", "gateway-response-time-ms");
     public static final Field ENTRYPOINT_ID = new Field(null, "entrypoint-id");
     public static final Field REQUEST_ENDED = new Field(null, "request-ended");
+    public static final Field ENDPOINT = new Field("endpoint", "endpoint");
 
     public record Field(String v2Request, String v4Metrics) {}
 }
