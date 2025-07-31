@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const aqua = {
-  scannerUrl: 'https://82fb8f75da.cloud.aquasec.com',
-};
-
 const artifactoryUrl = 'https://odbxikk7vo-artifactory.services.clever-cloud.com';
 
 const awsCliVersion = '2.22.35';
@@ -97,7 +93,6 @@ const yarn = {
 };
 
 const orbs = {
-  aquasec: '1.0.5',
   artifactory: '1.0.1',
   awsCli: '5.1.2',
   awsS3: '4.1.0',
@@ -109,11 +104,6 @@ const orbs = {
 };
 
 const secrets = {
-  aquaKey: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key',
-  aquaSecret: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret',
-  aquaScannerKey: 'keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken',
-  aquaRegistryUsername: 'keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login',
-  aquaRegistryPassword: 'keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password',
   artifactoryApiKey: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password',
   artifactoryUser: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login',
   awsAccessKeyId: 'keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password',
@@ -162,7 +152,6 @@ const docker = {
 };
 
 export const config = {
-  aqua,
   artifactoryUrl,
   awsCliVersion,
   cache,
