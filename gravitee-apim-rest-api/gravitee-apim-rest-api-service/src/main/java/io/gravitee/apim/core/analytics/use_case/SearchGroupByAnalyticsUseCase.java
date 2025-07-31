@@ -89,7 +89,7 @@ public class SearchGroupByAnalyticsUseCase {
         long to,
         String field,
         List<AnalyticsQueryService.GroupByQuery.Group> groups,
-        AnalyticsQueryService.GroupByQuery.Order order,
+        Optional<AnalyticsQueryService.GroupByQuery.Order> order,
         Optional<String> query // new query parameter
     ) {}
 

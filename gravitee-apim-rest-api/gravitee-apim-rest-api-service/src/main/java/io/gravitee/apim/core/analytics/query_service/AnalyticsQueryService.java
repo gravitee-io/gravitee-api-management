@@ -96,7 +96,15 @@ public interface AnalyticsQueryService {
         Optional<String> query
     ) {}
 
-    record GroupByQuery(String apiId, Instant from, Instant to, String field, List<Group> groups, Order order, Optional<String> query) {
+    record GroupByQuery(
+        String apiId,
+        Instant from,
+        Instant to,
+        String field,
+        List<Group> groups,
+        Optional<Order> order,
+        Optional<String> query
+    ) {
         public record Group(long from, long to) {}
 
         public record Order(String field, boolean order, String type) {

@@ -25,6 +25,7 @@ import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,8 +50,8 @@ class GroupByQueryAdapterTest {
             GroupByQuery query = new GroupByQuery(
                 API_ID,
                 FIELD,
-                null,
-                null,
+                Collections.emptyList(),
+                Optional.empty(),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
                 Optional.empty()
             );
@@ -73,7 +74,7 @@ class GroupByQueryAdapterTest {
                 API_ID,
                 FIELD,
                 groups,
-                null,
+                Optional.empty(),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
                 Optional.empty()
             );
@@ -97,8 +98,8 @@ class GroupByQueryAdapterTest {
             GroupByQuery query = new GroupByQuery(
                 API_ID,
                 FIELD,
-                null,
-                null,
+                List.of(),
+                Optional.empty(),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
                 Optional.of(queryString)
             );
@@ -124,8 +125,8 @@ class GroupByQueryAdapterTest {
             GroupByQuery query = new GroupByQuery(
                 API_ID,
                 FIELD,
-                null,
-                order,
+                List.of(),
+                Optional.of(order),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
                 Optional.empty()
             );
@@ -147,8 +148,8 @@ class GroupByQueryAdapterTest {
             GroupByQuery query = new GroupByQuery(
                 API_ID,
                 FIELD,
-                null,
-                order,
+                List.of(),
+                Optional.of(order),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
                 Optional.empty()
             );
@@ -173,8 +174,8 @@ class GroupByQueryAdapterTest {
                 new GroupByQuery(
                     API_ID,
                     FIELD,
-                    null,
-                    null,
+                    List.of(),
+                    Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
                     Optional.empty()
                 )
@@ -207,7 +208,7 @@ class GroupByQueryAdapterTest {
                     API_ID,
                     FIELD,
                     groups,
-                    null,
+                    Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
                     Optional.empty()
                 )
@@ -238,8 +239,8 @@ class GroupByQueryAdapterTest {
                 new GroupByQuery(
                     API_ID,
                     FIELD,
-                    null,
-                    null,
+                    List.of(),
+                    Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
                     Optional.empty()
                 )
@@ -255,8 +256,8 @@ class GroupByQueryAdapterTest {
                 new GroupByQuery(
                     API_ID,
                     FIELD,
-                    null,
-                    null,
+                    List.of(),
+                    Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
                     Optional.empty()
                 )
