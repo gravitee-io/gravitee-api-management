@@ -24,6 +24,7 @@ import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import io.gravitee.rest.api.management.v2.rest.validation.ApiAnalyticsParamSpecification;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.QueryParam;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,7 +50,7 @@ public class ApiAnalyticsParam {
     private String field;
 
     @QueryParam("type")
-    private AnalyticsType type;
+    private String type;
 
     @QueryParam("ranges")
     private String ranges;
@@ -62,6 +63,14 @@ public class ApiAnalyticsParam {
 
     @QueryParam("query")
     private String query;
+
+    public AnalyticsType getType() {
+        return Arrays
+            .stream(AnalyticsType.values())
+            .filter(analyticsType -> analyticsType.name().equalsIgnoreCase(type))
+            .findFirst()
+            .orElse(null);
+    }
 
     public List<Range> getRanges() {
         if (ranges == null || ranges.isEmpty()) {
