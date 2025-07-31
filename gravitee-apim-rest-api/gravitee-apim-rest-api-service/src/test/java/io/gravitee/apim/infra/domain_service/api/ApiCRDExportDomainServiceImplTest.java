@@ -16,15 +16,20 @@
 package io.gravitee.apim.infra.domain_service.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.SoftAssertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
@@ -34,7 +39,6 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.integration.api.model.Page;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -45,12 +49,9 @@ import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -78,9 +79,6 @@ class ApiCRDExportDomainServiceImplTest {
     @Mock
     ApiCrudService apiCrudService;
 
-    @Mock
-    ApiQueryService apiQueryService;
-
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     GroupQueryServiceInMemory groupQueryServiceInMemory = new GroupQueryServiceInMemory();
@@ -97,7 +95,7 @@ class ApiCRDExportDomainServiceImplTest {
         );
         groupQueryServiceInMemory.initWith(List.of(Group.builder().id(GROUP_ID).name(GROUP_NAME).build()));
         apiCRDExportDomainService =
-            new ApiCRDExportDomainServiceImpl(exportService, apiCrudService, userCrudService, groupQueryServiceInMemory, apiQueryService);
+            new ApiCRDExportDomainServiceImpl(exportService, apiCrudService, userCrudService, groupQueryServiceInMemory);
     }
 
     @Test
@@ -109,6 +107,7 @@ class ApiCRDExportDomainServiceImplTest {
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
+            IDExportStrategy.ALL,
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
@@ -134,6 +133,7 @@ class ApiCRDExportDomainServiceImplTest {
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
+            IDExportStrategy.ALL,
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
@@ -157,6 +157,7 @@ class ApiCRDExportDomainServiceImplTest {
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
+            IDExportStrategy.ALL,
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
@@ -180,6 +181,7 @@ class ApiCRDExportDomainServiceImplTest {
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
+            IDExportStrategy.ALL,
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
@@ -193,6 +195,7 @@ class ApiCRDExportDomainServiceImplTest {
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
+            IDExportStrategy.ALL,
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 
@@ -210,6 +213,7 @@ class ApiCRDExportDomainServiceImplTest {
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
+            IDExportStrategy.ALL,
             AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
         );
 

@@ -16,6 +16,7 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -69,6 +70,7 @@ public class ApiResource extends AbstractResource {
 
         var input = new ExportApiCRDUseCase.Input(
             legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId(),
+            IDExportStrategy.ALL,
             buildAuditInfo(executionContext, userDetails)
         );
 

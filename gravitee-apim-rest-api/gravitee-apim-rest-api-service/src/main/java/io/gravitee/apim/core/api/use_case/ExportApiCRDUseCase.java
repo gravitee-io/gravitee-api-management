@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import lombok.RequiredArgsConstructor;
 
@@ -33,9 +34,9 @@ public class ExportApiCRDUseCase {
 
     public record Output(ApiCRDSpec spec) {}
 
-    public record Input(String apiId, AuditInfo auditInfo) {}
+    public record Input(String apiId, IDExportStrategy idExportStrategy, AuditInfo auditInfo) {}
 
     public Output execute(Input input) {
-        return new Output(exportDomainService.export(input.apiId, input.auditInfo));
+        return new Output(exportDomainService.export(input.apiId, input.idExportStrategy, input.auditInfo));
     }
 }

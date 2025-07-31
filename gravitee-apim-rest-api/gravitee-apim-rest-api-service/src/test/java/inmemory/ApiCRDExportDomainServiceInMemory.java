@@ -18,6 +18,7 @@ package inmemory;
 import fixtures.core.model.ApiCRDFixtures;
 import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 
 /**
@@ -27,7 +28,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 public class ApiCRDExportDomainServiceInMemory implements ApiCRDExportDomainService {
 
     @Override
-    public ApiCRDSpec export(String apiId, AuditInfo auditInfo) {
+    public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo) {
         return ApiCRDFixtures.anApiCRD();
     }
 }
