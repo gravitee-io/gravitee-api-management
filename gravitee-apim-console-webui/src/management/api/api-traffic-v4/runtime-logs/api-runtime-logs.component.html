@@ -43,10 +43,11 @@
     ></api-runtime-logs-quick-filters>
   }
 
-  @if (apiLogsSubject$ | async; as response) {
+  @if (apiLogsSubject$ | async; as logs) {
     <api-runtime-logs-list
-      [pagination]="response.pagination"
-      [logs]="response.data"
+      [pagination]="logs.pagination"
+      [logs]="logs.data"
+      [isMessageApi]="isMessageApi()"
       (paginationUpdated)="paginationUpdated($event)"
     ></api-runtime-logs-list>
   }

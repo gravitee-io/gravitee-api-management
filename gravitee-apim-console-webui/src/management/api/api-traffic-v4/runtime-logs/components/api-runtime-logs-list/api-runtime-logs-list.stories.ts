@@ -39,8 +39,8 @@ export default {
   argTypes: {},
   render: (args) => ({
     template: `
-      <div style="width: 800px">
-        <api-runtime-logs-list [logs]="logs" [pagination]="pagination"></api-runtime-logs-list>
+      <div style="width: 1200px">
+        <api-runtime-logs-list [logs]="logs" [pagination]="pagination" [isMessageApi]="false"></api-runtime-logs-list>
       </div>
     `,
     props: args,
