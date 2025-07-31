@@ -57,7 +57,7 @@ class ApiAnalyticsParamSpecificationTest {
     @Test
     void testHasType() {
         ApiAnalyticsParam param = new ApiAnalyticsParam();
-        param.setType(io.gravitee.rest.api.management.v2.rest.model.AnalyticsType.HISTOGRAM);
+        param.setType("histogram");
         assertTrue(ApiAnalyticsParamSpecification.hasType().satisfies(param));
         param.setType(null);
         assertFalse(ApiAnalyticsParamSpecification.hasType().satisfies(param));
