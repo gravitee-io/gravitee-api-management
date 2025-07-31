@@ -788,7 +788,7 @@ api:
       scheme: https # should be https or http
       pathType: Prefix
       path: /management
-      ingressClassName: "" #keep empty to use default ingress
+      ingressClassName: "" #keep empty to use default ingress => apply empty ingressClassName implies default one set by kube right ?
       # Used to create an Ingress record.
       hosts:
         - apim.example.com
