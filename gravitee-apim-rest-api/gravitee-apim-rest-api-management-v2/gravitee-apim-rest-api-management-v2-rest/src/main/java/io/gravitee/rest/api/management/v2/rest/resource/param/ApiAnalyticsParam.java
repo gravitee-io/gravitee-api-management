@@ -21,6 +21,7 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.analytics.use_case.SearchGroupByAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
+import io.gravitee.rest.api.management.v2.rest.validation.ApiAnalyticsParamSpecification;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.QueryParam;
 import java.util.List;
@@ -46,9 +47,6 @@ public class ApiAnalyticsParam {
 
     @QueryParam("field")
     private String field;
-
-    @QueryParam("size")
-    private Integer size;
 
     @QueryParam("type")
     private AnalyticsType type;
@@ -110,6 +108,7 @@ public class ApiAnalyticsParam {
     }
 
     public static SearchHistogramAnalyticsUseCase.Input toHistogramInput(String apiId, ApiAnalyticsParam param) {
+        ApiAnalyticsParamSpecification.forHistogram().throwIfNotSatisfied(param);
         var aggregations = param
             .getAggregations()
             .stream()
@@ -135,6 +134,7 @@ public class ApiAnalyticsParam {
     }
 
     public static SearchGroupByAnalyticsUseCase.Input toGroupByInput(String apiId, ApiAnalyticsParam param) {
+        ApiAnalyticsParamSpecification.forGroupBy().throwIfNotSatisfied(param);
         List<AnalyticsQueryService.GroupByQuery.Group> groups = param
             .getRanges()
             .stream()
@@ -155,6 +155,7 @@ public class ApiAnalyticsParam {
     }
 
     public static io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input toStatsInput(String apiId, ApiAnalyticsParam param) {
+        ApiAnalyticsParamSpecification.forStats().throwIfNotSatisfied(param);
         return new io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase.Input(
             apiId,
             param.getFrom(),
@@ -168,6 +169,7 @@ public class ApiAnalyticsParam {
         String apiId,
         ApiAnalyticsParam param
     ) {
+        ApiAnalyticsParamSpecification.forCount().throwIfNotSatisfied(param);
         return new io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input(
             apiId,
             param.getFrom(),
