@@ -7,9 +7,12 @@ $typography: map.get(gio.$mat-theme, typography);
 .debug-mode-timeline-legend {
   background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
   border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
-  height: 40px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  row-gap: 10px;
 
   &__badge {
     height: 24px;
