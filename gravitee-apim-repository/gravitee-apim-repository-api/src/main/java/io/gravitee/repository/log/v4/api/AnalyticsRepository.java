@@ -74,7 +74,5 @@ public interface AnalyticsRepository {
 
     Optional<CountByAggregate> searchRequestsCountByEvent(QueryContext queryContext, RequestsCountByEventQuery requestsCountQuery);
 
-    default Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
-        return Optional.empty();
-    }
+    Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query);
 }

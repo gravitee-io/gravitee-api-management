@@ -93,4 +93,9 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     public Optional<CountByAggregate> searchRequestsCountByEvent(QueryContext queryContext, RequestsCountByEventQuery requestsCountQuery) {
         return Optional.empty();
     }
+
+    @Override
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
+        return Optional.empty();
+    }
 }
