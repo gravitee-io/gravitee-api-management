@@ -29,6 +29,7 @@ export interface ConnectionLog {
   requestEnded: boolean;
   gatewayResponseTime: number;
   uri: string;
+  endpoint: string;
 }
 
 export interface ConnectionLogDetail {

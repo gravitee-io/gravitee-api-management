@@ -19,7 +19,7 @@ import { map, shareReplay, skip, switchMap, tap } from 'rxjs/operators';
 import { forkJoin, of, ReplaySubject } from 'rxjs';
 import moment from 'moment';
 import { ActivatedRoute, Router } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 
 import { QuickFiltersStoreService } from './services';
 import { LogFiltersInitialValues } from './models';
@@ -48,12 +48,11 @@ export class ApiRuntimeLogsComponent implements OnInit {
   private quickFilterStore = inject(QuickFiltersStoreService);
   private connectorPluginsService = inject(ConnectorPluginsV2Service);
   private apiService = inject(ApiV2Service);
+  private api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(shareReplay(1));
 
-  isReportingDisabled$ = this.apiService
-    .get(this.activatedRoute.snapshot.params.apiId)
-    .pipe(
-      map((api: ApiV4) => !api.analytics.enabled || (!api.analytics.logging?.mode?.endpoint && !api.analytics.logging?.mode?.entrypoint)),
-    );
+  isReportingDisabled$ = this.api$.pipe(
+    map((api: ApiV4) => !api.analytics.enabled || (!api.analytics.logging?.mode?.endpoint && !api.analytics.logging?.mode?.entrypoint)),
+  );
   apiLogsSubject$ = new ReplaySubject<ApiLogsResponse>(1);
   apiPlans$ = this.planService
     .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
@@ -68,6 +67,7 @@ export class ApiRuntimeLogsComponent implements OnInit {
       });
     }),
   );
+  isMessageApi = toSignal(this.api$.pipe(map((api: ApiV4) => !!api && api.type === 'MESSAGE')));
   initialValues: LogFiltersInitialValues;
   loading = true;
 

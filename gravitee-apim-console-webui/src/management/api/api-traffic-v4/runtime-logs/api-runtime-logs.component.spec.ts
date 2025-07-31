@@ -52,6 +52,7 @@ type ComponentInitData = {
   perPage?: number | undefined;
   plans?: PlanV4[] | undefined;
   areLogsEnabled?: boolean;
+  apiModifier?: Partial<ApiV4>;
 };
 
 const ENTRYPOINT_LIST: ConnectorPlugin[] = [
@@ -118,12 +119,12 @@ describe('ApiRuntimeLogsComponent', () => {
     fixture.detectChanges();
   };
 
-  const initComponentWithLogs = async ({ hasLogs, total, perPage, plans, areLogsEnabled = true }: ComponentInitData) => {
+  const initComponentWithLogs = async ({ hasLogs, total, perPage, plans, apiModifier, areLogsEnabled = true }: ComponentInitData) => {
     await initComponent();
     expectPlanList(plans);
     expectEntrypointListGet();
     hasLogs ? expectApiWithLogs(total) : expectApiWithNoLog();
-    areLogsEnabled ? expectApiWithLogEnabled() : expectApiWithLogDisabled();
+    areLogsEnabled ? expectApiWithLogEnabled(apiModifier) : expectApiWithLogDisabled();
     expectRouterUrlChange(1, { page: 1, perPage: perPage ?? 10 });
   };
 
@@ -161,7 +162,7 @@ describe('ApiRuntimeLogsComponent', () => {
       await initComponentWithLogs({ hasLogs: false, areLogsEnabled: false });
     });
 
-    it('should display the empty panel', async () => {
+    it('should display the info banner', async () => {
       expect(await componentHarness.banner()).toBeTruthy();
     });
   });
@@ -180,6 +181,31 @@ describe('ApiRuntimeLogsComponent', () => {
 
         const paginator = await logsListHarness.getPaginator();
         expect(await paginator.getPageSize()).toBe(10);
+      });
+    });
+
+    describe('when there is one page and the api is a proxy API', () => {
+      beforeEach(async () => {
+        await initComponentWithLogs({ hasLogs: true, total: 1, apiModifier: { type: 'PROXY' } });
+      });
+
+      it('should display the 1st page with default pagination', async () => {
+        const logsListHarness = await componentHarness.listHarness();
+        expect(await logsListHarness.computeTableCells()).toStrictEqual({
+          headerCells: [
+            {
+              URI: 'URI',
+              actions: '',
+              application: 'Application',
+              endpoint: 'Endpoint reached',
+              method: 'Method',
+              responseTime: 'Response time',
+              status: 'Status',
+              timestamp: 'Timestamp',
+            },
+          ],
+          rowCells: [['02/02/2020 20:22:02.000', 'GET', '200', '/api-uri', 'My first application (Default plan)', '42ms', '', '']],
+        });
       });
     });
 
