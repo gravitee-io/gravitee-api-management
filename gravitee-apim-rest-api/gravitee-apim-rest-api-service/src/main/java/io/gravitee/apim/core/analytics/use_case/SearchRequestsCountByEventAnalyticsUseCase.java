@@ -39,9 +39,11 @@ public class SearchRequestsCountByEventAnalyticsUseCase {
             .forRequestsCountAnalytics()
             .throwIfNotSatisfied(apiCrudService.get(input.apiId()), executionContext, input.from(), input.to());
 
-        Map<String, String> terms = Map.of("api-id", input.apiId());
-
-        var countQuery = new AnalyticsQueryService.CountQuery(terms, Instant.ofEpochMilli(input.from()), Instant.ofEpochMilli(input.to()));
+        var countQuery = new AnalyticsQueryService.CountQuery(
+            AnalyticsQueryService.SearchTermId.forApi(input.apiId),
+            Instant.ofEpochMilli(input.from()),
+            Instant.ofEpochMilli(input.to())
+        );
 
         var result = analyticsQueryService
             .searchRequestsCountByEvent(executionContext, countQuery)

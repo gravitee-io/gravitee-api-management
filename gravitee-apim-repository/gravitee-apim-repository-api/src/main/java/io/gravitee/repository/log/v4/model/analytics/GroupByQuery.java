@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 public record GroupByQuery(
-    String apiId,
+    SearchTermId searchTermId,
     String field,
     List<Group> groups,
     Optional<Order> order,

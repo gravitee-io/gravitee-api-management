@@ -29,6 +29,8 @@ import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import java.time.Duration;
@@ -38,7 +40,6 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,7 +147,14 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
     public void testSearchRequestsCountByEvent() throws Exception {
         Assert.assertNotNull(analyticsRepository);
 
-        var result = analyticsRepository.searchRequestsCountByEvent(queryContext, new RequestsCountByEventQuery(Map.of("api", API_ID)));
+        var now = Instant.now();
+        var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+        var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+        var result = analyticsRepository.searchRequestsCountByEvent(
+            queryContext,
+            new RequestsCountByEventQuery(new SearchTermId(SearchTermId.SearchTerm.API, API_ID), new TimeRange(from, to))
+        );
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }

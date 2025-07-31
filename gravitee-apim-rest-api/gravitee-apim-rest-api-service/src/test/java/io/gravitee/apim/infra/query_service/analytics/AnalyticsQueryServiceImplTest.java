@@ -328,7 +328,7 @@ class AnalyticsQueryServiceImplTest {
                 .thenReturn(List.of(rootAggregate));
 
             AnalyticsQueryService.HistogramQuery query = new AnalyticsQueryService.HistogramQuery(
-                "api-1",
+                AnalyticsQueryService.SearchTermId.forApi("api-1"),
                 from,
                 to,
                 interval,
@@ -377,7 +377,7 @@ class AnalyticsQueryServiceImplTest {
             when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
             var groupByQuery = new AnalyticsQueryService.GroupByQuery(
-                apiId,
+                AnalyticsQueryService.SearchTermId.forApi(apiId),
                 from,
                 to,
                 field,
@@ -411,7 +411,7 @@ class AnalyticsQueryServiceImplTest {
             when(analyticsRepository.searchGroupBy(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
             var groupByQuery = new AnalyticsQueryService.GroupByQuery(
-                apiId,
+                AnalyticsQueryService.SearchTermId.forApi(apiId),
                 from,
                 to,
                 field,
@@ -437,7 +437,13 @@ class AnalyticsQueryServiceImplTest {
         void should_return_empty_when_repository_returns_empty() {
             when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.empty());
 
-            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now(), Optional.empty());
+            var statsQuery = new AnalyticsQueryService.StatsQuery(
+                AnalyticsQueryService.SearchTermId.forApi("api#1"),
+                "field",
+                Instant.now(),
+                Instant.now(),
+                Optional.empty()
+            );
             var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
 
             assertThat(result).isEmpty();
@@ -458,7 +464,13 @@ class AnalyticsQueryServiceImplTest {
             );
             when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
-            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now(), Optional.empty());
+            var statsQuery = new AnalyticsQueryService.StatsQuery(
+                AnalyticsQueryService.SearchTermId.forApi("api#1"),
+                "field",
+                Instant.now(),
+                Instant.now(),
+                Optional.empty()
+            );
             var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
 
             assertThat(result)
@@ -480,7 +492,13 @@ class AnalyticsQueryServiceImplTest {
             when(analyticsRepository.searchStats(any(QueryContext.class), any())).thenReturn(Optional.of(repoAggregate));
 
             var queryString = "status:200 AND method:GET";
-            var statsQuery = new AnalyticsQueryService.StatsQuery("api#1", "field", Instant.now(), Instant.now(), Optional.of(queryString));
+            var statsQuery = new AnalyticsQueryService.StatsQuery(
+                AnalyticsQueryService.SearchTermId.forApi("api#1"),
+                "field",
+                Instant.now(),
+                Instant.now(),
+                Optional.of(queryString)
+            );
             var result = cut.searchStatsAnalytics(GraviteeContext.getExecutionContext(), statsQuery);
 
             assertThat(result)
@@ -504,7 +522,7 @@ class AnalyticsQueryServiceImplTest {
         void should_return_empty_requests_count() {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
-            var query = new AnalyticsQueryService.CountQuery(Map.of("api", "api#1"), from, to);
+            var query = new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), from, to);
             when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any())).thenReturn(Optional.empty());
             assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query)).isEmpty();
         }
@@ -513,7 +531,7 @@ class AnalyticsQueryServiceImplTest {
         void should_map_repository_response_to_requests_count() {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
-            var query = new AnalyticsQueryService.CountQuery(Map.of("api", "api#1"), from, to);
+            var query = new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), from, to);
             when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any()))
                 .thenReturn(Optional.of(new CountByAggregate(10)));
             assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query))
@@ -528,7 +546,7 @@ class AnalyticsQueryServiceImplTest {
             assertThat(
                 cut.searchRequestsCountByEvent(
                     GraviteeContext.getExecutionContext(),
-                    new AnalyticsQueryService.CountQuery(Map.of("api", "api#1"), null, null)
+                    new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), null, null)
                 )
             )
                 .isEmpty();

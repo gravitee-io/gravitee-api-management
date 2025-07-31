@@ -24,10 +24,10 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
+import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ public class SearchRequestsCountByEventQueryAdapterTest {
     @Test
     void shouldAdaptQueryWithAllFields() {
         var query = new RequestsCountByEventQuery(
-            Map.of("api-id", "api-123"),
+            new SearchTermId(SearchTermId.SearchTerm.API, "api-123"),
             new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L))
         );
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
@@ -63,26 +63,6 @@ public class SearchRequestsCountByEventQueryAdapterTest {
         assertEquals("api-123", termEntry.getJsonObject("term").getString("api-id"));
 
         var timestamp = rangeEntry.getJsonObject("range").getJsonObject("@timestamp");
-        assertEquals(1650000000000L, timestamp.getLong("from"));
-        assertTrue(timestamp.getBoolean("include_lower"));
-        assertEquals(1650003600000L, timestamp.getLong("to"));
-        assertTrue(timestamp.getBoolean("include_upper"));
-    }
-
-    @Test
-    void shouldAdaptQueryWithOnlyTimestamps() {
-        var query = new RequestsCountByEventQuery(
-            Map.of(),
-            new TimeRange(Instant.ofEpochMilli(1650000000000L), Instant.ofEpochMilli(1650003600000L))
-        );
-        String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
-        assertNotNull(result);
-        var json = new JsonObject(result);
-        assertEquals(0, json.getInteger("size"));
-        var mustArray = json.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
-        assertEquals(1, mustArray.size());
-        var rangeEntry = mustArray.getJsonObject(0).getJsonObject("range");
-        var timestamp = rangeEntry.getJsonObject("@timestamp");
         assertEquals(1650000000000L, timestamp.getLong("from"));
         assertTrue(timestamp.getBoolean("include_lower"));
         assertEquals(1650003600000L, timestamp.getLong("to"));

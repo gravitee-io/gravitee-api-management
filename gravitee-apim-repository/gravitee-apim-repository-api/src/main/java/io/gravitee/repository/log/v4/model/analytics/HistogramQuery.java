@@ -18,4 +18,4 @@ package io.gravitee.repository.log.v4.model.analytics;
 import java.util.List;
 import java.util.Optional;
 
-public record HistogramQuery(String apiId, TimeRange timeRange, List<Aggregation> aggregations, Optional<String> query) {}
+public record HistogramQuery(SearchTermId searchTermId, TimeRange timeRange, List<Aggregation> aggregations, Optional<String> query) {}

@@ -107,10 +107,10 @@ public class SearchHistogramQueryAdapter {
     }
 
     private ObjectNode createApiFilterNode(HistogramQuery query) {
-        var apiIds = List.of(query.apiId());
+        var searchTermId = query.searchTermId();
         var mustArray = MAPPER.createArrayNode();
         var apiTerms = MAPPER.createObjectNode();
-        apiTerms.set("terms", MAPPER.createObjectNode().set("api-id", MAPPER.valueToTree(apiIds)));
+        apiTerms.set("term", MAPPER.createObjectNode().put(searchTermId.searchTerm().getField(), searchTermId.id()));
         mustArray.add(apiTerms);
 
         var entrypointIdTerms = MAPPER.createObjectNode();

@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.Getter;
 
 public interface AnalyticsQueryService {
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
@@ -75,6 +76,23 @@ public interface AnalyticsQueryService {
 
     RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
+    @Getter
+    enum SearchTerm {
+        API("api-id");
+
+        private final String field;
+
+        SearchTerm(String field) {
+            this.field = field;
+        }
+    }
+
+    record SearchTermId(SearchTerm searchTerm, String id) {
+        public static SearchTermId forApi(String apiId) {
+            return new SearchTermId(SearchTerm.API, apiId);
+        }
+    }
+
     Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters);
@@ -85,10 +103,10 @@ public interface AnalyticsQueryService {
 
     Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query);
 
-    record CountQuery(Map<String, String> terms, Instant from, Instant to) {}
+    record CountQuery(SearchTermId searchTermId, Instant from, Instant to) {}
 
     record HistogramQuery(
-        String apiId,
+        SearchTermId searchTermId,
         Instant from,
         Instant to,
         Duration interval,
@@ -97,7 +115,7 @@ public interface AnalyticsQueryService {
     ) {}
 
     record GroupByQuery(
-        String apiId,
+        SearchTermId searchTermId,
         Instant from,
         Instant to,
         String field,
@@ -127,7 +145,7 @@ public interface AnalyticsQueryService {
         }
     }
 
-    record StatsQuery(String apiId, String field, Instant from, Instant to, Optional<String> query) {}
+    record StatsQuery(SearchTermId searchTermId, String field, Instant from, Instant to, Optional<String> query) {}
 
     record ResponseStatusOverTimeQuery(
         List<String> apiIds,

@@ -220,7 +220,7 @@ class SearchGroupByAnalyticsUseCaseTest {
         var queryCaptor = ArgumentCaptor.forClass(io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery.class);
         verify(analyticsQueryService).searchGroupByAnalytics(any(), queryCaptor.capture());
         assertSoftly(softly -> {
-            softly.assertThat(queryCaptor.getValue().apiId()).isEqualTo(MY_API);
+            softly.assertThat(queryCaptor.getValue().searchTermId().id()).isEqualTo(MY_API);
             softly.assertThat(queryCaptor.getValue().from()).isEqualTo(INSTANT_NOW.minus(3, ChronoUnit.DAYS));
             softly.assertThat(queryCaptor.getValue().to()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS));
             softly.assertThat(queryCaptor.getValue().field()).isEqualTo("api-id");

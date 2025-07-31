@@ -44,7 +44,7 @@ public class SearchHistogramAnalyticsUseCase {
             .throwIfNotSatisfied(apiCrudService.get(input.api), executionContext, input.from(), input.to());
 
         var histogramQuery = new AnalyticsQueryService.HistogramQuery(
-            input.api(),
+            AnalyticsQueryService.SearchTermId.forApi(input.api),
             Instant.ofEpochMilli(input.from()),
             Instant.ofEpochMilli(input.to()),
             Duration.ofMillis(input.interval()),
