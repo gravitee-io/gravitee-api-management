@@ -192,6 +192,20 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       shouldSortBuckets: false,
       analyticsType: 'HISTOGRAM',
     },
+    {
+      type: 'line',
+      apiId: this.apiId,
+      title: 'Hits By Application',
+      tooltip: 'Hits repartition by application',
+      shouldSortBuckets: false,
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: AggregationTypes.FIELD,
+          field: AggregationFields.APPLICATION_ID,
+        },
+      ],
+    },
   ];
 
   private rightColumnWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
