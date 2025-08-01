@@ -134,10 +134,11 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
     }
 
     @Override
-    public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
+    public boolean metadataEntryExistsInEnvForOthers(String key, String value, String environmentId, String applicationId) {
         Query query = new Query();
         query.addCriteria(Criteria.where("environmentId").is(environmentId));
         query.addCriteria(Criteria.where("metadata." + key).is(value));
+        query.addCriteria(Criteria.where("_id").ne(applicationId));
         return mongoTemplate.exists(query, ApplicationMongo.class);
     }
 }

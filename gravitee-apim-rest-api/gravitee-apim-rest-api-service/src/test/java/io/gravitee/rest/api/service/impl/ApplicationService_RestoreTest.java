@@ -35,11 +35,9 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationActiveException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
-import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -114,7 +112,7 @@ public class ApplicationService_RestoreTest {
         appToRestore.setEnvironmentId(ENVIRONMENT_ID);
 
         when(applicationRepository.findById(APP)).thenReturn(Optional.of(appToRestore));
-        when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(true);
+        when(applicationRepository.metadataEntryExistsInEnvForOthers(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT", APP)).thenReturn(true);
 
         applicationService.restore(GraviteeContext.getExecutionContext(), APP);
     }

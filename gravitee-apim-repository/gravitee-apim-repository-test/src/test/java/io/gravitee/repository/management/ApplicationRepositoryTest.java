@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.management;
 
-import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_CERTIFICATE;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
@@ -39,7 +38,13 @@ import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.Test;
 
@@ -71,7 +76,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Set<Application> applications = applicationRepository.findAllByEnvironment("DEFAULT");
 
         assertNotNull(applications);
-        assertEquals("Fail to resolve application in findAllByEnvironment", 6, applications.size());
+        assertEquals("Fail to resolve application in findAllByEnvironment", 5, applications.size());
     }
 
     @Test
@@ -381,6 +386,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
                 "Application test query 1",
                 "Application test query 2",
                 "app-with-client-id",
+                "app-with-client-id-2",
                 "app-with-long-client-id",
                 "searched-app1",
                 "searched-app2"
@@ -400,7 +406,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
 
         assertNotNull(apps);
         assertFalse(apps.isEmpty());
-        assertEquals(7, apps.size());
+        assertEquals(8, apps.size());
         List<String> names = apps.stream().map(Application::getName).collect(Collectors.toList());
 
         assertEquals(
@@ -408,6 +414,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
                 "searched-app1",
                 "searched-app2",
                 "app-with-client-id",
+                "app-with-client-id-2",
                 "app-with-long-client-id",
                 APP_WITH_LONG_NAME,
                 "Application test query 1",
@@ -432,7 +439,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals(1, apps.size());
         assertEquals(2, appsPage.getPageNumber());
         assertEquals(1, appsPage.getPageElements());
-        assertEquals(7, appsPage.getTotalElements());
+        assertEquals(8, appsPage.getTotalElements());
     }
 
     @Test
@@ -473,22 +480,23 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void should_return_true_on_existing_client_id_in_env() {
-        assertTrue(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "PROD"));
+    public void should_return_true_on_existing_client_id_in_env_in_an_other_application() {
+        assertTrue(
+            // "app-with-client-id" uses "my-client-id" so it found
+            applicationRepository.metadataEntryExistsInEnvForOthers(METADATA_CLIENT_ID, "my-client-id", "PROD", "app-with-client-id-2")
+        );
+    }
+
+    @Test
+    public void should_return_false_on_existing_client_id_in_env_when_application_is_self() {
+        // only "app-with-client-id" uses "my-client-id" so returns false
+        assertFalse(
+            applicationRepository.metadataEntryExistsInEnvForOthers(METADATA_CLIENT_ID, "my-client-id", "PROD", "app-with-client-id")
+        );
     }
 
     @Test
     public void should_return_false_on_existing_client_id_in_different_env() {
-        assertFalse(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "DEFAULT"));
-    }
-
-    @Test
-    public void should_return_true_on_existing_certificate_in_env() {
-        assertTrue(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE", "DEFAULT"));
-    }
-
-    @Test
-    public void should_return_false_on_existing_certificate_in_different_env() {
-        assertFalse(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE", "PROD"));
+        assertFalse(applicationRepository.metadataEntryExistsInEnvForOthers(METADATA_CLIENT_ID, "my-client-id", "DEV", null));
     }
 }

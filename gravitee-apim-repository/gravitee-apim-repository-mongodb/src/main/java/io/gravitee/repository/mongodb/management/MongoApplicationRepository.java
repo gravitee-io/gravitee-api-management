@@ -194,8 +194,8 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     @Override
-    public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
-        return internalApplicationRepo.existsMetadataEntryForEnv(key, value, environmentId);
+    public boolean metadataEntryExistsInEnvForOthers(String key, String value, String environmentId, String applicationId) {
+        return internalApplicationRepo.metadataEntryExistsInEnvForOthers(key, value, environmentId, applicationId);
     }
 
     @Override

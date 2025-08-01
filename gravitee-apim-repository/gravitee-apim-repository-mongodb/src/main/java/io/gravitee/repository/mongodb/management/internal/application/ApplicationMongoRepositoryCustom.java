@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -36,5 +35,5 @@ public interface ApplicationMongoRepositoryCustom {
 
     Set<ApplicationMongo> findByIds(Collection<String> ids, Sortable sortable);
 
-    boolean existsMetadataEntryForEnv(String key, String value, String environmentId);
+    boolean metadataEntryExistsInEnvForOthers(String key, String value, String environmentId, String applicationId);
 }

@@ -615,17 +615,17 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     }
 
     @Override
-    public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
+    public boolean metadataEntryExistsInEnvForOthers(String key, String value, String environmentId, String applicationId) {
         String sql =
             "SELECT CASE WHEN EXISTS (SELECT 1 FROM " +
             APPLICATION_METADATA +
             " am JOIN " +
             tableName +
             " a ON a.id = am.application_id " +
-            "WHERE am.k=? AND am.v=? AND a.environment_id=?) " +
+            "WHERE am.k=? AND am.v=? AND a.environment_id=? AND a.id <> ?) " +
             "THEN 1 ELSE 0 " +
             "END AS metadata_entry_exists";
-        return jdbcTemplate.queryForObject(sql, Boolean.class, key, value, environmentId);
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, key, value, environmentId, applicationId));
     }
 
     private String toSortDirection(Sortable sortable) {

@@ -685,6 +685,14 @@ components:
           items:
             $ref: '#/components/schemas/Member'
           uniqueItems: true
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - ARCHIVED
+          default: ACTIVE
+          examples:
+            - ARCHIVED
       required:
         - hrid
         - name

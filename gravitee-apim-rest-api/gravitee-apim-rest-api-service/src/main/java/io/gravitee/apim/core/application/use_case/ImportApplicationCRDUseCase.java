@@ -34,6 +34,7 @@ import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
@@ -144,7 +145,7 @@ public class ImportApplicationCRDUseCase {
                 .organizationId(sanitizedInput.auditInfo.organizationId())
                 .environmentId(sanitizedInput.auditInfo.environmentId())
                 .build();
-        } catch (AbstractDomainException e) {
+        } catch (AbstractDomainException | AbstractManagementException e) {
             throw e;
         } catch (Exception e) {
             throw new TechnicalManagementException(e);

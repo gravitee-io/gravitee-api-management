@@ -323,7 +323,7 @@ public class ApplicationService_CreateTest {
         settings.setApp(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
 
-        when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(true);
+        when(applicationRepository.metadataEntryExistsInEnvForOthers(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT", null)).thenReturn(true);
 
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
@@ -411,10 +411,11 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
 
         when(
-            applicationRepository.existsMetadataEntryForEnv(
+            applicationRepository.metadataEntryExistsInEnvForOthers(
                 METADATA_CLIENT_CERTIFICATE,
                 Base64.getEncoder().encodeToString(settings.getTls().getClientCertificate().trim().getBytes()),
-                "DEFAULT"
+                "DEFAULT",
+                null
             )
         )
             .thenReturn(true);
