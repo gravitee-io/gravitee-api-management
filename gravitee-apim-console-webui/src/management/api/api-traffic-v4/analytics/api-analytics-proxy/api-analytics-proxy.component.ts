@@ -144,6 +144,15 @@ export class ApiAnalyticsProxyComponent implements OnInit {
     {
       type: 'table',
       apiId: this.apiId,
+      title: 'Top Api Plans',
+      tooltip: 'Distribution of hits across API plans',
+      shouldSortBuckets: false,
+      groupByField: 'plan-id',
+      analyticsType: 'GROUP_BY',
+    },
+    {
+      type: 'table',
+      apiId: this.apiId,
       title: 'Hits by Host (HTTP Header)',
       tooltip: 'Distribution of calls by host header (useful if you run APIs on subdomains or multi-tenant hosts)',
       shouldSortBuckets: false,
