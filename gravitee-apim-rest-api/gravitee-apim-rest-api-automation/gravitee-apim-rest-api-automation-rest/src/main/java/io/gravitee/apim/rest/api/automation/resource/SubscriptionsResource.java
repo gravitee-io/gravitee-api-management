@@ -84,7 +84,7 @@ public class SubscriptionsResource extends AbstractResource {
             legacy ? spec.getHrid() : IdBuilder.builder(auditInfo, spec.getHrid()).buildId(),
             legacy ? spec.getApplicationHrid() : IdBuilder.builder(auditInfo, spec.getApplicationHrid()).buildId(),
             legacy ? spec.getApiHrid() : IdBuilder.builder(auditInfo, spec.getApiHrid()).buildId(),
-            legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, spec.getPlanHrid()).buildId(),
+            legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, spec.getApiHrid()).withExtraId(spec.getPlanHrid()).buildId(),
             spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null
         );
 

@@ -122,7 +122,7 @@ class ApiCRDExportDomainServiceImplTest {
             soft.assertThat(spec.getListeners()).hasSize(1);
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft.assertThat(spec.getPlans()).containsKey("plan-name");
+            soft.assertThat(spec.getPlans()).containsKey("plan-hrid");
         });
     }
 
@@ -146,7 +146,7 @@ class ApiCRDExportDomainServiceImplTest {
             soft.assertThat(spec.getListeners()).hasSize(1);
             soft.assertThat(spec.getEndpointGroups()).hasSize(1);
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft.assertThat(spec.getPlans()).containsKey("plan-name");
+            soft.assertThat(spec.getPlans()).containsKey("plan-hrid");
         });
     }
 
@@ -207,9 +207,26 @@ class ApiCRDExportDomainServiceImplTest {
     }
 
     @Test
-    void should_export_page_with_null_name() {
+    void should_export_page_with_null_name_with_hrid() {
         when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
-            .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build()));
+            .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build(), true));
+
+        var spec = apiCRDExportDomainService.export(
+            API_ID,
+            IDExportStrategy.ALL,
+            AuditInfo.builder().organizationId(ORG_ID).environmentId(ENV_ID).actor(AuditActor.builder().userId(USER_ID).build()).build()
+        );
+
+        assertSoftly(soft -> {
+            soft.assertThat(spec.getPages()).hasSize(1);
+            soft.assertThat(spec.getPages().get("page-hrid")).isNotNull();
+        });
+    }
+
+    @Test
+    void should_export_page_with_null_name_without_hrid() {
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
+            .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build(), false));
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
@@ -224,12 +241,26 @@ class ApiCRDExportDomainServiceImplTest {
     }
 
     private static ExportApiEntity exportApiEntity(ApiEntity apiEntity) {
+        return exportApiEntity(apiEntity, true);
+    }
+
+    private static ExportApiEntity exportApiEntity(ApiEntity apiEntity, boolean withHrid) {
         return ExportApiEntity
             .builder()
             .members(Set.of(MemberEntity.builder().id(USER_ID).roles(List.of(RoleEntity.builder().name("OWNER").build())).build()))
             .apiEntity(apiEntity)
-            .pages(List.of(PageEntity.builder().id("page-id").name(null).build()))
-            .plans(Set.of(PlanEntity.builder().name("plan-name").id("plan-id").security(new PlanSecurity("key-less", "{}")).build()))
+            .pages(List.of(PageEntity.builder().id("page-id").hrid(withHrid ? "page-hrid" : null).name(null).build()))
+            .plans(
+                Set.of(
+                    PlanEntity
+                        .builder()
+                        .name("plan-name")
+                        .id("plan-id")
+                        .hrid(withHrid ? "plan-hrid" : null)
+                        .security(new PlanSecurity("key-less", "{}"))
+                        .build()
+                )
+            )
             .build();
     }
 
