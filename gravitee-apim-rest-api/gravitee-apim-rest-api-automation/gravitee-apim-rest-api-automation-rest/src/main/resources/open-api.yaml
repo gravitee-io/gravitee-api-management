@@ -900,9 +900,12 @@ components:
           $ref: '#/components/schemas/PlanMode'
       required:
         - hrid
+        - name
         - status
         - type
         - mode
+        - validation
+        - security
 
     Member:
       description: Member
