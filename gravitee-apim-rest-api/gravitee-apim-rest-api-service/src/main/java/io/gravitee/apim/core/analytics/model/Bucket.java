@@ -31,6 +31,6 @@ public class Bucket {
     private List<Bucket> buckets;
     private String field;
     private String name;
-    private List<Number> data;
+    private List<Long> data;
     private Map<String, Map<String, String>> metadata;
 }

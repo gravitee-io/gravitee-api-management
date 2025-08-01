@@ -504,9 +504,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         .name("avg_gateway-response-time-ms")
                         .field("gateway-response-time-ms")
                         .buckets(
-                            List.of(
-                                new Bucket(null, "gateway-response-time-ms", "avg_gateway-response-time-ms", List.of(120.5, 110.0), null)
-                            )
+                            List.of(new Bucket(null, "gateway-response-time-ms", "avg_gateway-response-time-ms", List.of(120L, 110L), null))
                         )
                         .build()
                 );
@@ -544,7 +542,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         assertThat(bucket.getBuckets()).hasSize(1);
                         var avgBucket = bucket.getBuckets().getFirst();
                         assertThat(avgBucket.getName()).isEqualTo("avg_gateway-response-time-ms");
-                        assertThat(avgBucket.getData()).containsExactly(120.5, 110.0);
+                        assertThat(avgBucket.getData()).containsExactly(120L, 110L);
                     });
             }
 
@@ -570,7 +568,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .hasStatus(400)
                     .asError()
                     .hasHttpStatus(400)
-                    .hasMessage("Invalid aggregation type: INVALID");
+                    .hasMessage("Aggregation types supported: field, avg, min, max.");
             }
 
             @Test
@@ -761,7 +759,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             void should_return_stats_analytics_response() {
                 apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
                 fakeAnalyticsQueryService.statsAnalytics =
-                    new io.gravitee.apim.core.analytics.model.StatsAnalytics(1f, 2f, 3f, 4f, 5, 6f, 7f, 8f);
+                    new io.gravitee.apim.core.analytics.model.StatsAnalytics(1L, 2L, 3L, 4L, 5, 6L, 7L, 8L);
 
                 var response = rootTarget()
                     .queryParam("type", "STATS")
@@ -778,14 +776,14 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .satisfies(result -> {
                         var stats = result.getStatsAnalytics();
                         assertThat(stats).isNotNull();
-                        assertThat(stats.getAvg()).isEqualTo(1f);
-                        assertThat(stats.getMin()).isEqualTo(2f);
-                        assertThat(stats.getMax()).isEqualTo(3f);
-                        assertThat(stats.getSum()).isEqualTo(4f);
+                        assertThat(stats.getAvg()).isEqualTo(1L);
+                        assertThat(stats.getMin()).isEqualTo(2L);
+                        assertThat(stats.getMax()).isEqualTo(3L);
+                        assertThat(stats.getSum()).isEqualTo(4L);
                         assertThat(stats.getCount()).isEqualTo(5);
-                        assertThat(stats.getRps()).isEqualTo(6f);
-                        assertThat(stats.getRpm()).isEqualTo(7f);
-                        assertThat(stats.getRph()).isEqualTo(8f);
+                        assertThat(stats.getRps()).isEqualTo(6L);
+                        assertThat(stats.getRpm()).isEqualTo(7L);
+                        assertThat(stats.getRph()).isEqualTo(8L);
                     });
             }
 
@@ -814,7 +812,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             void should_return_stats_with_query_param() {
                 apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
                 fakeAnalyticsQueryService.statsAnalytics =
-                    new io.gravitee.apim.core.analytics.model.StatsAnalytics(1f, 2f, 3f, 4f, 5, 6f, 7f, 8f);
+                    new io.gravitee.apim.core.analytics.model.StatsAnalytics(1L, 2L, 3L, 4L, 5, 6L, 7L, 8L);
 
                 var response = rootTarget()
                     .queryParam("type", "STATS")
@@ -832,14 +830,14 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .satisfies(result -> {
                         var stats = result.getStatsAnalytics();
                         assertThat(stats).isNotNull();
-                        assertThat(stats.getAvg()).isEqualTo(1f);
-                        assertThat(stats.getMin()).isEqualTo(2f);
-                        assertThat(stats.getMax()).isEqualTo(3f);
-                        assertThat(stats.getSum()).isEqualTo(4f);
+                        assertThat(stats.getAvg()).isEqualTo(1L);
+                        assertThat(stats.getMin()).isEqualTo(2L);
+                        assertThat(stats.getMax()).isEqualTo(3L);
+                        assertThat(stats.getSum()).isEqualTo(4L);
                         assertThat(stats.getCount()).isEqualTo(5);
-                        assertThat(stats.getRps()).isEqualTo(6f);
-                        assertThat(stats.getRpm()).isEqualTo(7f);
-                        assertThat(stats.getRph()).isEqualTo(8f);
+                        assertThat(stats.getRps()).isEqualTo(6L);
+                        assertThat(stats.getRpm()).isEqualTo(7L);
+                        assertThat(stats.getRph()).isEqualTo(8L);
                     });
             }
         }

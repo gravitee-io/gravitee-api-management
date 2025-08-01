@@ -57,7 +57,7 @@ class SearchStatsUseCaseTest {
     void should_return_stats_analytics_when_valid() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        analyticsQueryService.statsAnalytics = new StatsAnalytics(1f, 2f, 3f, 4f, 5, 6f, 7f, 8f);
+        analyticsQueryService.statsAnalytics = new StatsAnalytics(1L, 2L, 3L, 4L, 5, 6L, 7L, 8L);
 
         var input = new SearchStatsUseCase.Input(
             MY_API,
@@ -154,7 +154,7 @@ class SearchStatsUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         GraviteeContext.setCurrentEnvironment("environment-id");
         var queryString = "status:200 AND method:GET";
-        analyticsQueryService.statsAnalytics = new StatsAnalytics(1f, 2f, 3f, 4f, 5, 6f, 7f, 8f);
+        analyticsQueryService.statsAnalytics = new StatsAnalytics(1L, 2L, 3L, 4L, 5, 6L, 7L, 8L);
         var input = new SearchStatsUseCase.Input(
             MY_API,
             Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),

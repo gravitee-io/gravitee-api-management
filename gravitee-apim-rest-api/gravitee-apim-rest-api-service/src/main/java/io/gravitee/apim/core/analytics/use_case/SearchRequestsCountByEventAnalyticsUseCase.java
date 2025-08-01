@@ -16,14 +16,9 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
+import io.gravitee.apim.core.analytics.domain_service.ApiAnalyticsSpecification;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
-import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
@@ -40,53 +35,21 @@ public class SearchRequestsCountByEventAnalyticsUseCase {
     private final ApiCrudService apiCrudService;
 
     public SearchRequestsCountByEventAnalyticsUseCase.Output execute(ExecutionContext executionContext, Input input) {
-        validateInput(input, executionContext);
+        ApiAnalyticsSpecification
+            .forRequestsCountAnalytics()
+            .throwIfNotSatisfied(apiCrudService.get(input.apiId()), executionContext, input.from(), input.to());
 
-        Map<String, String> terms = Map.of("api-id", input.apiId());
-
-        var countQuery = new AnalyticsQueryService.CountQuery(terms, Instant.ofEpochMilli(input.from()), Instant.ofEpochMilli(input.to()));
+        var countQuery = new AnalyticsQueryService.CountQuery(
+            AnalyticsQueryService.SearchTermId.forApi(input.apiId),
+            Instant.ofEpochMilli(input.from()),
+            Instant.ofEpochMilli(input.to())
+        );
 
         var result = analyticsQueryService
             .searchRequestsCountByEvent(executionContext, countQuery)
             .orElse(RequestsCount.builder().total(0L).countsByEntrypoint(Map.of()).build());
 
         return new SearchRequestsCountByEventAnalyticsUseCase.Output(result);
-    }
-
-    private void validateInput(Input input, ExecutionContext executionContext) {
-        validateApi(input.apiId(), executionContext);
-        validateTimeRange(input.from, input.to);
-    }
-
-    private void validateTimeRange(long from, long to) {
-        if (from > to) {
-            throw new IllegalTimeRangeException();
-        }
-    }
-
-    private void validateApi(String apiId, ExecutionContext executionContext) {
-        var api = apiCrudService.get(apiId);
-        validateApiV4(apiId, api.getDefinitionVersion());
-        validateApiProxy(api);
-        validateApiMultiTenancyAccess(api, executionContext.getEnvironmentId());
-    }
-
-    private void validateApiV4(String apiId, DefinitionVersion apiDefinition) {
-        if (!DefinitionVersion.V4.equals(apiDefinition)) {
-            throw new ApiInvalidDefinitionVersionException(apiId);
-        }
-    }
-
-    private void validateApiProxy(Api api) {
-        if (api.isTcpProxy()) {
-            throw new TcpProxyNotSupportedException(api.getId());
-        }
-    }
-
-    private void validateApiMultiTenancyAccess(Api api, String environmentId) {
-        if (!api.belongsToEnvironment(environmentId)) {
-            throw new ApiNotFoundException(api.getId());
-        }
     }
 
     public record Input(String apiId, long from, long to) {}

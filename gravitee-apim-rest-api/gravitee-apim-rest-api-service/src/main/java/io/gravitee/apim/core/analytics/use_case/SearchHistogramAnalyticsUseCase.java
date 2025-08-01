@@ -16,17 +16,12 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
+import io.gravitee.apim.core.analytics.domain_service.ApiAnalyticsSpecification;
 import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.Bucket;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
-import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.apim.core.api.exception.TcpProxyNotSupportedException;
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
 import java.time.Instant;
@@ -44,10 +39,12 @@ public class SearchHistogramAnalyticsUseCase {
     private final AnalyticsQueryService analyticsQueryService;
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        validateInput(input, executionContext);
+        ApiAnalyticsSpecification
+            .forSearchHistogramAnalytics()
+            .throwIfNotSatisfied(apiCrudService.get(input.api), executionContext, input.from(), input.to());
 
         var histogramQuery = new AnalyticsQueryService.HistogramQuery(
-            input.api(),
+            AnalyticsQueryService.SearchTermId.forApi(input.api),
             Instant.ofEpochMilli(input.from()),
             Instant.ofEpochMilli(input.to()),
             Duration.ofMillis(input.interval()),
@@ -65,47 +62,7 @@ public class SearchHistogramAnalyticsUseCase {
         );
     }
 
-    private void validateInput(Input input, ExecutionContext executionContext) {
-        validateApi(input.api, executionContext);
-        validateTimeRange(input.from, input.to);
-    }
-
-    private void validateTimeRange(long from, long to) {
-        if (from > to) {
-            throw new IllegalTimeRangeException();
-        }
-    }
-
-    private void validateApi(String apiId, ExecutionContext executionContext) {
-        var api = apiCrudService.get(apiId);
-        validateApiV4(apiId, api.getDefinitionVersion());
-        validateApiProxy(api);
-        validateApiMultiTenancyAccess(api, executionContext.getEnvironmentId());
-    }
-
-    private void validateApiV4(String apiId, DefinitionVersion apiDefinition) {
-        if (!DefinitionVersion.V4.equals(apiDefinition)) {
-            throw new ApiInvalidDefinitionVersionException(apiId);
-        }
-    }
-
-    private void validateApiProxy(Api api) {
-        if (api.isTcpProxy()) {
-            throw new TcpProxyNotSupportedException(api.getId());
-        }
-    }
-
-    private void validateApiMultiTenancyAccess(Api api, String environmentId) {
-        if (!api.belongsToEnvironment(environmentId)) {
-            throw new ApiNotFoundException(api.getId());
-        }
-    }
-
-    public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations, Optional<String> query) {
-        public Input(String api, long from, long to, long interval, List<Aggregation> aggregations) {
-            this(api, from, to, interval, aggregations, Optional.empty());
-        }
-    }
+    public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations, Optional<String> query) {}
 
     public record Output(Timestamp timestamp, List<Bucket> values) {}
 }

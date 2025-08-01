@@ -15,4 +15,17 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-public record StatsAggregate(String field, long count, long sum, long avg, long min, long max, long rps, long rpm, long rph) {}
+import lombok.Getter;
+
+public record SearchTermId(SearchTerm searchTerm, String id) {
+    @Getter
+    public enum SearchTerm {
+        API("api-id");
+
+        private final String field;
+
+        SearchTerm(String keyword) {
+            this.field = keyword;
+        }
+    }
+}

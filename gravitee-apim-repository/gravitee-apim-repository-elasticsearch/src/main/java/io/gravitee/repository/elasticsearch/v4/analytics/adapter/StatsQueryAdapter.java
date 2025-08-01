@@ -44,10 +44,7 @@ public class StatsQueryAdapter {
         this.field = query.field();
 
         // Calculate seconds for time range
-        this.seconds = (query.timeRange().to() - query.timeRange().from()) / 1000;
-        if (this.seconds <= 0) {
-            this.seconds = 1;
-        }
+        this.seconds = query.timeRange().seconds();
 
         return root.toString();
     }
@@ -70,18 +67,11 @@ public class StatsQueryAdapter {
 
         // Root (always "api-id" field)
         ObjectNode termNode = MAPPER.createObjectNode();
-        termNode.set("term", MAPPER.createObjectNode().put("api-id", query.apiId()));
+        termNode.set("term", MAPPER.createObjectNode().put(query.searchTermId().searchTerm().getField(), query.searchTermId().id()));
         filterArray.add(termNode);
 
         // Time range
-        ObjectNode rangeNode = MAPPER.createObjectNode();
-        ObjectNode tsRange = MAPPER.createObjectNode();
-        tsRange.put("from", query.timeRange().from());
-        tsRange.put("to", query.timeRange().to());
-        tsRange.put("include_lower", true);
-        tsRange.put("include_upper", true);
-        rangeNode.set("@timestamp", tsRange);
-        filterArray.add(MAPPER.createObjectNode().set("range", rangeNode));
+        filterArray.add(TimeRangeAdapter.toRangeNode(query.timeRange()));
 
         ObjectNode bool = MAPPER.createObjectNode();
         bool.set("filter", filterArray);
@@ -120,14 +110,15 @@ public class StatsQueryAdapter {
         }
 
         long count = agg.getCount().longValue();
-        float sum = agg.getSum();
-        float avg = agg.getAvg();
-        float min = agg.getMin();
-        float max = agg.getMax();
 
-        float rps = (float) count / this.seconds;
-        float rpm = (float) count / (this.seconds / 60f);
-        float rph = (float) count / (this.seconds / 3600f);
+        long sum = agg.getSum().longValue();
+        long avg = agg.getAvg().longValue();
+        long min = agg.getMin().longValue();
+        long max = agg.getMax().longValue();
+
+        long rps = count / this.seconds;
+        long rpm = rps * 60L;
+        long rph = rpm * 60L;
 
         return Optional.of(new StatsAggregate(this.field, count, sum, avg, min, max, rps, rpm, rph));
     }

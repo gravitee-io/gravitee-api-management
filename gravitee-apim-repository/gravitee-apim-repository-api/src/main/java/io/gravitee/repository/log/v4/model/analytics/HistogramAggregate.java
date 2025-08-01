@@ -17,14 +17,5 @@ package io.gravitee.repository.log.v4.model.analytics;
 
 import java.util.List;
 import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
-@Data
-@AllArgsConstructor
-public class HistogramAggregate<T extends Number> {
-
-    private String field;
-    private String name;
-    private Map<String, List<T>> buckets;
-}
+public record HistogramAggregate(String field, String name, Map<String, List<Long>> buckets) {}

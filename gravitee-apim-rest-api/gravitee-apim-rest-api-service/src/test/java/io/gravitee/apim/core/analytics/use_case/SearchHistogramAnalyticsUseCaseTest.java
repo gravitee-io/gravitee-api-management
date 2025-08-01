@@ -119,7 +119,7 @@ class SearchHistogramAnalyticsUseCaseTest {
     @Test
     void shouldThrowWhenApiNotV4() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
-        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of());
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
@@ -127,7 +127,7 @@ class SearchHistogramAnalyticsUseCaseTest {
     @Test
     void shouldThrowWhenTcpProxy() {
         apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
-        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of());
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);
     }
@@ -135,7 +135,7 @@ class SearchHistogramAnalyticsUseCaseTest {
     @Test
     void shouldThrowWhenApiNotInEnvironment() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId("definitely not" + ENV_ID).build()));
-        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of());
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
     }
@@ -146,7 +146,7 @@ class SearchHistogramAnalyticsUseCaseTest {
         long from = 2000L;
         long to = 1000L;
         long interval = 100L;
-        var input = new Input(ApiFixtures.MY_API, from, to, interval, List.of());
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, List.of(), Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(IllegalTimeRangeException.class);
     }

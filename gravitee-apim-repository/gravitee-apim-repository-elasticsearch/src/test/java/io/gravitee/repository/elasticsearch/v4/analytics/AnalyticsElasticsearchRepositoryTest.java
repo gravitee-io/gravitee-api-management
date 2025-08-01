@@ -40,8 +40,10 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
 import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -51,6 +53,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -652,10 +655,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var interval = Duration.ofMinutes(30);
 
             var query = new HistogramQuery(
-                API_ID,
-                from,
-                to,
-                interval,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to, interval),
                 List.of(new Aggregation("status", AggregationType.FIELD)),
                 Optional.empty()
             );
@@ -666,14 +667,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(result).hasSize(1);
 
             var histogram = result.getFirst();
-            assertThat(histogram.getBuckets()).isNotNull();
-            assertThat(histogram.getBuckets()).hasSize(3);
+            assertThat(histogram.buckets()).isNotNull();
+            assertThat(histogram.buckets()).hasSize(3);
 
-            assertThat(histogram.getBuckets().keySet()).containsExactlyInAnyOrder("200", "202", "404");
+            assertThat(histogram.buckets().keySet()).containsExactlyInAnyOrder("200", "202", "404");
 
-            var bucket200 = histogram.getBuckets().get("200");
-            var bucket202 = histogram.getBuckets().get("202");
-            var bucket404 = histogram.getBuckets().get("404");
+            var bucket200 = histogram.buckets().get("200");
+            var bucket202 = histogram.buckets().get("202");
+            var bucket404 = histogram.buckets().get("404");
 
             assertThat(bucket200).hasSizeGreaterThan(28);
             assertThat(bucket200.get(28)).isEqualTo(1L);
@@ -693,10 +694,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var interval = Duration.ofMinutes(30);
 
             var query = new HistogramQuery(
-                API_ID,
-                from,
-                to,
-                interval,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to, interval),
                 List.of(new Aggregation("gateway-response-time-ms", AggregationType.AVG)),
                 Optional.empty()
             );
@@ -707,10 +706,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(result).hasSize(1);
 
             var histogram = result.getFirst();
-            assertThat(histogram.getBuckets()).isNotNull();
-            assertThat(histogram.getBuckets()).containsOnlyKeys("avg_gateway-response-time-ms");
+            assertThat(histogram.buckets()).isNotNull();
+            assertThat(histogram.buckets()).containsOnlyKeys("avg_gateway-response-time-ms");
 
-            var avgBucket = (List<Double>) histogram.getBuckets().get("avg_gateway-response-time-ms");
+            var avgBucket = histogram.buckets().get("avg_gateway-response-time-ms");
             assertThat(avgBucket).isNotEmpty();
             assertThat(avgBucket.stream().filter(v -> v > 0).count()).isEqualTo(2);
         }
@@ -723,10 +722,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var interval = Duration.ofMinutes(30);
 
             var query = new HistogramQuery(
-                API_ID,
-                from,
-                to,
-                interval,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to, interval),
                 List.of(new Aggregation("status", AggregationType.FIELD)),
                 Optional.of("status:404")
             );
@@ -737,12 +734,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(result).hasSize(1);
 
             var histogram = result.getFirst();
-            assertThat(histogram.getBuckets()).isNotNull();
-            assertThat(histogram.getBuckets()).hasSize(1);
+            assertThat(histogram.buckets()).isNotNull();
+            assertThat(histogram.buckets()).hasSize(1);
 
-            assertThat(histogram.getBuckets().keySet()).containsExactly("404");
+            assertThat(histogram.buckets().keySet()).containsExactly("404");
 
-            var bucket404 = histogram.getBuckets().get("404");
+            var bucket404 = histogram.buckets().get("404");
             assertThat(bucket404).hasSizeGreaterThan(61);
             assertThat(bucket404.get(61)).isEqualTo(2L);
         }
@@ -757,7 +754,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, null);
+            var query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                "entrypoint-id",
+                Collections.emptyList(),
+                Optional.empty(),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -776,13 +780,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
             var query = new GroupByQuery(
-                API_ID,
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 "response-time",
                 List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200)),
                 null,
-                from,
-                to,
-                null
+                new TimeRange(from, to),
+                Optional.empty()
             );
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
@@ -802,7 +805,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
             var queryString = "status:404 AND http-method:8";
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, null, from, to, queryString);
+            var query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                "entrypoint-id",
+                Collections.emptyList(),
+                Optional.empty(),
+                new TimeRange(from, to),
+                Optional.of(queryString)
+            );
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -821,7 +831,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
             var order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, from, to, null);
+            var query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                "entrypoint-id",
+                Collections.emptyList(),
+                Optional.of(order),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -841,7 +858,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
             var order = new GroupByQuery.Order("_key", true, "VALUE");
-            var query = new GroupByQuery(API_ID, "entrypoint-id", null, order, from, to, null);
+            var query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                "entrypoint-id",
+                Collections.emptyList(),
+                Optional.of(order),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
             var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
 
             assertThat(result)
@@ -866,8 +890,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var query = new StatsQuery(
                 "gateway-response-time-ms",
-                API_ID,
-                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()),
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to),
                 Optional.empty()
             );
 
@@ -878,10 +902,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .hasValueSatisfying(stats -> {
                     assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
                     assertThat(stats.count()).isEqualTo(8L);
-                    assertThat(stats.sum()).isEqualTo(131864.0f);
-                    assertThat(stats.avg()).isEqualTo(16483.0f);
-                    assertThat(stats.min()).isEqualTo(19.0f);
-                    assertThat(stats.max()).isEqualTo(60000.0f);
+                    assertThat(stats.sum()).isEqualTo(131864L);
+                    assertThat(stats.avg()).isEqualTo(16483L);
+                    assertThat(stats.min()).isEqualTo(19L);
+                    assertThat(stats.max()).isEqualTo(60000L);
                 });
         }
 
@@ -893,8 +917,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var query = new StatsQuery(
                 "non-existent-field",
-                API_ID,
-                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()),
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to),
                 Optional.empty()
             );
 
@@ -912,8 +936,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var query = new StatsQuery(
                 "gateway-response-time-ms",
-                API_ID,
-                new StatsQuery.TimeRange(from.toEpochMilli(), to.toEpochMilli()),
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to),
                 Optional.of(queryString)
             );
 
@@ -924,13 +948,13 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .hasValueSatisfying(stats -> {
                     assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
                     assertThat(stats.count()).isEqualTo(2L);
-                    assertThat(stats.sum()).isEqualTo(70000.0f);
-                    assertThat(stats.avg()).isEqualTo(35000.0f);
-                    assertThat(stats.min()).isEqualTo(30000.0f);
-                    assertThat(stats.max()).isEqualTo(40000.0f);
-                    assertThat(stats.rps()).isEqualTo(1.1574074E-5f);
-                    assertThat(stats.rpm()).isEqualTo(6.9444446E-4f);
-                    assertThat(stats.rph()).isEqualTo(0.041666668f);
+                    assertThat(stats.sum()).isEqualTo(70000L);
+                    assertThat(stats.avg()).isEqualTo(35000L);
+                    assertThat(stats.min()).isEqualTo(30000L);
+                    assertThat(stats.max()).isEqualTo(40000L);
+                    assertThat(stats.rps()).isEqualTo(0L);
+                    assertThat(stats.rpm()).isEqualTo(0L);
+                    assertThat(stats.rph()).isEqualTo(0L);
                 });
         }
     }
@@ -940,13 +964,16 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var result = cut.searchRequestsCountByEvent(
                 new QueryContext("org#1", "env#1"),
-                new RequestsCountByEventQuery(Map.of("api-id", API_ID))
+                new RequestsCountByEventQuery(new SearchTermId(SearchTermId.SearchTerm.API, API_ID), new TimeRange(from, to))
             );
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {
-                    assertThat(countAggregate.getTotal()).isEqualTo(11);
+                    assertThat(countAggregate.total()).isEqualTo(11);
                 });
         }
     }

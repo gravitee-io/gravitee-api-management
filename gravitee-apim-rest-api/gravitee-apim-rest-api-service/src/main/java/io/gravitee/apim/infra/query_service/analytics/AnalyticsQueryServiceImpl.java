@@ -34,6 +34,7 @@ import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCri
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -275,13 +276,11 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .collect(Collectors.toList());
         }
 
-        List<HistogramAggregate<?>> repoResult = analyticsRepository.searchHistogram(
+        List<HistogramAggregate> repoResult = analyticsRepository.searchHistogram(
             executionContext.getQueryContext(),
             new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
-                histogramParameters.apiId(),
-                histogramParameters.from(),
-                histogramParameters.to(),
-                histogramParameters.interval(),
+                toModelSearchTermId(histogramParameters.searchTermId()),
+                new TimeRange(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval()),
                 repoAggregations,
                 histogramParameters.query()
             )
@@ -294,18 +293,23 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return Optional.of(mapHistogramAggregatesToHistogramAnalytics(repoResult, histogramParameters));
     }
 
+    private static io.gravitee.repository.log.v4.model.analytics.SearchTermId toModelSearchTermId(SearchTermId searchTermId) {
+        return new io.gravitee.repository.log.v4.model.analytics.SearchTermId(
+            io.gravitee.repository.log.v4.model.analytics.SearchTermId.SearchTerm.valueOf(searchTermId.searchTerm().name()),
+            searchTermId.id()
+        );
+    }
+
     @Override
     public Optional<GroupByAnalytics> searchGroupByAnalytics(
         ExecutionContext executionContext,
         io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery groupByQuery
     ) {
-        var repoGroups = groupByQuery.groups() == null
-            ? null
-            : groupByQuery
-                .groups()
-                .stream()
-                .map(g -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group(g.from(), g.to()))
-                .toList();
+        var repoGroups = groupByQuery
+            .groups()
+            .stream()
+            .map(g -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group(g.from(), g.to()))
+            .toList();
         var repoQuery = getGroupByQuery(groupByQuery, repoGroups);
         return analyticsRepository
             .searchGroupBy(executionContext.getQueryContext(), repoQuery)
@@ -321,20 +325,16 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         GroupByQuery groupByQuery,
         List<io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group> repoGroups
     ) {
-        var repoOrder = groupByQuery.order() == null
-            ? null
-            : new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Order(
-                groupByQuery.order().field(),
-                groupByQuery.order().order(),
-                groupByQuery.order().type()
-            );
+        var repoOrder = groupByQuery
+            .order()
+            .map(order -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Order(order.field(), order.order(), order.type()));
+
         return new io.gravitee.repository.log.v4.model.analytics.GroupByQuery(
-            groupByQuery.apiId(),
+            toModelSearchTermId(groupByQuery.searchTermId()),
             groupByQuery.field(),
             repoGroups,
             repoOrder,
-            groupByQuery.from(),
-            groupByQuery.to(),
+            new TimeRange(groupByQuery.from(), groupByQuery.to()),
             groupByQuery.query()
         );
     }
@@ -346,11 +346,8 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     ) {
         var repoQuery = new io.gravitee.repository.log.v4.model.analytics.StatsQuery(
             statsQuery.field(),
-            statsQuery.apiId(),
-            new io.gravitee.repository.log.v4.model.analytics.StatsQuery.TimeRange(
-                statsQuery.from().toEpochMilli(),
-                statsQuery.to().toEpochMilli()
-            ),
+            toModelSearchTermId(statsQuery.searchTermId()),
+            new TimeRange(statsQuery.from(), statsQuery.to()),
             statsQuery.query()
         );
 
@@ -375,13 +372,16 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchRequestsCountByEvent(
                 executionContext.getQueryContext(),
-                new RequestsCountByEventQuery(countParameters.terms(), countParameters.from(), countParameters.to())
+                new RequestsCountByEventQuery(
+                    toModelSearchTermId(countParameters.searchTermId()),
+                    new TimeRange(countParameters.from(), countParameters.to())
+                )
             )
-            .map(countAggregate -> RequestsCount.builder().total(countAggregate.getTotal()).build());
+            .map(countAggregate -> RequestsCount.builder().total(countAggregate.total()).build());
     }
 
     private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(
-        List<HistogramAggregate<?>> aggregates,
+        List<HistogramAggregate> aggregates,
         HistogramQuery histogramParameters
     ) {
         Timestamp timestamp = new Timestamp(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval());
@@ -389,31 +389,26 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return HistogramAnalytics.builder().timestamp(timestamp).values(values).build();
     }
 
-    private List<Bucket> mapBuckets(List<HistogramAggregate<?>> aggregates) {
+    private List<Bucket> mapBuckets(List<HistogramAggregate> aggregates) {
         if (aggregates == null) {
             return null;
         }
         return aggregates.stream().map(this::mapHistogramAggregateToBucket).collect(Collectors.toList());
     }
 
-    private Bucket mapHistogramAggregateToBucket(HistogramAggregate<?> aggregate) {
+    private Bucket mapHistogramAggregateToBucket(HistogramAggregate aggregate) {
         if (aggregate == null) {
             return null;
         }
 
-        return Bucket
-            .builder()
-            .field(aggregate.getField())
-            .name(aggregate.getName())
-            .buckets(mapValuesToBuckets(aggregate.getBuckets()))
-            .build();
+        return Bucket.builder().field(aggregate.field()).name(aggregate.name()).buckets(mapValuesToBuckets(aggregate.buckets())).build();
     }
 
-    private List<Bucket> mapValuesToBuckets(Map<String, ? extends List<?>> buckets) {
+    private List<Bucket> mapValuesToBuckets(Map<String, List<Long>> buckets) {
         return buckets
             .entrySet()
             .stream()
-            .map(entry -> Bucket.builder().field(entry.getKey()).name(entry.getKey()).data((List<Number>) entry.getValue()).build())
+            .map(entry -> Bucket.builder().field(entry.getKey()).name(entry.getKey()).data(entry.getValue()).build())
             .toList();
     }
 }

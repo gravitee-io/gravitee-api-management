@@ -15,4 +15,20 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-public record StatsAggregate(String field, long count, long sum, long avg, long min, long max, long rps, long rpm, long rph) {}
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
+
+public record TimeRange(Instant from, Instant to, Optional<Duration> interval) {
+    public TimeRange(java.time.Instant from, java.time.Instant to) {
+        this(from, to, java.util.Optional.empty());
+    }
+
+    public TimeRange(java.time.Instant from, java.time.Instant to, java.time.Duration interval) {
+        this(from, to, java.util.Optional.of(interval));
+    }
+
+    public long seconds() {
+        return Math.max(1, (to.toEpochMilli() - from.toEpochMilli()) / 1000);
+    }
+}

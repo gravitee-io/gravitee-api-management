@@ -33,7 +33,8 @@ public class GeoipMetadataProvider implements AnalyticsMetadataProvider {
     @Override
     public Map<String, String> provide(String key, String environmentId) {
         Map<String, String> metadata = new HashMap<>();
-        metadata.put(METADATA_NAME, (new Locale("", key)).getDisplayCountry(Locale.UK));
+        Locale locale = Locale.forLanguageTag("und-" + key);
+        metadata.put(METADATA_NAME, locale.getDisplayCountry(Locale.UK));
         return metadata;
     }
 }

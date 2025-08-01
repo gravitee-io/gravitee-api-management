@@ -2146,6 +2146,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics requests count
             description: |-
                 Get API analytics request count.
@@ -2167,6 +2168,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics average messages per request
             description: |-
                 Get API analytics average messages per request.
@@ -2187,6 +2189,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics average connection duration
             description: |-
                 Get API analytics average connection duration. Duration is only computed for ended requests.
@@ -2208,6 +2211,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics response status counts
             description: |-
                 Get API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
@@ -2228,6 +2232,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics average response time
             description: |-
                 Get API Analytics average response time
@@ -2248,6 +2253,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics response status counts over time
             description: |-
                 Get API analytics response status counts over time.
@@ -7747,36 +7753,36 @@ components:
                     - type: object
                       properties:
                         avg:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Average value of the metric.
                         min:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Minimum value of the metric.
                         max:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Maximum value of the metric.
                         sum:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Sum of all metric values.
                         count:
                           type: integer
                           format: int64
                           description: Total number of data points.
                         rps:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Requests per second.
                         rpm:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Requests per minute.
                         rph:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Requests per hour.
         CountAnalytics:
           allOf:
@@ -7819,7 +7825,8 @@ components:
                             data:
                               type: array
                               items:
-                                type: number
+                                type: integer
+                                format: int64
                       field:
                         type: string
                       name:
