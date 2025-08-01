@@ -35,7 +35,6 @@ tests:
         federation:
           enabled: true
           ingress:
-            enabled: true
             hosts:
               - host1.example.com
     asserts:
@@ -54,7 +53,8 @@ tests:
       - equal:
           path: metadata.annotations
           value:
-            nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+            kubernetes.io/ingress.class: nginx
+            nginx.ingress.kubernetes.io/proxy-read-timeout: 3600                                                                                                                                              │
             nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
             nginx.ingress.kubernetes.io/rewrite-target: /$1
 
