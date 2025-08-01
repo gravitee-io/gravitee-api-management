@@ -19,7 +19,6 @@ import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.infra.adapter.PolicyPluginAdapter;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
-import io.gravitee.rest.api.service.exceptions.PolicyNotFoundException;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +42,7 @@ public class PolicyCrudServiceImpl implements PolicyPluginCrudService {
         try {
             return Optional.of(PolicyPluginAdapter.INSTANCE.map(policyPluginService.findById(policyId)));
         } catch (PluginNotFoundException e) {
+            log.warn("PluginNotFoundException: PolicyPlugin with id {} not found", policyId);
             return Optional.empty();
         }
     }

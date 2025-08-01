@@ -24,11 +24,10 @@ import io.gravitee.apim.infra.adapter.PageAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +36,6 @@ import org.springframework.stereotype.Service;
 public class PageCrudServiceImpl implements PageCrudService {
 
     private final PageRepository pageRepository;
-    private static final Logger logger = LoggerFactory.getLogger(PageCrudServiceImpl.class);
 
     public PageCrudServiceImpl(@Lazy PageRepository pageRepository) {
         this.pageRepository = pageRepository;
@@ -55,8 +53,7 @@ public class PageCrudServiceImpl implements PageCrudService {
             var updatedPage = pageRepository.update(PageAdapter.INSTANCE.toRepository(pageToUpdate));
             return PageAdapter.INSTANCE.toEntity(updatedPage);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while updating homepage attribute from {}", pageToUpdate, e);
-            throw new TechnicalDomainException("Error when updating Page", e);
+            throw new TechnicalDomainException(String.format("An error occurred while updating page %s.", pageToUpdate), e);
         }
     }
 
@@ -70,7 +67,7 @@ public class PageCrudServiceImpl implements PageCrudService {
         try {
             return pageRepository.findById(id).map(PageAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while finding Page by id {}", id, e);
+            log.error("An error occurred while trying to find Page by id {}", id, e);
         }
         return Optional.empty();
     }
@@ -80,8 +77,7 @@ public class PageCrudServiceImpl implements PageCrudService {
         try {
             pageRepository.delete(id);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while deleting Page by id {}", id, e);
-            throw new ApiPageNotDeletedException(id, e);
+            throw new ApiPageNotDeletedException(String.format("An error occurred while trying to delete Page by id %s", id), e);
         }
     }
 
@@ -90,8 +86,10 @@ public class PageCrudServiceImpl implements PageCrudService {
         try {
             pageRepository.unsetHomepage(ids);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while deleting Page by id {}", ids, e);
-            throw new ApiPageInvalidReferenceTypeException(ids.iterator().next(), e.getMessage());
+            throw new TechnicalManagementException(
+                String.format("An error occurred while trying to unset homepage for Page ids %s", ids),
+                e
+            );
         }
     }
 
@@ -99,8 +97,10 @@ public class PageCrudServiceImpl implements PageCrudService {
         try {
             return pageRepository.create(page);
         } catch (TechnicalException e) {
-            logger.error("An error occurred while creating {}", page, e);
-            throw new TechnicalDomainException("Error when creating Page", e);
+            throw new TechnicalDomainException(
+                String.format("An error occurred while creating Page %s with id %s", page.getName(), page.getId()),
+                e
+            );
         }
     }
 }

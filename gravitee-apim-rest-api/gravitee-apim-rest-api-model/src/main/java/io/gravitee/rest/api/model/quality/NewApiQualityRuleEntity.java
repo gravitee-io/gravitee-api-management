@@ -17,59 +17,27 @@ package io.gravitee.rest.api.model.quality;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
 public class NewApiQualityRuleEntity {
 
+    @EqualsAndHashCode.Include
     private String api;
 
     @JsonProperty("quality_rule")
+    @EqualsAndHashCode.Include
     private String qualityRule;
 
     private boolean checked;
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
-    }
-
-    public String getQualityRule() {
-        return qualityRule;
-    }
-
-    public void setQualityRule(String qualityRule) {
-        this.qualityRule = qualityRule;
-    }
-
-    public boolean isChecked() {
-        return checked;
-    }
-
-    public void setChecked(boolean checked) {
-        this.checked = checked;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NewApiQualityRuleEntity that = (NewApiQualityRuleEntity) o;
-        return Objects.equals(api, that.api) && Objects.equals(qualityRule, that.qualityRule);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(api, qualityRule);
-    }
-
-    @Override
-    public String toString() {
-        return "NewApiQualityRuleEntity{" + "api='" + api + '\'' + ", qualityRule='" + qualityRule + '\'' + ", checked=" + checked + '}';
-    }
 }

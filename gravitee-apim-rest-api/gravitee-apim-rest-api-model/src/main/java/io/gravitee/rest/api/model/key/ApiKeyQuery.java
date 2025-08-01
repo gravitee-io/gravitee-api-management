@@ -19,10 +19,12 @@ import java.util.Collection;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @EqualsAndHashCode
+@ToString
 public class ApiKeyQuery {
 
     private Collection<String> environmentIds;

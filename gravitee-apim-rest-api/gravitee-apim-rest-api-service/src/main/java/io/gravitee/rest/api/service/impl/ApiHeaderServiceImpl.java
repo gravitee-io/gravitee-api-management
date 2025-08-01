@@ -33,8 +33,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiHeaderNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -43,10 +42,9 @@ import org.springframework.stereotype.Component;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class ApiHeaderServiceImpl extends TransactionalService implements ApiHeaderService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiHeaderServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -80,8 +78,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
             return convert(apiHeaderRepository.create(apiHeader));
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while trying to create a header {}", newEntity, e);
-            throw new TechnicalManagementException("An error occurs while trying to create a header " + newEntity, e);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to create a header %s", newEntity), e);
         }
     }
 
@@ -116,8 +113,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 currentOrder++;
             }
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while trying to delete a header {}", apiHeaderId, e);
-            throw new TechnicalManagementException("An error occurs while trying to delete a header " + apiHeaderId, e);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to delete a header %s", apiHeaderId), e);
         }
     }
 
@@ -152,8 +148,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 return convert(header);
             }
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while trying to update header {}", updateEntity, e);
-            throw new TechnicalManagementException("An error occurs while trying to update header " + updateEntity, e);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to update header %s", updateEntity), e);
         }
     }
 
@@ -167,8 +162,10 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 .map(this::convert)
                 .collect(toList());
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while trying to find all header", e);
-            throw new TechnicalManagementException("An error occurs while trying to find all header", e);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find all header for environment id: %s", environmentId),
+                e
+            );
         }
     }
 

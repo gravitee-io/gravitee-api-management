@@ -20,90 +20,31 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode
 public class TagEntity {
 
+    @ToString.Include
     private String id;
 
     @NotNull
     @Size(min = 1)
+    @ToString.Include
     private String name;
 
     private String description;
 
     @JsonProperty("restricted_groups")
     private List<String> restrictedGroups;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public List<String> getRestrictedGroups() {
-        return restrictedGroups;
-    }
-
-    public void setRestrictedGroups(List<String> restrictedGroups) {
-        this.restrictedGroups = restrictedGroups;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TagEntity)) return false;
-        TagEntity tagEntity = (TagEntity) o;
-        return (
-            Objects.equals(id, tagEntity.id) &&
-            Objects.equals(name, tagEntity.name) &&
-            Objects.equals(description, tagEntity.description) &&
-            Objects.equals(restrictedGroups, tagEntity.restrictedGroups)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, description, restrictedGroups);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "TagEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", restrictedGroups=" +
-            restrictedGroups +
-            '}'
-        );
-    }
 }

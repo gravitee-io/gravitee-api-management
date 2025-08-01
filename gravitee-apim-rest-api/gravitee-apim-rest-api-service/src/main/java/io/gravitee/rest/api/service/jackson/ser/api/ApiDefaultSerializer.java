@@ -24,11 +24,13 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ApiDefaultSerializer extends ApiSerializer {
 
     public ApiDefaultSerializer() {
@@ -55,7 +57,7 @@ public class ApiDefaultSerializer extends ApiSerializer {
                     try {
                         jsonGenerator.writeObject(pathMapping);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        log.error("An error occurs while serializing path mapping", e);
                     }
                 });
             jsonGenerator.writeEndArray();

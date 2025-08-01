@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,18 +58,22 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@ToString(onlyExplicitlyIncluded = true)
 public class UpdateApiEntity {
 
     @Schema(description = "API's crossId. Identifies API across environments.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+    @ToString.Include
     private String crossId;
 
     @NotNull
     @NotEmpty(message = "Api's name must not be empty")
     @Schema(description = "Api's name. Duplicate names can exists.", example = "My Api")
+    @ToString.Include
     private String name;
 
     @NotNull
     @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
+    @ToString.Include
     private String version;
 
     @NotNull
@@ -123,6 +128,7 @@ public class UpdateApiEntity {
     @DeploymentRequired
     @JsonProperty(value = "gravitee", required = false)
     @Schema(description = "API's gravitee definition version")
+    @ToString.Include
     private String graviteeDefinitionVersion;
 
     @DeploymentRequired

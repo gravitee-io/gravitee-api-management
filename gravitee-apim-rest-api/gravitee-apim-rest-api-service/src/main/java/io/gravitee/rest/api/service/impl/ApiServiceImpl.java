@@ -122,11 +122,10 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -139,6 +138,7 @@ import org.springframework.stereotype.Component;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Component
 public class ApiServiceImpl extends AbstractService implements ApiService {
 
@@ -146,8 +146,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public static final String API_DEFINITION_CONTEXT_FIELD_ORIGIN = "origin";
     public static final String API_DEFINITION_CONTEXT_FIELD_MODE = "mode";
     public static final String API_DEFINITION_CONTEXT_FIELD_SYNC_FROM = "syncFrom";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
     private static final String ENDPOINTS_DELIMITER = "\n";
 
     @Lazy
@@ -332,12 +330,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void checkGroupExistence(Set<String> groups) {
-        // check the existence of groups
+        log.debug("Checking if groups {} exist", groups);
         if (groups != null && !groups.isEmpty()) {
             try {
                 groupService.findByIds(new HashSet(groups));
             } catch (GroupsNotFoundException gnfe) {
-                throw new InvalidDataException("These groups [" + gnfe.getParameters().get("groups") + "] do not exist");
+                throw new InvalidDataException(String.format("These groups [%s] do not exist", gnfe.getParameters().get("groups")), gnfe);
             }
         }
     }
@@ -430,25 +428,27 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity createWithApiDefinition(ExecutionContext executionContext, UpdateApiEntity api, String userId, JsonNode apiDefinition)
         throws ApiAlreadyExistsException {
+        log.debug("Creating ApiEntity {} based on ApiDefinition ", api);
         if (DefinitionVersion.V1.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
             throw new ApiDefinitionVersionNotSupportedException(api.getGraviteeDefinitionVersion());
         }
 
         try {
-            LOGGER.debug("Create {} for user {}", api, userId);
+            log.debug("Create {} for user {}", api, userId);
 
             String apiId = apiDefinition != null && apiDefinition.has("id") ? apiDefinition.get("id").asText() : null;
             String id = apiId != null && UUID.fromString(apiId) != null ? apiId : UuidString.generateRandom();
 
+            log.debug("Trying to find API with id {} in ApiRepository", id);
             Optional<Api> checkApi = apiRepository.findById(id);
+            log.debug("API found: {}", checkApi.isPresent());
+
             if (checkApi.isPresent()) {
                 throw new ApiAlreadyExistsException(id);
             }
 
-            // if user changes sharding tags, then check if he is allowed to do it
             checkShardingTags(api, null, executionContext);
 
-            // format context-path and check if context path is unique
             var validationResult = verifyApiPathDomainService.validateAndSanitize(
                 new VerifyApiPathDomainService.Input(
                     executionContext.getEnvironmentId(),
@@ -483,24 +483,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             api.getProxy().setVirtualHosts(new ArrayList<>(sanitizedVirtualHosts));
 
-            // check endpoints configuration
             checkEndpointsConfiguration(api);
 
-            // check CORS Allow-origin format
             corsValidationService.validateAndSanitize(api.getProxy().getCors());
 
             api.getProxy().setLogging(loggingValidationService.validateAndSanitize(executionContext, api.getProxy().getLogging()));
 
-            // check if there is regex errors in plaintext fields
             validateRegexfields(api);
-
-            // check policy configurations.
             checkPolicyConfigurations(api);
-
-            // check policy configurations.
             checkResourceConfigurations(api);
 
-            // check primary owner
             PrimaryOwnerEntity primaryOwner = findPrimaryOwner(executionContext, apiDefinition, userId);
 
             if (apiDefinition != null) {
@@ -514,11 +506,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             repoApi.setId(id);
             repoApi.setEnvironmentId(executionContext.getEnvironmentId());
-            // Set date fields
+
+            log.debug("Set date fields for API {}", api);
             repoApi.setCreatedAt(new Date());
             repoApi.setUpdatedAt(repoApi.getCreatedAt());
 
-            // Set definition context
+            log.debug("Set definition context for API {}", api);
             DefinitionContext definitionContext = new DefinitionContext();
             if (apiDefinition != null && apiDefinition.hasNonNull(API_DEFINITION_CONTEXT_FIELD)) {
                 JsonNode definitionContextNode = apiDefinition.get(API_DEFINITION_CONTEXT_FIELD);
@@ -532,25 +525,34 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             repoApi.setSyncFrom(definitionContext.getSyncFrom().toUpperCase());
 
             if (DefinitionContext.isKubernetes(repoApi.getOrigin())) {
-                // Be sure that api is always marked as STARTED when managed by k8s.
-                repoApi.setLifecycleState(
-                    api.getState() == null ? LifecycleState.STARTED : LifecycleState.valueOf(api.getState().toString())
-                );
+                log.debug("Using a Kubernetes context...");
 
-                // Set the api lifecycle state if defined or set it to CREATED by default.
-                repoApi.setApiLifecycleState(
-                    api.getLifecycleState() != null ? ApiLifecycleState.valueOf(api.getLifecycleState().name()) : ApiLifecycleState.CREATED
-                );
+                if (api.getState() == null) {
+                    log.debug("Set repoApi lifecycle state to STARTED by default");
+                    repoApi.setLifecycleState(LifecycleState.STARTED);
+                } else {
+                    log.debug("Set repoApi lifecycle state to {}", api.getState());
+                    repoApi.setLifecycleState(LifecycleState.valueOf(api.getState().toString()));
+                }
+
+                if (api.getLifecycleState() == null) {
+                    log.debug("Set api lifecycle state to CREATED by default");
+                    repoApi.setApiLifecycleState(ApiLifecycleState.CREATED);
+                } else {
+                    log.debug("Set api lifecycle state to {}", api.getLifecycleState().name());
+                    repoApi.setApiLifecycleState(ApiLifecycleState.valueOf(api.getLifecycleState().name()));
+                }
             } else {
-                // Be sure that lifecycle is set to STOPPED
+                log.debug("Using a none-Kubernetes context...");
+                log.debug("Set repoApi lifecycle state to STOPPED and repoApi api lifecycle state to CREATED");
                 repoApi.setLifecycleState(LifecycleState.STOPPED);
                 repoApi.setApiLifecycleState(ApiLifecycleState.CREATED);
             }
 
-            // Make sure visibility is PRIVATE by default if not set.
+            log.debug("Set visibility to PRIVATE by default if not set for API {} (currently: {})", api, api.getVisibility());
             repoApi.setVisibility(api.getVisibility() == null ? Visibility.PRIVATE : Visibility.valueOf(api.getVisibility().toString()));
 
-            // Add Default groups
+            log.debug("Add default groups");
             Set<String> defaultGroups = groupService
                 .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
                 .stream()
@@ -562,8 +564,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 repoApi.getGroups().addAll(defaultGroups);
             }
 
-            // if po is a group, add it as a member of the API
             if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwner.getType())) {
+                log.debug("Adding PO (group) {} as a member of the API {}", primaryOwner, api);
                 if (repoApi.getGroups() == null) {
                     repoApi.setGroups(new HashSet<>());
                 }
@@ -576,7 +578,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             Api createdApi = apiRepository.create(repoApi);
 
-            // Audit
             auditService.createApiAuditLog(
                 executionContext,
                 createdApi.getId(),
@@ -587,7 +588,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 createdApi
             );
 
-            // Add the primary owner of the newly created API
+            log.debug("Add primary owner {} to API {}", primaryOwner, createdApi.getId());
             membershipService.addRoleToMemberOnReference(
                 executionContext,
                 new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
@@ -595,7 +596,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
 
-            // create the default mail notification
+            log.debug("Create default mail notification for API {}", createdApi.getId());
             final String emailMetadataValue = "${(api.primaryOwner.email)!''}";
 
             GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
@@ -607,7 +608,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             notificationConfigEntity.setConfig(emailMetadataValue);
             genericNotificationConfigService.create(notificationConfigEntity);
 
-            // create the default mail support metadata
+            log.debug("Create default mail support metadata for API {}", createdApi.getId());
             NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
             newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
             newApiMetadataEntity.setName(MetadataService.METADATA_EMAIL_SUPPORT_KEY);
@@ -616,27 +617,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             newApiMetadataEntity.setApiId(createdApi.getId());
             apiMetadataService.create(executionContext, newApiMetadataEntity);
 
-            // create the API flows
+            log.debug("Create API flows for API {}", createdApi.getId());
             flowService.save(FlowReferenceType.API, createdApi.getId(), api.getFlows());
 
-            // Create api category order entries
+            log.debug("Create API category order entries for API {}", createdApi.getId());
             apiCategoryService.addApiToCategories(createdApi.getId(), createdApi.getCategories());
 
             //TODO add membership log
             ApiEntity apiEntity = convert(executionContext, createdApi, primaryOwner);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
-            // Create default alerts
             alertService.createDefaults(executionContext, AlertReferenceType.API, createdApi.getId());
 
             searchEngineService.index(executionContext, apiWithMetadata, false);
             return apiEntity;
         } catch (InvalidPathsException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
-            throw new InvalidPathException("API paths are invalid", ex);
+            throw new InvalidPathException(String.format("API paths are invalid for API %s", api), ex);
         } catch (TechnicalException | IllegalStateException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying create %s for user %s", api, userId), ex);
         }
     }
 
@@ -653,6 +651,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     public PrimaryOwnerEntity findPrimaryOwner(ExecutionContext executionContext, JsonNode apiDefinition, String userId) {
+        log.debug("Searching primary owner for API...");
         PrimaryOwnerEntity primaryOwnerFromDefinition = findPrimaryOwnerFromApiDefinition(apiDefinition);
         return primaryOwnerService.getPrimaryOwner(executionContext, userId, primaryOwnerFromDefinition);
     }
@@ -663,13 +662,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             try {
                 primaryOwnerEntity = objectMapper.readValue(apiDefinition.get("primaryOwner").toString(), PrimaryOwnerEntity.class);
             } catch (JsonProcessingException e) {
-                LOGGER.warn("Cannot parse primary owner from definition, continue with current user", e);
+                log.warn("Cannot parse primary owner from definition, continue with current user", e);
             }
         }
         return primaryOwnerEntity;
     }
 
     private void checkEndpointsConfiguration(UpdateApiEntity api) {
+        log.debug("Check endpoints configuration for API {}", api);
         if (api.getProxy() != null && api.getProxy().getGroups() != null) {
             Set<String> names = new HashSet<>();
             for (EndpointGroup group : api.getProxy().getGroups()) {
@@ -821,7 +821,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         boolean manageOnly
     ) {
         try {
-            LOGGER.debug("Find APIs page by user {}", userId);
+            log.debug("Find APIs page by user {}", userId);
             if (apiQuery == null) {
                 apiQuery = new ApiQuery();
             }
@@ -832,14 +832,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Set<String> apiIds = apiAuthorizationService.findIdsByUser(executionContext, userId, apiQuery, sortable, manageOnly);
             return loadPage(executionContext, apiIds, pageable);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
         }
     }
 
     private Api findApiById(ExecutionContext executionContext, String apiId) {
         try {
-            LOGGER.debug("Find API by ID: {}", apiId);
+            log.debug("Find API by ID: {}", apiId);
 
             Optional<Api> optApi = apiRepository.findById(apiId);
 
@@ -849,8 +848,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find an API using its ID: %s", apiId),
+                ex
+            );
         }
     }
 
@@ -1014,7 +1015,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         boolean updatePlansAndFlows
     ) {
         try {
-            LOGGER.debug("Update API {}", apiId);
+            log.debug("Update API {}", apiId);
 
             Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
             if (DefinitionVersion.V1.equals(apiToUpdate.getDefinitionVersion())) {
@@ -1064,7 +1065,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // validate HC cron schedule
             validateHealtcheckSchedule(updateApiEntity);
 
-            // check CORS Allow-origin format
             updateApiEntity.getProxy().setCors(corsValidationService.validateAndSanitize(updateApiEntity.getProxy().getCors()));
 
             updateApiEntity
@@ -1085,7 +1085,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // if user changes definition version, then check if he is allowed to do it
             checkDefinitionVersion(updateApiEntity, apiToCheck);
 
-            // if user changes sharding tags, then check if he is allowed to do it
             checkShardingTags(updateApiEntity, apiToCheck, executionContext);
 
             // if lifecycle state not provided, set the saved one
@@ -1230,10 +1229,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api updatedApi = apiRepository.update(api);
 
             if (updatePlansAndFlows) {
-                // update API flows
                 flowService.save(FlowReferenceType.API, api.getId(), updateApiEntity.getFlows());
 
-                // update API plans
+                log.debug("Update API plans");
                 updateApiEntity
                     .getPlans()
                     .forEach(plan -> {
@@ -1242,10 +1240,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     });
             }
 
-            // Update api category order entries
             apiCategoryService.updateApiCategories(api.getId(), api.getCategories());
 
-            // Audit
+            log.debug("Creating API audit log for API %s", api.getId());
             auditService.createApiAuditLog(
                 executionContext,
                 updatedApi.getId(),
@@ -1256,8 +1253,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updatedApi
             );
 
+            log.debug("Check if Audit API logging option is enabled");
             if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
-                // Audit API logging if option is enabled
                 auditApiLogging(executionContext, apiToUpdate, updatedApi);
             }
 
@@ -1270,11 +1267,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return apiEntity;
         } catch (InvalidPathsException ex) {
-            LOGGER.error("An error occurs while trying to update API {}", apiId, ex);
-            throw new InvalidPathException("API paths are invalid", ex);
+            throw new InvalidPathException(String.format("API paths are invalid for API %s", apiId), ex);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update API {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to update API " + apiId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to update API %s", apiId), ex);
         }
     }
 
@@ -1331,8 +1326,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return objectMapper.writeValueAsString(updateApiDefinition);
         } catch (JsonProcessingException jse) {
-            LOGGER.error("Unexpected error while generating API definition", jse);
-            throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to parse API definition for API %s", apiId),
+                jse
+            );
         }
     }
 
@@ -1340,7 +1337,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (existingAPI != null && updateApiEntity.getGraviteeDefinitionVersion() != null) {
             DefinitionVersion updateDefinitionVersion = DefinitionVersion.valueOfLabel(updateApiEntity.getGraviteeDefinitionVersion());
             if (updateDefinitionVersion == null) {
-                throw new InvalidDataException("Invalid definition version for api '" + existingAPI.getId() + "'");
+                throw new InvalidDataException(String.format("Invalid definition version for api '%s'", existingAPI.getId()));
             }
             DefinitionVersion existingDefinitionVersion = DefinitionVersion.valueOfLabel(existingAPI.getGraviteeDefinitionVersion());
             if (updateDefinitionVersion.asInteger() < existingDefinitionVersion.asInteger()) {
@@ -1351,6 +1348,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void checkShardingTags(final UpdateApiEntity updateApiEntity, final ApiEntity existingAPI, ExecutionContext executionContext)
         throws TechnicalException {
+        log.debug("Checking sharding tags...");
         final Set<String> tagsToUpdate = updateApiEntity.getTags() == null ? new HashSet<>() : updateApiEntity.getTags();
         final Set<String> updatedTags;
         if (existingAPI == null) {
@@ -1360,10 +1358,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             updatedTags = existingAPITags.stream().filter(tag -> !tagsToUpdate.contains(tag)).collect(toSet());
             updatedTags.addAll(tagsToUpdate.stream().filter(tag -> !existingAPITags.contains(tag)).collect(toSet()));
         }
+        log.debug("Sharding tags to update: {}", updatedTags.size());
         if (!updatedTags.isEmpty()) {
             tagService.checkTagsExist(updatedTags, executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION);
 
-            // Check if user has permissions
+            log.debug("Check if user {} has permissions to update sharding tags", getAuthenticatedUser());
             final Set<String> userTags = tagService.findByUser(
                 getAuthenticatedUsername(),
                 executionContext.getOrganizationId(),
@@ -1373,10 +1372,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 final String[] notAllowedTags = updatedTags.stream().filter(tag -> !userTags.contains(tag)).toArray(String[]::new);
                 throw new TagNotAllowedException(notAllowedTags);
             }
+            log.debug("User {} has permissions to update sharding tags", getAuthenticatedUser());
         }
     }
 
     private void checkResourceConfigurations(final UpdateApiEntity updateApiEntity) {
+        log.debug("Check resource configurations for API {}", updateApiEntity);
         List<Resource> resources = updateApiEntity.getResources();
         if (resources != null) {
             resources.stream().filter(Resource::isEnabled).forEach(resource -> resourceService.validateResourceConfiguration(resource));
@@ -1384,6 +1385,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void checkPolicyConfigurations(final UpdateApiEntity updateApiEntity) {
+        log.debug("Check policy configurations for API {}", updateApiEntity);
         checkPolicyConfigurations(updateApiEntity.getPaths(), updateApiEntity.getFlows(), updateApiEntity.getPlans());
     }
 
@@ -1433,6 +1435,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void validateRegexfields(final UpdateApiEntity updateApiEntity) {
         // validate regex on paths
+        log.debug("Check regex on paths for API {}", updateApiEntity);
         if (updateApiEntity.getPaths() != null) {
             updateApiEntity
                 .getPaths()
@@ -1440,8 +1443,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     try {
                         Pattern.compile(path);
                     } catch (java.util.regex.PatternSyntaxException pse) {
-                        LOGGER.error("An error occurs while trying to parse the path {}", path, pse);
-                        throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to parse the path %s", path),
+                            pse
+                        );
                     }
                 });
         }
@@ -1454,8 +1459,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     try {
                         Pattern.compile(pathMapping);
                     } catch (java.util.regex.PatternSyntaxException pse) {
-                        LOGGER.error("An error occurs while trying to parse the path mapping {}", pathMapping, pse);
-                        throw new TechnicalManagementException("An error occurs while trying to parse the path mapping" + pathMapping, pse);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to parse the path mapping %s", pathMapping),
+                            pse
+                        );
                     }
                 });
         }
@@ -1493,7 +1500,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public void delete(ExecutionContext executionContext, String apiId, boolean closePlans) {
         try {
-            LOGGER.debug("Delete API {}", apiId);
+            log.debug("Delete API {}", apiId);
 
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
             if (DefinitionContext.isManagement(api.getOrigin()) && api.getLifecycleState() == LifecycleState.STARTED) {
@@ -1523,13 +1530,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(executionContext, apiId);
             subscriptions.forEach(sub -> subscriptionService.delete(executionContext, sub.getId()));
 
-            // Delete plans
+            log.debug("Delete {} plans for API {}", plans.size(), apiId);
             plans.forEach(plan -> planService.delete(executionContext, plan.getId()));
 
-            // Delete flows
+            log.debug("Delete flows for API {}", apiId);
             flowService.save(FlowReferenceType.API, apiId, null);
 
-            // Delete events
+            log.debug("Delete events for API {}", apiId);
             eventService.deleteApiEvents(apiId);
 
             // https://github.com/gravitee-io/issues/issues/4130
@@ -1551,35 +1558,44 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 );
             }
 
-            // Delete pages
+            log.debug("Delete pages for API {}", apiId);
             pageService.deleteAllByApi(executionContext, apiId);
 
-            // Delete top API
+            log.debug("Delete top API {}", apiId);
             topApiService.delete(executionContext, apiId);
-            // Delete API
+
+            log.debug("Delete API {}", apiId);
             apiRepository.delete(apiId);
-            // Delete memberships
+
+            log.debug("Delete memberships for API {}", apiId);
             membershipService.deleteReference(executionContext, MembershipReferenceType.API, apiId);
-            // Delete notifications
+
+            log.debug("Delete notifications for API {}", apiId);
             genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
             portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
-            // Delete alerts
+
+            log.debug("Delete alerts for API {}", apiId);
             final List<AlertTriggerEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
             alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
-            // delete all reference on api quality rule
+
+            log.debug("Delete quality rules for API {}", apiId);
             apiQualityRuleRepository.deleteByApi(apiId);
-            // Delete all api category order entries
+
+            log.debug("Delete API categories order entries for API {}", apiId);
             apiCategoryService.deleteApiFromCategories(apiId);
-            // Audit
+
+            log.debug("Auditing deletion for API {}", apiId);
             auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
-            // remove from search engine
+
+            log.debug("Removing API {} from search engine", apiId);
             searchEngineService.delete(executionContext, convert(executionContext, api));
 
+            log.info("Delete media for API {}", apiId);
             mediaService.deleteAllByApi(apiId);
 
+            log.info("Delete API metadata for API {}", apiId);
             apiMetadataService.deleteAllByApi(executionContext, apiId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiId, ex);
         }
     }
@@ -1587,7 +1603,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity start(ExecutionContext executionContext, String apiId, String userId) {
         try {
-            LOGGER.debug("Start API {}", apiId);
+            log.debug("Start API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STARTED, userId);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             notifierService.trigger(
@@ -1598,15 +1614,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
             return apiEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to start API {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to start API " + apiId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to start API %s", apiId), ex);
         }
     }
 
     @Override
     public ApiEntity stop(ExecutionContext executionContext, String apiId, String userId) {
         try {
-            LOGGER.debug("Stop API {}", apiId);
+            log.debug("Stop API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             notifierService.trigger(
@@ -1617,19 +1632,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
             return apiEntity;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to stop API {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to stop API %s", apiId), ex);
         }
     }
 
     @Override
     public boolean isSynchronized(ExecutionContext executionContext, String apiId) {
         try {
-            // 1_ First, check the API state
+            log.debug("Check API {} state", apiId);
             ApiEntity api = findById(executionContext, apiId);
 
-            // The state of the api is managed by kubernetes. There is no synchronization allowed from management.
             if (api.getDefinitionContext().isOriginKubernetes()) {
+                log.debug("API {} is managed by kubernetes. No synchronization allowed.", apiId);
                 return true;
             }
 
@@ -1663,7 +1677,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
 
                     final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
-                    // Remove policy description from sync check
+
+                    log.debug("Remove policy description from sync check");
                     removeDescriptionFromPolicies(api);
                     removeDescriptionFromPolicies(deployedApi);
 
@@ -1676,9 +1691,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                     sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApi, api);
 
-                    // 2_ If API definition is synchronized, check if there is any modification for API's plans
-                    // but only for published or closed plan
+                    log.debug("API definition is {} synchronized.", sync ? "" : "not ");
                     if (sync) {
+                        log.debug(
+                            "Check if there is any modification for API's plans (only for published or closed plan). API id: {}",
+                            apiId
+                        );
                         Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
                         sync =
                             plans
@@ -1691,7 +1709,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 return sync;
             }
         } catch (Exception e) {
-            LOGGER.error("An error occurs while trying to check API synchronization state {}", apiId, e);
+            log.error("An error occurs while trying to check API synchronization state {}", apiId, e);
         }
 
         return false;
@@ -1723,21 +1741,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiDeploymentEntity apiDeploymentEntity
     ) {
         try {
-            LOGGER.debug("Deploy API : {}", apiId);
+            log.debug("Deploy API : {}", apiId);
 
             return deployCurrentAPI(executionContext, apiId, userId, eventType, apiDeploymentEntity);
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while trying to deploy API: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to deploy API: %s", apiId), ex);
         }
     }
 
     @Override
     public ApiEntity rollback(ExecutionContext executionContext, String apiId, RollbackApiEntity rollbackApiEntity) {
-        LOGGER.debug("Rollback API : {}", apiId);
+        log.debug("Rollback API : {}", apiId);
 
         try {
-            // Audit
+            log.debug("Auditing rollback for API {}", apiId);
             auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_ROLLBACKED, new Date(), null, null);
 
             return apiDuplicatorService.updateWithImportedDefinition(
@@ -1746,8 +1763,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 objectMapper.writeValueAsString(rollbackApiEntity)
             );
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while trying to rollback API: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to rollback API: " + apiId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to rollback API: %s", apiId), ex);
         }
     }
 
@@ -1760,7 +1776,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     ) throws Exception {
         Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
-        // add deployment date
+        log.debug("Add deployment date for API {}", apiId);
         api.setUpdatedAt(new Date());
         api.setDeployedAt(api.getUpdatedAt());
         api = apiRepository.update(api);
@@ -1768,12 +1784,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.USER.getValue(), userId);
 
-        // Clear useless field for history
+        log.debug("Clear useless field for history");
         api.setPicture(null);
 
         addDeploymentLabelToProperties(executionContext, apiId, eventType, properties, apiDeploymentEntity);
 
-        // And create event
+        log.debug("Create API event for deployment");
         eventService.createApiEvent(
             executionContext,
             singleton(executionContext.getEnvironmentId()),
@@ -1861,10 +1877,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.USER.getValue(), userId);
 
-                // Clear useless field for history
+                log.debug("Clear useless field for history");
                 lastPublishedAPI.setPicture(null);
 
-                // And create event
+                log.debug("Creating event...");
                 eventService.createApiEvent(
                     executionContext,
                     singleton(executionContext.getEnvironmentId()),
@@ -1873,22 +1889,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     lastPublishedAPI,
                     properties
                 );
+                log.debug("Event created!");
                 return null;
             } else {
-                // this is the first time we start the api without previously deployed id.
-                // let's do it.
+                log.debug("Starting the API {} without previous deployment...", apiId);
                 return this.deploy(executionContext, apiId, userId, EventType.PUBLISH_API, new ApiDeploymentEntity());
             }
         } catch (Exception e) {
-            LOGGER.error("An error occurs while trying to deploy last published API {}", apiId, e);
-            throw new TechnicalException("An error occurs while trying to deploy last published API " + apiId, e);
+            throw new TechnicalException(String.format("An error occurs while trying to deploy last published API %s", apiId), e);
         }
     }
 
     @Override
     public String exportAsJson(ExecutionContext executionContext, final String apiId, String exportVersion, String... filteredFields) {
         ApiEntity apiEntity = findById(executionContext, apiId);
-        // set metadata for serialize process
+
+        log.debug("Set metadata for serialize process. API id:{}", apiId);
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, exportVersion);
         metadata.put(ApiSerializer.METADATA_FILTERED_FIELDS_LIST, Arrays.asList(filteredFields));
@@ -1897,7 +1913,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
         } catch (final Exception e) {
-            LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
+            log.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
         }
         return "";
     }
@@ -1928,7 +1944,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             try {
                 content = of(IOUtils.toByteArray(new FileInputStream(defaultApiIcon)));
             } catch (IOException ioe) {
-                LOGGER.error("Default icon for API does not exist", ioe);
+                log.error("Default icon for API does not exist", ioe);
             }
         }
         return content;
@@ -1985,7 +2001,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Page<ApiEntity> search(ExecutionContext executionContext, final ApiQuery query, Sortable sortable, Pageable pageable) {
         try {
-            LOGGER.debug("Search paginated APIs by {}", query);
+            log.debug("Search paginated APIs by {}", query);
 
             Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, query);
 
@@ -2007,9 +2023,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 )
             );
         } catch (TechnicalException ex) {
-            final String errorMessage = "An error occurs while trying to search for paginated APIs: " + query;
-            LOGGER.error(errorMessage, ex);
-            throw new TechnicalManagementException(errorMessage, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to search for paginated APIs: %s ", query),
+                ex
+            );
         }
     }
 
@@ -2035,12 +2052,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Page<String> searchIds(ExecutionContext executionContext, ApiQuery query, Pageable pageable, Sortable sortable) {
         try {
-            LOGGER.debug("Search API ids by {}", query);
+            log.debug("Search API ids by {}", query);
             ApiCriteria apiCriteria = queryToCriteria(executionContext, query).build();
             return apiRepository.searchIds(List.of(apiCriteria), convert(pageable), convert(sortable));
         } catch (Exception ex) {
-            final String errorMessage = "An error occurs while trying to search for API ids: " + query;
-            throw new TechnicalManagementException(errorMessage, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to search for API ids: %s", query), ex);
         }
     }
 
@@ -2053,7 +2069,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Pageable pageable
     ) {
         try {
-            LOGGER.debug("Search paged APIs by {}", query);
+            log.debug("Search paged APIs by {}", query);
 
             Collection<String> apiIds = apiSearchService.searchIds(executionContext, query, filters, sortable, true);
 
@@ -2063,7 +2079,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             return loadPage(executionContext, apiIds, pageable);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to search paged apis", ex);
             throw new TechnicalManagementException("An error occurs while trying to search paged apis", ex);
         }
     }
@@ -2167,7 +2182,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId,
         final ReviewEntity reviewEntity
     ) {
-        LOGGER.debug("Ask for review API {}", apiId);
+        log.debug("Ask for review API {}", apiId);
         return updateWorkflowReview(
             executionContext,
             apiId,
@@ -2185,7 +2200,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId,
         final ReviewEntity reviewEntity
     ) {
-        LOGGER.debug("Accept review API {}", apiId);
+        log.debug("Accept review API {}", apiId);
         return updateWorkflowReview(executionContext, apiId, userId, ApiHook.REVIEW_OK, WorkflowState.REVIEW_OK, reviewEntity.getMessage());
     }
 
@@ -2196,7 +2211,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId,
         final ReviewEntity reviewEntity
     ) {
-        LOGGER.debug("Reject review API {}", apiId);
+        log.debug("Reject review API {}", apiId);
         return updateWorkflowReview(
             executionContext,
             apiId,
@@ -2428,6 +2443,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void auditApiLogging(ExecutionContext executionContext, Api apiToUpdate, Api apiUpdated) {
+        log.debug("Logging Audit API...");
         try {
             // get old logging configuration
             io.gravitee.definition.model.Api apiToUpdateDefinition = objectMapper.readValue(
@@ -2483,9 +2499,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 loggingUpdated
             );
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while auditing API logging configuration for API: {}", apiUpdated.getId(), ex);
             throw new TechnicalManagementException(
-                "An error occurs while auditing API logging configuration for API: " + apiUpdated.getId(),
+                String.format("An error occurs while auditing API logging configuration for API: %s", apiUpdated.getId()),
                 ex
             );
         }
@@ -2501,7 +2516,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Stream<Api> streamApis = apis.stream();
         if (!apiWithoutPo.isEmpty()) {
             String apisAsString = String.join(" / ", apiWithoutPo);
-            LOGGER.error("{} apis has no identified primary owners in this list {}.", apiWithoutPo.size(), apisAsString);
+            log.error("{} apis has no identified primary owners in this list {}.", apiWithoutPo.size(), apisAsString);
             streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
         return streamApis
@@ -2626,7 +2641,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     property.setValue(dataEncryptor.encrypt(property.getValue()));
                     property.setEncrypted(true);
                 } catch (GeneralSecurityException e) {
-                    LOGGER.error("Error encrypting property value", e);
+                    log.error("Error encrypting property value", e);
                 }
             }
         }
