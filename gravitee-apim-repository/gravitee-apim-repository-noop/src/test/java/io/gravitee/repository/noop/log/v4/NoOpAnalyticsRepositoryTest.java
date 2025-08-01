@@ -39,6 +39,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -144,9 +145,15 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void testSearchRequestsCountByEvent() throws Exception {
+        var now = Instant.now();
+        var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+        var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
         Assert.assertNotNull(analyticsRepository);
 
-        var result = analyticsRepository.searchRequestsCountByEvent(queryContext, new RequestsCountByEventQuery(Map.of("api", API_ID)));
+        var result = analyticsRepository.searchRequestsCountByEvent(
+            queryContext,
+            new RequestsCountByEventQuery(Map.of("api", API_ID), from, to, Optional.empty())
+        );
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }

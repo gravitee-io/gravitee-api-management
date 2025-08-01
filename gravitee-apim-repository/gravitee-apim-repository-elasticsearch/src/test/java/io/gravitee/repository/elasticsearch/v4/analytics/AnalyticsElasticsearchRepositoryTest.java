@@ -31,6 +31,7 @@ import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
@@ -940,14 +941,32 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
             var result = cut.searchRequestsCountByEvent(
                 new QueryContext("org#1", "env#1"),
-                new RequestsCountByEventQuery(Map.of("api-id", API_ID))
+                new RequestsCountByEventQuery(Map.of("api-id", API_ID), from, to, Optional.empty())
             );
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {
                     assertThat(countAggregate.getTotal()).isEqualTo(11);
                 });
+        }
+
+        @Test
+        void should_return_count_for_a_given_api_and_field_with_query_string() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var queryString = "status:404 AND http-method:8";
+
+            var result = cut.searchRequestsCountByEvent(
+                new QueryContext("org#1", "env#1"),
+                new RequestsCountByEventQuery(Map.of("api-id", API_ID), from, to, Optional.of(queryString))
+            );
+            assertThat(result.map(CountByAggregate::getTotal)).isPresent();
         }
     }
 }

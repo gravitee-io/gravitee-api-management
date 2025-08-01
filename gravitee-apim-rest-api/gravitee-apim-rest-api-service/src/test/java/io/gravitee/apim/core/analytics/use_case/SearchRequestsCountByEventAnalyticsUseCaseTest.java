@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -68,7 +69,7 @@ public class SearchRequestsCountByEventAnalyticsUseCaseTest {
         assertThatThrownBy(() ->
                 cut.execute(
                     GraviteeContext.getExecutionContext(),
-                    new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH)
+                    new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
                 )
             )
             .isInstanceOf(ApiNotFoundException.class);
@@ -80,7 +81,7 @@ public class SearchRequestsCountByEventAnalyticsUseCaseTest {
         assertThatThrownBy(() ->
                 cut.execute(
                     GraviteeContext.getExecutionContext(),
-                    new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH)
+                    new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
                 )
             )
             .isInstanceOf(ApiInvalidDefinitionVersionException.class);
@@ -92,7 +93,7 @@ public class SearchRequestsCountByEventAnalyticsUseCaseTest {
         assertThatThrownBy(() ->
                 cut.execute(
                     GraviteeContext.getExecutionContext(),
-                    new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH)
+                    new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
                 )
             )
             .isInstanceOf(TcpProxyNotSupportedException.class)
@@ -106,7 +107,7 @@ public class SearchRequestsCountByEventAnalyticsUseCaseTest {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         final SearchRequestsCountByEventAnalyticsUseCase.Output result = cut.execute(
             GraviteeContext.getExecutionContext(),
-            new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH)
+            new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
         );
         assertThat(result.result()).extracting(RequestsCount::getCountsByEntrypoint, RequestsCount::getTotal).containsExactly(Map.of(), 0L);
     }
@@ -119,9 +120,23 @@ public class SearchRequestsCountByEventAnalyticsUseCaseTest {
             RequestsCount.builder().total(56L).countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L)).build();
         final SearchRequestsCountByEventAnalyticsUseCase.Output result = cut.execute(
             GraviteeContext.getExecutionContext(),
-            new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH)
+            new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
         );
         assertThat(result.result().getTotal()).isEqualTo(56);
         assertThat(result.result().getCountsByEntrypoint()).isEqualTo(Map.of("http-get", 26L, "http-post", 30L));
+    }
+
+    @Test
+    void should_pass_query_argument_to_count_query() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4()));
+        GraviteeContext.setCurrentEnvironment("environment-id");
+        var queryString = "status:200 AND method:GET";
+        analyticsQueryService.requestsCount =
+            RequestsCount.builder().total(56L).countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L)).build();
+        final SearchRequestsCountByEventAnalyticsUseCase.Output result = cut.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.of(queryString))
+        );
+        assertThat(result.result().getTotal()).isNotNull();
     }
 }

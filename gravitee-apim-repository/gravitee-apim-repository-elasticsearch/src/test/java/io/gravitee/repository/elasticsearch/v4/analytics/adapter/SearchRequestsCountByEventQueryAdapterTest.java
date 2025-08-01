@@ -39,6 +39,7 @@ public class SearchRequestsCountByEventQueryAdapterTest {
             .terms(Map.of("api-id", "api-123"))
             .from(Optional.ofNullable(Instant.ofEpochMilli(1650000000000L)))
             .to(Optional.ofNullable(Instant.ofEpochMilli(1650003600000L)))
+            .query(Optional.empty())
             .build();
 
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
@@ -78,6 +79,7 @@ public class SearchRequestsCountByEventQueryAdapterTest {
             .terms(Map.of())
             .from(Optional.ofNullable(Instant.ofEpochMilli(1650000000000L)))
             .to(Optional.ofNullable(Instant.ofEpochMilli(1650003600000L)))
+            .query(Optional.empty())
             .build();
 
         String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
@@ -126,5 +128,39 @@ public class SearchRequestsCountByEventQueryAdapterTest {
     void shouldReturnEmptyWhenSearchResponseIsNull() {
         Optional<CountByAggregate> result = SearchRequestsCountByEventQueryAdapter.adaptResponse(null);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldIncludeQueryStringIfPresent() throws Exception {
+        String queryString = "status:200 AND method:GET";
+        var query = RequestsCountByEventQuery
+            .builder()
+            .terms(Map.of("api-id", "api-123"))
+            .from(Optional.ofNullable(Instant.ofEpochMilli(1650000000000L)))
+            .to(Optional.ofNullable(Instant.ofEpochMilli(1650003600000L)))
+            .query(Optional.of(queryString))
+            .build();
+
+        String result = SearchRequestsCountByEventQueryAdapter.adapt(query);
+        assertNotNull(result);
+
+        var json = new JsonObject(result);
+
+        assertEquals(0, json.getInteger("size"));
+
+        var boolQuery = json.getJsonObject("query").getJsonObject("bool");
+        var mustArray = boolQuery.getJsonArray("must");
+
+        assertEquals(3, mustArray.size());
+        JsonObject termEntry = mustArray.stream().map(JsonObject.class::cast).filter(o -> o.containsKey("term")).findFirst().orElseThrow();
+        JsonObject queryEntry = mustArray
+            .stream()
+            .map(JsonObject.class::cast)
+            .filter(o -> o.containsKey("query_string"))
+            .findFirst()
+            .orElseThrow();
+
+        assertEquals("api-123", termEntry.getJsonObject("term").getString("api-id"));
+        assertEquals(queryString, queryEntry.getJsonObject("query_string").getString("query"));
     }
 }

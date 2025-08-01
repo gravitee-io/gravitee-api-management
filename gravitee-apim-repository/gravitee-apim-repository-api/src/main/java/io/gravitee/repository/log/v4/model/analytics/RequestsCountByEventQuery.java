@@ -21,12 +21,8 @@ import java.util.Optional;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
-public record RequestsCountByEventQuery(Map<String, String> terms, Optional<Instant> from, Optional<Instant> to) {
-    public RequestsCountByEventQuery(Map<String, String> terms) {
-        this(terms, Optional.empty(), Optional.empty());
-    }
-
-    public RequestsCountByEventQuery(Map<String, String> terms, Instant from, Instant to) {
-        this(terms, Optional.ofNullable(from), Optional.ofNullable(to));
+public record RequestsCountByEventQuery(Map<String, String> terms, Optional<Instant> from, Optional<Instant> to, Optional<String> query) {
+    public RequestsCountByEventQuery(Map<String, String> terms, Instant from, Instant to, Optional<String> query) {
+        this(terms, Optional.ofNullable(from), Optional.ofNullable(to), query);
     }
 }

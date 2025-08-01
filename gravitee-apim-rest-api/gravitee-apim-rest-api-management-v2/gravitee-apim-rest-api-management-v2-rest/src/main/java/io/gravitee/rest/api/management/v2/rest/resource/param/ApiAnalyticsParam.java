@@ -174,7 +174,8 @@ public class ApiAnalyticsParam {
         return new io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase.Input(
             apiId,
             param.getFrom(),
-            param.getTo()
+            param.getTo(),
+            ofNullable(param.getQuery())
         );
     }
 
