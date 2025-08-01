@@ -24,7 +24,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
-import io.gravitee.repository.management.model.Cluster;
+import io.gravitee.repository.management.model.ClusterDb;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -39,7 +39,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_find_by_id() throws Exception {
-        Cluster cluster = clusterRepository.findById("cluster-id-1").orElseThrow();
+        ClusterDb cluster = clusterRepository.findById("cluster-id-1").orElseThrow();
         assertAll(
             () -> assertThat(cluster.getId()).isEqualTo("cluster-id-1"),
             () -> assertThat(cluster.getCreatedAt()).isEqualTo(Instant.ofEpochSecond(1753711100)),
@@ -54,7 +54,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_create() throws Exception {
-        final Cluster cluster = Cluster
+        final ClusterDb cluster = ClusterDb
             .builder()
             .id("cluster-id")
             // Because by default, PostgreSQL's timestamp type (without with time zone) supports up to 6 digits of fractional seconds (microsecond precision),
@@ -67,7 +67,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
             .definition("definition")
             .build();
 
-        final Cluster createdCluster = clusterRepository.create(cluster);
+        final ClusterDb createdCluster = clusterRepository.create(cluster);
 
         assertAll(
             () -> assertThat(createdCluster.getId()).isEqualTo(cluster.getId()),
@@ -83,7 +83,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_update() throws Exception {
-        Cluster toUpdate = Cluster
+        ClusterDb toUpdate = ClusterDb
             .builder()
             .id("cluster-id-1")
             // Because by default, PostgreSQL's timestamp type (without with time zone) supports up to 6 digits of fractional seconds (microsecond precision),
@@ -95,7 +95,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
             .description("New description for the cluster no 1")
             .build();
 
-        Cluster update = clusterRepository.update(toUpdate);
+        ClusterDb update = clusterRepository.update(toUpdate);
 
         assertAll(
             () -> assertThat(update.getId()).isEqualTo(toUpdate.getId()),
@@ -120,14 +120,14 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void should_search_no_criteria_no_sortable() {
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(5).build();
-        Page<Cluster> clusters = clusterRepository.search(null, pageable, null);
+        Page<ClusterDb> clusters = clusterRepository.search(null, pageable, null);
         assertAll(
             () -> assertThat(clusters.getContent().size()).isEqualTo(5),
             () -> assertThat(clusters.getPageNumber()).isEqualTo(0),
             () -> assertThat(clusters.getPageElements()).isEqualTo(5),
             () -> assertThat(clusters.getTotalElements()).isEqualTo(10),
             () ->
-                assertThat(clusters.getContent().stream().map(Cluster::getName).toList())
+                assertThat(clusters.getContent().stream().map(ClusterDb::getName).toList())
                     .isEqualTo(List.of("3-cluster", "8-cluster", "cluster-1", "cluster-10", "cluster-4"))
         );
     }
@@ -136,14 +136,14 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_search_no_criteria_sort_by_name_desc() {
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(5).build();
         Sortable sortable = new SortableBuilder().field("name").order(Order.DESC).build();
-        Page<Cluster> clusters = clusterRepository.search(null, pageable, sortable);
+        Page<ClusterDb> clusters = clusterRepository.search(null, pageable, sortable);
         assertAll(
             () -> assertThat(clusters.getContent().size()).isEqualTo(5),
             () -> assertThat(clusters.getPageNumber()).isEqualTo(0),
             () -> assertThat(clusters.getPageElements()).isEqualTo(5),
             () -> assertThat(clusters.getTotalElements()).isEqualTo(10),
             () ->
-                assertThat(clusters.getContent().stream().map(Cluster::getName).toList())
+                assertThat(clusters.getContent().stream().map(ClusterDb::getName).toList())
                     .isEqualTo(List.of("no-5-cluster", "cluster-no-2", "cluster-9", "cluster-7", "cluster-6"))
         );
     }

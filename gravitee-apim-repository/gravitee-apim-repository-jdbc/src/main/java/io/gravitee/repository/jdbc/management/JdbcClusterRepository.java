@@ -26,7 +26,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
-import io.gravitee.repository.management.model.Cluster;
+import io.gravitee.repository.management.model.ClusterDb;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.List;
@@ -34,21 +34,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, String> implements ClusterRepository {
+public class JdbcClusterRepository extends JdbcAbstractCrudRepository<ClusterDb, String> implements ClusterRepository {
 
     JdbcClusterRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "clusters");
     }
 
     @Override
-    protected String getId(Cluster cluster) {
+    protected String getId(ClusterDb cluster) {
         return cluster.getId();
     }
 
     @Override
-    protected JdbcObjectMapper<Cluster> buildOrm() {
+    protected JdbcObjectMapper<ClusterDb> buildOrm() {
         return JdbcObjectMapper
-            .builder(Cluster.class, this.tableName, "id")
+            .builder(ClusterDb.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Instant.class)
             .addColumn("updated_at", Types.TIMESTAMP, Instant.class)
@@ -61,7 +61,7 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
     }
 
     @Override
-    public Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Sortable sortable) {
+    public Page<ClusterDb> search(ClusterCriteria criteria, Pageable pageable, Sortable sortable) {
         Long total = jdbcTemplate.queryForObject("select count(*) from " + this.tableName, Long.class);
 
         if (total == null || total == 0) {

@@ -27,7 +27,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Cluster {
+public class ClusterDb {
 
     private String id;
     private Instant createdAt;

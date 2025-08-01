@@ -23,7 +23,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
-import io.gravitee.repository.management.model.Cluster;
+import io.gravitee.repository.management.model.ClusterDb;
 import io.gravitee.repository.mongodb.management.internal.clusters.ClusterMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ClusterMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -45,7 +45,7 @@ public class MongoClusterRepository implements ClusterRepository {
     private final GraviteeMapper mapper;
 
     @Override
-    public Optional<Cluster> findById(String id) throws TechnicalException {
+    public Optional<ClusterDb> findById(String id) throws TechnicalException {
         log.debug("Find cluster by ID [{}]", id);
         final ClusterMongo cluster = internalClusterMongoRepo.findById(id).orElse(null);
         log.debug("Find cluster by ID [{}] - Done", id);
@@ -53,12 +53,12 @@ public class MongoClusterRepository implements ClusterRepository {
     }
 
     @Override
-    public Cluster create(Cluster cluster) throws TechnicalException {
+    public ClusterDb create(ClusterDb cluster) throws TechnicalException {
         log.debug("Create cluster with id [{}]", cluster.getId());
 
         ClusterMongo clusterMongo = mapper.map(cluster);
         clusterMongo = internalClusterMongoRepo.insert(clusterMongo);
-        Cluster createdCluster = mapper.map(clusterMongo);
+        ClusterDb createdCluster = mapper.map(clusterMongo);
 
         log.debug("Create cluster with id [{}] - Done", createdCluster.getId());
 
@@ -66,7 +66,7 @@ public class MongoClusterRepository implements ClusterRepository {
     }
 
     @Override
-    public Cluster update(Cluster cluster) throws TechnicalException {
+    public ClusterDb update(ClusterDb cluster) throws TechnicalException {
         log.debug("Update cluster with id [{}]", cluster.getId());
 
         if (!internalClusterMongoRepo.existsById(cluster.getId())) {
@@ -88,12 +88,12 @@ public class MongoClusterRepository implements ClusterRepository {
     }
 
     @Override
-    public Set<Cluster> findAll() throws TechnicalException {
+    public Set<ClusterDb> findAll() throws TechnicalException {
         throw new IllegalStateException("Not implemented");
     }
 
     @Override
-    public Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Sortable sortable) {
+    public Page<ClusterDb> search(ClusterCriteria criteria, Pageable pageable, Sortable sortable) {
         log.debug("MongoClusterRepository.search({}, {})", criteria, pageable);
         sortable = sortable == null ? new SortableBuilder().field("name").setAsc(true).build() : sortable;
         final var sortOrder = sortable.order() == Order.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;

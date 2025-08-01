@@ -296,7 +296,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case ApiCategoryOrder apiCategoryOrder -> apiCategoryOrderRepository.create(apiCategoryOrder);
             case SharedPolicyGroup sharedPolicyGroup -> sharedPolicyGroupRepository.create(sharedPolicyGroup);
             case PortalMenuLink portalMenuLink -> portalMenuLinkRepository.create(portalMenuLink);
-            case Cluster cluster -> clusterRepository.create(cluster);
+            case ClusterDb cluster -> clusterRepository.create(cluster);
             case null, default -> {}
         }
     }

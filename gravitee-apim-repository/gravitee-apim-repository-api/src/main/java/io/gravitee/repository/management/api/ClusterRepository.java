@@ -19,8 +19,8 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
-import io.gravitee.repository.management.model.Cluster;
+import io.gravitee.repository.management.model.ClusterDb;
 
-public interface ClusterRepository extends CrudRepository<Cluster, String> {
-    Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Sortable sortable);
+public interface ClusterRepository extends CrudRepository<ClusterDb, String> {
+    Page<ClusterDb> search(ClusterCriteria criteria, Pageable pageable, Sortable sortable);
 }
