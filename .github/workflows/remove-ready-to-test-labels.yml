@@ -27,7 +27,7 @@ jobs:
           ORG_NAME: gravitee-io
           REPO_NAME: gravitee-api-management
         run: |
-          PR_NUMBERS=$(curl -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/gravitee-io/gravitee-api-management/issues?state=open&labels=ready_to_test&type=pr" | jq -r '.[].number')
+          PR_NUMBERS=$(curl -s -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/gravitee-io/gravitee-api-management/issues?state=open&labels=ready_to_test&per_page=100" | jq -r '.[] | select(.pull_request) | .number')
           
           for PR_NUMBER in $PR_NUMBERS; do
             # Get all events for the PR
