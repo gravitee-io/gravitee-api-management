@@ -33,6 +33,7 @@ export function fakeConnectionLog(modifier?: Partial<ConnectionLog> | ((base: Co
     application: fakeBaseApplication(),
     gatewayResponseTime: 42,
     uri: '/api-uri',
+    endpoint: 'https://my-api-example.com',
   };
 
   if (isFunction(modifier)) {

@@ -89,6 +89,7 @@ public class SearchApiV4ConnectionLogsUseCase {
             .status(connectionLog.getStatus())
             .gatewayResponseTime(connectionLog.getGatewayResponseTime())
             .uri(connectionLog.getUri())
+            .endpoint(connectionLog.getEndpoint())
             .build();
     }
 
