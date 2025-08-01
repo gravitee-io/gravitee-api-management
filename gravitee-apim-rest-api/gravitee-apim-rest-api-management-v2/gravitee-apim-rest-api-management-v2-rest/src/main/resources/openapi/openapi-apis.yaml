@@ -1124,6 +1124,45 @@ paths:
                     $ref: "#/components/responses/GroupsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/groups/_search:
+      post:
+        tags:
+          - Groups
+        summary: Search for groups using id set
+        description:
+          Search for groups using a list of group IDs.
+          User must have the ENVIRONMENT_GROUP[READ] permission.
+        operationId: searchGroupsByIds
+        parameters:
+          - $ref: "#/components/parameters/pageParam"
+          - $ref: "#/components/parameters/perPageParam"
+        requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ids
+                  - paginated
+                properties:
+                  ids:
+                    type: array
+                    description: List of group IDs to fetch
+                    minItems: 1
+                    items:
+                      type: string
+                    example:
+                      - "6881cdb8-7b87-4c5c-81cd-b87d1o3c5c03"
+                      - "bf25fa4b-6e75-4315-a5fa-4b31n21156b"
+                  paginated:
+                    type: boolean
+                    description: Whether the results should be paginated
+                    default: false
+        responses:
+          "200":
+            $ref: "#/components/responses/GroupsResponse"
+          default:
+            $ref: "#/components/responses/Error"
     /environments/{envId}/groups/{groupId}/members:
         parameters:
             - $ref: "#/components/parameters/envIdParam"

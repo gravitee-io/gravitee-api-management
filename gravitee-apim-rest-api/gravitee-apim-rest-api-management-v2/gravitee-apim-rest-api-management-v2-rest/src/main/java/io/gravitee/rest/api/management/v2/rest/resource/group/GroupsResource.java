@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.group.param.GroupSearchParams;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MemberEntity;
@@ -46,11 +47,15 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Path("/environments/{envId}/groups")
@@ -73,6 +78,34 @@ public class GroupsResource extends AbstractResource {
             .data(mapper.map(groupsSubset))
             .pagination(PaginationInfo.computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
             .links(computePaginationLinks(groups.size(), paginationParam));
+    }
+
+    @POST
+    @Path("/_search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { RolePermissionAction.READ }) })
+    public GroupsResponse searchGroupsByIds(@BeanParam PaginationParam paginationParam, @Valid GroupSearchParams searchParams) {
+        Set<GroupEntity> groups = groupService.findByIdsAndEnv(GraviteeContext.getExecutionContext(), searchParams.getIds());
+
+        if (!searchParams.isPaginated()) paginationParam.setPerPage(groups.size());
+
+        List<GroupEntity> groupsSubset = computePaginationData(groups, paginationParam);
+
+        // Create a Links object with just the base URL (without query parameters) for the self link
+        io.gravitee.rest.api.management.v2.rest.model.Links links;
+        if (!searchParams.isPaginated()) {
+            links =
+                new io.gravitee.rest.api.management.v2.rest.model.Links()
+                    .self(uriInfo.getRequestUriBuilder().replaceQuery("").build().toString());
+        } else {
+            links = computePaginationLinks(groups.size(), paginationParam);
+        }
+
+        return new GroupsResponse()
+            .data(mapper.map(groupsSubset))
+            .pagination(PaginationInfo.computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
+            .links(links);
     }
 
     @GET

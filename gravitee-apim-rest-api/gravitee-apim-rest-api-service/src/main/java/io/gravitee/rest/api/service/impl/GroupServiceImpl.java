@@ -550,22 +550,49 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
     }
 
+    private void validateGroupSize(Set<Group> groups, Set<String> groupIds) {
+        if (groups == null || groups.size() != groupIds.size()) {
+            List<String> groupsFound = groups == null
+                ? Collections.emptyList()
+                : groups.stream().map(Group::getId).collect(Collectors.toList());
+            Set<String> groupIdsNotFound = new HashSet<>(groupIds);
+            groupIdsNotFound.removeAll(groupsFound);
+            throw new GroupsNotFoundException(groupIdsNotFound);
+        }
+    }
+
     @Override
     public Set<GroupEntity> findByIds(Set<String> groupIds) {
         try {
             logger.debug("findByIds {}", groupIds);
             Set<Group> groups = groupRepository.findByIds(groupIds);
-            if (groups == null || groups.size() != groupIds.size()) {
-                List<String> groupsFound = groups == null
-                    ? Collections.emptyList()
-                    : groups.stream().map(Group::getId).collect(Collectors.toList());
-                Set<String> groupIdsNotFound = new HashSet<>(groupIds);
-                groupIdsNotFound.removeAll(groupsFound);
-                throw new GroupsNotFoundException(groupIdsNotFound);
-            }
+            validateGroupSize(groups, groupIds);
             logger.debug("findByIds {} - DONE", groups);
             return groups
                 .stream()
+                .map(this::map)
+                .sorted(Comparator.comparing(GroupEntity::getName))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to find groups", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find groups", ex);
+        }
+    }
+
+    @Override
+    public Set<GroupEntity> findByIdsAndEnv(ExecutionContext executionContext, Set<String> groupIds) {
+        try {
+            logger.debug("findByIds {}", groupIds);
+            Set<Group> groups = groupRepository.findByIds(groupIds);
+
+            validateGroupSize(groups, groupIds);
+
+            logger.debug("findByIds {} - DONE", groups);
+            return groups
+                .stream()
+                .filter(group ->
+                    !executionContext.hasEnvironmentId() || group.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                )
                 .map(this::map)
                 .sorted(Comparator.comparing(GroupEntity::getName))
                 .collect(Collectors.toCollection(LinkedHashSet::new));

@@ -47,6 +47,22 @@ export class GroupV2Service {
     });
   }
 
+  listById(ids: string[] = [], page = 1, perPage = 10, paginated = true): Observable<GroupsResponse> {
+    return this.http.post<GroupsResponse>(
+      `${this.constants.env.v2BaseURL}/groups/_search`,
+      {
+        ids,
+        paginated,
+      },
+      {
+        params: {
+          page,
+          perPage,
+        },
+      },
+    );
+  }
+
   public getPermissions(groupId: string): Observable<Record<string, string>> {
     return this.http.get<Record<string, string>>(`${this.constants.env.v2BaseURL}/groups/${groupId}/permissions`);
   }

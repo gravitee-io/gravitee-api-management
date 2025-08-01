@@ -15,25 +15,22 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 import static io.gravitee.rest.api.service.impl.AbstractService.convert;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.search.GroupCriteria;
 import io.gravitee.repository.management.model.Group;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -166,5 +163,40 @@ public class GroupServiceImplTest {
             () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
             () -> assertThat(searchResult.getPageElements()).isEqualTo(pageSize)
         );
+    }
+
+    @Test
+    public void findByIdsAndEnv_withEnvironmentId_success() throws TechnicalException {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.hasEnvironmentId()).thenReturn(true);
+        when(executionContext.getEnvironmentId()).thenReturn("env1");
+
+        Group group1 = Group.builder().id("group1").environmentId("env1").name("Group 1").build();
+        Group group2 = Group.builder().id("group2").environmentId("env2").name("Group 2").build();
+
+        doReturn(Set.of(group1, group2)).when(groupRepository).findByIds(Set.of("group1", "group2"));
+
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
+
+        Set<GroupEntity> results = service.findByIdsAndEnv(executionContext, Set.of("group1", "group2"));
+
+        assertThat(results).hasSize(1).extracting(GroupEntity::getId).containsExactly("group1");
+    }
+
+    @Test
+    public void findByIdsAndEnv_withNoEnvironmentId_success() throws TechnicalException {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.hasEnvironmentId()).thenReturn(false);
+
+        Group group1 = Group.builder().id("group1").environmentId("env1").name("Group 1").build();
+        Group group2 = Group.builder().id("group2").environmentId("env2").name("Group 2").build();
+
+        doReturn(Set.of(group1, group2)).when(groupRepository).findByIds(Set.of("group1", "group2"));
+
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
+
+        Set<GroupEntity> results = service.findByIdsAndEnv(executionContext, Set.of("group1", "group2"));
+
+        assertThat(results).hasSize(2).extracting(GroupEntity::getId).containsExactly("group1", "group2");
     }
 }
