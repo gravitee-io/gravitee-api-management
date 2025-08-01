@@ -31,7 +31,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}apiheaders")
-public class ApiHeaderMongo extends Auditable {
+public class ApiHeaderMongo extends DeprecatedAuditable {
 
     @Id
     @EqualsAndHashCode.Include

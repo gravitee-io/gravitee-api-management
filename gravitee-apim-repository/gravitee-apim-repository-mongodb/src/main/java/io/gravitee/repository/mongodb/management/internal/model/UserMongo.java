@@ -37,7 +37,7 @@ import org.springframework.data.mongodb.core.mapping.ExplicitEncrypted;
 @ToString
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}users")
-public class UserMongo extends Auditable {
+public class UserMongo extends DeprecatedAuditable {
 
     @Id
     private String id;

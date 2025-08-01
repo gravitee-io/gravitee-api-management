@@ -13,50 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.model;
+package io.gravitee.repository.management.model;
 
-import java.util.Date;
+import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
-@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}sharedpolicygroups")
-public class SharedPolicyGroupMongo extends DeprecatedAuditable {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Cluster {
 
-    @Id
     private String id;
-
-    private String organizationId;
-
+    private Instant createdAt;
+    private Instant updatedAt;
     private String environmentId;
-
-    private String hrid;
-
-    private String crossId;
-
+    private String organizationId;
     private String name;
-
     private String description;
-
-    private String prerequisiteMessage;
-
-    private Integer version;
-
-    private String apiType;
-
-    /**
-     * The origin of the api (management, kubernetes, ...).
-     */
-    private String origin;
-
-    private String phase;
-
     private String definition;
-
-    private Date deployedAt;
-
-    private String lifecycleState;
 }

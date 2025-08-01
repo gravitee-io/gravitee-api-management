@@ -31,7 +31,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @NoArgsConstructor
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}installation")
-public class InstallationMongo extends Auditable {
+public class InstallationMongo extends DeprecatedAuditable {
 
     @Id
     private String id;

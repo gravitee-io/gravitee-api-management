@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @Getter
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}commands")
-public class CommandMongo extends Auditable {
+public class CommandMongo extends DeprecatedAuditable {
 
     private String id;
     private String organizationId;

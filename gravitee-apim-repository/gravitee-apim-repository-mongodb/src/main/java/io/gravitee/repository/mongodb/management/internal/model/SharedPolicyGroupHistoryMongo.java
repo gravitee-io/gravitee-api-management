@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}sharedpolicygrouphistories")
-public class SharedPolicyGroupHistoryMongo extends Auditable {
+public class SharedPolicyGroupHistoryMongo extends DeprecatedAuditable {
 
     @Id
     private String _id;

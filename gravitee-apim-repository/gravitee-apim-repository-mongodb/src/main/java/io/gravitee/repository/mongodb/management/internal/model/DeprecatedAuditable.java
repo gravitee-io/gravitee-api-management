@@ -15,31 +15,21 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import lombok.EqualsAndHashCode;
+import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Setter
 @Getter
-@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}qualityrules")
-@ToString
-@EqualsAndHashCode(of = "id", callSuper = false)
-public class QualityRuleMongo extends DeprecatedAuditable {
+// Use AuditableV2 instead given that it's better to use Instant rather than Date
+@Deprecated
+abstract class DeprecatedAuditable {
 
-    @Id
-    private String id;
+    private Date createdAt;
 
-    private String referenceType;
-    private String referenceId;
-    private String name;
-    private String description;
-    private int weight;
-    private boolean enabled;
+    private Date updatedAt;
 }

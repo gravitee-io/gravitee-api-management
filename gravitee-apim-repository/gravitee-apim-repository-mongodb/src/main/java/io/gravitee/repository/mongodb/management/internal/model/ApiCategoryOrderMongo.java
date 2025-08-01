@@ -15,10 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Objects;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,7 +31,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}api_category_orders")
-public class ApiCategoryOrderMongo extends Auditable {
+public class ApiCategoryOrderMongo extends DeprecatedAuditable {
 
     @Id
     private ApiCategoryOrderPkMongo id;
