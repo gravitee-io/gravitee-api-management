@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
+import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.mapper.ApiMapper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
 import io.gravitee.common.http.MediaType;
@@ -77,6 +78,7 @@ public class ApiResource extends AbstractResource {
         try {
             ApiCRDSpec apiCRDSpec = exportApiCRDUseCase.execute(input).spec();
             ApiV4Spec apiV4Spec = ApiMapper.INSTANCE.apiCRDSpecToApiV4Spec(ApiCRDMapper.INSTANCE.map(apiCRDSpec));
+            SharedPolicyGroupIdHelper.removeSPGID(apiV4Spec);
             return Response
                 .ok(
                     ApiMapper.INSTANCE.apiV4SpecToApiV4State(
