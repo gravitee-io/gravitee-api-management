@@ -263,8 +263,23 @@ public class ApiManagerImpl implements ApiManager {
                 SecretDiscoveryEventType.DISCOVER,
                 new SecretDiscoveryEvent(api.getEnvironmentId(), api.getDefinition(), new DefinitionMetadata(api.getRevision()))
             );
+
+            ReactableApi<?> previousApi = apis.get(api.getId());
+
             apis.put(api.getId(), api);
             eventManager.publishEvent(ReactorEvent.UPDATE, api);
+
+            if (previousApi != null) {
+                // Revoke the previous API revision
+                eventManager.publishEvent(
+                    SecretDiscoveryEventType.REVOKE,
+                    new SecretDiscoveryEvent(
+                        previousApi.getEnvironmentId(),
+                        previousApi.getDefinition(),
+                        new DefinitionMetadata(previousApi.getRevision())
+                    )
+                );
+            }
             log.info("{} has been updated", api);
         } else if (plans.isEmpty()) {
             log.warn("There is no published plan associated to this API, undeploy it...");
