@@ -16,7 +16,8 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, combineLatest } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { ApiAnalyticsWidgetService } from './api-analytics-widget.service';
 import { ApiAnalyticsDashboardWidgetConfig } from './api-analytics-proxy/api-analytics-proxy.component';
@@ -31,6 +32,8 @@ import {
   AggregationTypes,
 } from '../../../../entities/management-api-v2/analytics/analyticsHistogram';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
+import { fakeAnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
 
 describe('ApiAnalyticsWidgetService', () => {
   let service: ApiAnalyticsWidgetService;
@@ -38,11 +41,19 @@ describe('ApiAnalyticsWidgetService', () => {
   let timeRangeFilterSubject: BehaviorSubject<any>;
 
   const API_ID = 'api-123';
-  const TIME_RANGE_PARAMS = { from: 1000, to: 2000, interval: 100 };
+  const TIME_RANGE_PARAMS = { from: 1000, to: 2000, interval: 10 };
 
   function expectGroupByRequest(field: string, response: GroupByResponse): void {
     const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=GROUP_BY&interval=${TIME_RANGE_PARAMS.interval}&from=${TIME_RANGE_PARAMS.from}&to=${TIME_RANGE_PARAMS.to}&field=${field}`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=GROUP_BY&from=${TIME_RANGE_PARAMS.from}&to=${TIME_RANGE_PARAMS.to}&interval=${TIME_RANGE_PARAMS.interval}&field=${field}`,
+      method: 'GET',
+    });
+    req.flush(response);
+  }
+
+  function expectStatsRequest(field: string, response: AnalyticsStatsResponse): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=STATS&from=${TIME_RANGE_PARAMS.from}&to=${TIME_RANGE_PARAMS.to}&interval=${TIME_RANGE_PARAMS.interval}&field=${field}`,
       method: 'GET',
     });
     req.flush(response);
@@ -67,8 +78,12 @@ describe('ApiAnalyticsWidgetService', () => {
           provide: ApiAnalyticsV2Service,
           useValue: {
             timeRangeFilter: () => timeRangeFilterSubject.asObservable(),
+            getStats(apiId: string, timeRangeParams: any, urlParamsData: any) {
+              const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics?type=STATS&from=${timeRangeParams.from}&to=${timeRangeParams.to}&interval=${timeRangeParams.interval}${urlParamsData.field ? `&field=${urlParamsData.field}` : ''}`;
+              return TestBed.inject(HttpClient).get<AnalyticsStatsResponse>(url);
+            },
             getGroupBy: (apiId: string, timeRangeParams: any, urlParamsData: any) => {
-              const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics?type=GROUP_BY&interval=${timeRangeParams.interval}&from=${timeRangeParams.from}&to=${timeRangeParams.to}${urlParamsData.field ? `&field=${urlParamsData.field}` : ''}`;
+              const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics?type=GROUP_BY&from=${timeRangeParams.from}&to=${timeRangeParams.to}&interval=${timeRangeParams.interval}${urlParamsData.field ? `&field=${urlParamsData.field}` : ''}`;
               return TestBed.inject(HttpClient).get<GroupByResponse>(url);
             },
             getHistogramAnalytics: (apiId: string, aggregations: string, timeRangeParams: any) => {
@@ -113,6 +128,95 @@ describe('ApiAnalyticsWidgetService', () => {
           expect(result.title).toBe('Test Widget');
           expect(result.tooltip).toBe('Test tooltip');
           done();
+        });
+      });
+    });
+
+    describe('STATS', () => {
+      describe('stats widget', () => {
+        it('should transform STATS response to stats chart config', (done) => {
+          const fakeWidgetConfig: ApiAnalyticsDashboardWidgetConfig = {
+            type: 'stats',
+            apiId: API_ID,
+            title: 'Total Requests',
+            statsKey: 'count',
+            statsUnit: 'ms',
+            tooltip: '',
+            shouldSortBuckets: false,
+            statsField: 'gateway-response-time-ms',
+            analyticsType: 'STATS',
+          };
+
+          const mockedStatsResponse: AnalyticsStatsResponse = fakeAnalyticsStatsResponse();
+
+          service.getApiAnalyticsWidgetConfig$(fakeWidgetConfig).subscribe((result) => {
+            // Skip loading state and wait for the actual result
+            if (result.state === 'loading') {
+              return;
+            }
+
+            expect(result.state).toBe('success');
+            expect(result.title).toBe('Total Requests');
+            expect(result.tooltip).toBe('');
+            expect(result.widgetType).toBe('stats');
+            expect(result.widgetData).toEqual({ stats: 100, statsUnit: 'ms' });
+
+            service.clearStatsCache();
+            done();
+          });
+          expectStatsRequest('gateway-response-time-ms', mockedStatsResponse);
+        });
+
+        it('should call only once for multiple STATS widgets', (done) => {
+          const fakeWidgetConfigs: ApiAnalyticsDashboardWidgetConfig[] = [
+            {
+              type: 'stats',
+              apiId: API_ID,
+              title: 'Total Requests',
+              statsKey: 'count',
+              statsUnit: 'ms',
+              tooltip: '',
+              shouldSortBuckets: false,
+              statsField: 'gateway-response-time-ms',
+              analyticsType: 'STATS',
+            },
+            {
+              type: 'stats',
+              apiId: API_ID,
+              title: 'Test',
+              statsKey: 'count',
+              statsUnit: '',
+              tooltip: '',
+              shouldSortBuckets: false,
+              statsField: 'gateway-response-time-ms',
+              analyticsType: 'STATS',
+            },
+          ];
+
+          const mockedStatsResponse: AnalyticsStatsResponse = fakeAnalyticsStatsResponse();
+
+          const obs1$ = service.getApiAnalyticsWidgetConfig$(fakeWidgetConfigs[0]);
+          const obs2$ = service.getApiAnalyticsWidgetConfig$(fakeWidgetConfigs[1]);
+
+          combineLatest([
+            obs1$.pipe(filter((result) => result.state !== 'loading')),
+            obs2$.pipe(filter((result) => result.state !== 'loading')),
+          ]).subscribe(([result1, result2]) => {
+            // Assertions for the first result
+            expect(result1.state).toBe('success');
+            expect(result1.widgetData).toEqual({ stats: 100, statsUnit: 'ms' });
+
+            // Assertions for the second result
+            expect(result2.state).toBe('success');
+            expect(result2.widgetData).toEqual({ stats: 100, statsUnit: '' });
+
+            done();
+          });
+
+          // Expect and flush ONE single request, proving the caching works.
+          // The httpTestingController will see two subscriptions to the sharedReplay observable,
+          // but only one of those will result in an actual HTTP call to the mocked backend.
+          expectStatsRequest('gateway-response-time-ms', mockedStatsResponse);
         });
       });
     });
