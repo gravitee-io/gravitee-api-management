@@ -32,7 +32,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
-public class PlanMongo extends Auditable {
+public class PlanMongo extends DeprecatedAuditable {
 
     @Id
     private String id;

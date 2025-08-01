@@ -15,13 +15,15 @@
  */
 package io.gravitee.apim.core.utils;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class StringUtils {
-
-    private StringUtils() {}
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class StringUtils {
 
     public static boolean isEmpty(CharSequence cs) {
         return cs == null || cs.isEmpty();

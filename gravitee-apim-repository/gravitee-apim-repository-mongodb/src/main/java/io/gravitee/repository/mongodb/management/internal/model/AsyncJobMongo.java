@@ -26,7 +26,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}asyncjobs")
-public class AsyncJobMongo extends Auditable {
+public class AsyncJobMongo extends DeprecatedAuditable {
 
     @Id
     private String id;

@@ -25,7 +25,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @NoArgsConstructor
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}scoring_rulesets")
-public class ScoringRulesetMongo extends Auditable {
+public class ScoringRulesetMongo extends DeprecatedAuditable {
 
     public enum Format {
         GRAVITEE_FEDERATION,

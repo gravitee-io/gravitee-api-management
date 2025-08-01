@@ -31,7 +31,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}events")
-public class EventMongo extends Auditable {
+public class EventMongo extends DeprecatedAuditable {
 
     @Id
     @EqualsAndHashCode.Include

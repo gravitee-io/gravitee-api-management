@@ -344,4 +344,7 @@ public interface GraviteeMapper {
 
     ScoringFunction map(ScoringFunctionMongo source);
     ScoringFunctionMongo map(ScoringFunction source);
+
+    ClusterDb map(ClusterMongo source);
+    ClusterMongo map(ClusterDb source);
 }
