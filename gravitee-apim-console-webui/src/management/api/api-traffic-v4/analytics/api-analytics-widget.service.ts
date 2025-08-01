@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { Observable, of, switchMap, catchError, map, merge } from 'rxjs';
+import { catchError, map, merge, Observable, of, switchMap } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 
 import { ApiAnalyticsWidgetConfig } from './components/api-analytics-widget/api-analytics-widget.component';
 import { ApiAnalyticsDashboardWidgetConfig } from './api-analytics-proxy/api-analytics-proxy.component';
@@ -26,6 +27,8 @@ import { HistogramAnalyticsResponse } from '../../../../entities/management-api-
 import { GioWidgetLayoutState } from '../../../../shared/components/gio-widget-layout/gio-widget-layout.component';
 import { GioChartPieInput } from '../../../../shared/components/gio-chart-pie/gio-chart-pie.component';
 import { GioChartLineData, GioChartLineOptions } from '../../../../shared/components/gio-chart-line/gio-chart-line.component';
+import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
+import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
 
 // Colors for charts
 const defaultColors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
@@ -34,7 +37,25 @@ const defaultColors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
   providedIn: 'root',
 })
 export class ApiAnalyticsWidgetService {
+  // Cache for stats requests to avoid multiple backend calls
+  private statsCache = new Map<string, Observable<AnalyticsStatsResponse>>();
+
+  private createStatsCacheKey(apiId: string, timeRangeParams: any, urlParamsData: any): string {
+    const params = {
+      apiId,
+      from: timeRangeParams.from,
+      to: timeRangeParams.to,
+      interval: timeRangeParams.interval,
+      ...urlParamsData,
+    };
+    return JSON.stringify(params);
+  }
+
   constructor(private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service) {}
+
+  clearStatsCache(): void {
+    this.statsCache.clear();
+  }
 
   getApiAnalyticsWidgetConfig$(widgetConfig: ApiAnalyticsDashboardWidgetConfig): Observable<ApiAnalyticsWidgetConfig> {
     return this.apiAnalyticsV2Service
@@ -55,7 +76,9 @@ export class ApiAnalyticsWidgetService {
           return of(this.createErrorConfig(widgetConfig, 'No time range selected'));
         }
 
-        if (widgetConfig.analyticsType === 'GROUP_BY') {
+        if (widgetConfig.analyticsType === 'STATS') {
+          return this.handleStatsAnalytics$(widgetConfig, timeRangeParams);
+        } else if (widgetConfig.analyticsType === 'GROUP_BY') {
           return this.handleGroupByAnalytics$(widgetConfig, timeRangeParams);
         } else if (widgetConfig.analyticsType === 'HISTOGRAM') {
           return this.handleHistogramAnalytics$(widgetConfig, timeRangeParams);
@@ -67,6 +90,51 @@ export class ApiAnalyticsWidgetService {
         return of(this.createErrorConfig(widgetConfig, error.message || 'An error occurred'));
       }),
     );
+  }
+
+  /**
+   *
+   *   STATS ANALYTICS
+   *
+   */
+
+  private handleStatsAnalytics$(
+    widgetConfig: ApiAnalyticsDashboardWidgetConfig,
+    timeRangeParams: TimeRangeParams,
+  ): Observable<ApiAnalyticsWidgetConfig> {
+    const urlParamsData: any = {};
+
+    if (widgetConfig.statsField) {
+      urlParamsData.field = widgetConfig.statsField;
+    }
+
+    const cacheKey = this.createStatsCacheKey(widgetConfig.apiId, timeRangeParams, urlParamsData);
+
+    if (!this.statsCache.has(cacheKey)) {
+      const statsRequest$ = this.apiAnalyticsV2Service.getStats(widgetConfig.apiId, timeRangeParams, urlParamsData).pipe(
+        shareReplay(1),
+        catchError((error) => {
+          this.statsCache.delete(cacheKey);
+          throw error;
+        }),
+      );
+      this.statsCache.set(cacheKey, statsRequest$);
+    }
+
+    return this.statsCache.get(cacheKey)!.pipe(map((response) => this.transformStatsResponseToStatsConfig(response, widgetConfig)));
+  }
+
+  private transformStatsResponseToStatsConfig(
+    statsResponse: AnalyticsStatsResponse,
+    widgetConfig: ApiAnalyticsDashboardWidgetConfig,
+  ): ApiAnalyticsWidgetConfig {
+    return {
+      title: widgetConfig.title,
+      tooltip: widgetConfig.tooltip,
+      state: 'success',
+      widgetType: 'stats' as const,
+      widgetData: { stats: statsResponse[widgetConfig.statsKey], statsUnit: widgetConfig.statsUnit },
+    };
   }
 
   /**
@@ -271,6 +339,14 @@ export class ApiAnalyticsWidgetService {
       state,
       ...(errors && { errors }),
     };
+
+    if (widgetConfig.type === 'stats') {
+      return {
+        ...baseConfig,
+        widgetType: 'stats' as const,
+        widgetData: null,
+      };
+    }
 
     if (widgetConfig.type === 'table') {
       return {

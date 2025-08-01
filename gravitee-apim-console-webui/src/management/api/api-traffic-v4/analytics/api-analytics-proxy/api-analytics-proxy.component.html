@@ -18,6 +18,14 @@
 <api-analytics-filters-bar />
 
 <div class="widgets">
+  <div class="top-row">
+    @for (widgetConfig$ of topRowTransformed$; track $index) {
+      @if (widgetConfig$ | async; as widgetConfig) {
+        <api-analytics-widget [config]="widgetConfig" />
+      }
+    }
+  </div>
+
   <div class="left-column">
     @for (widgetConfig$ of leftColumnTransformed$; track $index) {
       @if (widgetConfig$ | async; as widgetConfig) {

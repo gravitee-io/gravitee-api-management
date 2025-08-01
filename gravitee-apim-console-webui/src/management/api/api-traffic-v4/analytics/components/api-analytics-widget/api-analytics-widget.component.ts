@@ -29,6 +29,7 @@ import {
   ApiAnalyticsWidgetTableDataColumn,
   ApiAnalyticsWidgetTableRowData,
 } from '../api-analytics-widget-table/api-analytics-widget-table.component';
+import { AnalyticsStatsComponent, StatsWidgetData } from '../../../../../../shared/components/analytics-stats/analytics-stats.component';
 
 type PieWidgetData = GioChartPieInput[];
 type LineWidgetData = { data: GioChartLineData[]; options?: GioChartLineOptions };
@@ -40,6 +41,11 @@ interface BaseApiAnalyticsWidgetConfig {
   state: GioWidgetLayoutState;
   errors?: string[];
 }
+
+type ApiAnalyticsWidgetStatsConfig = BaseApiAnalyticsWidgetConfig & {
+  widgetType: 'stats';
+  widgetData: StatsWidgetData;
+};
 
 type ApiAnalyticsWidgetPieConfig = BaseApiAnalyticsWidgetConfig & {
   widgetType: 'pie';
@@ -56,17 +62,33 @@ type ApiAnalyticsWidgetTableConfig = BaseApiAnalyticsWidgetConfig & {
   widgetData: TableWidgetData;
 };
 
-export type ApiAnalyticsWidgetConfig = ApiAnalyticsWidgetPieConfig | ApiAnalyticsWidgetLineConfig | ApiAnalyticsWidgetTableConfig;
-export type ApiAnalyticsWidgetType = 'pie' | 'line' | 'table';
+export type ApiAnalyticsWidgetConfig =
+  | ApiAnalyticsWidgetStatsConfig
+  | ApiAnalyticsWidgetPieConfig
+  | ApiAnalyticsWidgetLineConfig
+  | ApiAnalyticsWidgetTableConfig;
+export type ApiAnalyticsWidgetType = 'pie' | 'line' | 'table' | 'stats';
 
 @Component({
   selector: 'api-analytics-widget',
-  imports: [GioWidgetLayoutComponent, GioChartPieModule, GioChartLineModule, ApiAnalyticsWidgetTableComponent, NgClass],
+  imports: [
+    GioWidgetLayoutComponent,
+    GioChartPieModule,
+    GioChartLineModule,
+    ApiAnalyticsWidgetTableComponent,
+    NgClass,
+    AnalyticsStatsComponent,
+  ],
   templateUrl: './api-analytics-widget.component.html',
   styleUrl: './api-analytics-widget.component.scss',
 })
 export class ApiAnalyticsWidgetComponent {
   config = input.required<ApiAnalyticsWidgetConfig>();
+
+  statsData: Signal<StatsWidgetData | null> = computed(() => {
+    const currentConfig = this.config();
+    return currentConfig.widgetType === 'stats' ? currentConfig.widgetData : null;
+  });
 
   pieData: Signal<PieWidgetData | null> = computed(() => {
     const currentConfig = this.config();

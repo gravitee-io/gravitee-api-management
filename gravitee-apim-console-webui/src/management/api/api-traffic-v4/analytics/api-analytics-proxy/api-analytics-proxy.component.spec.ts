@@ -27,6 +27,7 @@ import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harnes
 import { GioTestingModule } from '../../../../../shared/testing';
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
+import { fakeAnalyticsStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -116,6 +117,8 @@ describe('ApiAnalyticsProxyComponent', () => {
         request.flush(fakeAnalyticsHistogram());
       } else if (request.request.url.includes('type=GROUP_BY')) {
         request.flush(fakeGroupByResponse());
+      } else if (request.request.url.includes('type=STATS')) {
+        request.flush(fakeAnalyticsStatsResponse());
       }
     });
   }
