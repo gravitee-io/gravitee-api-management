@@ -78,6 +78,7 @@ public class ApplicationCRDSpec extends ApplicationEntity {
         uae.setGroups(getGroups());
         uae.setSettings(getSettings());
         uae.setDisableMembershipNotifications(isDisableMembershipNotifications());
+        uae.setStatus(getStatus());
 
         return uae;
     }

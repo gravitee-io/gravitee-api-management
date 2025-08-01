@@ -17,6 +17,8 @@ package io.gravitee.apim.infra.domain_service.application;
 
 import io.gravitee.apim.core.application.domain_service.ImportApplicationCRDDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
@@ -46,6 +48,13 @@ public class ImportApplicationCRDDomainServiceLegacyWrapper implements ImportApp
     @Override
     public BaseApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+        ApplicationEntity existing = applicationService.findById(executionContext, applicationId);
+        if (
+            ApplicationStatus.ARCHIVED.name().equals(existing.getStatus()) &&
+            ApplicationStatus.ACTIVE.name().equals(updateApplicationEntity.getStatus())
+        ) {
+            applicationService.restore(executionContext, applicationId);
+        }
         return applicationService.update(executionContext, applicationId, updateApplicationEntity);
     }
 }

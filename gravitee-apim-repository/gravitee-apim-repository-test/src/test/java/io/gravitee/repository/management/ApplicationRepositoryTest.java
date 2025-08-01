@@ -473,22 +473,22 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void should_return_true_on_existing_client_id_in_env() {
-        assertTrue(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "PROD"));
+    public void should_return_ids_on_existing_client_id_in_env() {
+        assertThat(applicationRepository.idsForMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "PROD")).isNotEmpty();
     }
 
     @Test
-    public void should_return_false_on_existing_client_id_in_different_env() {
-        assertFalse(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "DEFAULT"));
+    public void should_return_nothing_on_existing_client_id_in_env() {
+        assertThat(applicationRepository.idsForMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "DEFAULT")).isEmpty();
     }
 
     @Test
-    public void should_return_true_on_existing_certificate_in_env() {
-        assertTrue(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE", "DEFAULT"));
+    public void should_return_ids_on_existing_certificate_in_env() {
+        assertThat(applicationRepository.idsForMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE", "DEFAULT")).isNotEmpty();
     }
 
     @Test
-    public void should_return_false_on_existing_certificate_in_different_env() {
-        assertFalse(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE", "PROD"));
+    public void should_return_nothing_on_existing_certificate_in_different_env() {
+        assertThat(applicationRepository.idsForMetadataEntryForEnv(METADATA_CLIENT_CERTIFICATE, "ABCDE", "PROD")).isEmpty();
     }
 }

@@ -27,6 +27,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -134,10 +135,13 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
     }
 
     @Override
-    public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
+    public Set<String> idsForMetadataEntryForEnv(String key, String value, String environmentId) {
         Query query = new Query();
         query.addCriteria(Criteria.where("environmentId").is(environmentId));
         query.addCriteria(Criteria.where("metadata." + key).is(value));
-        return mongoTemplate.exists(query, ApplicationMongo.class);
+        return mongoTemplate
+            .findDistinct(query, "id", ApplicationMongo.class, String.class)
+            .stream()
+            .collect(HashSet::new, HashSet::add, HashSet::addAll);
     }
 }
