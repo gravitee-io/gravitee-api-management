@@ -69,3 +69,12 @@ gv-identity-picture {
   padding: 1px 5px 1px 0;
   opacity: 0.6;
 }
+
+.metadata-table {
+  width: 100%;
+}
+
+.metadata-section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
