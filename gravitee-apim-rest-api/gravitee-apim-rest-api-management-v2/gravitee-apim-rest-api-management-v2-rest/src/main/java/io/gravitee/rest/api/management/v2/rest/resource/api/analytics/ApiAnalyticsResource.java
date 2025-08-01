@@ -43,6 +43,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
@@ -217,37 +218,39 @@ public class ApiAnalyticsResource extends AbstractResource {
         @PathParam("apiId") String apiId,
         @BeanParam ApiAnalyticsParam apiAnalyticsParam
     ) {
-        if (apiAnalyticsParam.getType() == AnalyticsType.HISTOGRAM) {
-            var input = apiAnalyticsParam.toHistogramInput(apiId);
-            var output = searchHistogramAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-            var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
-            histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
-            return new ApiAnalyticsResponse(histogramResponse);
-        }
-        if (apiAnalyticsParam.getType() == AnalyticsType.GROUP_BY) {
-            var input = apiAnalyticsParam.toGroupByInput(apiId);
-            var output = searchGroupByAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-            var groupByResponse = ApiAnalyticsMapper.INSTANCE.mapGroupByAnalytics(output.analytics(), output.metadata());
-            return new ApiAnalyticsResponse(groupByResponse);
-        }
-        if (apiAnalyticsParam.getType() == AnalyticsType.STATS) {
-            var input = apiAnalyticsParam.toStatsInput(apiId);
-            var output = searchStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-            if (output.analytics() == null) {
-                throw new NotFoundException("No stats analytics found for api: " + apiId);
+        switch (apiAnalyticsParam.getType()) {
+            case HISTOGRAM -> {
+                var input = apiAnalyticsParam.toHistogramInput(apiId);
+                var output = searchHistogramAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
+                histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
+                return new ApiAnalyticsResponse(histogramResponse);
             }
-            var statsResponse = ApiAnalyticsMapper.INSTANCE.map(output.analytics());
-            return new ApiAnalyticsResponse(statsResponse);
-        }
-        if (apiAnalyticsParam.getType() == AnalyticsType.COUNT) {
-            var input = apiAnalyticsParam.toRequestsCountInput(apiId);
-            var output = searchRequestsCountByEventAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-            if (output.result() == null) {
-                throw new NotFoundException("No Count analytics found for api: " + apiId);
+            case GROUP_BY -> {
+                var input = apiAnalyticsParam.toGroupByInput(apiId);
+                var output = searchGroupByAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                var groupByResponse = ApiAnalyticsMapper.INSTANCE.mapGroupByAnalytics(output.analytics(), output.metadata());
+                return new ApiAnalyticsResponse(groupByResponse);
             }
-            var countAnalytics = ApiAnalyticsMapper.INSTANCE.mapToCountAnalytics(output.result());
-            return new ApiAnalyticsResponse(countAnalytics);
+            case STATS -> {
+                var input = apiAnalyticsParam.toStatsInput(apiId);
+                var output = searchStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                if (output.analytics() == null) {
+                    throw new NotFoundException("No stats analytics found for api: " + apiId);
+                }
+                var statsResponse = ApiAnalyticsMapper.INSTANCE.map(output.analytics());
+                return new ApiAnalyticsResponse(statsResponse);
+            }
+            case COUNT -> {
+                var input = apiAnalyticsParam.toRequestsCountInput(apiId);
+                var output = searchRequestsCountByEventAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                if (output.result() == null) {
+                    throw new NotFoundException("No Count analytics found for api: " + apiId);
+                }
+                var countAnalytics = ApiAnalyticsMapper.INSTANCE.mapToCountAnalytics(output.result());
+                return new ApiAnalyticsResponse(countAnalytics);
+            }
+            default -> throw new BadRequestException("Unsupported Analytics Type");
         }
-        return new ApiAnalyticsResponse();
     }
 }
