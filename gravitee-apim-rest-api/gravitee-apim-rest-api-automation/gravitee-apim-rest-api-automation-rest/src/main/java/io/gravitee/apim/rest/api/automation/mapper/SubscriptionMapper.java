@@ -33,17 +33,6 @@ import org.mapstruct.factory.Mappers;
 public interface SubscriptionMapper {
     SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "errors", ignore = true)
-    @Mapping(target = "organizationId", source = "organizationId")
-    @Mapping(target = "environmentId", source = "environmentId")
-    SubscriptionState subscriptionsSpecToSubscriptionsState(
-        SubscriptionSpec subscriptionSpec,
-        String id,
-        String organizationId,
-        String environmentId
-    );
-
     @Mapping(target = "id", source = "status.id")
     @Mapping(target = "errors", source = "status.errors")
     @Mapping(target = "organizationId", source = "status.organizationId")

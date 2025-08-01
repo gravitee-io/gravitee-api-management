@@ -2346,6 +2346,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
 
         pageEntity.setId(page.getId());
+        pageEntity.setHrid(page.getHrid());
         pageEntity.setCrossId(page.getCrossId());
         pageEntity.setName(page.getName());
         pageEntity.setHomepage(page.isHomepage());

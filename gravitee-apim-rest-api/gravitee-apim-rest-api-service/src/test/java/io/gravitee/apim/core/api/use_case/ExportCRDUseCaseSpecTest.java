@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.use_case;
 
 import fixtures.core.model.ApiCRDFixtures;
 import inmemory.ApiCRDExportDomainServiceInMemory;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -34,7 +35,7 @@ class ExportApiCRDUseCaseTest {
 
     @Test
     void should_export_as_a_crd() {
-        var input = new ExportApiCRDUseCase.Input(ApiCRDFixtures.API_ID, AuditInfo.builder().build());
+        var input = new ExportApiCRDUseCase.Input(ApiCRDFixtures.API_ID, IDExportStrategy.ALL, AuditInfo.builder().build());
         var output = useCase.execute(input);
         var spec = output.spec();
         SoftAssertions.assertSoftly(soft -> {

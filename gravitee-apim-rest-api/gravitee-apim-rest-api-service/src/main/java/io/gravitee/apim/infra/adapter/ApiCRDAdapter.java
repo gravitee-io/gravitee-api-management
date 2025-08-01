@@ -75,10 +75,10 @@ public interface ApiCRDAdapter {
     ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, NativeApiEntity apiEntity);
 
     default ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, GenericApiEntity apiEntity) {
-        if (apiEntity instanceof ApiEntity) {
-            return toCRDSpec(exportEntity, (ApiEntity) apiEntity);
-        } else if (apiEntity instanceof NativeApiEntity) {
-            return toCRDSpec(exportEntity, (NativeApiEntity) apiEntity);
+        if (apiEntity instanceof ApiEntity entity) {
+            return toCRDSpec(exportEntity, entity);
+        } else if (apiEntity instanceof NativeApiEntity nativeApiEntity) {
+            return toCRDSpec(exportEntity, nativeApiEntity);
         }
         return null;
     }
@@ -99,8 +99,12 @@ public interface ApiCRDAdapter {
         var plansMap = new HashMap<String, PlanCRD>();
         var nonClosedPlans = definition.getPlans().stream().filter(plan -> !plan.isClosed()).toList();
         for (var plan : nonClosedPlans) {
-            var key = plansMap.containsKey(plan.getName()) ? randomize(plan.getName()) : plan.getName();
-            plansMap.put(key, toCRDPlan(plan));
+            if (plan.getHrid() == null) {
+                var key = plansMap.containsKey(plan.getName()) ? randomize(plan.getName()) : plan.getName();
+                plansMap.put(key, toCRDPlan(plan));
+            } else {
+                plansMap.put(plan.getHrid(), toCRDPlan(plan));
+            }
         }
         return plansMap;
     }
@@ -115,7 +119,11 @@ public interface ApiCRDAdapter {
     }
 
     default String pageKey(PageCRD page) {
-        return page.getName() == null ? page.getId() : page.getName();
+        if (page.getHrid() == null) {
+            return page.getName() == null ? page.getId() : page.getName();
+        } else {
+            return page.getHrid();
+        }
     }
 
     default Set<MemberCRD> mapMembers(ExportApiEntity definition) {
@@ -138,13 +146,13 @@ public interface ApiCRDAdapter {
         try {
             return mapper.readValue(configuration, LinkedHashMap.class);
         } catch (JsonProcessingException jse) {
-            logger.debug("Cannot parse configuration as LinkedHashMap: " + configuration);
+            logger.debug("Cannot parse configuration as LinkedHashMap: {}", configuration);
         }
 
         return Map.of();
     }
 
     private static String randomize(String strToRandomize) {
-        return strToRandomize + "-" + RandomStringUtils.randomNumeric(8);
+        return strToRandomize + "-" + RandomStringUtils.secure().nextNumeric(8);
     }
 }

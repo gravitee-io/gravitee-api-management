@@ -100,5 +100,5 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      */
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 
-    boolean existsMetadataEntryForEnv(String key, String value, String environmentId);
+    Set<String> idsForMetadataEntryForEnv(String key, String value, String environmentId);
 }

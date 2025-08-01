@@ -29,6 +29,7 @@ import lombok.With;
 public class PageCRD {
 
     private String id;
+    private String hrid;
     private String crossId;
     private String name;
     private Type type;

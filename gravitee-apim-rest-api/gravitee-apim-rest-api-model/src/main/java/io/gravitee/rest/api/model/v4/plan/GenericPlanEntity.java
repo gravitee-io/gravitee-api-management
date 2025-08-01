@@ -36,6 +36,8 @@ public interface GenericPlanEntity extends Serializable, Identifiable {
 
     String getApiId();
 
+    String getHrid();
+
     String getEnvironmentId();
 
     List<String> getExcludedGroups();
