@@ -27,5 +27,6 @@ import lombok.Setter;
 @Getter
 public class SharedPolicyGroupPolicyConfiguration implements PolicyConfiguration {
 
+    String id;
     String sharedPolicyGroupId;
 }
