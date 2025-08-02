@@ -69,6 +69,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
@@ -88,6 +89,8 @@ import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.reactivex.rxjava3.functions.Action;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -172,6 +175,17 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     @Autowired
     private EnvironmentService environmentService;
+
+    @Autowired
+    private ApiSearchService apiSearchService;
+
+    @Lazy
+    @Autowired
+    private ApiMetadataService apiMetadataService;
+
+    @Lazy
+    @Autowired
+    private SearchEngineService searchEngineService;
 
     @Override
     public List<GroupEntity> findAll(ExecutionContext executionContext) {
@@ -390,11 +404,34 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 previousGroup,
                 updatedGroup
             );
+            reindexApisIfPrimaryOwnerGroup(executionContext, grp);
             return findById(executionContext, groupId);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to update a group";
             logger.error(error, ex);
             throw new TechnicalManagementException(error, ex);
+        }
+    }
+
+    private void reindexApisIfPrimaryOwnerGroup(ExecutionContext executionContext, GroupEntity grp) {
+        if (grp == null || !grp.isPrimaryOwner()) return;
+        String primaryOwnerRoleId = roleService
+            .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+            .orElseThrow(() -> new IllegalStateException("Primary Owner role not found"))
+            .getId();
+
+        Set<String> apiIds = membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(
+            MembershipMemberType.GROUP,
+            grp.getId(),
+            MembershipReferenceType.API,
+            Set.of(primaryOwnerRoleId)
+        );
+        if (apiIds.isEmpty()) return;
+
+        for (String apiId : apiIds) {
+            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
+            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+            searchEngineService.index(executionContext, genericApiEntity, false);
         }
     }
 
