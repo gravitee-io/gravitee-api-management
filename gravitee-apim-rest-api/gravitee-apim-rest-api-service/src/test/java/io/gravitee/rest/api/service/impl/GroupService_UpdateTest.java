@@ -29,7 +29,8 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -37,8 +38,12 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
+import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -71,6 +76,15 @@ public class GroupService_UpdateTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private SearchEngineService searchEngineService;
+
+    @Mock
+    private ApiSearchService apiSearchService;
+
+    @Mock
+    private ApiMetadataService apiMetadataService;
 
     @Test
     public void shouldUpdateGroup() throws Exception {
@@ -181,5 +195,69 @@ public class GroupService_UpdateTest {
 
         verify(membershipService, never()).deleteReferenceMember(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any());
         verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+    }
+
+    @Test
+    public void shouldReindexApisIfGroupIsPrimaryOwner() throws Exception {
+        UpdateGroupEntity updateGroup = new UpdateGroupEntity();
+        updateGroup.setName("Updated Name");
+        updateGroup.setRoles(Map.of(RoleScope.API, "PRIMARY_OWNER"));
+
+        Group existingGroup = new Group();
+        existingGroup.setId(GROUP_ID);
+        existingGroup.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+
+        Group updatedGroup = new Group();
+        updatedGroup.setId(GROUP_ID);
+        updatedGroup.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        updatedGroup.setApiPrimaryOwner("dummy-value");
+
+        RoleEntity mockedRole = new RoleEntity();
+        mockedRole.setId("po-role-id");
+
+        GenericApiEntity apiEntity = mock(GenericApiEntity.class);
+
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(existingGroup));
+        when(groupRepository.update(any())).thenReturn(updatedGroup);
+        when(roleService.findByScopeAndName(RoleScope.API, "PRIMARY_OWNER", GraviteeContext.getCurrentOrganization()))
+            .thenReturn(Optional.of(mockedRole));
+        when(
+            membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(
+                MembershipMemberType.GROUP,
+                GROUP_ID,
+                MembershipReferenceType.API,
+                Set.of("po-role-id")
+            )
+        )
+            .thenReturn(Set.of("api-id-1"));
+        when(apiSearchService.findGenericById(any(), eq("api-id-1"))).thenReturn(apiEntity);
+        when(apiMetadataService.fetchMetadataForApi(any(), eq(apiEntity))).thenReturn(apiEntity);
+
+        groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updateGroup);
+
+        verify(searchEngineService).index(any(), eq(apiEntity), eq(false));
+    }
+
+    @Test
+    public void shouldNotReindexApisIfGroupIsNotPrimaryOwner() throws Exception {
+        UpdateGroupEntity updateGroup = new UpdateGroupEntity();
+        updateGroup.setName("Updated Name");
+        updateGroup.setRoles(Map.of(RoleScope.API, "OWNER")); // not PRIMARY_OWNER
+
+        Group existingGroup = new Group();
+        existingGroup.setId(GROUP_ID);
+        existingGroup.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+
+        Group updatedGroup = new Group();
+        updatedGroup.setId(GROUP_ID);
+        updatedGroup.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        updatedGroup.setApiPrimaryOwner(null); // not PO
+
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(existingGroup));
+        when(groupRepository.update(any())).thenReturn(updatedGroup);
+
+        groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updateGroup);
+
+        verifyNoInteractions(apiSearchService, apiMetadataService, searchEngineService);
     }
 }
