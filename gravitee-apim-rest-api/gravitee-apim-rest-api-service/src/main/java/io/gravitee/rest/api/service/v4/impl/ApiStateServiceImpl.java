@@ -223,7 +223,14 @@ public class ApiStateServiceImpl implements ApiStateService {
     ) {
         EventCriteria criteria = EventCriteria
             .builder()
-            .types(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API))
+            .types(
+                Set.of(
+                    io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                    io.gravitee.repository.management.model.EventType.STOP_API,
+                    io.gravitee.repository.management.model.EventType.START_API,
+                    io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                )
+            )
             .property(Event.EventProperties.API_ID.getValue(), apiId)
             .build();
 
@@ -361,7 +368,13 @@ public class ApiStateServiceImpl implements ApiStateService {
                 lastPublishedAPI.setDeployedAt(new Date());
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.USER.getValue(), userId);
-
+                properties.put(
+                    Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
+                    Optional
+                        .ofNullable(event.getProperties())
+                        .map(p -> p.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()))
+                        .orElse("0")
+                );
                 // Clear useless field for history
                 lastPublishedAPI.setPicture(null);
 
