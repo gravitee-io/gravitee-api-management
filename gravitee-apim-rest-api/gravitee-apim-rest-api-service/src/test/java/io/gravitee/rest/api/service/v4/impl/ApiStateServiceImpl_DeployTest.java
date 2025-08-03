@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -47,6 +48,8 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.AfterClass;
@@ -298,5 +301,48 @@ public class ApiStateServiceImpl_DeployTest {
         when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID))
             .thenThrow(new ApiNotFoundException(API_ID));
         apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
+    }
+
+    @Test
+    public void shouldAddDeploymentLabelAndIncrementDeploymentNumber() throws Exception {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        EventLatestRepository eventLatestRepository = mock(EventLatestRepository.class);
+        ApiDeploymentEntity deploymentEntity = new ApiDeploymentEntity();
+        deploymentEntity.setDeploymentLabel("Release v1.0");
+        Event mockEvent = new Event();
+        mockEvent.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "5"));
+        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L)))
+            .thenReturn(List.of(mockEvent));
+        Map<String, String> props = new HashMap<>();
+
+        ApiStateServiceImpl impl = new ApiStateServiceImpl(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            eventLatestRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+        Method method =
+            ApiStateServiceImpl.class.getDeclaredMethod(
+                    "addDeploymentLabelToProperties",
+                    ExecutionContext.class,
+                    String.class,
+                    Map.class,
+                    ApiDeploymentEntity.class
+                );
+        method.setAccessible(true);
+        method.invoke(impl, executionContext, "api-id", props, deploymentEntity);
+        assertEquals("6", props.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()));
+        assertEquals("Release v1.0", props.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()));
     }
 }
