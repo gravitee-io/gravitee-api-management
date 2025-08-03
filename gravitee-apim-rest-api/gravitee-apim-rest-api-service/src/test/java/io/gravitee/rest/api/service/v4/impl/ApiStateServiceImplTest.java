@@ -288,6 +288,7 @@ public class ApiStateServiceImplTest {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0");
 
         verify(eventService)
             .createApiEvent(
@@ -372,6 +373,7 @@ public class ApiStateServiceImplTest {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0");
 
         verify(eventService)
             .createApiEvent(
@@ -413,6 +415,7 @@ public class ApiStateServiceImplTest {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0");
 
         verify(eventService)
             .createApiEvent(
