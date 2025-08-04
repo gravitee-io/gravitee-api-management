@@ -15,35 +15,16 @@
  */
 package io.gravitee.apim.core.cluster.model;
 
-import java.time.Instant;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Builder
 @AllArgsConstructor
-@Getter
-public class Cluster {
+public class UpdateCluster {
 
-    private String id;
-    private Instant createdAt;
-    private Instant updatedAt;
-    private String environmentId;
-    private String organizationId;
     private String name;
     private String description;
     private Object configuration;
-
-    public void update(UpdateCluster updateCluster) {
-        this.updatedAt = Instant.now();
-        if (updateCluster.getName() != null) {
-            this.name = updateCluster.getName();
-        }
-        if (updateCluster.getDescription() != null) {
-            this.description = updateCluster.getDescription();
-        }
-        if (updateCluster.getConfiguration() != null) {
-            this.configuration = updateCluster.getConfiguration();
-        }
-    }
 }

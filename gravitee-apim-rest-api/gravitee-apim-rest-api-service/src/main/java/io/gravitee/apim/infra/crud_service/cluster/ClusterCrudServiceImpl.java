@@ -17,10 +17,12 @@ package io.gravitee.apim.infra.crud_service.cluster;
 
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.exception.DbEntityNotFoundException;
 import io.gravitee.apim.infra.adapter.ClusterAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.function.Predicate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -38,13 +40,37 @@ public class ClusterCrudServiceImpl implements ClusterCrudService {
     @Override
     public Cluster create(Cluster clusterToCreate) {
         try {
-            io.gravitee.repository.management.model.Cluster result = clusterRepository.create(clusterAdapter.toRepository(clusterToCreate));
+            var result = clusterRepository.create(clusterAdapter.toRepository(clusterToCreate));
             return clusterAdapter.fromRepository(result);
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException(
-                String.format("An error occurs while trying to create a Cluster with id: %s", clusterToCreate.getId()),
-                e
-            );
+            throw TechnicalManagementException.ofTryingToCreateWithId(Cluster.class, clusterToCreate.getId(), e);
+        }
+    }
+
+    @Override
+    public Cluster findByIdAndEnvironmentId(String id, String environmentId) {
+        try {
+            return clusterRepository
+                .findById(id)
+                .filter(belongsToEnvironment(environmentId))
+                .map(clusterAdapter::fromRepository)
+                .orElseThrow(() -> new DbEntityNotFoundException(io.gravitee.repository.management.model.Cluster.class, id));
+        } catch (TechnicalException e) {
+            throw TechnicalManagementException.ofTryingToFindById(Cluster.class, id, e);
+        }
+    }
+
+    private static Predicate<io.gravitee.repository.management.model.Cluster> belongsToEnvironment(String environmentId) {
+        return cluster -> environmentId.equals(cluster.getEnvironmentId());
+    }
+
+    @Override
+    public Cluster update(Cluster clusterToUpdate) {
+        try {
+            var result = clusterRepository.update(clusterAdapter.toRepository(clusterToUpdate));
+            return clusterAdapter.fromRepository(result);
+        } catch (TechnicalException e) {
+            throw TechnicalManagementException.ofTryingToUpdateWithId(Cluster.class, clusterToUpdate.getId(), e);
         }
     }
 }

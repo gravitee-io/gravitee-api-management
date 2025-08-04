@@ -13,12 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.cluster.crud_service;
+package io.gravitee.apim.core.cluster.use_case;
 
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import lombok.AllArgsConstructor;
 
-public interface ClusterCrudService {
-    Cluster create(Cluster clusterToCreate);
-    Cluster findByIdAndEnvironmentId(String id, String environmentId);
-    Cluster update(Cluster clusterToUpdate);
+@AllArgsConstructor
+@UseCase
+public class GetClusterUseCase {
+
+    private final ClusterCrudService clusterCrudService;
+
+    public record Input(String clusterId, String environmentId) {}
+
+    public record Output(Cluster cluster) {}
+
+    public Output execute(Input input) {
+        return new Output(this.clusterCrudService.findByIdAndEnvironmentId(input.clusterId, input.environmentId));
+    }
 }

@@ -19,4 +19,5 @@ import io.gravitee.apim.core.audit.model.event.AuditEvent;
 
 public enum ClusterAuditEvent implements AuditEvent {
     CLUSTER_CREATED,
+    CLUSTER_UPDATED,
 }
