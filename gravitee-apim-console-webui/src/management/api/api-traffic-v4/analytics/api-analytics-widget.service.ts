@@ -128,6 +128,10 @@ export class ApiAnalyticsWidgetService {
     statsResponse: AnalyticsStatsResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
+    if (Object.values(statsResponse).every((value) => value === 0)) {
+      return this.createEmptyConfig(widgetConfig);
+    }
+
     return {
       title: widgetConfig.title,
       tooltip: widgetConfig.tooltip,
@@ -210,6 +214,10 @@ export class ApiAnalyticsWidgetService {
       })
       .sort((a, b) => a.label.localeCompare(b.label));
 
+    if (pieData.length === 0) {
+      return this.createEmptyConfig(widgetConfig);
+    }
+
     return {
       title: widgetConfig.title,
       tooltip: widgetConfig.tooltip,
@@ -241,6 +249,10 @@ export class ApiAnalyticsWidgetService {
       { name: 'name', label: 'Name', isSortable: true, dataType: 'string' },
       { name: 'count', label: 'Count', isSortable: true, dataType: 'number' },
     ];
+
+    if (tableData.length === 0) {
+      return this.createEmptyConfig(widgetConfig);
+    }
 
     return {
       title: widgetConfig.title,
@@ -278,12 +290,6 @@ export class ApiAnalyticsWidgetService {
     histogramResponse: HistogramAnalyticsResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
-    const baseConfig = {
-      title: widgetConfig.title,
-      tooltip: widgetConfig.tooltip,
-      state: 'success',
-    };
-
     if (widgetConfig.type === 'line') {
       const hasMultipleAggregations = widgetConfig.aggregations && widgetConfig.aggregations.length > 1;
 
@@ -311,9 +317,13 @@ export class ApiAnalyticsWidgetService {
         pointInterval: histogramResponse.timestamp.interval,
       };
 
+      if (lineData.length === 0 || lineData.every((bucket) => bucket.values.every((value) => value === 0))) {
+        return this.createEmptyConfig(widgetConfig);
+      }
+
       return {
-        title: baseConfig.title,
-        tooltip: baseConfig.tooltip,
+        title: widgetConfig.title,
+        tooltip: widgetConfig.tooltip,
         state: 'success',
         widgetType: 'line' as const,
         widgetData: { data: lineData, options },
@@ -379,5 +389,9 @@ export class ApiAnalyticsWidgetService {
 
   private createErrorConfig(widgetConfig: ApiAnalyticsDashboardWidgetConfig, errorMessage: string): ApiAnalyticsWidgetConfig {
     return this.createConfigWithBlankData(widgetConfig, 'error', [errorMessage]);
+  }
+
+  private createEmptyConfig(widgetConfig: ApiAnalyticsDashboardWidgetConfig): ApiAnalyticsWidgetConfig {
+    return this.createConfigWithBlankData(widgetConfig, 'empty');
   }
 }

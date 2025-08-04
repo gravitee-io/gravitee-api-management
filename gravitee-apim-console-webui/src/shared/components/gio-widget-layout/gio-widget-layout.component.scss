@@ -8,6 +8,7 @@ $cardHeaderBorderColor: map.get(gio.$mat-theme, foreground);
 .card {
   border: 1px solid $borderColor;
   border-radius: 8px;
+  transition: height 0.3s ease-in-out;
 
   &__title {
     display: flex;
@@ -26,11 +27,81 @@ $cardHeaderBorderColor: map.get(gio.$mat-theme, foreground);
   flex-direction: column;
   max-width: 100%;
   overflow: hidden;
+  position: relative;
+  transition:
+    min-height 0.3s ease-in-out,
+    height 0.3s ease-in-out;
 }
 
-.loading {
+.icon {
+  color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, default);
+  background: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+
+  margin-bottom: 24px;
+}
+
+// State transition animations
+.loading,
+.error,
+.empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 400px;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.3s ease-in-out,
+    transform 0.3s ease-in-out,
+    height 0.3s ease-in-out;
+}
+
+// Loading state
+.loading {
+  padding: 48px 16px;
+  gio-loader {
+    transition: opacity 0.2s ease-in-out;
+  }
+}
+
+// Error and Empty states
+.error,
+.empty {
+  padding: 16px;
+  flex-direction: column;
+  word-break: break-word;
+  text-align: center;
+}
+
+// Success state (chart content)
+.success {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 1s ease-in-out,
+    transform 1s ease-in-out,
+    height 0.3s ease-in-out;
+}
+
+// Fade in animation for state changes
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loading,
+.error,
+.empty,
+.success {
+  animation: fadeIn 1s ease-out;
 }
