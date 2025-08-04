@@ -19,6 +19,7 @@ import { UbuntuExecutor } from '../../executors';
 import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors';
 import { AnyParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
 import { CircleCIEnvironment } from '../../pipelines';
+import { config } from '../../config';
 
 export abstract class AbstractTestContainerJob {
   protected static create(
@@ -40,6 +41,9 @@ export abstract class AbstractTestContainerJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName }),
+      new commands.cache.Restore({
+        keys: [`${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`],
+      }),
       testStep,
       new commands.Run({
         name: 'Save test results',
