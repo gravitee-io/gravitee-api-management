@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
 import java.util.Collection;
@@ -138,6 +139,7 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
         Query query = new Query();
         query.addCriteria(Criteria.where("environmentId").is(environmentId));
         query.addCriteria(Criteria.where("metadata." + key).is(value));
+        query.addCriteria(Criteria.where("status").is(ApplicationStatus.ACTIVE.name()));
         return mongoTemplate.exists(query, ApplicationMongo.class);
     }
 }
