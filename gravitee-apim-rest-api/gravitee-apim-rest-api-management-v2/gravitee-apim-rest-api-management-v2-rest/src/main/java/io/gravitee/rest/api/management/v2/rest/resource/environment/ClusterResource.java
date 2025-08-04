@@ -13,44 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.cluster;
+package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ClusterMapper;
-import io.gravitee.rest.api.management.v2.rest.model.CreateCluster;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.v2.rest.resource.environment.ClusterResource;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-public class ClustersResource extends AbstractResource {
+public class ClusterResource extends AbstractResource {
 
-    @Context
-    private ResourceContext resourceContext;
+    @PathParam("clusterId")
+    String clusterId;
 
     @Inject
-    private CreateClusterUseCase createClusterUseCase;
+    private GetClusterUseCase getClusterUseCase;
 
-    @POST
+    @Inject
+    private UpdateClusterUseCase updateClusterUseCase;
+
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
+    // TODO add permissions
+    //      @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
+    public Response getCluster() {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        var output = getClusterUseCase.execute(new GetClusterUseCase.Input(clusterId, executionContext.getEnvironmentId()));
+
+        return Response.ok(this.getLocationHeader(output.cluster().getId())).entity(ClusterMapper.INSTANCE.map(output.cluster())).build();
+    }
+
+    @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    // TODO add the cluster permissions
-    //   @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.CREATE }) })
-    public Response createCluster(@Valid @NotNull final CreateCluster createCluster) {
+    @Produces(MediaType.APPLICATION_JSON)
+    // TODO add permissions
+    //      @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.UPDATE }) })
+    public Response updateCluster(@Valid @NotNull final UpdateCluster updateCluster) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -68,16 +80,10 @@ public class ClustersResource extends AbstractResource {
             )
             .build();
 
-        var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(ClusterMapper.INSTANCE.map(createCluster), audit));
+        var output = updateClusterUseCase.execute(
+            new UpdateClusterUseCase.Input(clusterId, ClusterMapper.INSTANCE.map(updateCluster), audit)
+        );
 
-        return Response
-            .created(this.getLocationHeader(output.cluster().getId()))
-            .entity(ClusterMapper.INSTANCE.map(output.cluster()))
-            .build();
-    }
-
-    @Path("{clusterId}")
-    public ClusterResource getClusterResource() {
-        return resourceContext.getResource(ClusterResource.class);
+        return Response.ok(this.getLocationHeader(output.cluster().getId())).entity(ClusterMapper.INSTANCE.map(output.cluster())).build();
     }
 }

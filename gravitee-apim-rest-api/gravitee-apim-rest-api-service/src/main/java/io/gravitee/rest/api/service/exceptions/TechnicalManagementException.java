@@ -38,6 +38,21 @@ public class TechnicalManagementException extends AbstractManagementException {
         super(message, cause);
     }
 
+    public static TechnicalManagementException ofTryingToFindById(Class<?> clazz, String id, Throwable cause) {
+        String message = String.format("An error occurred while trying to find a %s with id %s", clazz.getSimpleName(), id);
+        return new TechnicalManagementException(message, cause);
+    }
+
+    public static TechnicalManagementException ofTryingToCreateWithId(Class<?> clazz, String id, Throwable cause) {
+        String message = String.format("An error occurred while trying to create a %s with id %s", clazz.getSimpleName(), id);
+        return new TechnicalManagementException(message, cause);
+    }
+
+    public static TechnicalManagementException ofTryingToUpdateWithId(Class<?> clazz, String id, Throwable cause) {
+        String message = String.format("An error occurred while trying to update the %s with id %s", clazz.getSimpleName(), id);
+        return new TechnicalManagementException(message, cause);
+    }
+
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.INTERNAL_SERVER_ERROR_500;

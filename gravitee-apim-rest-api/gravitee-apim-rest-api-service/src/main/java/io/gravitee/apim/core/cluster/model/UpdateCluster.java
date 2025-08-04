@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.cluster.crud_service;
+package io.gravitee.apim.core.cluster.model;
 
-import io.gravitee.apim.core.cluster.model.Cluster;
+import lombok.*;
 
-public interface ClusterCrudService {
-    Cluster create(Cluster clusterToCreate);
-    Cluster findByIdAndEnvironmentId(String id, String environmentId);
-    Cluster update(Cluster clusterToUpdate);
+@Getter
+@Setter
+@NoArgsConstructor
+@Builder
+@AllArgsConstructor
+public class UpdateCluster {
+
+    private String name;
+    private String description;
+    private Object configuration;
 }
