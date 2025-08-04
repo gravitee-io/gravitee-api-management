@@ -592,6 +592,7 @@ components:
                     items:
                         $ref: "#/components/schemas/StepV4"
             required: ["name", "apiType", "phase"]
+
         UpdateSharedPolicyGroup:
             type: object
             description: Update payload for a shared policy group
@@ -715,6 +716,35 @@ components:
                 - DEPLOYED
                 - UNDEPLOYED
                 - PENDING
+
+        CreateCluster:
+            type: object
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                configuration:
+                    type: object
+            required: [ "name", "configuration" ]
+
+        Cluster:
+            type: object
+            properties:
+                id:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                name:
+                    type: string
+                description:
+                    type: string
+                configuration:
+                    type: object
 
         # Scoring
         EnvironmentApiScore:
