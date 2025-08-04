@@ -13,35 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.model;
+package io.gravitee.apim.core.cluster.model;
 
-public enum AuditProperties {
-    PLAN,
-    PAGE,
-    API_KEY,
-    METADATA,
-    GROUP,
-    USER,
-    ROLE,
-    API,
-    APPLICATION,
-    TAG,
-    TENANT,
-    CATEGORY,
-    PARAMETER,
-    DICTIONARY,
-    API_HEADER,
-    IDENTITY_PROVIDER,
-    ENTRYPOINT,
-    REQUEST_ID,
-    CLIENT_REGISTRATION_PROVIDER,
-    QUALITY_RULE,
-    API_QUALITY_RULE,
-    DASHBOARD,
-    THEME,
-    TOKEN,
-    USER_FIELD,
-    NOTIFICATION_TEMPLATE,
-    SHARED_POLICY_GROUP,
-    CLUSTER,
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Setter
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class CreateCluster {
+
+    private String name;
+    private String description;
+    private Object configuration;
 }
