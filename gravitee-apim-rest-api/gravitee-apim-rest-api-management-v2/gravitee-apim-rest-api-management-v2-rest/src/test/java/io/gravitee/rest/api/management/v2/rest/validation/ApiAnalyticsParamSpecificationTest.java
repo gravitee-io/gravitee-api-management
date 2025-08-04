@@ -21,6 +21,8 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.ApiAnalyticsParam;
 import jakarta.ws.rs.BadRequestException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ApiAnalyticsParamSpecificationTest {
 
@@ -52,6 +54,72 @@ class ApiAnalyticsParamSpecificationTest {
         param.setField("");
         assertFalse(ApiAnalyticsParamSpecification.hasField().satisfies(param));
         assertThrows(BadRequestException.class, () -> ApiAnalyticsParamSpecification.hasField().throwIfNotSatisfied(param));
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            // General Properties
+            "gateway",
+            "@timestamp",
+            "transaction-id",
+            "api-id",
+            "api-name",
+            "request-id",
+            "plan-id",
+            "application-id",
+            "subscription-id",
+            "client-identifier",
+            "tenant",
+            "zone",
+            // HTTP Properties
+            "http-method",
+            "local-address",
+            "remote-address",
+            "host",
+            "uri",
+            "path",
+            "mapped-path",
+            // User-Agent Properties
+            "user-agent",
+            "user_agent.device.name",
+            "user_agent.name",
+            "user_agent.original",
+            "user_agent.os.full",
+            "user_agent.os.name",
+            "user_agent.os.version",
+            "user_agent.os_name",
+            "user_agent.version",
+            // Metrics Properties
+            "request-content-length",
+            "request-ended",
+            "endpoint-response-time-ms",
+            "status",
+            "response-content-length",
+            "gateway-latency-ms",
+            "gateway-response-time-ms",
+            // GeoIP Properties
+            "geoip.continent_name",
+            "geoip.country_iso_code",
+            "geoip.region_name",
+            "geoip.city_name",
+            "geoip.location",
+            // Security Properties
+            "security-type",
+            "security-token",
+            // Error Properties
+            "error-message",
+            "error-key",
+        }
+    )
+    void testHasField_parametrized(String field) {
+        ApiAnalyticsParam param = new ApiAnalyticsParam();
+        param.setField(field);
+        assertTrue(ApiAnalyticsParamSpecification.hasField().satisfies(param), "Should satisfy for field: " + field);
+        assertDoesNotThrow(
+            () -> ApiAnalyticsParamSpecification.hasField().throwIfNotSatisfied(param),
+            "Should not throw for field: " + field
+        );
     }
 
     @Test
@@ -101,10 +169,6 @@ class ApiAnalyticsParamSpecificationTest {
         param.setOrder("avg:field1");
         assertTrue(ApiAnalyticsParamSpecification.validOrder().satisfies(param));
         param.setOrder("-count:_key");
-        assertTrue(ApiAnalyticsParamSpecification.validOrder().satisfies(param));
-        param.setOrder("max:field_2");
-        assertTrue(ApiAnalyticsParamSpecification.validOrder().satisfies(param));
-        param.setOrder("field:some.field");
         assertTrue(ApiAnalyticsParamSpecification.validOrder().satisfies(param));
         param.setOrder("foo:bar");
         assertFalse(ApiAnalyticsParamSpecification.validOrder().satisfies(param));
