@@ -18,8 +18,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 
-export class ApiAnalyticsFiltersBarHarness extends ComponentHarness {
-  static hostSelector = 'api-analytics-filters-bar';
+export class ApiAnalyticsMessageFiltersBarHarness extends ComponentHarness {
+  static hostSelector = 'api-analytics-message-filters-bar';
 
   private getRefreshButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=refresh-button]' }));
   public getApplyButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=apply-button]' }));

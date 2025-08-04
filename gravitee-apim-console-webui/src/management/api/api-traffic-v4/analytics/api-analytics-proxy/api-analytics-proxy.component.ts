@@ -21,7 +21,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 
-import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
+import { ApiAnalyticsMessageFiltersBarComponent } from '../components/api-analytics-message-filters-bar/api-analytics-message-filters-bar.component';
 import {
   AggregationFields,
   AggregationTypes,
@@ -71,7 +71,7 @@ export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetData
     MatCardModule,
     GioLoaderModule,
     GioCardEmptyStateModule,
-    ApiAnalyticsFiltersBarComponent,
+    ApiAnalyticsMessageFiltersBarComponent,
     ApiAnalyticsWidgetComponent,
     GioChartPieModule,
   ],
