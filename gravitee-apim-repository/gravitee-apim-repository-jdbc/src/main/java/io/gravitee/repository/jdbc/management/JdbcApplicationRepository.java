@@ -622,10 +622,10 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             " am JOIN " +
             tableName +
             " a ON a.id = am.application_id " +
-            "WHERE am.k=? AND am.v=? AND a.environment_id=?) " +
+            "WHERE am.k=? AND am.v=? AND a.environment_id=? AND a.status=?) " +
             "THEN 1 ELSE 0 " +
             "END AS metadata_entry_exists";
-        return jdbcTemplate.queryForObject(sql, Boolean.class, key, value, environmentId);
+        return jdbcTemplate.queryForObject(sql, Boolean.class, key, value, environmentId, ApplicationStatus.ACTIVE.name());
     }
 
     private String toSortDirection(Sortable sortable) {
