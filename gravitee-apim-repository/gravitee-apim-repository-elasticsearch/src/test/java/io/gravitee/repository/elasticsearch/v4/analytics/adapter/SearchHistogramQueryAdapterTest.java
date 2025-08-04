@@ -184,11 +184,14 @@ class SearchHistogramQueryAdapterTest {
 
             assertThat(result).hasSize(1);
             HistogramAggregate agg = result.getFirst();
-            assertThat(agg.buckets()).containsOnlyKeys("200", "202", "404");
+            assertThat(agg).isInstanceOf(HistogramAggregate.Counts.class);
 
-            assertThat(agg.buckets().get("200")).containsExactly(1L, 0L);
-            assertThat(agg.buckets().get("202")).containsExactly(0L, 1L);
-            assertThat(agg.buckets().get("404")).containsExactly(0L, 2L);
+            HistogramAggregate.Counts metric = (HistogramAggregate.Counts) agg;
+            assertThat(metric.counts()).containsOnlyKeys("200", "202", "404");
+
+            assertThat(metric.counts().get("200")).containsExactly(1L, 0L);
+            assertThat(metric.counts().get("202")).containsExactly(0L, 1L);
+            assertThat(metric.counts().get("404")).containsExactly(0L, 2L);
         }
 
         @Test
@@ -238,8 +241,10 @@ class SearchHistogramQueryAdapterTest {
 
             assertThat(result).hasSize(1);
             HistogramAggregate agg = result.getFirst();
-            assertThat(agg.buckets()).containsOnlyKeys("avg_gateway-response-time-ms");
-            assertThat(agg.buckets().get("avg_gateway-response-time-ms")).containsExactly(120L, 110L);
+            assertThat(agg).isInstanceOf(HistogramAggregate.Metric.class);
+
+            var metric = (HistogramAggregate.Metric) agg;
+            assertThat(metric.values()).containsExactly(120L, 110L);
         }
     }
 }

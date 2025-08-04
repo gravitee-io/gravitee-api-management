@@ -16,17 +16,38 @@
 package io.gravitee.apim.core.analytics.model;
 
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.Map;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class HistogramAnalytics {
+public record HistogramAnalytics(Timestamp timestamp, List<Bucket> buckets) {
+    @Getter
+    @RequiredArgsConstructor
+    public abstract static class Bucket {
 
-    private Timestamp timestamp;
-    private List<Bucket> values;
+        private final String name;
+        private final String field;
+    }
+
+    @Getter
+    public static class CountBucket extends Bucket {
+
+        private final Map<String, List<Long>> counts;
+
+        public CountBucket(String name, String field, Map<String, List<Long>> counts) {
+            super(name, field);
+            this.counts = counts;
+        }
+    }
+
+    @Getter
+    public static class MetricBucket extends Bucket {
+
+        private final List<Long> values;
+
+        public MetricBucket(String name, String field, List<Long> values) {
+            super(name, field);
+            this.values = values;
+        }
+    }
 }

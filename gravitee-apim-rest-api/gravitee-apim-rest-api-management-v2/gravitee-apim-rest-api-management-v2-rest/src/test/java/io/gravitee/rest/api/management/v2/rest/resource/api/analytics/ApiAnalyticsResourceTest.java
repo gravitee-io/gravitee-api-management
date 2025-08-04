@@ -24,7 +24,7 @@ import assertions.MAPIAssertions;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
-import io.gravitee.apim.core.analytics.model.Bucket;
+import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
@@ -430,7 +430,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     class PerformApiAnalytics {
 
         @Nested
-        class HistogramAnalytics {
+        class HistogramAnalyticsTest {
 
             @Test
             void should_return_histogram_analytics_response() {
@@ -443,30 +443,19 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     Duration.ofMinutes(10)
                 );
                 var expectedBuckets = List.of(
-                    io.gravitee.apim.core.analytics.model.Bucket
-                        .builder()
-                        .name("by_status")
-                        .field("status")
-                        .buckets(
-                            List.of(
-                                new Bucket(null, "status", "200", List.of(0L, 0L, 1L), null),
-                                new Bucket(null, "status", "404", List.of(0L, 2L, 0L), null)
-                            )
-                        )
-                        .build()
+                    (HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket(
+                        "by_status",
+                        "status",
+                        Map.of("200", List.of(0L, 0L, 1L), "404", List.of(0L, 2L, 0L))
+                    )
                 );
-                fakeAnalyticsQueryService.histogramAnalytics =
-                    io.gravitee.apim.core.analytics.model.HistogramAnalytics
-                        .builder()
-                        .timestamp(expectedTimestamp)
-                        .values(expectedBuckets)
-                        .build();
+                fakeAnalyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
                 var response = rootTarget()
                     .queryParam("type", "HISTOGRAM")
-                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
-                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
-                    .queryParam("interval", expectedTimestamp.getInterval().toMillis())
+                    .queryParam("from", expectedTimestamp.from().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.to().toEpochMilli())
+                    .queryParam("interval", expectedTimestamp.interval().toMillis())
                     .queryParam("aggregations", "FIELD:status")
                     .request()
                     .get();
@@ -479,9 +468,9 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         var histogram = result.getHistogramAnalytics();
                         assertThat(histogram).isNotNull();
                         assertThat(histogram.getTimestamp()).isNotNull();
-                        assertThat(histogram.getTimestamp().getFrom()).isEqualTo(expectedTimestamp.getFrom().toEpochMilli());
-                        assertThat(histogram.getTimestamp().getTo()).isEqualTo(expectedTimestamp.getTo().toEpochMilli());
-                        assertThat(histogram.getTimestamp().getInterval()).isEqualTo(expectedTimestamp.getInterval().toMillis());
+                        assertThat(histogram.getTimestamp().getFrom()).isEqualTo(expectedTimestamp.from().toEpochMilli());
+                        assertThat(histogram.getTimestamp().getTo()).isEqualTo(expectedTimestamp.to().toEpochMilli());
+                        assertThat(histogram.getTimestamp().getInterval()).isEqualTo(expectedTimestamp.interval().toMillis());
                         assertThat(histogram.getValues()).hasSize(1);
                         var bucket = histogram.getValues().getFirst();
                         assertThat(bucket.getName()).isEqualTo("by_status");
@@ -499,27 +488,19 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     Duration.ofMinutes(10)
                 );
                 var expectedBuckets = List.of(
-                    io.gravitee.apim.core.analytics.model.Bucket
-                        .builder()
-                        .name("avg_gateway-response-time-ms")
-                        .field("gateway-response-time-ms")
-                        .buckets(
-                            List.of(new Bucket(null, "gateway-response-time-ms", "avg_gateway-response-time-ms", List.of(120L, 110L), null))
-                        )
-                        .build()
+                    (HistogramAnalytics.Bucket) new HistogramAnalytics.MetricBucket(
+                        "avg_gateway-response-time-ms",
+                        "gateway-response-time-ms",
+                        List.of(120L, 110L)
+                    )
                 );
-                fakeAnalyticsQueryService.histogramAnalytics =
-                    io.gravitee.apim.core.analytics.model.HistogramAnalytics
-                        .builder()
-                        .timestamp(expectedTimestamp)
-                        .values(expectedBuckets)
-                        .build();
+                fakeAnalyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
                 var response = rootTarget()
                     .queryParam("type", "HISTOGRAM")
-                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
-                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
-                    .queryParam("interval", expectedTimestamp.getInterval().toMillis())
+                    .queryParam("from", expectedTimestamp.from().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.to().toEpochMilli())
+                    .queryParam("interval", expectedTimestamp.interval().toMillis())
                     .queryParam("aggregations", "AVG:gateway-response-time-ms")
                     .request()
                     .get();
@@ -532,9 +513,9 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         var histogram = result.getHistogramAnalytics();
                         assertThat(histogram).isNotNull();
                         assertThat(histogram.getTimestamp()).isNotNull();
-                        assertThat(histogram.getTimestamp().getFrom()).isEqualTo(expectedTimestamp.getFrom().toEpochMilli());
-                        assertThat(histogram.getTimestamp().getTo()).isEqualTo(expectedTimestamp.getTo().toEpochMilli());
-                        assertThat(histogram.getTimestamp().getInterval()).isEqualTo(expectedTimestamp.getInterval().toMillis());
+                        assertThat(histogram.getTimestamp().getFrom()).isEqualTo(expectedTimestamp.from().toEpochMilli());
+                        assertThat(histogram.getTimestamp().getTo()).isEqualTo(expectedTimestamp.to().toEpochMilli());
+                        assertThat(histogram.getTimestamp().getInterval()).isEqualTo(expectedTimestamp.interval().toMillis());
                         assertThat(histogram.getValues()).hasSize(1);
                         var bucket = histogram.getValues().getFirst();
                         assertThat(bucket.getName()).isEqualTo("avg_gateway-response-time-ms");
@@ -556,9 +537,9 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 );
                 var response = rootTarget()
                     .queryParam("type", "HISTOGRAM")
-                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
-                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
-                    .queryParam("interval", expectedTimestamp.getInterval().toMillis())
+                    .queryParam("from", expectedTimestamp.from().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.to().toEpochMilli())
+                    .queryParam("interval", expectedTimestamp.interval().toMillis())
                     .queryParam("aggregations", "INVALID:status")
                     .request()
                     .get();
@@ -583,30 +564,19 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 String query = "status:200 AND method:GET";
 
                 var expectedBuckets = List.of(
-                    io.gravitee.apim.core.analytics.model.Bucket
-                        .builder()
-                        .name("by_status")
-                        .field("status")
-                        .buckets(
-                            List.of(
-                                new Bucket(null, "status", "200", List.of(0L, 0L, 1L), null),
-                                new Bucket(null, "status", "404", List.of(0L, 2L, 0L), null)
-                            )
-                        )
-                        .build()
+                    (HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket(
+                        "by_status",
+                        "status",
+                        Map.of("200", List.of(0L, 0L, 1L), "404", List.of(0L, 2L, 0L))
+                    )
                 );
-                fakeAnalyticsQueryService.histogramAnalytics =
-                    io.gravitee.apim.core.analytics.model.HistogramAnalytics
-                        .builder()
-                        .timestamp(expectedTimestamp)
-                        .values(expectedBuckets)
-                        .build();
+                fakeAnalyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
                 var response = rootTarget()
                     .queryParam("type", "HISTOGRAM")
-                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
-                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
-                    .queryParam("interval", expectedTimestamp.getInterval().toMillis())
+                    .queryParam("from", expectedTimestamp.from().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.to().toEpochMilli())
+                    .queryParam("interval", expectedTimestamp.interval().toMillis())
                     .queryParam("aggregations", "FIELD:status")
                     .queryParam("query", query)
                     .request()
@@ -620,9 +590,9 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         var histogram = result.getHistogramAnalytics();
                         assertThat(histogram).isNotNull();
                         assertThat(histogram.getTimestamp()).isNotNull();
-                        assertThat(histogram.getTimestamp().getFrom()).isEqualTo(expectedTimestamp.getFrom().toEpochMilli());
-                        assertThat(histogram.getTimestamp().getTo()).isEqualTo(expectedTimestamp.getTo().toEpochMilli());
-                        assertThat(histogram.getTimestamp().getInterval()).isEqualTo(expectedTimestamp.getInterval().toMillis());
+                        assertThat(histogram.getTimestamp().getFrom()).isEqualTo(expectedTimestamp.from().toEpochMilli());
+                        assertThat(histogram.getTimestamp().getTo()).isEqualTo(expectedTimestamp.to().toEpochMilli());
+                        assertThat(histogram.getTimestamp().getInterval()).isEqualTo(expectedTimestamp.interval().toMillis());
                         assertThat(histogram.getValues()).hasSize(1);
                         var bucket = histogram.getValues().getFirst();
                         assertThat(bucket.getName()).isEqualTo("by_status");
@@ -639,11 +609,6 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             void should_return_group_by_analytics_response() {
                 apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
 
-                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
-                    Instant.now().minusSeconds(60),
-                    Instant.now(),
-                    Duration.ofMinutes(10)
-                );
                 String ranges = "100:199;200:299;300:399;400:499;500:599";
 
                 var expectedAnalytics = io.gravitee.apim.core.analytics.model.GroupByAnalytics
@@ -671,8 +636,8 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .queryParam("type", "GROUP_BY")
                     .queryParam("field", "status")
                     .queryParam("ranges", ranges)
-                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
-                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
+                    .queryParam("from", Instant.now().minusSeconds(60).toEpochMilli())
+                    .queryParam("to", Instant.now().toEpochMilli())
                     .request()
                     .get();
 
@@ -696,11 +661,6 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             void should_return_group_by_analytics_response_with_query_parameter() {
                 apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
 
-                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
-                    Instant.now().minusSeconds(60),
-                    Instant.now(),
-                    Duration.ofMinutes(10)
-                );
                 String ranges = "100:199;200:299;300:399;400:499;500:599";
                 String query = "status:200 AND method:GET";
 
@@ -729,8 +689,8 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .queryParam("type", "GROUP_BY")
                     .queryParam("field", "status")
                     .queryParam("ranges", ranges)
-                    .queryParam("from", expectedTimestamp.getFrom().toEpochMilli())
-                    .queryParam("to", expectedTimestamp.getTo().toEpochMilli())
+                    .queryParam("from", Instant.now().minusSeconds(60).toEpochMilli())
+                    .queryParam("to", Instant.now().toEpochMilli())
                     .queryParam("query", query)
                     .request()
                     .get();
