@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
 import io.gravitee.apim.core.UseCase;
@@ -31,6 +32,8 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
+import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -39,12 +42,15 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.rest.api.model.PageEntity;
 import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +70,7 @@ public class MigrateApiUseCase {
     private final ApiStateDomainService apiStateService;
 
     private final V2toV4MigrationOperator migrationOperator;
+    private final PageQueryService pageQueryService;
 
     @Inject
     public MigrateApiUseCase(
@@ -73,7 +80,8 @@ public class MigrateApiUseCase {
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         PlanCrudService planService,
         FlowCrudService flowCrudService,
-        ApiStateDomainService apiStateService
+        ApiStateDomainService apiStateService,
+        PageQueryService pageQueryService
     ) {
         this(
             apiCrudService,
@@ -83,7 +91,8 @@ public class MigrateApiUseCase {
             planService,
             flowCrudService,
             apiStateService,
-            new V2toV4MigrationOperator()
+            new V2toV4MigrationOperator(),
+            pageQueryService
         );
     }
 
@@ -109,7 +118,38 @@ public class MigrateApiUseCase {
                     new MigrationResult.Issue("Cannot migrate an API not using V4 emulation", MigrationResult.State.IMPOSSIBLE)
                 );
         }
-
+        List<Page> pageEntities = pageQueryService.searchByApiId(input.apiId());
+        var pagesById = pageEntities.stream().collect(Collectors.toMap(Page::getId, Function.identity()));
+        for (Page page : pageEntities) {
+            if (page.getType() == Page.Type.TRANSLATION) {
+                String pageName = pagesById.get(page.getParentId()).getName();
+                precondition =
+                    precondition.addIssue(
+                        new MigrationResult.Issue(
+                            String.format("Cannot migrate an API having document: %s, with translations", pageName),
+                            MigrationResult.State.IMPOSSIBLE
+                        )
+                    );
+            }
+            if (isNotEmpty(page.getAccessControls())) {
+                precondition =
+                    precondition.addIssue(
+                        new MigrationResult.Issue(
+                            String.format("Cannot migrate an API having document: %s, with Access Control", page.getName()),
+                            MigrationResult.State.IMPOSSIBLE
+                        )
+                    );
+            }
+            if (isNotEmpty(page.getAttachedMedia())) {
+                precondition =
+                    precondition.addIssue(
+                        new MigrationResult.Issue(
+                            String.format("Cannot migrate an API having document: %s, with Attached Resources", page.getName()),
+                            MigrationResult.State.IMPOSSIBLE
+                        )
+                    );
+            }
+        }
         // Migration
         var migrationResult = precondition.flatMap(ignored -> migrationOperator.mapApi(api)).map(Migration::new);
 
