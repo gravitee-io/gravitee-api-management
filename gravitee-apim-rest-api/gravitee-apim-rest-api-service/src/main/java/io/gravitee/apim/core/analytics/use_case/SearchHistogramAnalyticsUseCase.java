@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
 import io.gravitee.apim.core.analytics.domain_service.ApiAnalyticsSpecification;
 import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
@@ -25,8 +26,11 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +41,7 @@ public class SearchHistogramAnalyticsUseCase {
 
     private final ApiCrudService apiCrudService;
     private final AnalyticsQueryService analyticsQueryService;
+    private final List<AnalyticsMetadataProvider> metadataProviders;
 
     public Output execute(ExecutionContext executionContext, Input input) {
         ApiAnalyticsSpecification
@@ -56,13 +61,46 @@ public class SearchHistogramAnalyticsUseCase {
             .map(io.gravitee.apim.core.analytics.model.HistogramAnalytics::buckets)
             .orElse(List.of());
 
+        Map<String, Map<String, Map<String, String>>> metadata = result
+            .stream()
+            .filter(bucket -> bucket instanceof HistogramAnalytics.CountBucket)
+            .map(bucket -> (HistogramAnalytics.CountBucket) bucket)
+            .collect(
+                Collectors.toMap(
+                    HistogramAnalytics.CountBucket::getName,
+                    countBucket ->
+                        metadataProviders
+                            .stream()
+                            .filter(p -> p.appliesTo(AnalyticsMetadataProvider.Field.of(countBucket.getField())))
+                            .findFirst()
+                            .map(provider ->
+                                countBucket
+                                    .getCounts()
+                                    .keySet()
+                                    .stream()
+                                    .collect(
+                                        Collectors.toMap(
+                                            category -> category,
+                                            category -> provider.provide(category, executionContext.getEnvironmentId())
+                                        )
+                                    )
+                            )
+                            .orElseGet(Collections::emptyMap)
+                )
+            );
+
         return new Output(
             new Timestamp(Instant.ofEpochMilli(input.from()), Instant.ofEpochMilli(input.to()), Duration.ofMillis(input.interval())),
-            result
+            result,
+            metadata
         );
     }
 
     public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations, Optional<String> query) {}
 
-    public record Output(Timestamp timestamp, List<HistogramAnalytics.Bucket> values) {}
+    public record Output(
+        Timestamp timestamp,
+        List<HistogramAnalytics.Bucket> values,
+        Map<String, Map<String, Map<String, String>>> metadata
+    ) {}
 }
