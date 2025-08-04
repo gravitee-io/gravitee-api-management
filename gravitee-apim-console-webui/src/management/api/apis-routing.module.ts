@@ -1008,6 +1008,20 @@ const apisRoutes: Routes = [
       },
       {
         path: 'v4/policy-studio',
+        redirectTo: 'v4/policy-studio/0/0',
+        data: {
+          docs: null,
+        },
+      },
+      {
+        path: 'v4/policy-studio/:planIndex',
+        redirectTo: 'v4/policy-studio/:planIndex/0',
+        data: {
+          docs: null,
+        },
+      },
+      {
+        path: 'v4/policy-studio/:planIndex/:flowIndex',
         data: {
           docs: null,
         },
