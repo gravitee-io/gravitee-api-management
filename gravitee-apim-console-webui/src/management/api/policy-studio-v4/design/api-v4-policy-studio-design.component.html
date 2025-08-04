@@ -23,11 +23,13 @@
   [entrypointsInfo]="entrypointsInfo"
   [endpointsInfo]="endpointsInfo"
   [commonFlows]="commonFlows"
+  [selectedFlowIndexes]="selectedFlowIndexes"
   [plans]="plans"
   [policies]="policies"
   [sharedPolicyGroupPolicies]="sharedPolicyGroupPolicyPlugins"
   [trialUrl]="trialURL"
   [policySchemaFetcher]="policySchemaFetcher"
   [policyDocumentationFetcher]="policyDocumentationFetcher"
+  (selectedFlowChanged)="onFlowSelectionChange($event)"
   (save)="onSave($event)"
 ></gio-policy-studio>
