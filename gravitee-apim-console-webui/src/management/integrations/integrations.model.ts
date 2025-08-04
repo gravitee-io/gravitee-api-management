@@ -138,4 +138,5 @@ export interface IntegrationPreview {
   newCount: number;
   updateCount: number;
   apis: IntegrationPreviewApi[];
+  isPartiallyDiscovered: boolean;
 }

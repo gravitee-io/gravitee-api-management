@@ -15,9 +15,9 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -26,10 +26,13 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
+import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +43,14 @@ class SearchHistogramQueryAdapterTest {
     private static final Instant TO = INSTANT_NOW;
     private static final Instant FROM = INSTANT_NOW.minus(Duration.ofDays(2));
     private static final Duration INTERVAL = Duration.ofMinutes(30);
+    public static final String SIZE_PTR = "/size";
+    public static final String API_ID_PTR = "/query/bool/filter/0/bool/should/0/bool/must/0/term/api-id";
+    public static final String FROM_PTR = "/query/bool/filter/1/range/@timestamp/from";
+    public static final String TO_PTR = "/query/bool/filter/1/range/@timestamp/to";
+    public static final String STRING_QUERY_PTR = "/query/bool/filter/2/query_string/query";
+    public static final String INTERVAL_PTR = "/aggregations/by_date/date_histogram/fixed_interval";
+    public static final String FIELD_FIELD_PTR = "/aggregations/by_date/aggregations/by_status/terms/field";
+    public static final String AVG_FIELD_PTR = "/aggregations/by_date/aggregations/avg_gateway-response-time-ms/avg/field";
 
     private final SearchHistogramQueryAdapter cut = new SearchHistogramQueryAdapter();
 
@@ -47,175 +58,67 @@ class SearchHistogramQueryAdapterTest {
     class AdaptQuery {
 
         @Test
-        void should_generate_expected_histogram_query_json() {
+        void should_generate_expected_histogram_query_json() throws JsonProcessingException {
             HistogramQuery query = new HistogramQuery(
-                API_ID,
-                FROM,
-                TO,
-                INTERVAL,
-                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD))
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(FROM, TO, INTERVAL),
+                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
+                Optional.empty()
             );
 
             String result = cut.adapt(query);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(result);
 
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                    {
-                      "size": 0,
-                      "query": {
-                        "bool": {
-                          "filter": [
-                            {
-                              "bool": {
-                                "minimum_should_match": 1,
-                                "should": [
-                                  {
-                                    "bool": {
-                                      "must": [
-                                        {
-                                          "terms": {
-                                            "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                          }
-                                        },
-                                        {
-                                          "terms": {
-                                            "entrypoint-id": [ "http-post", "http-get", "http-proxy" ]
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  }
-                                ]
-                              }
-                            },
-                            {
-                              "range": {
-                                "@timestamp": {
-                                  "from": %d,
-                                  "to": %d,
-                                  "include_lower": true,
-                                  "include_upper": true
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      },
-                      "aggregations": {
-                        "by_date": {
-                          "date_histogram": {
-                            "field": "@timestamp",
-                            "fixed_interval": "1800000ms",
-                            "min_doc_count": 0,
-                            "extended_bounds": {
-                              "min": %d,
-                              "max": %d
-                            }
-                          },
-                          "aggregations": {
-                            "by_status": {
-                              "terms": {
-                                "field": "status"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                    """.formatted(
-                            FROM.toEpochMilli(),
-                            TO.toEpochMilli(),
-                            FROM.toEpochMilli(),
-                            TO.toEpochMilli()
-                        )
-                );
+            assertThat(node.at(SIZE_PTR).asInt()).isEqualTo(0);
+            assertThat(node.at(API_ID_PTR).asText()).isEqualTo(API_ID);
+            assertThat(node.at(FROM_PTR).asLong()).isEqualTo(FROM.toEpochMilli());
+            assertThat(node.at(TO_PTR).asLong()).isEqualTo(TO.toEpochMilli());
+            assertThat(node.at(INTERVAL_PTR).asText()).isEqualTo("1800000ms");
+            assertThat(node.at(FIELD_FIELD_PTR).asText()).isEqualTo("status");
         }
 
         @Test
-        void should_generate_expected_avg_aggregation_query_json() {
+        void should_generate_expected_avg_aggregation_query_json() throws JsonProcessingException {
             HistogramQuery query = new HistogramQuery(
-                API_ID,
-                FROM,
-                TO,
-                INTERVAL,
-                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG))
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(FROM, TO, INTERVAL),
+                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG)),
+                Optional.empty()
             );
 
             String result = cut.adapt(query);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(result);
 
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                    {
-                      "size": 0,
-                      "query": {
-                        "bool": {
-                          "filter": [
-                            {
-                              "bool": {
-                                "minimum_should_match": 1,
-                                "should": [
-                                  {
-                                    "bool": {
-                                      "must": [
-                                        {
-                                          "terms": {
-                                            "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                          }
-                                        },
-                                        {
-                                          "terms": {
-                                            "entrypoint-id": [ "http-post", "http-get", "http-proxy" ]
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  }
-                                ]
-                              }
-                            },
-                            {
-                              "range": {
-                                "@timestamp": {
-                                  "from": %d,
-                                  "to": %d,
-                                  "include_lower": true,
-                                  "include_upper": true
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      },
-                      "aggregations": {
-                        "by_date": {
-                          "date_histogram": {
-                            "field": "@timestamp",
-                            "fixed_interval": "1800000ms",
-                            "min_doc_count": 0,
-                            "extended_bounds": {
-                              "min": %d,
-                              "max": %d
-                            }
-                          },
-                          "aggregations": {
-                            "avg_gateway-response-time-ms": {
-                              "avg": {
-                                "field": "gateway-response-time-ms"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                    """.formatted(
-                            FROM.toEpochMilli(),
-                            TO.toEpochMilli(),
-                            FROM.toEpochMilli(),
-                            TO.toEpochMilli()
-                        )
-                );
+            assertThat(node.at(SIZE_PTR).asInt()).isEqualTo(0);
+            assertThat(node.at(API_ID_PTR).asText()).isEqualTo(API_ID);
+            assertThat(node.at(FROM_PTR).asLong()).isEqualTo(FROM.toEpochMilli());
+            assertThat(node.at(TO_PTR).asLong()).isEqualTo(TO.toEpochMilli());
+            assertThat(node.at(INTERVAL_PTR).asText()).isEqualTo("1800000ms");
+            assertThat(node.at(AVG_FIELD_PTR).asText()).isEqualTo("gateway-response-time-ms");
+        }
+
+        @Test
+        void should_generate_expected_histogram_query_json_with_query_parameter() throws JsonProcessingException {
+            HistogramQuery query = new HistogramQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(FROM, TO, INTERVAL),
+                List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
+                Optional.of("status:200 AND method:GET")
+            );
+
+            String result = cut.adapt(query);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(result);
+
+            assertThat(node.at(SIZE_PTR).asInt()).isEqualTo(0);
+            assertThat(node.at(API_ID_PTR).asText()).isEqualTo(API_ID);
+            assertThat(node.at(FROM_PTR).asLong()).isEqualTo(FROM.toEpochMilli());
+            assertThat(node.at(TO_PTR).asLong()).isEqualTo(TO.toEpochMilli());
+            assertThat(node.at(STRING_QUERY_PTR).asText()).isEqualTo("status:200 AND method:GET");
+            assertThat(node.at(INTERVAL_PTR).asText()).isEqualTo("1800000ms");
+            assertThat(node.at(FIELD_FIELD_PTR).asText()).isEqualTo("status");
         }
     }
 
@@ -225,7 +128,7 @@ class SearchHistogramQueryAdapterTest {
         @Test
         void should_return_empty_when_no_aggregation() {
             SearchResponse response = new SearchResponse();
-            List<HistogramAggregate<?>> result = cut.adaptResponse(response);
+            List<HistogramAggregate> result = cut.adaptResponse(response);
             assertThat(result).isEmpty();
         }
 
@@ -270,23 +173,22 @@ class SearchHistogramQueryAdapterTest {
 
             cut.adapt(
                 new HistogramQuery(
-                    API_ID,
-                    FROM,
-                    TO,
-                    INTERVAL,
-                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD))
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(FROM, TO, INTERVAL),
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
+                    Optional.empty()
                 )
             );
 
-            List<HistogramAggregate<?>> result = cut.adaptResponse(response);
+            List<HistogramAggregate> result = cut.adaptResponse(response);
 
             assertThat(result).hasSize(1);
-            HistogramAggregate<Long> agg = (HistogramAggregate<Long>) result.getFirst();
-            assertThat(agg.getBuckets()).containsOnlyKeys("200", "202", "404");
+            HistogramAggregate agg = result.getFirst();
+            assertThat(agg.buckets()).containsOnlyKeys("200", "202", "404");
 
-            assertThat(agg.getBuckets().get("200")).containsExactly(1L, 0L);
-            assertThat(agg.getBuckets().get("202")).containsExactly(0L, 1L);
-            assertThat(agg.getBuckets().get("404")).containsExactly(0L, 2L);
+            assertThat(agg.buckets().get("200")).containsExactly(1L, 0L);
+            assertThat(agg.buckets().get("202")).containsExactly(0L, 1L);
+            assertThat(agg.buckets().get("404")).containsExactly(0L, 2L);
         }
 
         @Test
@@ -325,20 +227,19 @@ class SearchHistogramQueryAdapterTest {
 
             cut.adapt(
                 new HistogramQuery(
-                    API_ID,
-                    FROM,
-                    TO,
-                    INTERVAL,
-                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG))
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(FROM, TO, INTERVAL),
+                    List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG)),
+                    Optional.empty()
                 )
             );
 
-            List<HistogramAggregate<?>> result = cut.adaptResponse(response);
+            List<HistogramAggregate> result = cut.adaptResponse(response);
 
             assertThat(result).hasSize(1);
-            HistogramAggregate<Double> agg = (HistogramAggregate<Double>) result.getFirst();
-            assertThat(agg.getBuckets()).containsOnlyKeys("avg_gateway-response-time-ms");
-            assertThat(agg.getBuckets().get("avg_gateway-response-time-ms")).containsExactly(120.5, 110.0);
+            HistogramAggregate agg = result.getFirst();
+            assertThat(agg.buckets()).containsOnlyKeys("avg_gateway-response-time-ms");
+            assertThat(agg.buckets().get("avg_gateway-response-time-ms")).containsExactly(120L, 110L);
         }
     }
 }

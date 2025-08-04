@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,13 +57,14 @@ class SearchStatsUseCaseTest {
     void should_return_stats_analytics_when_valid() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        analyticsQueryService.statsAnalytics = new StatsAnalytics(1f, 2f, 3f, 4f, 5, 6f, 7f, 8f);
+        analyticsQueryService.statsAnalytics = new StatsAnalytics(1L, 2L, 3L, 4L, 5, 6L, 7L, 8L);
 
         var input = new SearchStatsUseCase.Input(
             MY_API,
             Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
             Instant.now().toEpochMilli(),
-            "field"
+            "field",
+            Optional.empty()
         );
         var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
@@ -79,7 +81,8 @@ class SearchStatsUseCaseTest {
             MY_API,
             Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
             Instant.now().toEpochMilli(),
-            "field"
+            "field",
+            Optional.empty()
         );
         var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
@@ -94,7 +97,8 @@ class SearchStatsUseCaseTest {
             MY_API,
             Instant.now().toEpochMilli(),
             Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
-            "field"
+            "field",
+            Optional.empty()
         );
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(IllegalTimeRangeException.class);
@@ -108,7 +112,8 @@ class SearchStatsUseCaseTest {
             MY_API,
             Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
             Instant.now().toEpochMilli(),
-            "field"
+            "field",
+            Optional.empty()
         );
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
@@ -122,7 +127,8 @@ class SearchStatsUseCaseTest {
             MY_API,
             Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
             Instant.now().toEpochMilli(),
-            "field"
+            "field",
+            Optional.empty()
         );
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);
@@ -136,9 +142,27 @@ class SearchStatsUseCaseTest {
             MY_API,
             Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
             Instant.now().toEpochMilli(),
-            "field"
+            "field",
+            Optional.empty()
         );
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
+    }
+
+    @Test
+    void should_pass_query_argument_to_stats_query() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
+        GraviteeContext.setCurrentEnvironment("environment-id");
+        var queryString = "status:200 AND method:GET";
+        analyticsQueryService.statsAnalytics = new StatsAnalytics(1L, 2L, 3L, 4L, 5, 6L, 7L, 8L);
+        var input = new SearchStatsUseCase.Input(
+            MY_API,
+            Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+            Instant.now().toEpochMilli(),
+            "field",
+            Optional.of(queryString)
+        );
+        var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
+        assertThat(result.analytics()).isNotNull();
     }
 }

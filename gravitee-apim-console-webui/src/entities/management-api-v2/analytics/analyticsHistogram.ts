@@ -22,6 +22,7 @@ export enum AggregationTypes {
 }
 
 export enum AggregationFields {
+  APPLICATION_ID = 'application-id',
   STATUS = 'status',
   GATEWAY_RESPONSE_TIME_MS = 'gateway-response-time-ms',
   ENDPOINT_RESPONSE_TIME_MS = 'endpoint-response-time-ms',
@@ -30,6 +31,7 @@ export enum AggregationFields {
 export interface AnalyticsHistogramAggregation {
   type: AggregationTypes;
   field: AggregationFields;
+  label?: string;
 }
 
 export interface AggregationHistogramTimestamp {

@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 public record GroupByQuery(
-    String apiId,
+    SearchTermId searchTermId,
     String field,
     List<Group> groups,
-    Order order,
-    Instant from,
-    Instant to,
-    String query // optional query string
+    Optional<Order> order,
+    TimeRange timeRange,
+    Optional<String> query
 ) {
     public record Group(long from, long to) {}
     public record Order(String field, boolean order, String type) {}

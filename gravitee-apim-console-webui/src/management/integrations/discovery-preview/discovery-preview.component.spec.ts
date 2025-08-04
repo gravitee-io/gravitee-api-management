@@ -119,6 +119,14 @@ describe('DiscoveryPreviewComponent', () => {
     expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], { relativeTo: TestBed.inject(ActivatedRoute) });
   });
 
+  it('should display partial discovery warning banner', async () => {
+    expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+    expectPreviewGetRequest(fakeDiscoveryPreview({ isPartiallyDiscovered: true }));
+
+    const bannerContent = await componentHarness.getPartialDiscoveryWarning().then((banner) => banner.getText());
+    expect(bannerContent).toContain('We were only able to discover a subset of the APIs listed below due to an extended discovery time.');
+  });
+
   describe('proceed', () => {
     it('should trigger ingest and return to overview when proceed', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
@@ -127,6 +135,18 @@ describe('DiscoveryPreviewComponent', () => {
       await componentHarness.getProceedButton().then((button) => button.click());
 
       expectIngestPostRequest(['testit', 'testit2', 'testit3']);
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], { relativeTo: TestBed.inject(ActivatedRoute) });
+    });
+
+    it('should pass an empty list of apis for ingestion in case of partial discovery when proceeding', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+      const preview = fakeDiscoveryPreview();
+      preview.isPartiallyDiscovered = true;
+      expectPreviewGetRequest(preview);
+
+      await componentHarness.getProceedButton().then((button) => button.click());
+
+      expectIngestPostRequest([]);
       expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], { relativeTo: TestBed.inject(ActivatedRoute) });
     });
 

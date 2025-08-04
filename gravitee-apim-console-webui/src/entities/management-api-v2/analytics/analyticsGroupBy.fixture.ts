@@ -28,6 +28,7 @@ export const fakeGroupByResponse = (modifier?: Partial<GroupByResponse>): GroupB
     metadata: {
       test: {
         name: 'test',
+        order: 1,
       },
     },
   };

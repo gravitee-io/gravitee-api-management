@@ -20,6 +20,7 @@ import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestA
 import io.gravitee.apim.core.analytics.use_case.SearchGroupByAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
+import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountByEventAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusOverTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseStatusRangesUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
@@ -42,6 +43,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
@@ -86,10 +88,14 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Inject
     private SearchStatsUseCase searchStatsUseCase;
 
+    @Inject
+    private SearchRequestsCountByEventAnalyticsUseCase searchRequestsCountByEventAnalyticsUseCase;
+
     @Path("/requests-count")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsRequestsCountResponse getApiAnalyticsRequestCount(@QueryParam("from") Long from, @QueryParam("to") Long to) {
         var end = Optional.ofNullable(to).map(Instant::ofEpochMilli);
         var start = Optional.ofNullable(from).map(Instant::ofEpochMilli);
@@ -107,6 +113,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsAverageMessagesPerRequestResponse getAverageMessagesPerRequest(
         @QueryParam("from") Long from,
         @QueryParam("to") Long to
@@ -127,6 +134,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsAverageConnectionDurationResponse getAverageConnectionDuration(
         @QueryParam("from") Long from,
         @QueryParam("to") Long to
@@ -147,6 +155,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsResponseStatusRangesResponse getResponseStatusRanges(@QueryParam("from") Long from, @QueryParam("to") Long to) {
         var request = new SearchResponseStatusRangesUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment(), from, to);
 
@@ -161,6 +170,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsOverPeriodResponse getResponseTimeOverTime(@QueryParam("from") Long from, @QueryParam("to") Long to) {
         Instant end = to != null ? Instant.ofEpochMilli(to) : Instant.now();
         Instant start = from != null ? Instant.ofEpochMilli(from) : end.minus(Duration.ofDays(1));
@@ -185,6 +195,7 @@ public class ApiAnalyticsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    @Deprecated(since = "4.9", forRemoval = true)
     public ApiAnalyticsResponseStatusOvertimeResponse getResponseStatusOvertime(@QueryParam("from") Long from, @QueryParam("to") Long to) {
         Instant end = to != null ? Instant.ofEpochMilli(to) : Instant.now();
         Instant start = from != null ? Instant.ofEpochMilli(from) : end.minus(Duration.ofDays(1));
@@ -207,28 +218,39 @@ public class ApiAnalyticsResource extends AbstractResource {
         @PathParam("apiId") String apiId,
         @BeanParam ApiAnalyticsParam apiAnalyticsParam
     ) {
-        if (apiAnalyticsParam.getType() == AnalyticsType.HISTOGRAM) {
-            var input = ApiAnalyticsParam.toHistogramInput(apiId, apiAnalyticsParam);
-            var output = searchHistogramAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-            var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
-            histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
-            return new ApiAnalyticsResponse(histogramResponse);
-        }
-        if (apiAnalyticsParam.getType() == AnalyticsType.GROUP_BY) {
-            var input = ApiAnalyticsParam.toGroupByInput(apiId, apiAnalyticsParam);
-            var output = searchGroupByAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-            var groupByResponse = ApiAnalyticsMapper.INSTANCE.mapGroupByAnalytics(output.analytics(), output.metadata());
-            return new ApiAnalyticsResponse(groupByResponse);
-        }
-        if (apiAnalyticsParam.getType() == AnalyticsType.STATS) {
-            var input = ApiAnalyticsParam.toStatsInput(apiId, apiAnalyticsParam);
-            var output = searchStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-            if (output.analytics() == null) {
-                throw new NotFoundException("No stats analytics found for api: " + apiId);
+        switch (apiAnalyticsParam.getType()) {
+            case HISTOGRAM -> {
+                var input = apiAnalyticsParam.toHistogramInput(apiId);
+                var output = searchHistogramAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
+                histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
+                return new ApiAnalyticsResponse(histogramResponse);
             }
-            var statsResponse = ApiAnalyticsMapper.INSTANCE.map(output.analytics());
-            return new ApiAnalyticsResponse(statsResponse);
+            case GROUP_BY -> {
+                var input = apiAnalyticsParam.toGroupByInput(apiId);
+                var output = searchGroupByAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                var groupByResponse = ApiAnalyticsMapper.INSTANCE.mapGroupByAnalytics(output.analytics(), output.metadata());
+                return new ApiAnalyticsResponse(groupByResponse);
+            }
+            case STATS -> {
+                var input = apiAnalyticsParam.toStatsInput(apiId);
+                var output = searchStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                if (output.analytics() == null) {
+                    throw new NotFoundException("No stats analytics found for api: " + apiId);
+                }
+                var statsResponse = ApiAnalyticsMapper.INSTANCE.map(output.analytics());
+                return new ApiAnalyticsResponse(statsResponse);
+            }
+            case COUNT -> {
+                var input = apiAnalyticsParam.toRequestsCountInput(apiId);
+                var output = searchRequestsCountByEventAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
+                if (output.result() == null) {
+                    throw new NotFoundException("No Count analytics found for api: " + apiId);
+                }
+                var countAnalytics = ApiAnalyticsMapper.INSTANCE.mapToCountAnalytics(output.result());
+                return new ApiAnalyticsResponse(countAnalytics);
+            }
+            default -> throw new BadRequestException("Unsupported Analytics Type");
         }
-        return new ApiAnalyticsResponse();
     }
 }

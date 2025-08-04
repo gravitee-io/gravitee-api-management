@@ -26,4 +26,9 @@ export interface ApiSearchQuery {
   ids?: string[];
   definitionVersion?: DefinitionVersion;
   definitionVersions?: DefinitionVersion[];
+  apiTypes?: string[];
+  statuses?: string[];
+  tags?: string[];
+  categories?: string[];
+  published?: string[];
 }

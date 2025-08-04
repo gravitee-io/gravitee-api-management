@@ -29,6 +29,7 @@ import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -37,6 +38,7 @@ import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -64,6 +67,7 @@ public class RollbackApiUseCase {
     private final ClosePlanDomainService closePlanDomainService;
     private final PlanCrudService planCrudService;
     private final AuditDomainService auditService;
+    private final FlowCrudService flowCrudService;
 
     public void execute(Input input) {
         Api api = eventQueryService
@@ -99,7 +103,15 @@ public class RollbackApiUseCase {
                     var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
 
                     // Rollback plans from API definition plans
-                    rollbackPlansV2(apiDefinition.getPlans(), apiUpdatedV2, input.auditInfo);
+                    var plans = rollbackPlansV2(apiDefinition.getPlans(), apiUpdatedV2, input.auditInfo);
+
+                    flowCrudService.saveApiFlowsV2(apiDefinition.getId(), apiDefinition.getFlows());
+                    for (var plan : apiDefinition.getPlans()) {
+                        flowCrudService.savePlanFlowsV2(plan.getId(), plan.getFlows());
+                    }
+                    for (String planId : plans.closedPlans()) {
+                        flowCrudService.savePlanFlowsV2(planId, List.of());
+                    }
 
                     yield apiUpdatedV2;
                 }
@@ -189,9 +201,9 @@ public class RollbackApiUseCase {
             );
     }
 
-    private void rollbackPlansV2(List<io.gravitee.definition.model.Plan> apiDefinitionPlans, Api api, AuditInfo auditInfo) {
+    private Plans rollbackPlansV2(List<io.gravitee.definition.model.Plan> apiDefinitionPlans, Api api, AuditInfo auditInfo) {
         if (apiDefinitionPlans == null) {
-            return;
+            return new Plans(List.of(), List.of());
         }
 
         var plansToUpdateById = stream(apiDefinitionPlans)
@@ -236,5 +248,21 @@ public class RollbackApiUseCase {
         existingPlansMustBeRollbackOrClose
             .getOrDefault(REOPEN, List.of())
             .forEach(plan -> createPlanDomainService.create(plan, List.of(), api, auditInfo));
+
+        var opens = Stream
+            .concat(
+                existingPlansMustBeRollbackOrClose.getOrDefault(ROLLBACK, List.of()).stream(),
+                existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).stream()
+            )
+            .map(io.gravitee.apim.core.plan.model.Plan::getId)
+            .toList();
+        var closes = existingPlansMustBeRollbackOrClose
+            .getOrDefault(CLOSE, List.of())
+            .stream()
+            .map(io.gravitee.apim.core.plan.model.Plan::getId)
+            .toList();
+        return new Plans(opens, closes);
     }
+
+    private record Plans(Collection<String> openPlans, Collection<String> closedPlans) {}
 }

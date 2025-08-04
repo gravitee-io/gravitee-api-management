@@ -18,9 +18,8 @@ import { NgModule } from '@angular/core';
 
 import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
 import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
-import { ApiAnalyticsProxyComponent } from './analytics/api-analytics-proxy/api-analytics-proxy.component';
 
 @NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsDetailsModule, ApiAnalyticsProxyComponent],
+  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsDetailsModule],
 })
 export class ApiTrafficV4Module {}

@@ -113,6 +113,7 @@ public interface IntegrationMapper {
                             )
                     )
                     .toList()
-            );
+            )
+            .isPartiallyDiscovered(preview.isPartialDiscovery());
     }
 }

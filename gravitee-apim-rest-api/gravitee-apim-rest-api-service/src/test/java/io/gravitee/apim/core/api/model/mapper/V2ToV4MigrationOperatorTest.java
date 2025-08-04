@@ -273,7 +273,7 @@ class V2ToV4MigrationOperatorTest {
             assertThat(v4Definition.getApiVersion()).isEqualTo("2.0.1");
             assertThat(v4Definition.getTags()).containsExactlyInAnyOrder("tag1", "tag2", "tag3");
             assertThat(v4Definition.getType()).isEqualTo(ApiType.PROXY);
-            assertThat(v4Definition.getProperties()).isEmpty();
+            assertThat(v4Definition.getProperties()).isNull();
             assertThat(v4Definition.getResources()).isEmpty();
         }
     }
@@ -465,25 +465,6 @@ class V2ToV4MigrationOperatorTest {
                 Arguments.of(Plan.PlanValidationType.AUTO, Plan.PlanValidationType.AUTO),
                 Arguments.of(Plan.PlanValidationType.MANUAL, Plan.PlanValidationType.MANUAL)
             );
-        }
-
-        @Test
-        void should_fail_when_plan_has_flows() {
-            var flow = new io.gravitee.definition.model.flow.Flow();
-            flow.setName("test-flow");
-
-            var planDef = new io.gravitee.definition.model.Plan();
-            planDef.setId("plan-id");
-            planDef.setName("Test Plan");
-            planDef.setStatus("PUBLISHED");
-            planDef.setSecurity("api-key");
-            planDef.setFlows(List.of(flow));
-
-            Plan plan = Plan.builder().planDefinitionV2(planDef).build();
-
-            MigrationResult<Plan> planResult = mapper.mapPlan(plan);
-
-            assertThat(planResult.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         }
 
         @Test

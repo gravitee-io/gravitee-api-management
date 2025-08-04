@@ -38,15 +38,17 @@ export interface Sort {
   direction: 'asc' | 'desc' | '';
 }
 
+export interface GioTableWrapperPagination {
+  /** The pagination index start with 1 */
+  index: number;
+  /** The pagination size */
+  size: number;
+}
+
 export interface GioTableWrapperFilters {
   searchTerm: string;
   sort?: Sort;
-  pagination: {
-    /** The pagination index start with 1 */
-    index: number;
-    /** The pagination size */
-    size: number;
-  };
+  pagination: GioTableWrapperPagination;
 }
 
 const INITIAL_FILTERS_VALUE: GioTableWrapperFilters = {

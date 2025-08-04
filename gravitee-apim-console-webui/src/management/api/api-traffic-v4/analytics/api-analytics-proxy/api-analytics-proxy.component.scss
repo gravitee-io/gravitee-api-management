@@ -4,33 +4,25 @@
 @use '../src/scss/gio-layout' as gio-layout;
 
 :host {
-  @include gio-layout.gio-responsive-margin-container;
-}
+  @include gio-layout.gio-full-width-content-container;
 
-.api-analytics {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  .title {
-    margin: 0;
-  }
-
-  .actions {
-    display: flex;
-    gap: 8px;
-  }
-}
-
 .widgets {
   display: grid;
   grid-template-columns: 2fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.top-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: 24px;
 }
 

@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.ssl.TrustStoreType;
 import io.gravitee.secrets.api.annotation.Secret;
 import java.io.Serial;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,6 +31,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode(callSuper = true)
 public class PEMTrustStore extends TrustStore {
 
     @Serial

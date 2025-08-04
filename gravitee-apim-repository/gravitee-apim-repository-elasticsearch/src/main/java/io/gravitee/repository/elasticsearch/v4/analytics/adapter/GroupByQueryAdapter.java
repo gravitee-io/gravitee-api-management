@@ -48,7 +48,7 @@ public class GroupByQueryAdapter {
         root.set("aggregations", aggs);
 
         // Set instance fields for later use in adaptResponse
-        if (query.groups() != null && !query.groups().isEmpty()) {
+        if (!query.groups().isEmpty()) {
             this.aggName = "by_" + query.field() + "_range";
         } else {
             this.aggName = "by_" + query.field();
@@ -71,25 +71,21 @@ public class GroupByQueryAdapter {
         filterArray.add(MAPPER.createObjectNode().set("bool", boolShould));
 
         ObjectNode termNode = MAPPER.createObjectNode();
-        termNode.set("term", MAPPER.createObjectNode().put("api-id", query.apiId()));
+        termNode.set("term", MAPPER.createObjectNode().put(query.searchTermId().searchTerm().getField(), query.searchTermId().id()));
         filterArray.add(termNode);
 
         // Add query_string if query.query() is present
-        if (query.query() != null && !query.query().isEmpty()) {
-            ObjectNode queryStringNode = MAPPER.createObjectNode();
-            queryStringNode.set("query_string", MAPPER.createObjectNode().put("query", query.query()));
-            filterArray.add(queryStringNode);
-        }
+        query
+            .query()
+            .filter(q -> !q.isEmpty())
+            .ifPresent(q -> {
+                ObjectNode queryStringNode = MAPPER.createObjectNode();
+                queryStringNode.set("query_string", MAPPER.createObjectNode().put("query", q));
+                filterArray.add(queryStringNode);
+            });
 
-        // Time range (from/to are never null)
-        ObjectNode rangeNode = MAPPER.createObjectNode();
-        ObjectNode tsRange = MAPPER.createObjectNode();
-        tsRange.put("from", query.from().toEpochMilli());
-        tsRange.put("to", query.to().toEpochMilli());
-        tsRange.put("include_lower", true);
-        tsRange.put("include_upper", true);
-        rangeNode.set("@timestamp", tsRange);
-        filterArray.add(MAPPER.createObjectNode().set("range", rangeNode));
+        // Time range using TimeRangeAdapter
+        filterArray.add(TimeRangeAdapter.toRangeNode(query.timeRange()));
 
         ObjectNode bool = MAPPER.createObjectNode();
         bool.set("filter", filterArray);
@@ -102,17 +98,19 @@ public class GroupByQueryAdapter {
     private ObjectNode createAggregationsNode(GroupByQuery query) {
         ObjectNode aggs = MAPPER.createObjectNode();
 
-        if (query.groups() != null && !query.groups().isEmpty()) {
+        if (!query.groups().isEmpty()) {
             ObjectNode byRange = MAPPER.createObjectNode();
             ObjectNode rangeAgg = MAPPER.createObjectNode();
             rangeAgg.put("field", query.field());
             var rangesArray = MAPPER.createArrayNode();
-            for (GroupByQuery.Group group : query.groups()) {
-                ObjectNode rangeObj = MAPPER.createObjectNode();
-                rangeObj.put("from", group.from());
-                rangeObj.put("to", group.to());
-                rangesArray.add(rangeObj);
-            }
+            query
+                .groups()
+                .forEach(group -> {
+                    ObjectNode rangeObj = MAPPER.createObjectNode();
+                    rangeObj.put("from", group.from());
+                    rangeObj.put("to", group.to());
+                    rangesArray.add(rangeObj);
+                });
             rangeAgg.set("ranges", rangesArray);
             byRange.set("range", rangeAgg);
             aggs.set("by_" + query.field() + "_range", byRange);
@@ -121,21 +119,23 @@ public class GroupByQueryAdapter {
             ObjectNode termsAgg = MAPPER.createObjectNode();
             termsAgg.put("field", query.field());
             termsAgg.put("size", 1000);
-            if (query.order() != null) {
-                ObjectNode orderNode = MAPPER.createObjectNode();
-                orderNode.put(query.order().field(), query.order().order() ? "asc" : "desc");
-                termsAgg.set("order", orderNode);
+            query
+                .order()
+                .ifPresent(order -> {
+                    ObjectNode orderNode = MAPPER.createObjectNode();
+                    orderNode.put(order.field(), order.order() ? "asc" : "desc");
+                    termsAgg.set("order", orderNode);
 
-                if (query.order().type() != null && query.order().type().equalsIgnoreCase("AVG")) {
-                    ObjectNode aggregationsNode = MAPPER.createObjectNode();
-                    ObjectNode avgAgg = MAPPER.createObjectNode();
-                    ObjectNode avgField = MAPPER.createObjectNode();
-                    avgField.put("field", query.order().field());
-                    avgAgg.set("avg", avgField);
-                    aggregationsNode.set(query.order().field(), avgAgg);
-                    byTerms.set("aggregations", aggregationsNode);
-                }
-            }
+                    if (order.type() != null && order.type().equalsIgnoreCase("AVG")) {
+                        ObjectNode aggregationsNode = MAPPER.createObjectNode();
+                        ObjectNode avgAgg = MAPPER.createObjectNode();
+                        ObjectNode avgField = MAPPER.createObjectNode();
+                        avgField.put("field", order.field());
+                        avgAgg.set("avg", avgField);
+                        aggregationsNode.set(order.field(), avgAgg);
+                        byTerms.set("aggregations", aggregationsNode);
+                    }
+                });
             byTerms.set("terms", termsAgg);
             aggs.set("by_" + query.field(), byTerms);
         }

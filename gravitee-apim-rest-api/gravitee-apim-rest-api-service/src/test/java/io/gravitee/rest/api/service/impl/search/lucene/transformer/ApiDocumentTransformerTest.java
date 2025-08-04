@@ -30,7 +30,9 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -67,9 +69,7 @@ class ApiDocumentTransformerTest {
     @Test
     void shouldTransform() {
         ApiEntity toTransform = getApiEntity();
-
         Document transformed = cut.transform(toTransform);
-
         assertDocumentMatchesInputApiEntity(toTransform, transformed);
     }
 
@@ -77,6 +77,8 @@ class ApiDocumentTransformerTest {
     void shouldTransformWithoutError_OnMissingReferenceId() {
         ApiEntity api = new ApiEntity();
         api.setId("api-uuid");
+        api.setLifecycleState(ApiLifecycleState.CREATED);
+        api.setVisibility(Visibility.PUBLIC);
         Document doc = cut.transform(api);
         assertThat(doc.get("id")).isEqualTo(api.getId());
     }
@@ -85,6 +87,8 @@ class ApiDocumentTransformerTest {
     void shouldTransformWithoutError_V4ApiOnDeleteMode() {
         var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api.setId("api-uuid");
+        api.setLifecycleState(ApiLifecycleState.CREATED);
+        api.setVisibility(Visibility.PUBLIC);
         api.setDefinitionVersion(null);
         api.setName(null);
 
@@ -99,6 +103,8 @@ class ApiDocumentTransformerTest {
         void v4_as_endpoint_group() {
             var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
             api.setId("api-uuid");
+            api.setLifecycleState(ApiLifecycleState.CREATED);
+            api.setVisibility(Visibility.PUBLIC);
             api.setDefinitionVersion(DefinitionVersion.V4);
             api.setName("name");
             api.setEndpointGroups(List.of(new EndpointGroup(new EndpointGroupServices(null, new Service(true, true, "type", "conf")))));
@@ -111,6 +117,8 @@ class ApiDocumentTransformerTest {
         void v4_as_endpoint_() {
             var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
             api.setId("api-uuid");
+            api.setLifecycleState(ApiLifecycleState.CREATED);
+            api.setVisibility(Visibility.PUBLIC);
             api.setDefinitionVersion(DefinitionVersion.V4);
             api.setName("name");
             var endpointGroup = new EndpointGroup(new EndpointGroupServices(null, null));
@@ -127,6 +135,8 @@ class ApiDocumentTransformerTest {
         ApiEntity toTransform = new ApiEntity();
         toTransform.setId("apiId");
         toTransform.setName("name");
+        toTransform.setLifecycleState(ApiLifecycleState.CREATED);
+        toTransform.setVisibility(Visibility.PUBLIC);
         toTransform.setDescription("description");
         toTransform.setReferenceId("xxxxxx");
         toTransform.setReferenceType("env1");

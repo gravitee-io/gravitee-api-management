@@ -15,6 +15,8 @@
  */
 package inmemory;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
+
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -127,13 +129,19 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
         return flows;
     }
 
-    public List<io.gravitee.definition.model.flow.Flow> savePlanFlowsV2(String planId, List<io.gravitee.definition.model.flow.Flow> flows) {
-        planFlowsV2.put(planId, flows);
-        return flows;
+    @Override
+    public void savePlanFlowsV2(String planId, List<io.gravitee.definition.model.flow.Flow> flows) {
+        if (isEmpty(flows)) {
+            planFlowsV2.remove(planId);
+        } else {
+            planFlowsV2.put(planId, flows);
+            planFlowsHttpV4.remove(planId);
+        }
     }
 
-    public List<io.gravitee.definition.model.flow.Flow> saveApiFlowsV2(String apiId, List<io.gravitee.definition.model.flow.Flow> flows) {
+    @Override
+    public void saveApiFlowsV2(String apiId, List<io.gravitee.definition.model.flow.Flow> flows) {
         apiFlowsV2.put(apiId, flows);
-        return flows;
+        apiFlowsHttpV4.remove(apiId);
     }
 }

@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.Getter;
 
 public interface AnalyticsQueryService {
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
@@ -75,6 +76,23 @@ public interface AnalyticsQueryService {
 
     RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
+    @Getter
+    enum SearchTerm {
+        API("api-id");
+
+        private final String field;
+
+        SearchTerm(String field) {
+            this.field = field;
+        }
+    }
+
+    record SearchTermId(SearchTerm searchTerm, String id) {
+        public static SearchTermId forApi(String apiId) {
+            return new SearchTermId(SearchTerm.API, apiId);
+        }
+    }
+
     Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
     Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters);
@@ -83,10 +101,30 @@ public interface AnalyticsQueryService {
 
     Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery);
 
-    record HistogramQuery(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
+    Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query);
 
-    record GroupByQuery(String apiId, Instant from, Instant to, String field, List<Group> groups, Order order, String query) {
+    record CountQuery(SearchTermId searchTermId, Instant from, Instant to) {}
+
+    record HistogramQuery(
+        SearchTermId searchTermId,
+        Instant from,
+        Instant to,
+        Duration interval,
+        List<Aggregation> aggregations,
+        Optional<String> query
+    ) {}
+
+    record GroupByQuery(
+        SearchTermId searchTermId,
+        Instant from,
+        Instant to,
+        String field,
+        List<Group> groups,
+        Optional<Order> order,
+        Optional<String> query
+    ) {
         public record Group(long from, long to) {}
+
         public record Order(String field, boolean order, String type) {
             public static Order valueOf(String param) {
                 String field = null;
@@ -107,7 +145,7 @@ public interface AnalyticsQueryService {
         }
     }
 
-    record StatsQuery(String apiId, String field, Instant from, Instant to) {}
+    record StatsQuery(SearchTermId searchTermId, String field, Instant from, Instant to, Optional<String> query) {}
 
     record ResponseStatusOverTimeQuery(
         List<String> apiIds,

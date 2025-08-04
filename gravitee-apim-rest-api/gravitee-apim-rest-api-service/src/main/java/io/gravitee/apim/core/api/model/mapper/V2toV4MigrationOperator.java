@@ -18,6 +18,8 @@ package io.gravitee.apim.core.api.model.mapper;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.v4.flow.Flow;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -25,6 +27,7 @@ public class V2toV4MigrationOperator {
 
     private static final ApiMigration apiMigration = new ApiMigration();
     private static final PlanMigration planMigration = new PlanMigration();
+    private static final FlowMigration flowMigration = new FlowMigration();
 
     public MigrationResult<Api> mapApi(Api source) {
         return apiMigration.mapApi(source);
@@ -32,5 +35,9 @@ public class V2toV4MigrationOperator {
 
     public MigrationResult<Plan> mapPlan(Plan plan) {
         return planMigration.mapPlan(plan);
+    }
+
+    public MigrationResult<List<Flow>> mapFlows(Iterable<io.gravitee.definition.model.flow.Flow> flows) {
+        return flowMigration.mapFlows(flows);
     }
 }

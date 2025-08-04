@@ -24,15 +24,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.FlowAdapter;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.selector.Selector;
-import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -41,7 +41,6 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
-import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -142,7 +141,7 @@ class FlowCrudServiceImplTest {
             var result = service.saveApiFlows(API_ID, flows);
 
             // Then
-            flows.get(0).setId(result.get(0).getId());
+            flows.getFirst().setId(result.getFirst().getId());
             assertThat(result).isEqualTo(flows);
         }
 
@@ -209,7 +208,7 @@ class FlowCrudServiceImplTest {
 
             assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(repoFlow);
 
-            assertThat(savedFlows.get(0)).usingRecursiveComparison().isEqualTo(flows.get(0).toBuilder().id("generated-id").build());
+            assertThat(savedFlows.getFirst()).usingRecursiveComparison().isEqualTo(flows.getFirst().toBuilder().id("generated-id").build());
         }
 
         @Test
@@ -223,7 +222,7 @@ class FlowCrudServiceImplTest {
             var result = service.saveNativeApiFlows(API_ID, flows);
 
             // Then
-            flows.get(0).setId(result.get(0).getId());
+            flows.getFirst().setId(result.getFirst().getId());
             assertThat(result).isEqualTo(flows);
         }
 
@@ -299,7 +298,7 @@ class FlowCrudServiceImplTest {
 
             // When
             var result = service.savePlanFlows(PLAN_ID, flows);
-            flows.get(0).setId(result.get(0).getId());
+            flows.getFirst().setId(result.getFirst().getId());
 
             // Then
             assertThat(result).isEqualTo(flows);
@@ -322,26 +321,16 @@ class FlowCrudServiceImplTest {
 
         @Test
         void should_delete_one_existing_and_create_new_flow() throws TechnicalException {
-            Flow flow1 = new Flow();
-            flow1.setId("id1");
-            flow1.setName("flow1");
-            io.gravitee.repository.management.model.flow.Flow repoFlow1 = FlowAdapter.INSTANCE.toRepository(
-                flow1,
-                FlowReferenceType.API,
-                API_ID,
-                0
-            );
+            Flow flow1 = Flow.builder().id("id1").name("flow1").build();
+            var repoFlow1 = FlowAdapter.INSTANCE.toRepository(flow1, FlowReferenceType.API, API_ID, 0);
             repoFlow1.setId(flow1.getId());
-            io.gravitee.definition.model.v4.flow.Flow flow2 = new io.gravitee.definition.model.v4.flow.Flow();
-            flow2.setName("flow2");
+            io.gravitee.definition.model.v4.flow.Flow flow2 = io.gravitee.definition.model.v4.flow.Flow.builder().name("flow2").build();
 
             when(flowRepository.findByReference(any(), eq(API_ID))).thenAnswer(invocation -> List.of(repoFlow1));
             when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            List<io.gravitee.definition.model.v4.flow.Flow> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow2));
-            assertThat(flowServiceByReference).isNotNull();
-            assertThat(flowServiceByReference.size()).isEqualTo(1);
-            assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow2");
+            var flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow2));
+            assertThat(flowServiceByReference).map(AbstractFlow::getName).containsExactly("flow2");
 
             verify(flowRepository, never()).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
             verify(flowRepository, times(1)).deleteAllById(Set.of(flow1.getId()));
@@ -350,28 +339,17 @@ class FlowCrudServiceImplTest {
 
         @Test
         void should_update_one_and_create_flow() throws TechnicalException {
-            io.gravitee.definition.model.v4.flow.Flow flow1 = new io.gravitee.definition.model.v4.flow.Flow();
-            flow1.setId("id1");
-            flow1.setName("flow1");
-            io.gravitee.repository.management.model.flow.Flow repoFlow1 = FlowAdapter.INSTANCE.toRepository(
-                flow1,
-                FlowReferenceType.API,
-                API_ID,
-                0
-            );
+            var flow1 = io.gravitee.definition.model.v4.flow.Flow.builder().id("id1").name("flow1").build();
+            var repoFlow1 = FlowAdapter.INSTANCE.toRepository(flow1, FlowReferenceType.API, API_ID, 0);
             repoFlow1.setId(flow1.getId());
-            io.gravitee.definition.model.v4.flow.Flow flow2 = new io.gravitee.definition.model.v4.flow.Flow();
-            flow2.setName("flow2");
+            var flow2 = io.gravitee.definition.model.v4.flow.Flow.builder().name("flow2").build();
 
             when(flowRepository.findByReference(any(), eq(API_ID))).thenAnswer(invocation -> List.of(repoFlow1));
             when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
             when(flowRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            List<io.gravitee.definition.model.v4.flow.Flow> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow1, flow2));
-            assertThat(flowServiceByReference).isNotNull();
-            assertThat(flowServiceByReference.size()).isEqualTo(2);
-            assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");
-            assertThat(flowServiceByReference.get(1).getName()).isEqualTo("flow2");
+            var flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow1, flow2));
+            assertThat(flowServiceByReference).map(AbstractFlow::getName).containsExactly("flow1", "flow2");
 
             verify(flowRepository, never()).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
             verify(flowRepository, never()).deleteAllById(anySet());
@@ -436,7 +414,7 @@ class FlowCrudServiceImplTest {
 
             // When
             var result = service.savePlanFlows(PLAN_ID, flows);
-            flows.get(0).setId(result.get(0).getId());
+            flows.getFirst().setId(result.getFirst().getId());
 
             // Then
             assertThat(result).isEqualTo(flows);
@@ -476,9 +454,7 @@ class FlowCrudServiceImplTest {
             when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             List<io.gravitee.definition.model.v4.flow.Flow> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow2));
-            assertThat(flowServiceByReference).isNotNull();
-            assertThat(flowServiceByReference.size()).isEqualTo(1);
-            assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow2");
+            assertThat(flowServiceByReference).map(AbstractFlow::getName).containsExactly("flow2");
 
             verify(flowRepository, never()).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
             verify(flowRepository, times(1)).deleteAllById(Set.of(flow1.getId()));
@@ -487,28 +463,17 @@ class FlowCrudServiceImplTest {
 
         @Test
         void should_update_one_and_create_flow() throws TechnicalException {
-            io.gravitee.definition.model.v4.flow.Flow flow1 = new io.gravitee.definition.model.v4.flow.Flow();
-            flow1.setId("id1");
-            flow1.setName("flow1");
-            io.gravitee.repository.management.model.flow.Flow repoFlow1 = FlowAdapter.INSTANCE.toRepository(
-                flow1,
-                FlowReferenceType.API,
-                API_ID,
-                0
-            );
+            var flow1 = io.gravitee.definition.model.v4.flow.Flow.builder().id("id1").name("flow1").build();
+            var repoFlow1 = FlowAdapter.INSTANCE.toRepository(flow1, FlowReferenceType.API, API_ID, 0);
             repoFlow1.setId(flow1.getId());
-            io.gravitee.definition.model.v4.flow.Flow flow2 = new io.gravitee.definition.model.v4.flow.Flow();
-            flow2.setName("flow2");
+            var flow2 = io.gravitee.definition.model.v4.flow.Flow.builder().name("flow2").build();
 
             when(flowRepository.findByReference(any(), eq(API_ID))).thenAnswer(invocation -> List.of(repoFlow1));
             when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
             when(flowRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            List<io.gravitee.definition.model.v4.flow.Flow> flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow1, flow2));
-            assertThat(flowServiceByReference).isNotNull();
-            assertThat(flowServiceByReference.size()).isEqualTo(2);
-            assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");
-            assertThat(flowServiceByReference.get(1).getName()).isEqualTo("flow2");
+            var flowServiceByReference = service.saveApiFlows(API_ID, List.of(flow1, flow2));
+            assertThat(flowServiceByReference).map(AbstractFlow::getName).containsExactly("flow1", "flow2");
 
             verify(flowRepository, never()).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
             verify(flowRepository, never()).deleteAllById(anySet());
@@ -783,8 +748,7 @@ class FlowCrudServiceImplTest {
             var result = service.getApiV2Flows(API_ID);
 
             // Then
-            assertThat(result.get(0)).isNotNull();
-            assertThat(result.get(0).getName()).isEqualTo("My flow");
+            assertThat(result).map(io.gravitee.definition.model.flow.Flow::getName).containsExactly("My flow");
         }
 
         @Test
@@ -813,6 +777,159 @@ class FlowCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurs while trying to get flows for API: api-id");
+        }
+    }
+
+    @Nested
+    class SaveApiFlowsV2 {
+
+        @Test
+        @SneakyThrows
+        void should_delete_existing_flows() {
+            // Given
+
+            // When
+            service.saveApiFlowsV2(API_ID, List.of());
+
+            // Then
+            verify(flowRepository).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_save_flows() {
+            // Given
+            var flows = List.of(io.gravitee.definition.model.flow.Flow.builder().name("My flow").enabled(true).build());
+
+            // When
+            service.saveApiFlowsV2(API_ID, flows);
+
+            // Then
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.flow.Flow.class);
+            verify(flowRepository).create(captor.capture());
+
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    io.gravitee.repository.management.model.flow.Flow
+                        .builder()
+                        .referenceType(FlowReferenceType.API)
+                        .referenceId(API_ID)
+                        .order(0)
+                        .id("generated-id")
+                        .enabled(true)
+                        .name("My flow")
+                        .createdAt(Date.from(INSTANT_NOW))
+                        .updatedAt(Date.from(INSTANT_NOW))
+                        .pre(List.of())
+                        .post(List.of())
+                        .methods(Set.of())
+                        .operator(FlowOperator.STARTS_WITH)
+                        .path("")
+                        .build()
+                );
+        }
+    }
+
+    @Nested
+    class SavePlanFlowsV2 {
+
+        @Test
+        @SneakyThrows
+        void should_delete_existing_flows() {
+            // When
+            service.savePlanFlowsV2(PLAN_ID, List.of());
+
+            // Then
+            verify(flowRepository).deleteByReferenceIdAndReferenceType(PLAN_ID, FlowReferenceType.PLAN);
+            verifyNoMoreInteractions(flowRepository);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_save_flows() {
+            // Given
+            var flows = List.of(io.gravitee.definition.model.flow.Flow.builder().name("My flow").enabled(true).build());
+
+            // When
+            service.savePlanFlowsV2(PLAN_ID, flows);
+
+            // Then
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.flow.Flow.class);
+            verify(flowRepository).create(captor.capture());
+
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    io.gravitee.repository.management.model.flow.Flow
+                        .builder()
+                        .referenceType(FlowReferenceType.PLAN)
+                        .referenceId(PLAN_ID)
+                        .order(0)
+                        .pre(List.of())
+                        .post(List.of())
+                        .methods(Set.of())
+                        .operator(FlowOperator.STARTS_WITH)
+                        .path("")
+                        .id("generated-id")
+                        .enabled(true)
+                        .name("My flow")
+                        .createdAt(Date.from(INSTANT_NOW))
+                        .updatedAt(Date.from(INSTANT_NOW))
+                        .build()
+                );
+        }
+
+        @Test
+        void should_delete_one_existing_and_create_new_flow() throws TechnicalException {
+            // Given
+            var flow1 = io.gravitee.definition.model.flow.Flow.builder().id("id1").name("flow1").build();
+            var repoFlow1 = FlowAdapter.INSTANCE.toRepository(flow1, FlowReferenceType.API, API_ID, 0);
+            repoFlow1.setId(flow1.getId());
+            var flow2 = io.gravitee.definition.model.flow.Flow.builder().name("flow2").build();
+
+            when(flowRepository.findByReference(any(), eq(API_ID))).thenAnswer(invocation -> List.of(repoFlow1));
+            when(flowRepository.create(any()))
+                .thenAnswer(invocation -> {
+                    var argument = (io.gravitee.repository.management.model.flow.Flow) invocation.getArgument(0);
+                    argument.setId("generated-id");
+                    return argument;
+                });
+
+            // When
+            service.saveApiFlowsV2(API_ID, List.of(flow2));
+
+            // Then
+            verify(flowRepository, never()).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
+            verify(flowRepository, times(1)).deleteAllById(Set.of(flow1.getId()));
+            verify(flowRepository, times(1)).create(any());
+        }
+
+        @Test
+        void should_update_one_and_create_flow() throws TechnicalException {
+            // Given
+            var flow1 = io.gravitee.definition.model.flow.Flow.builder().id("id1").name("flow1").build();
+            var repoFlow1 = FlowAdapter.INSTANCE.toRepository(flow1, FlowReferenceType.API, API_ID, 0);
+            repoFlow1.setId(flow1.getId());
+            var flow2 = io.gravitee.definition.model.flow.Flow.builder().name("flow2").build();
+
+            when(flowRepository.findByReference(any(), eq(API_ID))).thenAnswer(invocation -> List.of(repoFlow1));
+            when(flowRepository.create(any()))
+                .thenAnswer(invocation -> {
+                    var argument = (io.gravitee.repository.management.model.flow.Flow) invocation.getArgument(0);
+                    argument.setId("generated-id");
+                    return argument;
+                });
+            when(flowRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            service.saveApiFlowsV2(API_ID, List.of(flow1, flow2));
+
+            // Then
+            verify(flowRepository, never()).deleteByReferenceIdAndReferenceType(API_ID, FlowReferenceType.API);
+            verify(flowRepository, never()).deleteAllById(anySet());
+            verify(flowRepository, times(1)).create(any());
+            verify(flowRepository, times(1)).update(any());
         }
     }
 }

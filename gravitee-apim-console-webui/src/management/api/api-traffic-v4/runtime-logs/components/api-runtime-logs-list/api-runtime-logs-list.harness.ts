@@ -13,41 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { ComponentHarness, parallel } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { MatPaginatorHarness } from '@angular/material/paginator/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
-import { ApiRuntimeLogsEmptyHarness } from '../api-runtime-logs-empty';
-import { ApiRuntimeLogsListRowHarness } from '../api-runtime-logs-list-row';
+import { GioTableWrapperHarness } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 export class ApiRuntimeLogsListHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-list';
 
-  private emptyPanel = this.locatorForOptional(ApiRuntimeLogsEmptyHarness);
-  private impactBanner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
-  private openSettingsButtonInBanner = this.locatorFor(MatButtonHarness.with({ selector: '[data-testId=banner-open-settings-button]' }));
-
+  private getLogsTable = this.locatorFor(MatTableHarness);
+  private getTableWrapper = this.locatorFor(GioTableWrapperHarness);
   public paginator = this.locatorForOptional(MatPaginatorHarness);
-  public rows = this.locatorForAll(ApiRuntimeLogsListRowHarness);
 
-  async isEmptyPanelDisplayed(): Promise<boolean> {
-    return (await this.emptyPanel()) !== null;
+  async countRows(): Promise<number> {
+    return this.getLogsTable()
+      .then((table) => table.getRows())
+      .then((rows) => rows.length);
   }
 
-  async isImpactBannerDisplayed(): Promise<boolean> {
-    return (await this.impactBanner()) !== null;
+  async computeTableCells() {
+    const table = await this.getLogsTable();
+
+    const headerRows = await table.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    return { headerCells, rowCells };
   }
 
-  async clickOpenSettings(): Promise<void> {
-    const panel = await this.emptyPanel();
-    const impactBanner = await this.impactBanner();
-
-    if (panel != null) {
-      return panel.openSettingsButton().then((button) => button.click());
-    }
-    if (impactBanner != null) {
-      return this.openSettingsButtonInBanner().then((button) => button.click());
-    }
+  async getPaginator() {
+    return this.getTableWrapper().then((table) => table.getPaginator('header'));
   }
 }

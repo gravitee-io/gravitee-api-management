@@ -2146,6 +2146,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics requests count
             description: |-
                 Get API analytics request count.
@@ -2167,6 +2168,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics average messages per request
             description: |-
                 Get API analytics average messages per request.
@@ -2187,6 +2189,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics average connection duration
             description: |-
                 Get API analytics average connection duration. Duration is only computed for ended requests.
@@ -2208,6 +2211,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics response status counts
             description: |-
                 Get API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
@@ -2228,6 +2232,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics average response time
             description: |-
                 Get API Analytics average response time
@@ -2248,6 +2253,7 @@ paths:
         get:
             tags:
                 - API Analytics
+            deprecated: true
             summary: Get API Analytics response status counts over time
             description: |-
                 Get API analytics response status counts over time.
@@ -3761,6 +3767,26 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/DefinitionVersion"
+                apiTypes:
+                    type: array
+                    items:
+                        type: string
+                statuses:
+                    type: array
+                    items:
+                        type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+                categories:
+                  type: array
+                  items:
+                    type: string
+                published:
+                  type: array
+                  items:
+                    type: string
         ApiType:
             type: string
             description: API's type.
@@ -4354,6 +4380,10 @@ components:
                     type: number
                     description: number of update APIs found to ingest
                     example: 4
+                isPartiallyDiscovered:
+                    type: boolean
+                    description: flag to tell if apis where only partially discovered due to timeout
+                    example: false
                 apis:
                     type: array
                     description: number of new APIs found to ingest
@@ -6550,6 +6580,14 @@ components:
                     type: boolean
                     description: The flag indicating if the request has ended.
                     example: true
+                gatewayResponseTime:
+                  type: integer
+                  description: The response time in ms
+                  example: 12
+                uri:
+                  type: string
+                  description: URI of the request.
+                  example: /my-api
         ApiMessageLog:
             type: object
             properties:
@@ -7715,36 +7753,36 @@ components:
                     - type: object
                       properties:
                         avg:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Average value of the metric.
                         min:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Minimum value of the metric.
                         max:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Maximum value of the metric.
                         sum:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Sum of all metric values.
                         count:
                           type: integer
                           format: int64
                           description: Total number of data points.
                         rps:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Requests per second.
                         rpm:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Requests per minute.
                         rph:
-                          type: number
-                          format: float
+                          type: integer
+                          format: int64
                           description: Requests per hour.
         CountAnalytics:
           allOf:
@@ -7754,12 +7792,6 @@ components:
                 count:
                   type: integer
                   format: int64
-                metadata:
-                  type: object
-                  additionalProperties:
-                    type: object
-                    additionalProperties:
-                      type: string
         HistogramAnalytics:
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"
@@ -7793,7 +7825,8 @@ components:
                             data:
                               type: array
                               items:
-                                type: number
+                                type: integer
+                                format: int64
                       field:
                         type: string
                       name:
@@ -8056,8 +8089,20 @@ components:
                 enum:
                     - name
                     - -name
+                    - api_type
+                    - -api_type
+                    - status
+                    - -status
                     - paths
                     - -paths
+                    - tags_asc
+                    - -tags_desc
+                    - categories_asc
+                    - -categories_desc
+                    - owner
+                    - -owner
+                    - visibility
+                    - -visibility
         apiMetadataSortByParam:
             name: sortBy
             in: query

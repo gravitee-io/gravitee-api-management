@@ -62,6 +62,7 @@ export class DiscoveryPreviewComponent implements OnInit {
   };
 
   public apisFiltered: IntegrationPreviewApi[] = [];
+  public isPartiallyDiscovered = false;
 
   constructor(
     public readonly integrationsService: IntegrationsService,
@@ -94,6 +95,7 @@ export class DiscoveryPreviewComponent implements OnInit {
           this.nbTotalInstances = integrationPreview.totalCount;
           this.apisFiltered = integrationPreview.apis;
           this.integrationPreview = integrationPreview;
+          this.isPartiallyDiscovered = integrationPreview.isPartiallyDiscovered;
           this.setupForm(IntegrationPreviewApisState.NEW, this.integrationPreview.newCount);
           this.setupForm(IntegrationPreviewApisState.UPDATE, this.integrationPreview.updateCount);
           this.runFilters(this.filters);
@@ -108,10 +110,7 @@ export class DiscoveryPreviewComponent implements OnInit {
 
   public proceedIngest() {
     this.integrationsService
-      .ingest(
-        this.integrationId,
-        this.apiToIngest().map((api) => api.id),
-      )
+      .ingest(this.integrationId, this.isPartiallyDiscovered ? [] : this.apiToIngest().map((api) => api.id))
       .subscribe((response) => {
         switch (response.status) {
           case 'SUCCESS':

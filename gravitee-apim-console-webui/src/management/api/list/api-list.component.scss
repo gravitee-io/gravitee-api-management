@@ -138,3 +138,43 @@
   height: 32px;
   width: 32px;
 }
+
+div[gio-additional-filters] mat-form-field {
+  margin-right: 8px;
+}
+
+.api-type-filter {
+  width: 110px;
+}
+
+.status-filter {
+  width: 100px;
+}
+
+.published-filter {
+  width: 120px;
+}
+
+.tags-filter {
+  width: 150px;
+}
+
+.categories-filter {
+  width: 130px;
+}
+
+.apply-visible-columns {
+  display: block;
+  margin: 0 auto;
+  width: 90%;
+  margin-top: 4px;
+}
+
+.visible-columns-menu {
+  display: flex;
+  flex-direction: column;
+
+  mat-checkbox {
+    margin-right: 32px;
+  }
+}

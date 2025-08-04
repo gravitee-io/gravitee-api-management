@@ -14,46 +14,153 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Observable } from 'rxjs';
 
 import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
-import { AggregationFields, AggregationTypes } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
-import { WidgetConfig } from '../../../../../entities/management-api-v2/analytics/analytics';
-import { WidgetComponent } from '../components/widget/widget.component';
+import {
+  AggregationFields,
+  AggregationTypes,
+  AnalyticsHistogramAggregation,
+} from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import { GroupByField } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy';
+import {
+  ApiAnalyticsWidgetComponent,
+  ApiAnalyticsWidgetConfig,
+  ApiAnalyticsWidgetType,
+} from '../components/api-analytics-widget/api-analytics-widget.component';
+import { ApiAnalyticsWidgetService } from '../api-analytics-widget.service';
+import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
+import { Stats, StatsField } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
+
+type WidgetDisplayConfig = {
+  title: string;
+  statsKey?: Stats;
+  statsUnit?: string;
+  tooltip: string;
+  shouldSortBuckets?: boolean;
+  type: ApiAnalyticsWidgetType;
+};
+
+interface Range {
+  label: string;
+  value: string;
+  color?: string;
+}
+
+type WidgetDataConfig = {
+  apiId: string;
+  analyticsType: 'STATS' | 'GROUP_BY' | 'HISTOGRAM';
+  aggregations?: AnalyticsHistogramAggregation[];
+  groupByField?: GroupByField;
+  statsField?: StatsField;
+  ranges?: Range[];
+};
+
+export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetDataConfig;
 
 @Component({
   selector: 'api-analytics-proxy',
-  imports: [CommonModule, MatCardModule, GioLoaderModule, GioCardEmptyStateModule, ApiAnalyticsFiltersBarComponent, WidgetComponent],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    GioLoaderModule,
+    GioCardEmptyStateModule,
+    ApiAnalyticsFiltersBarComponent,
+    ApiAnalyticsWidgetComponent,
+    GioChartPieModule,
+  ],
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
 })
-export class ApiAnalyticsProxyComponent {
-  public tableWidgets: WidgetConfig[] = [
+export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
+  private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
+
+  public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
+  public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
+  public rightColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
+
+  private topRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
     {
-      type: 'table',
-      apiId: this.activatedRoute.snapshot.params.apiId,
-      title: 'Top Applications',
-      tooltip: 'Applications ranked by total API calls over time',
+      type: 'stats',
+      apiId: this.apiId,
+      title: 'Total Requests',
+      statsKey: 'count',
+      statsUnit: '',
+      tooltip: '',
       shouldSortBuckets: false,
-      groupByField: 'application-id',
+      statsField: 'gateway-response-time-ms',
+      analyticsType: 'STATS',
+    },
+    {
+      type: 'stats',
+      apiId: this.apiId,
+      title: 'Min Latency',
+      statsKey: 'min',
+      statsUnit: 'ms',
+      tooltip: '',
+      shouldSortBuckets: false,
+      statsField: 'gateway-response-time-ms',
+      analyticsType: 'STATS',
+    },
+    {
+      type: 'stats',
+      apiId: this.apiId,
+      title: 'Max Latency',
+      statsKey: 'max',
+      statsUnit: 'ms',
+      tooltip: '',
+      shouldSortBuckets: false,
+      statsField: 'gateway-response-time-ms',
+      analyticsType: 'STATS',
+    },
+    {
+      type: 'stats',
+      apiId: this.apiId,
+      title: 'Average',
+      statsKey: 'avg',
+      statsUnit: 'ms',
+      tooltip: '',
+      shouldSortBuckets: false,
+      statsField: 'gateway-response-time-ms',
+      analyticsType: 'STATS',
+    },
+    {
+      type: 'stats',
+      apiId: this.apiId,
+      title: 'RPS',
+      statsKey: 'rps',
+      statsUnit: '',
+      tooltip: '',
+      shouldSortBuckets: false,
+      statsField: 'gateway-response-time-ms',
+      analyticsType: 'STATS',
     },
   ];
 
-  public chartWidgets: WidgetConfig[] = [
+  private leftColumnWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
     {
       type: 'pie',
-      apiId: this.activatedRoute.snapshot.params.apiId,
+      apiId: this.apiId,
       title: 'HTTP Status Repartition',
       tooltip: 'Displays the distribution of HTTP status codes returned by the API',
       groupByField: 'status',
+      analyticsType: 'GROUP_BY',
+      ranges: [
+        { label: '100-199', value: '100:199', color: '#2B72FB' },
+        { label: '200-299', value: '200:299', color: '#64BDC6' },
+        { label: '300-399', value: '300:399', color: '#EECA34' },
+        { label: '400-499', value: '400:499', color: '#FA4B42' },
+        { label: '500-599', value: '500:599', color: '#FE6A35' },
+      ],
     },
     {
       type: 'line',
-      apiId: this.activatedRoute.snapshot.params.apiId,
+      apiId: this.apiId,
       aggregations: [
         {
           type: AggregationTypes.FIELD,
@@ -63,25 +170,94 @@ export class ApiAnalyticsProxyComponent {
       title: 'Response Status Over Time',
       tooltip: 'Visualizes the breakdown of HTTP status codes (2xx, 4xx, 5xx) across time',
       shouldSortBuckets: true,
+      analyticsType: 'HISTOGRAM',
     },
     {
       type: 'line',
-      apiId: this.activatedRoute.snapshot.params.apiId,
+      apiId: this.apiId,
       aggregations: [
         {
           type: AggregationTypes.AVG,
           field: AggregationFields.GATEWAY_RESPONSE_TIME_MS,
+          label: 'Gateway Response Time',
         },
         {
           type: AggregationTypes.AVG,
           field: AggregationFields.ENDPOINT_RESPONSE_TIME_MS,
+          label: 'Endpoint Response Time',
         },
       ],
       title: 'Response Time Over Time',
       tooltip: 'Measures response time for gateway and endpoint',
       shouldSortBuckets: false,
+      analyticsType: 'HISTOGRAM',
+    },
+    {
+      type: 'line',
+      apiId: this.apiId,
+      title: 'Hits By Application',
+      tooltip: 'Hits repartition by application',
+      shouldSortBuckets: false,
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: AggregationTypes.FIELD,
+          field: AggregationFields.APPLICATION_ID,
+        },
+      ],
     },
   ];
 
-  constructor(private readonly activatedRoute: ActivatedRoute) {}
+  private rightColumnWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
+    {
+      type: 'table',
+      apiId: this.apiId,
+      title: 'Top Applications',
+      tooltip: 'Applications ranked by total API calls over time',
+      shouldSortBuckets: false,
+      groupByField: 'application-id',
+      analyticsType: 'GROUP_BY',
+    },
+    {
+      type: 'table',
+      apiId: this.apiId,
+      title: 'Top Api Plans',
+      tooltip: 'Distribution of hits across API plans',
+      shouldSortBuckets: false,
+      groupByField: 'plan-id',
+      analyticsType: 'GROUP_BY',
+    },
+    {
+      type: 'table',
+      apiId: this.apiId,
+      title: 'Hits by Host (HTTP Header)',
+      tooltip: 'Distribution of calls by host header (useful if you run APIs on subdomains or multi-tenant hosts)',
+      shouldSortBuckets: false,
+      groupByField: 'host',
+      analyticsType: 'GROUP_BY',
+    },
+  ];
+
+  constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly apiAnalyticsWidgetService: ApiAnalyticsWidgetService,
+  ) {}
+
+  ngOnInit(): void {
+    this.topRowTransformed$ = this.topRowWidgets.map((widgetConfig) => {
+      return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
+    });
+
+    this.leftColumnTransformed$ = this.leftColumnWidgets.map((widgetConfig) => {
+      return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
+    });
+
+    this.rightColumnTransformed$ = this.rightColumnWidgets.map((widgetConfig) => {
+      return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.apiAnalyticsWidgetService.clearStatsCache();
+  }
 }

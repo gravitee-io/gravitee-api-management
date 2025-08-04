@@ -66,6 +66,18 @@ commands:
           event: fail
           template: basic_fail_1
 jobs:
+  job-danger-js:
+    docker:
+      - image: cimg/node:20.11.1
+    resource_class: small
+    steps:
+      - checkout
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: DANGER_GITHUB_API_TOKEN
+      - run:
+          name: Run Danger JS
+          command: cd .circleci/danger && yarn run danger
   job-setup:
     docker:
       - image: cimg/base:stable
@@ -97,18 +109,6 @@ jobs:
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-validate
-  job-danger-js:
-    docker:
-      - image: cimg/node:20.11.1
-    resource_class: small
-    steps:
-      - checkout
-      - keeper/env-export:
-          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-          var-name: DANGER_GITHUB_API_TOKEN
-      - run:
-          name: Run Danger JS
-          command: cd .circleci/danger && yarn run danger
   job-build:
     docker:
       - image: cimg/openjdk:21.0.5
@@ -266,19 +266,10 @@ jobs:
 workflows:
   pull_requests:
     jobs:
-      - aquasec/fs_scan:
+      - job-danger-js:
+          name: Run Danger JS
           context:
             - cicd-orchestrator
-          pre-steps:
-            - keeper/env-export:
-                secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
-                var-name: AQUA_KEY
-            - keeper/env-export:
-                secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
-                var-name: AQUA_SECRET
-            - keeper/env-export:
-                secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-                var-name: GITHUB_TOKEN
       - job-setup:
           name: Setup
           context:
@@ -289,12 +280,6 @@ workflows:
             - cicd-orchestrator
           requires:
             - Setup
-      - job-danger-js:
-          name: Run Danger JS
-          context:
-            - cicd-orchestrator
-          requires:
-            - Validate backend
       - job-build:
           name: Build backend
           context:
@@ -325,7 +310,7 @@ workflows:
           name: Validate workflow status
           requires:
             - Test gateway
+            - Integration tests
 orbs:
   keeper: gravitee-io/keeper@0.7.0
-  aquasec: gravitee-io/aquasec@1.0.5
   slack: circleci/slack@4.12.5

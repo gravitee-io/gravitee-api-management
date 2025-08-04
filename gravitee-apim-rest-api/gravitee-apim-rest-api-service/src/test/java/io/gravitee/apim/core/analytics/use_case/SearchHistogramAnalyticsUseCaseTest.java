@@ -37,6 +37,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -86,7 +87,28 @@ class SearchHistogramAnalyticsUseCaseTest {
         var expectedBuckets = List.of(new Bucket());
         analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
-        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations);
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.empty());
+        var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        assertThat(output).isNotNull();
+        assertThat(output.timestamp()).isEqualTo(expectedTimestamp);
+        assertThat(output.values()).isEqualTo(expectedBuckets);
+    }
+
+    @Test
+    void shouldReturnHistogramAnalyticsWithQuery() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
+        long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
+        long to = INSTANT_NOW.toEpochMilli();
+        long interval = 60000L;
+        List<Aggregation> aggregations = List.of();
+        String queryString = "status:200 AND method:GET";
+
+        var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
+        var expectedBuckets = List.of(new Bucket());
+        analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
+
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.of(queryString));
         var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
         assertThat(output).isNotNull();
@@ -97,7 +119,7 @@ class SearchHistogramAnalyticsUseCaseTest {
     @Test
     void shouldThrowWhenApiNotV4() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
-        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of());
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
@@ -105,7 +127,7 @@ class SearchHistogramAnalyticsUseCaseTest {
     @Test
     void shouldThrowWhenTcpProxy() {
         apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
-        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of());
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);
     }
@@ -113,7 +135,7 @@ class SearchHistogramAnalyticsUseCaseTest {
     @Test
     void shouldThrowWhenApiNotInEnvironment() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId("definitely not" + ENV_ID).build()));
-        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of());
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
     }
@@ -124,7 +146,7 @@ class SearchHistogramAnalyticsUseCaseTest {
         long from = 2000L;
         long to = 1000L;
         long interval = 100L;
-        var input = new Input(ApiFixtures.MY_API, from, to, interval, List.of());
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, List.of(), Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(IllegalTimeRangeException.class);
     }

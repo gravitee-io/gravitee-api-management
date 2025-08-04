@@ -15,21 +15,7 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import java.util.Optional;
 
-@Data
-@Builder
-@AllArgsConstructor
-public class HistogramQuery {
-
-    private String apiId;
-    private Instant from;
-    private Instant to;
-    private Duration interval;
-    private List<Aggregation> aggregations;
-}
+public record HistogramQuery(SearchTermId searchTermId, TimeRange timeRange, List<Aggregation> aggregations, Optional<String> query) {}

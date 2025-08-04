@@ -15,35 +15,82 @@
     limitations under the License.
 
 -->
+<gio-table-wrapper
+  class="table-wrapper"
+  [disableSearchInput]="true"
+  [paginationPageSizeOptions]="pageSizeOptions"
+  [filters]="gioTableWrapperFilters()"
+  [length]="pagination().totalCount"
+  (filtersChange)="onFiltersChanged($event)"
+>
+  <table mat-table matSort [dataSource]="logs()" id="logsTable" aria-label="Api logs table" class="table">
+    <!-- Picture Column -->
+    <ng-container matColumnDef="timestamp">
+      <th mat-header-cell *matHeaderCellDef id="timestamp">Timestamp</th>
+      <td mat-cell *matCellDef="let log">
+        <a [routerLink]="'./' + log.requestId">{{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.sss' }}</a>
+      </td>
+    </ng-container>
 
-<ng-container *ngIf="pagination.totalCount === 0; else showList">
-  <api-runtime-logs-empty (navigateToSettings)="navigateToSettings.emit()"></api-runtime-logs-empty>
-</ng-container>
+    <ng-container matColumnDef="method">
+      <th mat-header-cell *matHeaderCellDef id="method">Method</th>
+      <td mat-cell *matCellDef="let log">
+        <span class="gio-badge-neutral">{{ log.method }}</span>
+      </td>
+    </ng-container>
 
-<ng-template #showList>
-  <div class="logs-table">
-    <gio-banner-info class="logs-table__banner" *ngIf="logEnabled !== undefined && logEnabled === false">
-      Configuration impact
-      <span gioBannerBody>Runtime logs might not be up-to-date as they have been disabled in the settings</span>
-      <div gioBannerAction>
-        <button mat-button mat-raised-button (click)="navigateToSettings.emit()" data-testId="banner-open-settings-button">
-          Open log settings
-        </button>
-      </div>
-    </gio-banner-info>
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef id="status">Status</th>
+      <td mat-cell *matCellDef="let log">
+        <span
+          [class.gio-badge-success]="log.status < 400"
+          [class.gio-badge-warning]="log.status >= 400 && log.status <= 499"
+          [class.gio-badge-error]="log.status >= 500"
+          >{{ log.status }}</span
+        >
+      </td>
+    </ng-container>
 
-    <div class="logs-table-card">
-      <div class="logs-table-row" *ngFor="let log of logs; let index = index">
-        <api-runtime-logs-list-row [log]="log" [index]="index" [isMessageApi]="isMessageApi"></api-runtime-logs-list-row>
-      </div>
+    <ng-container matColumnDef="URI">
+      <th mat-header-cell *matHeaderCellDef>URI</th>
+      <td class="uri-column" mat-cell *matCellDef="let log">{{ log.uri }}</td>
+    </ng-container>
 
-      <mat-paginator
-        (page)="paginationUpdated.emit($event)"
-        [pageSize]="pagination.perPage"
-        [pageSizeOptions]="pageSizeOptions"
-        [length]="pagination.totalCount"
-        [pageIndex]="pagination.page - 1"
-      ></mat-paginator>
-    </div>
-  </div>
-</ng-template>
+    <ng-container matColumnDef="application">
+      <th mat-header-cell *matHeaderCellDef id="application">Application</th>
+      <td mat-cell *matCellDef="let log">
+        {{ log.application.name + ' (' + log.plan.name + ')' }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="responseTime">
+      <th mat-header-cell *matHeaderCellDef id="responseTime">Response time</th>
+      <td mat-cell *matCellDef="let log">{{ log.gatewayResponseTime + 'ms' }}</td>
+    </ng-container>
+
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef id="actions"></th>
+      <td mat-cell *matCellDef="let log">
+        <div>
+          <a mat-icon-button data-testid="api_logs_details_button" [routerLink]="'./' + log.requestId"
+            ><mat-icon svgIcon="gio:eye-empty"></mat-icon
+          ></a>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns" data-testid="api_logs_table_header"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="api_logs_table_row"></tr>
+
+    <!-- Row shown when there is no data -->
+    <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+        <div class="table__empty-state">
+          <div class="mat-h3">No data to display</div>
+          <div>More data may be available. Try widening your timeframe or adjusting your filters.</div>
+        </div>
+      </td>
+    </tr>
+  </table>
+</gio-table-wrapper>
