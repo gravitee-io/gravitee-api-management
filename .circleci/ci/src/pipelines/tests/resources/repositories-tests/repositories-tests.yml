@@ -127,6 +127,9 @@ jobs:
           at: .
       - cmd-restore-maven-job-cache:
           jobName: job-jdbc-test-container
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run Management repository tests with database << parameters.jdbcType >>
           command: |-
@@ -159,6 +162,9 @@ jobs:
           at: .
       - cmd-restore-maven-job-cache:
           jobName: job-mongo-test-container
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run Management repository tests with MongoDB << parameters.mongoVersion >>
           command: |-
@@ -198,6 +204,9 @@ jobs:
           at: .
       - cmd-restore-maven-job-cache:
           jobName: job-elastic-test-container
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run Analytics repository tests with engine << parameters.engineType >> and version << parameters.engineVersion >>
           command: |-
@@ -230,6 +239,9 @@ jobs:
           at: .
       - cmd-restore-maven-job-cache:
           jobName: job-redis-test-container
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v10-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run Rate-limit repository tests with Redis << parameters.redisVersion >>
           command: |-
