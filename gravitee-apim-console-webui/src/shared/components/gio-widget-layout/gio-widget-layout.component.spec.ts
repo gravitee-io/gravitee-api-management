@@ -100,7 +100,8 @@ describe('GioWidgetLayoutComponent', () => {
 
     expect(component.state).toBe('empty');
     expect(await harness.isEmpty()).toBe(true);
-    expect(await harness.getEmptyText()).toBe('No data available');
+    expect(await harness.getEmptyTextTitle()).toBe('No data to display');
+    expect(await harness.getEmptyTextMessage()).toBe('Adjust your search criteria and filters for better results.');
     expect(await harness.getTitleText()).toBe('Test Widget');
   });
 
@@ -112,7 +113,8 @@ describe('GioWidgetLayoutComponent', () => {
     expect(component.state).toBe('error');
     expect(await harness.hasError()).toBe(true);
     expect(await harness.hasErrorIcon()).toBe(true);
-    expect(await harness.getErrorText()).toBe('Test error message');
+    expect(await harness.getErrorTitleText()).toBe('No data to display');
+    expect(await harness.getErrorMessageText()).toBe('Test error message');
     expect(await harness.getTitleText()).toBe('Test Widget');
   });
 

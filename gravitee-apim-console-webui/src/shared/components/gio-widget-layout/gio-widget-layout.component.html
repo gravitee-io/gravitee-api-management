@@ -33,16 +33,25 @@
       }
       @case ('error') {
         <div class="error">
-          <mat-icon svgIcon="gio:error" />
-          <span>{{ errors()?.join(', ') || 'An error occurred' }}</span>
+          <div class="icon">
+            <mat-icon svgIcon="gio:alert-circle"></mat-icon>
+          </div>
+          <div class="mat-h3" data-test-id="error-title">No data to display</div>
+          <div data-test-id="error-message">{{ errorMessage() }}</div>
         </div>
       }
       @case ('success') {
-        <ng-content select="[gioWidgetLayoutChart]"></ng-content>
+        <div class="success">
+          <ng-content select="[gioWidgetLayoutChart]"></ng-content>
+        </div>
       }
       @default {
         <div class="empty">
-          <span>No data available</span>
+          <div class="icon">
+            <mat-icon svgIcon="gio:search"></mat-icon>
+          </div>
+          <div class="mat-h3" data-test-id="empty-title">No data to display</div>
+          <div data-test-id="empty-message">Adjust your search criteria and filters for better results.</div>
         </div>
       }
     }
