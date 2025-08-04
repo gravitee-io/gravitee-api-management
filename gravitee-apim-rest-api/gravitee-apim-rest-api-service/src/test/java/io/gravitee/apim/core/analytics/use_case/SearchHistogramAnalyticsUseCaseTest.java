@@ -23,7 +23,6 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
 import io.gravitee.apim.core.analytics.model.Aggregation;
-import io.gravitee.apim.core.analytics.model.Bucket;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase.Input;
@@ -37,6 +36,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -84,7 +84,7 @@ class SearchHistogramAnalyticsUseCaseTest {
         List<Aggregation> aggregations = List.of();
 
         var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
-        var expectedBuckets = List.of(new Bucket());
+        var expectedBuckets = List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket("name", "field", Map.of()));
         analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
         var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.empty());
@@ -105,7 +105,7 @@ class SearchHistogramAnalyticsUseCaseTest {
         String queryString = "status:200 AND method:GET";
 
         var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
-        var expectedBuckets = List.of(new Bucket());
+        var expectedBuckets = List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.MetricBucket("name", "field", List.of()));
         analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
         var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.of(queryString));

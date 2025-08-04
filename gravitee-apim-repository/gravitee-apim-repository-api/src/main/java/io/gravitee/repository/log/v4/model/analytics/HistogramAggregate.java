@@ -18,4 +18,8 @@ package io.gravitee.repository.log.v4.model.analytics;
 import java.util.List;
 import java.util.Map;
 
-public record HistogramAggregate(String field, String name, Map<String, List<Long>> buckets) {}
+public interface HistogramAggregate {
+    record Counts(String field, String name, Map<String, List<Long>> counts) implements HistogramAggregate {}
+
+    record Metric(String field, String name, List<Long> values) implements HistogramAggregate {}
+}
