@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
 import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
 import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
@@ -53,6 +54,18 @@ class SearchHistogramAnalyticsUseCaseTest {
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private SearchHistogramAnalyticsUseCase useCase;
 
+    private final AnalyticsMetadataProvider provider = new AnalyticsMetadataProvider() {
+        @Override
+        public boolean appliesTo(Field field) {
+            return field == Field.API;
+        }
+
+        @Override
+        public Map<String, String> provide(String key, String environmentId) {
+            return Map.of("name", "api-" + key);
+        }
+    };
+
     @BeforeAll
     static void beforeAll() {
         TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
@@ -66,7 +79,7 @@ class SearchHistogramAnalyticsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new SearchHistogramAnalyticsUseCase(apiCrudService, analyticsQueryService);
+        useCase = new SearchHistogramAnalyticsUseCase(apiCrudService, analyticsQueryService, List.of(provider));
     }
 
     @AfterEach
@@ -149,5 +162,32 @@ class SearchHistogramAnalyticsUseCaseTest {
         var input = new Input(ApiFixtures.MY_API, from, to, interval, List.of(), Optional.empty());
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(IllegalTimeRangeException.class);
+    }
+
+    @Test
+    void shouldReturnMetadataForApiIdFieldAggregation() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
+        long from = 1000L;
+        long to = 2000L;
+        long interval = 100L;
+        var input = new Input(
+            ApiFixtures.MY_API,
+            from,
+            to,
+            interval,
+            List.of(new Aggregation("api-id", Aggregation.AggregationType.FIELD)),
+            Optional.empty()
+        );
+        var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
+        var expectedBuckets = List.of(
+            (HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket("name", "api-id", Map.of("aid1", List.of(), "aid2", List.of()))
+        );
+        analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
+        var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
+        assertThat(result.metadata()).isNotNull();
+        assertThat(result.metadata().containsKey("name")).isTrue();
+        assertThat(result.metadata().get("name")).containsKeys("aid1", "aid2");
+        assertThat(result.metadata().get("name").get("aid1")).containsKey("name");
+        assertThat(result.metadata().get("name").get("aid1").get("name")).isEqualTo("api-aid1");
     }
 }

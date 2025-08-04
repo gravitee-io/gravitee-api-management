@@ -27,7 +27,6 @@ import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
-import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
@@ -222,7 +221,7 @@ public class ApiAnalyticsResource extends AbstractResource {
             case HISTOGRAM -> {
                 var input = apiAnalyticsParam.toHistogramInput(apiId);
                 var output = searchHistogramAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-                var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
+                var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values(), output.metadata());
                 histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
                 return new ApiAnalyticsResponse(histogramResponse);
             }

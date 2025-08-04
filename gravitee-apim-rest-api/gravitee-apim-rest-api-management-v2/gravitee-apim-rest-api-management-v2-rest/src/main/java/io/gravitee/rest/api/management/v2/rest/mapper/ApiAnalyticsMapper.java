@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.model.v4.analytics.ResponseStatusRanges;
 import jakarta.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.mapstruct.Mapper;
@@ -77,18 +78,22 @@ public interface ApiAnalyticsMapper {
 
     Map<String, Number> map(Map<String, Long> value);
 
-    default HistogramAnalytics mapHistogramAnalytics(List<io.gravitee.apim.core.analytics.model.HistogramAnalytics.Bucket> buckets) {
+    default HistogramAnalytics mapHistogramAnalytics(
+        List<io.gravitee.apim.core.analytics.model.HistogramAnalytics.Bucket> buckets,
+        Map<String, Map<String, Map<String, String>>> metadata
+    ) {
         if (buckets == null) {
             return null;
         }
         HistogramAnalytics analytics = new HistogramAnalytics();
         analytics.analyticsType(AnalyticsType.HISTOGRAM);
-        analytics.setValues(mapBuckets(buckets));
+        analytics.setValues(mapBuckets(buckets, metadata));
         return analytics;
     }
 
     default List<@Valid HistogramAnalyticsAllOfValues> mapBuckets(
-        List<io.gravitee.apim.core.analytics.model.HistogramAnalytics.Bucket> buckets
+        List<io.gravitee.apim.core.analytics.model.HistogramAnalytics.Bucket> buckets,
+        Map<String, Map<String, Map<String, String>>> metadata
     ) {
         return buckets
             .stream()
@@ -110,6 +115,7 @@ public interface ApiAnalyticsMapper {
                             })
                             .toList()
                     );
+                    mappedBucket.setMetadata(metadata.computeIfAbsent(bucket.getName(), ignored -> Collections.emptyMap()));
                 } else if (bucket instanceof io.gravitee.apim.core.analytics.model.HistogramAnalytics.MetricBucket metricBucket) {
                     mappedBucket.setName(metricBucket.getName());
                     mappedBucket.setField(metricBucket.getField());
