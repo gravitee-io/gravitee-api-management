@@ -86,8 +86,8 @@ export class ApiAnalyticsWidgetService {
           return of(this.createErrorConfig(widgetConfig, 'Unsupported analytics type'));
         }
       }),
-      catchError((error) => {
-        return of(this.createErrorConfig(widgetConfig, error.message || 'An error occurred'));
+      catchError(({ error }) => {
+        return of(this.createErrorConfig(widgetConfig, error?.message || 'An error occurred'));
       }),
     );
   }
