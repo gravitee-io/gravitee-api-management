@@ -746,6 +746,16 @@ components:
                 configuration:
                     type: object
 
+        UpdateCluster:
+            type: object
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                configuration:
+                    type: object
+
         # Scoring
         EnvironmentApiScore:
             type: object

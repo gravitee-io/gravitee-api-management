@@ -17,35 +17,33 @@ package inmemory;
 
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.exception.DbEntityNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
+import io.gravitee.apim.core.shared_policy_group.exception.SharedPolicyGroupNotFoundException;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.OptionalInt;
 
-public class ClusterCrudServiceInMemory implements ClusterCrudService, InMemoryAlternative<Cluster> {
-
-    final ArrayList<Cluster> storage = new ArrayList<>();
+public class ClusterCrudServiceInMemory extends AbstractCrudServiceInMemory<Cluster> implements ClusterCrudService {
 
     @Override
-    public void initWith(List<Cluster> items) {
-        storage.clear();
-        storage.addAll(items);
+    public Cluster findByIdAndEnvironmentId(String id, String environmentId) {
+        return storage
+            .stream()
+            .filter(cluster -> id.equals(cluster.getId()) && environmentId.equals(cluster.getEnvironmentId()))
+            .findFirst()
+            .orElseThrow(() -> new DbEntityNotFoundException(Cluster.class, id));
     }
 
     @Override
-    public void reset() {
-        storage.clear();
-    }
-
-    @Override
-    public List<Cluster> storage() {
-        return Collections.unmodifiableList(storage);
-    }
-
-    @Override
-    public Cluster create(Cluster clusterToCreate) {
-        storage.add(clusterToCreate);
-        return clusterToCreate;
+    public Cluster update(Cluster clusterToUpdate) {
+        OptionalInt index = this.findIndex(this.storage, cluster -> cluster.getId().equals(clusterToUpdate.getId()));
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), clusterToUpdate);
+            return clusterToUpdate;
+        }
+        throw new IllegalStateException("Cluster not found.");
     }
 }
