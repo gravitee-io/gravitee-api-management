@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.apim.core.analytics.model.Bucket;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.apim.core.analytics.model.Timestamp;
@@ -29,6 +28,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusR
 import io.gravitee.rest.api.management.v2.rest.model.CountAnalytics;
 import io.gravitee.rest.api.management.v2.rest.model.GroupByAnalytics;
 import io.gravitee.rest.api.management.v2.rest.model.HistogramAnalytics;
+import io.gravitee.rest.api.management.v2.rest.model.HistogramAnalyticsAllOfBuckets;
 import io.gravitee.rest.api.management.v2.rest.model.HistogramAnalyticsAllOfValues;
 import io.gravitee.rest.api.management.v2.rest.model.HistogramTimestamp;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
@@ -77,7 +77,7 @@ public interface ApiAnalyticsMapper {
 
     Map<String, Number> map(Map<String, Long> value);
 
-    default HistogramAnalytics mapHistogramAnalytics(List<Bucket> buckets) {
+    default HistogramAnalytics mapHistogramAnalytics(List<io.gravitee.apim.core.analytics.model.HistogramAnalytics.Bucket> buckets) {
         if (buckets == null) {
             return null;
         }
@@ -87,16 +87,52 @@ public interface ApiAnalyticsMapper {
         return analytics;
     }
 
-    List<@Valid HistogramAnalyticsAllOfValues> mapBuckets(List<Bucket> buckets);
+    default List<@Valid HistogramAnalyticsAllOfValues> mapBuckets(
+        List<io.gravitee.apim.core.analytics.model.HistogramAnalytics.Bucket> buckets
+    ) {
+        return buckets
+            .stream()
+            .map(bucket -> {
+                var mappedBucket = new HistogramAnalyticsAllOfValues();
+                if (bucket instanceof io.gravitee.apim.core.analytics.model.HistogramAnalytics.CountBucket countBucket) {
+                    mappedBucket.setName(countBucket.getName());
+                    mappedBucket.setField(countBucket.getField());
+                    mappedBucket.setBuckets(
+                        countBucket
+                            .getCounts()
+                            .entrySet()
+                            .stream()
+                            .map(countEntry -> {
+                                var mappedCategory = new HistogramAnalyticsAllOfBuckets();
+                                mappedCategory.setName(countEntry.getKey());
+                                mappedCategory.setData(countEntry.getValue());
+                                return mappedCategory;
+                            })
+                            .toList()
+                    );
+                } else if (bucket instanceof io.gravitee.apim.core.analytics.model.HistogramAnalytics.MetricBucket metricBucket) {
+                    mappedBucket.setName(metricBucket.getName());
+                    mappedBucket.setField(metricBucket.getField());
+                    HistogramAnalyticsAllOfBuckets values = new HistogramAnalyticsAllOfBuckets();
+                    values.setName(metricBucket.getName());
+                    values.data(metricBucket.getValues());
+                    mappedBucket.setBuckets(List.of(values));
+                } else {
+                    logger.error("Unsupported bucket type {}", bucket.getClass());
+                }
+                return mappedBucket;
+            })
+            .toList();
+    }
 
     default HistogramTimestamp map(Timestamp timestamp) {
         if (timestamp == null) {
             return null;
         }
         HistogramTimestamp range = new HistogramTimestamp();
-        range.setFrom(timestamp.getFrom().toEpochMilli());
-        range.setTo(timestamp.getTo().toEpochMilli());
-        range.setInterval(timestamp.getInterval().toMillis());
+        range.setFrom(timestamp.from().toEpochMilli());
+        range.setTo(timestamp.to().toEpochMilli());
+        range.setInterval(timestamp.interval().toMillis());
         return range;
     }
 

@@ -17,16 +17,5 @@ package io.gravitee.apim.core.analytics.model;
 
 import java.time.Duration;
 import java.time.Instant;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Timestamp {
-
-    private Instant from;
-    private Instant to;
-    private Duration interval;
-}
+public record Timestamp(Instant from, Instant to, Duration interval) {}

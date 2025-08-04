@@ -32,6 +32,7 @@ import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
@@ -666,15 +667,16 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
 
-            var histogram = result.getFirst();
-            assertThat(histogram.buckets()).isNotNull();
-            assertThat(histogram.buckets()).hasSize(3);
+            var first = result.getFirst();
+            var histogram = (HistogramAggregate.Counts) first;
+            assertThat(histogram.counts()).isNotNull();
+            assertThat(histogram.counts()).hasSize(3);
 
-            assertThat(histogram.buckets().keySet()).containsExactlyInAnyOrder("200", "202", "404");
+            assertThat(histogram.counts().keySet()).containsExactlyInAnyOrder("200", "202", "404");
 
-            var bucket200 = histogram.buckets().get("200");
-            var bucket202 = histogram.buckets().get("202");
-            var bucket404 = histogram.buckets().get("404");
+            var bucket200 = histogram.counts().get("200");
+            var bucket202 = histogram.counts().get("202");
+            var bucket404 = histogram.counts().get("404");
 
             assertThat(bucket200).hasSizeGreaterThan(28);
             assertThat(bucket200.get(28)).isEqualTo(1L);
@@ -705,11 +707,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
 
-            var histogram = result.getFirst();
-            assertThat(histogram.buckets()).isNotNull();
-            assertThat(histogram.buckets()).containsOnlyKeys("avg_gateway-response-time-ms");
+            var first = result.getFirst();
+            var histogram = (HistogramAggregate.Metric) first;
+            assertThat(histogram.values()).isNotNull();
 
-            var avgBucket = histogram.buckets().get("avg_gateway-response-time-ms");
+            var avgBucket = histogram.values();
             assertThat(avgBucket).isNotEmpty();
             assertThat(avgBucket.stream().filter(v -> v > 0).count()).isEqualTo(2);
         }
@@ -733,13 +735,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
 
-            var histogram = result.getFirst();
-            assertThat(histogram.buckets()).isNotNull();
-            assertThat(histogram.buckets()).hasSize(1);
+            var first = result.getFirst();
+            var histogram = (HistogramAggregate.Counts) first;
+            assertThat(histogram.counts()).isNotNull();
+            assertThat(histogram.counts()).hasSize(1);
 
-            assertThat(histogram.buckets().keySet()).containsExactly("404");
+            assertThat(histogram.counts().keySet()).containsExactly("404");
 
-            var bucket404 = histogram.buckets().get("404");
+            var bucket404 = histogram.counts().get("404");
             assertThat(bucket404).hasSizeGreaterThan(61);
             assertThat(bucket404.get(61)).isEqualTo(2L);
         }

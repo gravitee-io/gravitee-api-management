@@ -7835,6 +7835,12 @@ components:
                         type: string
                       name:
                         type: string
+                      metadata:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          additionalProperties:
+                            type: string
         GroupByAnalytics:
           allOf:
             - $ref: "#/components/schemas/GenericAnalytics"

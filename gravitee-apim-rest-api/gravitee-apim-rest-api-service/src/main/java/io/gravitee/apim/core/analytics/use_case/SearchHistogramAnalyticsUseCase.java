@@ -18,7 +18,7 @@ package io.gravitee.apim.core.analytics.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.domain_service.ApiAnalyticsSpecification;
 import io.gravitee.apim.core.analytics.model.Aggregation;
-import io.gravitee.apim.core.analytics.model.Bucket;
+import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
@@ -53,7 +53,7 @@ public class SearchHistogramAnalyticsUseCase {
         );
         var result = analyticsQueryService
             .searchHistogramAnalytics(executionContext, histogramQuery)
-            .map(io.gravitee.apim.core.analytics.model.HistogramAnalytics::getValues)
+            .map(io.gravitee.apim.core.analytics.model.HistogramAnalytics::buckets)
             .orElse(List.of());
 
         return new Output(
@@ -64,5 +64,5 @@ public class SearchHistogramAnalyticsUseCase {
 
     public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations, Optional<String> query) {}
 
-    public record Output(Timestamp timestamp, List<Bucket> values) {}
+    public record Output(Timestamp timestamp, List<HistogramAnalytics.Bucket> values) {}
 }
