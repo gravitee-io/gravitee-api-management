@@ -137,12 +137,12 @@ public interface ApiAnalyticsParamSpecification extends Predicate<ApiAnalyticsPa
             public boolean satisfies(ApiAnalyticsParam param) {
                 String order = param.getOrder();
                 if (order == null || order.isBlank()) return true;
-                String pattern = "^-?(count|avg|max|min|field):[a-zA-Z0-9_.]+$";
+                String pattern = "^-?(count|avg):[a-zA-Z0-9_.-]+$";
                 return order.matches(pattern);
             }
 
             public String getErrorMessage() {
-                return "Order must be in the format [-]<aggregation type>:<field> (e.g. avg:some_field or -count:_key). Aggregation type must be one of: count, avg, max, min, field. Field must be a non-blank identifier.";
+                return "Order must be in the format [-]<aggregation type>:<field> (e.g. avg:some_field or -count:_key). Aggregation type must be one of: count, avg. Field must be a non-blank identifier.";
             }
         };
     }
