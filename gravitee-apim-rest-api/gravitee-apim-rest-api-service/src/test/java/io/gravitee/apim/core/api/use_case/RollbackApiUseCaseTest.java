@@ -57,11 +57,7 @@ import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.domain_service.api.UpdateApiDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
@@ -585,6 +581,7 @@ class RollbackApiUseCaseTest {
                                     .build()
                             )
                         )
+                        .logging(new Logging(LoggingMode.CLIENT, LoggingScope.REQUEST, LoggingContent.HEADERS, "someCondition"))
                         .build()
                 )
                 .plans(
@@ -637,6 +634,10 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(apiDefinition.getName()).isEqualTo("api-previous-name");
                 softly.assertThat(apiDefinition.getVersion()).isEqualTo("api-previous-version");
                 softly.assertThat(apiDefinition.getProxy().getVirtualHosts().getFirst().getPath()).isEqualTo("/api-previous-path");
+                softly
+                    .assertThat(apiDefinition.getProxy().getLogging())
+                    .extracting(Logging::getMode, Logging::getContent, Logging::getScope, Logging::getCondition)
+                    .contains(LoggingMode.CLIENT, LoggingContent.HEADERS, LoggingScope.REQUEST, "someCondition");
             });
 
             var rolledBackPlan = planCrudService.getById("plan-to-rollback");
@@ -710,6 +711,7 @@ class RollbackApiUseCaseTest {
                                     .build()
                             )
                         )
+                        .logging(new Logging(LoggingMode.CLIENT, LoggingScope.REQUEST, LoggingContent.HEADERS, "someCondition"))
                         .build()
                 )
                 .flows(List.of(Flow.builder().name("v2-api-flow").build()))
@@ -764,6 +766,10 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(apiDefinition.getName()).isEqualTo("api-previous-name");
                 softly.assertThat(apiDefinition.getVersion()).isEqualTo("api-previous-version");
                 softly.assertThat(apiDefinition.getProxy().getVirtualHosts().getFirst().getPath()).isEqualTo("/api-previous-path");
+                softly
+                    .assertThat(apiDefinition.getProxy().getLogging())
+                    .extracting(Logging::getMode, Logging::getContent, Logging::getScope, Logging::getCondition)
+                    .contains(LoggingMode.CLIENT, LoggingContent.HEADERS, LoggingScope.REQUEST, "someCondition");
             });
 
             var rolledBackPlan = planCrudService.getById("plan-to-rollback");
