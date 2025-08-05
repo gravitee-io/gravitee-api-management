@@ -297,7 +297,7 @@ export class ApiAnalyticsWidgetService {
           } else {
             // For single aggregation, use the bucket names as the series names
             return value.buckets.map((bucket) => ({
-              name: bucket.name,
+              name: value.metadata?.[bucket.name]?.name || bucket.name,
               values: bucket.data || [],
             }));
           }
