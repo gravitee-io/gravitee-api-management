@@ -17,10 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.group;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.MemberModelFixtures.aGroupMember;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,26 +27,29 @@ import static org.mockito.Mockito.when;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.mapper.GroupMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
+import io.gravitee.rest.api.management.v2.rest.model.Group;
 import io.gravitee.rest.api.management.v2.rest.model.GroupsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.GroupEventRuleEntity;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.management.v2.rest.resource.group.param.GroupSearchParams;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -287,6 +287,76 @@ public class GroupsResourceTest extends AbstractResourceTest {
                         .data(Stream.of(member1, member2).map(MemberMapper.INSTANCE::map).toList())
                         .metadata(Map.of("groupName", GROUP_NAME))
                         .links(Links.builder().self(target.getUri().toString()).build())
+                        .build()
+                );
+        }
+    }
+
+    @Nested
+    class ListGroupsByIdList {
+
+        @Test
+        public void should_return_empty_list_when_no_ids_provided() {
+            GroupSearchParams requestBody = new GroupSearchParams(Collections.emptySet());
+
+            when(groupService.findByIdsAndEnv(any(), any())).thenReturn(Set.of());
+
+            final Response response = target.path("/_search").request().post(Entity.json(requestBody));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(GroupsResponse.class)
+                .isEqualTo(
+                    GroupsResponse
+                        .builder()
+                        .data(List.of())
+                        .pagination(Pagination.builder().build())
+                        .links(Links.builder().self(target.path("/_search").getUri().toString()).build())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_return_unique_groups_when_duplicate_ids_provided() {
+            GroupEntity group1 = GroupEntity.builder().id("group-1").name("Group 1").build();
+            Set<String> ids = new HashSet<>(List.of("group-1", "group-1"));
+            GroupSearchParams requestBody = new GroupSearchParams(ids);
+
+            when(groupService.findByIdsAndEnv(any(), eq(ids))).thenReturn(Set.of(group1));
+
+            final Response response = target.path("/_search").request().post(Entity.json(requestBody));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(GroupsResponse.class)
+                .isEqualTo(
+                    GroupsResponse
+                        .builder()
+                        .data(List.of(GroupMapper.INSTANCE.map(group1)))
+                        .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L).build())
+                        .links(Links.builder().self(target.path("/_search").getUri().toString()).build())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_return_empty_list_when_no_matching_ids() {
+            Set<String> ids = Set.of("non-existing-id");
+            GroupSearchParams requestBody = new GroupSearchParams(ids);
+
+            when(groupService.findByIdsAndEnv(any(), eq(ids))).thenReturn(Set.of());
+
+            final Response response = target.path("/_search").request().post(Entity.json(requestBody));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(GroupsResponse.class)
+                .isEqualTo(
+                    GroupsResponse
+                        .builder()
+                        .data(List.of())
+                        .pagination(Pagination.builder().build())
+                        .links(Links.builder().self(target.path("/_search").getUri().toString()).build())
                         .build()
                 );
         }

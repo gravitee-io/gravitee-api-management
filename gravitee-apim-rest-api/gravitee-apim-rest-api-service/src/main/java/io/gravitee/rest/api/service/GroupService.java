@@ -45,6 +45,7 @@ public interface GroupService {
     List<GroupSimpleEntity> findAllByOrganization(String organizationId);
     GroupEntity findById(ExecutionContext executionContext, String groupId);
     Set<GroupEntity> findByIds(Set<String> groupIds);
+    Set<GroupEntity> findByIdsAndEnv(ExecutionContext executionContext, Set<String> groupIds);
     void associate(final ExecutionContext executionContext, String groupId, String associationType);
     Set<GroupEntity> findByEvent(final String environmentId, GroupEvent event);
     List<GroupEntity> findByName(final String environmentId, String name);
