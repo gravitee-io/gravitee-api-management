@@ -99,7 +99,40 @@ public class GroupsResource extends AbstractResource {
         @QueryParam("query") String query,
         @QueryParam("sortOrder") Order.Direction sortOrder
     ) {
-        Page<GroupEntity> page = groupService.search(GraviteeContext.getExecutionContext(), pageable.toPageable(), sortOrder, query);
+        Page<GroupEntity> page = groupService.search(GraviteeContext.getExecutionContext(), pageable.toPageable(), sortOrder, query, null);
+        PagedResult<GroupEntity> pagedResult = new PagedResult<>(page, pageable.getSize());
+        return Response.ok(pagedResult).build();
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Find paginated searched groups",
+        description = "Find paginated groups based on size and GroupSearchParams. Results can be filtered based on GroupSearchParams object." +
+        "Only administrators could see all groups." +
+        "Only users with MANAGE_API permissions could see API groups."
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Page containing the list of searched groups",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PagedResult.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
+    @Path("/_paged")
+    public Response getSearchedGroupsPaged(
+        @Valid @BeanParam Pageable pageable,
+        @QueryParam("sortOrder") Order.Direction sortOrder,
+        @Valid GroupSearchParams searchData
+    ) {
+        Page<GroupEntity> page = groupService.search(
+            GraviteeContext.getExecutionContext(),
+            pageable.toPageable(),
+            sortOrder,
+            searchData.getQuery(),
+            searchData
+        );
         PagedResult<GroupEntity> pagedResult = new PagedResult<>(page, pageable.getSize());
         return Response.ok(pagedResult).build();
     }

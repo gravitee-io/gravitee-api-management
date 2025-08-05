@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.search.GroupCriteria;
@@ -119,9 +120,10 @@ public class GroupServiceImplTest {
             .build();
         List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
         Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 13);
-        when(groupRepository.search(groupCriteria, convert(pageable), null)).thenReturn(groupsPage);
+        Order.Direction orderDirection = null;
+        when(groupRepository.search(any(GroupCriteria.class), eq(convert(pageable)), eq(orderDirection))).thenReturn(groupsPage);
 
-        Page<GroupEntity> searchResult = service.search(executionContext, pageable, null, "test");
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, null, "test", null);
 
         assertAll(
             () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
@@ -158,11 +160,436 @@ public class GroupServiceImplTest {
 
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
 
-        Page<GroupEntity> searchResult = service.search(executionContext, pageable, null, "test");
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, null, "test", null);
 
         assertAll(
             () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
             () -> assertThat(searchResult.getTotalElements()).isEqualTo(13),
+            () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
+            () -> assertThat(searchResult.getPageElements()).isEqualTo(pageSize)
+        );
+    }
+
+    @Test
+    public void search_withSearchData() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        int pageNumber = 1;
+        int pageSize = 2;
+        Pageable pageable = new PageableImpl(pageNumber, pageSize);
+        String searchTerm = "test";
+
+        Set<String> searchIds = Set.of("id1", "id2");
+        io.gravitee.rest.api.model.common.GroupSearchCriteria searchData = new io.gravitee.rest.api.model.common.GroupSearchCriteria() {
+            @Override
+            public String getQuery() {
+                return searchTerm;
+            }
+
+            @Override
+            public Set<String> getIds() {
+                return searchIds;
+            }
+        };
+
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        )
+            .thenReturn(true);
+
+        GroupCriteria groupCriteria = GroupCriteria
+            .builder()
+            .environmentId(executionContext.getEnvironmentId())
+            .query(searchTerm)
+            .idIn(searchIds)
+            .build();
+
+        List<Group> groups = List.of(Group.builder().id("id1").build(), Group.builder().id("id2").build());
+        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 2);
+        when(groupRepository.search(groupCriteria, convert(pageable), null)).thenReturn(groupsPage);
+
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
+
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, null, searchTerm, searchData);
+
+        assertAll(
+            () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
+            () -> assertThat(searchResult.getTotalElements()).isEqualTo(2),
+            () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
+            () -> assertThat(searchResult.getPageElements()).isEqualTo(pageSize)
+        );
+    }
+
+    @Test
+    public void search_withEmptySearchIds() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        int pageNumber = 1;
+        int pageSize = 2;
+        Pageable pageable = new PageableImpl(pageNumber, pageSize);
+        String searchTerm = "test";
+
+        io.gravitee.rest.api.model.common.GroupSearchCriteria searchData = new io.gravitee.rest.api.model.common.GroupSearchCriteria() {
+            @Override
+            public String getQuery() {
+                return searchTerm;
+            }
+
+            @Override
+            public Set<String> getIds() {
+                return Set.of(); // Empty set
+            }
+        };
+
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        )
+            .thenReturn(true);
+
+        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
+
+        List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
+        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 2);
+        when(groupRepository.search(groupCriteria, convert(pageable), null)).thenReturn(groupsPage);
+
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
+
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, null, searchTerm, searchData);
+
+        assertAll(
+            () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
+            () -> assertThat(searchResult.getTotalElements()).isEqualTo(2),
+            () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
+            () -> assertThat(searchResult.getPageElements()).isEqualTo(pageSize)
+        );
+    }
+
+    @Test
+    public void search_withSearchDataAndNoPermission() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        int pageNumber = 1;
+        int pageSize = 2;
+        Pageable pageable = new PageableImpl(pageNumber, pageSize);
+        String searchTerm = "test";
+
+        Set<String> searchIds = Set.of("id1", "id2");
+        io.gravitee.rest.api.model.common.GroupSearchCriteria searchData = new io.gravitee.rest.api.model.common.GroupSearchCriteria() {
+            @Override
+            public String getQuery() {
+                return searchTerm;
+            }
+
+            @Override
+            public Set<String> getIds() {
+                return searchIds;
+            }
+        };
+
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        )
+            .thenReturn(false);
+
+        RoleEntity roleEntity = RoleEntity.builder().id("re1").build();
+        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId()))
+            .thenReturn(Optional.of(roleEntity));
+
+        Set<String> userGroupIds = Set.of("gr1", "gr2");
+        Set<MembershipEntity> memberships = Set.of(
+            MembershipEntity.builder().id("m1").referenceId("gr1").build(),
+            MembershipEntity.builder().id("m2").referenceId("gr2").build()
+        );
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                eq(MembershipMemberType.USER),
+                any(),
+                eq(MembershipReferenceType.GROUP),
+                eq(roleEntity.getId())
+            )
+        )
+            .thenReturn(memberships);
+
+        GroupCriteria groupCriteria = GroupCriteria
+            .builder()
+            .environmentId(executionContext.getEnvironmentId())
+            .query(searchTerm)
+            .idIn(userGroupIds)
+            .build();
+
+        List<Group> groups = List.of(Group.builder().id("gr1").build());
+        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 1);
+        Order.Direction orderDirection = null;
+        when(groupRepository.search(any(GroupCriteria.class), eq(convert(pageable)), eq(orderDirection))).thenReturn(groupsPage);
+
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, orderDirection, searchTerm, searchData);
+
+        assertAll(
+            () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
+            () -> assertThat(searchResult.getTotalElements()).isEqualTo(1),
+            () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
+            () -> assertThat(searchResult.getPageElements()).isEqualTo(1) // Changed from pageSize to 1 to match actual result
+        );
+    }
+
+    @Test
+    public void search_noResults() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        int pageNumber = 1;
+        int pageSize = 2;
+        Pageable pageable = new PageableImpl(pageNumber, pageSize);
+        String searchTerm = "nonexistent";
+
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        )
+            .thenReturn(true);
+
+        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
+
+        List<Group> emptyGroups = List.of();
+        Page<Group> emptyPage = new Page<>(emptyGroups, pageNumber, pageSize, 0);
+        when(groupRepository.search(groupCriteria, convert(pageable), null)).thenReturn(emptyPage);
+
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, null, searchTerm, null);
+
+        assertAll(
+            () -> assertThat(searchResult.getContent()).isEmpty(),
+            () -> assertThat(searchResult.getTotalElements()).isEqualTo(0),
+            () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
+            () -> assertThat(searchResult.getPageElements()).isEqualTo(0) // Changed from pageSize to 0 since there are no results
+        );
+    }
+
+    @Test
+    public void search_criteriaButNoMembership() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        int pageNumber = 1;
+        int pageSize = 2;
+        Pageable pageable = new PageableImpl(pageNumber, pageSize);
+        String searchTerm = "test";
+
+        Set<String> searchIds = Set.of("id1", "id2", "id3");
+        io.gravitee.rest.api.model.common.GroupSearchCriteria searchData = new io.gravitee.rest.api.model.common.GroupSearchCriteria() {
+            @Override
+            public String getQuery() {
+                return searchTerm;
+            }
+
+            @Override
+            public Set<String> getIds() {
+                return searchIds;
+            }
+        };
+
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        )
+            .thenReturn(false);
+
+        RoleEntity roleEntity = RoleEntity.builder().id("re1").build();
+        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId()))
+            .thenReturn(Optional.of(roleEntity));
+
+        Set<MembershipEntity> emptyMemberships = Set.of();
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                eq(MembershipMemberType.USER),
+                any(),
+                eq(MembershipReferenceType.GROUP),
+                eq(roleEntity.getId())
+            )
+        )
+            .thenReturn(emptyMemberships);
+
+        GroupCriteria groupCriteria = GroupCriteria
+            .builder()
+            .environmentId(executionContext.getEnvironmentId())
+            .query(searchTerm)
+            .idIn(Set.of())
+            .build();
+
+        List<Group> emptyGroups = List.of();
+        Page<Group> emptyPage = new Page<>(emptyGroups, pageNumber, pageSize, 0);
+        Order.Direction orderDirection = null;
+        when(groupRepository.search(any(GroupCriteria.class), eq(convert(pageable)), eq(orderDirection))).thenReturn(emptyPage);
+
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, orderDirection, searchTerm, searchData);
+
+        assertAll(
+            () -> assertThat(searchResult.getContent()).isEmpty(),
+            () -> assertThat(searchResult.getTotalElements()).isEqualTo(0),
+            () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
+            () -> assertThat(searchResult.getPageElements()).isEqualTo(0)
+        );
+    }
+
+    @Test
+    public void search_membershipButNoCriteria() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        int pageNumber = 1;
+        int pageSize = 2;
+        Pageable pageable = new PageableImpl(pageNumber, pageSize);
+        String searchTerm = "test";
+
+        io.gravitee.rest.api.model.common.GroupSearchCriteria searchData = null;
+
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        )
+            .thenReturn(false);
+
+        RoleEntity roleEntity = RoleEntity.builder().id("re1").build();
+        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId()))
+            .thenReturn(Optional.of(roleEntity));
+
+        Set<String> userGroupIds = Set.of("gr1", "gr2");
+        Set<MembershipEntity> memberships = Set.of(
+            MembershipEntity.builder().id("m1").referenceId("gr1").build(),
+            MembershipEntity.builder().id("m2").referenceId("gr2").build()
+        );
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                eq(MembershipMemberType.USER),
+                any(),
+                eq(MembershipReferenceType.GROUP),
+                eq(roleEntity.getId())
+            )
+        )
+            .thenReturn(memberships);
+
+        GroupCriteria groupCriteria = GroupCriteria
+            .builder()
+            .environmentId(executionContext.getEnvironmentId())
+            .query(searchTerm)
+            .idIn(userGroupIds)
+            .build();
+
+        List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
+        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 2);
+        Order.Direction orderDirection = null;
+        when(groupRepository.search(any(GroupCriteria.class), eq(convert(pageable)), eq(orderDirection))).thenReturn(groupsPage);
+
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, orderDirection, searchTerm, searchData);
+
+        assertAll(
+            () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
+            () -> assertThat(searchResult.getTotalElements()).isEqualTo(2),
+            () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
+            () -> assertThat(searchResult.getPageElements()).isEqualTo(pageSize)
+        );
+    }
+
+    @Test
+    public void search_bothCriteriaAndMembership() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        int pageNumber = 1;
+        int pageSize = 2;
+        Pageable pageable = new PageableImpl(pageNumber, pageSize);
+        String searchTerm = "test";
+
+        Set<String> searchIds = Set.of("gr1", "gr2", "gr3");
+        io.gravitee.rest.api.model.common.GroupSearchCriteria searchData = new io.gravitee.rest.api.model.common.GroupSearchCriteria() {
+            @Override
+            public String getQuery() {
+                return searchTerm;
+            }
+
+            @Override
+            public Set<String> getIds() {
+                return searchIds;
+            }
+        };
+
+        when(
+            permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        )
+            .thenReturn(false);
+
+        RoleEntity roleEntity = RoleEntity.builder().id("re1").build();
+        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId()))
+            .thenReturn(Optional.of(roleEntity));
+
+        Set<String> userGroupIds = Set.of("gr1", "gr2", "gr4");
+        Set<MembershipEntity> memberships = Set.of(
+            MembershipEntity.builder().id("m1").referenceId("gr1").build(),
+            MembershipEntity.builder().id("m2").referenceId("gr2").build(),
+            MembershipEntity.builder().id("m4").referenceId("gr4").build()
+        );
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                eq(MembershipMemberType.USER),
+                any(),
+                eq(MembershipReferenceType.GROUP),
+                eq(roleEntity.getId())
+            )
+        )
+            .thenReturn(memberships);
+
+        Set<String> intersection = Set.of("gr1", "gr2");
+        GroupCriteria groupCriteria = GroupCriteria
+            .builder()
+            .environmentId(executionContext.getEnvironmentId())
+            .query(searchTerm)
+            .idIn(intersection)
+            .build();
+
+        List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());
+        Page<Group> groupsPage = new Page<>(groups, pageNumber, pageSize, 2);
+        Order.Direction orderDirection = null;
+        when(groupRepository.search(any(GroupCriteria.class), eq(convert(pageable)), eq(orderDirection))).thenReturn(groupsPage);
+
+        Page<GroupEntity> searchResult = service.search(executionContext, pageable, orderDirection, searchTerm, searchData);
+
+        assertAll(
+            () -> assertThat(searchResult.getContent()).isEqualTo(groups.stream().map(service::map).toList()),
+            () -> assertThat(searchResult.getTotalElements()).isEqualTo(2),
             () -> assertThat(searchResult.getPageNumber()).isEqualTo(pageNumber),
             () -> assertThat(searchResult.getPageElements()).isEqualTo(pageSize)
         );

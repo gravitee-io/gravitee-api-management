@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.GroupSimpleEntity;
 import io.gravitee.rest.api.model.NewGroupEntity;
 import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.GroupSearchCriteria;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -41,7 +42,13 @@ public interface GroupService {
     void delete(ExecutionContext executionContext, String groupId);
     void deleteUserFromGroup(ExecutionContext executionContext, String groupId, String username);
     List<GroupEntity> findAll(ExecutionContext executionContext);
-    Page<GroupEntity> search(ExecutionContext executionContext, Pageable pageable, Order.Direction orderDirection, String query);
+    Page<GroupEntity> search(
+        ExecutionContext executionContext,
+        Pageable pageable,
+        Order.Direction orderDirection,
+        String query,
+        GroupSearchCriteria searchData
+    );
     List<GroupSimpleEntity> findAllByOrganization(String organizationId);
     GroupEntity findById(ExecutionContext executionContext, String groupId);
     Set<GroupEntity> findByIds(Set<String> groupIds);

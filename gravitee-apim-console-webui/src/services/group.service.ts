@@ -49,6 +49,19 @@ class GroupService {
     );
   }
 
+  searchPaginated(
+    page: number = 1,
+    size: number = 20,
+    sortOrder: string = 'ASC',
+    query: string = '',
+    ids: string[] = [],
+  ): ng.IPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/configuration/groups/_paged?page=${page}&size=${size}&sortOrder=${sortOrder}`, {
+      query,
+      ids,
+    });
+  }
+
   listByOrganization(): ng.IPromise<any> {
     return this.$http.get(`${this.Constants.org.baseURL}/groups`);
   }

@@ -1124,6 +1124,7 @@ paths:
                     $ref: "#/components/responses/GroupsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+
     /environments/{envId}/groups/{groupId}/members:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -5184,6 +5185,7 @@ components:
             enum:
                 - API_CREATE
                 - APPLICATION_CREATE
+
         Member:
             type: object
             properties:
