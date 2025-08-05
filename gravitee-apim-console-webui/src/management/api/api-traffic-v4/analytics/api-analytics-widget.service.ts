@@ -157,6 +157,10 @@ export class ApiAnalyticsWidgetService {
       urlParamsData.ranges = widgetConfig.ranges.map((range) => `${range.value}`).join(';');
     }
 
+    if (widgetConfig.orderBy) {
+      urlParamsData.order = widgetConfig.orderBy;
+    }
+
     return this.apiAnalyticsV2Service
       .getGroupBy(widgetConfig.apiId, timeRangeParams, urlParamsData)
       .pipe(map((response: GroupByResponse) => this.transformGroupByResponseToApiAnalyticsWidgetConfig(response, widgetConfig)));
@@ -228,12 +232,10 @@ export class ApiAnalyticsWidgetService {
           count: value,
           id: label,
           isUnknown: metadata?.unknown || false,
+          order: Number(metadata?.order ?? Number.MAX_SAFE_INTEGER),
         };
-      });
-
-    if (widgetConfig.shouldSortBuckets) {
-      tableData.sort((a, b) => b.count - a.count);
-    }
+      })
+      .sort((a, b) => a.order - b.order);
 
     const columns: ApiAnalyticsWidgetTableDataColumn[] = [
       { name: 'name', label: 'Name', isSortable: true, dataType: 'string' },

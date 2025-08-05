@@ -59,6 +59,7 @@ type WidgetDataConfig = {
   groupByField?: GroupByField;
   statsField?: StatsField;
   ranges?: Range[];
+  orderBy?: string;
 };
 
 export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetDataConfig;
@@ -217,6 +218,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       shouldSortBuckets: false,
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
+      orderBy: '-count:_count',
     },
     {
       type: 'table',
@@ -226,6 +228,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       shouldSortBuckets: false,
       groupByField: 'plan-id',
       analyticsType: 'GROUP_BY',
+      orderBy: '-count:_count',
     },
     {
       type: 'table',
@@ -235,6 +238,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       shouldSortBuckets: false,
       groupByField: 'host',
       analyticsType: 'GROUP_BY',
+      orderBy: '-count:_count',
     },
   ];
 
