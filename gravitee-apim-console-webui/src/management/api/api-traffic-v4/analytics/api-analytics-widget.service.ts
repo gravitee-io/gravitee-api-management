@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { catchError, map, merge, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, map, merge, Observable, of, switchMap } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 
 import { ApiAnalyticsWidgetConfig } from './components/api-analytics-widget/api-analytics-widget.component';
@@ -30,6 +30,11 @@ import { GioChartLineData, GioChartLineOptions } from '../../../../shared/compon
 import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
 import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
 
+// Interface expected from component that transforms query params to UrlParamsData
+export interface ApiAnalyticsWidgetUrlParamsData {
+  timeRangeParams: TimeRangeParams;
+}
+
 // Colors for charts
 const defaultColors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
 
@@ -37,6 +42,10 @@ const defaultColors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
   providedIn: 'root',
 })
 export class ApiAnalyticsWidgetService {
+  private urlParamsData = new BehaviorSubject<ApiAnalyticsWidgetUrlParamsData>({
+    timeRangeParams: null,
+  });
+
   // Cache for stats requests to avoid multiple backend calls
   private statsCache = new Map<string, Observable<AnalyticsStatsResponse>>();
 
@@ -53,25 +62,29 @@ export class ApiAnalyticsWidgetService {
 
   constructor(private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service) {}
 
+  urlParamsData$(): Observable<ApiAnalyticsWidgetUrlParamsData> {
+    return this.urlParamsData.asObservable();
+  }
+
+  setUrlParamsData(urlParamsData: ApiAnalyticsWidgetUrlParamsData): void {
+    this.urlParamsData.next(urlParamsData);
+  }
+
   clearStatsCache(): void {
     this.statsCache.clear();
   }
 
   getApiAnalyticsWidgetConfig$(widgetConfig: ApiAnalyticsDashboardWidgetConfig): Observable<ApiAnalyticsWidgetConfig> {
-    return this.apiAnalyticsV2Service
-      .timeRangeFilter()
-      .pipe(
-        switchMap(() =>
-          merge(of(this.createLoadingConfig(widgetConfig)), this.getApiAnalyticsWidgetConfigFromAnalyticsType$(widgetConfig)),
-        ),
-      );
+    return this.urlParamsData$().pipe(
+      switchMap(() => merge(of(this.createLoadingConfig(widgetConfig)), this.getApiAnalyticsWidgetConfigFromAnalyticsType$(widgetConfig))),
+    );
   }
 
   private getApiAnalyticsWidgetConfigFromAnalyticsType$(
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): Observable<ApiAnalyticsWidgetConfig> {
-    return this.apiAnalyticsV2Service.timeRangeFilter().pipe(
-      switchMap((timeRangeParams) => {
+    return this.urlParamsData$().pipe(
+      switchMap(({ timeRangeParams }: ApiAnalyticsWidgetUrlParamsData) => {
         if (!timeRangeParams) {
           return of(this.createErrorConfig(widgetConfig, 'No time range selected'));
         }
