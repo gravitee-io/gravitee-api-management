@@ -49,6 +49,13 @@ export interface AggregationHistogramValue {
   buckets: Bucket[];
   field: string;
   name: string;
+  metadata?: AggregationHistogramValueMetadata;
+}
+
+export interface AggregationHistogramValueMetadata {
+  [key: string]: {
+    name?: string;
+  };
 }
 
 export interface HistogramAnalyticsResponse {

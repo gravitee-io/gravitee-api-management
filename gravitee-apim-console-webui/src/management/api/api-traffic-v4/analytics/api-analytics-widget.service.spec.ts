@@ -783,6 +783,80 @@ describe('ApiAnalyticsWidgetService', () => {
           });
         });
       });
+
+      it('should transform HISTOGRAM response with bucket metadata to line chart config', (done) => {
+        const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
+          type: 'line',
+          apiId: API_ID,
+          title: 'Applications Requests Over Time',
+          tooltip: 'Application requests over time',
+          analyticsType: 'HISTOGRAM',
+          aggregations: [
+            {
+              type: AggregationTypes.FIELD,
+              field: AggregationFields.APPLICATION_ID,
+            },
+          ],
+        };
+
+        const mockHistogramResponse: HistogramAnalyticsResponse = fakeAnalyticsHistogram({
+          timestamp: {
+            from: 1000,
+            to: 2000,
+            interval: 100,
+          },
+          values: [
+            {
+              field: 'by_application-id',
+              name: 'application-id',
+              buckets: [
+                {
+                  name: 'app-1',
+                  data: [10, 20, 30, 40, 50],
+                },
+                {
+                  name: 'app-2',
+                  data: [15, 25, 35, 45, 55],
+                },
+              ],
+              metadata: {
+                'app-1': { name: 'Application 1' },
+                'app-2': { name: 'Application 2' },
+              },
+            },
+          ],
+        });
+
+        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          // Skip loading state and wait for the actual result
+          if (result.state === 'loading') {
+            return;
+          }
+
+          expect(result.state).toBe('success');
+          expect(result.title).toBe('Applications Requests Over Time');
+          expect(result.tooltip).toBe('Application requests over time');
+          expect(result.widgetType).toBe('line');
+          if (result.widgetType === 'line') {
+            expect(result.widgetData.data).toHaveLength(2);
+            expect(result.widgetData.data[0]).toEqual({
+              name: 'Application 1',
+              values: [10, 20, 30, 40, 50],
+            });
+            expect(result.widgetData.data[1]).toEqual({
+              name: 'Application 2',
+              values: [15, 25, 35, 45, 55],
+            });
+            expect(result.widgetData.options).toEqual({
+              pointStart: 1000,
+              pointInterval: 100,
+            });
+          }
+          done();
+        });
+
+        expectHistogramRequest('FIELD:application-id', mockHistogramResponse);
+      });
     });
 
     describe('error handling', () => {
