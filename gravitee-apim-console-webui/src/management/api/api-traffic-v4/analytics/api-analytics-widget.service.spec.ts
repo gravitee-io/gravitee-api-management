@@ -495,7 +495,8 @@ describe('ApiAnalyticsWidgetService', () => {
             tooltip: 'Applications ranked by total API calls',
             analyticsType: 'GROUP_BY',
             groupByField: 'application-id',
-            shouldSortBuckets: true,
+            shouldSortBuckets: false,
+            orderBy: '-count:_count',
           };
 
           const mockGroupByResponse: GroupByResponse = fakeGroupByResponse({
@@ -505,8 +506,8 @@ describe('ApiAnalyticsWidgetService', () => {
               'app-3': 50,
             },
             metadata: {
-              'app-1': { name: 'Application 1', order: 0 },
-              'app-2': { name: 'Application 2', order: 1 },
+              'app-1': { name: 'Application 1', order: 1 },
+              'app-2': { name: 'Application 2', order: 0 },
               'app-3': { name: 'Application 3', order: 2 },
             },
           });
@@ -541,18 +542,21 @@ describe('ApiAnalyticsWidgetService', () => {
                 count: 200,
                 id: 'app-2',
                 isUnknown: false,
+                order: 0,
               });
               expect(result.widgetData.data[1]).toEqual({
                 name: 'Application 1',
                 count: 100,
                 id: 'app-1',
                 isUnknown: false,
+                order: 1,
               });
               expect(result.widgetData.data[2]).toEqual({
                 name: 'Application 3',
                 count: 50,
                 id: 'app-3',
                 isUnknown: false,
+                order: 2,
               });
             }
             done();
