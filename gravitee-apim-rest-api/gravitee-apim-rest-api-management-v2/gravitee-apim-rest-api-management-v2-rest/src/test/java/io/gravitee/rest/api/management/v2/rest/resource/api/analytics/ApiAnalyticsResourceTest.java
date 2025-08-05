@@ -748,7 +748,7 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             }
 
             @Test
-            void should_return_not_found_when_no_data() {
+            void should_return_empty_stats_if_no_data() {
                 apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
                 fakeAnalyticsQueryService.statsAnalytics = null;
 
@@ -762,10 +762,20 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
                 MAPIAssertions
                     .assertThat(response)
-                    .hasStatus(404)
-                    .asError()
-                    .hasHttpStatus(404)
-                    .hasMessage("No stats analytics found for api: " + API);
+                    .hasStatus(OK_200)
+                    .asEntity(io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse.class)
+                    .satisfies(result -> {
+                        var stats = result.getStatsAnalytics();
+                        assertThat(stats).isNotNull();
+                        assertThat(stats.getAvg()).isNull();
+                        assertThat(stats.getMin()).isNull();
+                        assertThat(stats.getMax()).isNull();
+                        assertThat(stats.getSum()).isNull();
+                        assertThat(stats.getCount()).isEqualTo(0L);
+                        assertThat(stats.getRps()).isEqualTo(0L);
+                        assertThat(stats.getRpm()).isEqualTo(0L);
+                        assertThat(stats.getRph()).isEqualTo(0L);
+                    });
             }
 
             @Test
