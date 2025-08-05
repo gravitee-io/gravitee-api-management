@@ -15,14 +15,14 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
-import { ApiAnalyticsMessageFiltersBarHarness } from '../components/api-analytics-message-filters-bar/api-analytics-message-filters-bar.component.harness';
+import { ApiAnalyticsProxyFilterBarHarness } from '../components/api-analytics-proxy-filter-bar/api-analytics-proxy-filter-bar.harness';
 
 export class ApiAnalyticsProxyHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-proxy';
 
   protected emptyPanelHarness = this.locatorForOptional('gio-card-empty-state');
 
-  getFiltersBarHarness = this.locatorForOptional(ApiAnalyticsMessageFiltersBarHarness);
+  getFiltersBarHarness = this.locatorForOptional(ApiAnalyticsProxyFilterBarHarness);
 
   async isEmptyPanelDisplayed(): Promise<boolean> {
     return (await this.emptyPanelHarness()) !== null;
