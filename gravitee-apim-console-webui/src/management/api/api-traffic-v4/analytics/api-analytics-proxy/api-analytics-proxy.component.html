@@ -15,7 +15,11 @@
     limitations under the License.
 
 -->
-<api-analytics-filters-bar />
+<api-analytics-proxy-filter-bar
+  [activeFilters]="activeFilters()"
+  (filtersChange)="onFiltersChange($event)"
+  (refresh)="onRefreshFilters()"
+/>
 
 <div class="widgets">
   <div class="top-row">
