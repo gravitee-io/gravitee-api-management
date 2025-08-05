@@ -34,6 +34,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountRe
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.CountAnalytics;
+import io.gravitee.rest.api.management.v2.rest.model.StatsAnalytics;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiAnalyticsParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -235,7 +237,7 @@ public class ApiAnalyticsResource extends AbstractResource {
                 var input = apiAnalyticsParam.toStatsInput(apiId);
                 var output = searchStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
                 if (output.analytics() == null) {
-                    throw new NotFoundException("No stats analytics found for api: " + apiId);
+                    return new ApiAnalyticsResponse(emptyStats());
                 }
                 var statsResponse = ApiAnalyticsMapper.INSTANCE.map(output.analytics());
                 return new ApiAnalyticsResponse(statsResponse);
@@ -244,12 +246,16 @@ public class ApiAnalyticsResource extends AbstractResource {
                 var input = apiAnalyticsParam.toRequestsCountInput(apiId);
                 var output = searchRequestsCountByEventAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
                 if (output.result() == null) {
-                    throw new NotFoundException("No Count analytics found for api: " + apiId);
+                    return new ApiAnalyticsResponse(new CountAnalytics());
                 }
                 var countAnalytics = ApiAnalyticsMapper.INSTANCE.mapToCountAnalytics(output.result());
                 return new ApiAnalyticsResponse(countAnalytics);
             }
             default -> throw new BadRequestException("Unsupported Analytics Type");
         }
+    }
+
+    private StatsAnalytics emptyStats() {
+        return new StatsAnalytics().count(0L).rps(0L).rpm(0L).rph(0L);
     }
 }
