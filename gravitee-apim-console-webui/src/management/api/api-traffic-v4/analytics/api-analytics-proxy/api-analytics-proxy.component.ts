@@ -233,6 +233,16 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'table',
       apiId: this.apiId,
+      title: 'Top Slow Applications',
+      tooltip: 'Apps ranked by average response time',
+      shouldSortBuckets: false,
+      groupByField: 'application-id',
+      analyticsType: 'GROUP_BY',
+      orderBy: '-avg:gateway-response-time-ms',
+    },
+    {
+      type: 'table',
+      apiId: this.apiId,
       title: 'Hits by Host (HTTP Header)',
       tooltip: 'Distribution of calls by host header (useful if you run APIs on subdomains or multi-tenant hosts)',
       shouldSortBuckets: false,
