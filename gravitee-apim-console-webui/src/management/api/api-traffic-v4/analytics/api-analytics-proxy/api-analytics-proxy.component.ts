@@ -65,6 +65,14 @@ type WidgetDataConfig = {
   statsField?: StatsField;
   ranges?: Range[];
   orderBy?: string;
+  tableData?: {
+    columns: {
+      name: string;
+      label: string;
+      isSortable: boolean;
+      dataType: 'string' | 'number';
+    }[];
+  };
 };
 
 export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetDataConfig;
@@ -227,6 +235,12 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      tableData: {
+        columns: [
+          { name: 'name', label: 'App', isSortable: true, dataType: 'string' },
+          { name: 'count', label: 'Requests Count', isSortable: true, dataType: 'number' },
+        ],
+      },
     },
     {
       type: 'table',
@@ -237,6 +251,12 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'plan-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      tableData: {
+        columns: [
+          { name: 'name', label: 'Plan', isSortable: true, dataType: 'string' },
+          { name: 'count', label: 'Count', isSortable: true, dataType: 'number' },
+        ],
+      },
     },
     {
       type: 'table',
@@ -247,6 +267,12 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-avg:gateway-response-time-ms',
+      tableData: {
+        columns: [
+          { name: 'name', label: 'App', isSortable: true, dataType: 'string' },
+          { name: 'count', label: 'Avg. Response Time (ms)', isSortable: true, dataType: 'number' },
+        ],
+      },
     },
     {
       type: 'table',
@@ -257,6 +283,12 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'host',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      tableData: {
+        columns: [
+          { name: 'name', label: 'Host', isSortable: true, dataType: 'string' },
+          { name: 'count', label: 'Hits', isSortable: true, dataType: 'number' },
+        ],
+      },
     },
   ];
 
