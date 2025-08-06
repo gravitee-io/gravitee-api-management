@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.common.http.MediaType;
@@ -28,6 +29,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
@@ -44,6 +46,9 @@ public class ClusterResource extends AbstractResource {
 
     @Inject
     private UpdateClusterUseCase updateClusterUseCase;
+
+    @Inject
+    private DeleteClusterUseCase deleteClusterUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -85,5 +90,31 @@ public class ClusterResource extends AbstractResource {
         );
 
         return Response.ok(this.getLocationHeader(output.cluster().getId())).entity(ClusterMapper.INSTANCE.map(output.cluster())).build();
+    }
+
+    @DELETE
+    // TODO add permissions
+    //      @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.DELETE }) })
+    public Response deleteCluster() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        AuditInfo audit = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+
+        deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(clusterId, audit));
+
+        return Response.noContent().build();
     }
 }

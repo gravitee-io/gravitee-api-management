@@ -53,6 +53,11 @@ public class TechnicalManagementException extends AbstractManagementException {
         return new TechnicalManagementException(message, cause);
     }
 
+    public static TechnicalManagementException ofTryingToDeleteWithId(Class<?> clazz, String id, Throwable cause) {
+        String message = String.format("An error occurred while trying to delete the %s with id %s", clazz.getSimpleName(), id);
+        return new TechnicalManagementException(message, cause);
+    }
+
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.INTERNAL_SERVER_ERROR_500;
