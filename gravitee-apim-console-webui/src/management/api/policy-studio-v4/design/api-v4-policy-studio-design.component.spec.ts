@@ -315,7 +315,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           ],
         },
         {
-          name: 'Common flows',
+          name: 'All plans',
           flows: [
             {
               infos: 'PUBSUBmy-channel',
@@ -341,7 +341,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         ],
       };
 
-      await policyStudioHarness.addFlow('Common flows', flowToAdd);
+      await policyStudioHarness.addFlow('All plans', flowToAdd);
       await policyStudioHarness.save();
 
       const updatedApi: ApiV4 = {
@@ -502,7 +502,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         ],
       };
 
-      await policyStudioHarness.addFlow('Common flows', flowToAdd);
+      await policyStudioHarness.addFlow('All plans', flowToAdd);
       await policyStudioHarness.setFlowExecutionConfig({
         mode: 'BEST_MATCH',
         matchRequired: true,
