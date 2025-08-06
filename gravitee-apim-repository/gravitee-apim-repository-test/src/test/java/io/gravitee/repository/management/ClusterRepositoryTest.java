@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
@@ -28,6 +29,7 @@ import io.gravitee.repository.management.model.Cluster;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Test;
 
 public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
@@ -118,33 +120,35 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_search_no_criteria_no_sortable() {
-        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(5).build();
-        Page<Cluster> clusters = clusterRepository.search(null, pageable, null);
+    public void should_search_no_sortable() {
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
+        ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-1").build();
+        Page<Cluster> clusters = clusterRepository.search(criteria, pageable, Optional.empty());
         assertAll(
-            () -> assertThat(clusters.getContent().size()).isEqualTo(5),
+            () -> assertThat(clusters.getContent().size()).isEqualTo(3),
             () -> assertThat(clusters.getPageNumber()).isEqualTo(0),
-            () -> assertThat(clusters.getPageElements()).isEqualTo(5),
-            () -> assertThat(clusters.getTotalElements()).isEqualTo(10),
+            () -> assertThat(clusters.getPageElements()).isEqualTo(3),
+            () -> assertThat(clusters.getTotalElements()).isEqualTo(4),
             () ->
                 assertThat(clusters.getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(List.of("3-cluster", "8-cluster", "cluster-1", "cluster-10", "cluster-4"))
+                    .isEqualTo(List.of("8-cluster", "cluster-1", "cluster-10"))
         );
     }
 
     @Test
     public void should_search_no_criteria_sort_by_name_desc() {
-        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(5).build();
+        ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-1").build();
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
         Sortable sortable = new SortableBuilder().field("name").order(Order.DESC).build();
-        Page<Cluster> clusters = clusterRepository.search(null, pageable, sortable);
+        Page<Cluster> clusters = clusterRepository.search(criteria, pageable, Optional.of(sortable));
         assertAll(
-            () -> assertThat(clusters.getContent().size()).isEqualTo(5),
+            () -> assertThat(clusters.getContent().size()).isEqualTo(3),
             () -> assertThat(clusters.getPageNumber()).isEqualTo(0),
-            () -> assertThat(clusters.getPageElements()).isEqualTo(5),
-            () -> assertThat(clusters.getTotalElements()).isEqualTo(10),
+            () -> assertThat(clusters.getPageElements()).isEqualTo(3),
+            () -> assertThat(clusters.getTotalElements()).isEqualTo(4),
             () ->
                 assertThat(clusters.getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(List.of("no-5-cluster", "cluster-no-2", "cluster-9", "cluster-7", "cluster-6"))
+                    .isEqualTo(List.of("cluster-no-2", "cluster-10", "cluster-1"))
         );
     }
 }

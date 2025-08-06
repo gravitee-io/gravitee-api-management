@@ -13,15 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package inmemory;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.search.ClusterCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.Sortable;
-import io.gravitee.repository.management.model.Cluster;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-public interface ClusterRepository extends CrudRepository<Cluster, String> {
-    Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortable);
+public abstract class AbstractQueryServiceInMemory<T> implements InMemoryAlternative<T> {
+
+    final ArrayList<T> storage = new ArrayList<>();
+
+    @Override
+    public void initWith(List<T> items) {
+        storage.clear();
+        storage.addAll(items);
+    }
+
+    @Override
+    public void reset() {
+        storage.clear();
+    }
+
+    @Override
+    public List<T> storage() {
+        return Collections.unmodifiableList(storage);
+    }
 }

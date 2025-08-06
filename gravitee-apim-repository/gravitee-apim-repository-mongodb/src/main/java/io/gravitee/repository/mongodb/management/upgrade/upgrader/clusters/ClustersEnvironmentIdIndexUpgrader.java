@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.clusters;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.search.ClusterCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.Sortable;
-import io.gravitee.repository.management.model.Cluster;
-import java.util.Optional;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
+import org.springframework.stereotype.Component;
 
-public interface ClusterRepository extends CrudRepository<Cluster, String> {
-    Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortable);
+@Component("ClustersEnvironmentIdIndexUpgrader")
+public class ClustersEnvironmentIdIndexUpgrader extends IndexUpgrader {
+
+    @Override
+    protected Index buildIndex() {
+        return Index.builder().collection("clusters").name("ce1").key("environmentId", ascending()).build();
+    }
 }

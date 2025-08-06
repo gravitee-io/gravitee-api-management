@@ -498,6 +498,21 @@ paths:
                   $ref: "#/components/schemas/Cluster"
           default:
             $ref: "#/components/responses/Error"
+      get:
+        tags:
+          - Clusters
+        summary: Search clusters
+        operationId: searchClusters
+        parameters:
+          - $ref: "#/components/parameters/pageParam"
+          - $ref: "#/components/parameters/perPageParam"
+          - $ref: "#/components/parameters/clusterSortByParam"
+        responses:
+          "200":
+            $ref: "#/components/responses/ClustersResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
     /clusters/{clusterId}:
       get:
         tags:
@@ -1337,6 +1352,24 @@ components:
           schema:
             type: string
 
+        clusterSortByParam:
+          name: sortBy
+          in: query
+          required: false
+          description: |-
+            Possibility to sort Cluster results by field.
+            Can be ascending or descending with minus '-' prefix.
+            By default, it is sorted by name.
+          schema:
+            type: string
+            example: name
+            enum:
+              - name
+              - -name
+              - createdAt
+              - -createdAt
+              - updatedAt
+              - -updatedAt
 
     responses:
         SchemaFormResponse:
@@ -1381,6 +1414,23 @@ components:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/SharedPolicyGroup"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
+
+        ClustersResponse:
+            description: Page of clusters
+            content:
+                application/json:
+                    schema:
+                        title: "ClustersResponse"
+                        properties:
+                            data:
+                                description: List of Clusters.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Cluster"
                             pagination:
                                 $ref: "#/components/schemas/Pagination"
                             links:

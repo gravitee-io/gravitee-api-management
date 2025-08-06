@@ -22,17 +22,22 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
-import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Cluster;
 import java.sql.Types;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.StringJoiner;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+@Slf4j
 @Repository
 public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, String> implements ClusterRepository {
 
@@ -61,26 +66,44 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
     }
 
     @Override
-    public Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Sortable sortable) {
-        Long total = jdbcTemplate.queryForObject("select count(*) from " + this.tableName, Long.class);
+    public Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortableOpt) {
+        Objects.requireNonNull(pageable, "Pageable must not be null");
+        Objects.requireNonNull(criteria, "ClusterCriteria must not be null");
+        Objects.requireNonNull(criteria.getEnvironmentId(), "ClusterCriteria.getEnvironmentId() must not be null");
+        log.debug("JdbcClusterRepository.search({}, {})", criteria, pageable);
+
+        StringJoiner andWhere = new StringJoiner(" AND ");
+        List<Object> andWhereParams = new ArrayList<>();
+
+        andWhere.add("environment_id = ?");
+        andWhereParams.add(criteria.getEnvironmentId());
+
+        Long total = jdbcTemplate.queryForObject(
+            "select count(*) from " + this.tableName + " WHERE " + andWhere,
+            Long.class,
+            andWhereParams.toArray()
+        );
 
         if (total == null || total == 0) {
             return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
         }
 
-        sortable = sortable == null ? new SortableBuilder().field("name").setAsc(true).build() : sortable;
-        final var sortOrder = sortable.order() == Order.ASC ? "ASC" : "DESC";
-        final var sortField = toSnakeCase(sortable.field());
+        Sortable sortable = sortableOpt.orElse(new SortableBuilder().field("name").setAsc(true).build());
+        final String sortOrder = sortable.order().name();
+        final String sortField = toSnakeCase(sortable.field());
 
         var result = jdbcTemplate.query(
             getOrm().getSelectAllSql() +
+            " WHERE " +
+            andWhere +
             " ORDER BY " +
             sortField +
             " " +
             sortOrder +
             " " +
             createPagingClause(pageable.pageSize(), pageable.from()),
-            getOrm().getRowMapper()
+            getOrm().getRowMapper(),
+            andWhereParams.toArray()
         );
 
         return new Page<>(result, pageable.pageNumber(), result.size(), total);
