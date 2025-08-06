@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.rest.api.management.v2.rest.model.Cluster;
 import io.gravitee.rest.api.management.v2.rest.model.CreateCluster;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -30,4 +31,6 @@ public interface ClusterMapper {
     Cluster map(io.gravitee.apim.core.cluster.model.Cluster cluster);
 
     io.gravitee.apim.core.cluster.model.UpdateCluster map(UpdateCluster updateCluster);
+
+    List<Cluster> map(List<io.gravitee.apim.core.cluster.model.Cluster> clusters);
 }
