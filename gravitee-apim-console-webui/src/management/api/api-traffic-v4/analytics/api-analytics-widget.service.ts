@@ -19,7 +19,6 @@ import { shareReplay } from 'rxjs/operators';
 
 import { ApiAnalyticsWidgetConfig } from './components/api-analytics-widget/api-analytics-widget.component';
 import { ApiAnalyticsDashboardWidgetConfig } from './api-analytics-proxy/api-analytics-proxy.component';
-import { ApiAnalyticsWidgetTableDataColumn } from './components/api-analytics-widget-table/api-analytics-widget-table.component';
 
 import { ApiAnalyticsV2Service } from '../../../../services-ngx/api-analytics-v2.service';
 import { GroupByResponse } from '../../../../entities/management-api-v2/analytics/analyticsGroupBy';
@@ -258,10 +257,7 @@ export class ApiAnalyticsWidgetService {
       })
       .sort((a, b) => a.order - b.order);
 
-    const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-      { name: 'name', label: 'Name', isSortable: true, dataType: 'string' },
-      { name: 'count', label: 'Count', isSortable: true, dataType: 'number' },
-    ];
+    const columns = widgetConfig.tableData?.columns ?? [];
 
     if (tableData.length === 0) {
       return this.createEmptyConfig(widgetConfig);

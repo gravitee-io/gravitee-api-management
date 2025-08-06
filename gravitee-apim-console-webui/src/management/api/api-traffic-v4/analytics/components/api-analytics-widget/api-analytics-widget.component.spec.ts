@@ -427,12 +427,12 @@ describe('ApiAnalyticsWidgetComponent', () => {
         widgetType: 'table',
         widgetData: {
           columns: [
-            { name: 'name', label: 'Name', dataType: 'string' },
-            { name: 'count', label: 'Count', dataType: 'number' },
+            { label: 'name', dataType: 'string' },
+            { label: 'count', dataType: 'number' },
           ],
           data: [
-            { name: 'Item 1', count: 10 },
-            { name: 'Item 2', count: 20 },
+            ['Item 1', 10],
+            ['Item 2', 20],
           ],
         },
       });
@@ -445,11 +445,11 @@ describe('ApiAnalyticsWidgetComponent', () => {
       const columnCount = await harness.getTableColumnCount();
 
       if (rowCount > 0 && columnCount > 0) {
-        expect(await harness.getTableCellText(0, 0)).toBe('Item 1');
+        expect(await harness.getTableCellText(0, 0)).toBe('Item 2');
       }
 
       if (rowCount > 0 && columnCount > 1) {
-        expect(await harness.getTableCellText(0, 1)).toContain('10');
+        expect(await harness.getTableCellText(0, 1)).toContain('20');
       }
     });
 
@@ -460,10 +460,10 @@ describe('ApiAnalyticsWidgetComponent', () => {
         widgetType: 'table',
         widgetData: {
           columns: [
-            { name: 'name', label: 'Name', dataType: 'string' },
-            { name: 'count', label: 'Count', dataType: 'number' },
+            { label: 'name', dataType: 'string' },
+            { label: 'count', dataType: 'number' },
           ],
-          data: [{ name: 'Item 1', count: 1234 }],
+          data: [['Item 1', 1234]],
         },
       });
       fixture.detectChanges();
@@ -484,10 +484,10 @@ describe('ApiAnalyticsWidgetComponent', () => {
         widgetType: 'table',
         widgetData: {
           columns: [
-            { name: 'name', label: 'Name', dataType: 'string' },
-            { name: 'percentage', label: 'Percentage', dataType: 'percentage' },
+            { label: 'name', dataType: 'string' },
+            { label: 'percentage', dataType: 'percentage' },
           ],
-          data: [{ name: 'Item 1', percentage: 0.25 }],
+          data: [['Item 1', 0.25]],
         },
       });
       fixture.detectChanges();
@@ -595,13 +595,13 @@ describe('ApiAnalyticsWidgetComponent', () => {
         widgetType: 'table',
         widgetData: {
           columns: [
-            { name: 'name', label: 'Name', dataType: 'string' },
-            { name: 'count', label: 'Count', dataType: 'number' },
-            { name: 'percentage', label: 'Percentage', dataType: 'percentage' },
+            { label: 'name', dataType: 'string' },
+            { label: 'count', dataType: 'number' },
+            { label: 'percentage', dataType: 'percentage' },
           ],
           data: [
-            { name: 'Item 1', count: 100, percentage: 0.5 },
-            { name: 'Item 2', count: 200, percentage: 0.75 },
+            ['Item 1', 100, 0.5],
+            ['Item 2', 200, 0.75],
           ],
         },
       });
@@ -614,15 +614,15 @@ describe('ApiAnalyticsWidgetComponent', () => {
       const columnCount = await harness.getTableColumnCount();
 
       if (rowCount > 0 && columnCount > 0) {
-        expect(await harness.getTableCellText(0, 0)).toBe('Item 1');
+        expect(await harness.getTableCellText(0, 0)).toBe('Item 2');
       }
 
       if (rowCount > 0 && columnCount > 1) {
-        expect(await harness.getTableCellText(0, 1)).toContain('100');
+        expect(await harness.getTableCellText(0, 1)).toContain('200');
       }
 
       if (rowCount > 0 && columnCount > 2) {
-        expect(await harness.getTableCellText(0, 2)).toContain('50%');
+        expect(await harness.getTableCellText(0, 2)).toContain('75%');
       }
     });
 
@@ -655,13 +655,13 @@ describe('ApiAnalyticsWidgetComponent', () => {
         widgetType: 'table',
         widgetData: {
           columns: [
-            { name: 'name', label: 'Name', dataType: 'string' },
-            { name: 'count', label: 'Count', dataType: 'number' },
-            { name: 'optional', label: 'Optional', dataType: 'string' },
+            { label: 'name', dataType: 'string' },
+            { label: 'count', dataType: 'number' },
+            { label: 'optional', dataType: 'string' },
           ],
           data: [
-            { name: 'Item 1', count: 10 }, // Missing 'optional' field
-            { name: 'Item 2', count: 20, optional: 'Present' },
+            ['Item 1', 10], // Missing 'optional' field
+            ['Item 2', 20, 'Present'],
           ],
         },
       });
@@ -673,11 +673,11 @@ describe('ApiAnalyticsWidgetComponent', () => {
       const columnCount = await harness.getTableColumnCount();
 
       if (rowCount > 0 && columnCount > 2) {
-        expect(await harness.getTableCellText(0, 2)).toBe(''); // Missing optional field
+        expect(await harness.getTableCellText(0, 2)).toBe('Present'); // Missing optional field
       }
 
       if (rowCount > 1 && columnCount > 2) {
-        expect(await harness.getTableCellText(1, 2)).toBe('Present'); // Present optional field
+        expect(await harness.getTableCellText(1, 2)).toBe(''); // Present optional field
       }
     });
   });
