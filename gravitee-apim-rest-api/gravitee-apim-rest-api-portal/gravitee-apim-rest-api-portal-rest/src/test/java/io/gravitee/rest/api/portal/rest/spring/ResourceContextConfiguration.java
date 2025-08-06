@@ -50,6 +50,7 @@ import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
@@ -867,5 +868,10 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdateClusterUseCase updateClusterUseCase() {
         return mock(UpdateClusterUseCase.class);
+    }
+
+    @Bean
+    public DeleteClusterUseCase deleteClusterUseCase() {
+        return mock(DeleteClusterUseCase.class);
     }
 }
