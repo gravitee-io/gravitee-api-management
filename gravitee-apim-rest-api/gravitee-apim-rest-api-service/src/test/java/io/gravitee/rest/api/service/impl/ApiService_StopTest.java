@@ -160,7 +160,7 @@ public class ApiService_StopTest {
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq(EventType.STOP_API),
                 argThat((ArgumentMatcher<Api>) apiArg -> apiArg.getId().equals(API_ID)),
-                eq(event.getProperties())
+                argThat((Map<String, String> props) -> USER_NAME.equals(props.get("user")) && props.containsKey("deployment_number"))
             );
         verify(notifierService, times(1)).trigger(eq(executionContext), eq(ApiHook.API_STOPPED), eq(API_ID), any());
     }
