@@ -1289,6 +1289,24 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+
+        ClustersResponse:
+          description: Page of clusters
+          content:
+            application/json:
+              schema:
+                title: "ClustersResponse"
+                properties:
+                  data:
+                    description: List of Clusters.
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Cluster"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                  links:
+                    $ref: "#/components/schemas/Links"
+
         Error:
             description: Generic error response
             content:

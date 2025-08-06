@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package io.gravitee.apim.core.cluster.query_service;
 
+import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.search.ClusterCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.Sortable;
-import io.gravitee.repository.management.model.Cluster;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import java.util.Optional;
 
-public interface ClusterRepository extends CrudRepository<Cluster, String> {
-    Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortable);
+public interface ClusterQueryService {
+    Page<Cluster> searchByEnvironmentId(String envId, Pageable pageable, Optional<Sortable> sortable);
 }

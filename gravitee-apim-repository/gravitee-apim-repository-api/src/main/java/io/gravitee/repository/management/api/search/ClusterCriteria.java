@@ -15,4 +15,14 @@
  */
 package io.gravitee.repository.management.api.search;
 
-public class ClusterCriteria {}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+@AllArgsConstructor
+public class ClusterCriteria {
+
+    private String environmentId;
+}
