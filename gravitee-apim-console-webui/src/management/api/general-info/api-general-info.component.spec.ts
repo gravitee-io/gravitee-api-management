@@ -453,6 +453,107 @@ describe('ApiGeneralInfoComponent', () => {
         const apiQualityInfo = await loader.getHarness(ApiGeneralInfoQualityHarness);
         expect(apiQualityInfo).toBeTruthy();
       });
+
+      it('should display migrate to v4 button for V2 APIs only', async () => {
+        const api = fakeApiV2({ id: API_ID });
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+
+        // Wait image to be loaded
+        await waitImageCheck();
+
+        const migrateBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
+        expect(migrateBtn).toBeTruthy();
+      });
+
+      it('should open migration dialog and perform normal migration on MIGRATABLE', async () => {
+        const api = fakeApiV2({ id: API_ID });
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+        await waitImageCheck();
+
+        // Click migrate
+        const migrateBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
+        await migrateBtn.click();
+
+        // Expect a DRY_RUN from the dialog initialization
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_migrate?mode=DRY_RUN`,
+            method: 'POST',
+          })
+          .flush({ state: 'MIGRATABLE', issues: [] });
+
+        // Expect initial check content shows migratable info
+        const dialog = await rootLoader.getHarness(MatDialogHarness);
+        const contentText = await dialog.getContentText();
+        expect(contentText).toContain('Migration ready');
+
+        // Move to confirmation step
+        const continueBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Continue' }));
+        await continueBtn.click();
+
+        // Confirm and start migration
+        const confirmCheckbox = await dialog.getHarness(MatCheckboxHarness);
+        await confirmCheckbox.check();
+        const startBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Start Migration' }));
+        await startBtn.click();
+
+        // Component then calls migrate without mode
+        const postReq = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_migrate`,
+          method: 'POST',
+        });
+        postReq.flush({ state: 'MIGRATED', issues: [] });
+
+        // After migration success, component reloads API and categories
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+      });
+
+      it('should open migration dialog and perform forced migration on CAN_BE_FORCED', async () => {
+        const api = fakeApiV2({ id: API_ID });
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+        await waitImageCheck();
+
+        const migrateBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
+        await migrateBtn.click();
+
+        // Expect a DRY_RUN from the dialog initialization
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_migrate?mode=DRY_RUN`,
+            method: 'POST',
+          })
+          .flush({ state: 'CAN_BE_FORCED', issues: [{ message: 'something', state: 'CAN_BE_FORCED' }] });
+
+        // Expect initial check content shows forcible info
+        const dialog = await rootLoader.getHarness(MatDialogHarness);
+        const contentText = await dialog.getContentText();
+        expect(contentText).toContain('Migration allowed');
+
+        // Move to confirmation step
+        const continueBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Continue' }));
+        await continueBtn.click();
+
+        // Confirm and start migration
+        const confirmCheckbox = await dialog.getHarness(MatCheckboxHarness);
+        await confirmCheckbox.check();
+        const startBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Start Migration' }));
+        await startBtn.click();
+
+        // Simulate forced migration
+        const postReq = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_migrate?mode=FORCE`,
+          method: 'POST',
+        });
+        postReq.flush({ state: 'MIGRATED', issues: [] });
+
+        // After migration success, component reloads API and categories
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+      });
     });
   });
 

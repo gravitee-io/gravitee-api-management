@@ -641,4 +641,52 @@ describe('ApiV2Service', () => {
       httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/apis`);
     });
   });
+
+  describe('migrateToV4', () => {
+    it('should POST to migrate endpoint without mode', (done) => {
+      const apiId = 'my-api-id';
+
+      apiV2Service.migrateToV4(apiId).subscribe((res) => {
+        expect(res).toEqual({ state: 'MIGRATABLE', issues: [] });
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_migrate`,
+        method: 'POST',
+      });
+      expect(req.request.params.keys().length).toBe(0);
+      req.flush({ state: 'MIGRATABLE', issues: [] });
+    });
+
+    it('should POST to migrate endpoint with mode=DRY_RUN', (done) => {
+      const apiId = 'my-api-id';
+
+      apiV2Service.migrateToV4(apiId, 'DRY_RUN').subscribe((res) => {
+        expect(res).toEqual({ state: 'MIGRATABLE', issues: [] });
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_migrate?mode=DRY_RUN`,
+        method: 'POST',
+      });
+      req.flush({ state: 'MIGRATABLE', issues: [] });
+    });
+
+    it('should POST to migrate endpoint with mode=FORCE', (done) => {
+      const apiId = 'my-api-id';
+
+      apiV2Service.migrateToV4(apiId, 'FORCE').subscribe((res) => {
+        expect(res).toEqual({ state: 'MIGRATED', issues: [] });
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_migrate?mode=FORCE`,
+        method: 'POST',
+      });
+      req.flush({ state: 'MIGRATED', issues: [] });
+    });
+  });
 });
