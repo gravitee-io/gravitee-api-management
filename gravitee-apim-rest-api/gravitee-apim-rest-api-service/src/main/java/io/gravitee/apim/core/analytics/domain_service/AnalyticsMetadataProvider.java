@@ -15,7 +15,9 @@
  */
 package io.gravitee.apim.core.analytics.domain_service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public interface AnalyticsMetadataProvider {
     enum Field {
@@ -48,4 +50,8 @@ public interface AnalyticsMetadataProvider {
     boolean appliesTo(Field field);
 
     Map<String, String> provide(String key, String environmentId);
+
+    default Map<String, Map<String, String>> provide(List<String> keys, String environmentId) {
+        return keys.stream().collect(Collectors.toMap(key -> key, key -> provide(key, environmentId)));
+    }
 }

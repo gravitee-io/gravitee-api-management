@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.application.domain_service;
+package io.gravitee.apim.core.analytics.domain_service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
-import io.gravitee.apim.core.analytics.domain_service.ApplicationMetadataProvider;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +46,8 @@ class ApplicationMetadataProviderTest {
         var app = mock(BaseApplicationEntity.class);
         when(app.getName()).thenReturn("Test App");
         when(app.getStatus()).thenReturn("ACTIVE");
-        when(crudService.findById("app-id", "env-id")).thenReturn(app);
+        when(app.getId()).thenReturn("app-id");
+        when(crudService.findByIds(List.of("app-id"), "env-id")).thenReturn(List.of(app));
 
         var provider = new ApplicationMetadataProvider(crudService);
         Map<String, String> metadata = provider.provide("app-id", "env-id");
@@ -73,7 +72,7 @@ class ApplicationMetadataProviderTest {
     @Test
     void provide_shouldReturnDeletedApplicationMetadataWhenNotFound() {
         var crudService = mock(ApplicationCrudService.class);
-        when(crudService.findById("deleted-id", "env-id")).thenThrow(new ApplicationNotFoundException("deleted-id"));
+        when(crudService.findByIds(List.of("deleted-id"), "env-id")).thenReturn(List.of());
 
         var provider = new ApplicationMetadataProvider(crudService);
         Map<String, String> metadata = provider.provide("deleted-id", "env-id");
@@ -88,7 +87,8 @@ class ApplicationMetadataProviderTest {
         var app = mock(BaseApplicationEntity.class);
         when(app.getName()).thenReturn("Archived App");
         when(app.getStatus()).thenReturn("ARCHIVED");
-        when(crudService.findById("archived-id", "env-id")).thenReturn(app);
+        when(app.getId()).thenReturn("archived-id");
+        when(crudService.findByIds(List.of("archived-id"), "env-id")).thenReturn(List.of(app));
 
         var provider = new ApplicationMetadataProvider(crudService);
         Map<String, String> metadata = provider.provide("archived-id", "env-id");

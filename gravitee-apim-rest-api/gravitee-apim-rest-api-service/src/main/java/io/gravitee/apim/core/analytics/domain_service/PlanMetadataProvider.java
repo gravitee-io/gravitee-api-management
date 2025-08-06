@@ -17,9 +17,12 @@ package io.gravitee.apim.core.analytics.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
-import io.gravitee.apim.core.plan.exception.PlanNotFoundException;
+import io.gravitee.apim.core.plan.model.Plan;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @DomainService
 public class PlanMetadataProvider implements AnalyticsMetadataProvider {
@@ -45,19 +48,59 @@ public class PlanMetadataProvider implements AnalyticsMetadataProvider {
 
     @Override
     public Map<String, String> provide(String key, String environmentId) {
-        Map<String, String> metadata = new HashMap<>();
-        try {
-            if (UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key)) {
-                metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
-                metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
-            } else {
-                var plan = planCrudService.getById(key);
-                metadata.put(METADATA_NAME, plan.getName());
+        return provide(List.of(key), environmentId).getOrDefault(key, Map.of());
+    }
+
+    record PlanMetadata(String name, Boolean unknown, Boolean deleted) {
+        Map<String, String> toMap() {
+            var result = new HashMap<String, String>();
+            result.put(METADATA_NAME, name);
+            if (unknown != null) {
+                result.put(METADATA_UNKNOWN, unknown.toString());
             }
-        } catch (PlanNotFoundException e) {
-            metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
-            metadata.put(METADATA_NAME, METADATA_DELETED_PLAN_NAME);
+            if (deleted != null) {
+                result.put(METADATA_DELETED, deleted.toString());
+            }
+            return result;
         }
-        return metadata;
+    }
+
+    private static final PlanMetadata UNKNOWN_PLAN = new PlanMetadata(METADATA_UNKNOWN_PLAN_NAME, true, null);
+    private static final PlanMetadata NOT_FOUND = new PlanMetadata(METADATA_DELETED_PLAN_NAME, null, true);
+
+    private static PlanMetadata ofPlan(Plan plan) {
+        return new PlanMetadata(
+            plan.getName(),
+            null,
+            null // Add deleted logic if needed in the future
+        );
+    }
+
+    @Override
+    public Map<String, Map<String, String>> provide(List<String> keys, String environmentId) {
+        // Build Map<String, PlanMetadata>
+        Map<String, PlanMetadata> metaMap = new HashMap<>();
+
+        // Unknown plans
+        keys
+            .stream()
+            .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
+            .forEach(key -> metaMap.put(key, UNKNOWN_PLAN));
+
+        // Batch for real plan ids
+        List<String> planIds = keys.stream().filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key)).toList();
+
+        if (!planIds.isEmpty()) {
+            var plans = planCrudService.findByIds(planIds).stream().collect(Collectors.toMap(Plan::getId, Function.identity()));
+
+            // Found plans
+            plans.forEach((id, plan) -> metaMap.put(id, ofPlan(plan)));
+
+            // Not found plans
+            planIds.stream().filter(id -> !plans.containsKey(id)).forEach(id -> metaMap.put(id, NOT_FOUND));
+        }
+
+        // Build output Map<String, Map<String, String>>
+        return metaMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toMap()));
     }
 }
