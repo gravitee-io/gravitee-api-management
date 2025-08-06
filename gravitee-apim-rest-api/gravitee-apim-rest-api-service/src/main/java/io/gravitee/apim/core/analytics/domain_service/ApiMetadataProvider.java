@@ -17,10 +17,12 @@ package io.gravitee.apim.core.analytics.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @DomainService
 public class ApiMetadataProvider implements AnalyticsMetadataProvider {
@@ -47,23 +49,63 @@ public class ApiMetadataProvider implements AnalyticsMetadataProvider {
 
     @Override
     public Map<String, String> provide(String key, String environmentId) {
-        Map<String, String> metadata = new HashMap<>();
-        try {
-            if (UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key)) {
-                metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
-                metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
-            } else {
-                var api = apiCrudService.get(key);
-                metadata.put(METADATA_NAME, api.getName());
-                metadata.put(METADATA_VERSION, api.getVersion());
-                if (Api.ApiLifecycleState.ARCHIVED == api.getApiLifecycleState()) {
-                    metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
-                }
+        return provide(List.of(key), environmentId).getOrDefault(key, Map.of());
+    }
+
+    record ApiMetadata(String name, Boolean unknown, String version, Boolean deleted) {
+        Map<String, String> toMap() {
+            var result = new HashMap<String, String>();
+            result.put(METADATA_NAME, name);
+            if (unknown != null) {
+                result.put(METADATA_UNKNOWN, unknown.toString());
             }
-        } catch (ApiNotFoundException e) {
-            metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
-            metadata.put(METADATA_NAME, METADATA_DELETED_API_NAME);
+            if (version != null) {
+                result.put(METADATA_VERSION, version);
+            }
+            if (deleted != null) {
+                result.put(METADATA_DELETED, deleted.toString());
+            }
+            return result;
         }
-        return metadata;
+    }
+
+    private static final ApiMetadata UNKNOWN_API = new ApiMetadata(METADATA_UNKNOWN_API_NAME, true, null, null);
+    private static final ApiMetadata NOT_FOUND = new ApiMetadata(METADATA_DELETED_API_NAME, null, null, true);
+
+    private static ApiMetadata ofApi(Api api) {
+        return new ApiMetadata(
+            api.getName(),
+            null,
+            api.getVersion(),
+            api.getApiLifecycleState() == Api.ApiLifecycleState.ARCHIVED ? true : null
+        );
+    }
+
+    @Override
+    public Map<String, Map<String, String>> provide(List<String> keys, String environmentId) {
+        // Build Map<String, ApiMetadata>
+        Map<String, ApiMetadata> metaMap = new HashMap<>();
+
+        // Unknown services
+        keys
+            .stream()
+            .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
+            .forEach(key -> metaMap.put(key, UNKNOWN_API));
+
+        // Batch for real API ids
+        List<String> apiIds = keys.stream().filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key)).toList();
+
+        if (!apiIds.isEmpty()) {
+            Map<String, Api> apis = apiCrudService.findByIds(apiIds).stream().collect(Collectors.toMap(Api::getId, Function.identity()));
+
+            // Found APIs
+            apis.forEach((id, api) -> metaMap.put(id, ofApi(api)));
+
+            // Not found APIs
+            apiIds.stream().filter(id -> !apis.containsKey(id)).forEach(id -> metaMap.put(id, NOT_FOUND));
+        }
+
+        // Build output Map<String, Map<String, String>>
+        return metaMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toMap()));
     }
 }

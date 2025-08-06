@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.apim.core.analytics.domain_service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
-import io.gravitee.apim.core.analytics.domain_service.ApiMetadataProvider;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +47,8 @@ class ApiMetadataProviderTest {
         when(api.getName()).thenReturn("Test API");
         when(api.getVersion()).thenReturn("v1");
         when(api.getApiLifecycleState()).thenReturn(Api.ApiLifecycleState.PUBLISHED);
-        when(apiCrudService.get("api-id")).thenReturn(api);
+        when(apiCrudService.findByIds(List.of("api-id"))).thenReturn(List.of(api));
+        when(api.getId()).thenReturn("api-id");
 
         var provider = new ApiMetadataProvider(apiCrudService);
         Map<String, String> metadata = provider.provide("api-id", "env-id");
@@ -75,7 +74,7 @@ class ApiMetadataProviderTest {
     @Test
     void provide_shouldReturnDeletedApiMetadataWhenNotFound() {
         var apiCrudService = mock(ApiCrudService.class);
-        when(apiCrudService.get("deleted-id")).thenThrow(new ApiNotFoundException("deleted-id"));
+        when(apiCrudService.findByIds(List.of("deleted-id"))).thenReturn(List.of());
 
         var provider = new ApiMetadataProvider(apiCrudService);
         Map<String, String> metadata = provider.provide("deleted-id", "env-id");
@@ -91,7 +90,8 @@ class ApiMetadataProviderTest {
         when(api.getName()).thenReturn("Archived API");
         when(api.getVersion()).thenReturn("v2");
         when(api.getApiLifecycleState()).thenReturn(Api.ApiLifecycleState.ARCHIVED);
-        when(apiCrudService.get("archived-id")).thenReturn(api);
+        when(apiCrudService.findByIds(List.of("archived-id"))).thenReturn(List.of(api));
+        when(api.getId()).thenReturn("archived-id");
 
         var provider = new ApiMetadataProvider(apiCrudService);
         Map<String, String> metadata = provider.provide("archived-id", "env-id");
