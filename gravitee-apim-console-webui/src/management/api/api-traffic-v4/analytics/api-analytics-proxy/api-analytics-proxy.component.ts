@@ -233,6 +233,16 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'table',
       apiId: this.apiId,
+      title: 'Top Paths',
+      tooltip: 'Most frequently hit API paths',
+      shouldSortBuckets: false,
+      groupByField: 'path-info.keyword',
+      analyticsType: 'GROUP_BY',
+      orderBy: '-count:_count',
+    },
+    {
+      type: 'table',
+      apiId: this.apiId,
       title: 'Top Slow Applications',
       tooltip: 'Apps ranked by average response time',
       shouldSortBuckets: false,
