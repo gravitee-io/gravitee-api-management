@@ -1819,7 +1819,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (EventType.PUBLISH_API.equals(eventType)) {
             EventCriteria criteria = EventCriteria
                 .builder()
-                .types(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API))
+                .types(
+                    Set.of(
+                        io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                        io.gravitee.repository.management.model.EventType.STOP_API,
+                        io.gravitee.repository.management.model.EventType.START_API,
+                        io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                    )
+                )
                 .property(Event.EventProperties.API_ID.getValue(), apiId)
                 .build();
 
@@ -1876,6 +1883,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 lastPublishedAPI.setDeployedAt(new Date());
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.USER.getValue(), userId);
+                properties.put(
+                    Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
+                    event.getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
+                );
 
                 log.debug("Clear useless field for history");
                 lastPublishedAPI.setPicture(null);
