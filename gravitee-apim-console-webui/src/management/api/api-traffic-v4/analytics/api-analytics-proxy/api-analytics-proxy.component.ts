@@ -108,7 +108,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'Min Latency',
+      title: 'Min Response Time',
       statsKey: 'min',
       statsUnit: 'ms',
       tooltip: '',
@@ -119,7 +119,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'Max Latency',
+      title: 'Max Response Time',
       statsKey: 'max',
       statsUnit: 'ms',
       tooltip: '',
@@ -130,7 +130,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'Average',
+      title: 'Avg Response Time',
       statsKey: 'avg',
       statsUnit: 'ms',
       tooltip: '',
@@ -141,7 +141,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'RPS',
+      title: 'Requests Per Second',
       statsKey: 'rps',
       statsUnit: '',
       tooltip: '',
