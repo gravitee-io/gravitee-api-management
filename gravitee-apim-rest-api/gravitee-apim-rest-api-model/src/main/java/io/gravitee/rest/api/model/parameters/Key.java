@@ -429,7 +429,9 @@ public enum Key {
 
     EXTERNAL_AUTH_ENABLED("auth.external.enabled", "false", Set.of(SYSTEM)),
     EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED("auth.external.allowAccountDeletion", "true", Set.of(SYSTEM)),
-    USER_GROUP_REQUIRED_ENABLED("userGroup.required.enabled", "false", Set.of(ORGANIZATION, ENVIRONMENT));
+    USER_GROUP_REQUIRED_ENABLED("userGroup.required.enabled", "false", Set.of(ORGANIZATION, ENVIRONMENT)),
+
+    KAFKA_CONSOLE_ENABLED("kafka.console.enabled", "false", Set.of(KeyScope.SYSTEM));
 
     final String key;
     String defaultValue;
