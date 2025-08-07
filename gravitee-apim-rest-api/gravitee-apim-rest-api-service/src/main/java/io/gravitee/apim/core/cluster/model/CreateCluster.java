@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.gravitee.apim.core.cluster.model;
 
-@use 'sass:map';
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-$borderColor: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
+@Setter
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class CreateCluster {
 
-:host {
-  display: block;
-}
-
-.card {
-  border: 1px solid $borderColor;
-  border-radius: 8px;
-
-  &__title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
+    private String name;
+    private String description;
+    private Object configuration;
 }

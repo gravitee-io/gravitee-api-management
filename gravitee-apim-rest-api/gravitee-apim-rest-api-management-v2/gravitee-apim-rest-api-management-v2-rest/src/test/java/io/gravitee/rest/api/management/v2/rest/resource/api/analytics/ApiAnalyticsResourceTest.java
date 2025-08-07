@@ -600,6 +600,81 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         assertThat(bucket.getBuckets()).size().isEqualTo(2);
                     });
             }
+
+            @Test
+            void should_return_bad_request_when_histogram_without_interval() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
+                    Instant.now().minusSeconds(60),
+                    Instant.now(),
+                    Duration.ofMinutes(10)
+                );
+                var response = rootTarget()
+                    .queryParam("type", "HISTOGRAM")
+                    .queryParam("from", expectedTimestamp.from().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.to().toEpochMilli())
+                    // No interval param
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(400)
+                    .asError()
+                    .hasHttpStatus(400)
+                    .hasMessage("Interval is required and must be a positive number.");
+            }
+
+            @Test
+            void should_return_bad_request_when_analytics_type_is_invalid() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
+                    Instant.now().minusSeconds(60),
+                    Instant.now(),
+                    Duration.ofMinutes(10)
+                );
+                List<String> invalidTypes = List.of("group-by", "histogr", "whatever");
+                for (String invalidType : invalidTypes) {
+                    var response = rootTarget()
+                        .queryParam("type", invalidType)
+                        .queryParam("from", expectedTimestamp.from().toEpochMilli())
+                        .queryParam("to", expectedTimestamp.to().toEpochMilli())
+                        .queryParam("interval", expectedTimestamp.interval().toMillis())
+                        .request()
+                        .get();
+
+                    MAPIAssertions
+                        .assertThat(response)
+                        .hasStatus(400)
+                        .asError()
+                        .hasHttpStatus(400)
+                        .hasMessage("Valid type parameter is required. Supported types are: [histogram, group_by, stats, count]");
+                }
+            }
+
+            @Test
+            void should_return_bad_request_when_histogram_type_has_trailing_space() {
+                apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+                var expectedTimestamp = new io.gravitee.apim.core.analytics.model.Timestamp(
+                    Instant.now().minusSeconds(60),
+                    Instant.now(),
+                    Duration.ofMinutes(10)
+                );
+                var response = rootTarget()
+                    .queryParam("type", "HISTOGRAM ")
+                    .queryParam("from", expectedTimestamp.from().toEpochMilli())
+                    .queryParam("to", expectedTimestamp.to().toEpochMilli())
+                    .queryParam("interval", expectedTimestamp.interval().toMillis())
+                    .request()
+                    .get();
+
+                MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(400)
+                    .asError()
+                    .hasHttpStatus(400)
+                    .hasMessage("Valid type parameter is required. Supported types are: [histogram, group_by, stats, count]");
+            }
         }
 
         @Nested

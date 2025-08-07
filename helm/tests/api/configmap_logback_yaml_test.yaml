@@ -2,6 +2,56 @@ suite: APIM - API - ConfigMap logback.xml config
 templates:
   - "api/api-configmap.yaml"
 tests:
+  - it: should not write in file by default
+    template: api/api-configmap.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 1.0.0-app
+    set:
+      api:
+        logging:
+          debug: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: data["logback.xml"]
+          value: |-
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!--
+              ~ Copyright (c) 2015-2016, The Gravitee team (http://www.gravitee.io)
+              ~
+              ~  Licensed under the Apache License, Version 2.0 (the "License");
+              ~  you may not use this file except in compliance with the License.
+              ~  You may obtain a copy of the License at
+              ~
+              ~  http://www.apache.org/licenses/LICENSE-2.0
+              ~
+              ~  Unless required by applicable law or agreed to in writing, software
+              ~  distributed under the License is distributed on an "AS IS" BASIS,
+              ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+              ~  See the License for the specific language governing permissions and
+              ~  limitations under the License.
+              -->
+              <configuration>
+                  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+                      <!-- encoders are assigned the type
+                          ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+                      <encoder>
+                          <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+                      </encoder>
+                  </appender>
+
+                  <logger name="io.gravitee" level="DEBUG" />
+                  <logger name="org.eclipse.jetty" level="INFO" />
+
+                  <!-- Strictly speaking, the level attribute is not necessary since -->
+                  <!-- the level of the root level is set to DEBUG by default.       -->
+                  <root level="WARN">
+                      <appender-ref ref="STDOUT" />
+                  </root>
+              </configuration>
+
   - it: should apply default logback configuration
     template: api/api-configmap.yaml
     chart:
@@ -11,6 +61,8 @@ tests:
       api:
         logging:
           debug: true
+          file:
+            enabled: true
     asserts:
       - hasDocuments:
           count: 1
@@ -77,6 +129,8 @@ tests:
           debug: true
           stdout:
             json: true
+          file:
+            enabled: true
     asserts:
       - hasDocuments:
           count: 1
@@ -151,6 +205,8 @@ tests:
               level: DEBUG
             - name: io.gravitee.test.infopackage
               level: INFO
+          file:
+            enabled: true
     asserts:
       - hasDocuments:
           count: 1

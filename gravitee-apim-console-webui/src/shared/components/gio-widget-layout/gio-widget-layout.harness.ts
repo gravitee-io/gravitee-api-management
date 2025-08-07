@@ -25,10 +25,12 @@ export class GioWidgetLayoutHarness extends ComponentHarness {
   protected getTooltipIcon = this.locatorForOptional(MatIconHarness.with({ selector: '[svgIcon="gio:info"]' }));
   protected getLoader = this.locatorForOptional('gio-loader');
   protected getErrorContainer = this.locatorForOptional('.error');
-  protected getErrorIcon = this.locatorForOptional(MatIconHarness.with({ selector: '[svgIcon="gio:error"]' }));
-  protected getErrorTextElement = this.locatorForOptional('.error span');
+  protected getErrorIcon = this.locatorForOptional(MatIconHarness.with({ selector: '[svgIcon="gio:alert-circle"]' }));
+  protected getErrorTextTitleElement = this.locatorForOptional('[data-test-id="error-title"]');
+  protected getErrorTextMessageElement = this.locatorForOptional('[data-test-id="error-message"]');
   protected getEmptyContainer = this.locatorForOptional('.empty');
-  protected getEmptyTextElement = this.locatorForOptional('.empty span');
+  protected getEmptyTextTitleElement = this.locatorForOptional('[data-test-id="empty-title"]');
+  protected getEmptyTextMessageElement = this.locatorForOptional('[data-test-id="empty-message"]');
   protected getContent = this.locatorForOptional('[gioWidgetLayoutChart]');
 
   /**
@@ -64,10 +66,21 @@ export class GioWidgetLayoutHarness extends ComponentHarness {
   }
 
   /**
-   * Gets the error text
+   * Gets the error title text
    */
-  async getErrorText(): Promise<string | null> {
-    const errorTextElement = await this.getErrorTextElement();
+  async getErrorTitleText(): Promise<string | null> {
+    const errorTextElement = await this.getErrorTextTitleElement();
+    if (!errorTextElement) {
+      return null;
+    }
+    return errorTextElement.text();
+  }
+
+  /**
+   * Gets the error message text
+   */
+  async getErrorMessageText(): Promise<string | null> {
+    const errorTextElement = await this.getErrorTextMessageElement();
     if (!errorTextElement) {
       return null;
     }
@@ -91,10 +104,21 @@ export class GioWidgetLayoutHarness extends ComponentHarness {
   }
 
   /**
-   * Gets the empty state text
+   * Gets the empty state title text
    */
-  async getEmptyText(): Promise<string | null> {
-    const emptyTextElement = await this.getEmptyTextElement();
+  async getEmptyTextTitle(): Promise<string | null> {
+    const emptyTextElement = await this.getEmptyTextTitleElement();
+    if (!emptyTextElement) {
+      return null;
+    }
+    return emptyTextElement.text();
+  }
+
+  /**
+   * Gets the empty state message text
+   */
+  async getEmptyTextMessage(): Promise<string | null> {
+    const emptyTextElement = await this.getEmptyTextMessageElement();
     if (!emptyTextElement) {
       return null;
     }

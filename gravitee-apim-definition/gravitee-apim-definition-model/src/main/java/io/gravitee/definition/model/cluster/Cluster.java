@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.gravitee.definition.model.cluster;
 
-@use 'sass:map';
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-$foreground: map.get(gio.$mat-theme, foreground);
+@Getter
+@NoArgsConstructor
+@Builder
+@AllArgsConstructor
+public class Cluster {
 
-:host {
-  display: block;
-}
-
-.chart {
-  border-top: 1px solid mat.m2-get-color-from-palette($foreground, divider);
-  padding: 16px;
+    private String id;
+    private String name;
+    private Object configuration;
 }

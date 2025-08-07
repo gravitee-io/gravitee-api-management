@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export interface ApiAnalyticsFilters {
+export interface ApiAnalyticsMessageFilters {
   period: string;
   from: number;
   to: number;

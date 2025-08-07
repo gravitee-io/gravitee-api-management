@@ -38,6 +38,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CountAnalytics;
 import io.gravitee.rest.api.management.v2.rest.model.StatsAnalytics;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiAnalyticsParam;
+import io.gravitee.rest.api.management.v2.rest.validation.ApiAnalyticsParamSpecification;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -219,6 +220,7 @@ public class ApiAnalyticsResource extends AbstractResource {
         @PathParam("apiId") String apiId,
         @BeanParam ApiAnalyticsParam apiAnalyticsParam
     ) {
+        ApiAnalyticsParamSpecification.common().throwIfNotSatisfied(apiAnalyticsParam);
         switch (apiAnalyticsParam.getType()) {
             case HISTOGRAM -> {
                 var input = apiAnalyticsParam.toHistogramInput(apiId);

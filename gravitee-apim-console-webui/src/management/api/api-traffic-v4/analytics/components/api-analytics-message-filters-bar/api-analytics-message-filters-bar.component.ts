@@ -30,7 +30,7 @@ import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular
 import moment, { Moment } from 'moment/moment';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 
-import { ApiAnalyticsFilters } from './api-analytics-filters-bar.configuration';
+import { ApiAnalyticsMessageFilters } from './api-analytics-message-filters-bar.configuration';
 
 import {
   timeFrames,
@@ -42,7 +42,7 @@ import {
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 
 @Component({
-  selector: 'api-analytics-filters-bar',
+  selector: 'api-analytics-message-filters-bar',
   imports: [
     CommonModule,
     MatButtonModule,
@@ -57,13 +57,13 @@ import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analyt
     OwlMomentDateTimeModule,
   ],
   providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
-  templateUrl: './api-analytics-filters-bar.component.html',
-  styleUrl: './api-analytics-filters-bar.component.scss',
+  templateUrl: './api-analytics-message-filters-bar.component.html',
+  styleUrl: './api-analytics-message-filters-bar.component.scss',
 })
-export class ApiAnalyticsFiltersBarComponent implements OnInit, OnDestroy {
+export class ApiAnalyticsMessageFiltersBarComponent implements OnInit, OnDestroy {
   protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
   public form: FormGroup;
-  public activeFilters: ApiAnalyticsFilters;
+  public activeFilters: ApiAnalyticsMessageFilters;
   public minDate: Moment;
   public nowDate: Moment = moment().add(1, 'd');
   public customPeriod: string = 'custom';

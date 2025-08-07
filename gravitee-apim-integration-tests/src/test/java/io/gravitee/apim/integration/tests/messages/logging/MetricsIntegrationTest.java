@@ -102,7 +102,7 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
                     soft.assertThat(metrics.getClientIdentifier()).isEqualTo(CLIENT_ID);
                     soft.assertThat(metrics.getTransactionId()).isEqualTo(TRANSACTION_ID);
                     soft.assertThat(metrics.isRequestEnded()).isFalse();
-                    soft.assertThat(metrics.getStatus()).isZero();
+                    soft.assertThat(metrics.getStatus()).isEqualTo(200);
                     soft.assertThat(metrics.getEndpointResponseTimeMs()).isPositive();
                     soft.assertThat(metrics.getGatewayLatencyMs()).isEqualTo(0);
                     soft.assertThat(metrics.getGatewayResponseTimeMs()).isEqualTo(0);

@@ -50,6 +50,10 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
+import io.gravitee.apim.core.documentation.model.AccessControl;
+import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.model.PageMedia;
+import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -66,13 +70,18 @@ import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class MigrateApiUseCaseTest {
@@ -104,7 +113,7 @@ class MigrateApiUseCaseTest {
     private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     private final ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
-
+    private final PageQueryService pageQueryService = mock(PageQueryService.class);
     private final AuditDomainService auditDomainService = new AuditDomainService(
         auditCrudService,
         userCrudService,
@@ -133,7 +142,8 @@ class MigrateApiUseCaseTest {
         apiPrimaryOwnerDomainService,
         planCrudService,
         flowCrudService,
-        apiStateDomainService
+        apiStateDomainService,
+        pageQueryService
     );
 
     @BeforeEach
@@ -254,6 +264,139 @@ class MigrateApiUseCaseTest {
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
             .containsExactly(new MigrationResult.Issue("Cannot migrate an API not using V4 emulation", MigrationResult.State.IMPOSSIBLE));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Page.Type.class, mode = EnumSource.Mode.EXCLUDE, names = { "TRANSLATION" })
+    void should_migrate_when_api_has_documentation_page(Page.Type type) {
+        // Given
+        var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        Page publishedPage = new Page();
+        publishedPage.setPublished(true);
+        publishedPage.setId("page1");
+        publishedPage.setName("page1");
+        Page page = new Page();
+        page.setId("page2");
+        page.setName("page2");
+        page.setPublished(true);
+        page.setType(type);
+        page.setParentId(publishedPage.getId());
+        when(pageQueryService.searchByApiId(any(String.class))).thenReturn(List.of(publishedPage, page));
+        apiCrudService.initWith(List.of(api));
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+        // Then
+        assertThat(result.apiId()).isEqualTo(API_ID);
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+    }
+
+    @Test
+    void should_return_fail_when_api_has_doc_with_translations() {
+        // Given
+        var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        Page publishedPage = new Page();
+        publishedPage.setPublished(true);
+        publishedPage.setId("page1");
+        Page markdownTemplatePage = new Page();
+        markdownTemplatePage.setPublished(true);
+        markdownTemplatePage.setName("document1");
+        markdownTemplatePage.setId("document1");
+        markdownTemplatePage.setType(Page.Type.MARKDOWN_TEMPLATE);
+        Page translationPage = new Page();
+        translationPage.setType(Page.Type.TRANSLATION);
+        translationPage.setPublished(true);
+        translationPage.setId("document1_en");
+        translationPage.setParentId("document1");
+        when(pageQueryService.searchByApiId(any())).thenReturn(List.of(publishedPage, markdownTemplatePage, translationPage));
+        apiCrudService.initWith(List.of(api));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+        assertThat(result.issues())
+            .containsExactly(
+                new MigrationResult.Issue(
+                    "Cannot migrate an API having document: document1, with translations",
+                    MigrationResult.State.IMPOSSIBLE
+                )
+            );
+    }
+
+    @Test
+    void should_return_fail_when_api_has_doc_with_AccessControls() {
+        // Given
+        var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        Page publishedPage = new Page();
+        publishedPage.setPublished(true);
+        publishedPage.setId("page1");
+        Page markdownTemplatePage = new Page();
+        markdownTemplatePage.setPublished(true);
+        markdownTemplatePage.setType(Page.Type.MARKDOWN_TEMPLATE);
+        markdownTemplatePage.setName("document1");
+        markdownTemplatePage.setParentId("markdown1");
+        AccessControl accessControlEntity = new AccessControl("acc1", "acc1");
+        Set<AccessControl> accessControlEntities = new HashSet<>();
+        accessControlEntities.add(accessControlEntity);
+        markdownTemplatePage.setAccessControls(accessControlEntities);
+        when(pageQueryService.searchByApiId(any())).thenReturn(List.of(publishedPage, markdownTemplatePage));
+        apiCrudService.initWith(List.of(api));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+        assertThat(result.issues())
+            .containsExactly(
+                new MigrationResult.Issue(
+                    "Cannot migrate an API having document: document1, with Access Control",
+                    MigrationResult.State.IMPOSSIBLE
+                )
+            );
+    }
+
+    @Test
+    void should_return_fail_when_api_has_doc_with_AttachedResources() {
+        // Given
+        var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        Page publishedPage = new Page();
+        publishedPage.setPublished(true);
+        publishedPage.setId("page1");
+        Page markdownTemplatePage = new Page();
+        markdownTemplatePage.setPublished(true);
+        markdownTemplatePage.setName("document1");
+        markdownTemplatePage.setType(Page.Type.MARKDOWN_TEMPLATE);
+        final String mediaHash = "#MEDIA_HASH";
+        final Date attachedAt = new Date();
+        PageMedia createdMedia = new PageMedia();
+        createdMedia.setMediaHash(mediaHash);
+        createdMedia.setAttachedAt(attachedAt);
+        markdownTemplatePage.setAttachedMedia(List.of(createdMedia));
+
+        when(pageQueryService.searchByApiId(any())).thenReturn(List.of(publishedPage, markdownTemplatePage));
+        apiCrudService.initWith(List.of(api));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+        assertThat(result.issues())
+            .containsExactly(
+                new MigrationResult.Issue(
+                    "Cannot migrate an API having document: document1, with Attached Resources",
+                    MigrationResult.State.IMPOSSIBLE
+                )
+            );
     }
 
     @Test

@@ -24,7 +24,7 @@ import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
-import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
+import { ApiAnalyticsMessageFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-message-filters-bar/api-analytics-message-filters-bar.configuration';
 import { HistogramAnalyticsResponse } from '../entities/management-api-v2/analytics/analyticsHistogram';
 import { GroupByField, GroupByResponse } from '../entities/management-api-v2/analytics/analyticsGroupBy';
 import { AnalyticsStatsResponse, StatsField } from '../entities/management-api-v2/analytics/analyticsStats';
@@ -39,7 +39,7 @@ interface UrlParamsData {
   providedIn: 'root',
 })
 export class ApiAnalyticsV2Service {
-  public readonly defaultFilters: ApiAnalyticsFilters = { period: '1d', from: null, to: null };
+  public readonly defaultFilters: ApiAnalyticsMessageFilters = { period: '1d', from: null, to: null };
   private timeRangeFilter$: BehaviorSubject<TimeRangeParams> = new BehaviorSubject<TimeRangeParams>(null);
 
   constructor(
