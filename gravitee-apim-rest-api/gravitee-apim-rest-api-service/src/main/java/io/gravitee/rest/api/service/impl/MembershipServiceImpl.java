@@ -69,6 +69,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.providers.User;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApplicationAlertService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
@@ -86,6 +87,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
@@ -158,6 +160,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private final ObjectMapper objectMapper;
     private final CommandRepository commandRepository;
 
+    private final ApiMetadataService apiMetadataService;
+    private final SearchEngineService searchEngineService;
+
     public MembershipServiceImpl(
         @Autowired @Lazy IdentityService identityService,
         @Autowired @Lazy UserService userService,
@@ -178,7 +183,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         @Autowired @Lazy IntegrationRepository integrationRepository,
         @Autowired Node node,
         @Autowired ObjectMapper objectMapper,
-        @Autowired @Lazy CommandRepository commandRepository
+        @Autowired @Lazy CommandRepository commandRepository,
+        @Autowired @Lazy ApiMetadataService apiMetadataService,
+        @Autowired @Lazy SearchEngineService searchEngineService
     ) {
         this.identityService = identityService;
         this.userService = userService;
@@ -200,6 +207,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.node = node;
         this.objectMapper = objectMapper;
         this.commandRepository = commandRepository;
+        this.apiMetadataService = apiMetadataService;
+        this.searchEngineService = searchEngineService;
     }
 
     @Override
@@ -1691,6 +1700,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
 
         this.transferOwnership(executionContext, MembershipReferenceType.API, RoleScope.API, apiId, member, newPrimaryOwnerRoles);
+        GenericApiEntity apiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId);
+        GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(GraviteeContext.getExecutionContext(), apiEntity);
+        searchEngineService.index(GraviteeContext.getExecutionContext(), genericApiEntity, false);
     }
 
     @Override

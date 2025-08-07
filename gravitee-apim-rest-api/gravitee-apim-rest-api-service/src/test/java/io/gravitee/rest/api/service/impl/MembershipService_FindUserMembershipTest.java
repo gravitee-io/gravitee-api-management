@@ -106,6 +106,8 @@ public class MembershipService_FindUserMembershipTest {
                 null,
                 null,
                 null,
+                null,
+                null,
                 null
             );
     }
