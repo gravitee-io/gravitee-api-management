@@ -52,25 +52,25 @@ public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
         return provide(List.of(key), environmentId).getOrDefault(key, Map.of());
     }
 
-    record ApplicationMetadata(String name, Boolean unknown, Boolean deleted) {
+    record ApplicationMetadata(String name, boolean unknown, boolean deleted) {
         Map<String, String> toMap() {
             var result = new HashMap<String, String>();
             result.put(METADATA_NAME, name);
-            if (unknown != null) {
-                result.put(METADATA_UNKNOWN, unknown.toString());
+            if (unknown) {
+                result.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             }
-            if (deleted != null) {
-                result.put(METADATA_DELETED, deleted.toString());
+            if (deleted) {
+                result.put(METADATA_DELETED, Boolean.TRUE.toString());
             }
             return result;
         }
     }
 
-    private static final ApplicationMetadata UNKNOWN_APPLICATION = new ApplicationMetadata(METADATA_UNKNOWN_APPLICATION_NAME, true, null);
-    private static final ApplicationMetadata NOT_FOUND = new ApplicationMetadata(METADATA_DELETED_APPLICATION_NAME, null, true);
+    private static final ApplicationMetadata UNKNOWN_APPLICATION = new ApplicationMetadata(METADATA_UNKNOWN_APPLICATION_NAME, true, false);
+    private static final ApplicationMetadata NOT_FOUND = new ApplicationMetadata(METADATA_DELETED_APPLICATION_NAME, false, true);
 
     private static ApplicationMetadata ofApplication(BaseApplicationEntity app) {
-        return new ApplicationMetadata(app.getName(), null, ARCHIVED.equals(app.getStatus()) ? true : null);
+        return new ApplicationMetadata(app.getName(), false, ARCHIVED.equals(app.getStatus()));
     }
 
     @Override

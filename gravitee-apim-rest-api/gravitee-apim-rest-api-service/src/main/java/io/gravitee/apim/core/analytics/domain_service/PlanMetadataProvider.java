@@ -51,29 +51,25 @@ public class PlanMetadataProvider implements AnalyticsMetadataProvider {
         return provide(List.of(key), environmentId).getOrDefault(key, Map.of());
     }
 
-    record PlanMetadata(String name, Boolean unknown, Boolean deleted) {
+    record PlanMetadata(String name, boolean unknown, boolean deleted) {
         Map<String, String> toMap() {
             var result = new HashMap<String, String>();
             result.put(METADATA_NAME, name);
-            if (unknown != null) {
-                result.put(METADATA_UNKNOWN, unknown.toString());
+            if (unknown) {
+                result.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             }
-            if (deleted != null) {
-                result.put(METADATA_DELETED, deleted.toString());
+            if (deleted) {
+                result.put(METADATA_DELETED, Boolean.TRUE.toString());
             }
             return result;
         }
     }
 
-    private static final PlanMetadata UNKNOWN_PLAN = new PlanMetadata(METADATA_UNKNOWN_PLAN_NAME, true, null);
-    private static final PlanMetadata NOT_FOUND = new PlanMetadata(METADATA_DELETED_PLAN_NAME, null, true);
+    private static final PlanMetadata UNKNOWN_PLAN = new PlanMetadata(METADATA_UNKNOWN_PLAN_NAME, true, false);
+    private static final PlanMetadata NOT_FOUND = new PlanMetadata(METADATA_DELETED_PLAN_NAME, false, true);
 
     private static PlanMetadata ofPlan(Plan plan) {
-        return new PlanMetadata(
-            plan.getName(),
-            null,
-            null // Add deleted logic if needed in the future
-        );
+        return new PlanMetadata(plan.getName(), false, false);
     }
 
     @Override
