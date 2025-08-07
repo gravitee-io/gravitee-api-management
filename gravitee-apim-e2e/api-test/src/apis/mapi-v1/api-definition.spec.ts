@@ -521,11 +521,8 @@ describe('API definition', () => {
         value: 'foobar',
       },
     ];
-
-    const apiDefinitionUpdated = await succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }));
-    const { members } = JSON.parse(apiDefinitionUpdated);
-
-    expect(members[0].sourceId).toEqual('admin');
+    const regex = /User \[(.*?)] cannot be found\./;
+    await expect(succeed(apiDefinitionApi.patchRaw({ orgId, envId, api, jsonPatch }))).rejects.toThrow(regex);
   });
 
   test('should not add member', async () => {

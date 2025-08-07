@@ -26,7 +26,7 @@ interface PortalBusinessError {
 export async function fail(
   promise,
   expectedStatus: number,
-  expectedError?: string | Partial<PortalBusinessError> | Array<Partial<PortalBusinessError>>,
+  expectedError?: string | RegExp | Partial<PortalBusinessError> | Array<Partial<PortalBusinessError>>,
 ) {
   try {
     await promise;
@@ -44,6 +44,9 @@ export async function fail(
       if (typeof expectedError === 'string') {
         const { message } = await response.json();
         expect(message).toEqual(expectedError);
+      } else if (expectedError instanceof RegExp) {
+        const { message } = await response.json();
+        expect(message).toMatch(expectedError);
       } else {
         const { errors } = await response.json();
         if (Array.isArray(expectedError)) {
