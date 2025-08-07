@@ -50,7 +50,7 @@ public class PlanCrudServiceImpl implements PlanCrudService {
                 .map(PlanAdapter.INSTANCE::fromRepository)
                 .orElseThrow(() -> new PlanNotFoundException(planId));
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException(String.format("An error occurs while trying to get a plan by id: %s", planId), ex);
+            throw new TechnicalDomainException(String.format("An error occurred while trying to get a plan by id: %s", planId), ex);
         }
     }
 
@@ -60,7 +60,7 @@ public class PlanCrudServiceImpl implements PlanCrudService {
             log.debug("Find a plan by id : {}", planId);
             return planRepository.findById(planId).map(PlanAdapter.INSTANCE::fromRepository);
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException(String.format("An error occurs while trying to find a plan by id: %s", planId), ex);
+            throw new TechnicalDomainException(String.format("An error occurred while trying to find a plan by id: %s", planId), ex);
         }
     }
 
@@ -71,7 +71,7 @@ public class PlanCrudServiceImpl implements PlanCrudService {
         try {
             return planRepository.findByIdIn(planIds).stream().map(PlanAdapter.INSTANCE::fromRepository).toList();
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(String.format("An error occurs while trying to find all plan by ids %s", planIds), e);
+            throw new TechnicalDomainException(String.format("An error occurred while trying to find all plan by ids %s", planIds), e);
         }
     }
 
@@ -81,7 +81,7 @@ public class PlanCrudServiceImpl implements PlanCrudService {
             log.debug("Find a plan by API id : {}", apiId);
             return stream(planRepository.findByApi(apiId)).map(PlanAdapter.INSTANCE::fromRepository).toList();
         } catch (TechnicalException ex) {
-            throw new TechnicalDomainException(String.format("An error occurs while trying to find a plan by id: %s", apiId), ex);
+            throw new TechnicalDomainException(String.format("An error occurred while trying to find a plan by id: %s", apiId), ex);
         }
     }
 
@@ -91,7 +91,7 @@ public class PlanCrudServiceImpl implements PlanCrudService {
             var result = planRepository.create(PlanAdapter.INSTANCE.toRepository(plan));
             return PlanAdapter.INSTANCE.fromRepository(result);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurs while trying to create the plan: " + plan.getId(), e);
+            throw new TechnicalDomainException("An error occurred while trying to create the plan: " + plan.getId(), e);
         }
     }
 
@@ -101,7 +101,7 @@ public class PlanCrudServiceImpl implements PlanCrudService {
             var result = planRepository.update(PlanAdapter.INSTANCE.toRepository(plan));
             return PlanAdapter.INSTANCE.fromRepository(result);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurs while trying to update the plan: " + plan.getId(), e);
+            throw new TechnicalDomainException("An error occurred while trying to update the plan: " + plan.getId(), e);
         }
     }
 
@@ -110,7 +110,7 @@ public class PlanCrudServiceImpl implements PlanCrudService {
         try {
             planRepository.delete(planId);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurs while trying to delete the plan: " + planId, e);
+            throw new TechnicalDomainException("An error occurred while trying to delete the plan: " + planId, e);
         }
     }
 }

@@ -60,8 +60,11 @@ public class ApplicationCrudServiceImpl implements ApplicationCrudService {
                 .map(ApplicationAdapter.INSTANCE::toEntity)
                 .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find an application using its ID {}", applicationId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an application using its ID " + applicationId, ex);
+            log.error("An error occurred while trying to find an application using its ID {}", applicationId, ex);
+            throw new TechnicalManagementException(
+                "An error occurred while trying to find an application using its ID " + applicationId,
+                ex
+            );
         }
     }
 
@@ -72,7 +75,7 @@ public class ApplicationCrudServiceImpl implements ApplicationCrudService {
         try {
             return applicationRepository.findByIds(appIds).stream().map(ApplicationAdapter.INSTANCE::toEntity).toList();
         } catch (TechnicalException e) {
-            throw new TechnicalManagementException("An error occurs while trying to find all applications using its IDs", e);
+            throw new TechnicalManagementException("An error occurred while trying to find all applications using its IDs", e);
         }
     }
 }
