@@ -88,6 +88,9 @@ public class ApplicationMapper {
 
         application.setId(applicationEntity.getId());
         application.setName(applicationEntity.getName());
+        if (applicationEntity.getOrigin() != null) {
+            application.setOrigin(applicationEntity.getOrigin().toString());
+        }
 
         UserEntity primaryOwnerUserEntity = userService.findById(executionContext, applicationEntity.getPrimaryOwner().getId());
         User owner = userMapper.convert(primaryOwnerUserEntity);
@@ -135,6 +138,9 @@ public class ApplicationMapper {
         }
         application.setId(applicationListItem.getId());
         application.setName(applicationListItem.getName());
+        if (applicationListItem.getOrigin() != null) {
+            application.setOrigin(applicationListItem.getOrigin().toString());
+        }
 
         PrimaryOwnerEntity primaryOwner = applicationListItem.getPrimaryOwner();
         User owner;
