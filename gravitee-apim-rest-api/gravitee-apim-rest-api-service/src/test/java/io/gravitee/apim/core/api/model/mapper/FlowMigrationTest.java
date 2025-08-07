@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model.mapper;
 
+import static io.gravitee.apim.core.api.model.utils.MigrationResultUtils.get;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
@@ -47,7 +48,7 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(result.value())
+        assertThat(get(result))
             .satisfies(v4Flow -> {
                 assertThat(v4Flow.getName()).isEqualTo("flow-name");
                 assertThat(v4Flow.isEnabled()).isTrue();
@@ -83,7 +84,7 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(result.value())
+        assertThat(get(result))
             .satisfies(v4Flow -> {
                 assertThat(v4Flow.getRequest()).hasSize(1);
                 assertThat(v4Flow.getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getName).first().isEqualTo("pre-step");
@@ -110,7 +111,7 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(result.value()).isNull();
+        assertThat(get(result)).isNull();
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
             .containsExactly("Policy cloud-events is not compatible with V4 APIs");
@@ -126,7 +127,7 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(result.value()).isNotNull();
+        assertThat(get(result)).isNotNull();
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
             .containsExactly(
@@ -142,7 +143,7 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(result.value())
+        assertThat(get(result))
             .satisfies(v4Flow ->
                 assertThat(v4Flow.getSelectors())
                     .hasSize(2)
@@ -160,11 +161,11 @@ class FlowMigrationTest {
         v2Flow.setCondition(" ");
 
         var result = cut.mapFlow(v2Flow);
-        assertThat(result.value().getSelectors()).hasSize(1).noneMatch(ConditionSelector.class::isInstance);
+        assertThat(get(result).getSelectors()).hasSize(1).noneMatch(ConditionSelector.class::isInstance);
 
         v2Flow.setCondition(null);
         result = cut.mapFlow(v2Flow);
-        assertThat(result.value().getSelectors()).hasSize(1).noneMatch(ConditionSelector.class::isInstance);
+        assertThat(get(result).getSelectors()).hasSize(1).noneMatch(ConditionSelector.class::isInstance);
     }
 
     @Test
@@ -178,8 +179,8 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(result.value().getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getDescription).first().isNull();
-        assertThat(result.value().getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getCondition).first().isNull();
+        assertThat(get(result).getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getDescription).first().isNull();
+        assertThat(get(result).getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getCondition).first().isNull();
     }
 
     @Test
@@ -191,7 +192,7 @@ class FlowMigrationTest {
 
         var result = cut.mapFlows(List.of(v2Flow1, v2Flow2));
 
-        assertThat(result.value()).map(AbstractFlow::getName).containsExactly("flow1", "flow2");
+        assertThat(get(result)).map(AbstractFlow::getName).containsExactly("flow1", "flow2");
         assertThat(result.issues()).isEmpty();
     }
 }

@@ -42,7 +42,6 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.rest.api.model.PageEntity;
 import jakarta.inject.Inject;
 import java.util.Collection;
 import java.util.Comparator;
@@ -216,7 +215,7 @@ public class MigrateApiUseCase {
         }
         var acceptableLimit = mode == Input.UpgradeMode.FORCE ? MigrationResult.State.CAN_BE_FORCED : MigrationResult.State.MIGRATABLE;
         if (result.state().getWeight() <= acceptableLimit.getWeight()) {
-            consumer.accept(result.value());
+            result.processValue(consumer);
             return MigrationResult.State.MIGRATED;
         } else {
             return result.state();
