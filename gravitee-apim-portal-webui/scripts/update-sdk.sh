@@ -7,7 +7,9 @@ npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
 -puseSingleRequestParameter=true \
 -pmodelPropertyNaming=original \
 --import-mappings=DateTime=Date \
---type-mappings=DateTime=Date
+--type-mappings=DateTime=Date \
+--additional-properties=basePath='http://localhost:8083/portal/environments/DEFAULT'
+
 
 # adding a .bak is a hack so the `sed` command works on both MacOS (BSD) and other UNIX (GNU) system.
 # https://stackoverflow.com/questions/5694228/sed-in-place-flag-that-works-both-on-mac-bsd-and-linux
