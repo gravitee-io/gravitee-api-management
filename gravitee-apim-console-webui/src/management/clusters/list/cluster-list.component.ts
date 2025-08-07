@@ -41,6 +41,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ClusterService } from '../../../services-ngx/cluster.service';
 import { ClustersSortByParam } from '../../../entities/management-api-v2';
+import { Constants } from '../../../entities/Constants';
 
 type PageTableVM = {
   items: {
@@ -81,6 +82,8 @@ export class ClusterListComponent implements OnInit {
   private readonly permissionService = inject(GioPermissionService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  public readonly constants = inject(Constants);
+  public kafkaConsoleURL: string;
 
   private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
 
@@ -97,6 +100,7 @@ export class ClusterListComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.kafkaConsoleURL = `${this.constants.org.v2BaseURL}/environments/${this.constants.org.currentEnv.id}/proxy-kafka-console/`;
     this.refreshPageTableVM$
       .pipe(
         debounceTime(200),
