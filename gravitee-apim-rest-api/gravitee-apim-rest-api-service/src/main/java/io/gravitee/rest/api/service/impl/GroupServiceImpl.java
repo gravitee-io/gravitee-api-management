@@ -693,8 +693,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         apiRepository.update(api);
                         triggerUpdateNotification(executionContext, api);
                     } catch (TechnicalException ex) {
-                        logger.error("An error occurs while trying to delete a group", ex);
-                        throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to delete the group %s for API %s", groupId, api.getId()),
+                            ex
+                        );
                     }
 
                     //remove from API plans
