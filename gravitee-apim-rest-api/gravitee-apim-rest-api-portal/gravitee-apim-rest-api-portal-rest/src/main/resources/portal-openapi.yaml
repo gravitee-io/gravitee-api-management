@@ -4396,6 +4396,9 @@ components:
                 applicationType:
                     description: Type of the application (Web, Mobile, ...).
                     type: string
+                origin:
+                    description: Application origin. e.g., MANAGEMENT, KUBERNETES, INTEGRATION.
+                    type: string
                 hasClientId:
                     description: True if the application has client id.
                     type: boolean
