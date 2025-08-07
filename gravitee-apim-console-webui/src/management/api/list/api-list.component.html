@@ -49,9 +49,9 @@
         [panelWidth]="'200px'"
       >
         <mat-option value="V2">V2</mat-option>
-        <mat-option value="V4_PROXY">V4 Proxy</mat-option>
-        <mat-option value="V4_MESSAGE">V4 Message</mat-option>
-        <mat-option value="V4_NATIVE">V4 Native</mat-option>
+        <mat-option value="V4_HTTP_PROXY">V4 - HTTP Proxy</mat-option>
+        <mat-option value="V4_KAFKA">V4 - Kafka</mat-option>
+        <mat-option value="V4_MESSAGE">V4 - Message</mat-option>
         <mat-option value="FEDERATED">Federated</mat-option>
         <mat-option value="FEDERATED_AGENT">Federated Agent</mat-option>
       </mat-select>
@@ -191,9 +191,9 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="access">Access</th>
       <td mat-cell *matCellDef="let element">
         @if (element.access?.length > 0) {
-          <a>{{ element.access[0] }}</a>
+          {{ element.access[0] }}
           @if (element.access.length > 1) {
-            <span class="access__badge gio-badge-neutral"> {{ element.access.length - 1 }} more </span>
+            <span class="access__badge gio-badge-neutral">{{ element.access.length - 1 }} more</span>
           }
         }
       </td>
@@ -203,7 +203,7 @@
     <ng-container matColumnDef="tags">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="tags">Sharding Tags</th>
       <td mat-cell *matCellDef="let element">
-        <a>{{ displayFirstTag(element) }}</a>
+        {{ displayFirstTag(element) }}
         @if (element.tags.length - 1 > 0) {
           <span class="access__badge gio-badge-neutral" [matTooltip]="element.tags.sort().join(', ')">
             {{ element.tags.length - 1 }} more
@@ -216,7 +216,7 @@
     <ng-container matColumnDef="categories">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="categories">Categories</th>
       <td mat-cell *matCellDef="let element">
-        <a>{{ displayFirstCategory(element) }}</a>
+        {{ displayFirstCategory(element) }}
         @if (element.categories.length - 1 > 0) {
           <span class="access__badge gio-badge-neutral" [matTooltip]="element.categories.sort().join(', ')">
             {{ element.categories.length - 1 }} more
@@ -239,7 +239,7 @@
     <ng-container matColumnDef="owner">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="owner">Owner</th>
       <td mat-cell *matCellDef="let element">
-        <a [matTooltip]="element.ownerEmail ?? null">{{ element.owner }}</a>
+        {{ element.owner }}
       </td>
     </ng-container>
 
@@ -254,14 +254,18 @@
     <!-- Actions Column -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef id="actions">
-        <button mat-button [matMenuTriggerFor]="visibleColumnsMenu"><mat-icon svgIcon="gio:plus"></mat-icon></button>
-
+        <div class="select-visible-columns-btn">
+          <button mat-button [matMenuTriggerFor]="visibleColumnsMenu"><mat-icon svgIcon="gio:plus"></mat-icon></button>
+        </div>
         <mat-menu #visibleColumnsMenu="matMenu">
           <div matMenuContent class="visible-columns-menu">
             <mat-checkbox [(ngModel)]="checkedVisibleColumns.apiType" (click)="$event.stopPropagation()">API Type</mat-checkbox>
             <mat-checkbox [(ngModel)]="checkedVisibleColumns.states" (click)="$event.stopPropagation()">Status</mat-checkbox>
             <mat-checkbox [(ngModel)]="checkedVisibleColumns.access" (click)="$event.stopPropagation()">Access</mat-checkbox>
-            <mat-checkbox [(ngModel)]="checkedVisibleColumns.tags" (click)="$event.stopPropagation()">Tags</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.qualityScore" (click)="$event.stopPropagation()">Quality</mat-checkbox>
+            <mat-checkbox *ngIf="isQualityDisplayed" [(ngModel)]="checkedVisibleColumns.tags" (click)="$event.stopPropagation()"
+              >Sharding Tags</mat-checkbox
+            >
             <mat-checkbox [(ngModel)]="checkedVisibleColumns.categories" (click)="$event.stopPropagation()">Categories</mat-checkbox>
             <mat-checkbox [(ngModel)]="checkedVisibleColumns.owner" (click)="$event.stopPropagation()">Owner</mat-checkbox>
             <mat-checkbox [(ngModel)]="checkedVisibleColumns.visibility" (click)="$event.stopPropagation()">Visibility</mat-checkbox>
