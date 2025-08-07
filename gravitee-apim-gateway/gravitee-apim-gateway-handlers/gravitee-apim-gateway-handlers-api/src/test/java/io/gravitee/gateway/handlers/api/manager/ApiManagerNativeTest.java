@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.manager;
 
+import static io.gravitee.gateway.reactive.reactor.v4.secrets.ApiV4DefinitionSecretRefsFinder.API_V4_DEFINITION_KIND;
+import static io.gravitee.gateway.reactive.reactor.v4.secrets.NativeApiV4DefinitionSecretRefsFinder.NATIVE_API_V4_DEFINITION_KIND;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,19 +33,26 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
+import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.NativeApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.license.ForbiddenFeatureException;
 import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.secrets.api.discovery.Definition;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -441,6 +450,46 @@ public class ApiManagerNativeTest {
         apiManager.register(api);
 
         verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+    }
+
+    @Test
+    public void should_update_api_on_SecretDiscovery_VALUE_CHANGED_event() {
+        final NativeApi api = buildTestApi();
+        final NativePlan mockedPlan = buildMockPlan();
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+        EventManager em = spy(new EventManagerImpl());
+        apiManager = new ApiManagerImpl(em, gatewayConfiguration, licenseManager, dataEncryptor);
+
+        apiManager.register(api);
+
+        em.publishEvent(
+            SecretDiscoveryEventType.VALUE_CHANGED,
+            new SecretDiscoveryEvent(
+                "env-id",
+                new Definition(NATIVE_API_V4_DEFINITION_KIND, api.getId()),
+                new DefinitionMetadata("revision-id")
+            )
+        );
+
+        verify(em).publishEvent(ReactorEvent.UPDATE, api);
+    }
+
+    @Test
+    public void should_not_update_api_on_SecretDiscovery_VALUE_CHANGED_event_if_api_not_registered() {
+        final NativeApi api = buildTestApi();
+        EventManager em = spy(new EventManagerImpl());
+        apiManager = new ApiManagerImpl(em, gatewayConfiguration, licenseManager, dataEncryptor);
+
+        em.publishEvent(
+            SecretDiscoveryEventType.VALUE_CHANGED,
+            new SecretDiscoveryEvent(
+                "env-id",
+                new Definition(NATIVE_API_V4_DEFINITION_KIND, api.getId()),
+                new DefinitionMetadata("revision-id")
+            )
+        );
+
+        verify(em, never()).publishEvent(ReactorEvent.UPDATE, api);
     }
 
     private NativeApi buildTestApi() {

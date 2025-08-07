@@ -880,9 +880,14 @@ api:
 #      maxAttempt: 10
 #    allowGeneratedSpecs: true
 #    renewal:
-#      enable: true
+#      enabled: false
+#      # Retry strategy for secret renewal
 #      check:
-#        delay: 15
+#        delay: 1
+#        unit: MINUTES
+#      # TTL by default for all secrets
+#      defaultSecretTtl:
+#        delay: 1
 #        unit: MINUTES
 
 # Graceful shutdown.
