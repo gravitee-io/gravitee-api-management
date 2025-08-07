@@ -1,0 +1,235 @@
+suite: Test APIM Kafka console deployment
+templates:
+  - "kafkaConsole/kafkaConsole-deployment.yaml"
+set:
+  kafkaConsole:
+    enabled: true
+    jwt:
+      secret: 4j5ipCZn93qnLBykgex5pSvUdA8Nnqts
+tests:
+  - it: Should generate default env variables
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "AUTH_JWT_SECRET"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "4j5ipCZn93qnLBykgex5pSvUdA8Nnqts"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "KAFKA_GRAVITEE_MANAGEMENTAPIURL"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "http://RELEASE-NAME-apim-api:83/management/v2/organizations/DEFAULT/environments/DEFAULT"
+      - equal:
+          path: spec.template.spec.containers[0].env[2].name
+          value: "KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINUSERNAME"
+      - equal:
+          path: spec.template.spec.containers[0].env[2].value
+          value: "admin"
+      - equal:
+          path: spec.template.spec.containers[0].env[3].name
+          value: "KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINPASSWORD"
+      - equal:
+          path: spec.template.spec.containers[0].env[3].value
+          value: "admin"
+
+  - it: Should generate with overridden env variables
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      kafkaConsole:
+        jwt:
+          secret: TCkyfrr8F6c75mAGKpRtKPaBHt9LyJ7P
+        apim:
+          security:
+            token: 1111-2222-333333-44-555555
+          organization: 1234-5678
+          environment: 9876-5432
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: "AUTH_JWT_SECRET"
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "TCkyfrr8F6c75mAGKpRtKPaBHt9LyJ7P"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "KAFKA_GRAVITEE_MANAGEMENTAPIURL"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "http://RELEASE-NAME-apim-api:83/management/v2/organizations/1234-5678/environments/9876-5432"
+      - equal:
+          path: spec.template.spec.containers[0].env[2].name
+          value: "KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINTOKEN"
+      - equal:
+          path: spec.template.spec.containers[0].env[2].value
+          value: "1111-2222-333333-44-555555"
+
+  - it: Should have default resources
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: "500m"
+
+  - it: Deploy with podSecurityContext
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      kafkaConsole:
+        deployment:
+          podSecurityContext:
+            fsGroup: 1001
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
+
+  - it: Generate the default preStop
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command
+          value: ['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']
+
+
+  - it: Override the default preStop
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      kafkaConsole:
+        lifecycle:
+          preStop: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s override']"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command
+          value: ['sh','-c', 'sleep 5 && /usr/sbin/nginx -s override']
+
+  - it: Default SecurityContext
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 101
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Override SecurityContext
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      kafkaConsole:
+        deployment:
+          securityContext:
+            runAsUser: 102
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 102
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Deploy with managed ServiceAccount
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: ""
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "RELEASE-NAME-apim"
+
+  - it: Deploy with custom ServiceAccount
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: false
+        serviceAccount: "test-sa"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "test-sa"
+
+  - it: Deploy without ServiceAccount
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: false
+        serviceAccount:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - isEmpty:
+          path: spec.template.spec.serviceAccountName
+
+  - it: Deploy with custom managed ServiceAccount
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: "test-sa"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "test-sa"
+
+  - it: Deploy with component specific ServiceAccount
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: "test-sa"
+      kafkaConsole:
+        deployment:
+          serviceAccount: "apim-kafkaConsole"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "apim-kafkaConsole"
