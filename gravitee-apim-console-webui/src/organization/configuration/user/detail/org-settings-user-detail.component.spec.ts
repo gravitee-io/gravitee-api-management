@@ -106,6 +106,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       customFields,
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -119,9 +120,11 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     const userCard = await loader.getHarness(MatCardHarness);
 
-    [user.displayName, user.email, customFields['custom-field-1'], 'ROLE_USER'].forEach(async (value) => {
-      expect(await userCard.getText()).toContain(value);
-    });
+    const userCardText = await userCard.getText();
+    expect(userCardText).toContain(user.displayName);
+    expect(userCardText).toContain(user.email);
+    expect(userCardText).toContain(customFields['custom-field-1']);
+    expect(userCardText).toContain('ROLE_USER');
 
     const userStatus = await userCard.getText();
     expect(await userStatus).toContain('Active');
@@ -136,6 +139,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -160,11 +164,12 @@ describe('OrgSettingsUserDetailComponent', () => {
   it('should not reset password if no firstname', async () => {
     const user = fakeUser({
       id: 'userId',
-      source: 'gravitee',
+      source: 'management',
       email: null,
       firstname: null,
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -184,6 +189,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'PENDING',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -215,6 +221,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'PENDING',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -246,6 +253,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'PENDING',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -267,6 +275,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -287,6 +296,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       roles: [{ id: 'roleOrgUserId', name: 'ROLE_ORG_USER', scope: 'ORGANIZATION' }],
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -319,6 +329,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       envRoles: { environmentAlphaId: [{ id: 'roleEnvApiId' }], environmentBetaId: [] },
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectUserGroupsGetRequest(user.id);
@@ -354,6 +365,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -409,6 +421,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'PENDING',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -443,6 +456,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -476,6 +490,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -506,6 +521,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -543,6 +559,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -566,14 +583,14 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     const dialog = await rootLoader.getHarness(MatDialogHarness);
 
-    const groupIdSelect = await dialog.getHarness(MatSelectHarness.with({ selector: '[formControlName=groupId' }));
+    const groupIdSelect = await dialog.getHarness(MatSelectHarness.with({ selector: '[formControlName="groupId"]' }));
     await groupIdSelect.open();
     // group A option is filtered
     expect((await groupIdSelect.getOptions()).length).toEqual(1);
 
     await groupIdSelect.clickOptions({ text: 'Group B' });
 
-    const isAdminSelect = await dialog.getHarness(MatCheckboxHarness.with({ selector: '[formControlName=isAdmin' }));
+    const isAdminSelect = await dialog.getHarness(MatCheckboxHarness.with({ selector: '[formControlName="isAdmin"]' }));
     await isAdminSelect.check();
 
     const submitButton = await dialog.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
@@ -601,6 +618,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -641,6 +659,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     });
     const tokenResponse: Token = fakeUserToken({ name: 'My token', created_at: 1630373735403, last_use_at: 1631017105654 });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user, [tokenResponse]);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -684,6 +703,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     reqDelete.flush(null);
 
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user, []);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -701,6 +721,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -729,6 +750,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectGroupListByOrganizationRequest();
+    expectApiSearchRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -814,5 +836,15 @@ describe('OrgSettingsUserDetailComponent', () => {
         url: `${CONSTANTS_TESTING.org.baseURL}/groups`,
       })
       .flush(groups);
+  }
+
+  function expectApiSearchRequest() {
+    const req = httpTestingController.expectOne(
+      (request) =>
+        request.method === 'POST' && request.url.includes('/management/v2/environments/') && request.url.includes('/apis/_search'),
+    );
+    expect(req.request.method).toEqual('POST');
+    req.flush({ data: [], pagination: { page: 1, perPage: 10000, totalCount: 0, pageCount: 0, pageItemsCount: 0 } });
+    fixture.detectChanges();
   }
 });
