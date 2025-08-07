@@ -53,6 +53,7 @@ public class ES8IndexPreparer extends AbstractIndexPreparer {
     protected Function<Type, CompletableSource> indexTypeMapper() {
         return type -> {
             final String typeName = type.getType();
+            boolean dataStream = type.isDataStream();
             final String templateName = configuration.getIndexName() + '-' + typeName;
             final String aliasName = configuration.getIndexName() + '-' + typeName;
 
@@ -62,8 +63,12 @@ public class ES8IndexPreparer extends AbstractIndexPreparer {
             data.put("indexName", configuration.getIndexName() + '-' + typeName);
 
             final String template = freeMarkerComponent.generateFromTemplate("/es8x/mapping/index-template-" + typeName + ".ftl", data);
-
             final Completable templateCreationCompletable = client.putIndexTemplate(templateName, template);
+
+            if (dataStream) {
+                return client.getDataStream(templateName).switchIfEmpty(client.createDataStream(templateName).toMaybe()).ignoreElement();
+            }
+
             if (configuration.isIlmManagedIndex()) {
                 return templateCreationCompletable.andThen(ensureAlias(aliasName));
             }
