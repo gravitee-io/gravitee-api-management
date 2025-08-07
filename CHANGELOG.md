@@ -1,3 +1,10 @@
+# [6.2.0-alpha.7](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.6...6.2.0-alpha.7) (2025-08-07)
+
+
+### Features
+
+* prepare index as data stream ([06448f2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/06448f2db981d2ea9d647b10b5c320268c107b27))
+
 # [6.2.0-alpha.6](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.5...6.2.0-alpha.6) (2025-07-29)
 
 
