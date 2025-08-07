@@ -160,7 +160,7 @@ describe('OrgSettingsUserDetailComponent', () => {
   it('should not reset password if no firstname', async () => {
     const user = fakeUser({
       id: 'userId',
-      source: 'gravitee',
+      source: 'management',
       email: null,
       firstname: null,
     });
