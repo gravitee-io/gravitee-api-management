@@ -102,6 +102,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -1401,7 +1402,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String primaryOwnerId = primaryOwner.getMemberId();
         if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
             primaryOwnerId =
-                groupService.findByIds(Set.of(primaryOwnerId)).stream().findFirst().map(GroupEntity::getApiPrimaryOwner).orElseThrow();
+                groupService
+                    .findByIds(Set.of(primaryOwnerId))
+                    .stream()
+                    .findFirst()
+                    .map(GroupEntity::getApiPrimaryOwner)
+                    .orElseThrow(() -> new NoSuchElementException("Can't find ApiPrimaryOwner for group " + primaryOwner.getMemberId()));
         }
 
         return primaryOwnerId;
