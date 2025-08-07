@@ -1486,7 +1486,7 @@ gateway:
 #        maxAttempt: 10
 #      allowGeneratedSpecs: true
 #      renewal:
-#        enable: true
+#        enabled: true
 #        check:
 #          delay: 15
 #          unit: MINUTES

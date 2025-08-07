@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.handlers.api.manager.impl;
 
+import static io.gravitee.gateway.reactive.reactor.v4.secrets.ApiV4DefinitionSecretRefsFinder.API_V4_DEFINITION_KIND;
+import static io.gravitee.gateway.reactive.reactor.v4.secrets.NativeApiV4DefinitionSecretRefsFinder.NATIVE_API_V4_DEFINITION_KIND;
+
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -30,6 +33,7 @@ import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.license.ForbiddenFeatureException;
 import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.secrets.api.discovery.Definition;
 import io.gravitee.secrets.api.discovery.DefinitionMetadata;
 import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
 import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
@@ -81,6 +85,42 @@ public class ApiManagerImpl implements ApiManager {
                 io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
                 new io.gravitee.gateway.reactive.handlers.api.v4.deployer.NativeApiDeployer(gatewayConfiguration, dataEncryptor)
             );
+
+        // Listen to secret discovery events to update APIs when secrets change
+        eventManager.subscribeForEvents(
+            event -> {
+                if (event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent) {
+                    if (secretDiscoveryEvent.definition() instanceof Definition definition) {
+                        if (!List.of(API_V4_DEFINITION_KIND, NATIVE_API_V4_DEFINITION_KIND).contains(definition.kind())) {
+                            // We only handle API V4 and Native API definitions
+                            log.debug(
+                                "Received SecretDiscoveryEvent for definition {} with kind {}, but we only handle API V4 and Native API definitions",
+                                definition.id(),
+                                definition.kind()
+                            );
+                            return;
+                        }
+
+                        ReactableApi<?> api = apis.get(definition.id());
+                        if (api != null) {
+                            MDC.put("api", api.getId());
+
+                            log.info("Secret value changed for API {}, updating it", definition.id());
+                            eventManager.publishEvent(ReactorEvent.UPDATE, api);
+
+                            log.info("{} has been updated", api);
+                            MDC.remove("api");
+                        } else {
+                            log.trace(
+                                "Received SecretDiscoveryEvent for API {}, but it is not found in the API manager. Unable to update it",
+                                definition.id()
+                            );
+                        }
+                    }
+                }
+            },
+            SecretDiscoveryEventType.VALUE_CHANGED
+        );
     }
 
     private boolean register(ReactableApi<?> api, boolean force) {
