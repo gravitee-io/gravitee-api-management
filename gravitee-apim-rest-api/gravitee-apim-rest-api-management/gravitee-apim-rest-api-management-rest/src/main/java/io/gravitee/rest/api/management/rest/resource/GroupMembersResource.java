@@ -30,10 +30,12 @@ import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.GroupService;
@@ -44,6 +46,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededException;
+import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -275,6 +278,19 @@ public class GroupMembersResource extends AbstractResource {
                 RoleEntity apiRoleEntity = roleEntities.get(RoleScope.API);
                 if (apiRoleEntity != null && !apiRoleEntity.equals(previousApiRole)) {
                     String roleName = getRoleName(RoleScope.API, apiRoleEntity, groupEntity, GroupEntity::isLockApiRole, hasPermission);
+
+                    // Validate: prevent changing from PRIMARY_OWNER if group owns APIs
+                    if (
+                        previousApiRole != null &&
+                        previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name()) &&
+                        !roleName.equals(SystemRole.PRIMARY_OWNER.name())
+                    ) {
+                        List<ApiEntity> groupApis = groupService.getApis(executionContext.getEnvironmentId(), group);
+                        if (!groupApis.isEmpty()) {
+                            throw new StillPrimaryOwnerException(groupApis.size(), ApiPrimaryOwnerMode.GROUP);
+                        }
+                    }
+
                     updatedMembership = updateRole(RoleScope.API, roleName, previousApiRole, membership, executionContext);
                     if (previousApiRole != null && previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name())) {
                         groupService.updateApiPrimaryOwner(group, null);
