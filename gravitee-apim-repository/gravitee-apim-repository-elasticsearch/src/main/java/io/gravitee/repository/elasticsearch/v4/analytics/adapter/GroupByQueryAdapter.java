@@ -34,6 +34,7 @@ public class GroupByQueryAdapter {
 
     private String aggName;
     private String fieldName;
+    private String valueField;
 
     public String adapt(GroupByQuery query) {
         ObjectNode root = MAPPER.createObjectNode();
@@ -54,6 +55,7 @@ public class GroupByQueryAdapter {
             this.aggName = "by_" + query.field();
         }
         this.fieldName = query.field();
+        this.valueField = query.order().map(GroupByQuery.Order::field).orElse(null);
 
         return root.toString();
     }
@@ -157,8 +159,13 @@ public class GroupByQueryAdapter {
             .getBuckets()
             .forEach(bucket -> {
                 String key = bucket.get("key").asText();
-                long count = bucket.get("doc_count").asLong();
-                values.put(key, count);
+                long value;
+                if (this.valueField != null && bucket.has(this.valueField)) {
+                    value = bucket.get(this.valueField).get("value").asLong();
+                } else {
+                    value = bucket.get("doc_count").asLong();
+                }
+                values.put(key, value);
                 order.add(key);
             });
         return Optional.of(new GroupByAggregate(this.aggName, this.fieldName, values, order));
