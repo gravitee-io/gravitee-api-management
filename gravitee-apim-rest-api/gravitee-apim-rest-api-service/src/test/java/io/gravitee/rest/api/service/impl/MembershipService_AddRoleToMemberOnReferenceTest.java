@@ -127,7 +127,9 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 null,
                 node,
                 objectMapper,
-                commandRepository
+                commandRepository,
+                null,
+                null
             );
     }
 

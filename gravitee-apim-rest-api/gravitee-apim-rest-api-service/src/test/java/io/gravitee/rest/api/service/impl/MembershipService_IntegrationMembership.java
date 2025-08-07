@@ -146,7 +146,9 @@ public class MembershipService_IntegrationMembership {
                 integrationRepository,
                 node,
                 objectMapper,
-                commandRepository
+                commandRepository,
+                null,
+                null
             );
     }
 
@@ -288,6 +290,8 @@ public class MembershipService_IntegrationMembership {
             updatedMembership.setReferenceId(INTEGRATION_ID);
             updatedMembership.setMemberId(userId);
             updatedMembership.setMemberType(MembershipMemberType.USER);
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                .thenReturn(Optional.of(new RoleEntity()));
             when(
                 membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                     userId,
@@ -383,6 +387,8 @@ public class MembershipService_IntegrationMembership {
             membership.setRoleId(INTEGRATION_PRIMARY_OWNER);
             membership.setReferenceType(MembershipReferenceType.INTEGRATION);
             membership.setReferenceId(INTEGRATION_ID);
+            membership.setMemberType(MembershipMemberType.USER);
+            membership.setMemberId(EXISTING_USER_ID);
 
             when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
                 .thenReturn(Optional.of(new RoleEntity()));
