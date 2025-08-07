@@ -215,7 +215,7 @@ public class MigrateApiUseCase {
         }
         var acceptableLimit = mode == Input.UpgradeMode.FORCE ? MigrationResult.State.CAN_BE_FORCED : MigrationResult.State.MIGRATABLE;
         if (result.state().getWeight() <= acceptableLimit.getWeight()) {
-            consumer.accept(result.value());
+            result.processValue(consumer);
             return MigrationResult.State.MIGRATED;
         } else {
             return result.state();
