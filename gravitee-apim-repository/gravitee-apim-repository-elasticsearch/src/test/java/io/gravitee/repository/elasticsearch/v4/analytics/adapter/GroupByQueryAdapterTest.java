@@ -268,6 +268,37 @@ class GroupByQueryAdapterTest {
             assertTrue(cut.adaptResponse(response).isEmpty());
         }
 
+        @Test
+        void shouldHandleResponseWithAggregatedFieldValue() {
+            // Prepare query with order (aggregated field)
+            GroupByQuery query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                FIELD,
+                List.of(),
+                Optional.of(new GroupByQuery.Order("agg_value", true, "AVG")),
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                Optional.empty()
+            );
+            cut.adapt(query);
+            // Prepare bucket with aggregated field value
+            ObjectMapper mapper = new ObjectMapper();
+            com.fasterxml.jackson.databind.node.ObjectNode bucket = mapper.createObjectNode();
+            bucket.put("key", "foo");
+            bucket.set("agg_value", mapper.createObjectNode().put("value", 42L));
+            bucket.put("doc_count", 100L);
+            Aggregation aggregation = new Aggregation();
+            aggregation.setBuckets(List.of(bucket));
+            Map<String, Aggregation> aggs = new HashMap<>();
+            aggs.put("by_" + FIELD, aggregation);
+            SearchResponse response = new SearchResponse();
+            response.setAggregations(aggs);
+
+            Optional<GroupByAggregate> result = cut.adaptResponse(response);
+
+            assertTrue(result.isPresent());
+            assertEquals(42L, result.get().values().get("foo"));
+        }
+
         private com.fasterxml.jackson.databind.node.ObjectNode createBucket(String key, long docCount) {
             ObjectMapper mapper = new ObjectMapper();
             com.fasterxml.jackson.databind.node.ObjectNode node = mapper.createObjectNode();
