@@ -19,6 +19,12 @@
   h1 {
     margin-bottom: 0;
   }
+
+  &__action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 }
 
 .cell {

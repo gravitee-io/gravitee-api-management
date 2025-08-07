@@ -1,0 +1,32 @@
+suite: Test Management API with APIM KAfka Console
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: Should set configuration for Kafka Console if enable
+    template: api/api-configmap.yaml
+    set:
+      kafkaConsole:
+        enabled: true
+        jwt:
+          secret: mySecret
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |-
+            kafka:
+              console:
+                enabled: true
+                server:
+                  host: RELEASE-NAME-apim-kafkaConsole
+                  port: 8004
+                security:
+                  secret: mySecret
+
+  - it: Should not set configuration for Kafka Console by default
+    template: api/api-configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |-
+            kafka:
+              console:

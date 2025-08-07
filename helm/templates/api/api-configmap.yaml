@@ -167,7 +167,7 @@ data:
           authentication:
             {{- if .Values.api.services.bridge.authentication }}
 {{ toYaml .Values.api.services.bridge.authentication | indent 12 }}
-            {{- else if .Values.api.services.bridge.username}}
+            {{- else if .Values.api.services.bridge.username }}
             type: basic
             users:
               {{ .Values.api.services.bridge.username }}: {{ .Values.api.services.bridge.password }}
@@ -577,6 +577,16 @@ data:
     newtai:
       elgen:
         enabled: true
+    {{- end }}
+    {{- if .Values.kafkaConsole.enabled }}
+    kafka:
+      console:
+        enabled: true
+        server:
+          host: {{ template "gravitee.kafkaConsole.fullname" . }}
+          port: {{ .Values.kafkaConsole.service.externalPort }}
+        security:
+          secret: {{ .Values.kafkaConsole.jwt.secret }}
     {{- end }}
 
     {{- if .Values.api.federation.enabled }}
