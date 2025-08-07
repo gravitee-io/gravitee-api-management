@@ -19,9 +19,11 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.v4.ApiType;
@@ -35,6 +37,7 @@ import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer;
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.http.HttpClientOptions;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -42,7 +45,9 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.ApiServices;
+import io.gravitee.definition.model.v4.ssl.SslOptions;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 
@@ -85,8 +90,11 @@ class ApiMigration {
                 .build()
         );
 
-        var endpointGroups = stream(apiDefinitionV2.getProxy().getGroups()).map(this::mapEndpointGroup).toList();
-
+        var endpointGroupsMigrationResult = stream(apiDefinitionV2.getProxy().getGroups()).map(this::mapEndpointGroup).toList();
+        List<EndpointGroup> endpointGroups = endpointGroupsMigrationResult
+            .stream()
+            .map(result -> result.value()) // replace with actual accessor
+            .collect(Collectors.toList());
         Analytics analytics = mapAnalytics(apiDefinitionV2.getProxy().getLogging());
 
         Failover failover = new Failover(false, 0, 50, 500, 1, false);
@@ -116,16 +124,33 @@ class ApiMigration {
         return MigrationResult.value(api);
     }
 
-    private EndpointGroup mapEndpointGroup(io.gravitee.definition.model.EndpointGroup source) {
+    private MigrationResult<EndpointGroup> mapEndpointGroup(io.gravitee.definition.model.EndpointGroup source) {
         var endpoints = stream(source.getEndpoints()).map(this::mapEndpoint).toList();
-        return EndpointGroup
-            .builder()
-            .name(source.getName())
-            .type(HTTP_PROXY)
-            .loadBalancer(mapLoadBalancer(source.getLoadBalancer()))
-            .endpoints(endpoints)
-            //.services(source.getServices())
-            .build();
+        ObjectNode httpClientOptionsNode = mapHttpClientOptions(source.getHttpClientOptions());
+        ObjectNode httpClientSslOptionsNode = mapHttpClientSslOptions(source.getHttpClientSslOptions());
+        ObjectNode target1 = OBJECT_MAPPER.createObjectNode();
+        target1.set("http", httpClientOptionsNode);
+        target1.set("ssl", httpClientSslOptionsNode);
+        target1.set("headers", source.getHeaders() == null ? null : OBJECT_MAPPER.valueToTree(source.getHeaders()));
+        target1.set("proxy", source.getHttpProxy() == null ? null : OBJECT_MAPPER.valueToTree((source.getHttpProxy())));
+        String finalString = null;
+        try {
+            finalString = OBJECT_MAPPER.writeValueAsString(target1);
+        } catch (JsonProcessingException e) {
+            log.error("Unable to map configuration for endpoint group {}", source.getName(), e);
+            return MigrationResult.issue("Unable to map configuration for endpoint group", MigrationResult.State.IMPOSSIBLE);
+        }
+        return MigrationResult.value(
+            EndpointGroup
+                .builder()
+                .name(source.getName())
+                .type(HTTP_PROXY)
+                .loadBalancer(mapLoadBalancer(source.getLoadBalancer()))
+                .sharedConfiguration(finalString)
+                .endpoints(endpoints)
+                //.services(source.getServices())
+                .build()
+        );
     }
 
     @Nullable
@@ -154,8 +179,8 @@ class ApiMigration {
             .tenants(lb.getTenants())
             .weight(lb.getWeight())
             .configuration(mapConfiguration(lb))
-            //.inheritConfiguration(lb.getInheritConfiguration())
-            //.sharedConfigurationOverride(lb.getSharedConfigurationOverride())
+            .inheritConfiguration(lb.getInherit())
+            .sharedConfigurationOverride(lb.getConfiguration())
             //.services(lb.getS)
             .build();
     }
@@ -181,6 +206,25 @@ class ApiMigration {
             .content(new LoggingContent(v2logging.getContent().isHeaders(), false, v2logging.getContent().isPayloads(), false, false))
             .phase(new LoggingPhase(v2logging.getScope().isRequest(), v2logging.getScope().isResponse()))
             .build();
+    }
+
+    private ObjectNode mapHttpClientSslOptions(HttpClientSslOptions httpClientSslOptions) {
+        SslOptions sslOptionsV4 = convertObject(httpClientSslOptions, SslOptions.class);
+        ObjectNode sslNode = sslOptionsV4 != null ? OBJECT_MAPPER.valueToTree(sslOptionsV4) : null;
+        return sslNode;
+    }
+
+    private ObjectNode mapHttpClientOptions(io.gravitee.definition.model.HttpClientOptions httpClientOptions) {
+        HttpClientOptions httpClientOptionsV4 = convertObject(
+            httpClientOptions,
+            io.gravitee.definition.model.v4.http.HttpClientOptions.class
+        );
+        ObjectNode httpNode = httpClientOptionsV4 != null ? OBJECT_MAPPER.valueToTree(httpClientOptionsV4) : null;
+        return httpNode;
+    }
+
+    private static <T> T convertObject(Object source, Class<T> targetClass) {
+        return OBJECT_MAPPER.convertValue(source, targetClass);
     }
 
     @Nullable

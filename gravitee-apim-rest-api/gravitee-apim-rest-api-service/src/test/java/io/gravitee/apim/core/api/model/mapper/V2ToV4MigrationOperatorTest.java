@@ -25,10 +25,14 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PlanFixtures;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.definition.model.LoadBalancerType;
 import io.gravitee.definition.model.Proxy;
@@ -38,6 +42,8 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -70,6 +76,7 @@ class V2ToV4MigrationOperatorTest {
         void should_preserve_api_metadata_when_mapping() {
             // Given
             var originalApi = ApiFixtures.aProxyApiV2();
+            originalApi.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
             // When
             var result = get(mapper.mapApi(originalApi));
@@ -100,6 +107,7 @@ class V2ToV4MigrationOperatorTest {
         @Test
         void should_upgrade_definition_version_to_v4() {
             var v2Api = ApiFixtures.aProxyApiV2().toBuilder().definitionVersion(DefinitionVersion.V2).build();
+            v2Api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
             var result = get(mapper.mapApi(v2Api));
 
@@ -213,7 +221,7 @@ class V2ToV4MigrationOperatorTest {
             var endpoint = new Endpoint();
             endpoint.setName("test-endpoint");
             endpoint.setTarget("http://example.com");
-
+            endpoint.setInherit(false);
             var loadBalancer = new LoadBalancer();
             loadBalancer.setType(v2Type);
 
@@ -290,7 +298,7 @@ class V2ToV4MigrationOperatorTest {
             endpoint.setBackup(isBackup);
             endpoint.setWeight(10);
             endpoint.setTenants(List.of("tenant1", "tenant2"));
-
+            endpoint.setInherit(false);
             var endpointGroup = new EndpointGroup();
             endpointGroup.setName("default-group");
             endpointGroup.setEndpoints(Set.of(endpoint));
@@ -322,7 +330,7 @@ class V2ToV4MigrationOperatorTest {
             endpoint.setTarget("http://example.com");
             endpoint.setType("http");
             endpoint.setConfiguration("{\"target\": \"http://example.com\", \"ssl\": {\"trustStore\": true}}");
-
+            endpoint.setInherit(false);
             var endpointGroup = new EndpointGroup();
             endpointGroup.setName("default-group");
             endpointGroup.setEndpoints(Set.of(endpoint));
@@ -346,6 +354,88 @@ class V2ToV4MigrationOperatorTest {
                 softly.assertThat(mappedEndpoint.getName()).isEqualTo("test-endpoint");
                 softly.assertThat(mappedEndpoint.getType()).isEqualTo("http-proxy");
                 softly.assertThat(mappedEndpoint.getConfiguration()).contains("\"target\":\"http://example.com\"");
+            });
+        }
+
+        @Test
+        void should_migrate_endpoint_and_group() {
+            // Setup Endpoint
+            Endpoint v2Endpoint = new Endpoint();
+            v2Endpoint.setName("endpoint-1");
+            v2Endpoint.setBackup(true);
+            v2Endpoint.setTenants(List.of("tenant-a"));
+            v2Endpoint.setWeight(5);
+            v2Endpoint.setInherit(false);
+            v2Endpoint.setConfiguration("{\"target\":\"http://example.com\"}");
+
+            // Setup EndpointGroup
+            EndpointGroup v2Group = new EndpointGroup();
+            v2Group.setName("default-group");
+            Set<Endpoint> endpoints = new HashSet<>();
+            endpoints.add(v2Endpoint);
+            v2Group.setEndpoints(endpoints);
+
+            HttpClientOptions httpClientOptions = new HttpClientOptions();
+            httpClientOptions.setConnectTimeout(2000);
+            httpClientOptions.setReadTimeout(3000);
+            v2Group.setHttpClientOptions(httpClientOptions);
+
+            HttpClientSslOptions sslOptions = new HttpClientSslOptions();
+            sslOptions.setTrustAll(true);
+            v2Group.setHttpClientSslOptions(sslOptions);
+            ArrayList<HttpHeader> headers = new ArrayList<HttpHeader>();
+            headers.add(new HttpHeader("X-Test", "yes"));
+            v2Group.setHeaders(headers);
+
+            LoadBalancer lb = new LoadBalancer();
+            lb.setType(LoadBalancerType.RANDOM);
+            v2Group.setLoadBalancer(lb);
+
+            // Setup Proxy
+            Proxy proxy = new Proxy();
+            Set<EndpointGroup> endpointGroups = new HashSet<>();
+            endpointGroups.add(v2Group);
+            proxy.setGroups(endpointGroups);
+
+            proxy.setVirtualHosts(List.of(new VirtualHost("localhost", "/api", false)));
+            proxy.setCors(new Cors());
+            proxy.setServers(List.of("localhost"));
+
+            // Setup Api V2
+            io.gravitee.definition.model.Api v2ApiDefinition = new io.gravitee.definition.model.Api();
+            v2ApiDefinition.setId("api-id");
+            v2ApiDefinition.setName("Test API");
+            v2ApiDefinition.setVersion("1.0");
+            v2ApiDefinition.setTags(Set.of("test", "v2"));
+            v2ApiDefinition.setProxy(proxy);
+            var apiDef = new io.gravitee.definition.model.Api();
+            apiDef.setId("test-api");
+            apiDef.setName("Test API");
+            apiDef.setVersion("1.0");
+            apiDef.setProxy(proxy);
+            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+            // Act
+            var result = get(mapper.mapApi(api));
+
+            // Check Endpoint Group
+            var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+
+            assertSoftly(softly -> {
+                softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                softly.assertThat(group.getName()).isEqualTo("default-group");
+                softly.assertThat(group.getType()).isEqualTo("http-proxy");
+                softly.assertThat(group.getSharedConfiguration()).isNotNull();
+                softly.assertThat(group.getSharedConfiguration()).contains("trustAll").contains("readTimeout").contains("X-Test");
+            });
+
+            // Check Endpoint
+            var endpoint = group.getEndpoints().getFirst();
+            assertSoftly(softly -> {
+                softly.assertThat(endpoint.getType()).isEqualTo("http-proxy");
+                softly.assertThat(endpoint.getName()).isEqualTo("endpoint-1");
+                softly.assertThat(endpoint.getWeight()).isEqualTo(5);
+                softly.assertThat(endpoint.getConfiguration()).isEqualTo("{\"target\":\"http://example.com\"}");
             });
         }
     }
