@@ -60,7 +60,6 @@ public class ApplicationCrudServiceImpl implements ApplicationCrudService {
                 .map(ApplicationAdapter.INSTANCE::toEntity)
                 .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
         } catch (TechnicalException ex) {
-            log.error("An error occurred while trying to find an application using its ID {}", applicationId, ex);
             throw new TechnicalManagementException(
                 "An error occurred while trying to find an application using its ID " + applicationId,
                 ex

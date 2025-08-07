@@ -52,12 +52,12 @@ public class ApiMetadataProvider implements AnalyticsMetadataProvider {
         return provide(List.of(key), environmentId).getOrDefault(key, Map.of());
     }
 
-    record ApiMetadata(String name, Boolean unknown, String version, boolean deleted) {
+    record ApiMetadata(String name, boolean unknown, String version, boolean deleted) {
         Map<String, String> toMap() {
             var result = new HashMap<String, String>();
             result.put(METADATA_NAME, name);
-            if (unknown != null) {
-                result.put(METADATA_UNKNOWN, unknown.toString());
+            if (unknown) {
+                result.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             }
             if (version != null) {
                 result.put(METADATA_VERSION, version);
@@ -70,10 +70,10 @@ public class ApiMetadataProvider implements AnalyticsMetadataProvider {
     }
 
     private static final ApiMetadata UNKNOWN_API = new ApiMetadata(METADATA_UNKNOWN_API_NAME, true, null, false);
-    private static final ApiMetadata NOT_FOUND = new ApiMetadata(METADATA_DELETED_API_NAME, null, null, true);
+    private static final ApiMetadata NOT_FOUND = new ApiMetadata(METADATA_DELETED_API_NAME, false, null, true);
 
     private static ApiMetadata ofApi(Api api) {
-        return new ApiMetadata(api.getName(), null, api.getVersion(), api.getApiLifecycleState() == Api.ApiLifecycleState.ARCHIVED);
+        return new ApiMetadata(api.getName(), false, api.getVersion(), api.getApiLifecycleState() == Api.ApiLifecycleState.ARCHIVED);
     }
 
     @Override
