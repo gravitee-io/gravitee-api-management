@@ -67,9 +67,7 @@ type WidgetDataConfig = {
   orderBy?: string;
   tableData?: {
     columns: {
-      name: string;
       label: string;
-      isSortable: boolean;
       dataType: 'string' | 'number';
     }[];
   };
@@ -237,8 +235,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       orderBy: '-count:_count',
       tableData: {
         columns: [
-          { name: 'name', label: 'App', isSortable: true, dataType: 'string' },
-          { name: 'count', label: 'Requests Count', isSortable: true, dataType: 'number' },
+          { label: 'App', dataType: 'string' },
+          { label: 'Requests Count', dataType: 'number' },
         ],
       },
     },
@@ -253,8 +251,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       orderBy: '-count:_count',
       tableData: {
         columns: [
-          { name: 'name', label: 'Plan', isSortable: true, dataType: 'string' },
-          { name: 'count', label: 'Count', isSortable: true, dataType: 'number' },
+          { label: 'Plan', dataType: 'string' },
+          { label: 'Count', dataType: 'number' },
         ],
       },
     },
@@ -269,8 +267,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       orderBy: '-avg:gateway-response-time-ms',
       tableData: {
         columns: [
-          { name: 'name', label: 'App', isSortable: true, dataType: 'string' },
-          { name: 'count', label: 'Avg. Response Time (ms)', isSortable: true, dataType: 'number' },
+          { label: 'App', dataType: 'string' },
+          { label: 'Avg. Response Time (ms)', dataType: 'number' },
         ],
       },
     },
@@ -285,8 +283,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       orderBy: '-count:_count',
       tableData: {
         columns: [
-          { name: 'name', label: 'Host', isSortable: true, dataType: 'string' },
-          { name: 'count', label: 'Hits', isSortable: true, dataType: 'number' },
+          { label: 'Host', dataType: 'string' },
+          { label: 'Hits', dataType: 'number' },
         ],
       },
     },
