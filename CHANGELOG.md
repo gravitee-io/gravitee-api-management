@@ -1,3 +1,10 @@
+# [6.2.0-alpha.8](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.7...6.2.0-alpha.8) (2025-08-08)
+
+
+### Features
+
+* exclude creating index alias when using data streams ([ad2e160](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/ad2e160e46be585443dbedbe6ef6ac9f5fa58cc0))
+
 # [6.2.0-alpha.7](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.6...6.2.0-alpha.7) (2025-08-07)
 
 
