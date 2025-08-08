@@ -19,7 +19,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
@@ -44,6 +44,7 @@ describe('ApiHistoryV4Component', () => {
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -67,6 +68,8 @@ describe('ApiHistoryV4Component', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
     fixture.detectChanges();
   });
 
@@ -187,10 +190,23 @@ describe('ApiHistoryV4Component', () => {
         const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
         await confirmDialog.confirm();
 
-        httpTestingController.expectOne({
+        const req = httpTestingController.expectOne({
           method: 'POST',
           url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_rollback`,
         });
+        req.flush(null);
+
+        expectApiGetRequest(fakeApiV4({ id: API_ID, deploymentState: 'NEED_REDEPLOY', type: 'MESSAGE' }));
+        expectApiEventsListRequest(
+          undefined,
+          undefined,
+          fakeEventsResponse({
+            data: [fakeEvent({ type: 'PUBLISH_API', properties: { DEPLOYMENT_NUMBER: '1' } })],
+          }),
+        );
+        fixture.detectChanges();
+
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['../..'], { relativeTo: expect.anything() });
       });
     });
     describe('Native API', () => {
