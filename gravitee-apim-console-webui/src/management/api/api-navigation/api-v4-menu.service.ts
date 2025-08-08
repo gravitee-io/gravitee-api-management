@@ -49,7 +49,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addConsumersMenuEntry(hasTcpListeners),
       this.addDocumentationMenuEntry(api),
       this.addDeploymentMenuEntry(),
-      ...(api.type !== 'NATIVE' ? [this.addApiTrafficMenuEntry(hasTcpListeners)] : []),
+      this.addApiTrafficMenuEntry(hasTcpListeners),
       ...(api.type !== 'NATIVE' ? [this.addLogs(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...this.addAlertsMenuEntry(),
