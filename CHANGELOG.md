@@ -1,3 +1,10 @@
+## [6.1.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.1.1...6.1.2) (2025-08-08)
+
+
+### Bug Fixes
+
+* **deps:** bump commons-validator to 1.10.0 ([8c8d124](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/8c8d124c3dd6a9d64e382c1e0c92018043e116b8))
+
 ## [6.1.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.1.0...6.1.1) (2025-07-29)
 
 
