@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { isEqual, isNil } from 'lodash';
@@ -87,6 +87,7 @@ export class ApiHistoryV4Component {
     private readonly activatedRoute: ActivatedRoute,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    private readonly router: Router,
   ) {}
 
   protected paginationChange(searchParam: SearchApiEventParam) {
@@ -238,6 +239,7 @@ export class ApiHistoryV4Component {
       .subscribe({
         next: () => {
           this.snackBarService.success('API deployment has been rolled back successfully');
+          this.router.navigate(['../..'], { relativeTo: this.activatedRoute });
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'An error occurred while rolling back the API deployment!');
