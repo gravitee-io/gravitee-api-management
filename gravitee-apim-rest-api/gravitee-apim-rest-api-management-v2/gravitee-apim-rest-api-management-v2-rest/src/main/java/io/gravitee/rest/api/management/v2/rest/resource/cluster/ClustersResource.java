@@ -18,25 +18,42 @@ package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ClusterMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ClustersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateCluster;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.ClusterResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ClustersResource extends AbstractResource {
 
+    @Context
+    private ResourceContext resourceContext;
+
     @Inject
     private CreateClusterUseCase createClusterUseCase;
+
+    @Inject
+    private SearchClusterUseCase searchClusterUseCase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -67,5 +84,33 @@ public class ClustersResource extends AbstractResource {
             .created(this.getLocationHeader(output.cluster().getId()))
             .entity(ClusterMapper.INSTANCE.map(output.cluster()))
             .build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    // TODO add the permissions
+    //      @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    public ClustersResponse searchClusters(@BeanParam @Valid PaginationParam paginationParam, @QueryParam("sortBy") String sortBy) {
+        var executionContext = GraviteeContext.getExecutionContext();
+
+        SearchClusterUseCase.Output result = searchClusterUseCase.execute(
+            new SearchClusterUseCase.Input(executionContext.getEnvironmentId(), paginationParam.toPageable(), sortBy)
+        );
+
+        return new ClustersResponse()
+            .data(ClusterMapper.INSTANCE.map(result.pageResult().getContent()))
+            .pagination(
+                PaginationInfo.computePaginationInfo(
+                    result.pageResult().getTotalElements(),
+                    result.pageResult().getContent().size(),
+                    paginationParam
+                )
+            )
+            .links(computePaginationLinks(result.pageResult().getTotalElements(), paginationParam));
+    }
+
+    @Path("{clusterId}")
+    public ClusterResource getClusterResource() {
+        return resourceContext.getResource(ClusterResource.class);
     }
 }

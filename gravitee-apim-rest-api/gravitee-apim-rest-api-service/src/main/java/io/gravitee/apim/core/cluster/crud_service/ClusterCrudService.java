@@ -19,4 +19,7 @@ import io.gravitee.apim.core.cluster.model.Cluster;
 
 public interface ClusterCrudService {
     Cluster create(Cluster clusterToCreate);
+    Cluster findByIdAndEnvironmentId(String id, String environmentId);
+    Cluster update(Cluster clusterToUpdate);
+    void delete(String id, String environmentId);
 }

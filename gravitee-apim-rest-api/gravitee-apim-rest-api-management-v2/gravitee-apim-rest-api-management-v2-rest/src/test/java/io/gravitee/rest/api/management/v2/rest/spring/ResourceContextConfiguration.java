@@ -64,6 +64,10 @@ import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
@@ -571,11 +575,6 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public CreateClusterUseCase createClusterUseCase() {
-        return mock(CreateClusterUseCase.class);
-    }
-
-    @Bean
     public ImportSharedPolicyGroupCRDCRDUseCase importSharedPolicyGroupCRDCRDUseCase() {
         return mock(ImportSharedPolicyGroupCRDCRDUseCase.class);
     }
@@ -749,5 +748,30 @@ public class ResourceContextConfiguration {
         ApiExposedEntrypointDomainServiceInMemory apiExposedEntrypointDomainServiceInMemory
     ) {
         return new GetExposedEntrypointsUseCase(apiCrudServiceInMemory, apiExposedEntrypointDomainServiceInMemory);
+    }
+
+    @Bean
+    public CreateClusterUseCase createClusterUseCase() {
+        return mock(CreateClusterUseCase.class);
+    }
+
+    @Bean
+    public GetClusterUseCase getClusterUseCase() {
+        return mock(GetClusterUseCase.class);
+    }
+
+    @Bean
+    public UpdateClusterUseCase updateClusterUseCase() {
+        return mock(UpdateClusterUseCase.class);
+    }
+
+    @Bean
+    public DeleteClusterUseCase deleteClusterUseCase() {
+        return mock(DeleteClusterUseCase.class);
+    }
+
+    @Bean
+    public SearchClusterUseCase searchClusterUseCase() {
+        return mock(SearchClusterUseCase.class);
     }
 }

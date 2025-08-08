@@ -13,16 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api.search;
+package io.gravitee.apim.core.cluster.use_case;
 
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.model.Cluster;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
 
-@Getter
-@Builder
 @AllArgsConstructor
-public class ClusterCriteria {
+@UseCase
+public class GetClusterUseCase {
 
-    private String environmentId;
+    private final ClusterCrudService clusterCrudService;
+
+    public record Input(String clusterId, String environmentId) {}
+
+    public record Output(Cluster cluster) {}
+
+    public Output execute(Input input) {
+        return new Output(this.clusterCrudService.findByIdAndEnvironmentId(input.clusterId, input.environmentId));
+    }
 }

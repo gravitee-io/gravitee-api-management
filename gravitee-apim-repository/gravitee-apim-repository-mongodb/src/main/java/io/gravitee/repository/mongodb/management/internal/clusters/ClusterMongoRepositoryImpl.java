@@ -15,10 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.clusters;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.ClusterMongo;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -31,7 +34,13 @@ public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom 
 
     @Override
     public Page<ClusterMongo> search(ClusterCriteria criteria, PageRequest pageRequest) {
+        Objects.requireNonNull(criteria, "ClusterCriteria must not be null");
+        Objects.requireNonNull(criteria.getEnvironmentId(), "ClusterCriteria.getEnvironmentId() must not be null");
+        Objects.requireNonNull(pageRequest, "PageRequest must not be null");
+
         final Query query = new Query();
+
+        query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
 
         final long total = mongoTemplate.count(query, ClusterMongo.class);
         if (total == 0) {

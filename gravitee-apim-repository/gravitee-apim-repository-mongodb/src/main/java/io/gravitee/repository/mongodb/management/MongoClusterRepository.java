@@ -28,6 +28,7 @@ import io.gravitee.repository.mongodb.management.internal.clusters.ClusterMongoR
 import io.gravitee.repository.mongodb.management.internal.model.ClusterMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -93,11 +94,16 @@ public class MongoClusterRepository implements ClusterRepository {
     }
 
     @Override
-    public Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Sortable sortable) {
+    public Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortableOpt) {
+        Objects.requireNonNull(pageable, "Pageable must not be null");
+        Objects.requireNonNull(criteria, "ClusterCriteria must not be null");
+        Objects.requireNonNull(criteria.getEnvironmentId(), "ClusterCriteria.getEnvironmentId() must not be null");
         log.debug("MongoClusterRepository.search({}, {})", criteria, pageable);
-        sortable = sortable == null ? new SortableBuilder().field("name").setAsc(true).build() : sortable;
-        final var sortOrder = sortable.order() == Order.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
-        final var sortField = FieldUtils.toCamelCase(sortable.field());
+
+        Sortable sortable = sortableOpt.orElse(new SortableBuilder().field("name").setAsc(true).build());
+        final Sort.Direction sortOrder = Sort.Direction.valueOf(sortable.order().name());
+        final String sortField = FieldUtils.toCamelCase(sortable.field());
+
         return this.internalClusterMongoRepo.search(
                 criteria,
                 PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
