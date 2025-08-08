@@ -58,7 +58,7 @@ export class GioSelectSearchOverlayComponent {
   placeholder = 'Search...';
 
   searchControl = new FormControl('');
-  private searchControlValue = toSignal(
+  private readonly searchControlValue = toSignal(
     this.searchControl.valueChanges.pipe(
       startWith(''),
       debounceTime(300),

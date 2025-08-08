@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, forwardRef, input, signal, ViewChild, OnDestroy, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  forwardRef,
+  input,
+  signal,
+  ViewChild,
+  OnDestroy,
+  inject,
+  DestroyRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,6 +38,7 @@ import { ComponentPortal } from '@angular/cdk/portal';
 import { takeUntil } from 'rxjs/operators';
 
 import { GioSelectSearchOverlayComponent } from './gio-select-search-overlay.component';
+import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 
 export interface SelectOption {
   value: string;
@@ -65,8 +76,9 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
 
   // Internal state
   protected isOpen = signal(false);
+  protected multiple: boolean = true;
   private overlayRef: OverlayRef | null = null;
-  private destroy$ = new Subject<void>();
+  private readonly destroyRef = inject(DestroyRef)
 
   // Form control integration
   protected _value: string[] = [];
@@ -77,14 +89,12 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
   // Computed values
   selectedCount = signal(0);
 
-  private overlay = inject(Overlay);
-  private overlayPositionBuilder = inject(OverlayPositionBuilder);
+  private readonly overlay = inject(Overlay);
+  private readonly overlayPositionBuilder = inject(OverlayPositionBuilder);
 
   @ViewChild('trigger', { static: false }) trigger!: ElementRef<HTMLElement>;
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     this.closeOverlay();
   }
 
@@ -166,7 +176,7 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
     componentRef.instance.placeholder = this.placeholder();
 
     // Handle selection changes
-    componentRef.instance.selectionChange.pipe(takeUntil(this.destroy$)).subscribe((selectedValues: string[]) => {
+    componentRef.instance.selectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((selectedValues: string[]) => {
       this.onSelectionChange(selectedValues);
     });
 

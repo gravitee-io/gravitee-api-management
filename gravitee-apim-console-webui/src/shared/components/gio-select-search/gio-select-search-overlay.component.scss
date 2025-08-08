@@ -1,15 +1,6 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-:host {
-  @include mat.form-field-overrides(
-    (
-      subscript-text-line-height: 0,
-      subscript-text-size: 0,
-    )
-  );
-}
-
 .gio-select-search-overlay {
   max-width: 280px;
 }

@@ -24,9 +24,9 @@ export interface GioSelectSearchHarnessFilters extends BaseHarnessFilters {
 }
 
 export class GioSelectSearchHarness extends ComponentHarness {
-  static hostSelector = 'gio-select-search';
+  static readonly hostSelector = 'gio-select-search';
 
-  private _documentRootLocator = this.documentRootLocatorFactory();
+  private readonly _documentRootLocator = this.documentRootLocatorFactory();
 
   // Trigger element
   protected getTrigger = this.locatorFor('.gio-select-search__trigger');
