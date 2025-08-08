@@ -19,16 +19,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.data.domain.Order;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 public class GroupsResourceTest extends AbstractResourceTest {
 
@@ -38,10 +44,12 @@ public class GroupsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void test() {
-        when(groupService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), any()))
+    public void testGetGroupsPagedWithBasicPagination() {
+        when(groupService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any()))
             .thenReturn(new Page<>(List.of(GroupEntity.builder().id("gr1").build(), GroupEntity.builder().id("gr2").build()), 1, 2, 12));
+
         final Response response = envTarget().path("_paged").queryParam("size", 2).queryParam("page", 1).request().get();
+
         Map<String, Object> responseBody = response.readEntity(new GenericType<>() {});
         Map<String, Integer> page = (Map<String, Integer>) responseBody.get("page");
         assertAll(
@@ -51,6 +59,115 @@ public class GroupsResourceTest extends AbstractResourceTest {
             () -> assertThat(page.get("per_page")).isEqualTo(2),
             () -> assertThat(page.get("total_pages")).isEqualTo(6),
             () -> assertThat(page.get("total_elements")).isEqualTo(12)
+        );
+    }
+
+    @Test
+    public void testGetGroupsPagedWithQueryAndSortOrder() {
+        String query = "test-query";
+        Order.Direction sortOrder = Order.Direction.DESC;
+
+        when(groupService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any()))
+            .thenReturn(new Page<>(List.of(GroupEntity.builder().id("gr1").build()), 1, 1, 1));
+
+        final Response response = envTarget()
+            .path("_paged")
+            .queryParam("size", 1)
+            .queryParam("page", 1)
+            .queryParam("query", query)
+            .queryParam("sortOrder", sortOrder.name())
+            .request()
+            .get();
+
+        Map<String, Object> responseBody = response.readEntity(new GenericType<>() {});
+        Map<String, Integer> page = (Map<String, Integer>) responseBody.get("page");
+        assertAll(
+            () -> assertThat(((List<?>) responseBody.get("data")).size()).isEqualTo(1),
+            () -> assertThat(page.get("current")).isEqualTo(1),
+            () -> assertThat(page.get("size")).isEqualTo(1),
+            () -> assertThat(page.get("total_elements")).isEqualTo(1)
+        );
+    }
+
+    @Test
+    public void testSearchGroupsPagedWithBasicPagination() {
+        String query = "search-query";
+        Set<String> groupIds = Set.of("gr1", "gr2");
+        GroupSearchParams searchParams = new GroupSearchParams(query, groupIds);
+
+        when(groupService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any()))
+            .thenReturn(new Page<>(List.of(GroupEntity.builder().id("gr1").build(), GroupEntity.builder().id("gr2").build()), 1, 2, 12));
+
+        final Response response = envTarget()
+            .path("_paged")
+            .queryParam("size", 2)
+            .queryParam("page", 1)
+            .request()
+            .post(Entity.json(searchParams));
+
+        Map<String, Object> responseBody = response.readEntity(new GenericType<>() {});
+        Map<String, Integer> page = (Map<String, Integer>) responseBody.get("page");
+        assertAll(
+            () -> assertThat(((List<?>) responseBody.get("data")).size()).isEqualTo(2),
+            () -> assertThat(page.get("current")).isEqualTo(1),
+            () -> assertThat(page.get("size")).isEqualTo(2),
+            () -> assertThat(page.get("per_page")).isEqualTo(2),
+            () -> assertThat(page.get("total_pages")).isEqualTo(6),
+            () -> assertThat(page.get("total_elements")).isEqualTo(12)
+        );
+    }
+
+    @Test
+    public void testSearchGroupsPagedWithQueryAndSortOrder() {
+        String query = "test-query";
+        Order.Direction sortOrder = Order.Direction.DESC;
+        Set<String> groupIds = Set.of("gr1");
+        GroupSearchParams searchParams = new GroupSearchParams(query, groupIds);
+
+        when(groupService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any()))
+            .thenReturn(new Page<>(List.of(GroupEntity.builder().id("gr1").build()), 1, 1, 1));
+
+        final Response response = envTarget()
+            .path("_paged")
+            .queryParam("size", 1)
+            .queryParam("page", 1)
+            .queryParam("sortOrder", sortOrder.name())
+            .request()
+            .post(Entity.json(searchParams));
+
+        Map<String, Object> responseBody = response.readEntity(new GenericType<>() {});
+        Map<String, Integer> page = (Map<String, Integer>) responseBody.get("page");
+        assertAll(
+            () -> assertThat(((List<?>) responseBody.get("data")).size()).isEqualTo(1),
+            () -> assertThat(page.get("current")).isEqualTo(1),
+            () -> assertThat(page.get("size")).isEqualTo(1),
+            () -> assertThat(page.get("total_elements")).isEqualTo(1)
+        );
+    }
+
+    @Test
+    public void testSearchGroupsPagedWithGroupSearchParams() {
+        String query = "search-query";
+        Set<String> groupIds = Set.of("gr1", "gr2", "gr3");
+        GroupSearchParams searchParams = new GroupSearchParams(query, groupIds);
+
+        when(groupService.search(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any()))
+            .thenReturn(new Page<>(List.of(GroupEntity.builder().id("gr1").build(), GroupEntity.builder().id("gr2").build()), 1, 2, 3));
+
+        final Response response = envTarget()
+            .path("_paged")
+            .queryParam("size", 2)
+            .queryParam("page", 1)
+            .request()
+            .post(Entity.entity(searchParams, MediaType.APPLICATION_JSON));
+
+        Map<String, Object> responseBody = response.readEntity(new GenericType<>() {});
+        Map<String, Integer> page = (Map<String, Integer>) responseBody.get("page");
+        assertAll(
+            () -> assertThat(((List<?>) responseBody.get("data")).size()).isEqualTo(2),
+            () -> assertThat(page.get("current")).isEqualTo(1),
+            () -> assertThat(page.get("size")).isEqualTo(2),
+            () -> assertThat(page.get("total_elements")).isEqualTo(3)
         );
     }
 }

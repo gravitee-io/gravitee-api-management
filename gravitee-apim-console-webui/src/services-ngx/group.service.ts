@@ -43,6 +43,22 @@ export class GroupService {
     );
   }
 
+  searchPaginated(
+    page: number = 1,
+    size: number = 20,
+    sortOrder: string = 'ASC',
+    query: string = '',
+    ids: string[] = [],
+  ): Observable<PagedResult<Group>> {
+    return this.http.post<PagedResult<Group>>(
+      `${this.constants.env.baseURL}/configuration/groups/_paged?page=${page}&size=${size}&sortOrder=${sortOrder}`,
+      {
+        query,
+        ids,
+      },
+    );
+  }
+
   listByOrganization(): Observable<Group[]> {
     return this.http.get<Group[]>(`${this.constants.org.baseURL}/groups`);
   }

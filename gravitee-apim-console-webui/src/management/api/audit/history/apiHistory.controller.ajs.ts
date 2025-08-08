@@ -23,6 +23,7 @@ import { cloneDeep, isEmpty } from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import GroupService from '../../../../services/group.service';
 import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -115,14 +116,24 @@ enum Modes {
   Design = 'Design',
 }
 
+interface EventPayload {
+  groups?: string[];
+  [key: string]: any;
+}
+
+interface EventData {
+  payload: string;
+  [key: string]: any;
+}
+
 class ApiHistoryControllerAjs {
   public activatedRoute: ActivatedRoute;
   public modes = Modes;
   public modeOptions: any;
+  public groups: any;
   private studio: any;
   private mode: string;
   private api: any;
-  private groups: any;
   private events: any;
   private eventsSelected: any;
   private eventsTimeline: any;
@@ -142,7 +153,7 @@ class ApiHistoryControllerAjs {
   public hasNextEventPageToLoad = false;
 
   constructor(
-    private $mdDialog: ng.material.IDialogService,
+    private readonly $mdDialog,
     private ApiService: ApiService,
     private NotificationService,
     private PolicyService,
@@ -150,6 +161,7 @@ class ApiHistoryControllerAjs {
     private FlowService,
     private ngApiV2Service: ApiV2Service,
     private ngGroupV2Service: GroupV2Service,
+    private groupService: GroupService,
   ) {
     this.eventsSelected = [];
     this.eventsTimeline = [];
@@ -166,13 +178,10 @@ class ApiHistoryControllerAjs {
 
   $onInit() {
     Promise.all([
-      this.ngGroupV2Service.list(1, 99999).toPromise(),
       this.ApiService.get(this.activatedRoute.snapshot.params.apiId),
       this.ApiService.isAPISynchronized(this.activatedRoute.snapshot.params.apiId),
-    ]).then(([groups, api, apiIsSynchronizedResult]) => {
+    ]).then(([api, apiIsSynchronizedResult]) => {
       this.api = api.data;
-      this.groups = groups.data;
-
       this.eventPage = -1;
       this.events = [];
       const toDeployEventTimeline = !apiIsSynchronizedResult.data.is_synchronized
@@ -201,6 +210,7 @@ class ApiHistoryControllerAjs {
       this.eventPageSize,
       true,
     ).then((response) => {
+      this.fetchGroupsConsumed(response);
       this.events = [...(this.events ?? []), ...response.data.content];
       this.hasNextEventPageToLoad =
         response.data.totalElements > response.data.pageNumber * this.eventPageSize + response.data.pageElements;
@@ -234,6 +244,25 @@ class ApiHistoryControllerAjs {
       });
     }
   }
+
+  fetchGroupsConsumed = (data: any) => {
+    const contentArray: EventData[] = data.data.content;
+
+    const allGroups: string[][] = contentArray.map((item: EventData) => {
+      const parsedPayload: EventPayload = JSON.parse(item.payload);
+      return parsedPayload.groups ?? [];
+    });
+
+    const flatGroupList: string[] = [...new Set(allGroups.flat())];
+    return this.groupService
+      .searchPaginated(1, 200, 'ASC', '', flatGroupList)
+      .then((res) => {
+        this.groups = res.data.data;
+      })
+      .catch(() => {
+        this.groups = [];
+      });
+  };
 
   setEventToStudio(eventTimeline, api) {
     this.studio.definition = {
@@ -578,6 +607,7 @@ ApiHistoryControllerAjs.$inject = [
   'FlowService',
   'ngApiV2Service',
   'ngGroupV2Service',
+  'GroupService',
 ];
 
 export default ApiHistoryControllerAjs;

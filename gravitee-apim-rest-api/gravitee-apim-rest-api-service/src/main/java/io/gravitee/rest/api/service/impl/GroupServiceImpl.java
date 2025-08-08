@@ -63,6 +63,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.GroupSearchCriteria;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -244,10 +245,16 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         ExecutionContext executionContext,
         Pageable pageable,
         Order.Direction orderDirection,
-        String query
+        String query,
+        GroupSearchCriteria groupSearchCriteria
     ) {
         String environmentId = executionContext.getEnvironmentId();
         GroupCriteria.GroupCriteriaBuilder groupCriteriaBuilder = GroupCriteria.builder().environmentId(environmentId).query(query);
+
+        if (groupSearchCriteria != null && groupSearchCriteria.getIds() != null && !groupSearchCriteria.getIds().isEmpty()) {
+            groupCriteriaBuilder.idIn(new HashSet<>(groupSearchCriteria.getIds()));
+        }
+
         if (
             !permissionService.hasPermission(
                 executionContext,
@@ -274,6 +281,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     .stream()
                     .map(MembershipEntity::getReferenceId)
                     .collect(Collectors.toSet());
+                if (groupSearchCriteria != null && groupSearchCriteria.getIds() != null && !groupSearchCriteria.getIds().isEmpty()) {
+                    groupIds.retainAll(groupSearchCriteria.getIds());
+                }
                 groupCriteriaBuilder.idIn(groupIds);
             }
         }

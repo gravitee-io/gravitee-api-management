@@ -68,6 +68,94 @@ describe('GroupService', () => {
     });
   });
 
+  describe('listPaginated', () => {
+    it('should call the API with default parameters', (done) => {
+      const fakePagedGroups = {
+        data: [fakeGroup()],
+        page: { current: 1, total_pages: 1, total_elements: 1, size: 20 },
+      };
+
+      groupService.listPaginated().subscribe((pagedGroups) => {
+        expect(pagedGroups).toMatchObject(fakePagedGroups);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/_paged?page=1&size=20&query=`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(fakePagedGroups);
+    });
+
+    it('should call the API with custom parameters', (done) => {
+      const page = 2;
+      const size = 10;
+      const query = 'test';
+      const fakePagedGroups = {
+        data: [fakeGroup()],
+        page: { current: page, total_pages: 2, total_elements: 15, size: size },
+      };
+
+      groupService.listPaginated(page, size, query).subscribe((pagedGroups) => {
+        expect(pagedGroups).toMatchObject(fakePagedGroups);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/_paged?page=${page}&size=${size}&query=${query}`,
+      );
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(fakePagedGroups);
+    });
+  });
+
+  describe('searchPaginated', () => {
+    it('should call the API with default parameters', (done) => {
+      const fakePagedGroups = {
+        data: [fakeGroup()],
+        page: { current: 1, total_pages: 1, total_elements: 1, size: 20 },
+      };
+
+      groupService.searchPaginated().subscribe((pagedGroups) => {
+        expect(pagedGroups).toMatchObject(fakePagedGroups);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/_paged?page=1&size=20&sortOrder=ASC`,
+      );
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual({ query: '', ids: [] });
+
+      req.flush(fakePagedGroups);
+    });
+
+    it('should call the API with custom parameters', (done) => {
+      const page = 2;
+      const size = 10;
+      const sortOrder = 'DESC';
+      const query = 'test';
+      const ids = ['group1', 'group2'];
+      const fakePagedGroups = {
+        data: [fakeGroup()],
+        page: { current: page, total_pages: 2, total_elements: 15, size: size },
+      };
+
+      groupService.searchPaginated(page, size, sortOrder, query, ids).subscribe((pagedGroups) => {
+        expect(pagedGroups).toMatchObject(fakePagedGroups);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/_paged?page=${page}&size=${size}&sortOrder=${sortOrder}`,
+      );
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual({ query: query, ids: ids });
+
+      req.flush(fakePagedGroups);
+    });
+  });
+
   describe('addOrUpdateMemberships', () => {
     it('should call the API', (done) => {
       const groupId = 'GROUP_ID';
