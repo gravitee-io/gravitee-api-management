@@ -42,6 +42,7 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
                     "org.slf4j..",
                     "lombok..",
                     "com.fasterxml..",
+                    "com.google..",
                     "jakarta..",
                     "io.reactivex.rxjava3..",
                     // Api Definition can't be in core because it is required for the Gateway
