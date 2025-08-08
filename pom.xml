@@ -32,7 +32,6 @@
     <name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 
     <properties>
-        <gravitee-bom.version>8.2.22</gravitee-bom.version>
         <gravitee-apim.version>4.8.2</gravitee-apim.version>
         <gravitee-reporter-common.version>1.6.3</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>6.2.0</gravitee-common-elasticsearch.version>
@@ -49,13 +48,6 @@
     <dependencyManagement>
         <dependencies>
             <!-- Import bom to properly inherit all dependencies -->
-            <dependency>
-                <groupId>io.gravitee</groupId>
-                <artifactId>gravitee-bom</artifactId>
-                <version>${gravitee-bom.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
             <dependency>
                 <groupId>io.gravitee.apim</groupId>
                 <artifactId>gravitee-apim-bom</artifactId>
