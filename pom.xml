@@ -38,7 +38,7 @@
         <gravitee-common-elasticsearch.version>6.2.0</gravitee-common-elasticsearch.version>
         <gravitee-node-api.version>4.8.7</gravitee-node-api.version>
 
-        <commons-validator.version>1.7</commons-validator.version>
+        <commons-validator.version>1.10.0</commons-validator.version>
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
         <log4j-core.version>2.19.0</log4j-core.version>
         <testcontainers.version>1.21.3</testcontainers.version>
