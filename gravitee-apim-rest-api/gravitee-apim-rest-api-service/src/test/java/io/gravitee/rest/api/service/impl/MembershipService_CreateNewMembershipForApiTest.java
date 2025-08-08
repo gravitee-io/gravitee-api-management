@@ -122,7 +122,9 @@ public class MembershipService_CreateNewMembershipForApiTest {
                 null,
                 node,
                 objectMapper,
-                commandRepository
+                commandRepository,
+                null,
+                null
             );
 
         mockRole();

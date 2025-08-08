@@ -50,6 +50,7 @@ import io.gravitee.apim.core.application.domain_service.ValidateApplicationSetti
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
+import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
@@ -704,6 +705,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase() {
         return mock(CreateSharedPolicyGroupUseCase.class);
+    }
+
+    @Bean
+    public CreateClusterUseCase createClusterUseCase() {
+        return mock(CreateClusterUseCase.class);
     }
 
     @Bean

@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -41,6 +42,10 @@ public class HeartbeatEventScheduler extends AbstractService<HeartbeatEventSched
     private final Topic<Event> topic;
     private final String subscriptionId;
     private final Event heartbeatEvent;
+
+    @Getter
+    private final HeartbeatEventListener heartbeatEventListener;
+
     private ScheduledExecutorService executorService;
 
     public HeartbeatEventScheduler(
@@ -55,7 +60,8 @@ public class HeartbeatEventScheduler extends AbstractService<HeartbeatEventSched
         this.unit = delayUnit;
         this.topic = clusterManager.topic(HEARTBEATS);
         this.heartbeatEvent = heartbeatEvent;
-        this.subscriptionId = topic.addMessageListener(new HeartbeatEventListener(clusterManager, eventRepository));
+        this.heartbeatEventListener = new HeartbeatEventListener(clusterManager, eventRepository);
+        this.subscriptionId = topic.addMessageListener(heartbeatEventListener);
     }
 
     @Override
@@ -93,6 +99,10 @@ public class HeartbeatEventScheduler extends AbstractService<HeartbeatEventSched
             executorService.shutdownNow();
         } else {
             log.info("Gateway monitor already shut-downed");
+        }
+
+        if (heartbeatEventListener != null) {
+            heartbeatEventListener.shutdownNow();
         }
 
         topic.removeMessageListener(subscriptionId);

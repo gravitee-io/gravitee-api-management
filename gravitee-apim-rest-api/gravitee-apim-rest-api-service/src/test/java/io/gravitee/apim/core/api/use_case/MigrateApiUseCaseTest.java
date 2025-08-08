@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.use_case;
 
 import static io.gravitee.apim.core.api.use_case.MigrateApiUseCase.Input.UpgradeMode.DRY_RUN;
+import static io.gravitee.apim.core.api.use_case.MigrateApiUseCase.Input.UpgradeMode.FORCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -632,6 +633,109 @@ class MigrateApiUseCaseTest {
                         new io.gravitee.definition.model.v4.property.Property("key2", "value2", true, false),
                         new io.gravitee.definition.model.v4.property.Property("key3", "value3", true, false)
                     );
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_logging_configuration() {
+        // Given
+        var logging = new io.gravitee.definition.model.Logging();
+        logging.setMode(io.gravitee.definition.model.LoggingMode.CLIENT_PROXY);
+        logging.setContent(io.gravitee.definition.model.LoggingContent.HEADERS_PAYLOADS);
+        logging.setScope(io.gravitee.definition.model.LoggingScope.REQUEST_RESPONSE);
+        logging.setCondition("my-condition");
+
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2api.getApiDefinition().getProxy().setLogging(logging);
+        apiCrudService.initWith(java.util.List.of(v2api));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedAnalytics = api.getApiDefinitionHttpV4().getAnalytics();
+
+                assertSoftly(softly -> {
+                    softly.assertThat(migratedAnalytics.isEnabled()).isTrue();
+                    var loggingV4 = migratedAnalytics.getLogging();
+                    softly.assertThat(loggingV4.getMode().isEntrypoint()).isTrue();
+                    softly.assertThat(loggingV4.getMode().isEndpoint()).isTrue();
+                    softly.assertThat(loggingV4.getContent().isHeaders()).isTrue();
+                    softly.assertThat(loggingV4.getContent().isPayload()).isTrue();
+                    softly.assertThat(loggingV4.getContent().isMessageHeaders()).isFalse();
+                    softly.assertThat(loggingV4.getContent().isMessagePayload()).isFalse();
+                    softly.assertThat(loggingV4.getContent().isMessageMetadata()).isFalse();
+                    softly.assertThat(loggingV4.getPhase().isRequest()).isTrue();
+                    softly.assertThat(loggingV4.getPhase().isResponse()).isTrue();
+                    softly.assertThat(loggingV4.getCondition()).isEqualTo("my-condition");
+                });
+            });
+    }
+
+    @Test
+    void should_enable_analytics_and_null_logging_when_v2_logging_is_never_set() {
+        // Given
+        var logging = new io.gravitee.definition.model.Logging();
+        logging.setMode(io.gravitee.definition.model.LoggingMode.NONE);
+
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2api.getApiDefinition().getProxy().setLogging(logging);
+        apiCrudService.initWith(java.util.List.of(v2api));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedAnalytics = api.getApiDefinitionHttpV4().getAnalytics();
+                assertThat(migratedAnalytics.isEnabled()).isTrue();
+                assertThat(migratedAnalytics.getLogging()).isNull();
+            });
+    }
+
+    @Test
+    void should_enable_analytics_and_null_logging_when_v2_logging_disabled() {
+        // Given
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2api.getApiDefinition().getProxy().setLogging(null);
+        apiCrudService.initWith(java.util.List.of(v2api));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedAnalytics = api.getApiDefinitionHttpV4().getAnalytics();
+                assertThat(migratedAnalytics.isEnabled()).isTrue();
+                assertThat(migratedAnalytics.getLogging()).isNull();
             });
     }
 
