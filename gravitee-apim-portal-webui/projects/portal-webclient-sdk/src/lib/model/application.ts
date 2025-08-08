@@ -37,6 +37,10 @@ export interface Application {
      */
     applicationType?: string;
     /**
+     * Application origin. e.g., MANAGEMENT, KUBERNETES, INTEGRATION.
+     */
+    origin?: string;
+    /**
      * True if the application has client id.
      */
     hasClientId?: boolean;
