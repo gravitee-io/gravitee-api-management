@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.manager;
 
+import static io.gravitee.gateway.reactive.reactor.v4.secrets.ApiV4DefinitionSecretRefsFinder.API_V4_DEFINITION_KIND;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -36,6 +38,10 @@ import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.license.ForbiddenFeatureException;
 import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.secrets.api.discovery.Definition;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -437,6 +443,56 @@ public class ApiManagerV4Test {
             Map.of("key1", "plain value 1", "key2", "plain value 2", "key3", "plain value 3"),
             api.getDefinition().getProperties().stream().collect(Collectors.toMap(Property::getKey, Property::getValue))
         );
+    }
+
+    @Test
+    public void shouldUpdateApiOnSecretDiscoveryValueChangeEvent() {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = buildMockPlan();
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+        EventManager em = spy(new EventManagerImpl());
+        apiManager = new ApiManagerImpl(em, gatewayConfiguration, licenseManager, dataEncryptor);
+
+        apiManager.register(api);
+
+        em.publishEvent(
+            SecretDiscoveryEventType.VALUE_CHANGED,
+            new SecretDiscoveryEvent("env-id", new Definition(API_V4_DEFINITION_KIND, api.getId()), new DefinitionMetadata("revision-id"))
+        );
+
+        verify(em).publishEvent(ReactorEvent.UPDATE, api);
+    }
+
+    @Test
+    public void shouldNotUpdateApiOnSecretDiscoveryValueChangeEventIfApiNotRegistered() {
+        final Api api = buildTestApi();
+        EventManager em = spy(new EventManagerImpl());
+        apiManager = new ApiManagerImpl(em, gatewayConfiguration, licenseManager, dataEncryptor);
+
+        em.publishEvent(
+            SecretDiscoveryEventType.VALUE_CHANGED,
+            new SecretDiscoveryEvent("env-id", new Definition(API_V4_DEFINITION_KIND, api.getId()), new DefinitionMetadata("revision-id"))
+        );
+
+        verify(em, never()).publishEvent(ReactorEvent.UPDATE, api);
+    }
+
+    @Test
+    public void shouldNotUpdateApiOnSecretDiscoveryValueChangeEventIfApiNotV4() {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = buildMockPlan();
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+        EventManager em = spy(new EventManagerImpl());
+        apiManager = new ApiManagerImpl(em, gatewayConfiguration, licenseManager, dataEncryptor);
+
+        apiManager.register(api);
+
+        em.publishEvent(
+            SecretDiscoveryEventType.VALUE_CHANGED,
+            new SecretDiscoveryEvent("env-id", new Definition("not-v4-kind", api.getId()), new DefinitionMetadata("revision-id"))
+        );
+
+        verify(em, never()).publishEvent(ReactorEvent.UPDATE, api);
     }
 
     @Test
