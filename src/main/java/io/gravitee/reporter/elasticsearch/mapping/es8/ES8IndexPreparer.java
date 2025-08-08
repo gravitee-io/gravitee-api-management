@@ -65,11 +65,7 @@ public class ES8IndexPreparer extends AbstractIndexPreparer {
             final String template = freeMarkerComponent.generateFromTemplate("/es8x/mapping/index-template-" + typeName + ".ftl", data);
             final Completable templateCreationCompletable = client.putIndexTemplate(templateName, template);
 
-            if (dataStream) {
-                return client.getDataStream(templateName).switchIfEmpty(client.createDataStream(templateName).toMaybe()).ignoreElement();
-            }
-
-            if (configuration.isIlmManagedIndex()) {
+            if (configuration.isIlmManagedIndex() && !dataStream) {
                 return templateCreationCompletable.andThen(ensureAlias(aliasName));
             }
             return templateCreationCompletable;
