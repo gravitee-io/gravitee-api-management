@@ -4,6 +4,6 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: elasticsearch.enabled
   - name: mongodb
-    version: 16.5.32
+    version: 16.5.40
     repository: https://charts.bitnami.com/bitnami
     condition: mongodb.enabled
