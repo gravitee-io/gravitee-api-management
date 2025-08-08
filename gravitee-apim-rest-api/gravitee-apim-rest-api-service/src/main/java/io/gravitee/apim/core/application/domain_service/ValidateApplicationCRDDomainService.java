@@ -79,7 +79,11 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
 
         settingsValidator
             .validateAndSanitize(
-                new ValidateApplicationSettingsDomainService.Input(input.auditInfo, input.spec.getId(), input.spec.getSettings())
+                new ValidateApplicationSettingsDomainService.Input(
+                    input.auditInfo,
+                    sanitizedBuilder.build().getId(),
+                    input.spec.getSettings()
+                )
             )
             .peek(sanitized -> sanitizedBuilder.settings(sanitized.settings()), errors::addAll);
 

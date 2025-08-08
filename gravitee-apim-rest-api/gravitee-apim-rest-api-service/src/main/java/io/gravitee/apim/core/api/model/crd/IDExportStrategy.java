@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.apim.core.api.model.crd;
 
-import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
-import io.gravitee.apim.core.audit.model.AuditInfo;
-
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface ApiCRDExportDomainService {
-    ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo);
+public enum IDExportStrategy {
+    ALL,
+    HRID,
+    GUID,
+    NONE,
 }

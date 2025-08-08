@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { importProvidersFrom } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
@@ -22,11 +22,12 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioPolicyStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { GioFormJsonSchemaModule, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { GioPolicyStudioComponent } from '@gravitee/ui-policy-studio-angular';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 
 import { ApiV4PolicyStudioDesignComponent } from './api-v4-policy-studio-design.component';
 
@@ -49,6 +50,14 @@ import { expectGetSharedPolicyGroupPolicyPluginRequest } from '../../../../servi
 
 describe('ApiV4PolicyStudioDesignComponent', () => {
   const API_ID = 'api-id';
+  const routeParams$ = new BehaviorSubject<{ planIndex: number; flowIndex: number }>({
+    planIndex: 0,
+    flowIndex: 0,
+  });
+  const activatedRouteStub = {
+    snapshot: { params: { apiId: API_ID } },
+    params: routeParams$.asObservable(),
+  };
 
   let fixture: ComponentFixture<ApiV4PolicyStudioDesignComponent>;
   let component: ApiV4PolicyStudioDesignComponent;
@@ -58,10 +67,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule, GioLicenseTestingModule],
-      providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        importProvidersFrom(GioFormJsonSchemaModule),
-      ],
+      providers: [{ provide: ActivatedRoute, useValue: activatedRouteStub }, importProvidersFrom(GioFormJsonSchemaModule)],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -680,6 +686,72 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           ],
         },
       ]);
+    });
+
+    describe('Plan/Flow indexes handling', () => {
+      let location: Location;
+      let goSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        location = TestBed.inject(Location);
+        goSpy = jest.spyOn(location, 'go').mockImplementation(() => {});
+        // Mock base path for URL construction
+        jest.spyOn(location, 'path').mockReturnValue('/apis/api-id/v4/policy-studio/0/0');
+      });
+
+      it('should update URL when user selects a flow', async () => {
+        const flowsMenu = await policyStudioHarness.getFlowsMenu();
+        await policyStudioHarness.selectFlowInMenu(flowsMenu[1].flows[0].name);
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/1/0');
+      });
+
+      it('should select the newly added flow', async () => {
+        const flowToAdd: FlowV4 = {
+          name: 'A new flow',
+          selectors: [
+            {
+              type: 'CHANNEL',
+              channel: 'channel1',
+              pathOperator: 'EQUALS',
+              condition: 'condition',
+            },
+          ],
+        };
+
+        await policyStudioHarness.addFlow(planA.name, flowToAdd);
+        await policyStudioHarness.save();
+        // Fetch fresh Plan before save
+        expectGetPlan(api.id, planA);
+        const req = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans/${planA.id}`,
+          method: 'PUT',
+        });
+        req.flush(planA);
+        expectNewNgOnInit();
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/1');
+        const selectedFlow = await policyStudioHarness.getSelectedFlowInfos();
+        expect(selectedFlow).toEqual({
+          Name: ['A new flow'],
+          Entrypoints: ['Webhook'],
+          Operations: ['PUB', 'SUB'],
+          Channel: ['channel1'],
+          'Channel Operator': ['EQUALS'],
+        });
+      });
+
+      it('should reset both indexes to 0/0 for out-of-range planIndex', fakeAsync(() => {
+        routeParams$.next({ planIndex: 5, flowIndex: 0 });
+        fixture.detectChanges();
+        tick();
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/0');
+      }));
+
+      it('should reset flow index to 0 for out-of-range flowIndex', fakeAsync(() => {
+        routeParams$.next({ planIndex: 1, flowIndex: 99 });
+        fixture.detectChanges();
+        tick();
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/1/0');
+      }));
     });
   });
 

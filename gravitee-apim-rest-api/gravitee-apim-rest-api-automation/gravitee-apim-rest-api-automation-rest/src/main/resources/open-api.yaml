@@ -16,7 +16,7 @@ info:
   title: Gravitee.io - Automation API
   description: The APIM automation API.
   contact:
-    name: DevEx team
+    name: DevX team
     email: team-gko@graviteesource.com
     url: https://www.gravitee.io/
   license:
@@ -26,8 +26,9 @@ info:
 security:
   - BearerAuth: []
   - BasicAuth: []
+  - CloudAuth: []
 servers:
-  - url: "https://apim-master-api.team-apim.gravitee.dev/automation"
+  - url: "https://eu.cloudgate.gravitee.io/apim/automation"
 tags:
   - name: APIs
     description: Everything about APIs
@@ -566,55 +567,13 @@ components:
               description:
                 The organization ID of the API.
               type: string
-
-    HttpError:
-      description: Error
-      type: object
-      properties:
-        httpStatus:
-          type: integer
-          format: int32
-          description: Error code
-          examples:
-            - 200
-            - 400
-        message:
-          type: string
-          description: Error message
-          examples:
-            - Bad request
-        technicalCode:
-          type: string
-          description: A technical code to identify the error
-          examples:
-            - invalid.import.definition
-        parameters:
-          type: object
-          description: A map of parameters to be used in the error message
-          additionalProperties:
-            type: string
-        details:
-          type: array
-          description: A list of details about the error
-          items:
-            type: object
-            properties:
-              message:
-                type: string
-                description: The error message
-                examples:
-                  - Bad request
-              location:
-                type: string
-                description: The json path of the field in error.
-                examples:
-                  - updateApi.properties[0].key
-              invalidValue:
-                type: string
-                description: The invalid value.
-
     ApplicationSpec:
-      description: ApplicationSpec defines the desired state of Application.
+      description: |
+        Defines the desired state of Application. 
+        It represents an API consumer. 
+        Applications act on behalf of users to request tokens, provide user identity information, and access protected resources from APIs. 
+        They can be of different types, such as Simple, Web, SPA, Native, or Backend-to-backend, each with specific configuration requirements. 
+        Applications are also used to manage API keys, analytics, and subscriptions.
       type: object
       properties:
         hrid:
@@ -623,17 +582,19 @@ components:
           type: string
           description: Application's name. Duplicate names can exists.
           examples:
-            - My Application
+            - Example Application
           minLength: 1
         description:
           type: string
           description: Application's description.
           examples:
-            - My Demo Application
+            - This is the documentation explaining purpose of this Application  .
           minLength: 1
         domain:
           type: string
           description: Application's domain.
+          examples:
+           - examples.com
         groups:
           default: []
           description: >-
@@ -644,33 +605,26 @@ components:
           items:
             type: string
           type: array
-        status:
-          type: string
-          description: Application's status
-          enum:
-            - ACTIVE
-            - ARCHIVED
+          example: ["developers"]
         pictureUrl:
           type: string
           description: Application's picture Url.
+          examples:
+            - "https://upload.wikimedia.org/wikipedia/fr/0/09/Logo_App_Store_d%27Apple.png"
         notifyMembers:
           default: false
           description: |-
             If true, new members added to the Application spec will
             be notified when the Application is synced with APIM.
           type: boolean
-          writeOnly: true
         background:
           type: string
-          description: Application's background.
-        origin:
-          type: string
-          description: The origin of the Application.
-          enum:
-            - kubernetes
-            - management
+          description: Application's background url
+          examples:
+            - "https://upload.wikimedia.org/wikipedia/commons/d/df/Green_Red_Gradient_Background.png"
         primaryOwner:
           $ref: "#/components/schemas/PrimaryOwner"
+          readOnly: true
         settings:
           $ref: "#/components/schemas/ApplicationSettings"
         metadata:
@@ -678,19 +632,29 @@ components:
           description: The list of Application's metadata.
           items:
             $ref: "#/components/schemas/Metadata"
-          uniqueItems: true
         members:
           type: array
           description: Set of members associated with the application
           items:
             $ref: '#/components/schemas/Member'
           uniqueItems: true
+        status:
+          type: string
+          description: Application are either ACTIVE or ARCHIVED never actually deleted.
+          enum:
+            - ACTIVE
+            - ARCHIVED
+          default: ACTIVE
+          examples:
+            - ACTIVE
       required:
         - hrid
         - name
         - description
     ApplicationSettings:
-      description: Application settings
+      description: Application settings defines the configuration of consumers authentication.
+        Depending on the control plane configuration some applications types may be restricted.
+        `app` and `oauth` are mutually exclusive. If none is set it fallbacks to `app` without any property set.
       properties:
         app:
           $ref: '#/components/schemas/SimpleApplicationSettings'
@@ -704,32 +668,96 @@ components:
       properties:
         type:
           type: string
-          description: Simple application type
+          description: Simple application type, for information
+          examples:
+           - web
         clientId:
           type: string
           description: Simple application client ID
+          examples:
+            - example-client-id
     ApplicationOAuthClientSettings:
       description: Application OAuth client settings
       properties:
+        applicationType:
+          type: string
+          description: |
+            OAuth client application type: 
+            `browser` for single page apps (SPA),
+            `web` for regular web apps,
+            `native` for smartphone apps,
+            `backend_to_backend` for backend to backend.
+          enum:
+            - browser
+            - web
+            - native
+            - backend_to_backend
+          examples:
+            - browser
         grantTypes:
-          description: OAuth client grant types
+          type: array
+          description: |
+            OAuth client grant types. `authorization_code` is mandatory except when application type is `backend_to_backend`.
+            `refresh_token` can be used only application type is `web` and `browser`.
+            `password` (Resource Owner Password) only with applicationType `native`.
+            `client_credentials` only works  when application type is `backend_to_backend`
           items:
             type: string
-          type: array
+            enum:
+              - authorization_code
+              - implicit
+              - refresh_token
+              - password
+              - client_credentials
+          minItems: 1
+          uniqueItems: true
+          examples:
+            - authorization_code
         redirectUris:
           description: OAuth client redirect Uris
           items:
             type: string
           type: array
-        applicationType:
-          type: string
-          description: OAuth client application type
+          example: ["https://myapp.example.com/oauth/callback"]
+        additionalClientMetadata:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+       - applicationType
+       - redirectUris
+       - grantTypes
     ApplicationTLSSettings:
       description: Application TLS settings
       properties:
         clientCertificate:
           type: string
           description: Application TLS client certificate
+          examples:
+           - |
+            -----BEGIN CERTIFICATE-----
+            MIIDfjCCAmagAwIBAgIUfHj3mygGaOfd1u1Uj09L6vY5stcwDQYJKoZIhvcNAQEL
+            BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
+            GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNTA4MDUxNTUyMTBaFw0yNjA4
+            MDUxNTUyMTBaMGkxCzAJBgNVBAYTAlVTMQ4wDAYDVQQIDAVTdGF0ZTENMAsGA1UE
+            BwwEQ2l0eTEVMBMGA1UECgwMT3JnYW5pemF0aW9uMRMwEQYDVQQLDApEZXBhcnRt
+            ZW50MQ8wDQYDVQQDDAZjbGllbnQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+            AoIBAQDW862KHvjkq0EtwZJO/xw+QoTnRB0qm4E5+1wspC1er6tOm3hTJqCzfKwQ
+            gZQKoP1Eq1PhM8GzceeqGjh8VZJaDmWwiJZdk5fprrZ1Lvwwl010lnh4MEhtN0Dw
+            lwHSZCQ/vSvEDWJXugiE4F1OvAgi2+lIR5uYfyy2U6YbhlcVPdGAboBAFSQnxECF
+            1gDpc3dFarPXfO/X3yf/BzAHys6IyMyqvBbur3K2UTO4gJL+59/DEyAwx7ofwukj
+            TWpgGNDXlNFYwKk9qTSTbxdcofAVCjrBCEDTdoPkvrr5SxI7dV/ha5y33iOI4VPV
+            o6vN/58RJz+ZMI0mbOBeluqBW+xBAgMBAAGjQjBAMB0GA1UdDgQWBBTjpQ+KfcmK
+            w4hCptY8iK/LX9BOhzAfBgNVHSMEGDAWgBQYdcUWurMS8FEEMzcJlFm2d4Dk3DAN
+            BgkqhkiG9w0BAQsFAAOCAQEAoyv0RhgEbRNmyFF6WoTeH4durjmZRe3SCtum0Mnv
+            4TOGT4sstPdz0l24psroL33z3jtsY8IrbqnSfTXWbziSCanDXnMHOewLykgN0ld0
+            PHa2i5naU5tMeGdWeM80ZTXU7GMiiCkgrRai/V7GkXNKYTIdBontiLpbxUaGLpjY
+            aMYoCmHIEizazQP9xaAtm40CkYub1o40kgyQULyrwftqrlRtKshfYmHB6yxYVz60
+            pikgTVupVbhYcNMLOVXO7Q31UEYfC7fxMGqzybXg67EhvzoykXhhYo3YqAjho2yh
+            um2oEO8b5eQVAwRaooVLh0uqjZCpfN2ozscPpiTM9Pj3xQ==
+            -----END CERTIFICATE-----
+      required:
+        - clientCertificate
 
     ApplicationState:
       description: Application state that has been created/updated
@@ -744,14 +772,20 @@ components:
             id:
               type: string
               description: Application's uuid.
+              examples:
+               - 550e8400-e29b-41d4-a716-446655440000
             environmentId:
-              description:
-                The environment ID of the Application.
+              description: The environment ID of the Application.
               type: string
+              default: DEFAULT
+              examples:
+                - DEFAULT
             organizationId:
-              description:
-                The organization ID of the Application.
+              description: The organization ID of the Application.
               type: string
+              default: DEFAULT
+              examples:
+               - DEFAULT
 
     # Subscription
     SubscriptionSpec:
@@ -774,11 +808,6 @@ components:
           type: string
           description: API plan's Hrid
           example: demo-plan
-        startingAt:
-          type: string
-          format: date-time
-          example: "2040-12-25T09:12:28Z"
-          writeOnly: true
         endingAt:
           type: string
           format: date-time
@@ -810,33 +839,11 @@ components:
               description:
                 The organization ID of the Subscription.
               type: string
+            startingAt:
+              type: string
+              format: date-time
+              example: "2040-12-25T09:12:28+01:00"
 
-    Errors:
-      description: >-
-        When a resource has been created regardless of errors, this field
-        is used to persist the error message encountered during
-        admission
-      properties:
-        severe:
-          description: >-
-            severe errors do not pass admission and will block
-            reconcile hence, this field should always be populated during the admission
-            phase and is very unlikely to be persisted in the status
-          items:
-            type: string
-          type: array
-        warning:
-          description: >-
-            warning errors do not block object reconciliation,
-
-            most of the time because the value is ignored or
-            defaulted
-
-            when the resource gets synced with APIM
-          items:
-            type: string
-          type: array
-      type: object
     SharedPolicyGroupState:
       description: State of Shared Policy Groups that has been created/updated
       allOf:
@@ -986,22 +993,40 @@ components:
           $ref: '#/components/schemas/PlanMode'
       required:
         - hrid
+        - name
         - status
         - type
         - mode
+        - validation
+        - security
 
     Member:
-      description: Member
+      description: Users that can manage an object (API, Application, etc.)
       type: object
       properties:
         id:
           type: string
+          description: "User UUID of the memeber"
+          readOnly: true
         source:
           type: string
+          description: Where the memeber was created (system, idp, etc.)
+          examples:
+           - system
         sourceId:
+          description: Id of the user in the source
           type: string
+          examples:
+            - "john.doe@example.com"
         role:
+          description: The role of the user in regards of the managed oject (API, Application, etc.)
+          examples:
+           - REVIEWER
           type: string
+      required:
+        - source
+        - sourceId
+        - role
     PortalNotificationConfig:
       description: Portal notification config
       type: object
@@ -1076,6 +1101,7 @@ components:
     Visibility:
       type: string
       description: The visibility of the resource regarding the portal.
+      default: PUBLIC
       examples:
         - PUBLIC
       enum:
@@ -1280,7 +1306,6 @@ components:
           description: Flow's uuid.
           examples:
             - 4e6abbd2-c0c6-462d-be9e-6371209af34b
-          readOnly: true
         name:
           type: string
           description: Flow's name.
@@ -1815,7 +1840,7 @@ components:
         - PUSH
 
     PrimaryOwner:
-      description: Primary owner
+      description: Primary owner, the creator of the application. Can perform all possible API actions.
       type: object
       properties:
         id:
@@ -1826,6 +1851,8 @@ components:
         email:
           type: string
           description: Owner's email. Can be null if owner is a group.
+          examples:
+            - "john.doe@example.com"
         displayName:
           type: string
           description: Owner's name.
@@ -1927,6 +1954,8 @@ components:
       enum:
         - USER
         - GROUP
+      examples:
+        - USER
     Selector:
       description: Flow selector
       oneOf:
@@ -2095,12 +2124,12 @@ components:
 
     # Metadata Page
     Metadata:
-      description: Metadata
+      description: Metadata is a generic data structure used internally
       type: object
       properties:
         key:
           type: string
-          description: The key of the metadata.
+          description: The key of the metadata if different from sanitized name (lowercase + hyphens).
           minLength: 1
         name:
           type: string
@@ -2113,16 +2142,15 @@ components:
           minLength: 1
         defaultValue:
           type: string
-          description: The default value of the metadata.
-        hidden:
-          default: false
-          description: Specify if metadata is hidden or not.
-          type: boolean
+          description: The default value of the metadata if the value is not set.
+      required:
+        - name
+        - format
     MetadataFormat:
       type: string
       description: The format of the metadata.
       examples:
-        - DATE
+        - STRING
       enum:
         - STRING
         - NUMERIC
@@ -2142,6 +2170,72 @@ components:
         - STARTED
         - STOPPED
         - STOPPING
+    HttpError:
+      description: Error
+      type: object
+      properties:
+        httpStatus:
+          type: integer
+          format: int32
+          description: Error code
+          examples:
+            - 400
+        message:
+          type: string
+          description: Error message
+          examples:
+            - Bad request
+        technicalCode:
+          type: string
+          description: A technical code to identify the error
+          examples:
+            - invalid.import.definition
+        parameters:
+          type: object
+          description: A map of parameters to be used in the error message
+          additionalProperties:
+            type: string
+        details:
+          type: array
+          description: A list of details about the error
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                description: The error message
+                examples:
+                  - Bad request
+              location:
+                type: string
+                description: The json path of the field in error.
+                examples:
+                  - updateApi.properties[0].key
+              invalidValue:
+                type: string
+                description: The invalid value.
+
+    Errors:
+      description: >-
+        When a resource has been created regardless of errors, this field
+        is used to persist the error message encountered during validation
+      properties:
+        severe:
+          description: >-
+            Severe errors do not pass validation and will block
+            creation/update/delete hence, this field should always be populated during the validation
+            phase and is very unlikely to be persisted client side.
+          items:
+            type: string
+          type: array
+        warning:
+          description: >-
+            Warning errors do not block object creation/update/delete,
+            most of the time because the value is ignored or defaulted.
+          items:
+            type: string
+          type: array
+      type: object
 
   responses:
     NotFound:
@@ -2215,7 +2309,12 @@ components:
       type: http
       scheme: basic
     BearerAuth:
-      description: Bearer authentication
+      description: service account authentication
       type: http
       scheme: bearer
-      bearerFormat: Gravitee service account ID
+      bearerFormat: APIM service account token
+    CloudAuth:
+      description: Gravitee Cloud Token authentication
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

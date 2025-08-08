@@ -195,7 +195,7 @@
         <gravitee-policy-json-validation.version>2.0.3</gravitee-policy-json-validation.version>
         <gravitee-policy-json-xml.version>3.0.3</gravitee-policy-json-xml.version>
         <gravitee-policy-jws.version>2.0.0</gravitee-policy-jws.version>
-        <gravitee-policy-jwt.version>6.2.0-cj-3061-revocation-list-SNAPSHOT</gravitee-policy-jwt.version>
+        <gravitee-policy-jwt.version>6.2.0</gravitee-policy-jwt.version>
         <gravitee-policy-keyless.version>4.0.0</gravitee-policy-keyless.version>
         <gravitee-policy-latency.version>2.0.1</gravitee-policy-latency.version>
         <gravitee-policy-metrics-reporter.version>2.0.1</gravitee-policy-metrics-reporter.version>

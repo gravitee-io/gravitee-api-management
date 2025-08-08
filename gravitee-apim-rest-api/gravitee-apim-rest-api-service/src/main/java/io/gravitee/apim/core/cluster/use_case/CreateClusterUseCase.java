@@ -50,7 +50,7 @@ public class CreateClusterUseCase {
             .description(input.createCluster.getDescription())
             .configuration(input.createCluster.getConfiguration())
             .id(UuidString.generateRandom())
-            .createdAt(Instant.now())
+            .createdAt(TimeProvider.instantNow())
             .environmentId(input.auditInfo().environmentId())
             .organizationId(input.auditInfo().organizationId())
             .build();

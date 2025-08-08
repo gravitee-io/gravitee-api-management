@@ -22,22 +22,18 @@ import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupPolicyPlugin;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.mapper.ApiMapper;
-import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
-import io.gravitee.apim.rest.api.automation.model.FlowV4;
 import io.gravitee.apim.rest.api.automation.model.LegacyAPIV4Spec;
 import io.gravitee.apim.rest.api.automation.model.PageV4;
 import io.gravitee.apim.rest.api.automation.model.PlanV4;
-import io.gravitee.apim.rest.api.automation.model.StepV4;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -49,8 +45,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -102,6 +96,7 @@ public class ApisResource extends AbstractResource {
             .build();
 
         checkPlanAndPagesUnicity(spec);
+        SharedPolicyGroupIdHelper.addSPGIDFromHrid(spec, audit);
 
         ApiCRDSpec apiCRDSpec = io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper.INSTANCE.map(
             ApiMapper.INSTANCE.apiV4SpecToApiCRDSpec(spec)
@@ -128,10 +123,9 @@ public class ApisResource extends AbstractResource {
             return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, statusBuilder.build())).build();
         }
 
-        mapSharedPolicyGroupHrid(spec, audit);
-
         ApiCRDStatus apiCRDStatus = importApiCRDUseCase.execute(new ImportApiCRDUseCase.Input(audit, apiCRDSpec)).status();
 
+        SharedPolicyGroupIdHelper.removeSPGID(spec);
         return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, apiCRDStatus)).build();
     }
 
@@ -148,38 +142,6 @@ public class ApisResource extends AbstractResource {
             spec.getPages().size() != CollectionUtils.stream(spec.getPages()).map(PageV4::getHrid).distinct().count()
         ) {
             throw new ValidationDomainException("Duplicate hrid found in pages");
-        }
-    }
-
-    private void mapSharedPolicyGroupHrid(ApiV4Spec spec, AuditInfo audit) {
-        CollectionUtils.stream(spec.getFlows()).forEach(f -> mapSharedPolicyGroupHrid(f, audit));
-        if (spec.getPlans() != null) {
-            CollectionUtils
-                .stream(spec.getPlans())
-                .flatMap(p -> CollectionUtils.stream(p.getFlows()))
-                .forEach(f -> mapSharedPolicyGroupHrid(f, audit));
-        }
-    }
-
-    private static void mapSharedPolicyGroupHrid(@Valid FlowV4 flowV4, AuditInfo audit) {
-        CollectionUtils.stream(flowV4.getRequest()).forEach(s -> mapSharedPolicyGroupHrid(s, audit));
-        CollectionUtils.stream(flowV4.getResponse()).forEach(s -> mapSharedPolicyGroupHrid(s, audit));
-        CollectionUtils.stream(flowV4.getSubscribe()).forEach(s -> mapSharedPolicyGroupHrid(s, audit));
-        CollectionUtils.stream(flowV4.getPublish()).forEach(s -> mapSharedPolicyGroupHrid(s, audit));
-    }
-
-    private static void mapSharedPolicyGroupHrid(StepV4 stepV4, AuditInfo auditInfo) {
-        if (Objects.equals(stepV4.getPolicy(), SharedPolicyGroupPolicyPlugin.SHARED_POLICY_GROUP_POLICY_ID)) {
-            Object configuration = stepV4.getConfiguration();
-            if (configuration instanceof Map<?, ?> rawMap) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> struct = (Map<String, Object>) rawMap;
-                String hrid = (String) struct.get(HRID_FIELD);
-                if (hrid != null) {
-                    struct.remove(HRID_FIELD);
-                    struct.put(SHARED_POLICY_GROUP_ID_FIELD, IdBuilder.builder(auditInfo, hrid).buildCrossId());
-                }
-            }
         }
     }
 }

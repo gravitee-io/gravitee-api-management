@@ -29,6 +29,7 @@ import {
 } from '@gravitee/ui-policy-studio-angular';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiType, ApiV4, FlowExecution, PlanV4, UpdateApiV4, UpdatePlanV4 } from '../../../../entities/management-api-v2';
@@ -41,6 +42,8 @@ import { ResourceTypeService } from '../../../../shared/components/form-json-sch
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
 import { getApiProtocolTypeFromApi } from '../../../../entities/management-api-v2/plugin/apiProtocolType';
+
+export type FlowSelection = { planIndex: number; flowIndex: number };
 
 @Component({
   selector: 'api-v4-policy-studio-design',
@@ -56,6 +59,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   public entrypointsInfo: ConnectorInfo[];
   public endpointsInfo: ConnectorInfo[];
   public commonFlows: PSFlow[];
+  public selectedFlowIndexes: FlowSelection = { planIndex: 0, flowIndex: 0 };
   public plans: PSPlan[];
   public policies: PSPolicy[];
   public sharedPolicyGroupPolicyPlugins: SharedPolicyGroupPolicy[];
@@ -69,6 +73,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   public policyDocumentationFetcher: PolicyDocumentationFetcher;
 
   constructor(
+    private readonly location: Location,
     private readonly activatedRoute: ActivatedRoute,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly iconService: IconService,
@@ -99,9 +104,10 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
       this.policyV2Service.list(),
       this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),
+      this.activatedRoute.params,
     ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([api, entrypoints, endpoints, plans, policies, sharedPolicyGroupPolicyPlugins]) => {
+      .subscribe(([api, entrypoints, endpoints, plans, policies, sharedPolicyGroupPolicyPlugins, params]) => {
         this.apiType = api.type;
         this.flowExecution = api.flowExecution;
 
@@ -161,6 +167,9 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         // Set resources for specific json schema resource type component
         this.resourceTypeService.setResources(api.resources ?? []);
 
+        this.selectedFlowIndexes.planIndex = Number(params['planIndex'] ?? 0);
+        this.selectedFlowIndexes.flowIndex = Number(params['flowIndex'] ?? 0);
+        this.checkAndAdjustIndexes();
         this.isReadOnly = api.definitionContext.origin === 'KUBERNETES';
         this.isLoading = false;
       });
@@ -188,6 +197,32 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
+  }
+
+  onFlowSelectionChange(flowSelection: FlowSelection) {
+    this.updateIndexesInURL(flowSelection);
+  }
+
+  private updateIndexesInURL(flowSelection: FlowSelection) {
+    const segments = this.location.path().split('/');
+    segments[segments.length - 2] = flowSelection.planIndex.toString();
+    segments[segments.length - 1] = flowSelection.flowIndex.toString();
+    this.location.go(segments.join('/'));
+  }
+
+  private checkAndAdjustIndexes() {
+    const totalPlans = this.plans.length + 1; // Adding 1 for common flows.
+    const { planIndex, flowIndex } = this.selectedFlowIndexes;
+    if (planIndex < 0 || planIndex >= totalPlans) {
+      this.selectedFlowIndexes = { planIndex: 0, flowIndex: 0 };
+      this.updateIndexesInURL(this.selectedFlowIndexes);
+    } else {
+      const currentPlanFlowsLength = planIndex < this.plans.length ? this.plans[planIndex].flows.length : this.commonFlows.length;
+      if (flowIndex < 0 || flowIndex >= currentPlanFlowsLength) {
+        this.selectedFlowIndexes = { planIndex: planIndex, flowIndex: 0 };
+        this.updateIndexesInURL(this.selectedFlowIndexes);
+      }
+    }
   }
 
   private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
