@@ -63,6 +63,28 @@ public class SearchGroupByAnalyticsUseCase {
 
         var provider = metadataProviders.stream().filter(p -> p.appliesTo(AnalyticsMetadataProvider.Field.of(input.field()))).findFirst();
 
+        if (provider.isEmpty()) {
+            // If no provider is found, create metadata with just the order information
+            var metadata = Stream
+                .iterate(0, i -> i + 1)
+                .limit(result.getOrder().size())
+                .collect(
+                    Collectors.toMap(
+                        i -> result.getOrder().get(i),
+                        i -> {
+                            Map<String, String> itemMetadata = new HashMap<>();
+                            itemMetadata.put("order", String.valueOf(i));
+                            return itemMetadata;
+                        }
+                    )
+                );
+            return new Output(result, metadata);
+        }
+
+        // Get all keys at once
+        Map<String, Map<String, String>> batchMetadata = provider.get().provide(result.getOrder(), executionContext.getEnvironmentId());
+
+        // Add order information to each metadata entry
         var metadata = Stream
             .iterate(0, i -> i + 1)
             .limit(result.getOrder().size())
@@ -70,10 +92,8 @@ public class SearchGroupByAnalyticsUseCase {
                 Collectors.toMap(
                     i -> result.getOrder().get(i),
                     i -> {
-                        Map<String, String> itemMetadata = provider
-                            .map(p -> p.provide(result.getOrder().get(i), executionContext.getEnvironmentId()))
-                            .map(HashMap::new)
-                            .orElseGet(HashMap::new);
+                        String key = result.getOrder().get(i);
+                        Map<String, String> itemMetadata = new HashMap<>(batchMetadata.getOrDefault(key, new HashMap<>()));
                         itemMetadata.put("order", String.valueOf(i));
                         return itemMetadata;
                     }

@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -59,8 +60,21 @@ public class ApplicationCrudServiceImpl implements ApplicationCrudService {
                 .map(ApplicationAdapter.INSTANCE::toEntity)
                 .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find an application using its ID {}", applicationId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find an application using its ID " + applicationId, ex);
+            throw new TechnicalManagementException(
+                "An error occurred while trying to find an application using its ID " + applicationId,
+                ex
+            );
+        }
+    }
+
+    @Override
+    public List<BaseApplicationEntity> findByIds(List<String> appIds, String environmentId) {
+        log.debug("Find all applications by ids : {}", appIds);
+
+        try {
+            return applicationRepository.findByIds(appIds).stream().map(ApplicationAdapter.INSTANCE::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurred while trying to find all applications using its IDs", e);
         }
     }
 }

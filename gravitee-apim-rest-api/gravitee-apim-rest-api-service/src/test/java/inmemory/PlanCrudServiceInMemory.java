@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.stream.Collectors;
 
 public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlternative<Plan> {
 
@@ -45,6 +46,11 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
     @Override
     public Optional<Plan> findById(String planId) {
         return storage.stream().filter(plan -> planId.equals(plan.getId())).findFirst();
+    }
+
+    @Override
+    public List<Plan> findByIds(List<String> planIds) {
+        return storage.stream().filter(plan -> planIds.contains(plan.getId())).collect(Collectors.toList());
     }
 
     @Override

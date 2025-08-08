@@ -17,6 +17,7 @@ package io.gravitee.apim.core.plan.crud_service;
 
 import io.gravitee.apim.core.plan.model.Plan;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface PlanCrudService {
@@ -31,4 +32,6 @@ public interface PlanCrudService {
     Plan update(Plan plan);
 
     void delete(String planId);
+
+    List<Plan> findByIds(List<String> planIds);
 }

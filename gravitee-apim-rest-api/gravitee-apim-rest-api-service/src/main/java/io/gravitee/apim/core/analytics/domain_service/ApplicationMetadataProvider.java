@@ -17,9 +17,12 @@ package io.gravitee.apim.core.analytics.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @DomainService
 public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
@@ -46,22 +49,58 @@ public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
 
     @Override
     public Map<String, String> provide(String key, String environmentId) {
-        Map<String, String> metadata = new HashMap<>();
-        try {
-            if (UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key)) {
-                metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
-                metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
-            } else {
-                var app = applicationCrudService.findById(key, environmentId);
-                metadata.put(METADATA_NAME, app.getName());
-                if (ARCHIVED.equals(app.getStatus())) {
-                    metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
-                }
+        return provide(List.of(key), environmentId).getOrDefault(key, Map.of());
+    }
+
+    record ApplicationMetadata(String name, boolean unknown, boolean deleted) {
+        Map<String, String> toMap() {
+            var result = new HashMap<String, String>();
+            result.put(METADATA_NAME, name);
+            if (unknown) {
+                result.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             }
-        } catch (ApplicationNotFoundException e) {
-            metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
-            metadata.put(METADATA_NAME, METADATA_DELETED_APPLICATION_NAME);
+            if (deleted) {
+                result.put(METADATA_DELETED, Boolean.TRUE.toString());
+            }
+            return result;
         }
-        return metadata;
+    }
+
+    private static final ApplicationMetadata UNKNOWN_APPLICATION = new ApplicationMetadata(METADATA_UNKNOWN_APPLICATION_NAME, true, false);
+    private static final ApplicationMetadata NOT_FOUND = new ApplicationMetadata(METADATA_DELETED_APPLICATION_NAME, false, true);
+
+    private static ApplicationMetadata ofApplication(BaseApplicationEntity app) {
+        return new ApplicationMetadata(app.getName(), false, ARCHIVED.equals(app.getStatus()));
+    }
+
+    @Override
+    public Map<String, Map<String, String>> provide(List<String> keys, String environmentId) {
+        // Build Map<String, ApplicationMetadata>
+        Map<String, ApplicationMetadata> metaMap = new HashMap<>();
+
+        // Unknown applications
+        keys
+            .stream()
+            .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
+            .forEach(key -> metaMap.put(key, UNKNOWN_APPLICATION));
+
+        // Batch for real application ids
+        List<String> appIds = keys.stream().filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key)).toList();
+
+        if (!appIds.isEmpty()) {
+            var applications = applicationCrudService
+                .findByIds(appIds, environmentId)
+                .stream()
+                .collect(Collectors.toMap(BaseApplicationEntity::getId, Function.identity()));
+
+            // Found applications
+            applications.forEach((id, app) -> metaMap.put(id, ofApplication(app)));
+
+            // Not found applications
+            appIds.stream().filter(id -> !applications.containsKey(id)).forEach(id -> metaMap.put(id, NOT_FOUND));
+        }
+
+        // Build output Map<String, Map<String, String>>
+        return metaMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toMap()));
     }
 }

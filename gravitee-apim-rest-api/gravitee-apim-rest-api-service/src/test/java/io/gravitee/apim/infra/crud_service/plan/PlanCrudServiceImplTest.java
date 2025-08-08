@@ -190,7 +190,7 @@ public class PlanCrudServiceImplTest {
             // Then
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to get a plan by id: " + planId);
+                .hasMessage("An error occurred while trying to get a plan by id: " + planId);
         }
     }
 
@@ -264,7 +264,7 @@ public class PlanCrudServiceImplTest {
             // Then
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to find a plan by id: " + planId);
+                .hasMessage("An error occurred while trying to find a plan by id: " + planId);
         }
     }
 
@@ -302,7 +302,7 @@ public class PlanCrudServiceImplTest {
             // Then
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to create the plan: my-plan");
+                .hasMessage("An error occurred while trying to create the plan: my-plan");
         }
     }
 
@@ -461,7 +461,7 @@ public class PlanCrudServiceImplTest {
             // Then
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to update the plan: my-plan");
+                .hasMessage("An error occurred while trying to update the plan: my-plan");
         }
     }
 
@@ -488,7 +488,7 @@ public class PlanCrudServiceImplTest {
             // Then
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurs while trying to delete the plan: to-delete");
+                .hasMessage("An error occurred while trying to delete the plan: to-delete");
         }
     }
 

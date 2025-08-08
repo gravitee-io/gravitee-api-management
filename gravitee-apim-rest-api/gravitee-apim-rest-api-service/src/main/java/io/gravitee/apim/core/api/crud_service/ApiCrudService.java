@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.crud_service;
 
 import io.gravitee.apim.core.api.model.Api;
+import java.util.List;
 import java.util.Optional;
 
 public interface ApiCrudService {
@@ -25,4 +26,6 @@ public interface ApiCrudService {
     Api create(Api api);
     Api update(Api api);
     void delete(String id);
+
+    List<Api> findByIds(List<String> apiIds);
 }

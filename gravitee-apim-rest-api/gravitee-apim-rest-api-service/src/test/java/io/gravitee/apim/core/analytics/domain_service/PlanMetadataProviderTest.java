@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.domain_service;
+package io.gravitee.apim.core.analytics.domain_service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
-import io.gravitee.apim.core.analytics.domain_service.PlanMetadataProvider;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
-import io.gravitee.apim.core.plan.exception.PlanNotFoundException;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +44,8 @@ class PlanMetadataProviderTest {
         var crudService = mock(PlanCrudService.class);
         var plan = mock(io.gravitee.apim.core.plan.model.Plan.class);
         when(plan.getName()).thenReturn("Test Plan");
-        when(crudService.getById("plan-id")).thenReturn(plan);
+        when(plan.getId()).thenReturn("plan-id");
+        when(crudService.findByIds(List.of("plan-id"))).thenReturn(List.of(plan));
 
         var provider = new PlanMetadataProvider(crudService);
         Map<String, String> metadata = provider.provide("plan-id", "env-id");
@@ -71,7 +70,7 @@ class PlanMetadataProviderTest {
     @Test
     void provide_shouldReturnDeletedPlanMetadataWhenNotFound() {
         var crudService = mock(PlanCrudService.class);
-        when(crudService.getById("deleted-id")).thenThrow(new PlanNotFoundException("deleted-id"));
+        when(crudService.findByIds(List.of("deleted-id"))).thenReturn(List.of());
 
         var provider = new PlanMetadataProvider(crudService);
         Map<String, String> metadata = provider.provide("deleted-id", "env-id");

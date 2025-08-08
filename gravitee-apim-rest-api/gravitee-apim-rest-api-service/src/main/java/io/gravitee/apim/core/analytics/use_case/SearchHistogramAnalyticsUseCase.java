@@ -26,11 +26,12 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,33 +62,35 @@ public class SearchHistogramAnalyticsUseCase {
             .map(io.gravitee.apim.core.analytics.model.HistogramAnalytics::buckets)
             .orElse(List.of());
 
-        Map<String, Map<String, Map<String, String>>> metadata = result
+        Map<String, Map<String, Map<String, String>>> metadata = new HashMap<>();
+
+        // Process count buckets to collect metadata
+        List<HistogramAnalytics.CountBucket> countBuckets = result
             .stream()
             .filter(bucket -> bucket instanceof HistogramAnalytics.CountBucket)
             .map(bucket -> (HistogramAnalytics.CountBucket) bucket)
-            .collect(
-                Collectors.toMap(
-                    HistogramAnalytics.CountBucket::getName,
-                    countBucket ->
-                        metadataProviders
-                            .stream()
-                            .filter(p -> p.appliesTo(AnalyticsMetadataProvider.Field.of(countBucket.getField())))
-                            .findFirst()
-                            .map(provider ->
-                                countBucket
-                                    .getCounts()
-                                    .keySet()
-                                    .stream()
-                                    .collect(
-                                        Collectors.toMap(
-                                            category -> category,
-                                            category -> provider.provide(category, executionContext.getEnvironmentId())
-                                        )
-                                    )
-                            )
-                            .orElseGet(Collections::emptyMap)
-                )
-            );
+            .toList();
+
+        for (HistogramAnalytics.CountBucket countBucket : countBuckets) {
+            var providerOpt = metadataProviders
+                .stream()
+                .filter(p -> p.appliesTo(AnalyticsMetadataProvider.Field.of(countBucket.getField())))
+                .findFirst();
+
+            if (providerOpt.isPresent()) {
+                AnalyticsMetadataProvider provider = providerOpt.get();
+
+                // Get all keys for this bucket
+                List<String> keys = new ArrayList<>(countBucket.getCounts().keySet());
+
+                // Get metadata for all keys at once
+                Map<String, Map<String, String>> bucketMetadata = provider.provide(keys, executionContext.getEnvironmentId());
+
+                metadata.put(countBucket.getName(), bucketMetadata);
+            } else {
+                metadata.put(countBucket.getName(), Collections.emptyMap());
+            }
+        }
 
         return new Output(
             new Timestamp(Instant.ofEpochMilli(input.from()), Instant.ofEpochMilli(input.to()), Duration.ofMillis(input.interval())),
