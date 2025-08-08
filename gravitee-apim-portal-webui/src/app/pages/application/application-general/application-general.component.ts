@@ -101,8 +101,13 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     this.permissions = this.route.snapshot.data.permissions;
     if (this.application) {
       this.applicationTypeEntity = this.route.snapshot.data.applicationType;
-      this.canDelete = this.permissions.DEFINITION && this.permissions.DEFINITION.includes('D');
-      this.canUpdate = this.permissions.DEFINITION && this.permissions.DEFINITION.includes('U');
+
+      const isAppEditable = this.application?.origin !== 'KUBERNETES';
+      const canDeleteApp = this.permissions?.DEFINITION?.includes('D');
+      const canUpdateApp = this.permissions?.DEFINITION?.includes('U');
+
+      this.canDelete = canDeleteApp && isAppEditable;
+      this.canUpdate = canUpdateApp && isAppEditable;
 
       this.initForm();
       this.updateGrantTypes();
