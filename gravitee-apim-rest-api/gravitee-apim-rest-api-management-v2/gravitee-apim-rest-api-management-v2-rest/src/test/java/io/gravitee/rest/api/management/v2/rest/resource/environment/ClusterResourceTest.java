@@ -25,8 +25,10 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import assertions.MAPIAssertions;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
@@ -53,6 +55,9 @@ class ClusterResourceTest extends AbstractResourceTest {
 
     @Inject
     private UpdateClusterUseCase updateClusterUseCase;
+
+    @Inject
+    private DeleteClusterUseCase deleteClusterUseCase;
 
     @Override
     protected String contextPath() {
@@ -166,5 +171,28 @@ class ClusterResourceTest extends AbstractResourceTest {
                     .hasHttpStatus(FORBIDDEN_403)
                     .hasMessage("You do not have sufficient rights to access this resource");
         }*/
+    }
+
+    @Nested
+    class DeleteClusterTest {
+
+        @Test
+        void should_delete_cluster() {
+            when(deleteClusterUseCase.execute(any())).thenReturn(new DeleteClusterUseCase.Output());
+
+            // When
+            var response = rootTarget().request().delete();
+
+            // Then
+            MAPIAssertions.assertThat(response).hasStatus(204);
+
+            var captor = ArgumentCaptor.forClass(DeleteClusterUseCase.Input.class);
+            verify(deleteClusterUseCase).execute(captor.capture());
+            SoftAssertions.assertSoftly(soft -> {
+                var input = captor.getValue();
+                soft.assertThat(input.clusterId()).isEqualTo(CLUSTER_ID);
+                soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
+            });
+        }
     }
 }

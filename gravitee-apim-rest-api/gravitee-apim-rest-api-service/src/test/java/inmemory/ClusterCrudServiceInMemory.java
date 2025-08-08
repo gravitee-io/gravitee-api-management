@@ -46,4 +46,9 @@ public class ClusterCrudServiceInMemory extends AbstractCrudServiceInMemory<Clus
         }
         throw new IllegalStateException("Cluster not found.");
     }
+
+    @Override
+    public void delete(String id, String environmentId) {
+        storage.removeIf(cluster -> id.equals(cluster.getId()) && environmentId.equals(cluster.getEnvironmentId()));
+    }
 }

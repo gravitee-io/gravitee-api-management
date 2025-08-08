@@ -73,4 +73,15 @@ public class ClusterCrudServiceImpl implements ClusterCrudService {
             throw TechnicalManagementException.ofTryingToUpdateWithId(Cluster.class, clusterToUpdate.getId(), e);
         }
     }
+
+    @Override
+    public void delete(String clusterId, String environmentId) {
+        try {
+            // So we throw an error if the cluster is not in the correct environment
+            findByIdAndEnvironmentId(clusterId, environmentId);
+            clusterRepository.delete(clusterId);
+        } catch (TechnicalException e) {
+            throw TechnicalManagementException.ofTryingToDeleteWithId(Cluster.class, clusterId, e);
+        }
+    }
 }
