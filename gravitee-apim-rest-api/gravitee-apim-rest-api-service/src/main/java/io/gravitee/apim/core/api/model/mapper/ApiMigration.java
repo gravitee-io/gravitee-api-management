@@ -47,7 +47,6 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.ssl.SslOptions;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 
@@ -90,12 +89,10 @@ class ApiMigration {
                 .build()
         );
 
-        var endpointGroupsMigrationResult = stream(apiDefinitionV2.getProxy().getGroups()).map(this::mapEndpointGroup).toList();
-        List<EndpointGroup> endpointGroups = endpointGroupsMigrationResult
-            .stream()
-            .map(result -> result.value()) // replace with actual accessor
-            .collect(Collectors.toList());
         Analytics analytics = mapAnalytics(apiDefinitionV2.getProxy().getLogging());
+        var endpointGroups = stream(apiDefinitionV2.getProxy().getGroups())
+            .map(source -> mapEndpointGroup(source).map(List::of))
+            .reduce(MigrationResult.value(List.of()), MigrationResult::mergeList);
 
         Failover failover = new Failover(false, 0, 50, 500, 1, false);
 
@@ -103,25 +100,27 @@ class ApiMigration {
         FlowExecution flowExecution = null;
 
         ApiServices services = null;
-        var api = new io.gravitee.definition.model.v4.Api(
-            listeners,
-            endpointGroups,
-            analytics,
-            failover,
-            null/* plans are managed in another place because is in a different collection */,
-            flowExecution,
-            null/* flows are managed in another place because is in a different collection */,
-            apiDefinitionV2.getResponseTemplates(),
-            services
-        );
-        api.setId(apiDefinitionV2.getId());
-        api.setName(apiDefinitionV2.getName());
-        api.setApiVersion(apiDefinitionV2.getVersion());
-        api.setTags(apiDefinitionV2.getTags());
-        api.setType(ApiType.PROXY);
-        api.setProperties(mapProperties(apiDefinitionV2.getProperties()));
-        api.setResources(List.of()); // TODO apiDefinitionV2.getResources());
-        return MigrationResult.value(api);
+        return endpointGroups.map(endpointGroupsList -> {
+            var api = new io.gravitee.definition.model.v4.Api(
+                listeners,
+                endpointGroupsList,
+                analytics,
+                failover,
+                null/* plans are managed in another place because is in a different collection */,
+                flowExecution,
+                null/* flows are managed in another place because is in a different collection */,
+                apiDefinitionV2.getResponseTemplates(),
+                services
+            );
+            api.setId(apiDefinitionV2.getId());
+            api.setName(apiDefinitionV2.getName());
+            api.setApiVersion(apiDefinitionV2.getVersion());
+            api.setTags(apiDefinitionV2.getTags());
+            api.setType(ApiType.PROXY);
+            api.setProperties(mapProperties(apiDefinitionV2.getProperties()));
+            api.setResources(List.of()); // TODO apiDefinitionV2.getResources());
+            return api;
+        });
     }
 
     private MigrationResult<EndpointGroup> mapEndpointGroup(io.gravitee.definition.model.EndpointGroup source) {

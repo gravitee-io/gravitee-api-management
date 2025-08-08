@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model.mapper;
 
+import static io.gravitee.apim.core.api.model.utils.MigrationResultUtils.get;
 import static io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -23,7 +24,6 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PlanFixtures;
-import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.utils.TimeProvider;
@@ -45,7 +45,6 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -571,9 +570,5 @@ class V2ToV4MigrationOperatorTest {
             assertThat(result.getNeedRedeployAt().toInstant()).isAfter(now.toInstant().minusSeconds(1));
             assertThat(result.getNeedRedeployAt().toInstant()).isBefore(now.toInstant().plusSeconds(10));
         }
-    }
-
-    private <T> T get(MigrationResult<T> result) {
-        return Objects.requireNonNull(result.value());
     }
 }
