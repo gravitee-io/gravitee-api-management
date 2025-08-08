@@ -24,12 +24,14 @@
   [length]="totalLength()"
   (filtersChange)="tableFilters.set($event)"
 >
-  <table mat-table matSort [dataSource]="filteredTableData()">
-    @for (column of columns(); track $index) {
-      <ng-container [matColumnDef]="column.name">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ column.label }}</th>
+  <table mat-table matSort [dataSource]="mappedFilteredTableData()">
+    @for (column of columns(); track i; let i = $index) {
+      <ng-container [matColumnDef]="'col-' + i">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          {{ column.label }}
+        </th>
         <td mat-cell *matCellDef="let rowData">
-          @let element = rowData[column.name];
+          @let element = rowData[i];
 
           @switch (column.dataType) {
             @case ('number') {
