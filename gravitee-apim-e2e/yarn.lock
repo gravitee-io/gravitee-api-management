@@ -1179,13 +1179,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node-fetch@npm:2.6.12":
-  version: 2.6.12
-  resolution: "@types/node-fetch@npm:2.6.12"
+"@types/node-fetch@npm:2.6.13":
+  version: 2.6.13
+  resolution: "@types/node-fetch@npm:2.6.13"
   dependencies:
     "@types/node": "npm:*"
-    form-data: "npm:^4.0.0"
-  checksum: 10c0/7693acad5499b7df2d1727d46cff092a63896dc04645f36b973dd6dd754a59a7faba76fcb777bdaa35d80625c6a9dd7257cca9c401a4bab03b04480cda7fd1af
+    form-data: "npm:^4.0.4"
+  checksum: 10c0/6313c89f62c50bd0513a6839cdff0a06727ac5495ccbb2eeda51bb2bbbc4f3c0a76c0393a491b7610af703d3d2deb6cf60e37e59c81ceeca803ffde745dbf309
   languageName: node
   linkType: hard
 
@@ -2604,7 +2604,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-data@npm:^4.0.0, form-data@npm:~4.0.0":
+"form-data@npm:^4.0.4":
+  version: 4.0.4
+  resolution: "form-data@npm:4.0.4"
+  dependencies:
+    asynckit: "npm:^0.4.0"
+    combined-stream: "npm:^1.0.8"
+    es-set-tostringtag: "npm:^2.1.0"
+    hasown: "npm:^2.0.2"
+    mime-types: "npm:^2.1.12"
+  checksum: 10c0/373525a9a034b9d57073e55eab79e501a714ffac02e7a9b01be1c820780652b16e4101819785e1e18f8d98f0aee866cc654d660a435c378e16a72f2e7cac9695
+  languageName: node
+  linkType: hard
+
+"form-data@npm:~4.0.0":
   version: 4.0.2
   resolution: "form-data@npm:4.0.2"
   dependencies:
@@ -2877,7 +2890,7 @@ __metadata:
     "@jest/create-cache-key-function": "npm:29.7.0"
     "@types/jest": "npm:29.5.14"
     "@types/jsonwebtoken": "npm:9.0.10"
-    "@types/node-fetch": "npm:2.6.12"
+    "@types/node-fetch": "npm:2.6.13"
     cypress: "npm:14.1.0"
     dotenv: "npm:16.4.7"
     har-validator: "npm:5.1.5"
