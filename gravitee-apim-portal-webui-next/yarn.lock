@@ -12330,7 +12330,7 @@ __metadata:
     jdenticon: "npm:3.3.0"
     jest: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
-    jest-preset-angular: "npm:14.6.0"
+    jest-preset-angular: "npm:14.6.1"
     js-yaml: "npm:4.1.0"
     license-check-and-add: "npm:4.0.5"
     lodash: "npm:4.17.21"
@@ -13888,9 +13888,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-preset-angular@npm:14.6.0":
-  version: 14.6.0
-  resolution: "jest-preset-angular@npm:14.6.0"
+"jest-preset-angular@npm:14.6.1":
+  version: 14.6.1
+  resolution: "jest-preset-angular@npm:14.6.1"
   dependencies:
     bs-logger: "npm:^0.2.6"
     esbuild: "npm:>=0.15.13"
@@ -13912,7 +13912,7 @@ __metadata:
   peerDependenciesMeta:
     jsdom:
       optional: true
-  checksum: 10c0/d19f3d8b37914c3ab5a45c7709669696fd21e54a02ae25f6030a9e0dcf157bb630b163e8bd0bc9314cb69c9953b4cdeb4786d79b1b46291da76cfdd59b79b80c
+  checksum: 10c0/31c80913dc5513997f80bb546c2c355c578ba7114b33a0c1e34a29d9544d5b2cf96fed6dbfd9c0ec79a94c4155cf9758f8c816d5b96b507909a29e9173214b07
   languageName: node
   linkType: hard
 
