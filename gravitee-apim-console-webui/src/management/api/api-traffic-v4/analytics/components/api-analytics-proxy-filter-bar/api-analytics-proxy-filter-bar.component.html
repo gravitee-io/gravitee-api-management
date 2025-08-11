@@ -16,6 +16,7 @@
 
 -->
 <form [formGroup]="form" class="form">
+  <gio-select-search formControlName="httpStatuses" [options]="httpStatuses" label="HTTP Status" />
   <gio-select-search [options]="planOptions()" formControlName="plans" label="Plan" placeholder="Search plans..." />
   <mat-form-field>
     <mat-label>Timeframe</mat-label>
