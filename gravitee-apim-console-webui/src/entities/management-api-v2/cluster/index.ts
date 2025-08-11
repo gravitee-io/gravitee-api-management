@@ -16,5 +16,7 @@
 export * from './Cluster';
 export * from './Cluster.fixture';
 export * from './CreateCluster';
+export * from './CreateCluster.fixture';
 export * from './UpdateCluster';
+export * from './UpdateCluster.fixture';
 export * from './ClustersSortByParam';

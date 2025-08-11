@@ -1,0 +1,53 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<span mat-dialog-title>Create a new cluster</span>
+
+<form [formGroup]="formGroup">
+  <mat-dialog-content class="mat-typography content">
+    <p>Create a new Kafka cluster to be used in your APIs.</p>
+
+    <mat-form-field class="form-field">
+      <mat-label>Cluster name</mat-label>
+      <input #nameInput type="text" aria-label="Name" matInput formControlName="name" [maxLength]="512" />
+      <mat-hint align="end">{{ nameInput.value.length }}/512</mat-hint>
+      <mat-error *ngIf="formGroup.get('name').hasError('required')">Cluster name is required.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field class="form-field">
+      <mat-label>Description</mat-label>
+      <textarea #descriptionInput matInput formControlName="description" [maxLength]="1024"></textarea>
+      <mat-hint align="end">{{ descriptionInput.value.length }}/1024</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="form-field">
+      <mat-label>Bootstrap Servers</mat-label>
+      <textarea type="text" aria-label="Bootstrap Servers" matInput formControlName="bootstrapServers" [maxLength]="512"></textarea>
+      <mat-hint
+        >The Kafka bootstrap servers address (e.g., kafka.example.com:9092,kafka2.example.com:9092). Supports EL and Secrets</mat-hint
+      >
+      <mat-error *ngIf="formGroup.get('bootstrapServers').hasError('required')">Bootstrap servers are required.</mat-error>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-flat-button [mat-dialog-close]="undefined">Cancel</button>
+    <button mat-raised-button color="primary" gioFormFocusInvalid [color]="(isValid$ | async) ? 'primary' : 'warn'" (click)="onSave()">
+      Create
+    </button>
+  </mat-dialog-actions>
+</form>

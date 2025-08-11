@@ -18,18 +18,22 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { ClusterConfigurationComponent } from './cluster-configuration.component';
 import { ClusterConfigurationHarness } from './cluster-configuration.harness';
 
 import { GioTestingModule } from '../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { expectGetClusterRequest } from '../../../../services-ngx/clusters.service.spec';
+import { fakeCluster } from '../../../../entities/management-api-v2';
 
 describe('ClusterConfigurationComponent', () => {
   const CLUSTER_ID = 'clusterId';
 
   let fixture: ComponentFixture<ClusterConfigurationComponent>;
   let clusterConfigurationHarness: ClusterConfigurationHarness;
+  let httpTestingController: HttpTestingController;
 
   let permissions: string[];
 
@@ -52,15 +56,22 @@ describe('ClusterConfigurationComponent', () => {
       .compileComponents();
 
     fixture = TestBed.createComponent(ClusterConfigurationComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
 
     fixture.detectChanges();
     clusterConfigurationHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ClusterConfigurationHarness);
+    expectGetClusterRequest(
+      httpTestingController,
+      fakeCluster({
+        id: CLUSTER_ID,
+      }),
+    );
     fixture.detectChanges();
   });
 
   it('should initialize the form with cluster data', async () => {
-    expect(await clusterConfigurationHarness.getBootstrapServersValue()).toBe('kafka-prod.example.com:9092');
-    expect(await clusterConfigurationHarness.getSecurityTypeValue()).toBe('SSL');
+    expect(await clusterConfigurationHarness.getBootstrapServersValue()).toBe('kafka.example.com:9092');
+    expect(await clusterConfigurationHarness.getSecurityTypeValue()).toBe('PLAINTEXT');
   });
 
   it('should validate the form correctly', async () => {

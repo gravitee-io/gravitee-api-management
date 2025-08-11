@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
 
 import { ClustersListPageComponent } from './list-page.component';
 import { ClustersListPageHarness } from './list-page.harness';
 
+import { ClustersAddDialogHarness } from '../add-dialog/clusters-add-dialog.harness';
 import { GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { expectCreateClusterRequest } from '../../../services-ngx/clusters.service.spec';
+import { fakeCreateCluster } from '../../../entities/management-api-v2';
 
 describe('ClustersListPageComponent', () => {
   let fixture: ComponentFixture<ClustersListPageComponent>;
   let componentHarness: ClustersListPageHarness;
+  let rootLoader: HarnessLoader;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -39,8 +46,10 @@ describe('ClustersListPageComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(ClustersListPageComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
     fixture.autoDetectChanges();
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ClustersListPageHarness);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
   });
 
   it('should display clusters table', async () => {
@@ -68,5 +77,28 @@ describe('ClustersListPageComponent', () => {
     await getTableWrapper.setSearchValue('Production');
 
     expect(await table.getCellTextByIndex()).toStrictEqual([['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', '']]);
+  });
+
+  it('should create a new cluster using the dialog', async () => {
+    await componentHarness.clickAddButton();
+
+    const dialogHarness = await rootLoader.getHarness(ClustersAddDialogHarness);
+
+    await dialogHarness.setName('Test Cluster');
+    await dialogHarness.setDescription('A test cluster created by automated test');
+    await dialogHarness.setBootstrapServers('kafka-test-new.example.com:9092');
+
+    await dialogHarness.create();
+
+    expectCreateClusterRequest(
+      httpTestingController,
+      fakeCreateCluster({
+        name: 'Test Cluster',
+        description: 'A test cluster created by automated test',
+        configuration: {
+          bootstrapServers: 'kafka-test-new.example.com:9092',
+        },
+      }),
+    );
   });
 });

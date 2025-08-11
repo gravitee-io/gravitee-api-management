@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Cluster } from './Cluster';
 
-export type CreateCluster = Pick<Cluster, 'name' | 'description' | 'configuration'>;
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 500px;
+}
+
+.form-field {
+  width: 100%;
+}
