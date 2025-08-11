@@ -18,6 +18,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { ClustersListPageComponent } from './list-page.component';
 import { ClustersListPageHarness } from './list-page.harness';
@@ -25,7 +26,7 @@ import { ClustersListPageHarness } from './list-page.harness';
 import { ClustersAddDialogHarness } from '../add-dialog/clusters-add-dialog.harness';
 import { GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { expectCreateClusterRequest } from '../../../services-ngx/clusters.service.spec';
+import { expectCreateClusterRequest, expectDeleteClusterRequest } from '../../../services-ngx/clusters.service.spec';
 import { fakeCreateCluster } from '../../../entities/management-api-v2';
 
 describe('ClustersListPageComponent', () => {
@@ -50,6 +51,10 @@ describe('ClustersListPageComponent', () => {
     fixture.autoDetectChanges();
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ClustersListPageHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should display clusters table', async () => {
@@ -100,5 +105,16 @@ describe('ClustersListPageComponent', () => {
         },
       }),
     );
+  });
+
+  it('should delete the cluster', async () => {
+    const CLUSTER_ID = 'clusterId';
+    const removeBtn = await componentHarness.getRemoveButton(0);
+    await removeBtn.click();
+
+    const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+    await confirmDialog.confirm();
+
+    expectDeleteClusterRequest(httpTestingController, CLUSTER_ID);
   });
 });
