@@ -198,7 +198,7 @@
         <gravitee-policy-mock.version>1.14.2</gravitee-policy-mock.version>
         <gravitee-policy-mtls.version>1.0.0</gravitee-policy-mtls.version>
         <gravitee-policy-oauth2.version>4.0.0</gravitee-policy-oauth2.version>
-        <gravitee-policy-oas-validation.version>1.1.0</gravitee-policy-oas-validation.version>
+        <gravitee-policy-oas-validation.version>1.1.2</gravitee-policy-oas-validation.version>
         <gravitee-policy-openid-connect-userinfo.version>1.7.0</gravitee-policy-openid-connect-userinfo.version>
         <gravitee-policy-override-http-method.version>2.2.1</gravitee-policy-override-http-method.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
@@ -274,7 +274,7 @@
         <gravitee-entrypoint-websocket.version>2.0.0</gravitee-entrypoint-websocket.version>
         <gravitee-endpoint-kafka.version>4.0.2</gravitee-endpoint-kafka.version>
         <gravitee-endpoint-mqtt5.version>4.0.1</gravitee-endpoint-mqtt5.version>
-        <gravitee-endpoint-rabbitmq.version>3.0.1</gravitee-endpoint-rabbitmq.version>
+        <gravitee-endpoint-rabbitmq.version>3.0.2</gravitee-endpoint-rabbitmq.version>
         <gravitee-endpoint-solace.version>3.0.2</gravitee-endpoint-solace.version>
         <gravitee-endpoint-azure-service-bus.version>1.0.1</gravitee-endpoint-azure-service-bus.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
