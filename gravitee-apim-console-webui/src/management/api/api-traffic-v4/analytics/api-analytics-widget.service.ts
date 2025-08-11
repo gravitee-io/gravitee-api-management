@@ -28,10 +28,15 @@ import { GioChartPieInput } from '../../../../shared/components/gio-chart-pie/gi
 import { GioChartLineData, GioChartLineOptions } from '../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
 import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
+import { EsFilter, toQuery } from '../../../../shared/utils/esQuery';
 
 // Interface expected from component that transforms query params to UrlParamsData
 export interface ApiAnalyticsWidgetUrlParamsData {
   timeRangeParams: TimeRangeParams;
+  httpStatuses: string[];
+  applications: string[];
+  plans: string[];
+  hosts: string[];
 }
 
 // Colors for charts
@@ -43,6 +48,10 @@ const defaultColors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
 export class ApiAnalyticsWidgetService {
   private urlParamsData = new BehaviorSubject<ApiAnalyticsWidgetUrlParamsData>({
     timeRangeParams: null,
+    httpStatuses: [],
+    applications: [],
+    plans: [],
+    hosts: [],
   });
 
   // Cache for stats requests to avoid multiple backend calls
@@ -83,17 +92,17 @@ export class ApiAnalyticsWidgetService {
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): Observable<ApiAnalyticsWidgetConfig> {
     return this.urlParamsData$().pipe(
-      switchMap(({ timeRangeParams }: ApiAnalyticsWidgetUrlParamsData) => {
-        if (!timeRangeParams) {
+      switchMap((urlParamsData: ApiAnalyticsWidgetUrlParamsData) => {
+        if (!urlParamsData.timeRangeParams) {
           return of(this.createErrorConfig(widgetConfig, 'No time range selected'));
         }
 
         if (widgetConfig.analyticsType === 'STATS') {
-          return this.handleStatsAnalytics$(widgetConfig, timeRangeParams);
+          return this.handleStatsAnalytics$(widgetConfig, urlParamsData);
         } else if (widgetConfig.analyticsType === 'GROUP_BY') {
-          return this.handleGroupByAnalytics$(widgetConfig, timeRangeParams);
+          return this.handleGroupByAnalytics$(widgetConfig, urlParamsData);
         } else if (widgetConfig.analyticsType === 'HISTOGRAM') {
-          return this.handleHistogramAnalytics$(widgetConfig, timeRangeParams);
+          return this.handleHistogramAnalytics$(widgetConfig, urlParamsData);
         } else {
           return of(this.createErrorConfig(widgetConfig, 'Unsupported analytics type'));
         }
@@ -112,18 +121,24 @@ export class ApiAnalyticsWidgetService {
 
   private handleStatsAnalytics$(
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
-    timeRangeParams: TimeRangeParams,
+    urlParamsData: ApiAnalyticsWidgetUrlParamsData,
   ): Observable<ApiAnalyticsWidgetConfig> {
-    const urlParamsData: any = {};
+    const { timeRangeParams } = urlParamsData;
+    const params: any = {};
 
     if (widgetConfig.statsField) {
-      urlParamsData.field = widgetConfig.statsField;
+      params.field = widgetConfig.statsField;
     }
 
-    const cacheKey = this.createStatsCacheKey(widgetConfig.apiId, timeRangeParams, urlParamsData);
+    const query = this.queryOf(urlParamsData);
+    if (query) {
+      params.query = query;
+    }
+
+    const cacheKey = this.createStatsCacheKey(widgetConfig.apiId, timeRangeParams, params);
 
     if (!this.statsCache.has(cacheKey)) {
-      const statsRequest$ = this.apiAnalyticsV2Service.getStats(widgetConfig.apiId, timeRangeParams, urlParamsData).pipe(
+      const statsRequest$ = this.apiAnalyticsV2Service.getStats(widgetConfig.apiId, timeRangeParams, params).pipe(
         shareReplay(1),
         catchError((error) => {
           this.statsCache.delete(cacheKey);
@@ -161,24 +176,30 @@ export class ApiAnalyticsWidgetService {
 
   private handleGroupByAnalytics$(
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
-    timeRangeParams: any,
+    urlParamsData: ApiAnalyticsWidgetUrlParamsData,
   ): Observable<ApiAnalyticsWidgetConfig> {
-    const urlParamsData: any = {};
+    const { timeRangeParams } = urlParamsData;
+    const params: any = {};
 
     if (widgetConfig.groupByField) {
-      urlParamsData.field = widgetConfig.groupByField;
+      params.field = widgetConfig.groupByField;
     }
 
     if (widgetConfig.ranges) {
-      urlParamsData.ranges = widgetConfig.ranges.map((range) => `${range.value}`).join(';');
+      params.ranges = widgetConfig.ranges.map((range) => `${range.value}`).join(';');
     }
 
     if (widgetConfig.orderBy) {
-      urlParamsData.order = widgetConfig.orderBy;
+      params.order = widgetConfig.orderBy;
+    }
+
+    const query = this.queryOf(urlParamsData);
+    if (query) {
+      params.query = query;
     }
 
     return this.apiAnalyticsV2Service
-      .getGroupBy(widgetConfig.apiId, timeRangeParams, urlParamsData)
+      .getGroupBy(widgetConfig.apiId, timeRangeParams, params)
       .pipe(map((response: GroupByResponse) => this.transformGroupByResponseToApiAnalyticsWidgetConfig(response, widgetConfig)));
   }
 
@@ -287,8 +308,9 @@ export class ApiAnalyticsWidgetService {
 
   private handleHistogramAnalytics$(
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
-    timeRangeParams: any,
+    urlParamsData: ApiAnalyticsWidgetUrlParamsData,
   ): Observable<ApiAnalyticsWidgetConfig> {
+    const { timeRangeParams } = urlParamsData;
     if (!widgetConfig.aggregations || widgetConfig.aggregations.length === 0) {
       return of(this.createErrorConfig(widgetConfig, 'No aggregations specified for histogram'));
     }
@@ -296,10 +318,29 @@ export class ApiAnalyticsWidgetService {
     const aggregationsString = widgetConfig.aggregations.map((agg) => `${agg.type}:${agg.field}`).join(',');
 
     return this.apiAnalyticsV2Service
-      .getHistogramAnalytics(widgetConfig.apiId, aggregationsString, timeRangeParams)
+      .getHistogramAnalytics(widgetConfig.apiId, aggregationsString, timeRangeParams, {
+        query: this.queryOf(urlParamsData),
+      })
       .pipe(
         map((response: HistogramAnalyticsResponse) => this.transformHistogramResponseToApiAnalyticsWidgetConfig(response, widgetConfig)),
       );
+  }
+
+  private queryOf(urlParamsData: ApiAnalyticsWidgetUrlParamsData): string | null {
+    const filters: EsFilter[] = [];
+    if (urlParamsData.httpStatuses && urlParamsData.httpStatuses.length > 0) {
+      filters.push({ type: 'isin', field: 'status', values: urlParamsData.httpStatuses });
+    }
+    if (urlParamsData.hosts && urlParamsData.hosts.length > 0) {
+      filters.push({ type: 'isin', field: 'host', values: urlParamsData.hosts });
+    }
+    if (urlParamsData.plans && urlParamsData.plans.length > 0) {
+      filters.push({ type: 'isin', field: 'plan-id', values: urlParamsData.plans });
+    }
+    if (urlParamsData.applications && urlParamsData.applications.length > 0) {
+      filters.push({ type: 'isin', field: 'application-id', values: urlParamsData.applications });
+    }
+    return toQuery(filters);
   }
 
   private transformHistogramResponseToApiAnalyticsWidgetConfig(

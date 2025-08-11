@@ -362,7 +362,15 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   }
 
   private mapQueryParamsToUrlParamsData(queryParams: unknown): ApiAnalyticsWidgetUrlParamsData {
-    const { from, to, period } = queryParams as { from?: string; to?: string; period?: string };
+    const { from, to, period, httpStatuses, plans, hosts, applications } = queryParams as {
+      from?: string;
+      to?: string;
+      period?: string;
+      httpStatuses?: string[];
+      plans?: string[];
+      hosts?: string[];
+      applications?: string[];
+    };
     const normalizedPeriod = period || '1d';
 
     if (normalizedPeriod === 'custom' && from && to) {
@@ -372,17 +380,33 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
           to: +to,
           interval: this.calculateCustomInterval(+from, +to),
         },
+        httpStatuses,
+        plans,
+        hosts,
+        applications,
       };
     } else {
       const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
       return {
         timeRangeParams: timeFrame.timeFrameRangesParams(),
+        httpStatuses,
+        plans,
+        hosts,
+        applications,
       };
     }
   }
 
   private mapQueryParamsToFilters(queryParams: unknown): ApiAnalyticsProxyFilters {
-    const { from, to, period } = queryParams as { from?: string; to?: string; period?: string };
+    const { from, to, period, httpStatuses, plans, hosts, applications } = queryParams as {
+      from?: string;
+      to?: string;
+      period?: string;
+      httpStatuses?: string[];
+      plans?: string[];
+      hosts?: string[];
+      applications?: string[];
+    };
     const normalizedPeriod = period || '1d';
 
     if (normalizedPeriod === 'custom' && from && to) {
@@ -390,12 +414,20 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
         period: 'custom',
         from: +from,
         to: +to,
+        httpStatuses,
+        plans,
+        hosts,
+        applications,
       };
     } else {
       return {
         period: normalizedPeriod,
         from: null,
         to: null,
+        httpStatuses,
+        plans,
+        hosts,
+        applications,
       };
     }
   }

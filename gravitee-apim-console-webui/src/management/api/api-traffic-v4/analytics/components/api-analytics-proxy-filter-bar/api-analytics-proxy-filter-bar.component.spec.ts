@@ -33,6 +33,10 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
     period: '1d',
     from: null,
     to: null,
+    httpStatuses: [],
+    applications: [],
+    plans: [],
+    hosts: [],
   };
 
   beforeEach(async () => {
