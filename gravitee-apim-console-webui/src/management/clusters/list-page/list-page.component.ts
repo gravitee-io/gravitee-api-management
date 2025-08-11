@@ -17,13 +17,18 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { GIO_DIALOG_WIDTH, GioIconsModule } from '@gravitee/ui-particles-angular';
+import {
+  GIO_DIALOG_WIDTH,
+  GioConfirmAndValidateDialogComponent,
+  GioConfirmAndValidateDialogData,
+  GioIconsModule,
+} from '@gravitee/ui-particles-angular';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
 import { BehaviorSubject, EMPTY, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, debounceTime, map, tap } from 'rxjs/operators';
+import { catchError, debounceTime, filter, map, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { get, isEqual } from 'lodash';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -171,10 +176,35 @@ export class ClustersListPageComponent implements OnInit {
       .subscribe();
   }
 
-  protected remove(clusterId: string) {
-    // TODO
-    // eslint-disable-next-line
-    console.log('Remove cluster button clicked for cluster ID:', clusterId);
+  protected remove(cluster: PageTableVM['items'][number]) {
+    this.matDialog
+      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: {
+          title: `Delete Cluster`,
+          content: `Are you sure you want to delete the Cluster?`,
+          confirmButton: `Yes, delete it`,
+          validationMessage: `Please, type in the name of the cluster <code>${cluster.name}</code> to confirm.`,
+          validationValue: cluster.name,
+          warning: `This operation is irreversible.`,
+        },
+        role: 'alertdialog',
+        id: 'clusterDeleteDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm === true),
+        switchMap(() => this.clustersService.delete(cluster.id)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        map(() => this.snackBarService.success(`The Cluster has been deleted.`)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.refreshPageTableVM$.next();
+      });
   }
 }
 
