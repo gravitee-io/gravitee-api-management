@@ -16,7 +16,7 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { tap } from 'rxjs/operators';
@@ -50,7 +50,10 @@ import { Cluster, UpdateCluster } from '../../../../entities/management-api-v2';
 })
 export class ClusterConfigurationComponent implements OnInit {
   public initialCluster: Cluster;
-  public configForm: UntypedFormGroup;
+  public configForm: FormGroup<{
+    bootstrapServers: FormControl<string>;
+    security: FormControl<unknown>;
+  }>;
   public isLoadingData = true;
   public isReadOnly = false;
   public initialConfigFormValue: unknown;
@@ -70,11 +73,11 @@ export class ClusterConfigurationComponent implements OnInit {
           this.initialCluster = cluster;
           this.isLoadingData = false;
 
-          this.configForm = new UntypedFormGroup({
-            bootstrapServers: new UntypedFormControl({ value: cluster.configuration.bootstrapServers, disabled: this.isReadOnly }, [
+          this.configForm = new FormGroup({
+            bootstrapServers: new FormControl({ value: cluster.configuration.bootstrapServers, disabled: this.isReadOnly }, [
               Validators.required,
             ]),
-            security: new UntypedFormControl({ value: cluster.configuration.security, disabled: this.isReadOnly }),
+            security: new FormControl({ value: cluster.configuration.security, disabled: this.isReadOnly }),
           });
 
           this.initialConfigFormValue = this.configForm.getRawValue();
@@ -86,7 +89,8 @@ export class ClusterConfigurationComponent implements OnInit {
 
   onSubmit() {
     const configToUpdate: UpdateCluster = {
-      ...this.initialCluster,
+      name: this.initialCluster.name,
+      description: this.initialCluster.description,
       configuration: {
         ...this.initialCluster.configuration,
         bootstrapServers: this.configForm.get('bootstrapServers').value,
