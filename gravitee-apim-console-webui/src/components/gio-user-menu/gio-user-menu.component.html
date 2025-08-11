@@ -32,7 +32,7 @@
         ></gio-avatar>
         <span class="gio-user-menu__header__user-info">
           <h5>{{ userShortName }}</h5>
-          <small>{{ currentUser.email }}</small>
+          <small title="{{ currentUser.email }}">{{ currentUser.email | middleEllipsis: 15 : 10 }}</small>
         </span>
       </span>
     </div>
