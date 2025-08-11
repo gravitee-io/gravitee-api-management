@@ -19,7 +19,16 @@ import { TestBed } from '@angular/core/testing';
 import { ClustersService } from './clusters.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
-import { Cluster, CreateCluster, fakeCluster, fakeCreateCluster, fakeUpdateCluster, UpdateCluster } from '../entities/management-api-v2';
+import {
+  Cluster,
+  CreateCluster,
+  fakeCluster,
+  fakeCreateCluster,
+  fakePagedResult,
+  fakeUpdateCluster,
+  PagedResult,
+  UpdateCluster,
+} from '../entities/management-api-v2';
 
 describe('ClustersService', () => {
   let httpTestingController: HttpTestingController;
@@ -79,7 +88,28 @@ describe('ClustersService', () => {
       expectDeleteClusterRequest(httpTestingController, 'clusterId');
     });
   });
+
+  describe('list', () => {
+    it('should call the API', (done) => {
+      service.list().subscribe((clusters) => {
+        expect(clusters.data.length).toEqual(1);
+        done();
+      });
+
+      expectListClusterRequest(httpTestingController, fakePagedResult([fakeCluster()]));
+    });
+  });
 });
+
+export const expectListClusterRequest = (
+  httpTestingController: HttpTestingController,
+  clusters: PagedResult<Cluster> = fakePagedResult([fakeCluster()]),
+  queryParams: string = '?page=1&perPage=25',
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters${queryParams}`);
+  expect(req.request.method).toEqual('GET');
+  req.flush(clusters);
+};
 
 export const expectGetClusterRequest = (httpTestingController: HttpTestingController, cluster: Cluster = fakeCluster()) => {
   const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/${cluster.id}`);

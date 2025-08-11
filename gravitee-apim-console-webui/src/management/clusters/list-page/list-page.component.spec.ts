@@ -26,8 +26,12 @@ import { ClustersListPageHarness } from './list-page.harness';
 import { ClustersAddDialogHarness } from '../add-dialog/clusters-add-dialog.harness';
 import { GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { expectCreateClusterRequest, expectDeleteClusterRequest } from '../../../services-ngx/clusters.service.spec';
-import { fakeCreateCluster } from '../../../entities/management-api-v2';
+import {
+  expectCreateClusterRequest,
+  expectDeleteClusterRequest,
+  expectListClusterRequest,
+} from '../../../services-ngx/clusters.service.spec';
+import { fakeCluster, fakeCreateCluster, fakePagedResult } from '../../../entities/management-api-v2';
 
 describe('ClustersListPageComponent', () => {
   let fixture: ComponentFixture<ClustersListPageComponent>;
@@ -51,10 +55,46 @@ describe('ClustersListPageComponent', () => {
     fixture.autoDetectChanges();
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ClustersListPageHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+
+    expectListClusterRequest(
+      httpTestingController,
+      fakePagedResult([
+        fakeCluster({
+          name: 'Production Cluster',
+          configuration: {
+            bootstrapServers: 'kafka-prod.example.com:9092',
+            security: {
+              protocol: 'SSL',
+            },
+          },
+        }),
+
+        fakeCluster({
+          name: 'Development Cluster',
+          configuration: {
+            bootstrapServers: 'kafka-dev.example.com:9092',
+            security: {
+              protocol: 'SASL_PLAINTEXT',
+            },
+          },
+        }),
+        fakeCluster({
+          name: 'Testing Cluster',
+          configuration: {
+            bootstrapServers: 'kafka-test.example.com:9092',
+            security: {
+              protocol: 'PLAINTEXT',
+            },
+          },
+        }),
+      ]),
+    );
   });
 
   afterEach(() => {
-    httpTestingController.verify();
+    httpTestingController.verify({
+      ignoreCancelled: true,
+    });
   });
 
   it('should display clusters table', async () => {
@@ -64,7 +104,6 @@ describe('ClustersListPageComponent', () => {
       ['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', ''],
       ['Development Cluster', 'kafka-dev.example.com:9092', 'SASL_PLAINTEXT', ''],
       ['Testing Cluster', 'kafka-test.example.com:9092', 'PLAINTEXT', ''],
-      ['Staging Cluster', 'kafka-staging.example.com:9092', 'SASL_SSL', ''],
     ]);
   });
 
@@ -76,12 +115,14 @@ describe('ClustersListPageComponent', () => {
       ['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', ''],
       ['Development Cluster', 'kafka-dev.example.com:9092', 'SASL_PLAINTEXT', ''],
       ['Testing Cluster', 'kafka-test.example.com:9092', 'PLAINTEXT', ''],
-      ['Staging Cluster', 'kafka-staging.example.com:9092', 'SASL_SSL', ''],
     ]);
 
     await getTableWrapper.setSearchValue('Production');
+    await fixture.whenStable();
 
-    expect(await table.getCellTextByIndex()).toStrictEqual([['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', '']]);
+    expectListClusterRequest(httpTestingController, fakePagedResult([fakeCluster()]), '?page=1&perPage=25&q=Production');
+
+    expect(await table.getCellTextByIndex()).toStrictEqual([['Cluster Name', 'kafka.example.com:9092', 'PLAINTEXT', '']]);
   });
 
   it('should create a new cluster using the dialog', async () => {
@@ -108,7 +149,7 @@ describe('ClustersListPageComponent', () => {
   });
 
   it('should delete the cluster', async () => {
-    const CLUSTER_ID = 'clusterId';
+    const CLUSTER_ID = fakeCluster().id;
     const removeBtn = await componentHarness.getRemoveButton(0);
     await removeBtn.click();
 
@@ -116,5 +157,9 @@ describe('ClustersListPageComponent', () => {
     await confirmDialog.confirm();
 
     expectDeleteClusterRequest(httpTestingController, CLUSTER_ID);
+    await fixture.whenStable();
+
+    // After deletion, we expect the list to be refreshed
+    expectListClusterRequest(httpTestingController);
   });
 });
