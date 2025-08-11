@@ -1,0 +1,24 @@
+.gv-log-response-headers-table {
+  table-layout: fixed;
+  width: 100%;
+
+  .header-name-cell {
+    width: 200px !important;
+    min-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 0 0 200px;
+  }
+
+  .header-value-cell {
+    word-break: break-word;
+    white-space: normal;
+    width: calc(100% - 200px);
+  }
+}
+
+.app-log-body {
+  width: 100%;
+  max-width: 650px;
+}
