@@ -13,46 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
 
 import { Cluster, ClustersSortByParam, CreateCluster, fakePagedResult, PagedResult, UpdateCluster } from '../entities/management-api-v2';
+import { Constants } from '../entities/Constants';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ClustersService {
+  private readonly http = inject(HttpClient);
+  private readonly constants = inject(Constants);
+
   private fakeClusters: Cluster[] = [
     {
       id: 'clusterId',
       name: 'Production Cluster',
-      bootstrapServer: 'kafka-prod.example.com:9092',
-      security: { protocol: 'SSL' },
+      configuration: {
+        bootstrapServers: 'kafka-prod.example.com:9092',
+        security: { protocol: 'SSL' },
+      },
       updatedAt: new Date('2023-01-15'),
       createdAt: new Date('2022-12-01'),
     },
     {
       id: '2',
       name: 'Development Cluster',
-      bootstrapServer: 'kafka-dev.example.com:9092',
-      security: { protocol: 'SASL_PLAINTEXT' },
+      configuration: {
+        bootstrapServers: 'kafka-dev.example.com:9092',
+        security: { protocol: 'SASL_PLAINTEXT' },
+      },
       updatedAt: new Date('2023-02-20'),
       createdAt: new Date('2022-11-15'),
     },
     {
       id: '3',
       name: 'Testing Cluster',
-      bootstrapServer: 'kafka-test.example.com:9092',
-      security: { protocol: 'PLAINTEXT' },
+      configuration: {
+        bootstrapServers: 'kafka-test.example.com:9092',
+        security: { protocol: 'PLAINTEXT' },
+      },
       updatedAt: new Date('2023-03-10'),
       createdAt: new Date('2022-10-05'),
     },
     {
       id: '4',
       name: 'Staging Cluster',
-      bootstrapServer: 'kafka-staging.example.com:9092',
-      security: { protocol: 'SASL_SSL' },
+      configuration: {
+        bootstrapServers: 'kafka-staging.example.com:9092',
+        security: { protocol: 'SASL_SSL' },
+      },
       updatedAt: new Date('2023-04-05'),
       createdAt: new Date('2022-09-20'),
     },
@@ -64,7 +77,9 @@ export class ClustersService {
     if (searchQuery) {
       const lowerCaseQuery = searchQuery.toLowerCase();
       filteredClusters = this.fakeClusters.filter(
-        (cluster) => cluster.name.toLowerCase().includes(lowerCaseQuery) || cluster.bootstrapServer.toLowerCase().includes(lowerCaseQuery),
+        (cluster) =>
+          cluster.name.toLowerCase().includes(lowerCaseQuery) ||
+          cluster.configuration.bootstrapServers.toLowerCase().includes(lowerCaseQuery),
       );
     }
 
@@ -96,45 +111,18 @@ export class ClustersService {
   }
 
   get(id: string): Observable<Cluster> {
-    const cluster = this.fakeClusters.find((c) => c.id === id);
-    if (!cluster) {
-      throw new Error(`Cluster with id ${id} not found`);
-    }
-    return of(cluster).pipe(delay(300));
+    return this.http.get<Cluster>(`${this.constants.env.v2BaseURL}/clusters/${id}`);
   }
 
-  create(cluster: CreateCluster): Observable<Cluster> {
-    const newCluster: Cluster = {
-      ...cluster,
-      id: Math.random().toString(36).substring(2, 11),
-      updatedAt: new Date(),
-      createdAt: new Date(),
-      security: 'PLAINTEXT',
-    };
-    this.fakeClusters.push(newCluster);
-    return of(newCluster).pipe(delay(300));
+  create(createCluster: CreateCluster): Observable<Cluster> {
+    return this.http.post<Cluster>(`${this.constants.env.v2BaseURL}/clusters`, createCluster);
   }
 
   update(id: string, cluster: UpdateCluster): Observable<Cluster> {
-    const index = this.fakeClusters.findIndex((c) => c.id === id);
-    if (index === -1) {
-      throw new Error(`Cluster with id ${id} not found`);
-    }
-    const updatedCluster: Cluster = {
-      ...this.fakeClusters[index],
-      ...cluster,
-      updatedAt: new Date(),
-    };
-    this.fakeClusters[index] = updatedCluster;
-    return of(updatedCluster).pipe(delay(300));
+    return this.http.put<Cluster>(`${this.constants.env.v2BaseURL}/clusters/${id}`, cluster);
   }
 
   delete(id: string): Observable<void> {
-    const index = this.fakeClusters.findIndex((c) => c.id === id);
-    if (index === -1) {
-      throw new Error(`Cluster with id ${id} not found`);
-    }
-    this.fakeClusters.splice(index, 1);
-    return of(undefined).pipe(delay(300));
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/clusters/${id}`);
   }
 }

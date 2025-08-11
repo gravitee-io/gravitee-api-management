@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Cluster } from './Cluster';
+import { CreateCluster } from './CreateCluster';
 
-export type CreateCluster = Pick<Cluster, 'name' | 'description' | 'configuration'>;
+export function fakeCreateCluster(overrides: Partial<CreateCluster> = {}): CreateCluster {
+  return {
+    name: 'New Cluster Name',
+    description: 'A new test cluster',
+    configuration: {
+      bootstrapServers: 'kafka.example.com:9092',
+      security: 'none',
+    },
+    ...overrides,
+  };
+}

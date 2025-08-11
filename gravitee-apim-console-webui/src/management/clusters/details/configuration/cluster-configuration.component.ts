@@ -71,8 +71,10 @@ export class ClusterConfigurationComponent implements OnInit {
           this.isLoadingData = false;
 
           this.configForm = new UntypedFormGroup({
-            bootstrapServers: new UntypedFormControl({ value: cluster.bootstrapServer, disabled: this.isReadOnly }, [Validators.required]),
-            security: new UntypedFormControl({ value: cluster.security, disabled: this.isReadOnly }),
+            bootstrapServers: new UntypedFormControl({ value: cluster.configuration.bootstrapServers, disabled: this.isReadOnly }, [
+              Validators.required,
+            ]),
+            security: new UntypedFormControl({ value: cluster.configuration.security, disabled: this.isReadOnly }),
           });
 
           this.initialConfigFormValue = this.configForm.getRawValue();
@@ -85,8 +87,11 @@ export class ClusterConfigurationComponent implements OnInit {
   onSubmit() {
     const configToUpdate: UpdateCluster = {
       ...this.initialCluster,
-      bootstrapServer: this.configForm.get('bootstrapServers').value,
-      security: this.configForm.get('security').value,
+      configuration: {
+        ...this.initialCluster.configuration,
+        bootstrapServers: this.configForm.get('bootstrapServers').value,
+        security: this.configForm.get('security').value,
+      },
     };
 
     this.clustersService

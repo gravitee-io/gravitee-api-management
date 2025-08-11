@@ -13,6 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Cluster } from './Cluster';
+import { UpdateCluster } from './UpdateCluster';
 
-export type CreateCluster = Pick<Cluster, 'name' | 'description' | 'configuration'>;
+export function fakeUpdateCluster(overrides: Partial<UpdateCluster> = {}): UpdateCluster {
+  return {
+    name: 'Updated Cluster Name',
+    description: 'An updated test cluster',
+    configuration: {
+      bootstrapServers: 'kafka.example.com:9092',
+      security: 'none',
+    },
+    createdAt: new Date('2023-01-01T00:00:00Z'),
+    ...overrides,
+  };
+}

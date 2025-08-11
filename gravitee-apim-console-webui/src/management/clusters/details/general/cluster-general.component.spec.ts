@@ -20,12 +20,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { ClusterGeneralComponent } from './cluster-general.component';
 import { ClusterGeneralHarness } from './cluster-general.harness';
 
 import { GioTestingModule } from '../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { expectDeleteClusterRequest, expectGetClusterRequest } from '../../../../services-ngx/clusters.service.spec';
+import { fakeCluster } from '../../../../entities/management-api-v2';
 
 describe('ClusterGeneralComponent', () => {
   const CLUSTER_ID = 'clusterId';
@@ -34,6 +37,7 @@ describe('ClusterGeneralComponent', () => {
   let clusterGeneralHarness: ClusterGeneralHarness;
   let router: Router;
   let rootLoader: HarnessLoader;
+  let httpTestingController: HttpTestingController;
 
   let permissions: string[];
 
@@ -57,6 +61,7 @@ describe('ClusterGeneralComponent', () => {
       .compileComponents();
 
     fixture = TestBed.createComponent(ClusterGeneralComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
 
     router = TestBed.inject(Router);
     jest.spyOn(router, 'navigate');
@@ -64,12 +69,18 @@ describe('ClusterGeneralComponent', () => {
     fixture.detectChanges();
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     clusterGeneralHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ClusterGeneralHarness);
+    expectGetClusterRequest(
+      httpTestingController,
+      fakeCluster({
+        id: CLUSTER_ID,
+      }),
+    );
     fixture.detectChanges();
   });
 
   it('should initialize the form with cluster data', async () => {
-    expect(await clusterGeneralHarness.getNameValue()).toBe('Production Cluster');
-    expect(await clusterGeneralHarness.getDescriptionValue()).toBe('');
+    expect(await clusterGeneralHarness.getNameValue()).toBe('Cluster Name');
+    expect(await clusterGeneralHarness.getDescriptionValue()).toBe('A test cluster');
   });
 
   it('should validate the form correctly', async () => {
@@ -98,6 +109,8 @@ describe('ClusterGeneralComponent', () => {
 
     const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
     await confirmDialog.confirm();
+
+    expectDeleteClusterRequest(httpTestingController, CLUSTER_ID);
 
     expect(router.navigate).toHaveBeenCalledWith(['../../'], expect.anything());
   });

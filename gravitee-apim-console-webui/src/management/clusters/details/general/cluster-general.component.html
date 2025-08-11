@@ -22,7 +22,7 @@
         <div class="details-card__header__info-inputs" formGroupName="details">
           <div class="details-card__header__info-inputs__first-row">
             <mat-form-field class="details-card__header__info-inputs__first-row__name-field">
-              <mat-label>Name</mat-label>
+              <mat-label>Cluster name</mat-label>
               <input formControlName="name" matInput type="text" maxlength="50" required />
               <mat-error *ngIf="clusterForm.get('details.name').hasError('required')">Cluster name is required.</mat-error>
             </mat-form-field>

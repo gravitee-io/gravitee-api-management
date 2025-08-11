@@ -17,17 +17,18 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
-import { BehaviorSubject, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { debounceTime, map, tap } from 'rxjs/operators';
+import { catchError, debounceTime, map, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { get, isEqual } from 'lodash';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { ClustersAddDialogComponent, ClustersAddDialogData, ClustersAddDialogResult } from '../add-dialog/clusters-add-dialog.component';
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
@@ -73,6 +74,9 @@ export class ClustersListPageComponent implements OnInit {
   private readonly matDialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
   private readonly permissionService = inject(GioPermissionService);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+
   private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
 
   protected displayedColumns: string[] = ['name', 'bootstrapServer', 'security', 'actions'];
@@ -107,8 +111,8 @@ export class ClustersListPageComponent implements OnInit {
           const items = pagedResult.data.map((cluster) => ({
             id: cluster.id,
             name: cluster.name,
-            bootstrapServer: cluster.bootstrapServer,
-            security: get(cluster, 'security.protocol', 'PLAINTEXT') as string,
+            bootstrapServer: cluster.configuration.bootstrapServers,
+            security: get(cluster.configuration, 'security.protocol', 'PLAINTEXT') as string,
             updatedAt: cluster.updatedAt,
           }));
 
@@ -132,9 +136,39 @@ export class ClustersListPageComponent implements OnInit {
   }
 
   protected addCluster() {
-    // TODO
-    // eslint-disable-next-line
-    console.log('Add cluster button clicked');
+    this.matDialog
+      .open<ClustersAddDialogComponent, ClustersAddDialogData, ClustersAddDialogResult>(ClustersAddDialogComponent, {
+        role: 'alertdialog',
+        id: 'addCluster',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((result: ClustersAddDialogResult) => {
+          if (!result) {
+            return EMPTY;
+          }
+
+          return this.clustersService.create({
+            name: result.name,
+            description: result.description,
+            configuration: {
+              bootstrapServers: result.bootstrapServers,
+            },
+          });
+        }),
+        tap((cluster) => {
+          this.snackBarService.success('Cluster created successfully');
+          return this.router.navigate([cluster.id], {
+            relativeTo: this.activatedRoute,
+          });
+        }),
+        catchError((e) => {
+          this.snackBarService.error(e.error?.message ?? 'An error occurred while creating the cluster!');
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   protected remove(clusterId: string) {
