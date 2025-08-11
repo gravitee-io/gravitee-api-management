@@ -88,7 +88,7 @@ describe('ApiAnalyticsWidgetService', () => {
   describe('getApiAnalyticsWidgetConfig$', () => {
     describe('when no time range is selected', () => {
       beforeEach(() => {
-        service.setUrlParamsData({ timeRangeParams: null });
+        service.setUrlParamsData({ timeRangeParams: null, httpStatuses: [], applications: [], plans: [], hosts: [] });
       });
 
       it('should return error config', (done) => {
@@ -119,7 +119,13 @@ describe('ApiAnalyticsWidgetService', () => {
     describe('STATS', () => {
       describe('stats widget', () => {
         beforeEach(() => {
-          service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+          service.setUrlParamsData({
+            timeRangeParams: { from: 1000, to: 2000, interval: 10 },
+            httpStatuses: [],
+            applications: [],
+            plans: [],
+            hosts: [],
+          });
         });
 
         it('should transform STATS response to stats chart config', (done) => {
@@ -211,7 +217,13 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('GROUP_BY analytics', () => {
       beforeEach(() => {
-        service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+        service.setUrlParamsData({
+          timeRangeParams: { from: 1000, to: 2000, interval: 10 },
+          httpStatuses: [],
+          applications: [],
+          plans: [],
+          hosts: [],
+        });
       });
 
       describe('pie chart widget', () => {
@@ -598,7 +610,13 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('HISTOGRAM analytics', () => {
       beforeEach(() => {
-        service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+        service.setUrlParamsData({
+          timeRangeParams: { from: 1000, to: 2000, interval: 10 },
+          httpStatuses: [],
+          applications: [],
+          plans: [],
+          hosts: [],
+        });
       });
 
       describe('line chart widget', () => {
@@ -862,7 +880,13 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('error handling', () => {
       beforeEach(() => {
-        service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+        service.setUrlParamsData({
+          timeRangeParams: { from: 1000, to: 2000, interval: 10 },
+          httpStatuses: [],
+          applications: [],
+          plans: [],
+          hosts: [],
+        });
       });
 
       it('should handle unsupported analytics type', (done) => {
@@ -941,6 +965,55 @@ describe('ApiAnalyticsWidgetService', () => {
         });
 
         expectHistogramRequest('AVG:gateway-response-time-ms', mockHistogramResponse);
+      });
+    });
+
+    describe('queryOf', () => {
+      it('should return null when all params are empty or undefined', () => {
+        expect(service['queryOf']({ httpStatuses: [], plans: [], hosts: [], applications: [], timeRangeParams: undefined })).toBe(null);
+        expect(service['queryOf']({ httpStatuses: [], plans: [], hosts: [], applications: [], timeRangeParams: undefined })).toBe(null);
+      });
+
+      it('should build query for httpStatuses', () => {
+        expect(
+          service['queryOf']({ httpStatuses: ['200', '404'], plans: [], hosts: [], applications: [], timeRangeParams: undefined }),
+        ).toBe('status:("200" OR "404")');
+      });
+
+      it('should build query for hosts', () => {
+        expect(
+          service['queryOf']({ httpStatuses: [], plans: [], hosts: ['host1', 'host2'], applications: [], timeRangeParams: undefined }),
+        ).toBe('host:("host1" OR "host2")');
+      });
+
+      it('should build query for plans', () => {
+        expect(
+          service['queryOf']({ httpStatuses: [], plans: ['planA', 'planB'], hosts: [], applications: [], timeRangeParams: undefined }),
+        ).toBe('plan-id:("planA" OR "planB")');
+      });
+
+      it('should build query for applications', () => {
+        expect(
+          service['queryOf']({ httpStatuses: [], plans: [], hosts: [], applications: ['app1', 'app2'], timeRangeParams: undefined }),
+        ).toBe('application-id:("app1" OR "app2")');
+      });
+
+      it('should build query for multiple filters', () => {
+        expect(
+          service['queryOf']({
+            httpStatuses: ['200'],
+            plans: ['planA'],
+            hosts: ['host1'],
+            applications: ['app1'],
+            timeRangeParams: undefined,
+          }),
+        ).toBe('status:("200") AND host:("host1") AND plan-id:("planA") AND application-id:("app1")');
+      });
+
+      it('should ignore empty arrays', () => {
+        expect(service['queryOf']({ httpStatuses: [], plans: [], hosts: ['host1'], applications: [], timeRangeParams: undefined })).toBe(
+          'host:("host1")',
+        );
       });
     });
   });

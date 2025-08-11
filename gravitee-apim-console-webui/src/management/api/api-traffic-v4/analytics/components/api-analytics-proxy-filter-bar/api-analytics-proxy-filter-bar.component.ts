@@ -40,6 +40,10 @@ export interface ApiAnalyticsProxyFilters {
   period: string;
   from?: number | null;
   to?: number | null;
+  httpStatuses: string[] | null;
+  plans: string[] | null;
+  hosts: string[] | null;
+  applications: string[] | null;
 }
 
 @Component({
