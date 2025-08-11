@@ -25,8 +25,8 @@ import { ClusterConfigurationHarness } from './cluster-configuration.harness';
 
 import { GioTestingModule } from '../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { expectGetClusterRequest } from '../../../../services-ngx/clusters.service.spec';
-import { fakeCluster } from '../../../../entities/management-api-v2';
+import { expectGetClusterRequest, expectUpdateClusterRequest } from '../../../../services-ngx/clusters.service.spec';
+import { fakeCluster, fakeUpdateCluster } from '../../../../entities/management-api-v2';
 
 describe('ClusterConfigurationComponent', () => {
   const CLUSTER_ID = 'clusterId';
@@ -69,6 +69,10 @@ describe('ClusterConfigurationComponent', () => {
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
   it('should initialize the form with cluster data', async () => {
     expect(await clusterConfigurationHarness.getBootstrapServersValue()).toBe('kafka.example.com:9092');
     expect(await clusterConfigurationHarness.getSecurityTypeValue()).toBe('PLAINTEXT');
@@ -90,9 +94,28 @@ describe('ClusterConfigurationComponent', () => {
     await clusterConfigurationHarness.setSecurityTypeValue('PLAINTEXT');
 
     await clusterConfigurationHarness.submitForm();
-    fixture.detectChanges();
 
-    expect(await clusterConfigurationHarness.getBootstrapServersValue()).toBe('updated-server:9092');
-    expect(await clusterConfigurationHarness.getSecurityTypeValue()).toBe('PLAINTEXT');
+    expectUpdateClusterRequest(
+      httpTestingController,
+      CLUSTER_ID,
+      fakeUpdateCluster({
+        name: fakeCluster().name,
+        description: fakeCluster().description,
+        configuration: {
+          bootstrapServers: 'updated-server:9092',
+          security: {
+            protocol: 'PLAINTEXT',
+          },
+        },
+      }),
+    );
+
+    // Trigger new NgOnInit to refresh the data
+    expectGetClusterRequest(
+      httpTestingController,
+      fakeCluster({
+        id: CLUSTER_ID,
+      }),
+    );
   });
 });

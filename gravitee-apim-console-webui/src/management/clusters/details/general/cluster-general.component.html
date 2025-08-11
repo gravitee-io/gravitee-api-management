@@ -19,19 +19,19 @@
   <mat-card class="details-card">
     <mat-card-content>
       <div class="details-card__header">
-        <div class="details-card__header__info-inputs" formGroupName="details">
+        <div class="details-card__header__info-inputs">
           <div class="details-card__header__info-inputs__first-row">
             <mat-form-field class="details-card__header__info-inputs__first-row__name-field">
               <mat-label>Cluster name</mat-label>
               <input formControlName="name" matInput type="text" maxlength="50" required />
-              <mat-error *ngIf="clusterForm.get('details.name').hasError('required')">Cluster name is required.</mat-error>
+              <mat-error *ngIf="clusterForm.get('name').hasError('required')">Cluster name is required.</mat-error>
             </mat-form-field>
           </div>
           <div class="details-card__header__info-inputs__second-row">
             <mat-form-field class="details-card__header__info-inputs__second-row__description-field">
               <mat-label>Description</mat-label>
               <textarea formControlName="description" matInput type="text" maxlength="1024"></textarea>
-              <mat-hint align="end">{{ clusterForm.get('details.description').value?.length || 0 }}/1024</mat-hint>
+              <mat-hint align="end">{{ clusterForm.get('description').value?.length || 0 }}/1024</mat-hint>
             </mat-form-field>
           </div>
         </div>

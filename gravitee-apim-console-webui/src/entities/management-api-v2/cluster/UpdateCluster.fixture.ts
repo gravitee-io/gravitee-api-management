@@ -23,7 +23,6 @@ export function fakeUpdateCluster(overrides: Partial<UpdateCluster> = {}): Updat
       bootstrapServers: 'kafka.example.com:9092',
       security: 'none',
     },
-    createdAt: new Date('2023-01-01T00:00:00Z'),
     ...overrides,
   };
 }
