@@ -71,9 +71,9 @@ describe('ApisListComponent', () => {
             name: 'Name',
             owner: 'Owner',
             picture: '',
-            states: 'Status',
+            states: 'API Status',
             tags: 'Sharding Tags',
-            visibility: 'Visibility',
+            visibility: 'Portal Status',
           },
         ]);
         expect(rowCells).toEqual([['There is no API (yet).']]);
@@ -402,10 +402,10 @@ describe('ApisListComponent', () => {
           owner: 'Owner',
           picture: '',
           qualityScore: 'Quality',
-          states: 'Status',
+          states: 'API Status',
           tags: 'Sharding Tags',
           categories: 'Categories',
-          visibility: 'Visibility',
+          visibility: 'Portal Status',
         },
       ]);
       expect(rowCells).toEqual([

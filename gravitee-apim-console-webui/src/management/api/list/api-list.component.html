@@ -58,7 +58,7 @@
     </mat-form-field>
 
     <mat-form-field class="status-filter">
-      <mat-label>Status</mat-label>
+      <mat-label>API Status</mat-label>
       <mat-select
         class="portal__form__card__form-field"
         [multiple]="true"
@@ -72,7 +72,7 @@
     </mat-form-field>
 
     <mat-form-field class="published-filter">
-      <mat-label>Published</mat-label>
+      <mat-label>Portal Status</mat-label>
       <mat-select
         class="portal__form__card__form-field"
         [multiple]="true"
@@ -149,13 +149,14 @@
 
     <!-- Display States Column -->
     <ng-container matColumnDef="states">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header id="states">Status</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="states">API Status</th>
       <td mat-cell *matCellDef="let element">
         @if (element.state === 'STARTED') {
           <mat-icon matTooltip="Started" class="states__api-started" size="20" svgIcon="gio:play-circle" />
         } @else if (element.state) {
           <mat-icon matTooltip="Stopped" class="states__api-not-started" size="20" svgIcon="gio:stop-circle" />
         }
+
         <mat-icon
           *ngIf="element.isNotSynced$ | async"
           matTooltip="API out of sync"
@@ -163,18 +164,7 @@
           size="20"
           svgIcon="gio:refresh-cw"
         />
-        @if (element.lifecycleState === 'PUBLISHED') {
-          <mat-icon matTooltip="Published" class="states__api-published" size="20" svgIcon="gio:cloud-published" />
-        } @else if (element.lifecycleState) {
-          <mat-icon matTooltip="Unpublished" class="states__api-not-published" size="20" svgIcon="gio:cloud-unpublished" />
-        }
-        <mat-icon
-          *ngIf="element.origin === 'KUBERNETES'"
-          matTooltip="Kubernetes Origin"
-          class="states__api-origin"
-          size="20"
-          svgIcon="gio:kubernetes"
-        />
+
         <span
           *ngIf="element.workflowBadge"
           [ngClass]="element.workflowBadge.class"
@@ -245,9 +235,22 @@
 
     <!-- Display Visibility Column -->
     <ng-container matColumnDef="visibility">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header id="visibility">Visibility</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="visibility">Portal Status</th>
       <td mat-cell *matCellDef="let element">
         <mat-icon class="visibility" size="20" [matTooltip]="element.visibility.label | titlecase">{{ element.visibility.icon }} </mat-icon>
+
+        @if (element.lifecycleState === 'PUBLISHED') {
+          <mat-icon matTooltip="Published" class="states__api-published" size="20" svgIcon="gio:cloud-published" />
+        } @else if (element.lifecycleState) {
+          <mat-icon matTooltip="Unpublished" class="states__api-not-published" size="20" svgIcon="gio:cloud-unpublished" />
+        }
+        <mat-icon
+          *ngIf="element.origin === 'KUBERNETES'"
+          matTooltip="Kubernetes Origin"
+          class="states__api-origin"
+          size="20"
+          svgIcon="gio:kubernetes"
+        />
       </td>
     </ng-container>
 
