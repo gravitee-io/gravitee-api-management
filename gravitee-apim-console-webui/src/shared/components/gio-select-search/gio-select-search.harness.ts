@@ -29,7 +29,13 @@ export class GioSelectSearchHarness extends ComponentHarness {
   static readonly hostSelector = 'gio-select-search';
 
   static with(options: GioSelectSearchHarnessFilters = {}): HarnessPredicate<GioSelectSearchHarness> {
-    return new HarnessPredicate(GioSelectSearchHarness, options);
+    return new HarnessPredicate(GioSelectSearchHarness, options).addOption(
+      'formControlName',
+      options.formControlName,
+      async (harness, formControlName) => {
+        return HarnessPredicate.stringMatches(harness.getFormControlName(), formControlName);
+      },
+    );
   }
 
   private readonly _documentRootLocator = this.documentRootLocatorFactory();
@@ -115,6 +121,7 @@ export class GioSelectSearchHarness extends ComponentHarness {
         return;
       }
     }
+    throw Error(`Unable to check option: ${label}`);
   }
 
   /**
@@ -176,5 +183,11 @@ export class GioSelectSearchHarness extends ComponentHarness {
   async clearSelection(): Promise<void> {
     const clearSelectionButton = await this.getClearSelectionButton();
     await clearSelectionButton.click();
+  }
+
+  private async getFormControlName() {
+    const host = await this.host();
+    const formControlName = host.getAttribute('formControlName');
+    return formControlName ? formControlName : '';
   }
 }

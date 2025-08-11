@@ -29,10 +29,12 @@ import moment, { Moment } from 'moment';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { customTimeFrames, DATE_TIME_FORMATS, timeFrames } from '../../../../../../shared/utils/timeFrameRanges';
+import { httpStatuses } from '../../../../../../shared/utils/httpStatuses';
 import { GioSelectSearchComponent, SelectOption } from '../../../../../../shared/components/gio-select-search/gio-select-search.component';
-import { Plan } from '../../../../../../../src/entities/management-api-v2/plan';
+import { Plan } from '../../../../../../entities/management-api-v2';
 
 interface ApiAnalyticsProxyFilterBarForm {
+  httpStatuses: FormControl<string[] | null>;
   period: FormControl<string>;
   from: FormControl<Moment | null>;
   to: FormControl<Moment | null>;
@@ -73,6 +75,8 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
   activeFilters = input.required<ApiAnalyticsProxyFilters>();
   filtersChange = output<ApiAnalyticsProxyFilters>();
   refresh = output<void>();
+
+  protected readonly httpStatuses = [...httpStatuses];
   plans = input<Plan[]>([]);
   protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
   public planOptions = computed<SelectOption[]>(() => {
@@ -82,6 +86,7 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
 
   form: FormGroup<ApiAnalyticsProxyFilterBarForm> = this.formBuilder.group(
     {
+      httpStatuses: [null],
       period: [''],
       from: [null],
       to: [null],
@@ -111,6 +116,12 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
       if (period !== this.customPeriod) {
         this.filtersChange.emit(updatedFilters);
       }
+    });
+
+    this.form.controls.httpStatuses.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((httpStatuses) => {
+      const currentFilters = this.activeFilters();
+      const updatedFilters = { ...currentFilters, httpStatuses: httpStatuses };
+      this.filtersChange.emit(updatedFilters);
     });
 
     this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((from) => {
@@ -166,6 +177,7 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
         from: filters.from ? moment(filters.from) : null,
         to: filters.to ? moment(filters.to) : null,
         plans: filters.plans,
+        httpStatuses: filters.httpStatuses,
       });
     }
   }

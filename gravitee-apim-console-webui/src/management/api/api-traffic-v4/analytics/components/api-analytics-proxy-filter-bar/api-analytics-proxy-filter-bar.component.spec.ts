@@ -181,6 +181,21 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
         plans: plans,
       });
     });
+
+    it('should emit filtersChange when httpStatus(es) are selected', () => {
+      // Arrange
+      const spy = jest.spyOn(component.filtersChange, 'emit');
+      const statuses = ['200', '404', '500'];
+
+      // Act
+      component.form.patchValue({ httpStatuses: statuses });
+
+      // Assert
+      expect(spy).toHaveBeenCalledWith({
+        ...mockActiveFilters,
+        httpStatuses: statuses,
+      });
+    });
   });
 
   describe('Form State', () => {

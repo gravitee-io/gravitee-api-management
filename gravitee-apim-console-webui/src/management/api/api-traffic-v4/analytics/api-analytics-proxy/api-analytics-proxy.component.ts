@@ -81,7 +81,7 @@ interface QueryParamsBase {
   from?: string;
   to?: string;
   period?: string;
-  httpStatuses?: string[];
+  httpStatuses?: string;
   plans?: string;
   hosts?: string[];
   applications?: string[];
@@ -382,6 +382,10 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       params.period = 'custom';
     } else {
       params.period = filters.period;
+    }
+
+    if (filters.httpStatuses?.length) {
+      params.httpStatuses = filters.httpStatuses.join(',');
     }
 
     if (filters.plans?.length) {

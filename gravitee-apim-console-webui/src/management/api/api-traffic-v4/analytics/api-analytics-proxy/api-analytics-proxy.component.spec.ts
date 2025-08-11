@@ -142,6 +142,37 @@ describe('ApiAnalyticsProxyComponent', () => {
         queryParamsHandling: 'replace',
       });
     });
+
+    it('should select http statuses from query params', async () => {
+      await initComponent({ httpStatuses: '200' });
+
+      handleAllRequests();
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      const selectedValues = await filtersBar.getSelectedHttpStatuses();
+
+      expect(selectedValues).toEqual(['200']);
+    });
+
+    it('should update the URL query params when a httpStatus is selected', async () => {
+      await initComponent();
+
+      handleAllRequests();
+
+      const router = TestBed.inject(Router);
+      const routerSpy = jest.spyOn(router, 'navigate');
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      await filtersBar.selectHttpStatus('404');
+
+      expect(routerSpy).toHaveBeenCalledWith([], {
+        queryParams: {
+          period: '1d',
+          httpStatuses: '404',
+        },
+        queryParamsHandling: 'replace',
+      });
+    });
   });
 
   describe('Backend API calls based on query parameters', () => {

@@ -158,4 +158,23 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
       errors,
     };
   }
+
+  async getSelectedHttpStatuses() {
+    const select = await this.getHttpStatusesSelect();
+    await select.open();
+    return await select.getSelectedValues();
+  }
+
+  private async getHttpStatusesSelect() {
+    return await this.locatorForOptional(GioSelectSearchHarness.with({ formControlName: 'httpStatuses' }))();
+  }
+
+  async selectHttpStatus(optionText: string) {
+    const select = await this.getHttpStatusesSelect();
+    if (select) {
+      await select.open();
+      await select.checkOptionByLabel(optionText);
+      await select.close();
+    }
+  }
 }
