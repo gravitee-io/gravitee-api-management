@@ -25,9 +25,9 @@ import { fakeGroupByResponse } from '../../../../entities/management-api-v2/anal
 import { fakeAnalyticsHistogram } from '../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { GroupByResponse } from '../../../../entities/management-api-v2/analytics/analyticsGroupBy';
 import {
-  HistogramAnalyticsResponse,
   AggregationFields,
   AggregationTypes,
+  HistogramAnalyticsResponse,
 } from '../../../../entities/management-api-v2/analytics/analyticsHistogram';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
@@ -489,6 +489,12 @@ describe('ApiAnalyticsWidgetService', () => {
             groupByField: 'application-id',
             shouldSortBuckets: false,
             orderBy: '-count:_count',
+            tableData: {
+              columns: [
+                { label: 'Host', dataType: 'string' },
+                { label: 'count', dataType: 'number' },
+              ],
+            },
           };
 
           const mockGroupByResponse: GroupByResponse = fakeGroupByResponse({
@@ -517,38 +523,27 @@ describe('ApiAnalyticsWidgetService', () => {
             if (result.widgetType === 'table') {
               expect(result.widgetData.columns).toHaveLength(2);
               expect(result.widgetData.columns[0]).toEqual({
-                name: 'name',
-                label: 'Name',
-                isSortable: true,
+                name: 'col-0',
+                label: 'Host',
                 dataType: 'string',
               });
               expect(result.widgetData.columns[1]).toEqual({
-                name: 'count',
-                label: 'Count',
-                isSortable: true,
+                name: 'col-1',
+                label: 'count',
                 dataType: 'number',
               });
               expect(result.widgetData.data).toHaveLength(3);
               expect(result.widgetData.data[0]).toEqual({
-                name: 'Application 2',
-                count: 200,
-                id: 'app-2',
-                isUnknown: false,
-                order: 0,
+                'col-0': 'Application 2',
+                'col-1': 200,
               });
               expect(result.widgetData.data[1]).toEqual({
-                name: 'Application 1',
-                count: 100,
-                id: 'app-1',
-                isUnknown: false,
-                order: 1,
+                'col-0': 'Application 1',
+                'col-1': 100,
               });
               expect(result.widgetData.data[2]).toEqual({
-                name: 'Application 3',
-                count: 50,
-                id: 'app-3',
-                isUnknown: false,
-                order: 2,
+                'col-0': 'Application 3',
+                'col-1': 50,
               });
             }
             done();
@@ -566,6 +561,12 @@ describe('ApiAnalyticsWidgetService', () => {
             analyticsType: 'GROUP_BY',
             groupByField: 'application-id',
             shouldSortBuckets: false,
+            tableData: {
+              columns: [
+                { label: 'app-id', dataType: 'string' },
+                { label: 'count', dataType: 'number' },
+              ],
+            },
           };
 
           const mockGroupByResponse: GroupByResponse = fakeGroupByResponse({
@@ -583,9 +584,9 @@ describe('ApiAnalyticsWidgetService', () => {
             }
 
             if (result.widgetType === 'table') {
-              expect(result.widgetData.data[0].count).toBe(100);
-              expect(result.widgetData.data[1].count).toBe(200);
-              expect(result.widgetData.data[2].count).toBe(50);
+              expect(result.widgetData.data[0]['col-1']).toBe(100);
+              expect(result.widgetData.data[1]['col-1']).toBe(200);
+              expect(result.widgetData.data[2]['col-1']).toBe(50);
             }
             done();
           });
