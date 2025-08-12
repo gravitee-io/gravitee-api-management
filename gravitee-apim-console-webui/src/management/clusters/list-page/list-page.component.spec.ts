@@ -101,9 +101,9 @@ describe('ClustersListPageComponent', () => {
     const table = await componentHarness.getTable();
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', ''],
-      ['Development Cluster', 'kafka-dev.example.com:9092', 'SASL_PLAINTEXT', ''],
-      ['Testing Cluster', 'kafka-test.example.com:9092', 'PLAINTEXT', ''],
+      ['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Development Cluster', 'kafka-dev.example.com:9092', 'SASL_PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Testing Cluster', 'kafka-test.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
     ]);
   });
 
@@ -112,9 +112,9 @@ describe('ClustersListPageComponent', () => {
     const getTableWrapper = await componentHarness.getTableWrapper();
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', ''],
-      ['Development Cluster', 'kafka-dev.example.com:9092', 'SASL_PLAINTEXT', ''],
-      ['Testing Cluster', 'kafka-test.example.com:9092', 'PLAINTEXT', ''],
+      ['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Development Cluster', 'kafka-dev.example.com:9092', 'SASL_PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Testing Cluster', 'kafka-test.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
     ]);
 
     await getTableWrapper.setSearchValue('Production');
@@ -122,7 +122,9 @@ describe('ClustersListPageComponent', () => {
 
     expectListClusterRequest(httpTestingController, fakePagedResult([fakeCluster()]), '?page=1&perPage=25&q=Production');
 
-    expect(await table.getCellTextByIndex()).toStrictEqual([['Cluster Name', 'kafka.example.com:9092', 'PLAINTEXT', '']]);
+    expect(await table.getCellTextByIndex()).toStrictEqual([
+      ['Cluster Name', 'kafka.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
+    ]);
   });
 
   it('should create a new cluster using the dialog', async () => {
@@ -161,5 +163,26 @@ describe('ClustersListPageComponent', () => {
 
     // After deletion, we expect the list to be refreshed
     expectListClusterRequest(httpTestingController);
+  });
+
+  it('should use createdAt when updatedAt is undefined', async () => {
+    expectListClusterRequest(
+      httpTestingController,
+      fakePagedResult([
+        fakeCluster({
+          name: 'Cluster with undefined updatedAt',
+          updatedAt: undefined,
+          createdAt: new Date('2023-02-15T10:30:00Z'),
+        }),
+      ]),
+    );
+
+    await fixture.whenStable();
+    const table = await componentHarness.getTable();
+
+    // Verify that the "Last updated" column shows the createdAt date
+    expect(await table.getCellTextByIndex()).toStrictEqual([
+      ['Cluster with undefined updatedAt', 'kafka.example.com:9092', 'PLAINTEXT', 'Feb 15, 2023, 10:30:00 AM', ''],
+    ]);
   });
 });

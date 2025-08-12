@@ -62,6 +62,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
             .id(GENERATED_UUID)
             .name(name)
             .createdAt(INSTANT_NOW)
+            .updatedAt(INSTANT_NOW)
             .environmentId(ENV_ID)
             .organizationId(ORG_ID)
             .configuration(configuration)
