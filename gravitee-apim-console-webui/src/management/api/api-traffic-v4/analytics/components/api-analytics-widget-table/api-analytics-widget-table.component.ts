@@ -30,7 +30,9 @@ export interface ApiAnalyticsWidgetTableRowData {
 }
 
 export type ApiAnalyticsWidgetTableDataColumn = {
+  name: string;
   label: string;
+  isSortable?: boolean;
   dataType: ColumnDataType;
 };
 
@@ -44,7 +46,7 @@ export class ApiAnalyticsWidgetTableComponent {
   columns = input.required<ApiAnalyticsWidgetTableDataColumn[]>();
   data = input.required<ApiAnalyticsWidgetTableRowData[]>();
 
-  displayedColumns = computed(() => this.columns().map((_, index) => `col-${index}`));
+  displayedColumns = computed(() => this.columns().map((column) => column.name));
   totalLength: Signal<number> = computed(() => this.data()?.length || 0);
 
   filteredTableData: Signal<ApiAnalyticsWidgetTableRowData[]> = computed(() => {
@@ -63,6 +65,4 @@ export class ApiAnalyticsWidgetTableComponent {
       direction: 'desc',
     },
   });
-
-  mappedFilteredTableData = computed(() => this.filteredTableData().map((row) => Object.values(row)));
 }

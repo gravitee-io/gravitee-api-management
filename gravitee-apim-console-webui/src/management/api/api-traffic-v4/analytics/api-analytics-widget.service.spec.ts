@@ -489,12 +489,6 @@ describe('ApiAnalyticsWidgetService', () => {
             groupByField: 'application-id',
             shouldSortBuckets: false,
             orderBy: '-count:_count',
-            tableData: {
-              columns: [
-                { label: 'Host', dataType: 'string' },
-                { label: 'count', dataType: 'number' },
-              ],
-            },
           };
 
           const mockGroupByResponse: GroupByResponse = fakeGroupByResponse({
@@ -523,11 +517,15 @@ describe('ApiAnalyticsWidgetService', () => {
             if (result.widgetType === 'table') {
               expect(result.widgetData.columns).toHaveLength(2);
               expect(result.widgetData.columns[0]).toEqual({
-                label: 'Host',
+                name: 'name',
+                label: 'Name',
+                isSortable: true,
                 dataType: 'string',
               });
               expect(result.widgetData.columns[1]).toEqual({
-                label: 'count',
+                name: 'count',
+                label: 'Count',
+                isSortable: true,
                 dataType: 'number',
               });
               expect(result.widgetData.data).toHaveLength(3);

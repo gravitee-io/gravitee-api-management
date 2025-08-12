@@ -57,6 +57,11 @@ interface Range {
   color?: string;
 }
 
+export interface WidgetDataConfigColumn {
+  label: string;
+  dataType: 'string' | 'number';
+}
+
 type WidgetDataConfig = {
   apiId: string;
   analyticsType: 'STATS' | 'GROUP_BY' | 'HISTOGRAM';
@@ -66,10 +71,7 @@ type WidgetDataConfig = {
   ranges?: Range[];
   orderBy?: string;
   tableData?: {
-    columns: {
-      label: string;
-      dataType: 'string' | 'number';
-    }[];
+    columns: WidgetDataConfigColumn[];
   };
 };
 

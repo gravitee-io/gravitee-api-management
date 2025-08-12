@@ -49,12 +49,12 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
 
     it('should display correct number of columns', async () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'count', dataType: 'number' },
+        { name: 'name', label: 'Name', dataType: 'string' },
+        { name: 'count', label: 'Count', dataType: 'number' },
       ];
       const data = [
-        { label: 'Item 1', count: 10 },
-        { label: 'Item 2', count: 20 },
+        { name: 'Item 1', count: 10 },
+        { name: 'Item 2', count: 20 },
       ];
 
       fixture.componentRef.setInput('columns', columns);
@@ -66,12 +66,12 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
 
     it('should display correct headers', async () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'count', dataType: 'number' },
+        { name: 'name', label: 'Name', dataType: 'string' },
+        { name: 'count', label: 'Count', dataType: 'number' },
       ];
       const data = [
-        { label: 'Item 1', count: 10 },
-        { label: 'Item 2', count: 20 },
+        { name: 'Item 1', count: 10 },
+        { name: 'Item 2', count: 20 },
       ];
 
       fixture.componentRef.setInput('columns', columns);
@@ -79,19 +79,19 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
       fixture.detectChanges();
 
       const headers = await harness.getHeaderTexts();
-      expect(headers).toEqual(['name', 'count']);
+      expect(headers).toEqual(['Name', 'Count']);
     });
   });
 
   describe('Data Display', () => {
     it('should display data rows correctly', async () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'count', dataType: 'number' },
+        { name: 'name', label: 'Name', dataType: 'string' },
+        { name: 'count', label: 'Count', dataType: 'number' },
       ];
       const data = [
-        { label: 'Item 1', count: 10 },
-        { label: 'Item 2', count: 20 },
+        { name: 'Item 1', count: 10 },
+        { name: 'Item 2', count: 20 },
       ];
 
       fixture.componentRef.setInput('columns', columns);
@@ -105,10 +105,10 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
 
     it('should format number data correctly', async () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'count', dataType: 'number' },
+        { name: 'name', label: 'Name', dataType: 'string' },
+        { name: 'count', label: 'Count', dataType: 'number' },
       ];
-      const data: unknown[][] = [['Item 1', 1234]];
+      const data = [{ name: 'Item 1', count: 1234 }];
 
       fixture.componentRef.setInput('columns', columns);
       fixture.componentRef.setInput('data', data);
@@ -126,11 +126,10 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
 
     it('should format percentage data correctly', async () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'percentage', dataType: 'percentage' },
+        { name: 'name', label: 'Name', dataType: 'string' },
+        { name: 'percentage', label: 'Percentage', dataType: 'percentage' },
       ];
-
-      const data: unknown[][] = [['Item 1', 0.25]];
+      const data = [{ name: 'Item 1', percentage: 0.25 }];
 
       fixture.componentRef.setInput('columns', columns);
       fixture.componentRef.setInput('data', data);
@@ -148,10 +147,10 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
 
     it('should display string data as-is', async () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'description', dataType: 'string' },
+        { name: 'name', label: 'Name', dataType: 'string' },
+        { name: 'description', label: 'Description', dataType: 'string' },
       ];
-      const data: unknown[][] = [['Item 1', 'Test Description']];
+      const data = [{ name: 'Item 1', description: 'Test Description' }];
 
       fixture.componentRef.setInput('columns', columns);
       fixture.componentRef.setInput('data', data);
@@ -171,8 +170,8 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
   describe('Empty State', () => {
     it('should show no data message when data is empty', async () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'count', dataType: 'number' },
+        { name: 'name', label: 'Name', dataType: 'string' },
+        { name: 'count', label: 'Count', dataType: 'number' },
       ];
       const data: any[] = [];
 
@@ -185,7 +184,7 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
     });
 
     it('should show no data message when data is null', async () => {
-      const columns: ApiAnalyticsWidgetTableDataColumn[] = [{ label: 'name', dataType: 'string' }];
+      const columns: ApiAnalyticsWidgetTableDataColumn[] = [{ name: 'name', label: 'Name', dataType: 'string' }];
 
       fixture.componentRef.setInput('columns', columns);
       fixture.componentRef.setInput('data', null as any);
@@ -199,13 +198,13 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
   describe('Complex Data Scenarios', () => {
     it('should handle multiple data types in one table', async () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'count', dataType: 'number' },
-        { label: 'percentage', dataType: 'percentage' },
+        { name: 'name', label: 'Name', dataType: 'string' },
+        { name: 'count', label: 'Count', dataType: 'number' },
+        { name: 'percentage', label: 'Percentage', dataType: 'percentage' },
       ];
-      const data: unknown[][] = [
-        ['Item 1', 100, 0.5],
-        ['Item 2', 200, 0.75],
+      const data = [
+        { name: 'Item 1', count: 100, percentage: 0.5 },
+        { name: 'Item 2', count: 200, percentage: 0.75 },
       ];
 
       fixture.componentRef.setInput('columns', columns);
@@ -221,22 +220,22 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
       const columnCount = await harness.getColumnCount();
 
       if (rowCount > 0 && columnCount > 0) {
-        expect(await harness.getCellText(0, 0)).toBe('Item 2');
+        expect(await harness.getCellText(0, 0)).toBe('Item 1');
       }
 
       if (rowCount > 0 && columnCount > 1) {
-        expect(await harness.getCellText(0, 1)).toContain('200');
+        expect(await harness.getCellText(0, 1)).toContain('100');
       }
 
       if (rowCount > 0 && columnCount > 2) {
-        expect(await harness.getCellText(0, 2)).toContain('75%');
+        expect(await harness.getCellText(0, 2)).toContain('50%');
       }
     });
 
     it('should handle sortable columns', async () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'count', dataType: 'number' },
+        { name: 'name', label: 'Name', dataType: 'string', isSortable: true },
+        { name: 'count', label: 'Count', dataType: 'number', isSortable: true },
       ];
       const data = [
         { name: 'Item 1', count: 10 },
@@ -254,14 +253,13 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
 
     it('should handle missing column data gracefully', async () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'count', dataType: 'number' },
-        { label: 'optional', dataType: 'string' },
+        { name: 'name', label: 'Name', dataType: 'string' },
+        { name: 'count', label: 'Count', dataType: 'number' },
+        { name: 'optional', label: 'Optional', dataType: 'string' },
       ];
-
-      const data: unknown[][] = [
-        ['Item 1', 10],
-        ['Item 2', 20, 'Present'],
+      const data = [
+        { name: 'Item 1', count: 10 }, // Missing 'optional' field
+        { name: 'Item 2', count: 20, optional: 'Present' },
       ];
 
       fixture.componentRef.setInput('columns', columns);
@@ -277,11 +275,11 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
 
       if (rowCount > 0 && columnCount > 2) {
         // Should handle missing data gracefully
-        expect(await harness.getCellText(0, 2)).toBe('Present'); // Missing optional field
+        expect(await harness.getCellText(0, 2)).toBe(''); // Missing optional field
       }
 
       if (rowCount > 1 && columnCount > 2) {
-        expect(await harness.getCellText(1, 2)).toBe(''); // Present optional field
+        expect(await harness.getCellText(1, 2)).toBe('Present'); // Present optional field
       }
     });
   });
@@ -289,14 +287,14 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
   describe('Component Properties', () => {
     it('should compute displayed columns correctly', () => {
       const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-        { label: 'name', dataType: 'string' },
-        { label: 'count', dataType: 'number' },
+        { name: 'name', label: 'Name', dataType: 'string' },
+        { name: 'count', label: 'Count', dataType: 'number' },
       ];
 
       fixture.componentRef.setInput('columns', columns);
       fixture.detectChanges();
 
-      expect(component.displayedColumns()).toEqual(['col-0', 'col-1']);
+      expect(component.displayedColumns()).toEqual(['name', 'count']);
     });
 
     it('should compute total length correctly', () => {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input, computed, Signal } from '@angular/core';
+import { Component, computed, input, Signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 
 import {
@@ -33,7 +33,7 @@ import { AnalyticsStatsComponent, StatsWidgetData } from '../../../../../../shar
 
 type PieWidgetData = GioChartPieInput[];
 type LineWidgetData = { data: GioChartLineData[]; options?: GioChartLineOptions };
-type TableWidgetData = { columns: ApiAnalyticsWidgetTableDataColumn[]; data: ApiAnalyticsWidgetTableRowData[] };
+export type TableWidgetData = { columns: ApiAnalyticsWidgetTableDataColumn[]; data: ApiAnalyticsWidgetTableRowData[] };
 
 interface BaseApiAnalyticsWidgetConfig {
   title: string;
@@ -57,7 +57,7 @@ type ApiAnalyticsWidgetLineConfig = BaseApiAnalyticsWidgetConfig & {
   widgetData: LineWidgetData;
 };
 
-type ApiAnalyticsWidgetTableConfig = BaseApiAnalyticsWidgetConfig & {
+export type ApiAnalyticsWidgetTableConfig = BaseApiAnalyticsWidgetConfig & {
   widgetType: 'table';
   widgetData: TableWidgetData;
 };

@@ -17,8 +17,12 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, map, merge, Observable, of, switchMap } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 
-import { ApiAnalyticsWidgetConfig } from './components/api-analytics-widget/api-analytics-widget.component';
-import { ApiAnalyticsDashboardWidgetConfig } from './api-analytics-proxy/api-analytics-proxy.component';
+import { ApiAnalyticsWidgetConfig, TableWidgetData } from './components/api-analytics-widget/api-analytics-widget.component';
+import { ApiAnalyticsDashboardWidgetConfig, WidgetDataConfigColumn } from './api-analytics-proxy/api-analytics-proxy.component';
+import {
+  ApiAnalyticsWidgetTableDataColumn,
+  ApiAnalyticsWidgetTableRowData,
+} from './components/api-analytics-widget-table/api-analytics-widget-table.component';
 
 import { ApiAnalyticsV2Service } from '../../../../services-ngx/api-analytics-v2.service';
 import { GroupByResponse } from '../../../../entities/management-api-v2/analytics/analyticsGroupBy';
@@ -243,32 +247,47 @@ export class ApiAnalyticsWidgetService {
     groupByResponse: GroupByResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
-    const tableData = Object.entries(groupByResponse.values)
+    const columns: WidgetDataConfigColumn[] = widgetConfig.tableData.columns || [];
+
+    const transformedColumns: ApiAnalyticsWidgetTableDataColumn[] = columns.map((column, index) => ({
+      ...column,
+      name: `col-${index}`,
+    }));
+
+    const tableData: ApiAnalyticsWidgetTableRowData[] = Object.entries(groupByResponse.values)
       .filter(([_, value]) => value > 0)
       .map(([label, value]) => {
         const metadata = groupByResponse.metadata[label];
+
+        // For the first column which is the label, we use the metadata name or the label itself
+        // For the second column, we use the count value
+
+        const rowData: ApiAnalyticsWidgetTableRowData = {};
+        rowData[transformedColumns[0].label] = metadata?.name || label; // First column is the label
+        rowData[transformedColumns[1].label] = value; // Second column is the count
+
         return {
-          name: metadata?.name || label,
-          count: value,
-          id: label,
-          isUnknown: metadata?.unknown || false,
+          ...rowData,
           order: Number(metadata?.order ?? Number.MAX_SAFE_INTEGER),
         };
       })
       .sort((a, b) => a.order - b.order);
 
-    const columns = widgetConfig.tableData?.columns ?? [];
-
     if (tableData.length === 0) {
       return this.createEmptyConfig(widgetConfig);
     }
+
+    const tableWidgetData: TableWidgetData = {
+      columns: transformedColumns,
+      data: tableData,
+    };
 
     return {
       title: widgetConfig.title,
       tooltip: widgetConfig.tooltip,
       state: 'success',
       widgetType: 'table' as const,
-      widgetData: { columns, data: tableData },
+      widgetData: tableWidgetData,
     };
   }
 
