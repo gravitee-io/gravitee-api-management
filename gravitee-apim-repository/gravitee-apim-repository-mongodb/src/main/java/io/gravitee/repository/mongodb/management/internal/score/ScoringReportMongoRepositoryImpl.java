@@ -33,11 +33,7 @@ import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ScoringReportMongo;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -119,7 +115,8 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
                     })
                     .toList();
 
-            total = result.getList("totalCount", Document.class).get(0).getInteger("count");
+            List<Document> totalCount = result.getList("totalCount", Document.class, Collections.emptyList());
+            total = totalCount.isEmpty() ? 0L : ((Number) totalCount.get(0).getOrDefault("count", 0)).longValue();
         }
 
         return new Page<>(data, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
