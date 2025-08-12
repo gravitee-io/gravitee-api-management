@@ -596,6 +596,7 @@ class RollbackApiUseCaseTest {
                             .build()
                     )
                 )
+                .flowMode(FlowMode.BEST_MATCH)
                 .build();
 
             var apiRepositoryModel = io.gravitee.repository.management.model.Api
@@ -638,6 +639,7 @@ class RollbackApiUseCaseTest {
                     .assertThat(apiDefinition.getProxy().getLogging())
                     .extracting(Logging::getMode, Logging::getContent, Logging::getScope, Logging::getCondition)
                     .contains(LoggingMode.CLIENT, LoggingContent.HEADERS, LoggingScope.REQUEST, "someCondition");
+                softly.assertThat(apiDefinition.getFlowMode().name()).isEqualTo(FlowMode.BEST_MATCH.name());
             });
 
             var rolledBackPlan = planCrudService.getById("plan-to-rollback");
