@@ -146,6 +146,7 @@ describe('ApiRuntimeLogsComponent', () => {
             URI: 'URI',
             actions: '',
             application: 'Application',
+            plan: 'Plan',
             method: 'Method',
             responseTime: 'Response time',
             status: 'Status',
@@ -197,6 +198,7 @@ describe('ApiRuntimeLogsComponent', () => {
               URI: 'URI',
               actions: '',
               application: 'Application',
+              plan: 'Plan',
               endpoint: 'Endpoint reached',
               method: 'Method',
               responseTime: 'Response time',
@@ -204,7 +206,7 @@ describe('ApiRuntimeLogsComponent', () => {
               timestamp: 'Timestamp',
             },
           ],
-          rowCells: [['02/02/2020 20:22:02.000', 'GET', '200', '/api-uri', 'My first application (Default plan)', '42ms', '', '']],
+          rowCells: [['02/02/2020 20:22:02.000', 'GET', '200', '/api-uri', 'My first application', 'Default plan', '42ms', '', '']],
         });
       });
     });
