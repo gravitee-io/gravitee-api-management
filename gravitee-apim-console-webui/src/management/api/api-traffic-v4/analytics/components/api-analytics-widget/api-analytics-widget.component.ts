@@ -33,7 +33,7 @@ import { AnalyticsStatsComponent, StatsWidgetData } from '../../../../../../shar
 
 type PieWidgetData = GioChartPieInput[];
 type LineWidgetData = { data: GioChartLineData[]; options?: GioChartLineOptions };
-type TableWidgetData = { columns: ApiAnalyticsWidgetTableDataColumn[]; data: ApiAnalyticsWidgetTableRowData[] };
+export type TableWidgetData = { columns: ApiAnalyticsWidgetTableDataColumn[]; data: ApiAnalyticsWidgetTableRowData[] };
 
 interface BaseApiAnalyticsWidgetConfig {
   title: string;
@@ -57,7 +57,7 @@ type ApiAnalyticsWidgetLineConfig = BaseApiAnalyticsWidgetConfig & {
   widgetData: LineWidgetData;
 };
 
-type ApiAnalyticsWidgetTableConfig = BaseApiAnalyticsWidgetConfig & {
+export type ApiAnalyticsWidgetTableConfig = BaseApiAnalyticsWidgetConfig & {
   widgetType: 'table';
   widgetData: TableWidgetData;
 };

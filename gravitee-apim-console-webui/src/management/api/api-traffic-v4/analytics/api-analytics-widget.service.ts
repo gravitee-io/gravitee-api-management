@@ -19,7 +19,6 @@ import { shareReplay } from 'rxjs/operators';
 
 import { ApiAnalyticsWidgetConfig } from './components/api-analytics-widget/api-analytics-widget.component';
 import { ApiAnalyticsDashboardWidgetConfig } from './api-analytics-proxy/api-analytics-proxy.component';
-import { ApiAnalyticsWidgetTableDataColumn } from './components/api-analytics-widget-table/api-analytics-widget-table.component';
 
 import { ApiAnalyticsV2Service } from '../../../../services-ngx/api-analytics-v2.service';
 import { GroupByResponse } from '../../../../entities/management-api-v2/analytics/analyticsGroupBy';
@@ -244,26 +243,27 @@ export class ApiAnalyticsWidgetService {
     groupByResponse: GroupByResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
-    const tableData = Object.entries(groupByResponse.values)
-      .filter(([_, value]) => value > 0)
-      .map(([label, value]) => {
-        const metadata = groupByResponse.metadata[label];
-        return {
-          name: metadata?.name || label,
-          count: value,
-          id: label,
-          isUnknown: metadata?.unknown || false,
-          order: Number(metadata?.order ?? Number.MAX_SAFE_INTEGER),
-        };
-      })
-      .sort((a, b) => a.order - b.order);
+    const columns = widgetConfig.tableData.columns ?? [];
+    const transformedColumns = columns.map((col, i) => ({ ...col, name: `col-${i}` }));
 
-    const columns: ApiAnalyticsWidgetTableDataColumn[] = [
-      { name: 'name', label: 'Name', isSortable: true, dataType: 'string' },
-      { name: 'count', label: 'Count', isSortable: true, dataType: 'number' },
-    ];
+    // Keep original index for stable sorting fallback
+    const entries = Object.entries(groupByResponse.values)
+      .filter(([, value]) => value > 0)
+      .map(([label, value], index) => ({ label, value, index }));
 
-    if (tableData.length === 0) {
+    // Sort using metadata.order or original index
+    entries.sort((a, b) => {
+      const orderA = groupByResponse.metadata[a.label]?.order ?? a.index;
+      const orderB = groupByResponse.metadata[b.label]?.order ?? b.index;
+      return orderA - orderB;
+    });
+
+    const tableData = entries.map(({ label, value }) => ({
+      [transformedColumns[0].name]: groupByResponse.metadata[label]?.name || label,
+      [transformedColumns[1].name]: value,
+    }));
+
+    if (!tableData.length) {
       return this.createEmptyConfig(widgetConfig);
     }
 
@@ -271,8 +271,11 @@ export class ApiAnalyticsWidgetService {
       title: widgetConfig.title,
       tooltip: widgetConfig.tooltip,
       state: 'success',
-      widgetType: 'table' as const,
-      widgetData: { columns, data: tableData },
+      widgetType: 'table',
+      widgetData: {
+        columns: transformedColumns,
+        data: tableData,
+      },
     };
   }
 
