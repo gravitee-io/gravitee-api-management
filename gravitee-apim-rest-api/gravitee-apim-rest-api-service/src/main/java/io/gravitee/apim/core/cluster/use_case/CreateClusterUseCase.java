@@ -44,13 +44,15 @@ public class CreateClusterUseCase {
     public record Output(Cluster cluster) {}
 
     public Output execute(Input input) {
+        Instant now = TimeProvider.instantNow();
         Cluster clusterToCreate = Cluster
             .builder()
             .name(input.createCluster.getName())
             .description(input.createCluster.getDescription())
             .configuration(input.createCluster.getConfiguration())
             .id(UuidString.generateRandom())
-            .createdAt(TimeProvider.instantNow())
+            .createdAt(now)
+            .updatedAt(now)
             .environmentId(input.auditInfo().environmentId())
             .organizationId(input.auditInfo().organizationId())
             .build();

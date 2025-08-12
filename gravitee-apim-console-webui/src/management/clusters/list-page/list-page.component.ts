@@ -84,7 +84,7 @@ export class ClustersListPageComponent implements OnInit {
 
   private refreshPageTableVM$ = new BehaviorSubject<void>(undefined);
 
-  protected displayedColumns: string[] = ['name', 'bootstrapServer', 'security', 'actions'];
+  protected displayedColumns: string[] = ['name', 'bootstrapServer', 'security', 'lastUpdated', 'actions'];
   protected filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 25 },
     searchTerm: '',
@@ -119,6 +119,7 @@ export class ClustersListPageComponent implements OnInit {
             bootstrapServer: cluster.configuration.bootstrapServers,
             security: get(cluster.configuration, 'security.protocol', 'PLAINTEXT') as string,
             updatedAt: cluster.updatedAt,
+            createdAt: cluster.createdAt,
           }));
 
           this.pageTableVM$.next({
@@ -215,5 +216,7 @@ export const toClustersSortByParam = (sort: Sort): ClustersSortByParam => {
   switch (sort.active) {
     case 'name':
       return sort.direction === 'desc' ? '-name' : 'name';
+    case 'updatedAt':
+      return sort.direction === 'desc' ? '-updatedAt' : 'updatedAt';
   }
 };

@@ -31,6 +31,14 @@
   }
 }
 
+// Minimum width and no line break
+.mat-column-security,
+.cdk-column-lastUpdated,
+.cdk-column-actions {
+  width: 0;
+  white-space: nowrap;
+}
+
 .actions_btn {
   display: flex;
   justify-content: flex-end;
