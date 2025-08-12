@@ -16,12 +16,15 @@
 package io.gravitee.apim.core.api.model.mapper;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+import static io.gravitee.definition.model.v4.flow.execution.FlowMode.BEST_MATCH;
+import static io.gravitee.definition.model.v4.flow.execution.FlowMode.DEFAULT;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.v4.ApiType;
@@ -113,6 +116,7 @@ class ApiMigration {
         api.setType(ApiType.PROXY);
         api.setProperties(mapProperties(apiDefinitionV2.getProperties()));
         api.setResources(List.of()); // TODO apiDefinitionV2.getResources());
+        api.setFlowExecution(mapFlowExecution(apiDefinitionV2.getFlowMode()));
         return MigrationResult.value(api);
     }
 
@@ -133,6 +137,17 @@ class ApiMigration {
         return properties == null
             ? null
             : stream(properties.getProperties()).map(a -> new Property(a.getKey(), a.getValue(), a.isEncrypted(), a.isDynamic())).toList();
+    }
+
+    private FlowExecution mapFlowExecution(FlowMode flowMode) {
+        var flowExecution = new FlowExecution();
+        var mode =
+            switch (flowMode) {
+                case DEFAULT -> DEFAULT;
+                case BEST_MATCH -> BEST_MATCH;
+            };
+        flowExecution.setMode(mode);
+        return flowExecution;
     }
 
     private LoadBalancer mapLoadBalancer(io.gravitee.definition.model.LoadBalancer lb) {

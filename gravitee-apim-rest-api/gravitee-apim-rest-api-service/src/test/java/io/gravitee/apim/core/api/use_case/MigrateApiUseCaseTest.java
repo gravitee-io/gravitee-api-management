@@ -69,6 +69,7 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.Date;
@@ -736,6 +737,36 @@ class MigrateApiUseCaseTest {
                 var migratedAnalytics = api.getApiDefinitionHttpV4().getAnalytics();
                 assertThat(migratedAnalytics.isEnabled()).isTrue();
                 assertThat(migratedAnalytics.getLogging()).isNull();
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_best_match_flow_mode() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api.getApiDefinition().setFlowMode(io.gravitee.definition.model.FlowMode.BEST_MATCH);
+        apiCrudService.initWith(List.of(v2Api));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var migratedApi = apiCrudService.findById(API_ID);
+
+        assertThat(migratedApi)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+                var migratedDefinition = api.getApiDefinitionHttpV4().getFlowExecution().getMode();
+                assertThat(migratedDefinition).isEqualTo(FlowMode.BEST_MATCH);
             });
     }
 
