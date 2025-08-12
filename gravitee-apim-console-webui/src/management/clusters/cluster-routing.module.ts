@@ -19,14 +19,14 @@ import { RouterModule, Routes } from '@angular/router';
 import { ClusterNavigationComponent } from './cluster-navigation/cluster-navigation.component';
 import { ClusterGeneralComponent } from './details/general/cluster-general.component';
 import { ClusterConfigurationComponent } from './details/configuration/cluster-configuration.component';
-import { ClustersListPageComponent } from './list-page/list-page.component';
+import { ClusterListComponent } from './list/cluster-list.component';
 
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
 const clusterRoutes: Routes = [
   {
     path: '',
-    component: ClustersListPageComponent,
+    component: ClusterListComponent,
     canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: {
       useAngularMaterial: true,

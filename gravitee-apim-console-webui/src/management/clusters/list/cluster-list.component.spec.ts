@@ -20,8 +20,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 
-import { ClustersListPageComponent } from './list-page.component';
-import { ClustersListPageHarness } from './list-page.harness';
+import { ClusterListComponent } from './cluster-list.component';
+import { ClustersListPageHarness } from './cluster-list.harness';
 
 import { ClustersAddDialogHarness } from '../add-dialog/clusters-add-dialog.harness';
 import { GioTestingModule } from '../../../shared/testing';
@@ -34,14 +34,14 @@ import {
 import { fakeCluster, fakeCreateCluster, fakePagedResult } from '../../../entities/management-api-v2';
 
 describe('ClustersListPageComponent', () => {
-  let fixture: ComponentFixture<ClustersListPageComponent>;
+  let fixture: ComponentFixture<ClusterListComponent>;
   let componentHarness: ClustersListPageHarness;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ClustersListPageComponent, NoopAnimationsModule, GioTestingModule],
+      imports: [ClusterListComponent, NoopAnimationsModule, GioTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,
@@ -50,7 +50,7 @@ describe('ClustersListPageComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ClustersListPageComponent);
+    fixture = TestBed.createComponent(ClusterListComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.autoDetectChanges();
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ClustersListPageHarness);
@@ -163,26 +163,5 @@ describe('ClustersListPageComponent', () => {
 
     // After deletion, we expect the list to be refreshed
     expectListClusterRequest(httpTestingController);
-  });
-
-  it('should use createdAt when updatedAt is undefined', async () => {
-    expectListClusterRequest(
-      httpTestingController,
-      fakePagedResult([
-        fakeCluster({
-          name: 'Cluster with undefined updatedAt',
-          updatedAt: undefined,
-          createdAt: new Date('2023-02-15T10:30:00Z'),
-        }),
-      ]),
-    );
-
-    await fixture.whenStable();
-    const table = await componentHarness.getTable();
-
-    // Verify that the "Last updated" column shows the createdAt date
-    expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Cluster with undefined updatedAt', 'kafka.example.com:9092', 'PLAINTEXT', 'Feb 15, 2023, 10:30:00 AM', ''],
-    ]);
   });
 });

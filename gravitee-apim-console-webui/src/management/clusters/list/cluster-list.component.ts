@@ -55,9 +55,9 @@ type PageTableVM = {
 };
 
 @Component({
-  selector: 'clusters-list-page',
-  templateUrl: './list-page.component.html',
-  styleUrls: ['./list-page.component.scss'],
+  selector: 'cluster-list',
+  templateUrl: './cluster-list.component.html',
+  styleUrls: ['./cluster-list.component.scss'],
   imports: [
     CommonModule,
     MatCardModule,
@@ -73,7 +73,7 @@ type PageTableVM = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
 })
-export class ClustersListPageComponent implements OnInit {
+export class ClusterListComponent implements OnInit {
   private readonly clustersService = inject(ClustersService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
@@ -119,7 +119,6 @@ export class ClustersListPageComponent implements OnInit {
             bootstrapServer: cluster.configuration.bootstrapServers,
             security: get(cluster.configuration, 'security.protocol', 'PLAINTEXT') as string,
             updatedAt: cluster.updatedAt,
-            createdAt: cluster.createdAt,
           }));
 
           this.pageTableVM$.next({
