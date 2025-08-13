@@ -30,6 +30,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AccessControl;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Application;
@@ -49,7 +50,6 @@ import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.*;
-import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -188,11 +188,11 @@ public class GroupService_DeleteTest {
             apiRepository.search(
                 new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
                 null,
+                new PageableBuilder().pageSize(100).pageNumber(0).build(),
                 ApiFieldFilter.allFields()
             )
         )
-            .thenReturn(Stream.empty());
-
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
         when(applicationRepository.findByGroups(Collections.singletonList(GROUP_ID))).thenReturn(Collections.emptySet());
 
         when(
@@ -280,10 +280,12 @@ public class GroupService_DeleteTest {
             apiRepository.search(
                 new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).groups(GROUP_ID).build(),
                 null,
+                new PageableBuilder().pageSize(100).pageNumber(0).build(),
                 ApiFieldFilter.allFields()
             )
         )
-            .thenReturn(Stream.of(api));
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(api), 1, 1, 1))
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
 
         Application application = new Application();
         application.setId("APP_ID");
