@@ -66,6 +66,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.Failover;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
@@ -634,6 +635,71 @@ class MigrateApiUseCaseTest {
                         new io.gravitee.definition.model.v4.property.Property("key2", "value2", true, false),
                         new io.gravitee.definition.model.v4.property.Property("key3", "value3", true, false)
                     );
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_null_failover_and_disable_failover() {
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2api.getApiDefinition().getProxy().setFailover(null);
+        apiCrudService.initWith(java.util.List.of(v2api));
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedFailOver = api.getApiDefinitionHttpV4().getFailover();
+
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().failoverEnabled()).isFalse();
+                    softly.assertThat(migratedFailOver).isNull();
+                });
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_valid_failover_and_enable_failover() {
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        Failover failover = new Failover();
+        failover.setMaxAttempts(5);
+        failover.setRetryTimeout(1000L);
+
+        v2api.getApiDefinition().getProxy().setFailover(failover);
+        apiCrudService.initWith(java.util.List.of(v2api));
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedFailOver = api.getApiDefinitionHttpV4().getFailover();
+
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().failoverEnabled()).isTrue();
+                    softly.assertThat(migratedFailOver).isNotNull();
+                    softly.assertThat(migratedFailOver.isEnabled()).isTrue();
+                    softly.assertThat(migratedFailOver.getMaxFailures()).isEqualTo(5);
+                    softly.assertThat(migratedFailOver.getMaxRetries()).isEqualTo(5);
+                    softly.assertThat(migratedFailOver.getOpenStateDuration()).isEqualTo(10000L);
+                    softly.assertThat(migratedFailOver.getSlowCallDuration()).isEqualTo(1000L);
+                });
             });
     }
 

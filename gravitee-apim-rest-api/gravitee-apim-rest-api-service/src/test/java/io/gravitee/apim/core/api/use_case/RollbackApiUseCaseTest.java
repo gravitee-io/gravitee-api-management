@@ -561,7 +561,9 @@ class RollbackApiUseCaseTest {
                     .description("Current plan description")
                     .build()
             );
-
+            Failover failOverV2 = new Failover();
+            failOverV2.setMaxAttempts(5);
+            failOverV2.setRetryTimeout(1000);
             var eventV2ApiDefinition = io.gravitee.definition.model.Api
                 .builder()
                 .id(existingV4Api.getId())
@@ -582,6 +584,7 @@ class RollbackApiUseCaseTest {
                             )
                         )
                         .logging(new Logging(LoggingMode.CLIENT, LoggingScope.REQUEST, LoggingContent.HEADERS, "someCondition"))
+                        .failover(failOverV2)
                         .build()
                 )
                 .plans(
@@ -639,6 +642,10 @@ class RollbackApiUseCaseTest {
                     .assertThat(apiDefinition.getProxy().getLogging())
                     .extracting(Logging::getMode, Logging::getContent, Logging::getScope, Logging::getCondition)
                     .contains(LoggingMode.CLIENT, LoggingContent.HEADERS, LoggingScope.REQUEST, "someCondition");
+                softly.assertThat(apiDefinition.getProxy().failoverEnabled()).isTrue();
+                softly.assertThat(apiDefinition.getProxy().getFailover()).isNotNull();
+                softly.assertThat(apiDefinition.getProxy().getFailover().getMaxAttempts()).isEqualTo(5);
+                softly.assertThat(apiDefinition.getProxy().getFailover().getRetryTimeout()).isEqualTo(1000);
                 softly.assertThat(apiDefinition.getFlowMode().name()).isEqualTo(FlowMode.BEST_MATCH.name());
             });
 
@@ -714,6 +721,7 @@ class RollbackApiUseCaseTest {
                             )
                         )
                         .logging(new Logging(LoggingMode.CLIENT, LoggingScope.REQUEST, LoggingContent.HEADERS, "someCondition"))
+                        .failover(null)
                         .build()
                 )
                 .flows(List.of(Flow.builder().name("v2-api-flow").build()))
@@ -772,6 +780,7 @@ class RollbackApiUseCaseTest {
                     .assertThat(apiDefinition.getProxy().getLogging())
                     .extracting(Logging::getMode, Logging::getContent, Logging::getScope, Logging::getCondition)
                     .contains(LoggingMode.CLIENT, LoggingContent.HEADERS, LoggingScope.REQUEST, "someCondition");
+                softly.assertThat(apiDefinition.getProxy().failoverEnabled()).isFalse();
             });
 
             var rolledBackPlan = planCrudService.getById("plan-to-rollback");
