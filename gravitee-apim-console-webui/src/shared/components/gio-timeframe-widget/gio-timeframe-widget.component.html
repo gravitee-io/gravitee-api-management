@@ -15,14 +15,14 @@
     limitations under the License.
 
 -->
-<form [formGroup]="form" class="form">
+<div class="form">
   <mat-form-field>
     <mat-label>Timeframe</mat-label>
-    <mat-select formControlName="period">
+    <mat-select [formControl]="periodControl">
       @for (timeFrame of timeFrames; track timeFrame.id) {
         <mat-option [value]="timeFrame.id">
           <div class="option-radio-container">
-            <mat-radio-button [checked]="form.get('period')?.value === timeFrame.id" [value]="timeFrame.id" disableRipple>
+            <mat-radio-button [checked]="periodControl.value === timeFrame.id" [value]="timeFrame.id" disableRipple>
               {{ timeFrame.label }}
             </mat-radio-button>
           </div>
@@ -31,27 +31,24 @@
     </mat-select>
   </mat-form-field>
 
-  @if (form.controls.period.value === customPeriod) {
+  @if (periodControl.value === customPeriod) {
     <mat-form-field class="custom-date">
       <mat-label>From</mat-label>
-      <input matInput [owlDateTime]="fromDateTimePicker" [max]="nowDate" formControlName="from" />
+      <input matInput [owlDateTime]="fromDateTimePicker" [max]="nowDate" [formControl]="fromControl" />
       <mat-icon [owlDateTimeTrigger]="fromDateTimePicker" matSuffix svgIcon="gio:calendar"></mat-icon>
       <owl-date-time #fromDateTimePicker></owl-date-time>
     </mat-form-field>
 
     <mat-form-field class="custom-date">
       <mat-label>To</mat-label>
-      <input matInput [owlDateTime]="toDateTimePicker" [min]="minDate" [max]="nowDate" formControlName="to" />
+      <input matInput [owlDateTime]="toDateTimePicker" [min]="minDate" [max]="nowDate" [formControl]="toControl" />
       <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix svgIcon="gio:calendar"></mat-icon>
       <owl-date-time #toDateTimePicker></owl-date-time>
-      @if (form.hasError('dateRange')) {
-        <mat-error>To date cannot be earlier than From date</mat-error>
-      }
     </mat-form-field>
 
     <button
       data-testid="apply-button"
-      [disabled]="form.invalid || !form.controls.from.value || !form.controls.to.value"
+      [disabled]="!fromControl.value || !toControl.value"
       mat-stroked-button
       aria-label="Apply"
       (click)="applyCustomTimeframe()"
@@ -61,12 +58,4 @@
   } @else {
     <button data-testid="refresh-button" mat-stroked-button aria-label="Refresh data" (click)="refreshFilters()">Refresh data</button>
   }
-
-  <div class="errors">
-    @if (form.hasError('dateRange')) {
-      <mat-error>
-        <span>Error: "To" date cannot be earlier than "From" date</span>
-      </mat-error>
-    }
-  </div>
-</form>
+</div>

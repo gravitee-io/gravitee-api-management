@@ -1,1 +1,9 @@
-// Wrapper component - styling handled by shared component
+:host {
+  display: block;
+}
+
+.form-container {
+  display: flex;
+  justify-content: flex-end; /* Position the shared component on the right */
+  width: 100%;
+}

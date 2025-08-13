@@ -15,4 +15,13 @@
     limitations under the License.
 
 -->
-<gio-timeframe-widget [activeFilters]="activeFilters()" (filtersChange)="filtersChange.emit($event)" (refresh)="refresh.emit()" />
+<div class="form-container">
+  <gio-timeframe-widget
+    [formControl]="timeframeControl"
+    [activeFilters]="activeFilters()"
+    [refresh]="refreshFilters.bind(this)"
+    [periodControl]="form.controls.period"
+    [fromControl]="form.controls.from"
+    [toControl]="form.controls.to"
+  ></gio-timeframe-widget>
+</div>
