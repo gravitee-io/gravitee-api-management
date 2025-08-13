@@ -27,6 +27,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingContent;
@@ -91,8 +92,7 @@ class ApiMigration {
         var endpointGroups = stream(apiDefinitionV2.getProxy().getGroups()).map(this::mapEndpointGroup).toList();
 
         Analytics analytics = mapAnalytics(apiDefinitionV2.getProxy().getLogging());
-
-        Failover failover = new Failover(false, 0, 50, 500, 1, false);
+        Failover failover = mapFailOver(apiDefinitionV2.getProxy());
 
         // TODO handle flows
         FlowExecution flowExecution = null;
@@ -118,6 +118,17 @@ class ApiMigration {
         api.setResources(List.of()); // TODO apiDefinitionV2.getResources());
         api.setFlowExecution(mapFlowExecution(apiDefinitionV2.getFlowMode()));
         return MigrationResult.value(api);
+    }
+
+    private Failover mapFailOver(Proxy proxy) {
+        return proxy.failoverEnabled()
+            ? Failover
+                .builder()
+                .enabled(proxy.failoverEnabled())
+                .slowCallDuration(proxy.getFailover().getRetryTimeout())
+                .maxRetries(proxy.getFailover().getMaxAttempts())
+                .build()
+            : null;
     }
 
     private EndpointGroup mapEndpointGroup(io.gravitee.definition.model.EndpointGroup source) {
