@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, computed, effect, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { map, shareReplay } from 'rxjs/operators';
 
 import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
 import {
@@ -41,6 +42,7 @@ import {
 import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../api-analytics-widget.service';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { Stats, StatsField } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
+import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
 type WidgetDisplayConfig = {
   title: string;
@@ -75,6 +77,16 @@ type WidgetDataConfig = {
   };
 };
 
+interface QueryParamsBase {
+  from?: string;
+  to?: string;
+  period?: string;
+  httpStatuses?: string[];
+  plans?: string;
+  hosts?: string[];
+  applications?: string[];
+}
+
 export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetDataConfig;
 
 @Component({
@@ -94,6 +106,7 @@ export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetData
 export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
   private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
+  private planService = inject(ApiPlanV2Service);
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
@@ -302,6 +315,13 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     },
   ];
 
+  apiPlans$ = this.planService
+    .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
+    .pipe(
+      map((plans) => plans.data),
+      shareReplay(1),
+    );
+
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
@@ -348,88 +368,75 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   }
 
   private createQueryParamsFromFilters(filters: ApiAnalyticsProxyFilters): Record<string, any> {
+    const params: Record<string, any> = {};
+
     if (filters.period === 'custom' && filters.from && filters.to) {
-      return {
-        from: filters.from,
-        to: filters.to,
-        period: 'custom',
-      };
+      params.from = filters.from;
+      params.to = filters.to;
+      params.period = 'custom';
     } else {
-      return {
-        period: filters.period,
-      };
+      params.period = filters.period;
     }
+
+    if (filters.plans?.length) {
+      params.plans = filters.plans.join(',');
+    }
+
+    return params;
   }
 
   private mapQueryParamsToUrlParamsData(queryParams: unknown): ApiAnalyticsWidgetUrlParamsData {
-    const { from, to, period, httpStatuses, plans, hosts, applications } = queryParams as {
-      from?: string;
-      to?: string;
-      period?: string;
-      httpStatuses?: string[];
-      plans?: string[];
-      hosts?: string[];
-      applications?: string[];
-    };
-    const normalizedPeriod = period || '1d';
+    const params = queryParams as QueryParamsBase;
+    const normalizedPeriod = params.period || '1d';
+    const filters = this.getFilterFields(params);
 
-    if (normalizedPeriod === 'custom' && from && to) {
-      return {
+    if (normalizedPeriod === 'custom' && params.from && params.to) {
+      return <ApiAnalyticsWidgetUrlParamsData>{
         timeRangeParams: {
-          from: +from,
-          to: +to,
-          interval: this.calculateCustomInterval(+from, +to),
+          from: +params.from,
+          to: +params.to,
+          interval: this.calculateCustomInterval(+params.from, +params.to),
         },
-        httpStatuses,
-        plans,
-        hosts,
-        applications,
-      };
-    } else {
-      const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
-      return {
-        timeRangeParams: timeFrame.timeFrameRangesParams(),
-        httpStatuses,
-        plans,
-        hosts,
-        applications,
+        ...filters,
       };
     }
+
+    const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
+    return {
+      timeRangeParams: timeFrame.timeFrameRangesParams(),
+      ...filters,
+    };
   }
 
   private mapQueryParamsToFilters(queryParams: unknown): ApiAnalyticsProxyFilters {
-    const { from, to, period, httpStatuses, plans, hosts, applications } = queryParams as {
-      from?: string;
-      to?: string;
-      period?: string;
-      httpStatuses?: string[];
-      plans?: string[];
-      hosts?: string[];
-      applications?: string[];
-    };
-    const normalizedPeriod = period || '1d';
+    const params = queryParams as QueryParamsBase;
+    const normalizedPeriod = params.period || '1d';
+    const filters = this.getFilterFields(params);
 
-    if (normalizedPeriod === 'custom' && from && to) {
-      return {
-        period: 'custom',
-        from: +from,
-        to: +to,
-        httpStatuses,
-        plans,
-        hosts,
-        applications,
-      };
-    } else {
-      return {
+    if (normalizedPeriod === 'custom' && params.from && params.to) {
+      return <ApiAnalyticsProxyFilters>{
         period: normalizedPeriod,
-        from: null,
-        to: null,
-        httpStatuses,
-        plans,
-        hosts,
-        applications,
+        from: +params.from,
+        to: +params.to,
+        ...filters,
       };
     }
+
+    return {
+      period: normalizedPeriod,
+      from: null,
+      to: null,
+      ...filters,
+    };
+  }
+
+  private getFilterFields(queryParams: QueryParamsBase) {
+    return {
+      httpStatuses: queryParams.httpStatuses,
+      plans: queryParams.plans?.split(','),
+      hosts: queryParams.hosts,
+      applications: queryParams.applications,
+    };
   }
 
   private calculateCustomInterval(from: number, to: number, nbValuesByBucket = 30): number {

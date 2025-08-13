@@ -18,16 +18,17 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { ApiAnalyticsProxyComponent } from './api-analytics-proxy.component';
 import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harness';
 
-import { GioTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
 import { fakeAnalyticsStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
+import { fakePagedResult, fakePlanV4, PlanV4 } from '../../../../../entities/management-api-v2';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -86,6 +87,9 @@ describe('ApiAnalyticsProxyComponent', () => {
   });
 
   describe('Query parameters', () => {
+    const plan1 = fakePlanV4({ id: '1', name: 'plan 1' });
+    const plan2 = fakePlanV4({ id: '2', name: 'plan 2' });
+
     it('should use default time range when no query params provided', async () => {
       await initComponent();
       handleAllRequests();
@@ -104,6 +108,39 @@ describe('ApiAnalyticsProxyComponent', () => {
       const selectedValue = await filtersBar.getSelectedPeriod();
 
       expect(selectedValue).toEqual('Last month');
+    });
+
+    it('should use and select plans from query params', async () => {
+      await initComponent({ plans: '1' });
+
+      expectPlanList([plan1, plan2]);
+      handleAllRequests();
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      const selectedValues = await filtersBar.getSelectedPlans();
+
+      expect(selectedValues).toEqual(['1']);
+    });
+
+    it('should update the URL query params when a plan is selected', async () => {
+      await initComponent();
+
+      expectPlanList([plan1, plan2]);
+      handleAllRequests();
+
+      const router = TestBed.inject(Router);
+      const routerSpy = jest.spyOn(router, 'navigate');
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      await filtersBar.selectPlan('plan 2');
+
+      expect(routerSpy).toHaveBeenCalledWith([], {
+        queryParams: {
+          period: '1d',
+          plans: '2',
+        },
+        queryParamsHandling: 'replace',
+      });
     });
   });
 
@@ -236,5 +273,15 @@ describe('ApiAnalyticsProxyComponent', () => {
         request.flush(fakeAnalyticsStatsResponse());
       }
     });
+  }
+
+  function expectPlanList(plans: PlanV4[] = []) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&statuses=PUBLISHED,DEPRECATED,CLOSED`,
+        method: 'GET',
+      })
+      .flush(fakePagedResult(plans));
+    fixture.detectChanges();
   }
 });

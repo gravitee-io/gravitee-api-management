@@ -17,6 +17,7 @@
 -->
 <api-analytics-proxy-filter-bar
   [activeFilters]="activeFilters()"
+  [plans]="apiPlans$ | async"
   (filtersChange)="onFiltersChange($event)"
   (refresh)="onRefreshFilters()"
 />
