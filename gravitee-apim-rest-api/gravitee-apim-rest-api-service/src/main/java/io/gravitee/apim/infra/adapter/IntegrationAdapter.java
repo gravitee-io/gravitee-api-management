@@ -53,7 +53,7 @@ public interface IntegrationAdapter {
     IntegrationApi.Plan map(io.gravitee.integration.api.model.Plan source);
 
     @ValueMapping(source = "API_KEY", target = "API_KEY")
-    @ValueMapping(source = "JWT", target = MappingConstants.NULL)
+    @ValueMapping(source = "JWT", target = "JWT")
     @ValueMapping(source = "OAUTH2", target = "OAUTH2")
     IntegrationApi.PlanType map(PlanSecurityType source);
 

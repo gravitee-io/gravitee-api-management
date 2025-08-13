@@ -37,6 +37,7 @@ public record IntegrationApi(
     public record Plan(String id, String name, String description, PlanType type, List<String> characteristics) {}
     public enum PlanType {
         API_KEY,
+        JWT,
         OAUTH2,
     }
 
