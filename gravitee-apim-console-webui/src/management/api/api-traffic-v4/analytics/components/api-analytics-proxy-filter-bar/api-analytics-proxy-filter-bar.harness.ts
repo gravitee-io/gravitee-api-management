@@ -29,16 +29,7 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
   }
 
   async getPlanSelect(): Promise<GioSelectSearchHarness | null> {
-    const allSelects = await this.locatorForAll(GioSelectSearchHarness)();
-
-    for (const select of allSelects) {
-      const host = await select.host();
-      const formControlName = await host.getAttribute('formControlName');
-      if (formControlName === 'plans') {
-        return select;
-      }
-    }
-    return null;
+    return await this.locatorForOptional(GioSelectSearchHarness.with({ formControlName: 'plans' }))();
   }
 
   async getApplyButton(): Promise<MatButtonHarness | null> {
