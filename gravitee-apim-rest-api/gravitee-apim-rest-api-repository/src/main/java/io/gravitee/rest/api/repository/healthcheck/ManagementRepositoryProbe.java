@@ -17,9 +17,9 @@ package io.gravitee.rest.api.repository.healthcheck;
 
 import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
-import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.search.EventCriteria;
-import java.util.concurrent.CompletableFuture;
+import io.gravitee.repository.management.api.InstallationRepository;
+import io.vertx.core.Vertx;
+import java.util.concurrent.CompletionStage;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,7 +31,11 @@ public class ManagementRepositoryProbe implements Probe {
 
     @Setter
     @Autowired
-    private EventRepository eventRepository;
+    private InstallationRepository installationRepository;
+
+    @Setter
+    @Autowired
+    private Vertx vertx;
 
     @Override
     public String id() {
@@ -44,13 +48,17 @@ public class ManagementRepositoryProbe implements Probe {
     }
 
     @Override
-    public CompletableFuture<Result> check() {
-        // Search for an event to check repository connection
-        try {
-            eventRepository.search(EventCriteria.builder().from(System.currentTimeMillis()).to(System.currentTimeMillis()).build());
-            return CompletableFuture.completedFuture(Result.healthy());
-        } catch (Exception ex) {
-            return CompletableFuture.completedFuture(Result.unhealthy(ex));
-        }
+    public CompletionStage<Result> check() {
+        return vertx
+            .executeBlocking(() -> {
+                try {
+                    // Search for the installation information to check repository connection
+                    installationRepository.find();
+                    return Result.healthy();
+                } catch (Exception ex) {
+                    return Result.unhealthy(ex);
+                }
+            })
+            .toCompletionStage();
     }
 }
