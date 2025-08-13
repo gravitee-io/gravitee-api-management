@@ -121,7 +121,7 @@ export class ApiAnalyticsV2Service {
   }
 
   buildUrlParams(params: UrlParamsData) {
-    const { order, ranges, field } = params;
+    const { order, ranges, field, query } = params;
 
     let url = '';
 
@@ -135,6 +135,10 @@ export class ApiAnalyticsV2Service {
 
     if (ranges) {
       url += `&ranges=${ranges}`;
+    }
+
+    if (query) {
+      url += `&query=${query}`;
     }
 
     return url;
