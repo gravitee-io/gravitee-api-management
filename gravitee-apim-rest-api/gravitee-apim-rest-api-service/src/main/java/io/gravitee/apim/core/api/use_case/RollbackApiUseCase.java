@@ -104,7 +104,6 @@ public class RollbackApiUseCase {
 
                     // Rollback plans from API definition plans
                     var plans = rollbackPlansV2(apiDefinition.getPlans(), apiUpdatedV2, input.auditInfo);
-
                     flowCrudService.saveApiFlowsV2(apiDefinition.getId(), apiDefinition.getFlows());
                     for (var plan : apiDefinition.getPlans()) {
                         flowCrudService.savePlanFlowsV2(plan.getId(), plan.getFlows());
@@ -112,7 +111,6 @@ public class RollbackApiUseCase {
                     for (String planId : plans.closedPlans()) {
                         flowCrudService.savePlanFlowsV2(planId, List.of());
                     }
-
                     yield apiUpdatedV2;
                 }
                 case FEDERATED_AGENT -> throw new IllegalStateException("Cannot rollback a federated Agent");
@@ -221,20 +219,27 @@ public class RollbackApiUseCase {
                         PlanStatus.valueOf(targetOfRollback.getStatus()) != PlanStatus.CLOSED &&
                         currentPlan.getPlanStatus() == PlanStatus.CLOSED
                     ) {
+                        currentPlan.setPlanStatus(PlanStatus.valueOf(targetOfRollback.getStatus()));
                         return REOPEN;
                     }
                     return ROLLBACK;
                 })
             );
-
-        if (existingPlansMustBeRollbackOrClose.get(ROLLBACK).size() < apiDefinitionPlans.size()) {
+        if (
+            existingPlansMustBeRollbackOrClose.get(ROLLBACK) != null &&
+            existingPlansMustBeRollbackOrClose.get(ROLLBACK).size() < apiDefinitionPlans.size()
+        ) {
             throw new IllegalStateException("Cannot rollback plans because some plans have been removed");
         }
 
         // Close plans
         existingPlansMustBeRollbackOrClose
             .getOrDefault(CLOSE, List.of())
-            .forEach(plan -> closePlanDomainService.close(plan.getId(), auditInfo));
+            .forEach(plan -> {
+                if (plan.getPlanStatus() != PlanStatus.CLOSED) {
+                    closePlanDomainService.close(plan.getId(), auditInfo);
+                }
+            });
 
         // Rollback plans
         existingPlansMustBeRollbackOrClose
@@ -245,10 +250,7 @@ public class RollbackApiUseCase {
             });
 
         // Reopen plans
-        existingPlansMustBeRollbackOrClose
-            .getOrDefault(REOPEN, List.of())
-            .forEach(plan -> createPlanDomainService.create(plan, List.of(), api, auditInfo));
-
+        existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).forEach(plan -> planCrudService.update(plan));
         var opens = Stream
             .concat(
                 existingPlansMustBeRollbackOrClose.getOrDefault(ROLLBACK, List.of()).stream(),

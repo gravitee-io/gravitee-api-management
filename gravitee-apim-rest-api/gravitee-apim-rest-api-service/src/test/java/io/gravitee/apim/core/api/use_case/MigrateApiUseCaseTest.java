@@ -71,6 +71,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.Date;
@@ -488,6 +489,37 @@ class MigrateApiUseCaseTest {
 
         var upgradedPlans = planCrudService.findByApiId(API_ID);
         assertThat(upgradedPlans).hasSize(2).extracting(Plan::getId).containsExactlyInAnyOrder("plan-1", "plan-2");
+        assertThat(upgradedPlans).allSatisfy(MigrateApiUseCaseTest::assertPlanV4);
+    }
+
+    @Test
+    void should_upgrade_api_with_closed_plans() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiCrudService.initWith(List.of(v2Api));
+
+        var plan1 = PlanFixtures.aPlanV2().toBuilder().id("plan-1").apiId(API_ID).build();
+        plan1.setPlanStatus(PlanStatus.CLOSED);
+        planCrudService.initWith(List.of(plan1));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var upgradedApiOpt = apiCrudService.findById(API_ID);
+        assertThat(upgradedApiOpt).hasValueSatisfying(MigrateApiUseCaseTest::assertApiV4);
+
+        var upgradedPlans = planCrudService.findByApiId(API_ID);
+        assertThat(upgradedPlans).hasSize(1).extracting(Plan::getId).containsExactlyInAnyOrder("plan-1");
         assertThat(upgradedPlans).allSatisfy(MigrateApiUseCaseTest::assertPlanV4);
     }
 
