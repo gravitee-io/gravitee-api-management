@@ -258,7 +258,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'table',
       apiId: this.apiId,
-      title: 'Top Api Plans',
+      title: 'Top API Plans',
       tooltip: 'Distribution of hits across API plans',
       shouldSortBuckets: false,
       groupByField: 'plan-id',
@@ -267,7 +267,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       tableData: {
         columns: [
           { label: 'Plan', dataType: 'string' },
-          { label: 'Count', dataType: 'number' },
+          { label: 'Usage Count', dataType: 'number' },
         ],
       },
     },
@@ -280,6 +280,12 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'path-info.keyword',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      tableData: {
+        columns: [
+          { label: 'Path', dataType: 'string' },
+          { label: 'Hits', dataType: 'number' },
+        ],
+      },
     },
     {
       type: 'table',
