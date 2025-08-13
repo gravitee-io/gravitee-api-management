@@ -20,11 +20,9 @@ import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.count.CountQuery;
 import io.gravitee.repository.common.query.QueryContext;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import java.util.concurrent.CompletionStage;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -33,9 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class AnalyticsRepositoryProbe implements Probe {
 
+    @Setter
     @Autowired
     private AnalyticsRepository analyticsRepository;
 
+    @Setter
     @Autowired
     private Vertx vertx;
 
@@ -46,20 +46,15 @@ public class AnalyticsRepositoryProbe implements Probe {
 
     @Override
     public CompletionStage<Result> check() {
-        Promise<Result> promise = Promise.promise();
-
-        vertx.executeBlocking(
-            event -> {
+        return vertx
+            .executeBlocking(() -> {
                 try {
                     analyticsRepository.query(new QueryContext("DEFAULT", "DEFAULT"), new CountQuery());
-                    promise.complete(Result.healthy());
+                    return Result.healthy();
                 } catch (Exception ex) {
-                    promise.complete(Result.unhealthy(ex));
+                    return Result.unhealthy(ex);
                 }
-            },
-            (Handler<AsyncResult<Result>>) event -> promise.complete(event.result())
-        );
-
-        return promise.future().toCompletionStage();
+            })
+            .toCompletionStage();
     }
 }
