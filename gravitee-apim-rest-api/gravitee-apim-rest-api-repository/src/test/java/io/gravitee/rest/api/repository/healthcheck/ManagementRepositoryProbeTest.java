@@ -20,7 +20,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.healthcheck.Result;
-import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.InstallationRepository;
+import io.vertx.core.Vertx;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -39,27 +41,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ManagementRepositoryProbeTest {
 
     @Mock
-    private EventRepository eventRepository;
+    private InstallationRepository installationRepository;
 
     private ManagementRepositoryProbe cut;
 
     @BeforeEach
     public void beforeEach() {
         cut = new ManagementRepositoryProbe();
-        cut.setEventRepository(eventRepository);
+        cut.setInstallationRepository(installationRepository);
+        cut.setVertx(Vertx.vertx());
     }
 
     @Test
     void should_check_completed_with_healthy_state() throws ExecutionException, InterruptedException {
-        Result result = cut.check().get();
+        Result result = cut.check().toCompletableFuture().get();
         assertThat(result.isHealthy()).isTrue();
     }
 
     @Test
-    void should_check_completed_with_unhealthy_state_when_repository_failed() throws ExecutionException, InterruptedException {
+    void should_check_completed_with_unhealthy_state_when_repository_failed()
+        throws TechnicalException, ExecutionException, InterruptedException {
         RuntimeException runtimeException = new RuntimeException();
-        when(eventRepository.search(any())).thenThrow(runtimeException);
-        Result result = cut.check().get();
+        when(installationRepository.find()).thenThrow(runtimeException);
+        Result result = cut.check().toCompletableFuture().get();
         assertThat(result.isHealthy()).isFalse();
     }
 
