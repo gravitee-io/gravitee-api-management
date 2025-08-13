@@ -438,11 +438,18 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
 
   private getFilterFields(queryParams: QueryParamsBase) {
     return {
-      httpStatuses: queryParams.httpStatuses,
-      plans: queryParams.plans?.split(','),
-      hosts: queryParams.hosts,
-      applications: queryParams.applications,
+      httpStatuses: this.processFilter(queryParams.httpStatuses),
+      plans: this.processFilter(queryParams.plans),
+      hosts: this.processFilter(queryParams.hosts),
+      applications: this.processFilter(queryParams.applications),
     };
+  }
+
+  private processFilter(value: string | string[] | undefined): string[] | undefined {
+    if (value === undefined) {
+      return undefined;
+    }
+    return Array.isArray(value) ? value : value.split(',');
   }
 
   private calculateCustomInterval(from: number, to: number, nbValuesByBucket = 30): number {
