@@ -13,28 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, OnInit, input, effect, output } from '@angular/core';
+import { Component, OnInit, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatInputModule } from '@angular/material/input';
-import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatOptionModule } from '@angular/material/core';
-import { MatSelectModule } from '@angular/material/select';
-import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
-import moment, { Moment } from 'moment';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { customTimeFrames, DATE_TIME_FORMATS, timeFrames } from '../../../../../../shared/utils/timeFrameRanges';
+import { GioTimeframeWidgetModule } from '../../../../../../shared/components/gio-timeframe-widget/gio-timeframe-widget.module';
 
-interface ApiAnalyticsProxyFilterBarForm {
-  period: FormControl<string>;
-  from: FormControl<Moment | null>;
-  to: FormControl<Moment | null>;
-}
+// Wrapper component that delegates to shared widget
 
 export interface ApiAnalyticsProxyFilters {
   period: string;
@@ -44,20 +28,7 @@ export interface ApiAnalyticsProxyFilters {
 
 @Component({
   selector: 'api-analytics-proxy-filter-bar',
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatCardModule,
-    GioIconsModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatOptionModule,
-    MatSelectModule,
-    MatInputModule,
-    OwlDateTimeModule,
-    OwlMomentDateTimeModule,
-  ],
-  providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
+  imports: [CommonModule, GioTimeframeWidgetModule],
   templateUrl: './api-analytics-proxy-filter-bar.component.html',
   styleUrl: './api-analytics-proxy-filter-bar.component.scss',
 })
@@ -66,87 +37,5 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
   filtersChange = output<ApiAnalyticsProxyFilters>();
   refresh = output<void>();
 
-  protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
-
-  form: FormGroup<ApiAnalyticsProxyFilterBarForm> = this.formBuilder.group(
-    {
-      period: [''],
-      from: [null],
-      to: [null],
-    },
-    { validators: this.dateRangeValidator },
-  );
-  minDate: Moment;
-  nowDate: Moment = moment().add(1, 'd');
-  customPeriod: string = 'custom';
-
-  constructor(
-    private readonly formBuilder: FormBuilder,
-    private readonly destroyRef: DestroyRef,
-  ) {
-    // Set up effect to update form when activeFilters changes
-    effect(() => {
-      const filters = this.activeFilters();
-      this.updateFormFromFilters(filters);
-    });
-  }
-
-  ngOnInit() {
-    this.form.controls.period.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((period) => {
-      const currentFilters = this.activeFilters();
-      const updatedFilters = { ...currentFilters, period };
-      if (period !== this.customPeriod) {
-        this.filtersChange.emit(updatedFilters);
-      }
-    });
-
-    this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((from) => {
-      this.minDate = from;
-      this.form.updateValueAndValidity();
-    });
-
-    this.form.controls.to.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.form.updateValueAndValidity();
-    });
-  }
-
-  applyCustomTimeframe() {
-    const from = this.form.controls.from.value.valueOf();
-    const to = this.form.controls.to.value.valueOf();
-
-    const currentFilters = this.activeFilters();
-    const updatedFilters = {
-      ...currentFilters,
-      from,
-      to,
-      period: this.customPeriod,
-    };
-
-    this.filtersChange.emit(updatedFilters);
-  }
-
-  refreshFilters() {
-    this.refresh.emit();
-  }
-
-  private dateRangeValidator(group: FormGroup): { [key: string]: any } | null {
-    const from = group.get('from')?.value;
-    const to = group.get('to')?.value;
-
-    if (from && to && from.isAfter(to)) {
-      return { dateRange: true };
-    }
-
-    return null;
-  }
-
-  private updateFormFromFilters(filters: ApiAnalyticsProxyFilters) {
-    if (this.form) {
-      this.form.patchValue({
-        period: filters.period,
-        from: filters.from ? moment(filters.from) : null,
-        to: filters.to ? moment(filters.to) : null,
-      });
-    }
-  }
+  ngOnInit(): void {}
 }

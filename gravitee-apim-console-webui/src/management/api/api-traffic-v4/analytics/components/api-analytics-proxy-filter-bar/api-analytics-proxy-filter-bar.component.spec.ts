@@ -45,91 +45,54 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
     fixture.componentRef.setInput('activeFilters', mockActiveFilters);
     component = fixture.componentInstance;
 
-    // Initialize form with mock data
-    component.form.patchValue({
-      period: mockActiveFilters.period,
-      from: mockActiveFilters.from ? moment(mockActiveFilters.from) : null,
-      to: mockActiveFilters.to ? moment(mockActiveFilters.to) : null,
-    });
-
     fixture.detectChanges();
 
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiAnalyticsProxyFilterBarHarness);
   });
 
   describe('Date Range Validation', () => {
-    it('should validate that to date is not before from date', () => {
-      // Arrange
+    it('should validate that to date is not before from date', async () => {
       const fromDate = moment();
-      const toDate = moment().subtract(1, 'day'); // Before from date
+      const toDate = moment().subtract(1, 'day');
 
-      // Act
-      component.form.patchValue({
-        from: fromDate,
-        to: toDate,
-      });
+      await harness.selectPeriod('Custom');
+      await harness.setCustomDateRange(fromDate, toDate);
 
-      // Assert
-      expect(component.form.hasError('dateRange')).toBe(true);
+      expect(await harness.hasDateRangeError()).toBe(true);
     });
 
-    it('should pass validation when to date is after from date', () => {
-      // Arrange
+    it('should pass validation when to date is after from date', async () => {
       const fromDate = moment();
-      const toDate = moment().add(1, 'day'); // After from date
+      const toDate = moment().add(1, 'day');
 
-      // Act
-      component.form.patchValue({
-        from: fromDate,
-        to: toDate,
-      });
+      await harness.selectPeriod('Custom');
+      await harness.setCustomDateRange(fromDate, toDate);
 
-      // Assert
-      expect(component.form.hasError('dateRange')).toBe(false);
-    });
-
-    it('should pass validation when only one date is set', () => {
-      // Arrange & Act
-      component.form.patchValue({
-        from: moment(),
-        to: null,
-      });
-
-      // Assert
-      expect(component.form.hasError('dateRange')).toBe(false);
+      expect(await harness.hasDateRangeError()).toBe(false);
     });
   });
 
   describe('Filter Change Output', () => {
-    it('should emit filtersChange when period changes', () => {
-      // Arrange
+    it('should emit filtersChange when period changes', async () => {
       const spy = jest.spyOn(component.filtersChange, 'emit');
-      const newPeriod = '7d';
 
-      // Act
-      component.form.controls.period.setValue(newPeriod);
+      await harness.selectPeriod('Last week');
 
-      // Assert
       expect(spy).toHaveBeenCalledWith({
         ...mockActiveFilters,
-        period: newPeriod,
+        period: '1w',
       });
     });
 
-    it('should emit filtersChange when custom timeframe is applied', () => {
-      // Arrange
+    it('should emit filtersChange when custom timeframe is applied', async () => {
       const spy = jest.spyOn(component.filtersChange, 'emit');
       const fromDate = moment().subtract(1, 'day');
       const toDate = moment();
 
-      // Act
-      component.form.patchValue({
-        from: fromDate,
-        to: toDate,
-      });
-      component.applyCustomTimeframe();
+      await harness.selectPeriod('Custom');
+      await harness.setCustomDateRange(fromDate, toDate);
+      await harness.clickApply();
 
-      // Assert
       expect(spy).toHaveBeenCalledWith({
         ...mockActiveFilters,
         from: fromDate.valueOf(),
@@ -138,76 +101,45 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
       });
     });
 
-    it('should emit filtersChange when refresh is called', () => {
-      // Arrange
+    it('should emit filtersChange when refresh is called', async () => {
       const spy = jest.spyOn(component.refresh, 'emit');
-
-      // Act
-      component.refreshFilters();
-
-      // Assert
+      await harness.selectPeriod('Last day');
+      await harness.clickRefresh();
       expect(spy).toHaveBeenCalled();
     });
 
-    it('should not emit when period is set to custom without applying', () => {
-      // Arrange
+    it('should not emit when period is set to custom without applying', async () => {
       const spy = jest.spyOn(component.filtersChange, 'emit');
-
-      // Act
-      component.form.controls.period.setValue('custom');
-
-      // Assert
+      await harness.selectPeriod('Custom');
       expect(spy).not.toHaveBeenCalledWith(expect.objectContaining({ period: 'custom' }));
     });
   });
 
   describe('Form State', () => {
     it('should disable apply button when form is invalid', async () => {
-      // Arrange
       const fromDate = moment();
-      const toDate = moment().subtract(1, 'day'); // Invalid: to before from
+      const toDate = moment().subtract(1, 'day');
 
-      // Act
-      fixture.componentRef.setInput('activeFilters', {
-        from: fromDate,
-        to: toDate,
-        period: 'custom',
-      });
-      fixture.detectChanges();
+      await harness.selectPeriod('Custom');
+      await harness.setCustomDateRange(fromDate, toDate);
 
-      // Assert
       expect(await harness.isApplyButtonEnabled()).toBe(false);
       expect(await harness.hasDateRangeError()).toBe(true);
     });
 
     it('should enable apply button when form is valid and dates are set', async () => {
-      // Arrange
       const fromDate = moment();
-      const toDate = moment().add(1, 'day'); // Valid: to after from
+      const toDate = moment().add(1, 'day');
 
-      // Act
-      fixture.componentRef.setInput('activeFilters', {
-        from: fromDate,
-        to: toDate,
-        period: 'custom',
-      });
-      fixture.detectChanges();
-
-      // Assert
+      await harness.selectPeriod('Custom');
+      await harness.setCustomDateRange(fromDate, toDate);
 
       expect(await harness.hasDateRangeError()).toBe(false);
+      expect(await harness.isApplyButtonEnabled()).toBe(true);
     });
 
     it('should disable apply button when dates are not set', async () => {
-      // Arrange & Act
-      component.form.patchValue({
-        from: null,
-        to: null,
-        period: 'custom',
-      });
-      fixture.detectChanges();
-
-      // Assert
+      await harness.selectPeriod('Custom');
       expect(await harness.isApplyButtonEnabled()).toBe(false);
     });
   });

@@ -1,0 +1,41 @@
+:host {
+  display: block;
+}
+
+.form {
+  display: flex;
+  justify-content: flex-end; /* Push contents to the right */
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 16px; /* optional spacing */
+
+  .custom-date {
+    min-width: 200px;
+    max-width: 240px;
+  }
+}
+
+.errors {
+  width: 100%;
+}
+
+.option-radio-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+// Hide the checkmark from mat-option
+::ng-deep .mat-mdc-option-pseudo-checkbox {
+  display: none !important;
+}
+
+::ng-deep .mat-pseudo-checkbox {
+  display: none !important;
+}
+
+::ng-deep .mat-option {
+  padding-left: 16px;
+}

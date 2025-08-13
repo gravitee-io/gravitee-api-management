@@ -1,18 +1,1 @@
-:host {
-  display: block;
-}
-
-.form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-
-  .custom-date {
-    width: 212px;
-  }
-}
-
-.errors {
-  width: 100%;
-}
+// Wrapper component - styling handled by shared component
