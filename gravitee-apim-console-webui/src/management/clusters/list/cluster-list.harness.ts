@@ -20,7 +20,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 export class ClustersListPageHarness extends ComponentHarness {
-  static readonly hostSelector = 'clusters-list-page';
+  static readonly hostSelector = 'cluster-list';
 
   public getAddButton = this.locatorFor(MatButtonHarness.with({ text: /Add cluster/ }));
   public getTable = this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Clusters"]' }));

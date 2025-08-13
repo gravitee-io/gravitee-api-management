@@ -116,7 +116,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'Min Latency',
+      title: 'Min Response Time',
       statsKey: 'min',
       statsUnit: 'ms',
       tooltip: '',
@@ -127,7 +127,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'Max Latency',
+      title: 'Max Response Time',
       statsKey: 'max',
       statsUnit: 'ms',
       tooltip: '',
@@ -138,7 +138,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'Average',
+      title: 'Avg Response Time',
       statsKey: 'avg',
       statsUnit: 'ms',
       tooltip: '',
@@ -149,7 +149,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'RPS',
+      title: 'Requests Per Second',
       statsKey: 'rps',
       statsUnit: '',
       tooltip: '',
@@ -257,6 +257,16 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
           { label: 'Count', dataType: 'number' },
         ],
       },
+    },
+    {
+      type: 'table',
+      apiId: this.apiId,
+      title: 'Top Paths',
+      tooltip: 'Most frequently hit API paths',
+      shouldSortBuckets: false,
+      groupByField: 'path-info.keyword',
+      analyticsType: 'GROUP_BY',
+      orderBy: '-count:_count',
     },
     {
       type: 'table',

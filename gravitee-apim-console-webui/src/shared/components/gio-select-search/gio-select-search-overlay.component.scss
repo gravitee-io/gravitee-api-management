@@ -1,0 +1,50 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.gio-select-search-overlay {
+  max-width: 280px;
+}
+
+.gio-select-search {
+  &__search {
+    padding: 16px;
+    border-bottom: 1px solid mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
+    width: 100%;
+  }
+
+  &__search-field {
+    width: 100%;
+    margin: 0;
+  }
+
+  &__options {
+    max-height: 250px;
+    overflow-y: scroll;
+    padding-left: 8px;
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+
+    &-label {
+      flex: 1;
+    }
+  }
+
+  &__clear-selection {
+    border-top: 1px solid mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'lighter20');
+    height: 70px;
+    padding-left: 10px;
+    display: flex;
+    flex-flow: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+}
+
+.disabled-option {
+  color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'default');
+  cursor: auto;
+}

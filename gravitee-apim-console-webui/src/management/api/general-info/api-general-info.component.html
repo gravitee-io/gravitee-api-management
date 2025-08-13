@@ -193,6 +193,18 @@
           <mat-icon svgIcon="gio:language" />
           Promote
         </button>
+        @if (api.definitionVersion === 'V2') {
+          <button
+            *gioPermission="{ anyOf: ['api-definition-u'] }"
+            mat-raised-button
+            color="primary"
+            class="details-card__actions__btn_align_right"
+            data-testid="api_info_migrate_menu"
+            (click)="migrateToV4()"
+          >
+            Migrate to v4
+          </button>
+        }
       </mat-card-actions>
     }
   </mat-card>

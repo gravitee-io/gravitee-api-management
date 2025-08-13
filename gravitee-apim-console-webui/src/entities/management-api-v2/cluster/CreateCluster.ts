@@ -15,4 +15,4 @@
  */
 import { Cluster } from './Cluster';
 
-export type CreateCluster = Pick<Cluster, 'name' | 'description' | 'bootstrapServer'>;
+export type CreateCluster = Pick<Cluster, 'name' | 'description' | 'configuration'>;

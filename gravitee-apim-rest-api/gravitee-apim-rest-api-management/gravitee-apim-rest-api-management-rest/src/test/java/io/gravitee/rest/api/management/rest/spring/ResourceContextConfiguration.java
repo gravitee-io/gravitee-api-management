@@ -50,6 +50,11 @@ import io.gravitee.apim.core.application.domain_service.ValidateApplicationSetti
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
+import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
@@ -889,5 +894,30 @@ public class ResourceContextConfiguration {
     @Bean
     public InvitationService invitationService() {
         return mock(InvitationService.class);
+    }
+
+    @Bean
+    public CreateClusterUseCase createClusterUseCase() {
+        return mock(CreateClusterUseCase.class);
+    }
+
+    @Bean
+    public GetClusterUseCase getClusterUseCase() {
+        return mock(GetClusterUseCase.class);
+    }
+
+    @Bean
+    public UpdateClusterUseCase updateClusterUseCase() {
+        return mock(UpdateClusterUseCase.class);
+    }
+
+    @Bean
+    public DeleteClusterUseCase deleteClusterUseCase() {
+        return mock(DeleteClusterUseCase.class);
+    }
+
+    @Bean
+    public SearchClusterUseCase searchClusterUseCase() {
+        return mock(SearchClusterUseCase.class);
     }
 }

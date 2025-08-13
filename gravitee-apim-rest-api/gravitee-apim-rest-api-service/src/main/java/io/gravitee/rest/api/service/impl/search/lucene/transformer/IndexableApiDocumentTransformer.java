@@ -116,12 +116,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         if (api.getDefinitionVersion() != null) {
             doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
-            String apiType;
-            if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-                apiType = api.getDefinitionVersion().name() + "_" + api.getType().name();
-            } else {
-                apiType = api.getDefinitionVersion().name();
-            }
+            String apiType = generateApiType(api);
             doc.add(new StringField(FIELD_API_TYPE, apiType, Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(apiType)));
         }
@@ -198,6 +193,17 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         }
 
         return doc;
+    }
+
+    String generateApiType(Api api) {
+        String apiType;
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+            String type = api.getType() == ApiType.NATIVE ? "KAFKA" : api.getType() == ApiType.PROXY ? "HTTP_PROXY" : "MESSAGE";
+            apiType = api.getDefinitionVersion().name() + "_" + type;
+        } else {
+            apiType = api.getDefinitionVersion().name();
+        }
+        return apiType;
     }
 
     private boolean accept(IndexableApi indexableApi) {

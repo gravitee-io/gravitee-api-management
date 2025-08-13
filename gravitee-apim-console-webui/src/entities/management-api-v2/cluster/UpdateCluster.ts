@@ -15,4 +15,4 @@
  */
 import { Cluster } from './Cluster';
 
-export type UpdateCluster = Omit<Cluster, 'id' | 'updatedAt'>;
+export type UpdateCluster = Omit<Cluster, 'id' | 'updatedAt' | 'createdAt'>;

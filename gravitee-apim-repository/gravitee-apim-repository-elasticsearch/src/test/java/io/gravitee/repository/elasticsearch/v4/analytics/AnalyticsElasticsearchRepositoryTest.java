@@ -786,7 +786,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 "response-time",
                 List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200)),
-                null,
+                Optional.empty(),
                 new TimeRange(from, to),
                 Optional.empty()
             );

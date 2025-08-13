@@ -19,8 +19,11 @@ export function fakeCluster(overrides: Partial<Cluster> = {}): Cluster {
   return {
     id: 'cluster-id',
     name: 'Cluster Name',
-    bootstrapServer: 'http://localhost:8083',
-    security: 'none',
+    description: 'A test cluster',
+    configuration: {
+      bootstrapServers: 'kafka.example.com:9092',
+      security: 'none',
+    },
     updatedAt: new Date('2023-01-01T00:00:00Z'),
     createdAt: new Date('2023-01-01T00:00:00Z'),
     ...overrides,

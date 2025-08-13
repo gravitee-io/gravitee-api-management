@@ -17,9 +17,9 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, EMPTY, of, Subject } from 'rxjs';
+import { combineLatest, EMPTY, of, Subject, throwError } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { NewFile } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, NewFile } from '@gravitee/ui-particles-angular';
 
 import {
   ApiGeneralInfoDuplicateDialogComponent,
@@ -34,10 +34,11 @@ import {
   ApiPortalDetailsPromoteDialogData,
 } from './api-general-info-promote-dialog/api-general-info-promote-dialog.component';
 import {
-  ApiGeneralInfoExportV4DialogComponent,
   ApiGeneralDetailsExportV4DialogData,
   ApiGeneralDetailsExportV4DialogResult,
+  ApiGeneralInfoExportV4DialogComponent,
 } from './api-general-info-export-v4-dialog/api-general-info-export-v4-dialog.component';
+import { ApiGeneralInfoMigrateToV4DialogComponent } from './api-general-info-migrate-to-v4-dialog/api-general-info-migrate-to-v4-dialog.component';
 
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
@@ -48,8 +49,14 @@ import { GioApiImportDialogComponent, GioApiImportDialogData } from '../componen
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, ApiType, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
+import { MigrateToV4State } from '../../../entities/management-api-v2/api/v2/migrateToV4Response';
 import { Integration } from '../../integrations/integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
+
+export interface MigrateDialogResult {
+  confirmed: boolean;
+  state: MigrateToV4State;
+}
 
 @Component({
   selector: 'api-general-info',
@@ -418,6 +425,35 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
         .afterClosed()
         .pipe(takeUntil(this.unsubscribe$))
         .subscribe();
+  }
+
+  migrateToV4() {
+    this.matDialog
+      .open(ApiGeneralInfoMigrateToV4DialogComponent, { data: { apiId: this.apiId }, width: GIO_DIALOG_WIDTH.SMALL })
+      .afterClosed()
+      .pipe(
+        filter((result): result is MigrateDialogResult => !!result?.confirmed),
+        switchMap((result) => {
+          if (result.state !== 'MIGRATABLE' && result.state !== 'CAN_BE_FORCED') {
+            return throwError(() => new Error(`Unexpected migration state received: ${result.state}`));
+          }
+          if (result.state === 'CAN_BE_FORCED') {
+            return this.apiService.migrateToV4(this.apiId, 'FORCE');
+          }
+          return this.apiService.migrateToV4(this.apiId);
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: () => {
+          const successMessage = 'API Migrated to v4 successfully!\nYou can now deploy the migrated API when ready.';
+          this.snackBarService.success(successMessage);
+          this.ngOnInit();
+        },
+        error: (err) => {
+          this.snackBarService.error(err.error?.message ?? err.message);
+        },
+      });
   }
 
   private canChangeApiLifecycle(api: Api): boolean {

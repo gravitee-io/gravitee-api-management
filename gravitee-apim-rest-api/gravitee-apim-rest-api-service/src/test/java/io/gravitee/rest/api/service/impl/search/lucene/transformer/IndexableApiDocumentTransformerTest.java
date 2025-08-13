@@ -53,6 +53,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.Collator;
@@ -370,5 +371,47 @@ public class IndexableApiDocumentTransformerTest {
         // Assertions
         assertThat(sortedByBytesRef).isEqualTo(expectedSorted);
         assertThat(sortedByCollator).isEqualTo(expectedSorted);
+    }
+
+    @Test
+    public void generate_api_type_v4_native() {
+        Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.NATIVE).build();
+        String apiType = new IndexableApiDocumentTransformer().generateApiType(api);
+        assertThat(apiType).isEqualTo("V4_KAFKA");
+    }
+
+    @Test
+    public void generate_api_type_v4_proxy() {
+        Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.PROXY).build();
+        String apiType = new IndexableApiDocumentTransformer().generateApiType(api);
+        assertThat(apiType).isEqualTo("V4_HTTP_PROXY");
+    }
+
+    @Test
+    public void generate_api_type_v4_message() {
+        Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.MESSAGE).build();
+        String apiType = new IndexableApiDocumentTransformer().generateApiType(api);
+        assertThat(apiType).isEqualTo("V4_MESSAGE");
+    }
+
+    @Test
+    public void generate_api_type_v2() {
+        Api api = Api.builder().definitionVersion(DefinitionVersion.V2).build();
+        String apiType = new IndexableApiDocumentTransformer().generateApiType(api);
+        assertThat(apiType).isEqualTo("V2");
+    }
+
+    @Test
+    public void generate_api_type_federated() {
+        Api api = Api.builder().definitionVersion(DefinitionVersion.FEDERATED).build();
+        String apiType = new IndexableApiDocumentTransformer().generateApiType(api);
+        assertThat(apiType).isEqualTo("FEDERATED");
+    }
+
+    @Test
+    public void generate_api_type_federated_agent() {
+        Api api = Api.builder().definitionVersion(DefinitionVersion.FEDERATED_AGENT).build();
+        String apiType = new IndexableApiDocumentTransformer().generateApiType(api);
+        assertThat(apiType).isEqualTo("FEDERATED_AGENT");
     }
 }

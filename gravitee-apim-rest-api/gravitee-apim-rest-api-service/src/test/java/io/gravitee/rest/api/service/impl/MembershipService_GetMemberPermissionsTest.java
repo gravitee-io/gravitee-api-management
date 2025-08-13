@@ -103,6 +103,8 @@ public class MembershipService_GetMemberPermissionsTest {
                 null,
                 null,
                 null,
+                null,
+                null,
                 null
             );
     }

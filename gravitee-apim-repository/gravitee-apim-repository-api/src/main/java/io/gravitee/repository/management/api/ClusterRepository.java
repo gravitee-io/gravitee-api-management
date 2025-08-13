@@ -20,7 +20,8 @@ import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Cluster;
+import java.util.Optional;
 
 public interface ClusterRepository extends CrudRepository<Cluster, String> {
-    Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Sortable sortable);
+    Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortable);
 }

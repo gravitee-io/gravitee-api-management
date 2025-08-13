@@ -58,6 +58,7 @@ public class PlanMapper {
 
     private <T extends BasePlanEntity> T toEntity(Plan plan, T entity) {
         entity.setId(plan.getId());
+        entity.setHrid(plan.getHrid());
         entity.setDefinitionVersion(plan.getDefinitionVersion());
         entity.setCrossId(plan.getCrossId());
         entity.setName(plan.getName());

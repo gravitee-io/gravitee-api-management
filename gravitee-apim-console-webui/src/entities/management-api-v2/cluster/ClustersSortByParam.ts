@@ -13,4 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type ClustersSortByParam = 'name' | '-name';
+export type ClustersSortByParam = 'name' | '-name' | 'createdAt' | '-createdAt' | 'updatedAt' | '-updatedAt';

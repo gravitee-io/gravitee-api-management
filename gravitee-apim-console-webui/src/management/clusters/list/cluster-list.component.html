@@ -57,6 +57,13 @@
         </td>
       </ng-container>
 
+      <ng-container matColumnDef="lastUpdated">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="updatedAt">Last updated</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.updatedAt | date: 'medium' }}
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let element">
@@ -65,7 +72,7 @@
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>
 
-            <button type="button" mat-button aria-label="Button to remove Cluster" matTooltip="Remove" (click)="remove(element.id)">
+            <button type="button" mat-button aria-label="Button to remove Cluster" matTooltip="Remove" (click)="remove(element)">
               <mat-icon svgIcon="gio:trash"></mat-icon>
             </button>
           </div>

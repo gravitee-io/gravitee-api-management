@@ -65,11 +65,11 @@ public interface ApiAnalyticsParamSpecification extends Predicate<ApiAnalyticsPa
     static ApiAnalyticsParamSpecification hasInterval() {
         return new ApiAnalyticsParamSpecification() {
             public boolean satisfies(ApiAnalyticsParam param) {
-                return param.getInterval() == null || param.getInterval() > 0;
+                return param.getInterval() != null && param.getInterval() > 0;
             }
 
             public String getErrorMessage() {
-                return "Interval must be a positive number.";
+                return "Interval is required and must be a positive number.";
             }
         };
     }
@@ -77,7 +77,7 @@ public interface ApiAnalyticsParamSpecification extends Predicate<ApiAnalyticsPa
     static ApiAnalyticsParamSpecification hasField() {
         return new ApiAnalyticsParamSpecification() {
             public boolean satisfies(ApiAnalyticsParam param) {
-                return param.getField() == null || !param.getField().isBlank();
+                return param.getField() != null && !param.getField().isBlank();
             }
 
             public String getErrorMessage() {
@@ -93,7 +93,7 @@ public interface ApiAnalyticsParamSpecification extends Predicate<ApiAnalyticsPa
             }
 
             public String getErrorMessage() {
-                return "Type parameter is required.";
+                return "Valid type parameter is required. Supported types are: [histogram, group_by, stats, count]";
             }
         };
     }
@@ -163,19 +163,40 @@ public interface ApiAnalyticsParamSpecification extends Predicate<ApiAnalyticsPa
         };
     }
 
+    static ApiAnalyticsParamSpecification empty() {
+        return new ApiAnalyticsParamSpecification() {
+            public boolean satisfies(ApiAnalyticsParam param) {
+                return true;
+            }
+
+            public String getErrorMessage() {
+                return "Should never happen";
+            }
+
+            @Override
+            public void throwIfNotSatisfied(ApiAnalyticsParam param) {
+                // ignore
+            }
+        };
+    }
+
     static ApiAnalyticsParamSpecification forHistogram() {
-        return and(List.of(hasType(), hasFromParam(), hasToParam(), hasInterval(), aggregationsNotBlank(), aggregationsOfValidType()));
+        return and(List.of(hasInterval(), aggregationsNotBlank(), aggregationsOfValidType()));
     }
 
     static ApiAnalyticsParamSpecification forGroupBy() {
-        return and(List.of(hasType(), hasFromParam(), hasToParam(), hasField(), validOrder()));
+        return and(List.of(hasField(), validOrder()));
     }
 
     static ApiAnalyticsParamSpecification forStats() {
-        return and(List.of(hasType(), hasFromParam(), hasToParam(), hasField()));
+        return and(List.of(hasField()));
     }
 
     static ApiAnalyticsParamSpecification forCount() {
+        return empty();
+    }
+
+    static ApiAnalyticsParamSpecification common() {
         return and(List.of(hasType(), hasFromParam(), hasToParam()));
     }
 }

@@ -22,9 +22,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingContent;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingPhase;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer;
@@ -83,7 +87,7 @@ class ApiMigration {
 
         var endpointGroups = stream(apiDefinitionV2.getProxy().getGroups()).map(this::mapEndpointGroup).toList();
 
-        Analytics analytics = new Analytics(false, null, null, null);
+        Analytics analytics = mapAnalytics(apiDefinitionV2.getProxy().getLogging());
 
         Failover failover = new Failover(false, 0, 50, 500, 1, false);
 
@@ -153,6 +157,29 @@ class ApiMigration {
             //.inheritConfiguration(lb.getInheritConfiguration())
             //.sharedConfigurationOverride(lb.getSharedConfigurationOverride())
             //.services(lb.getS)
+            .build();
+    }
+
+    private Analytics mapAnalytics(Logging v2logging) {
+        var loggingEnabled = isLoggingEnabled(v2logging);
+        var v4logging = loggingEnabled ? mapLogging(v2logging) : null;
+        return Analytics.builder().enabled(true).logging(v4logging).build();
+    }
+
+    private boolean isLoggingEnabled(Logging v2logging) {
+        if (v2logging == null) {
+            return false;
+        }
+        return v2logging.getMode() != io.gravitee.definition.model.LoggingMode.NONE;
+    }
+
+    private io.gravitee.definition.model.v4.analytics.logging.Logging mapLogging(Logging v2logging) {
+        return io.gravitee.definition.model.v4.analytics.logging.Logging
+            .builder()
+            .condition(v2logging.getCondition())
+            .mode(new LoggingMode(v2logging.getMode().isClientMode(), v2logging.getMode().isProxyMode()))
+            .content(new LoggingContent(v2logging.getContent().isHeaders(), false, v2logging.getContent().isPayloads(), false, false))
+            .phase(new LoggingPhase(v2logging.getScope().isRequest(), v2logging.getScope().isResponse()))
             .build();
     }
 
