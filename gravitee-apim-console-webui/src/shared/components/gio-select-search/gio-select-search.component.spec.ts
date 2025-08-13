@@ -305,7 +305,7 @@ describe('GioSelectSearchComponent', () => {
     });
 
     it('should update form control value when options are selected', async () => {
-      const harness = await loader.getHarness(GioSelectSearchHarness);
+      const harness = await loader.getHarness(GioSelectSearchHarness.with({ formControlName: 'selection' }));
       await harness.open();
 
       await harness.checkOptionByLabel('Option 1');
@@ -321,11 +321,35 @@ describe('GioSelectSearchComponent', () => {
       component.form.get('selection')?.setValue(['option1', 'option3']);
       fixture.detectChanges();
 
-      const harness = await loader.getHarness(GioSelectSearchHarness);
+      const harness = await loader.getHarness(GioSelectSearchHarness.with({ formControlName: 'selection' }));
       await harness.open();
 
       const selectedValues = await harness.getSelectedValues();
       expect(selectedValues).toEqual(['option1', 'option3']);
+    });
+
+    it('should be able to get harness by label', async () => {
+      const harness = await loader.getHarness(GioSelectSearchHarness.with({ label: 'Test Label' }));
+      await harness.open();
+
+      const triggerText = await harness.getTriggerText();
+      expect(triggerText).toContain('Test Label');
+    });
+
+    it('should be able to get harness by placeholder', async () => {
+      const harness = await loader.getHarness(GioSelectSearchHarness.with({ placeholder: 'Search options...' }));
+      await harness.open();
+
+      const placeholder = await harness.getPlaceholder();
+      expect(placeholder).toBe('Search options...');
+    });
+
+    it('should be able to get harness by formControlName', async () => {
+      const harness = await loader.getHarness(GioSelectSearchHarness.with({ formControlName: 'selection' }));
+      await harness.open();
+
+      const isOpen = await harness.isOpen();
+      expect(isOpen).toBe(true);
     });
   });
 });

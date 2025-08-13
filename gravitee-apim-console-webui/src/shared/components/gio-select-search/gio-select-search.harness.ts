@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseHarnessFilters, ComponentHarness } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
@@ -21,10 +21,16 @@ import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 export interface GioSelectSearchHarnessFilters extends BaseHarnessFilters {
   label?: string;
   placeholder?: string;
+  selector?: string;
+  formControlName?: string;
 }
 
 export class GioSelectSearchHarness extends ComponentHarness {
   static readonly hostSelector = 'gio-select-search';
+
+  static with(options: GioSelectSearchHarnessFilters = {}): HarnessPredicate<GioSelectSearchHarness> {
+    return new HarnessPredicate(GioSelectSearchHarness, options);
+  }
 
   private readonly _documentRootLocator = this.documentRootLocatorFactory();
 
