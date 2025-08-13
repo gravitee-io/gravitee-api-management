@@ -656,6 +656,224 @@ class RollbackApiUseCaseTest {
         }
 
         @Test
+        void should_rollback_api_v4_plan_should_be_closed() throws JsonProcessingException {
+            // Given
+            var existingV4Api = apiV4().build();
+            apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
+
+            givenExistingPlan(
+                PlanFixtures
+                    .aPlanHttpV4()
+                    .toBuilder()
+                    .id("plan-to-rollback")
+                    .apiId(existingV4Api.getId())
+                    .name("plan-current-name")
+                    .description("Current plan description")
+                    .build()
+            )
+                .setPlanStatus(PlanStatus.CLOSED);
+
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api
+                .builder()
+                .id(existingV4Api.getId())
+                .name("api-previous-name")
+                .version("api-previous-version")
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(
+                    io.gravitee.definition.model.Proxy
+                        .builder()
+                        .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
+                        .groups(
+                            Set.of(
+                                EndpointGroup
+                                    .builder()
+                                    .name("default-endpoint")
+                                    .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
+                                    .build()
+                            )
+                        )
+                        .logging(new Logging(LoggingMode.CLIENT, LoggingScope.REQUEST, LoggingContent.HEADERS, "someCondition"))
+                        .build()
+                )
+                .plans(
+                    Map.of(
+                        "plan-to-rollback",
+                        io.gravitee.definition.model.Plan
+                            .builder()
+                            .id("plan-to-rollback-old")
+                            .name("plan-previous-name")
+                            .status("PUBLISHED")
+                            .security("KEY_LESS")
+                            .build()
+                    )
+                )
+                .build();
+
+            var apiRepositoryModel = io.gravitee.repository.management.model.Api
+                .builder()
+                .id(eventV2ApiDefinition.getId())
+                .name(eventV2ApiDefinition.getName())
+                .version(eventV2ApiDefinition.getVersion())
+                .definitionVersion(DefinitionVersion.V2)
+                .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+                .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
+                .build();
+
+            var event = Event
+                .builder()
+                .id("rollback-event-id")
+                .type(EventType.PUBLISH_API)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+                .build();
+            eventQueryService.initWith(List.of(event));
+
+            // When
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            // Then
+            var rolledBackApi = apiCrudService.get(existingV4Api.getId());
+            assertSoftly(softly -> {
+                softly.assertThat(rolledBackApi.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
+                softly.assertThat(rolledBackApi.getName()).isEqualTo("api-previous-name");
+                softly.assertThat(rolledBackApi.getVersion()).isEqualTo("api-previous-version");
+                softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+            });
+
+            var apiDefinition = rolledBackApi.getApiDefinition();
+            assertSoftly(softly -> {
+                softly.assertThat(apiDefinition.getName()).isEqualTo("api-previous-name");
+                softly.assertThat(apiDefinition.getVersion()).isEqualTo("api-previous-version");
+                softly.assertThat(apiDefinition.getProxy().getVirtualHosts().getFirst().getPath()).isEqualTo("/api-previous-path");
+                softly
+                    .assertThat(apiDefinition.getProxy().getLogging())
+                    .extracting(Logging::getMode, Logging::getContent, Logging::getScope, Logging::getCondition)
+                    .contains(LoggingMode.CLIENT, LoggingContent.HEADERS, LoggingScope.REQUEST, "someCondition");
+            });
+
+            var rolledBackPlan = planCrudService.getById("plan-to-rollback");
+            assertSoftly(softly -> {
+                softly.assertThat(rolledBackPlan.getName()).isEqualTo("plan-current-name");
+                softly.assertThat(rolledBackPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+                softly.assertThat(rolledBackPlan.getUpdatedAt()).isEqualTo(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()));
+                softly.assertThat(rolledBackPlan.getPlanStatus()).isEqualTo(PlanStatus.CLOSED);
+            });
+            assertThat(planCrudService.storage()).containsOnly(rolledBackPlan);
+
+            // Verify audit log was created
+            assertRollbackAuditHasBeenCreated();
+        }
+
+        @Test
+        void should_rollback_api_v4_plan_with_same_name_be_reopened() throws JsonProcessingException {
+            // Given
+            var existingV4Api = apiV4().build();
+            apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
+
+            givenExistingPlan(
+                PlanFixtures
+                    .aPlanHttpV4()
+                    .toBuilder()
+                    .id("plan-to-rollback")
+                    .apiId(existingV4Api.getId())
+                    .name("plan-current-name")
+                    .description("Current plan description")
+                    .build()
+            )
+                .setPlanStatus(PlanStatus.CLOSED);
+
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api
+                .builder()
+                .id(existingV4Api.getId())
+                .name("api-previous-name")
+                .version("api-previous-version")
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(
+                    io.gravitee.definition.model.Proxy
+                        .builder()
+                        .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
+                        .groups(
+                            Set.of(
+                                EndpointGroup
+                                    .builder()
+                                    .name("default-endpoint")
+                                    .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
+                                    .build()
+                            )
+                        )
+                        .logging(new Logging(LoggingMode.CLIENT, LoggingScope.REQUEST, LoggingContent.HEADERS, "someCondition"))
+                        .build()
+                )
+                .plans(
+                    Map.of(
+                        "plan-to-rollback",
+                        io.gravitee.definition.model.Plan
+                            .builder()
+                            .id("plan-to-rollback")
+                            .name("plan-previous-name")
+                            .status("PUBLISHED")
+                            .security("KEY_LESS")
+                            .build()
+                    )
+                )
+                .build();
+
+            var apiRepositoryModel = io.gravitee.repository.management.model.Api
+                .builder()
+                .id(eventV2ApiDefinition.getId())
+                .name(eventV2ApiDefinition.getName())
+                .version(eventV2ApiDefinition.getVersion())
+                .definitionVersion(DefinitionVersion.V2)
+                .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+                .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
+                .build();
+
+            var event = Event
+                .builder()
+                .id("rollback-event-id")
+                .type(EventType.PUBLISH_API)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+                .build();
+            eventQueryService.initWith(List.of(event));
+
+            // When
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            // Then
+            var rolledBackApi = apiCrudService.get(existingV4Api.getId());
+            assertSoftly(softly -> {
+                softly.assertThat(rolledBackApi.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
+                softly.assertThat(rolledBackApi.getName()).isEqualTo("api-previous-name");
+                softly.assertThat(rolledBackApi.getVersion()).isEqualTo("api-previous-version");
+                softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+            });
+
+            var apiDefinition = rolledBackApi.getApiDefinition();
+            assertSoftly(softly -> {
+                softly.assertThat(apiDefinition.getName()).isEqualTo("api-previous-name");
+                softly.assertThat(apiDefinition.getVersion()).isEqualTo("api-previous-version");
+                softly.assertThat(apiDefinition.getProxy().getVirtualHosts().getFirst().getPath()).isEqualTo("/api-previous-path");
+                softly
+                    .assertThat(apiDefinition.getProxy().getLogging())
+                    .extracting(Logging::getMode, Logging::getContent, Logging::getScope, Logging::getCondition)
+                    .contains(LoggingMode.CLIENT, LoggingContent.HEADERS, LoggingScope.REQUEST, "someCondition");
+            });
+
+            var rolledBackPlan = planCrudService.getById("plan-to-rollback");
+            assertSoftly(softly -> {
+                softly.assertThat(rolledBackPlan.getName()).isEqualTo("plan-previous-name");
+                softly.assertThat(rolledBackPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
+                softly.assertThat(rolledBackPlan.getUpdatedAt()).isEqualTo(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()));
+                softly.assertThat(rolledBackPlan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
+            });
+            assertThat(planCrudService.storage()).containsOnly(rolledBackPlan);
+
+            // Verify audit log was created
+            assertRollbackAuditHasBeenCreated();
+        }
+
+        @Test
         void should_rollback_api_and_flows() throws JsonProcessingException {
             // Given
             var existingV4Api = apiV4()

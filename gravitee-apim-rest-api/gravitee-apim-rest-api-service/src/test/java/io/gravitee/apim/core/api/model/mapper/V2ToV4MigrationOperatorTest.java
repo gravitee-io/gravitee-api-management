@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.model.mapper;
 
 import static io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.*;
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -480,6 +481,38 @@ class V2ToV4MigrationOperatorTest {
             assertThat(result.getNeedRedeployAt()).isNotNull();
             assertThat(result.getNeedRedeployAt().toInstant()).isAfter(now.toInstant().minusSeconds(1));
             assertThat(result.getNeedRedeployAt().toInstant()).isBefore(now.toInstant().plusSeconds(10));
+        }
+
+        @Test
+        void shouldMapPlanWithPlanDefinitionV2() {
+            io.gravitee.definition.model.Plan planDefinitionV2 = new io.gravitee.definition.model.Plan();
+            planDefinitionV2.setId("plan-id");
+            planDefinitionV2.setName("Test Plan");
+            planDefinitionV2.setSecurity("API_KEY");
+            planDefinitionV2.setSecurityDefinition("ApiKey definition");
+            planDefinitionV2.setSelectionRule("selection-rule");
+            planDefinitionV2.setTags(Set.of("tag1", "tag2"));
+            planDefinitionV2.setStatus("PUBLISHED");
+
+            Plan plan = Plan.builder().planDefinitionV2(planDefinitionV2).build();
+            var migratedPlanResult = get(mapper.mapPlan(plan));
+
+            assertThat(migratedPlanResult).isNotNull();
+            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getId()).isEqualTo("plan-id");
+            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getName()).isEqualTo("Test Plan");
+            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo("API_KEY");
+            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getSecurity().getConfiguration()).isEqualTo("ApiKey definition");
+            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getSelectionRule()).isEqualTo("selection-rule");
+            assertThat(migratedPlanResult.getPlanDefinitionHttpV4().getTags()).containsExactlyInAnyOrder("tag1", "tag2");
+        }
+
+        @Test
+        void shouldMapPlanWithoutPlanDefinitionV2() {
+            Plan plan = Plan.builder().planDefinitionV2(null).build();
+
+            var migratedPlanResult = get(mapper.mapPlan(plan));
+            assertThat(migratedPlanResult).isNotNull();
+            assertThat(migratedPlanResult.getPlanDefinitionHttpV4()).isNull();
         }
     }
 
