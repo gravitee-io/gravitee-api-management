@@ -36,6 +36,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.GroupCriteria;
 import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AccessControl;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -106,6 +107,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -675,12 +677,18 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             //remove all applications or apis
             Date updatedDate = new Date();
-            apiRepository
-                .search(
-                    new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build(),
-                    null,
-                    ApiFieldFilter.allFields()
+
+            Stream
+                .generate(() ->
+                    apiRepository.search(
+                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build(),
+                        null,
+                        new PageableBuilder().pageSize(100).pageNumber(0).build(),
+                        ApiFieldFilter.allFields()
+                    )
                 )
+                .takeWhile(page -> page.getPageElements() > 0)
+                .flatMap(page -> page.getContent().stream())
                 .forEach(api -> {
                     api.removeGroup(groupId);
                     api.setUpdatedAt(updatedDate);
@@ -704,6 +712,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     //remove idp group mapping using this group
                     removeIDPGroupMapping(groupId, updatedDate);
                 });
+
             Set<String> applicationIds = new HashSet<>();
             applicationRepository
                 .findByGroups(Collections.singletonList(groupId))
