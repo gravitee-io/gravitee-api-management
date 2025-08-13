@@ -28,7 +28,7 @@
     <ng-container matColumnDef="timestamp">
       <th mat-header-cell *matHeaderCellDef id="timestamp">Timestamp</th>
       <td mat-cell *matCellDef="let log">
-        <a [routerLink]="'./' + log.requestId">{{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.sss' }}</a>
+        <a [routerLink]="'./' + log.requestId">{{ log.timestamp | date: 'dd/MM/yyyy HH:mm:ss.SSS' }}</a>
       </td>
     </ng-container>
 
@@ -68,24 +68,33 @@
       <td mat-cell *matCellDef="let log">{{ log.gatewayResponseTime + 'ms' }}</td>
     </ng-container>
 
+    <ng-container matColumnDef="endpoint">
+      <th mat-header-cell *matHeaderCellDef id="endpoint">Endpoint reached</th>
+      <td mat-cell *matCellDef="let log">
+        @if (!!log.endpoint) {
+          <span class="gio-badge-success"><mat-icon svgIcon="gio:check"></mat-icon></span>
+        }
+      </td>
+    </ng-container>
+
     <!-- Actions Column -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef id="actions"></th>
       <td mat-cell *matCellDef="let log">
         <div>
-          <a mat-icon-button data-testid="api_logs_details_button" [routerLink]="'./' + log.requestId"
+          <a mat-button data-testid="api_logs_details_button" [routerLink]="'./' + log.requestId"
             ><mat-icon svgIcon="gio:eye-empty"></mat-icon
           ></a>
         </div>
       </td>
     </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns" data-testid="api_logs_table_header"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="api_logs_table_row"></tr>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns()" data-testid="api_logs_table_header"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns()" data-testid="api_logs_table_row"></tr>
 
     <!-- Row shown when there is no data -->
     <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns().length">
         <div class="table__empty-state">
           <div class="mat-h3">No data to display</div>
           <div>More data may be available. Try widening your timeframe or adjusting your filters.</div>

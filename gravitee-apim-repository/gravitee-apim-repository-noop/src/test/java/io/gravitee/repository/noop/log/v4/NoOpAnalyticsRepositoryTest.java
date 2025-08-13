@@ -40,6 +40,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -153,7 +154,7 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
 
         var result = analyticsRepository.searchRequestsCountByEvent(
             queryContext,
-            new RequestsCountByEventQuery(new SearchTermId(SearchTermId.SearchTerm.API, API_ID), new TimeRange(from, to))
+            new RequestsCountByEventQuery(new SearchTermId(SearchTermId.SearchTerm.API, API_ID), new TimeRange(from, to), Optional.empty())
         );
         assertNotNull(result);
         assertTrue(result.isEmpty());

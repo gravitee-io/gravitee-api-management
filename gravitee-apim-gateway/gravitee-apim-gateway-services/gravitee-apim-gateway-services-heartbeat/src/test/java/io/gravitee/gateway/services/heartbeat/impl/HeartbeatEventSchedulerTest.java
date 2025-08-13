@@ -34,6 +34,7 @@ import io.gravitee.node.api.cluster.messaging.Topic;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,5 +152,10 @@ class HeartbeatEventSchedulerTest {
         // This call is made during the start
         verify(topic, times(1)).publish(any());
         assertThat(executorService.isShutdown()).isTrue();
+        ExecutorService heartbeatExecutor = (ExecutorService) ReflectionUtils
+            .tryToReadFieldValue(HeartbeatEventListener.class, "heartbeatExecutor", cut.getHeartbeatEventListener())
+            .get();
+
+        assertThat(heartbeatExecutor.isShutdown()).isTrue();
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, input, OnChanges, SimpleChanges } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
@@ -34,6 +34,11 @@ export class GioWidgetLayoutComponent implements OnChanges {
   tooltip = input<string>();
   state = input.required<GioWidgetLayoutState>();
   errors = input<string[]>();
+
+  errorMessage = computed(() => {
+    const errors = this.errors();
+    return errors && errors.length > 0 ? errors.join(', ') : 'An error occurred';
+  });
 
   constructor(private cdr: ChangeDetectorRef) {}
 

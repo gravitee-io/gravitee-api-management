@@ -15,14 +15,12 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, combineLatest } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
 import { ApiAnalyticsWidgetService } from './api-analytics-widget.service';
 import { ApiAnalyticsDashboardWidgetConfig } from './api-analytics-proxy/api-analytics-proxy.component';
 
-import { ApiAnalyticsV2Service } from '../../../../services-ngx/api-analytics-v2.service';
 import { fakeGroupByResponse } from '../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
 import { fakeAnalyticsHistogram } from '../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { GroupByResponse } from '../../../../entities/management-api-v2/analytics/analyticsGroupBy';
@@ -38,14 +36,21 @@ import { fakeAnalyticsStatsResponse } from '../../../../entities/management-api-
 describe('ApiAnalyticsWidgetService', () => {
   let service: ApiAnalyticsWidgetService;
   let httpTestingController: HttpTestingController;
-  let timeRangeFilterSubject: BehaviorSubject<any>;
 
   const API_ID = 'api-123';
   const TIME_RANGE_PARAMS = { from: 1000, to: 2000, interval: 10 };
 
-  function expectGroupByRequest(field: string, response: GroupByResponse): void {
+  function expectGroupByRequest(
+    field: string,
+    response: GroupByResponse,
+    options: {
+      ranges?: string;
+      order?: string;
+    } = {},
+  ): void {
+    const { ranges, order } = options;
     const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=GROUP_BY&from=${TIME_RANGE_PARAMS.from}&to=${TIME_RANGE_PARAMS.to}&interval=${TIME_RANGE_PARAMS.interval}&field=${field}`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics?type=GROUP_BY&from=${TIME_RANGE_PARAMS.from}&to=${TIME_RANGE_PARAMS.to}&interval=${TIME_RANGE_PARAMS.interval}&field=${field}${ranges ? `&ranges=${ranges}` : ''}${order ? `&order=${order}` : ''}`,
       method: 'GET',
     });
     req.flush(response);
@@ -68,35 +73,12 @@ describe('ApiAnalyticsWidgetService', () => {
   }
 
   beforeEach(() => {
-    timeRangeFilterSubject = new BehaviorSubject(TIME_RANGE_PARAMS);
-
     TestBed.configureTestingModule({
       imports: [GioTestingModule],
-      providers: [
-        ApiAnalyticsWidgetService,
-        {
-          provide: ApiAnalyticsV2Service,
-          useValue: {
-            timeRangeFilter: () => timeRangeFilterSubject.asObservable(),
-            getStats(apiId: string, timeRangeParams: any, urlParamsData: any) {
-              const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics?type=STATS&from=${timeRangeParams.from}&to=${timeRangeParams.to}&interval=${timeRangeParams.interval}${urlParamsData.field ? `&field=${urlParamsData.field}` : ''}`;
-              return TestBed.inject(HttpClient).get<AnalyticsStatsResponse>(url);
-            },
-            getGroupBy: (apiId: string, timeRangeParams: any, urlParamsData: any) => {
-              const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics?type=GROUP_BY&from=${timeRangeParams.from}&to=${timeRangeParams.to}&interval=${timeRangeParams.interval}${urlParamsData.field ? `&field=${urlParamsData.field}` : ''}`;
-              return TestBed.inject(HttpClient).get<GroupByResponse>(url);
-            },
-            getHistogramAnalytics: (apiId: string, aggregations: string, timeRangeParams: any) => {
-              const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics?type=HISTOGRAM&from=${timeRangeParams.from}&to=${timeRangeParams.to}&interval=${timeRangeParams.interval}&aggregations=${aggregations}`;
-              return TestBed.inject(HttpClient).get<HistogramAnalyticsResponse>(url);
-            },
-          },
-        },
-      ],
     });
-
-    service = TestBed.inject(ApiAnalyticsWidgetService);
     httpTestingController = TestBed.inject(HttpTestingController);
+
+    service = TestBed.inject<ApiAnalyticsWidgetService>(ApiAnalyticsWidgetService);
   });
 
   afterEach(() => {
@@ -105,9 +87,11 @@ describe('ApiAnalyticsWidgetService', () => {
 
   describe('getApiAnalyticsWidgetConfig$', () => {
     describe('when no time range is selected', () => {
-      it('should return error config', (done) => {
-        timeRangeFilterSubject.next(null);
+      beforeEach(() => {
+        service.setUrlParamsData({ timeRangeParams: null });
+      });
 
+      it('should return error config', (done) => {
         const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
           type: 'pie',
           apiId: API_ID,
@@ -134,6 +118,10 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('STATS', () => {
       describe('stats widget', () => {
+        beforeEach(() => {
+          service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+        });
+
         it('should transform STATS response to stats chart config', (done) => {
           const fakeWidgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'stats',
@@ -222,6 +210,10 @@ describe('ApiAnalyticsWidgetService', () => {
     });
 
     describe('GROUP_BY analytics', () => {
+      beforeEach(() => {
+        service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+      });
+
       describe('pie chart widget', () => {
         it('should transform GROUP_BY response to pie chart config', (done) => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
@@ -289,7 +281,7 @@ describe('ApiAnalyticsWidgetService', () => {
             done();
           });
 
-          expectGroupByRequest('status', mockGroupByResponse);
+          expectGroupByRequest('status', mockGroupByResponse, { ranges: '100:199;200:299;300:399;400:499;500:599' });
         });
 
         it('should handle status ranges with predefined labels', (done) => {
@@ -344,7 +336,7 @@ describe('ApiAnalyticsWidgetService', () => {
             done();
           });
 
-          expectGroupByRequest('status', mockGroupByResponse);
+          expectGroupByRequest('status', mockGroupByResponse, { ranges: '1;2;3' });
         });
 
         it('should fallback to metadata or original labels when ranges are not provided', (done) => {
@@ -482,7 +474,7 @@ describe('ApiAnalyticsWidgetService', () => {
             done();
           });
 
-          expectGroupByRequest('status', mockGroupByResponse);
+          expectGroupByRequest('status', mockGroupByResponse, { ranges: '200:299;400:499' });
         });
       });
 
@@ -495,7 +487,8 @@ describe('ApiAnalyticsWidgetService', () => {
             tooltip: 'Applications ranked by total API calls',
             analyticsType: 'GROUP_BY',
             groupByField: 'application-id',
-            shouldSortBuckets: true,
+            shouldSortBuckets: false,
+            orderBy: '-count:_count',
           };
 
           const mockGroupByResponse: GroupByResponse = fakeGroupByResponse({
@@ -505,8 +498,8 @@ describe('ApiAnalyticsWidgetService', () => {
               'app-3': 50,
             },
             metadata: {
-              'app-1': { name: 'Application 1', order: 0 },
-              'app-2': { name: 'Application 2', order: 1 },
+              'app-1': { name: 'Application 1', order: 1 },
+              'app-2': { name: 'Application 2', order: 0 },
               'app-3': { name: 'Application 3', order: 2 },
             },
           });
@@ -541,24 +534,27 @@ describe('ApiAnalyticsWidgetService', () => {
                 count: 200,
                 id: 'app-2',
                 isUnknown: false,
+                order: 0,
               });
               expect(result.widgetData.data[1]).toEqual({
                 name: 'Application 1',
                 count: 100,
                 id: 'app-1',
                 isUnknown: false,
+                order: 1,
               });
               expect(result.widgetData.data[2]).toEqual({
                 name: 'Application 3',
                 count: 50,
                 id: 'app-3',
                 isUnknown: false,
+                order: 2,
               });
             }
             done();
           });
 
-          expectGroupByRequest('application-id', mockGroupByResponse);
+          expectGroupByRequest('application-id', mockGroupByResponse, { order: '-count:_count' });
         });
 
         it('should not sort when shouldSortBuckets is false', (done) => {
@@ -600,6 +596,10 @@ describe('ApiAnalyticsWidgetService', () => {
     });
 
     describe('HISTOGRAM analytics', () => {
+      beforeEach(() => {
+        service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+      });
+
       describe('line chart widget', () => {
         it('should transform HISTOGRAM response to line chart config', (done) => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
@@ -783,9 +783,87 @@ describe('ApiAnalyticsWidgetService', () => {
           });
         });
       });
+
+      it('should transform HISTOGRAM response with bucket metadata to line chart config', (done) => {
+        const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
+          type: 'line',
+          apiId: API_ID,
+          title: 'Applications Requests Over Time',
+          tooltip: 'Application requests over time',
+          analyticsType: 'HISTOGRAM',
+          aggregations: [
+            {
+              type: AggregationTypes.FIELD,
+              field: AggregationFields.APPLICATION_ID,
+            },
+          ],
+        };
+
+        const mockHistogramResponse: HistogramAnalyticsResponse = fakeAnalyticsHistogram({
+          timestamp: {
+            from: 1000,
+            to: 2000,
+            interval: 100,
+          },
+          values: [
+            {
+              field: 'by_application-id',
+              name: 'application-id',
+              buckets: [
+                {
+                  name: 'app-1',
+                  data: [10, 20, 30, 40, 50],
+                },
+                {
+                  name: 'app-2',
+                  data: [15, 25, 35, 45, 55],
+                },
+              ],
+              metadata: {
+                'app-1': { name: 'Application 1' },
+                'app-2': { name: 'Application 2' },
+              },
+            },
+          ],
+        });
+
+        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          // Skip loading state and wait for the actual result
+          if (result.state === 'loading') {
+            return;
+          }
+
+          expect(result.state).toBe('success');
+          expect(result.title).toBe('Applications Requests Over Time');
+          expect(result.tooltip).toBe('Application requests over time');
+          expect(result.widgetType).toBe('line');
+          if (result.widgetType === 'line') {
+            expect(result.widgetData.data).toHaveLength(2);
+            expect(result.widgetData.data[0]).toEqual({
+              name: 'Application 1',
+              values: [10, 20, 30, 40, 50],
+            });
+            expect(result.widgetData.data[1]).toEqual({
+              name: 'Application 2',
+              values: [15, 25, 35, 45, 55],
+            });
+            expect(result.widgetData.options).toEqual({
+              pointStart: 1000,
+              pointInterval: 100,
+            });
+          }
+          done();
+        });
+
+        expectHistogramRequest('FIELD:application-id', mockHistogramResponse);
+      });
     });
 
     describe('error handling', () => {
+      beforeEach(() => {
+        service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+      });
+
       it('should handle unsupported analytics type', (done) => {
         const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
           type: 'pie',

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 
 /**
@@ -23,5 +24,5 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * @author GraviteeSource Team
  */
 public interface ApiCRDExportDomainService {
-    ApiCRDSpec export(String apiId, AuditInfo auditInfo);
+    ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo);
 }

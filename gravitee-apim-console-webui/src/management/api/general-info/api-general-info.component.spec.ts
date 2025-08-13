@@ -453,6 +453,151 @@ describe('ApiGeneralInfoComponent', () => {
         const apiQualityInfo = await loader.getHarness(ApiGeneralInfoQualityHarness);
         expect(apiQualityInfo).toBeTruthy();
       });
+
+      it('should display migrate to v4 button for V2 APIs only', async () => {
+        const api = fakeApiV2({ id: API_ID });
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+
+        // Wait image to be loaded
+        await waitImageCheck();
+
+        const migrateBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
+        expect(migrateBtn).toBeTruthy();
+      });
+
+      it('should open migration dialog and perform normal migration on MIGRATABLE', async () => {
+        const api = fakeApiV2({ id: API_ID });
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+        await waitImageCheck();
+
+        // Click migrate
+        const migrateBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
+        await migrateBtn.click();
+
+        // Expect a DRY_RUN from the dialog initialization
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_migrate?mode=DRY_RUN`,
+            method: 'POST',
+          })
+          .flush({ state: 'MIGRATABLE', issues: [] });
+
+        // Expect initial check content shows migratable info
+        const dialog = await rootLoader.getHarness(MatDialogHarness);
+        const contentText = await dialog.getContentText();
+        expect(contentText).toContain('Migration ready');
+
+        // Move to confirmation step
+        const continueBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Continue' }));
+        await continueBtn.click();
+
+        // Confirm and start migration
+        const confirmCheckbox = await dialog.getHarness(MatCheckboxHarness);
+        await confirmCheckbox.check();
+        const startBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Start Migration' }));
+        await startBtn.click();
+
+        // Component then calls migrate without mode
+        const postReq = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_migrate`,
+          method: 'POST',
+        });
+        postReq.flush({ state: 'MIGRATED', issues: [] });
+
+        // After migration success, component reloads API and categories
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+      });
+
+      it('should open migration dialog and perform forced migration on CAN_BE_FORCED', async () => {
+        const api = fakeApiV2({ id: API_ID });
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+        await waitImageCheck();
+
+        const migrateBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
+        await migrateBtn.click();
+
+        // Expect a DRY_RUN from the dialog initialization
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_migrate?mode=DRY_RUN`,
+            method: 'POST',
+          })
+          .flush({ state: 'CAN_BE_FORCED', issues: [{ message: 'Requires manual cleanup', state: 'CAN_BE_FORCED' }] });
+
+        // Expect initial check content shows forcible info
+        const dialog = await rootLoader.getHarness(MatDialogHarness);
+        const contentText = await dialog.getContentText();
+        expect(contentText).toContain('Migration allowed');
+        expect(contentText).toContain('Requires manual cleanup');
+
+        // Move to confirmation step
+        const continueBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Continue' }));
+        await continueBtn.click();
+
+        // Confirm and start migration
+        const confirmCheckbox = await dialog.getHarness(MatCheckboxHarness);
+        await confirmCheckbox.check();
+        const startBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Start Migration' }));
+        await startBtn.click();
+
+        // Simulate forced migration
+        const postReq = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_migrate?mode=FORCE`,
+          method: 'POST',
+        });
+        postReq.flush({ state: 'MIGRATED', issues: [] });
+
+        // After migration success, component reloads API and categories
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+      });
+
+      it('should show IMPOSSIBLE state and not allow migration', async () => {
+        const api = fakeApiV2({ id: API_ID });
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+        await waitImageCheck();
+
+        // Open dialog
+        const btn = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_info_migrate_menu"]' }));
+        await btn.click();
+
+        // DRY_RUN result: IMPOSSIBLE with issues
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_migrate?mode=DRY_RUN`,
+            method: 'POST',
+          })
+          .flush({
+            state: 'IMPOSSIBLE',
+            issues: [
+              { message: 'Unsupported policy XYZ', state: 'IMPOSSIBLE' },
+              { message: 'Requires manual cleanup', state: 'CAN_BE_FORCED' },
+            ],
+          });
+
+        const dialog = await rootLoader.getHarness(MatDialogHarness);
+
+        const content = await dialog.getContentText();
+        expect(content).toContain('Migration blocked');
+        expect(content).toContain('Unsupported policy XYZ');
+        expect(content).toContain('Requires manual cleanup');
+
+        // No actions to proceed
+        expect(await dialog.getHarnessOrNull(MatButtonHarness.with({ text: 'Continue' }))).toBeNull();
+        expect(await dialog.getHarnessOrNull(MatButtonHarness.with({ text: 'Start Migration' }))).toBeNull();
+
+        // Close the dialog
+        const cancelBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+        await cancelBtn.click();
+
+        // No further HTTP calls should be made (no migrate, no refresh)
+        httpTestingController.verify({ ignoreCancelled: true });
+      });
     });
   });
 

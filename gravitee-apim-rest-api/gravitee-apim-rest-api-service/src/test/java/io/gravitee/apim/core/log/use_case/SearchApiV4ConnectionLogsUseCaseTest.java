@@ -121,6 +121,7 @@ class SearchApiV4ConnectionLogsUseCaseTest {
                             .status(200)
                             .uri("/my-api")
                             .gatewayResponseTime(42)
+                            .endpoint("https://my-api-example.com")
                             .build()
                     )
                 );

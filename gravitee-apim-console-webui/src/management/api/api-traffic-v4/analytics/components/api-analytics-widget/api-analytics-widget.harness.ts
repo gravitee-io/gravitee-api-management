@@ -150,7 +150,7 @@ export class ApiAnalyticsWidgetHarness extends ComponentHarness {
 
   async getErrorText(): Promise<string> {
     const widgetLayout = await this.getWidgetLayout();
-    return widgetLayout.getErrorText();
+    return widgetLayout.getErrorMessageText();
   }
 
   async hasTooltipIcon(): Promise<boolean> {

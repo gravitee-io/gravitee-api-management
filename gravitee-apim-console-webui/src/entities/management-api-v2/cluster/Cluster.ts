@@ -17,8 +17,12 @@ export interface Cluster {
   id: string;
   name: string;
   description?: string;
-  bootstrapServer: string;
-  security: unknown;
+  configuration: KafkaClusterConfiguration;
   updatedAt: Date;
   createdAt: Date;
+}
+
+export interface KafkaClusterConfiguration {
+  bootstrapServers?: string;
+  security?: unknown;
 }

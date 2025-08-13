@@ -18,11 +18,13 @@ package io.gravitee.apim.rest.api.automation.mapper;
 import io.gravitee.apim.core.application.model.crd.ApplicationCRDStatus;
 import io.gravitee.apim.rest.api.automation.model.ApplicationSpec;
 import io.gravitee.apim.rest.api.automation.model.ApplicationState;
-import io.gravitee.apim.rest.api.automation.model.Errors;
+import io.gravitee.apim.rest.api.automation.model.Metadata;
 import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApplicationCRDSpec;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.ApplicationMetadataEntity;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -35,6 +37,14 @@ import org.mapstruct.factory.Mappers;
 public interface ApplicationMapper {
     ApplicationMapper INSTANCE = Mappers.getMapper(ApplicationMapper.class);
 
+    @Mapping(
+        target = "settings.oauth.applicationType",
+        expression = "java(applicationOAuthClientSettings.getApplicationType().name().toLowerCase())"
+    )
+    @Mapping(
+        target = "settings.oauth.grantTypes",
+        expression = "java(applicationOAuthClientSettings.getGrantTypes().stream().map(Enum::name).map(String::toLowerCase).toList())"
+    )
     ApplicationCRDSpec applicationSpecToApplicationCRDSpec(ApplicationSpec applicationSpec);
 
     @Mapping(target = "id", source = "id")
@@ -54,9 +64,14 @@ public interface ApplicationMapper {
     @Mapping(target = "environmentId", source = "status.environmentId")
     ApplicationState applicationSpecAndStatusToApplicationState(ApplicationSpec spec, ApplicationCRDStatus status);
 
-    Errors toErrors(ApplicationCRDStatus.Errors errors);
-
-    ApplicationSpec applicationCRDSpecToApplicationSpec(ApplicationCRDSpec spec);
-
+    @Mapping(target = "pictureUrl", source = "picture")
+    @Mapping(target = "notifyMembers", expression = "java(!applicationEntity.isDisableMembershipNotifications())")
     ApplicationSpec applicationEntityToApplicationSpec(ApplicationEntity applicationEntity);
+
+    default String returnNullIfEmpty(String value) {
+        return value == null || value.isEmpty() ? null : value;
+    }
+
+    @Mapping(target = "value", expression = "java(returnIfEmpty(applicationMetadataEntity.getValue()))")
+    List<Metadata> metadataEntityToMetadata(List<ApplicationMetadataEntity> metadataEntityList);
 }

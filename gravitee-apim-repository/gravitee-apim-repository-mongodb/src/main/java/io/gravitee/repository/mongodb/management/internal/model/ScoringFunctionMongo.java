@@ -25,7 +25,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @NoArgsConstructor
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}scoring_functions")
-public class ScoringFunctionMongo extends Auditable {
+public class ScoringFunctionMongo extends DeprecatedAuditable {
 
     @Id
     private String id;

@@ -1,0 +1,110 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  mat-dialog-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+// --- Component Blocks ---
+
+.icon-container {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 96px;
+    width: 96px;
+    height: 96px;
+  }
+}
+
+.icon-container--success {
+  color: mat.m2-get-color-from-palette(gio.$mat-success-palette, 'default');
+}
+
+.icon-container--error {
+  color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
+}
+
+.icon-container--alert {
+  color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
+}
+
+.loader {
+  &__content {
+    margin-top: 8px;
+  }
+}
+
+.migratable-state {
+  &__header {
+    font-size: 1.5em;
+    margin-bottom: 8px;
+  }
+}
+
+.issue-detected {
+  width: 100%;
+  text-align: left;
+
+  &__header {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+  }
+  &__subtitle {
+    margin-bottom: 16px;
+  }
+  &__content {
+    margin-bottom: 16px;
+  }
+  &__issues-list {
+    padding-left: 20px;
+    margin: 0 0 24px;
+  }
+  &__issue_warning {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    @include mat.m2-typography-level($typography, subtitle-2);
+
+    &__error-icon {
+      color: mat.m2-get-color-from-palette(gio.$mat-error-palette, 'default');
+      flex: 0 0 auto;
+      width: 24px;
+      height: 24px;
+    }
+    &__alert-icon {
+      color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
+      flex: 0 0 auto;
+    }
+  }
+}
+
+.confirmation-state {
+  width: 100%;
+  text-align: left;
+
+  &__header {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+  }
+  &__warning {
+    margin-bottom: 16px;
+  }
+}

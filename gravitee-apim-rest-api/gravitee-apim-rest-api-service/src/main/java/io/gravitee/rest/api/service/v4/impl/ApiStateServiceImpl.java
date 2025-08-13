@@ -226,7 +226,14 @@ public class ApiStateServiceImpl implements ApiStateService {
     ) {
         EventCriteria criteria = EventCriteria
             .builder()
-            .types(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API))
+            .types(
+                Set.of(
+                    io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                    io.gravitee.repository.management.model.EventType.STOP_API,
+                    io.gravitee.repository.management.model.EventType.START_API,
+                    io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                )
+            )
             .property(Event.EventProperties.API_ID.getValue(), apiId)
             .build();
 
@@ -364,7 +371,13 @@ public class ApiStateServiceImpl implements ApiStateService {
                 lastPublishedAPI.setDeployedAt(new Date());
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.USER.getValue(), userId);
-
+                properties.put(
+                    Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
+                    Optional
+                        .ofNullable(event.getProperties())
+                        .map(p -> p.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()))
+                        .orElse("0")
+                );
                 // Clear useless field for history
                 lastPublishedAPI.setPicture(null);
 
@@ -455,23 +468,17 @@ public class ApiStateServiceImpl implements ApiStateService {
                         genericApiEntity.getDefinitionVersion() == DefinitionVersion.V2 ||
                         genericApiEntity.getDefinitionVersion() == DefinitionVersion.V1
                     ) {
-                        io.gravitee.rest.api.model.api.ApiEntity apiEntity = SerializationUtils.clone(
-                            (io.gravitee.rest.api.model.api.ApiEntity) genericApiEntity
-                        );
+                        io.gravitee.rest.api.model.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.api.ApiEntity) genericApiEntity;
 
-                        io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity = SerializationUtils.clone(
-                            apiConverter.toApiEntity(executionContext, payloadEntity, null, false)
+                        io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity = apiConverter.toApiEntity(
+                            executionContext,
+                            payloadEntity,
+                            null,
+                            false
                         );
 
                         removePathsRuleDescriptionFromApiV1(deployedApiEntity);
                         removePathsRuleDescriptionFromApiV1(apiEntity);
-
-                        // FIXME: Dirty hack due to ec1abe6c8560ff5da7284191ff72e4e54b7630e3, after this change the
-                        //  payloadEntity doesn't contain the flow ids yet as there were no upgrader to update the last
-                        //  publish_api event. So we need to remove the flow ids before comparing the deployed API and the
-                        //  current one.
-                        removeFlowsIdsFromApiV2(deployedApiEntity);
-                        removeFlowsIdsFromApiV2(apiEntity);
 
                         sync =
                             synchronizationService.checkSynchronization(

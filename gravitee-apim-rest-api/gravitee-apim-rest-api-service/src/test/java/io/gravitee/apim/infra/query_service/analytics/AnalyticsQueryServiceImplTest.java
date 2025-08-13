@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
-import io.gravitee.apim.core.analytics.model.Bucket;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.Timestamp;
@@ -318,7 +317,7 @@ class AnalyticsQueryServiceImplTest {
             Instant to = Instant.parse("2024-01-02T00:00:00Z");
             Duration interval = Duration.ofHours(1);
 
-            HistogramAggregate rootAggregate = new HistogramAggregate(
+            HistogramAggregate rootAggregate = new HistogramAggregate.Counts(
                 "rootField",
                 "rootName",
                 Map.of("200", List.of(0L, 0L, 1L, 0L), "202", List.of(0L, 0L, 0L, 1L), "404", List.of(0L, 0L, 0L, 2L))
@@ -340,23 +339,26 @@ class AnalyticsQueryServiceImplTest {
 
             assertThat(result).isPresent();
             HistogramAnalytics analytics = result.get();
-            assertThat(analytics.getTimestamp()).isEqualTo(new Timestamp(from, to, interval));
-            assertThat(analytics.getValues()).hasSize(1);
+            assertThat(analytics.timestamp()).isEqualTo(new Timestamp(from, to, interval));
+            assertThat(analytics.buckets()).hasSize(1);
 
-            Bucket rootBucket = analytics.getValues().getFirst();
+            HistogramAnalytics.Bucket rootBucket = analytics.buckets().getFirst();
             assertThat(rootBucket.getField()).isEqualTo("rootField");
             assertThat(rootBucket.getName()).isEqualTo("rootName");
-            assertThat(rootBucket.getBuckets()).hasSize(3);
+            assertThat(rootBucket).isInstanceOf(HistogramAnalytics.CountBucket.class);
 
-            assertThat(rootBucket.getBuckets().stream().map(Bucket::getName)).containsExactlyInAnyOrder("200", "202", "404");
+            var countBucket = (HistogramAnalytics.CountBucket) rootBucket;
+            assertThat(countBucket.getCounts()).hasSize(3);
 
-            Bucket bucket200 = rootBucket.getBuckets().stream().filter(b -> "200".equals(b.getName())).findFirst().orElseThrow();
-            Bucket bucket202 = rootBucket.getBuckets().stream().filter(b -> "202".equals(b.getName())).findFirst().orElseThrow();
-            Bucket bucket404 = rootBucket.getBuckets().stream().filter(b -> "404".equals(b.getName())).findFirst().orElseThrow();
+            assertThat(countBucket.getCounts().keySet()).containsExactlyInAnyOrder("200", "202", "404");
 
-            assertThat(bucket200.getData()).containsExactly(0L, 0L, 1L, 0L);
-            assertThat(bucket202.getData()).containsExactly(0L, 0L, 0L, 1L);
-            assertThat(bucket404.getData()).containsExactly(0L, 0L, 0L, 2L);
+            List<Long> bucket200 = countBucket.getCounts().get("200");
+            List<Long> bucket202 = countBucket.getCounts().get("202");
+            List<Long> bucket404 = countBucket.getCounts().get("404");
+
+            assertThat(bucket200).containsExactly(0L, 0L, 1L, 0L);
+            assertThat(bucket202).containsExactly(0L, 0L, 0L, 1L);
+            assertThat(bucket404).containsExactly(0L, 0L, 0L, 2L);
         }
     }
 
@@ -522,7 +524,12 @@ class AnalyticsQueryServiceImplTest {
         void should_return_empty_requests_count() {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
-            var query = new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), from, to);
+            var query = new AnalyticsQueryService.CountQuery(
+                AnalyticsQueryService.SearchTermId.forApi("api#1"),
+                from,
+                to,
+                Optional.empty()
+            );
             when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any())).thenReturn(Optional.empty());
             assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query)).isEmpty();
         }
@@ -531,7 +538,12 @@ class AnalyticsQueryServiceImplTest {
         void should_map_repository_response_to_requests_count() {
             var from = Instant.parse("2024-01-01T00:00:00Z");
             var to = Instant.parse("2024-01-02T00:00:00Z");
-            var query = new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), from, to);
+            var query = new AnalyticsQueryService.CountQuery(
+                AnalyticsQueryService.SearchTermId.forApi("api#1"),
+                from,
+                to,
+                Optional.of("host")
+            );
             when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any()))
                 .thenReturn(Optional.of(new CountByAggregate(10)));
             assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query))
@@ -546,7 +558,7 @@ class AnalyticsQueryServiceImplTest {
             assertThat(
                 cut.searchRequestsCountByEvent(
                     GraviteeContext.getExecutionContext(),
-                    new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), null, null)
+                    new AnalyticsQueryService.CountQuery(AnalyticsQueryService.SearchTermId.forApi("api#1"), null, null, null)
                 )
             )
                 .isEmpty();

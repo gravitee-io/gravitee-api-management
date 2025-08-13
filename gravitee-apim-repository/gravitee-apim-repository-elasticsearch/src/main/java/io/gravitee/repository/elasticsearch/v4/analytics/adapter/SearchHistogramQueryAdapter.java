@@ -174,7 +174,7 @@ public class SearchHistogramQueryAdapter {
         var histogramSize = histogramAgg.getBuckets().size();
         for (var aggType : aggTypeMap.entrySet()) {
             if (aggType.getValue() == AggregationType.FIELD) {
-                result.add(parseFieldHistogramAggregate(histogramAgg, aggType.getKey(), aggFieldMap.get(aggType.getKey()), histogramSize));
+                result.add(parseCountsHistogramAggregate(histogramAgg, aggType.getKey(), aggFieldMap.get(aggType.getKey()), histogramSize));
             } else {
                 result.add(parseMetricHistogramAggregate(histogramAgg, aggType.getKey(), aggFieldMap.get(aggType.getKey()), histogramSize));
             }
@@ -182,8 +182,13 @@ public class SearchHistogramQueryAdapter {
         return result;
     }
 
-    private HistogramAggregate parseFieldHistogramAggregate(Aggregation histogramAgg, String aggName, String fieldName, int histogramSize) {
-        var values = new HashMap<String, List<Long>>();
+    private HistogramAggregate parseCountsHistogramAggregate(
+        Aggregation histogramAgg,
+        String aggName,
+        String fieldName,
+        int histogramSize
+    ) {
+        var counts = new HashMap<String, List<Long>>();
         List<JsonNode> buckets = histogramAgg.getBuckets();
         for (int i = 0; i < buckets.size(); i++) {
             var bucket = buckets.get(i);
@@ -191,14 +196,14 @@ public class SearchHistogramQueryAdapter {
                 var aggBuckets = bucket.get(aggName).get("buckets");
                 for (var aggBucket : aggBuckets) {
                     var key = aggBucket.get("key").asText();
-                    if (!values.containsKey(key)) {
-                        values.put(key, new ArrayList<>(Collections.nCopies(histogramSize, 0L)));
+                    if (!counts.containsKey(key)) {
+                        counts.put(key, new ArrayList<>(Collections.nCopies(histogramSize, 0L)));
                     }
-                    values.get(key).set(i, aggBucket.get("doc_count").asLong());
+                    counts.get(key).set(i, aggBucket.get("doc_count").asLong());
                 }
             }
         }
-        return new HistogramAggregate(aggName, fieldName, values);
+        return new HistogramAggregate.Counts(fieldName, aggName, counts);
     }
 
     private HistogramAggregate parseMetricHistogramAggregate(
@@ -207,18 +212,17 @@ public class SearchHistogramQueryAdapter {
         String fieldName,
         int histogramSize
     ) {
-        var values = new HashMap<String, List<Long>>();
-        values.put(aggName, new ArrayList<>(Collections.nCopies(histogramSize, 0L)));
+        List<Long> values = new ArrayList<>(Collections.nCopies(histogramSize, 0L));
         List<JsonNode> buckets = histogramAgg.getBuckets();
         for (int i = 0; i < buckets.size(); i++) {
             var bucket = buckets.get(i);
             if (bucket.has(aggName)) {
                 var aggValue = bucket.get(aggName).get("value");
                 if (!aggValue.isNull()) {
-                    values.get(aggName).set(i, aggValue.asLong());
+                    values.set(i, aggValue.asLong());
                 }
             }
         }
-        return new HistogramAggregate(aggName, fieldName, values);
+        return new HistogramAggregate.Metric(fieldName, aggName, values);
     }
 }

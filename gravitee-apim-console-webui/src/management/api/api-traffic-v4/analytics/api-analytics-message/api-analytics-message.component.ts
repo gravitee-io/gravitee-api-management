@@ -35,7 +35,7 @@ import { ApiAnalyticsV2Service } from '../../../../../services-ngx/api-analytics
 import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
-import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
+import { ApiAnalyticsMessageFiltersBarComponent } from '../components/api-analytics-message-filters-bar/api-analytics-message-filters-bar.component';
 import { AnalyticsAverageMessagesPerRequest } from '../../../../../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
 import {
   ApiAnalyticsResponseStatusRanges,
@@ -66,7 +66,7 @@ type ApiAnalyticsVM = {
     GioCardEmptyStateModule,
     ApiAnalyticsRequestStatsComponent,
     MatIcon,
-    ApiAnalyticsFiltersBarComponent,
+    ApiAnalyticsMessageFiltersBarComponent,
     MatTooltip,
     ApiAnalyticsResponseStatusRangesComponent,
   ],

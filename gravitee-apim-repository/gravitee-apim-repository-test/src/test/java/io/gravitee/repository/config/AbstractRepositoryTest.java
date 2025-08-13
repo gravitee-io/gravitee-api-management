@@ -20,6 +20,7 @@ import static org.springframework.util.StringUtils.capitalize;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.gravitee.repository.exceptions.TechnicalException;
 import jakarta.inject.Inject;
 import java.io.File;
@@ -49,7 +50,9 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 public abstract class AbstractRepositoryTest {
 
     private static final String JSON_EXTENSION = "json";
-    private static final ObjectMapper MAPPER = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Inject
     private TestRepositoryInitializer testRepositoryInitializer;

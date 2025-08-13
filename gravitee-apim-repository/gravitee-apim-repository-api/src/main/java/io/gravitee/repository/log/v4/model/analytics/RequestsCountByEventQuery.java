@@ -15,4 +15,6 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-public record RequestsCountByEventQuery(SearchTermId searchTermId, TimeRange timeRange) {}
+import java.util.Optional;
+
+public record RequestsCountByEventQuery(SearchTermId searchTermId, TimeRange timeRange, Optional<String> query) {}

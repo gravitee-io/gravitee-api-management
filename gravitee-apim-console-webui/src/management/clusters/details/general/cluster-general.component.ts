@@ -16,7 +16,7 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
-import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   GIO_DIALOG_WIDTH,
@@ -60,7 +60,10 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 })
 export class ClusterGeneralComponent implements OnInit {
   public initialCluster: Cluster;
-  public clusterForm: UntypedFormGroup;
+  public clusterForm: FormGroup<{
+    name: FormControl<string>;
+    description: FormControl<string>;
+  }>;
   public isLoadingData = true;
   public isReadOnly = false;
   public initialClusterGeneralFormsValue: unknown;
@@ -85,11 +88,9 @@ export class ClusterGeneralComponent implements OnInit {
       .subscribe(() => {
         this.isLoadingData = false;
 
-        this.clusterForm = new UntypedFormGroup({
-          details: new UntypedFormGroup({
-            name: new UntypedFormControl({ value: this.initialCluster.name, disabled: this.isReadOnly }, [Validators.required]),
-            description: new UntypedFormControl({ value: this.initialCluster.description, disabled: this.isReadOnly }),
-          }),
+        this.clusterForm = new FormGroup({
+          name: new FormControl({ value: this.initialCluster.name, disabled: this.isReadOnly }, [Validators.required]),
+          description: new FormControl({ value: this.initialCluster.description, disabled: this.isReadOnly }),
         });
 
         this.initialClusterGeneralFormsValue = this.clusterForm.getRawValue();
@@ -98,8 +99,9 @@ export class ClusterGeneralComponent implements OnInit {
 
   onSubmit() {
     const clusterToUpdate = {
-      ...this.initialCluster,
-      ...this.clusterForm.getRawValue().details,
+      name: this.clusterForm.getRawValue().name,
+      description: this.clusterForm.getRawValue().description,
+      configuration: this.initialCluster.configuration,
     };
 
     this.clustersService

@@ -25,7 +25,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @EqualsAndHashCode(exclude = { "author" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}promotions")
-public class PromotionMongo extends Auditable {
+public class PromotionMongo extends DeprecatedAuditable {
 
     @Id
     private String id;

@@ -146,7 +146,9 @@ public class MembershipService_IntegrationMembershipTest {
                 integrationRepository,
                 node,
                 objectMapper,
-                commandRepository
+                commandRepository,
+                null,
+                null
             );
     }
 
@@ -288,6 +290,8 @@ public class MembershipService_IntegrationMembershipTest {
             updatedMembership.setReferenceId(INTEGRATION_ID);
             updatedMembership.setMemberId(userId);
             updatedMembership.setMemberType(MembershipMemberType.USER);
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                .thenReturn(Optional.of(new RoleEntity()));
             when(
                 membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                     userId,

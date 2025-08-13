@@ -38,7 +38,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}flows")
-public class FlowMongo extends Auditable {
+public class FlowMongo extends DeprecatedAuditable {
 
     /**
      * Flow technical id

@@ -736,6 +736,7 @@ public class ApiResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         canReadApi(executionContext, api);
         final ApiEntity apiEntity = apiService.findById(executionContext, api);
+
         return qualityMetricsService.getMetrics(executionContext, apiEntity);
     }
 

@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
@@ -150,6 +151,7 @@ public class ApplicationMapperTest {
         applicationEntity.setType(APPLICATION_TYPE);
         applicationEntity.setApiKeyMode(APPLICATION_API_KEY_MODE);
         applicationEntity.setUpdatedAt(nowDate);
+        applicationEntity.setOrigin(Origin.MANAGEMENT);
 
         applicationListItem.setCreatedAt(nowDate);
         applicationListItem.setDescription(APPLICATION_DESCRIPTION);
@@ -162,12 +164,20 @@ public class ApplicationMapperTest {
         applicationListItem.setType(APPLICATION_TYPE);
         applicationListItem.setApiKeyMode(APPLICATION_API_KEY_MODE);
         applicationListItem.setUpdatedAt(nowDate);
+        applicationListItem.setOrigin(Origin.MANAGEMENT);
     }
 
     @Test
     public void testConvertFromAppListItem() {
         Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS);
+    }
+
+    @Test
+    public void testConvertFromAppListItemWithKubernetesOrigin() {
+        applicationListItem.setOrigin(Origin.KUBERNETES);
+        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationListItem, uriInfo);
+        checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS, Origin.KUBERNETES);
     }
 
     @Test
@@ -187,6 +197,13 @@ public class ApplicationMapperTest {
     public void testConvertFromAppEntityNoSettings() {
         Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
         checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS);
+    }
+
+    @Test
+    public void testConvertFromAppEntityWithKubernetesOrigin() {
+        applicationEntity.setOrigin(Origin.KUBERNETES);
+        Application responseApplication = applicationMapper.convert(GraviteeContext.getExecutionContext(), applicationEntity, uriInfo);
+        checkApplication(now, responseApplication, AppSettingsEnum.NO_SETTINGS, Origin.KUBERNETES);
     }
 
     @Test
@@ -224,6 +241,10 @@ public class ApplicationMapperTest {
     }
 
     private void checkApplication(Instant now, Application responseApplication, AppSettingsEnum appSettingsType) {
+        checkApplication(now, responseApplication, appSettingsType, Origin.MANAGEMENT);
+    }
+
+    private void checkApplication(Instant now, Application responseApplication, AppSettingsEnum appSettingsType, Origin origin) {
         assertNotNull(responseApplication);
 
         assertNull(responseApplication.getLinks());
@@ -236,6 +257,7 @@ public class ApplicationMapperTest {
         assertEquals(APPLICATION_NAME, responseApplication.getName());
         assertEquals(now.toEpochMilli(), responseApplication.getUpdatedAt().toInstant().toEpochMilli());
         assertEquals(APPLICATION_API_KEY_MODE.name(), responseApplication.getApiKeyMode().getValue());
+        assertEquals(origin.name(), responseApplication.getOrigin());
 
         List<Group> groups = responseApplication.getGroups();
         assertNotNull(groups);

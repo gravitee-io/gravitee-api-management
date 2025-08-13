@@ -16,7 +16,6 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Map;
-import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,7 +30,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}audits")
-public class AuditMongo extends Auditable {
+public class AuditMongo extends DeprecatedAuditable {
 
     @Id
     @EqualsAndHashCode.Include

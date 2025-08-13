@@ -40,6 +40,7 @@ import {
 export class ApiRuntimeLogsListComponent {
   logs = input.required<ConnectionLog[]>();
   pagination = input.required<Pagination>();
+  isMessageApi = input.required<boolean>();
   readonly gioTableWrapperFilters = computed(() => {
     const pagination = this.pagination();
     return {
@@ -50,9 +51,18 @@ export class ApiRuntimeLogsListComponent {
       },
     };
   });
+  displayedColumns = computed(() => [
+    'timestamp',
+    'method',
+    'status',
+    'URI',
+    'application',
+    'responseTime',
+    ...(this.isMessageApi() ? [] : ['endpoint']),
+    'actions',
+  ]);
 
   paginationUpdated = output<GioTableWrapperPagination>();
-  displayedColumns = ['timestamp', 'method', 'status', 'URI', 'application', 'responseTime', 'actions'];
   pageSizeOptions: number[] = [10, 25, 50, 100];
 
   onFiltersChanged(event: GioTableWrapperFilters) {

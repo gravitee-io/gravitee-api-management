@@ -1,0 +1,92 @@
+[
+  {
+    "id": "cluster-id-1",
+    "createdAt": 1753711100,
+    "environmentId": "env-1",
+    "organizationId": "org-1",
+    "name": "cluster-1",
+    "description": "The cluster no 1",
+    "definition": "Cluster 1 definition"
+  },
+  {
+    "id": "cluster-id-2",
+    "createdAt": 1753711100,
+    "environmentId": "env-1",
+    "organizationId": "org-1",
+    "name": "cluster-no-2",
+    "description": "The cluster no 2",
+    "definition": "Cluster 2 definition"
+  },
+  {
+    "id": "cluster-id-3",
+    "createdAt": 1753711100,
+    "environmentId": "env-2",
+    "organizationId": "org-1",
+    "name": "3-cluster",
+    "description": "The cluster no 3",
+    "definition": "Cluster 3 definition"
+  },
+  {
+    "id": "cluster-id-4",
+    "createdAt": 1753711100,
+    "environmentId": "env-2",
+    "organizationId": "org-1",
+    "name": "cluster-4",
+    "description": "The cluster no 4",
+    "definition": "Cluster 4 definition"
+  },
+  {
+    "id": "cluster-id-5",
+    "createdAt": 1753711100,
+    "environmentId": "env-3",
+    "organizationId": "org-2",
+    "name": "no-5-cluster",
+    "description": "The cluster no 5",
+    "definition": "Cluster 5 definition"
+  },
+  {
+    "id": "cluster-id-6",
+    "createdAt": 1753711100,
+    "environmentId": "env-3",
+    "organizationId": "org-2",
+    "name": "cluster-6",
+    "description": "The cluster no 6",
+    "definition": "Cluster 6 definition"
+  },
+  {
+    "id": "cluster-id-7",
+    "createdAt": 1753711100,
+    "environmentId": "env-2",
+    "organizationId": "org-1",
+    "name": "cluster-7",
+    "description": "The cluster no 7",
+    "definition": "Cluster 7 definition"
+  },
+  {
+    "id": "cluster-id-8",
+    "createdAt": 1753711100,
+    "environmentId": "env-1",
+    "organizationId": "org-1",
+    "name": "8-cluster",
+    "description": "The cluster no 8",
+    "definition": "Cluster 8 definition"
+  },
+  {
+    "id": "cluster-id-9",
+    "createdAt": 1753711100,
+    "environmentId": "env-2",
+    "organizationId": "org-1",
+    "name": "cluster-9",
+    "description": "The cluster no 9",
+    "definition": "Cluster 9 definition"
+  },
+  {
+    "id": "cluster-id-10",
+    "createdAt": 1753711100,
+    "environmentId": "env-1",
+    "organizationId": "org-1",
+    "name": "cluster-10",
+    "description": "The cluster no 10",
+    "definition": "Cluster 10 definition"
+  }
+]

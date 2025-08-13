@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { catchError, map, merge, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, map, merge, Observable, of, switchMap } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 
 import { ApiAnalyticsWidgetConfig } from './components/api-analytics-widget/api-analytics-widget.component';
@@ -30,6 +30,11 @@ import { GioChartLineData, GioChartLineOptions } from '../../../../shared/compon
 import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
 import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
 
+// Interface expected from component that transforms query params to UrlParamsData
+export interface ApiAnalyticsWidgetUrlParamsData {
+  timeRangeParams: TimeRangeParams;
+}
+
 // Colors for charts
 const defaultColors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
 
@@ -37,6 +42,10 @@ const defaultColors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
   providedIn: 'root',
 })
 export class ApiAnalyticsWidgetService {
+  private urlParamsData = new BehaviorSubject<ApiAnalyticsWidgetUrlParamsData>({
+    timeRangeParams: null,
+  });
+
   // Cache for stats requests to avoid multiple backend calls
   private statsCache = new Map<string, Observable<AnalyticsStatsResponse>>();
 
@@ -53,25 +62,29 @@ export class ApiAnalyticsWidgetService {
 
   constructor(private readonly apiAnalyticsV2Service: ApiAnalyticsV2Service) {}
 
+  urlParamsData$(): Observable<ApiAnalyticsWidgetUrlParamsData> {
+    return this.urlParamsData.asObservable();
+  }
+
+  setUrlParamsData(urlParamsData: ApiAnalyticsWidgetUrlParamsData): void {
+    this.urlParamsData.next(urlParamsData);
+  }
+
   clearStatsCache(): void {
     this.statsCache.clear();
   }
 
   getApiAnalyticsWidgetConfig$(widgetConfig: ApiAnalyticsDashboardWidgetConfig): Observable<ApiAnalyticsWidgetConfig> {
-    return this.apiAnalyticsV2Service
-      .timeRangeFilter()
-      .pipe(
-        switchMap(() =>
-          merge(of(this.createLoadingConfig(widgetConfig)), this.getApiAnalyticsWidgetConfigFromAnalyticsType$(widgetConfig)),
-        ),
-      );
+    return this.urlParamsData$().pipe(
+      switchMap(() => merge(of(this.createLoadingConfig(widgetConfig)), this.getApiAnalyticsWidgetConfigFromAnalyticsType$(widgetConfig))),
+    );
   }
 
   private getApiAnalyticsWidgetConfigFromAnalyticsType$(
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): Observable<ApiAnalyticsWidgetConfig> {
-    return this.apiAnalyticsV2Service.timeRangeFilter().pipe(
-      switchMap((timeRangeParams) => {
+    return this.urlParamsData$().pipe(
+      switchMap(({ timeRangeParams }: ApiAnalyticsWidgetUrlParamsData) => {
         if (!timeRangeParams) {
           return of(this.createErrorConfig(widgetConfig, 'No time range selected'));
         }
@@ -86,8 +99,8 @@ export class ApiAnalyticsWidgetService {
           return of(this.createErrorConfig(widgetConfig, 'Unsupported analytics type'));
         }
       }),
-      catchError((error) => {
-        return of(this.createErrorConfig(widgetConfig, error.message || 'An error occurred'));
+      catchError(({ error }) => {
+        return of(this.createErrorConfig(widgetConfig, error?.message || 'An error occurred'));
       }),
     );
   }
@@ -128,6 +141,10 @@ export class ApiAnalyticsWidgetService {
     statsResponse: AnalyticsStatsResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
+    if (Object.values(statsResponse).every((value) => value === 0)) {
+      return this.createEmptyConfig(widgetConfig);
+    }
+
     return {
       title: widgetConfig.title,
       tooltip: widgetConfig.tooltip,
@@ -155,6 +172,10 @@ export class ApiAnalyticsWidgetService {
 
     if (widgetConfig.ranges) {
       urlParamsData.ranges = widgetConfig.ranges.map((range) => `${range.value}`).join(';');
+    }
+
+    if (widgetConfig.orderBy) {
+      urlParamsData.order = widgetConfig.orderBy;
     }
 
     return this.apiAnalyticsV2Service
@@ -206,6 +227,10 @@ export class ApiAnalyticsWidgetService {
       })
       .sort((a, b) => a.label.localeCompare(b.label));
 
+    if (pieData.length === 0) {
+      return this.createEmptyConfig(widgetConfig);
+    }
+
     return {
       title: widgetConfig.title,
       tooltip: widgetConfig.tooltip,
@@ -228,17 +253,19 @@ export class ApiAnalyticsWidgetService {
           count: value,
           id: label,
           isUnknown: metadata?.unknown || false,
+          order: Number(metadata?.order ?? Number.MAX_SAFE_INTEGER),
         };
-      });
-
-    if (widgetConfig.shouldSortBuckets) {
-      tableData.sort((a, b) => b.count - a.count);
-    }
+      })
+      .sort((a, b) => a.order - b.order);
 
     const columns: ApiAnalyticsWidgetTableDataColumn[] = [
       { name: 'name', label: 'Name', isSortable: true, dataType: 'string' },
       { name: 'count', label: 'Count', isSortable: true, dataType: 'number' },
     ];
+
+    if (tableData.length === 0) {
+      return this.createEmptyConfig(widgetConfig);
+    }
 
     return {
       title: widgetConfig.title,
@@ -276,12 +303,6 @@ export class ApiAnalyticsWidgetService {
     histogramResponse: HistogramAnalyticsResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
-    const baseConfig = {
-      title: widgetConfig.title,
-      tooltip: widgetConfig.tooltip,
-      state: 'success',
-    };
-
     if (widgetConfig.type === 'line') {
       const hasMultipleAggregations = widgetConfig.aggregations && widgetConfig.aggregations.length > 1;
 
@@ -297,7 +318,7 @@ export class ApiAnalyticsWidgetService {
           } else {
             // For single aggregation, use the bucket names as the series names
             return value.buckets.map((bucket) => ({
-              name: bucket.name,
+              name: value.metadata?.[bucket.name]?.name || bucket.name,
               values: bucket.data || [],
             }));
           }
@@ -309,9 +330,13 @@ export class ApiAnalyticsWidgetService {
         pointInterval: histogramResponse.timestamp.interval,
       };
 
+      if (lineData.length === 0 || lineData.every((bucket) => bucket.values.every((value) => value === 0))) {
+        return this.createEmptyConfig(widgetConfig);
+      }
+
       return {
-        title: baseConfig.title,
-        tooltip: baseConfig.tooltip,
+        title: widgetConfig.title,
+        tooltip: widgetConfig.tooltip,
         state: 'success',
         widgetType: 'line' as const,
         widgetData: { data: lineData, options },
@@ -377,5 +402,9 @@ export class ApiAnalyticsWidgetService {
 
   private createErrorConfig(widgetConfig: ApiAnalyticsDashboardWidgetConfig, errorMessage: string): ApiAnalyticsWidgetConfig {
     return this.createConfigWithBlankData(widgetConfig, 'error', [errorMessage]);
+  }
+
+  private createEmptyConfig(widgetConfig: ApiAnalyticsDashboardWidgetConfig): ApiAnalyticsWidgetConfig {
+    return this.createConfigWithBlankData(widgetConfig, 'empty');
   }
 }

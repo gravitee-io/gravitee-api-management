@@ -15,7 +15,10 @@
  */
 package io.gravitee.apim.infra.domain_service.application;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -65,6 +68,8 @@ class ImportApplicationCRDDomainServiceLegacyWrapperTest {
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
         updateApplicationEntity.setName(APP_NAME);
         updateApplicationEntity.setDescription(APP_DESCRIPTION);
+
+        when(applicationService.findById(any(), eq(APP_ID))).thenReturn(new io.gravitee.rest.api.model.ApplicationEntity());
 
         service.update(
             APP_ID,

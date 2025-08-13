@@ -160,7 +160,7 @@ public class ApiService_StartTest {
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq(EventType.START_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
-                eq(event.getProperties())
+                argThat((Map<String, String> props) -> "myUser".equals(props.get("user")) && props.containsKey("deployment_number"))
             );
         verify(notifierService, times(1)).trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(API_ID), any());
     }

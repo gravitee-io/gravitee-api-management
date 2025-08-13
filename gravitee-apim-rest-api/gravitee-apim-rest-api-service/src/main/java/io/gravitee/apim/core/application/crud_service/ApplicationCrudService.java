@@ -17,6 +17,7 @@ package io.gravitee.apim.core.application.crud_service;
 
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.List;
 
 public interface ApplicationCrudService {
     /**
@@ -26,4 +27,6 @@ public interface ApplicationCrudService {
     BaseApplicationEntity findById(final ExecutionContext executionContext, String applicationId);
 
     BaseApplicationEntity findById(String applicationId, String environmentId);
+
+    List<BaseApplicationEntity> findByIds(List<String> appIds, String environmentId);
 }

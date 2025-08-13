@@ -27,7 +27,6 @@ import io.gravitee.apim.core.analytics.use_case.SearchResponseTimeUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchStatsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AnalyticTimeRange;
-import io.gravitee.rest.api.management.v2.rest.model.AnalyticsType;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
@@ -35,8 +34,11 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountRe
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.CountAnalytics;
+import io.gravitee.rest.api.management.v2.rest.model.StatsAnalytics;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiAnalyticsParam;
+import io.gravitee.rest.api.management.v2.rest.validation.ApiAnalyticsParamSpecification;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -218,11 +220,12 @@ public class ApiAnalyticsResource extends AbstractResource {
         @PathParam("apiId") String apiId,
         @BeanParam ApiAnalyticsParam apiAnalyticsParam
     ) {
+        ApiAnalyticsParamSpecification.common().throwIfNotSatisfied(apiAnalyticsParam);
         switch (apiAnalyticsParam.getType()) {
             case HISTOGRAM -> {
                 var input = apiAnalyticsParam.toHistogramInput(apiId);
                 var output = searchHistogramAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
-                var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values());
+                var histogramResponse = ApiAnalyticsMapper.INSTANCE.mapHistogramAnalytics(output.values(), output.metadata());
                 histogramResponse.setTimestamp(ApiAnalyticsMapper.INSTANCE.map(output.timestamp()));
                 return new ApiAnalyticsResponse(histogramResponse);
             }
@@ -236,7 +239,7 @@ public class ApiAnalyticsResource extends AbstractResource {
                 var input = apiAnalyticsParam.toStatsInput(apiId);
                 var output = searchStatsUseCase.execute(GraviteeContext.getExecutionContext(), input);
                 if (output.analytics() == null) {
-                    throw new NotFoundException("No stats analytics found for api: " + apiId);
+                    return new ApiAnalyticsResponse(emptyStats());
                 }
                 var statsResponse = ApiAnalyticsMapper.INSTANCE.map(output.analytics());
                 return new ApiAnalyticsResponse(statsResponse);
@@ -245,12 +248,16 @@ public class ApiAnalyticsResource extends AbstractResource {
                 var input = apiAnalyticsParam.toRequestsCountInput(apiId);
                 var output = searchRequestsCountByEventAnalyticsUseCase.execute(GraviteeContext.getExecutionContext(), input);
                 if (output.result() == null) {
-                    throw new NotFoundException("No Count analytics found for api: " + apiId);
+                    return new ApiAnalyticsResponse(new CountAnalytics());
                 }
                 var countAnalytics = ApiAnalyticsMapper.INSTANCE.mapToCountAnalytics(output.result());
                 return new ApiAnalyticsResponse(countAnalytics);
             }
             default -> throw new BadRequestException("Unsupported Analytics Type");
         }
+    }
+
+    private StatsAnalytics emptyStats() {
+        return new StatsAnalytics().count(0L).rps(0L).rpm(0L).rph(0L);
     }
 }

@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.query_service.analytics;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
-import io.gravitee.apim.core.analytics.model.Bucket;
 import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
@@ -73,6 +72,16 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
 
     public AnalyticsQueryServiceImpl(@Lazy AnalyticsRepository analyticsRepository) {
         this.analyticsRepository = analyticsRepository;
+    }
+
+    private static HistogramAnalytics.Bucket mapBuckets(HistogramAggregate histogramAggregate) {
+        if (histogramAggregate instanceof HistogramAggregate.Counts counts) {
+            return new HistogramAnalytics.CountBucket(counts.name(), counts.field(), counts.counts());
+        } else if (histogramAggregate instanceof HistogramAggregate.Metric metrics) {
+            return new HistogramAnalytics.MetricBucket(metrics.name(), metrics.field(), metrics.values());
+        }
+        log.error("Unsupported histogram aggregate type {}", histogramAggregate.getClass());
+        return null;
     }
 
     @Override
@@ -374,7 +383,8 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 executionContext.getQueryContext(),
                 new RequestsCountByEventQuery(
                     toModelSearchTermId(countParameters.searchTermId()),
-                    new TimeRange(countParameters.from(), countParameters.to())
+                    new TimeRange(countParameters.from(), countParameters.to()),
+                    countParameters.query()
                 )
             )
             .map(countAggregate -> RequestsCount.builder().total(countAggregate.total()).build());
@@ -385,30 +395,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         HistogramQuery histogramParameters
     ) {
         Timestamp timestamp = new Timestamp(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval());
-        List<Bucket> values = mapBuckets(aggregates);
-        return HistogramAnalytics.builder().timestamp(timestamp).values(values).build();
-    }
-
-    private List<Bucket> mapBuckets(List<HistogramAggregate> aggregates) {
-        if (aggregates == null) {
-            return null;
-        }
-        return aggregates.stream().map(this::mapHistogramAggregateToBucket).collect(Collectors.toList());
-    }
-
-    private Bucket mapHistogramAggregateToBucket(HistogramAggregate aggregate) {
-        if (aggregate == null) {
-            return null;
-        }
-
-        return Bucket.builder().field(aggregate.field()).name(aggregate.name()).buckets(mapValuesToBuckets(aggregate.buckets())).build();
-    }
-
-    private List<Bucket> mapValuesToBuckets(Map<String, List<Long>> buckets) {
-        return buckets
-            .entrySet()
-            .stream()
-            .map(entry -> Bucket.builder().field(entry.getKey()).name(entry.getKey()).data(entry.getValue()).build())
-            .toList();
+        List<HistogramAnalytics.Bucket> values = aggregates.stream().map(AnalyticsQueryServiceImpl::mapBuckets).toList();
+        return new HistogramAnalytics(timestamp, values);
     }
 }

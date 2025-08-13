@@ -134,6 +134,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     apiType: true,
     states: true,
     access: true,
+    qualityScore: true,
     tags: true,
     categories: true,
     owner: true,
@@ -157,6 +158,11 @@ export class ApiListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.isQualityDisplayed = this.constants.env.settings.apiQualityMetrics && this.constants.env.settings.apiQualityMetrics.enabled;
+    if (this.isQualityDisplayed) {
+      this.displayedColumns.splice(5, 0, 'qualityScore');
+    }
+
     if (localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`)) {
       const storedColumns = JSON.parse(localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`));
       if (storedColumns.every((column) => availableDisplayedColumns.includes(column))) {
@@ -166,6 +172,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
           states: this.displayedColumns.includes('states'),
           access: this.displayedColumns.includes('access'),
           tags: this.displayedColumns.includes('tags'),
+          qualityScore: this.displayedColumns.includes('qualityScore'),
           categories: this.displayedColumns.includes('categories'),
           owner: this.displayedColumns.includes('owner'),
           visibility: this.displayedColumns.includes('visibility'),
@@ -174,10 +181,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
     }
 
     this.initFilters();
-    this.isQualityDisplayed = this.constants.env.settings.apiQualityMetrics && this.constants.env.settings.apiQualityMetrics.enabled;
-    if (this.isQualityDisplayed) {
-      this.displayedColumns.splice(5, 0, 'qualityScore');
-    }
 
     this.tagService
       .list()

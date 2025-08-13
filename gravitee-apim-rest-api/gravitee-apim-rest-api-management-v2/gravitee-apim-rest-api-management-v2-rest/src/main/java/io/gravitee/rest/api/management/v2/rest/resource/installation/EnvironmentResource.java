@@ -22,6 +22,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v2.rest.resource.application.ApplicationsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.category.CategoriesResource;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.ClustersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentAnalyticsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentScoringResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicyGroupsResource;
@@ -83,6 +84,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/shared-policy-groups")
     public SharedPolicyGroupsResource getSharedPolicyGroupsResource() {
         return resourceContext.getResource(SharedPolicyGroupsResource.class);
+    }
+
+    @Path("/clusters")
+    public ClustersResource getClustersResource() {
+        return resourceContext.getResource(ClustersResource.class);
     }
 
     @Path("/scoring")

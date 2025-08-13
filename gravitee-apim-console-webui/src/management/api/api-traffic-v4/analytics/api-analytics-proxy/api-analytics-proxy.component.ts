@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, effect, OnDestroy, OnInit, Signal } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import { ApiAnalyticsFiltersBarComponent } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component';
+import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
+import {
+  ApiAnalyticsProxyFilterBarComponent,
+  ApiAnalyticsProxyFilters,
+} from '../components/api-analytics-proxy-filter-bar/api-analytics-proxy-filter-bar.component';
 import {
   AggregationFields,
   AggregationTypes,
@@ -33,7 +38,7 @@ import {
   ApiAnalyticsWidgetConfig,
   ApiAnalyticsWidgetType,
 } from '../components/api-analytics-widget/api-analytics-widget.component';
-import { ApiAnalyticsWidgetService } from '../api-analytics-widget.service';
+import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../api-analytics-widget.service';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { Stats, StatsField } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
 
@@ -59,6 +64,7 @@ type WidgetDataConfig = {
   groupByField?: GroupByField;
   statsField?: StatsField;
   ranges?: Range[];
+  orderBy?: string;
 };
 
 export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetDataConfig;
@@ -70,7 +76,7 @@ export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetData
     MatCardModule,
     GioLoaderModule,
     GioCardEmptyStateModule,
-    ApiAnalyticsFiltersBarComponent,
+    ApiAnalyticsProxyFilterBarComponent,
     ApiAnalyticsWidgetComponent,
     GioChartPieModule,
   ],
@@ -79,10 +85,13 @@ export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetData
 })
 export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
+  private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public rightColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
+
+  public activeFilters: Signal<ApiAnalyticsProxyFilters> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
 
   private topRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
     {
@@ -99,7 +108,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'Min Latency',
+      title: 'Min Response Time',
       statsKey: 'min',
       statsUnit: 'ms',
       tooltip: '',
@@ -110,7 +119,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'Max Latency',
+      title: 'Max Response Time',
       statsKey: 'max',
       statsUnit: 'ms',
       tooltip: '',
@@ -121,7 +130,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'Average',
+      title: 'Avg Response Time',
       statsKey: 'avg',
       statsUnit: 'ms',
       tooltip: '',
@@ -132,7 +141,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     {
       type: 'stats',
       apiId: this.apiId,
-      title: 'RPS',
+      title: 'Requests Per Second',
       statsKey: 'rps',
       statsUnit: '',
       tooltip: '',
@@ -217,6 +226,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       shouldSortBuckets: false,
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
+      orderBy: '-count:_count',
     },
     {
       type: 'table',
@@ -226,6 +236,27 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       shouldSortBuckets: false,
       groupByField: 'plan-id',
       analyticsType: 'GROUP_BY',
+      orderBy: '-count:_count',
+    },
+    {
+      type: 'table',
+      apiId: this.apiId,
+      title: 'Top Paths',
+      tooltip: 'Most frequently hit API paths',
+      shouldSortBuckets: false,
+      groupByField: 'path-info.keyword',
+      analyticsType: 'GROUP_BY',
+      orderBy: '-count:_count',
+    },
+    {
+      type: 'table',
+      apiId: this.apiId,
+      title: 'Top Slow Applications',
+      tooltip: 'Apps ranked by average response time',
+      shouldSortBuckets: false,
+      groupByField: 'application-id',
+      analyticsType: 'GROUP_BY',
+      orderBy: '-avg:gateway-response-time-ms',
     },
     {
       type: 'table',
@@ -235,15 +266,22 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       shouldSortBuckets: false,
       groupByField: 'host',
       analyticsType: 'GROUP_BY',
+      orderBy: '-count:_count',
     },
   ];
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
     private readonly apiAnalyticsWidgetService: ApiAnalyticsWidgetService,
-  ) {}
+  ) {
+    effect(() => {
+      this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activatedRouteQueryParams()));
+    });
+  }
 
   ngOnInit(): void {
+    // Initialize widgets
     this.topRowTransformed$ = this.topRowWidgets.map((widgetConfig) => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
@@ -257,7 +295,81 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     });
   }
 
+  onFiltersChange(filters: ApiAnalyticsProxyFilters): void {
+    this.updateQueryParamsFromFilters(filters);
+  }
+
+  onRefreshFilters(): void {
+    this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activeFilters()));
+  }
+
   ngOnDestroy(): void {
     this.apiAnalyticsWidgetService.clearStatsCache();
+  }
+
+  private updateQueryParamsFromFilters(filters: ApiAnalyticsProxyFilters): void {
+    const queryParams = this.createQueryParamsFromFilters(filters);
+    this.router.navigate([], {
+      queryParams,
+      queryParamsHandling: 'replace',
+    });
+  }
+
+  private createQueryParamsFromFilters(filters: ApiAnalyticsProxyFilters): Record<string, any> {
+    if (filters.period === 'custom' && filters.from && filters.to) {
+      return {
+        from: filters.from,
+        to: filters.to,
+        period: 'custom',
+      };
+    } else {
+      return {
+        period: filters.period,
+      };
+    }
+  }
+
+  private mapQueryParamsToUrlParamsData(queryParams: unknown): ApiAnalyticsWidgetUrlParamsData {
+    const { from, to, period } = queryParams as { from?: string; to?: string; period?: string };
+    const normalizedPeriod = period || '1d';
+
+    if (normalizedPeriod === 'custom' && from && to) {
+      return {
+        timeRangeParams: {
+          from: +from,
+          to: +to,
+          interval: this.calculateCustomInterval(+from, +to),
+        },
+      };
+    } else {
+      const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
+      return {
+        timeRangeParams: timeFrame.timeFrameRangesParams(),
+      };
+    }
+  }
+
+  private mapQueryParamsToFilters(queryParams: unknown): ApiAnalyticsProxyFilters {
+    const { from, to, period } = queryParams as { from?: string; to?: string; period?: string };
+    const normalizedPeriod = period || '1d';
+
+    if (normalizedPeriod === 'custom' && from && to) {
+      return {
+        period: 'custom',
+        from: +from,
+        to: +to,
+      };
+    } else {
+      return {
+        period: normalizedPeriod,
+        from: null,
+        to: null,
+      };
+    }
+  }
+
+  private calculateCustomInterval(from: number, to: number, nbValuesByBucket = 30): number {
+    const range: number = to - from;
+    return Math.floor(range / nbValuesByBucket);
   }
 }

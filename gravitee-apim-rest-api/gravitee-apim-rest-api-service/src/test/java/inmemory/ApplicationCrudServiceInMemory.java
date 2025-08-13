@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ApplicationCrudServiceInMemory implements ApplicationCrudService, InMemoryAlternative<BaseApplicationEntity> {
 
@@ -43,6 +44,15 @@ public class ApplicationCrudServiceInMemory implements ApplicationCrudService, I
             .filter(application -> applicationId.equals(application.getId()))
             .findFirst()
             .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+    }
+
+    @Override
+    public List<BaseApplicationEntity> findByIds(List<String> appIds, String environmentId) {
+        return storage
+            .stream()
+            .filter(app -> appIds.contains(app.getId()))
+            .filter(app -> app.getEnvironmentId().equals(environmentId))
+            .collect(Collectors.toList());
     }
 
     @Override

@@ -14,4 +14,17 @@
     justify-content: center;
     margin-top: 32px;
   }
+
+  .mat-column-timestamp {
+    min-width: 220px;
+    width: 220px;
+  }
+
+  .mat-column-method,
+  .mat-column-endpoint,
+  .mat-column-responseTime,
+  .mat-column-actions,
+  .mat-column-status {
+    width: 0;
+  }
 }
