@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, OnInit, input, effect, output } from '@angular/core';
+import { Component, DestroyRef, OnInit, input, effect, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -29,11 +29,14 @@ import moment, { Moment } from 'moment';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { customTimeFrames, DATE_TIME_FORMATS, timeFrames } from '../../../../../../shared/utils/timeFrameRanges';
+import { GioSelectSearchComponent, SelectOption } from '../../../../../../shared/components/gio-select-search/gio-select-search.component';
+import { Plan } from '../../../../../../../src/entities/management-api-v2/plan';
 
 interface ApiAnalyticsProxyFilterBarForm {
   period: FormControl<string>;
   from: FormControl<Moment | null>;
   to: FormControl<Moment | null>;
+  plans: FormControl<string[] | null>;
 }
 
 export interface ApiAnalyticsProxyFilters {
@@ -60,6 +63,7 @@ export interface ApiAnalyticsProxyFilters {
     MatInputModule,
     OwlDateTimeModule,
     OwlMomentDateTimeModule,
+    GioSelectSearchComponent,
   ],
   providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
   templateUrl: './api-analytics-proxy-filter-bar.component.html',
@@ -69,14 +73,19 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
   activeFilters = input.required<ApiAnalyticsProxyFilters>();
   filtersChange = output<ApiAnalyticsProxyFilters>();
   refresh = output<void>();
-
+  plans = input<Plan[]>([]);
   protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
+  public planOptions = computed<SelectOption[]>(() => {
+    const plans = this.plans() || [];
+    return plans.map((plan) => ({ value: plan.id, label: plan.name }));
+  });
 
   form: FormGroup<ApiAnalyticsProxyFilterBarForm> = this.formBuilder.group(
     {
       period: [''],
       from: [null],
       to: [null],
+      plans: [null],
     },
     { validators: this.dateRangeValidator },
   );
@@ -111,6 +120,12 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
 
     this.form.controls.to.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.form.updateValueAndValidity();
+    });
+
+    this.form.controls.plans.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((plans) => {
+      const currentFilters = this.activeFilters();
+      const updatedFilters = { ...currentFilters, plans };
+      this.filtersChange.emit(updatedFilters);
     });
   }
 
@@ -150,6 +165,7 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
         period: filters.period,
         from: filters.from ? moment(filters.from) : null,
         to: filters.to ? moment(filters.to) : null,
+        plans: filters.plans,
       });
     }
   }

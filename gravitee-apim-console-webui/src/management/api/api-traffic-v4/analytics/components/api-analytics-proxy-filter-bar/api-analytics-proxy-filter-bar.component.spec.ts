@@ -54,6 +54,7 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
       period: mockActiveFilters.period,
       from: mockActiveFilters.from ? moment(mockActiveFilters.from) : null,
       to: mockActiveFilters.to ? moment(mockActiveFilters.to) : null,
+      plans: mockActiveFilters.plans,
     });
 
     fixture.detectChanges();
@@ -162,6 +163,23 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
 
       // Assert
       expect(spy).not.toHaveBeenCalledWith(expect.objectContaining({ period: 'custom' }));
+    });
+
+    it('should emit filtersChange when plan(s) is selected', () => {
+      // Arrange
+      const spy = jest.spyOn(component.filtersChange, 'emit');
+      const plans = ['planId1', 'planId2'];
+
+      // Act
+      component.form.patchValue({
+        plans: plans,
+      });
+
+      // Assert
+      expect(spy).toHaveBeenCalledWith({
+        ...mockActiveFilters,
+        plans: plans,
+      });
     });
   });
 

@@ -40,6 +40,14 @@ describe('ApiAnalyticsWidgetService', () => {
   const API_ID = 'api-123';
   const TIME_RANGE_PARAMS = { from: 1000, to: 2000, interval: 10 };
 
+  const baseUrlParams = {
+    timeRangeParams: null,
+    plans: null,
+    httpStatuses: null,
+    hosts: null,
+    applications: null,
+  };
+
   function expectGroupByRequest(
     field: string,
     response: GroupByResponse,
@@ -88,7 +96,7 @@ describe('ApiAnalyticsWidgetService', () => {
   describe('getApiAnalyticsWidgetConfig$', () => {
     describe('when no time range is selected', () => {
       beforeEach(() => {
-        service.setUrlParamsData({ timeRangeParams: null, httpStatuses: [], applications: [], plans: [], hosts: [] });
+        service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: null });
       });
 
       it('should return error config', (done) => {
@@ -119,13 +127,7 @@ describe('ApiAnalyticsWidgetService', () => {
     describe('STATS', () => {
       describe('stats widget', () => {
         beforeEach(() => {
-          service.setUrlParamsData({
-            timeRangeParams: { from: 1000, to: 2000, interval: 10 },
-            httpStatuses: [],
-            applications: [],
-            plans: [],
-            hosts: [],
-          });
+          service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
         });
 
         it('should transform STATS response to stats chart config', (done) => {
@@ -217,13 +219,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('GROUP_BY analytics', () => {
       beforeEach(() => {
-        service.setUrlParamsData({
-          timeRangeParams: { from: 1000, to: 2000, interval: 10 },
-          httpStatuses: [],
-          applications: [],
-          plans: [],
-          hosts: [],
-        });
+        service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
       });
 
       describe('pie chart widget', () => {
@@ -610,13 +606,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('HISTOGRAM analytics', () => {
       beforeEach(() => {
-        service.setUrlParamsData({
-          timeRangeParams: { from: 1000, to: 2000, interval: 10 },
-          httpStatuses: [],
-          applications: [],
-          plans: [],
-          hosts: [],
-        });
+        service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
       });
 
       describe('line chart widget', () => {
@@ -880,13 +870,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('error handling', () => {
       beforeEach(() => {
-        service.setUrlParamsData({
-          timeRangeParams: { from: 1000, to: 2000, interval: 10 },
-          httpStatuses: [],
-          applications: [],
-          plans: [],
-          hosts: [],
-        });
+        service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
       });
 
       it('should handle unsupported analytics type', (done) => {
