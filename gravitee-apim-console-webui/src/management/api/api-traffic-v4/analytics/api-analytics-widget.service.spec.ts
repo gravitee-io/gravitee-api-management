@@ -601,6 +601,62 @@ describe('ApiAnalyticsWidgetService', () => {
 
           expectGroupByRequest('application-id', mockGroupByResponse);
         });
+
+        it('should use default column names when no columns are provided for table widget', (done) => {
+          const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
+            type: 'table',
+            apiId: API_ID,
+            title: 'Test Widget',
+            tooltip: 'Test tooltip',
+            analyticsType: 'GROUP_BY',
+            groupByField: 'application-id',
+            shouldSortBuckets: false,
+            // No tableData.columns provided
+          };
+
+          const mockGroupByResponse: GroupByResponse = fakeGroupByResponse({
+            values: {
+              'app-1': 100,
+              'app-2': 200,
+              'app-3': 50,
+            },
+            metadata: {
+              'app-1': { name: 'Application 1', order: 1 },
+              'app-2': { name: 'Application 2', order: 0 },
+              'app-3': { name: 'Application 3', order: 2 },
+            },
+          });
+
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+            // Skip loading state and wait for the actual result
+            if (result.state === 'loading') {
+              return;
+            }
+
+            expect(result.state).toBe('success');
+            expect(result.widgetType).toBe('table');
+            if (result.widgetType === 'table') {
+              // Should have default columns
+              expect(result.widgetData.columns).toHaveLength(2);
+              expect(result.widgetData.columns[0]).toEqual({
+                name: 'col-0',
+                label: 'Name',
+                dataType: 'string',
+              });
+              expect(result.widgetData.columns[1]).toEqual({
+                name: 'col-1',
+                label: 'Value',
+                dataType: 'number',
+              });
+
+              // Data should be properly formatted with default column names
+              expect(result.widgetData.data).toHaveLength(3);
+            }
+            done();
+          });
+
+          expectGroupByRequest('application-id', mockGroupByResponse);
+        });
       });
     });
 

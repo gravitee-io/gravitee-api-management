@@ -264,7 +264,10 @@ export class ApiAnalyticsWidgetService {
     groupByResponse: GroupByResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
-    const columns = widgetConfig.tableData.columns ?? [];
+    const columns = widgetConfig.tableData?.columns ?? [
+      { label: 'Name', dataType: 'string' },
+      { label: 'Value', dataType: 'number' },
+    ];
     const transformedColumns = columns.map((col, i) => ({ ...col, name: `col-${i}` }));
 
     // Keep original index for stable sorting fallback
