@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 public class ApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRefFinder<Api> {
 
     public static final String RESPONSE_TEMPLATES_KIND = "response-templates";
+    public static final String API_V4_DEFINITION_KIND = "api-v4";
 
     @Override
     public boolean canHandle(Object definition) {
@@ -49,7 +50,10 @@ public class ApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRefFinde
 
     @Override
     public DefinitionDescriptor toDefinitionDescriptor(Api definition, DefinitionMetadata metadata) {
-        return new DefinitionDescriptor(new Definition("api-v4", definition.getId()), Optional.ofNullable(metadata.revision()));
+        return new DefinitionDescriptor(
+            new Definition(API_V4_DEFINITION_KIND, definition.getId()),
+            Optional.ofNullable(metadata.revision())
+        );
     }
 
     @Override
