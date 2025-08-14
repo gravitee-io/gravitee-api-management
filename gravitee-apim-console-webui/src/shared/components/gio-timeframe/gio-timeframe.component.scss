@@ -1,0 +1,36 @@
+:host {
+  display: block;
+}
+
+:host [data-testid='apply-button'],
+:host [data-testid='refresh-button'] {
+  --mdc-outlined-button-container-height: 56px;
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.custom-date {
+  width: 212px;
+}
+
+::ng-deep .mat-mdc-option-pseudo-checkbox {
+  display: none !important;
+}
+
+::ng-deep .mat-pseudo-checkbox {
+  display: none !important;
+}
+
+::ng-deep .mat-option {
+  padding-left: 16px;
+}
+
+::ng-deep .cdk-overlay-pane .owl-dt-container {
+  min-width: 280px !important;
+}
+
+::ng-deep .cdk-overlay-pane .owl-dt-container-inner {
+  max-height: 70vh !important;
+  overflow: auto !important;
+}

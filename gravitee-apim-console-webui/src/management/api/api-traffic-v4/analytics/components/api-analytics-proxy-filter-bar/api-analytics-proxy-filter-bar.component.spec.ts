@@ -51,9 +51,11 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
 
     // Initialize form with mock data
     component.form.patchValue({
-      period: mockActiveFilters.period,
-      from: mockActiveFilters.from ? moment(mockActiveFilters.from) : null,
-      to: mockActiveFilters.to ? moment(mockActiveFilters.to) : null,
+      timeframe: {
+        period: mockActiveFilters.period,
+        from: mockActiveFilters.from ? moment(mockActiveFilters.from) : null,
+        to: mockActiveFilters.to ? moment(mockActiveFilters.to) : null,
+      },
       plans: mockActiveFilters.plans,
     });
 
@@ -69,13 +71,15 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
       const toDate = moment().subtract(1, 'day'); // Before from date
 
       // Act
-      component.form.patchValue({
+      component.form.controls.timeframe.setValue({
+        ...component.form.controls.timeframe.value,
         from: fromDate,
         to: toDate,
+        period: 'custom',
       });
 
       // Assert
-      expect(component.form.hasError('dateRange')).toBe(true);
+      expect(component.form.controls.timeframe.hasError('dateRange')).toBe(true);
     });
 
     it('should pass validation when to date is after from date', () => {
@@ -84,24 +88,28 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
       const toDate = moment().add(1, 'day'); // After from date
 
       // Act
-      component.form.patchValue({
+      component.form.controls.timeframe.setValue({
+        ...component.form.controls.timeframe.value,
         from: fromDate,
         to: toDate,
+        period: 'custom',
       });
 
       // Assert
-      expect(component.form.hasError('dateRange')).toBe(false);
+      expect(component.form.controls.timeframe.hasError('dateRange')).toBe(false);
     });
 
     it('should pass validation when only one date is set', () => {
       // Arrange & Act
-      component.form.patchValue({
+      component.form.controls.timeframe.setValue({
+        ...component.form.controls.timeframe.value,
         from: moment(),
         to: null,
+        period: 'custom',
       });
 
       // Assert
-      expect(component.form.hasError('dateRange')).toBe(false);
+      expect(component.form.controls.timeframe.hasError('dateRange')).toBe(false);
     });
   });
 
@@ -112,12 +120,14 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
       const newPeriod = '7d';
 
       // Act
-      component.form.controls.period.setValue(newPeriod);
+      component.form.controls.timeframe.setValue({ ...component.form.controls.timeframe.value, period: newPeriod });
 
       // Assert
       expect(spy).toHaveBeenCalledWith({
         ...mockActiveFilters,
         period: newPeriod,
+        from: null,
+        to: null,
       });
     });
 
@@ -128,9 +138,11 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
       const toDate = moment();
 
       // Act
-      component.form.patchValue({
+      component.form.controls.timeframe.patchValue({
+        ...component.form.controls.timeframe.value,
         from: fromDate,
         to: toDate,
+        period: 'custom',
       });
       component.applyCustomTimeframe();
 
@@ -159,7 +171,10 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
       const spy = jest.spyOn(component.filtersChange, 'emit');
 
       // Act
-      component.form.controls.period.setValue('custom');
+      component.form.controls.timeframe.setValue({
+        ...component.form.controls.timeframe.value,
+        period: 'custom',
+      });
 
       // Assert
       expect(spy).not.toHaveBeenCalledWith(expect.objectContaining({ period: 'custom' }));
@@ -206,14 +221,18 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
 
       // Act
       fixture.componentRef.setInput('activeFilters', {
-        from: fromDate,
-        to: toDate,
         period: 'custom',
+        from: fromDate.valueOf(),
+        to: toDate.valueOf(),
+        httpStatuses: [],
+        applications: [],
+        plans: [],
+        hosts: [],
       });
       fixture.detectChanges();
 
       // Assert
-      expect(await harness.isApplyButtonEnabled()).toBe(false);
+      expect(await harness.isApplyButtonEnabled()).toBe(true);
       expect(await harness.hasDateRangeError()).toBe(true);
     });
 
@@ -224,9 +243,13 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
 
       // Act
       fixture.componentRef.setInput('activeFilters', {
-        from: fromDate,
-        to: toDate,
         period: 'custom',
+        from: fromDate.valueOf(),
+        to: toDate.valueOf(),
+        httpStatuses: [],
+        applications: [],
+        plans: [],
+        hosts: [],
       });
       fixture.detectChanges();
 
@@ -237,7 +260,8 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
 
     it('should disable apply button when dates are not set', async () => {
       // Arrange & Act
-      component.form.patchValue({
+      component.form.controls.timeframe.setValue({
+        ...component.form.controls.timeframe.value,
         from: null,
         to: null,
         period: 'custom',

@@ -1,0 +1,88 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-form-field>
+  <mat-label>Timeframe</mat-label>
+  <mat-select
+    [disabled]="disabled"
+    [value]="value.period"
+    (selectionChange)="onPeriodChange($event.value)"
+    [panelClass]="'select-with-radios'"
+  >
+    @for (timeFrame of timeFrames(); track timeFrame.id) {
+      <mat-option [value]="timeFrame.id">
+        <mat-radio-button
+          class="in-option-radio"
+          [checked]="value.period === timeFrame.id"
+          [disabled]="disabled"
+          disableRipple
+          tabindex="-1"
+          aria-hidden="true"
+        >
+          {{ timeFrame.label }}
+        </mat-radio-button>
+      </mat-option>
+    }
+  </mat-select>
+</mat-form-field>
+
+@if (value.period === customPeriod()) {
+  <mat-form-field class="custom-date">
+    <mat-label>From</mat-label>
+    <input
+      matInput
+      [disabled]="disabled"
+      [owlDateTime]="fromDateTimePicker"
+      [owlDateTimeTrigger]="fromDateTimePicker"
+      [max]="nowDate"
+      [ngModel]="value.from"
+      (ngModelChange)="onFromChange($event)"
+    />
+    <mat-icon (click)="fromDateTimePicker.open()" matSuffix svgIcon="gio:calendar"></mat-icon>
+    <owl-date-time #fromDateTimePicker (afterPickerClosed)="onPickerClosed()"></owl-date-time>
+  </mat-form-field>
+
+  <mat-form-field class="custom-date">
+    <mat-label>To</mat-label>
+    <input
+      matInput
+      [disabled]="disabled"
+      [owlDateTime]="toDateTimePicker"
+      [owlDateTimeTrigger]="toDateTimePicker"
+      [min]="minDate"
+      [max]="nowDate"
+      [ngModel]="value.to"
+      (ngModelChange)="onToChange($event)"
+    />
+    <mat-icon (click)="toDateTimePicker.open()" matSuffix svgIcon="gio:calendar"></mat-icon>
+    <owl-date-time #toDateTimePicker (afterPickerClosed)="onPickerClosed()"></owl-date-time>
+  </mat-form-field>
+
+  <button
+    data-testid="apply-button"
+    [disabled]="disabled || !value.from || !value.to"
+    mat-stroked-button
+    aria-label="Apply"
+    (click)="onApplyClicked()"
+  >
+    Apply
+  </button>
+} @else {
+  <button data-testid="refresh-button" mat-stroked-button aria-label="Refresh data" (click)="refresh.emit()">
+    <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+  </button>
+}
