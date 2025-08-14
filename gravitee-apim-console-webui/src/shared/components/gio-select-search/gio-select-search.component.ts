@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, forwardRef, input, signal, ViewChild, OnDestroy, inject, DestroyRef } from '@angular/core';
+import { Component, ElementRef, forwardRef, input, signal, ViewChild, OnDestroy, inject, DestroyRef, effect, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,6 +27,7 @@ import { ComponentPortal } from '@angular/cdk/portal';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { GioSelectSearchOverlayComponent } from './gio-select-search-overlay.component';
+import {Observable} from "rxjs";
 
 export interface SelectOption {
   value: string;
@@ -61,11 +62,25 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
   options = input.required<SelectOption[]>();
   label = input.required<string>();
   placeholder = input<string>('Search...');
+  isLoading = input<boolean>(false);
+  hasNextPage = input<boolean>(false);
+
+  // Callback observable that contains the new results
+  newResults$ = input<({q: string; page: number;}) => Observable<SelectOption[]>>();
+
+  // With the new results, handle the store to accumulate them with the existing options
+
+  // Outputs
+  loadMore = output<void>();
+  searchChange = output<string>();
+  opened = output<void>();
+  closed = output<void>();
 
   // Internal state
   protected isOpen = signal(false);
   protected multiple: boolean = true;
   private overlayRef: OverlayRef | null = null;
+  private componentRef: any = null;
   private readonly destroyRef = inject(DestroyRef);
 
   // Form control integration
@@ -81,6 +96,14 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
   private readonly overlayPositionBuilder = inject(OverlayPositionBuilder);
 
   @ViewChild('trigger', { static: false }) trigger!: ElementRef<HTMLElement>;
+
+  constructor() {
+    effect(() => {
+      if (this.isOpen() && this.componentRef) {
+        this.updateOverlayData(this.componentRef);
+      }
+    });
+  }
 
   ngOnDestroy() {
     this.closeOverlay();
@@ -162,33 +185,49 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
     });
 
     const portal = new ComponentPortal(GioSelectSearchOverlayComponent);
-    const componentRef = this.overlayRef.attach(portal);
+    this.componentRef = this.overlayRef.attach(portal);
 
     // Pass data to overlay component
-    componentRef.instance.options.set(this.options());
-    componentRef.instance.selectedValues = [...this._value];
-    componentRef.instance.placeholder = this.placeholder();
+    this.updateOverlayData(this.componentRef);
 
     // Handle selection changes
-    componentRef.instance.selectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((selectedValue: string) => {
+    this.componentRef.instance.selectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((selectedValue: string) => {
       this.onSelectionChange(selectedValue);
-      componentRef.instance.selectedValues = [...this._value];
+      this.componentRef.instance.selectedValues = [...this._value];
     });
-    componentRef.instance.clearSelectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    this.componentRef.instance.clearSelectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.updateValue([]);
-      componentRef.instance.selectedValues = [...this._value];
+      this.componentRef.instance.selectedValues = [...this._value];
+    });
+    this.componentRef.instance.loadMoreChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      console.log('loadMoreChange');
+      this.loadMore.emit();
+    });
+    this.componentRef.instance.searchChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((searchTerm: string) => {
+      this.searchChange.emit(searchTerm);
     });
 
     this.overlayRef.backdropClick().subscribe(() => this.closeOverlay());
 
     this.isOpen.set(true);
+    this.opened.emit();
+  }
+
+  private updateOverlayData(componentRef: any) {
+    componentRef.instance.options.set(this.options());
+    componentRef.instance.selectedValues = [...this._value];
+    componentRef.instance.placeholder = this.placeholder();
+    componentRef.instance.isLoading = this.isLoading();
+    componentRef.instance.hasNextPage = this.hasNextPage();
   }
 
   private closeOverlay() {
     this.overlayRef?.detach();
     this.overlayRef?.dispose();
     this.overlayRef = null;
+    this.componentRef = null;
     this.isOpen.set(false);
+    this.closed.emit();
   }
 
   private updateValue(value: string[]) {

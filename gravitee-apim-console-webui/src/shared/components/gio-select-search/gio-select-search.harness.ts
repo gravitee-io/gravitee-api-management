@@ -58,6 +58,7 @@ export class GioSelectSearchHarness extends ComponentHarness {
   protected getOptionLabels = this._documentRootLocator.locatorForAll('.gio-select-search__option-label');
   protected getCheckboxes = this._documentRootLocator.locatorForAll(MatCheckboxHarness);
   protected getCheckedCheckboxes = this._documentRootLocator.locatorForAll(MatCheckboxHarness.with({ checked: true }));
+  protected getLoader = this._documentRootLocator.locatorForOptional('gio-loader');
 
   /**
    * Opens the select dropdown
@@ -189,5 +190,20 @@ export class GioSelectSearchHarness extends ComponentHarness {
     const host = await this.host();
     const formControlName = host.getAttribute('formControlName');
     return formControlName ? formControlName : '';
+  }
+  /**
+   * Checks if the loader is visible (when loading with no results)
+   */
+  async isLoaderVisible(): Promise<boolean> {
+    const loader = await this.getLoader();
+    return loader !== null;
+  }
+
+  /**
+   * Simulates scrolling near the bottom of the options container to trigger load more
+   */
+  async scrollNearBottom(): Promise<void> {
+    const optionsContainer = await this._documentRootLocator.locatorForOptional('.gio-select-search__options')();
+    await optionsContainer.dispatchEvent('scroll');
   }
 }
