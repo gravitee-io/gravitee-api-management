@@ -66,3 +66,48 @@
     }
   </div>
 </form>
+
+<div class="applied-filters">
+  <mat-chip-listbox class="applied-filters__chip_list">
+    <span>Filters applied:</span>
+    @for (filter of $any(activeFilters()) | keyvalue; track filter.key) {
+      @if (filter.value && $any(filter.key) !== 'period' && $any(filter.key) !== 'from' && $any(filter.key) !== 'to') {
+        @if (isArray(filter.value)) {
+          @for (item of $any(filter.value); track item) {
+            <mat-chip-option
+              class="applied-filters__chip"
+              [removable]="true"
+              (removed)="removeFilter($any(filter.key), $any(item))"
+              [matTooltip]="getChipDisplayValue($any(item), $any(filter.key))"
+              [selectable]="false"
+            >
+              {{ getChipDisplayValue($any(item), $any(filter.key)) }}
+              <mat-icon matChipRemove>cancel</mat-icon>
+            </mat-chip-option>
+          }
+        } @else {
+          <mat-chip-option
+            class="applied-filters__chip"
+            [removable]="true"
+            (removed)="removeFilter($any(filter.key))"
+            [matTooltip]="getChipTooltip($any(filter.key), $any(filter.value))"
+            [selectable]="false"
+          >
+            {{ getChipLabel($any(filter.key), $any(filter.value)) }}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip-option>
+        }
+      }
+    }
+    <button
+      mat-button
+      class="applied-filters__reset"
+      data-testid="reset-filters-button"
+      (click)="resetAllFilters()"
+      [disabled]="!hasAppliedFilters()"
+    >
+      <mat-icon svgIcon="gio:x-circle"></mat-icon>
+      <span class="applied-filters__reset__label">Reset filters</span>
+    </button>
+  </mat-chip-listbox>
+</div>

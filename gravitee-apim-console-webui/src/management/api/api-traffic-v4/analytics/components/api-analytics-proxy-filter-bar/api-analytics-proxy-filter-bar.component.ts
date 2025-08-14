@@ -24,6 +24,8 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import moment, { Moment } from 'moment';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -66,6 +68,8 @@ export interface ApiAnalyticsProxyFilters {
     OwlDateTimeModule,
     OwlMomentDateTimeModule,
     GioSelectSearchComponent,
+    MatChipsModule,
+    MatTooltipModule,
   ],
   providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
   templateUrl: './api-analytics-proxy-filter-bar.component.html',
@@ -180,5 +184,66 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
         httpStatuses: filters.httpStatuses,
       });
     }
+  }
+
+  removeFilter(filterKey: string, filterValue?: any) {
+    const currentFilters = this.activeFilters();
+    const updatedFilters: ApiAnalyticsProxyFilters = { ...currentFilters };
+
+    if (Array.isArray(currentFilters[filterKey]) && filterValue !== undefined) {
+      // Remove specific item from array
+      const currentArray = currentFilters[filterKey] as any[];
+      const newArray = currentArray.filter((item) => item !== filterValue);
+      updatedFilters[filterKey] = newArray.length > 0 ? newArray : null;
+    } else {
+      // Reset to default value
+      updatedFilters[filterKey] = null;
+    }
+
+    this.filtersChange.emit(updatedFilters);
+  }
+
+  resetAllFilters() {
+    const currentFilters = this.activeFilters();
+    this.filtersChange.emit({
+      ...currentFilters,
+      httpStatuses: null,
+      plans: null,
+      hosts: null,
+      applications: null,
+    });
+  }
+
+  isArray(value: any): boolean {
+    return Array.isArray(value);
+  }
+
+  hasAppliedFilters(): boolean {
+    const filters = this.activeFilters();
+    return !!(filters.httpStatuses?.length || filters.plans?.length || filters.hosts?.length || filters.applications?.length);
+  }
+
+  getChipDisplayValue(value: any, key: string): string {
+    if (!value) return '';
+
+    if (key === 'httpStatuses') {
+      const statusOption = this.httpStatuses?.find((s) => s.value === value);
+      return statusOption ? statusOption.label : value;
+    }
+
+    if (key === 'plans') {
+      const plan = this.plans()?.find((p) => p.id === value);
+      return plan ? plan.name : value;
+    }
+
+    return value.toString();
+  }
+
+  getChipLabel(key: string, value: any): string {
+    return this.getChipDisplayValue(value, key);
+  }
+
+  getChipTooltip(key: string, value: any): string {
+    return this.getChipDisplayValue(value, key);
   }
 }

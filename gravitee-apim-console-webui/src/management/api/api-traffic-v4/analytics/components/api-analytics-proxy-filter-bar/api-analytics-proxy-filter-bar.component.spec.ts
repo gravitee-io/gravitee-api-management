@@ -47,6 +47,7 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
 
     fixture = TestBed.createComponent(ApiAnalyticsProxyFilterBarComponent);
     fixture.componentRef.setInput('activeFilters', mockActiveFilters);
+    fixture.componentRef.setInput('plans', ['planId1', 'planId2']);
     component = fixture.componentInstance;
 
     // Initialize form with mock data
@@ -246,6 +247,190 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
 
       // Assert
       expect(await harness.isApplyButtonEnabled()).toBe(false);
+    });
+  });
+
+  describe('Applied Filters', () => {
+    describe('hasAppliedFilters', () => {
+      it('should return false when no filters are applied', () => {
+        fixture.componentRef.setInput('activeFilters', {
+          period: '1d',
+          from: null,
+          to: null,
+          httpStatuses: null,
+          plans: null,
+          hosts: null,
+          applications: null,
+        });
+
+        expect(component.hasAppliedFilters()).toBe(false);
+      });
+
+      it('should return true when httpStatuses are applied', () => {
+        fixture.componentRef.setInput('activeFilters', {
+          period: '1d',
+          from: null,
+          to: null,
+          httpStatuses: ['200'],
+          plans: null,
+          hosts: null,
+          applications: null,
+        });
+
+        expect(component.hasAppliedFilters()).toBe(true);
+      });
+
+      it('should return true when plans are applied', () => {
+        fixture.componentRef.setInput('activeFilters', {
+          period: '1d',
+          from: null,
+          to: null,
+          httpStatuses: null,
+          plans: ['plan1'],
+          hosts: null,
+          applications: null,
+        });
+
+        expect(component.hasAppliedFilters()).toBe(true);
+      });
+
+      it('should return false when only date filters are applied (dates are part of timeframe, not shown as chips)', () => {
+        fixture.componentRef.setInput('activeFilters', {
+          period: 'custom',
+          from: 1234567890000,
+          to: 1234567890000,
+          httpStatuses: null,
+          plans: null,
+          hosts: null,
+          applications: null,
+        });
+
+        expect(component.hasAppliedFilters()).toBe(false);
+      });
+
+      it('should return true when hosts are applied', () => {
+        fixture.componentRef.setInput('activeFilters', {
+          period: '1d',
+          from: null,
+          to: null,
+          httpStatuses: null,
+          plans: null,
+          hosts: ['host1'],
+          applications: null,
+        });
+
+        expect(component.hasAppliedFilters()).toBe(true);
+      });
+
+      it('should return true when applications are applied', () => {
+        fixture.componentRef.setInput('activeFilters', {
+          period: '1d',
+          from: null,
+          to: null,
+          httpStatuses: null,
+          plans: null,
+          hosts: null,
+          applications: ['app1'],
+        });
+
+        expect(component.hasAppliedFilters()).toBe(true);
+      });
+
+      it('should return false when only period is different (period is not counted as filter)', () => {
+        fixture.componentRef.setInput('activeFilters', {
+          period: '7d',
+          from: null,
+          to: null,
+          httpStatuses: null,
+          plans: null,
+          hosts: null,
+          applications: null,
+        });
+
+        expect(component.hasAppliedFilters()).toBe(false);
+      });
+    });
+
+    describe('removeFilter', () => {
+      it('should remove individual item from array', () => {
+        const spy = jest.spyOn(component.filtersChange, 'emit');
+        const testFilters: ApiAnalyticsProxyFilters = {
+          period: '7d',
+          from: null,
+          to: null,
+          httpStatuses: ['200', '404'],
+          plans: ['plan1'],
+          hosts: null,
+          applications: null,
+        };
+        fixture.componentRef.setInput('activeFilters', testFilters);
+
+        component.removeFilter('httpStatuses', '200');
+
+        expect(spy).toHaveBeenCalledWith({
+          period: '7d',
+          from: null,
+          to: null,
+          httpStatuses: ['404'],
+          plans: ['plan1'],
+          hosts: null,
+          applications: null,
+        });
+      });
+
+      it('should reset filter to null when removing last item', () => {
+        const spy = jest.spyOn(component.filtersChange, 'emit');
+        const testFilters: ApiAnalyticsProxyFilters = {
+          period: '1d',
+          from: null,
+          to: null,
+          httpStatuses: ['200'],
+          plans: null,
+          hosts: null,
+          applications: null,
+        };
+        fixture.componentRef.setInput('activeFilters', testFilters);
+
+        component.removeFilter('httpStatuses', '200');
+
+        expect(spy).toHaveBeenCalledWith({
+          period: '1d',
+          from: null,
+          to: null,
+          httpStatuses: null,
+          plans: null,
+          hosts: null,
+          applications: null,
+        });
+      });
+    });
+
+    describe('resetAllFilters', () => {
+      it('should reset only filters while keeping timeframe intact', () => {
+        const spy = jest.spyOn(component.filtersChange, 'emit');
+        const testFilters: ApiAnalyticsProxyFilters = {
+          period: '7d',
+          from: 1234567890000,
+          to: 1234567890000,
+          httpStatuses: ['200', '404'],
+          plans: ['plan1'],
+          hosts: ['host1'],
+          applications: ['app1'],
+        };
+        fixture.componentRef.setInput('activeFilters', testFilters);
+
+        component.resetAllFilters();
+
+        expect(spy).toHaveBeenCalledWith({
+          period: '7d', // Timeframe preserved
+          from: 1234567890000, // Timeframe preserved
+          to: 1234567890000, // Timeframe preserved
+          httpStatuses: null, // Filter reset
+          plans: null, // Filter reset
+          hosts: null, // Filter reset
+          applications: null, // Filter reset
+        });
+      });
     });
   });
 });
