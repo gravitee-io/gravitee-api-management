@@ -81,13 +81,7 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
 
   form: FormGroup<ApiAnalyticsProxyFilterBarForm> = this.formBuilder.group({
     httpStatuses: this.formBuilder.control<string[] | null>(null),
-    timeframe: this.formBuilder.control<GioTimeframeValue>(
-      { period: '', from: null, to: null },
-      {
-        nonNullable: true,
-        validators: this.timeframeValidator,
-      },
-    ),
+    timeframe: this.formBuilder.control<GioTimeframeValue>({ period: '', from: null, to: null }, { nonNullable: true }),
     plans: this.formBuilder.control<string[] | null>(null),
   });
   customPeriod: string = 'custom';
@@ -145,15 +139,6 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
 
   refreshFilters() {
     this.refresh.emit();
-  }
-
-  private timeframeValidator(control: FormControl<GioTimeframeValue>): { [key: string]: any } | null {
-    const from = control.value?.from;
-    const to = control.value?.to;
-    if (from && to && from.isAfter(to)) {
-      return { dateRange: true };
-    }
-    return null;
   }
 
   private updateFormFromFilters(filters: ApiAnalyticsProxyFilters) {

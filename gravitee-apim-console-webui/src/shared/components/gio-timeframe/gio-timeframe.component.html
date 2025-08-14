@@ -81,6 +81,14 @@
   >
     Apply
   </button>
+
+  <div class="errors">
+    @if (hasDateRangeError()) {
+      <mat-error>
+        <span>Error: "To" date cannot be earlier than "From" date</span>
+      </mat-error>
+    }
+  </div>
 } @else {
   <button data-testid="refresh-button" mat-stroked-button aria-label="Refresh data" (click)="refresh.emit()">
     <mat-icon svgIcon="gio:refresh-cw"></mat-icon>

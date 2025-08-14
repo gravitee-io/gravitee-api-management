@@ -27,12 +27,4 @@
       (refresh)="refreshFilters()"
     />
   </div>
-
-  <div class="errors">
-    @if (form.controls.timeframe.hasError('dateRange')) {
-      <mat-error>
-        <span>Error: "To" date cannot be earlier than "From" date</span>
-      </mat-error>
-    }
-  </div>
 </form>

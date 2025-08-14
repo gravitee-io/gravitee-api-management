@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, forwardRef, input, output } from '@angular/core';
+import { Component, forwardRef, input, output, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import {
+  AbstractControl,
+  ControlValueAccessor,
+  FormsModule,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+} from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
@@ -53,12 +61,13 @@ export interface GioTimeframeValue {
   ],
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => GioTimeframeComponent), multi: true },
+    { provide: NG_VALIDATORS, useExisting: forwardRef(() => GioTimeframeComponent), multi: true },
     { provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS },
   ],
   templateUrl: './gio-timeframe.component.html',
   styleUrls: ['./gio-timeframe.component.scss'],
 })
-export class GioTimeframeComponent implements ControlValueAccessor {
+export class GioTimeframeComponent implements ControlValueAccessor, OnDestroy, Validator {
   timeFrames = input.required<{ id: string; label: string }[]>();
   customPeriod = input('custom');
 
@@ -73,16 +82,45 @@ export class GioTimeframeComponent implements ControlValueAccessor {
   private onChange: (val: GioTimeframeValue) => void = () => {};
   private onTouched: () => void = () => {};
 
+  validate(control: AbstractControl): ValidationErrors | null {
+    const val: GioTimeframeValue = (control?.value as GioTimeframeValue) ?? this.value;
+    const from = val?.from;
+    const to = val?.to;
+    if (from && to && from.isAfter(to)) {
+      return { dateRange: true };
+    }
+    return null;
+  }
+
+  hasDateRangeError(): boolean {
+    const from = this.value?.from;
+    const to = this.value?.to;
+    return !!(from && to && from.isAfter(to));
+  }
+
   onPickerClosed() {
-    Promise.resolve().then(() => {
-      try {
-        const body = document.body;
-        if (!body) return;
-        body.classList.remove('cdk-global-scrollblock');
-        const stylesToClear = ['paddingRight', 'overflow', 'overflowY', 'position', 'top', 'width'];
-        stylesToClear.forEach((prop) => ((body.style as any)[prop] = ''));
-      } catch {}
-    });
+    // Defer cleanup to ensure it runs after CDK overlay finished its own teardown.
+    setTimeout(() => this.clearCdkScrollblock(), 0);
+  }
+
+  private clearCdkScrollblock() {
+    try {
+      const targets: HTMLElement[] = [];
+      if (document.body) targets.push(document.body);
+      const htmlEl = document.documentElement as HTMLElement | null;
+      if (htmlEl) targets.push(htmlEl);
+
+      const stylesToClear = ['paddingRight', 'overflow', 'overflowY', 'position', 'top', 'width'] as const;
+
+      targets.forEach((el) => {
+        el.classList.remove('cdk-global-scrollblock');
+        stylesToClear.forEach((prop) => {
+          el.style[prop] = '';
+        });
+      });
+    } catch {
+      // no-op
+    }
   }
 
   writeValue(obj: GioTimeframeValue | null): void {
@@ -123,9 +161,16 @@ export class GioTimeframeComponent implements ControlValueAccessor {
 
   onApplyClicked() {
     this.apply.emit();
+    // Ensure any leftover overlay scroll-block styles are cleared when applying.
+    this.clearCdkScrollblock();
   }
 
   private updateMin() {
     this.minDate = this.value.from ?? undefined;
+  }
+
+  ngOnDestroy(): void {
+    // Cleanup in case the component is destroyed while overlays were open
+    this.clearCdkScrollblock();
   }
 }
