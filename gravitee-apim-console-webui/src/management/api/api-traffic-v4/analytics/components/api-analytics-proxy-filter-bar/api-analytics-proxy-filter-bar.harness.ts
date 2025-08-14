@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness, TestElement } from '@angular/cdk/testing';
+import { ComponentHarness } from '@angular/cdk/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
-import moment from 'moment';
 
 import { GioSelectSearchHarness } from '../../../../../../shared/components/gio-select-search/gio-select-search.harness';
 
@@ -40,18 +38,6 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
     return this.locatorForOptional(MatButtonHarness.with({ text: /refresh/i }))();
   }
 
-  async getFromDateField(): Promise<MatFormFieldHarness | null> {
-    return this.locatorForOptional(MatFormFieldHarness)();
-  }
-
-  async getToDateField(): Promise<MatFormFieldHarness | null> {
-    return this.locatorForOptional(MatFormFieldHarness)();
-  }
-
-  async getCustomDateInputs(): Promise<TestElement[]> {
-    return this.locatorForAll('.custom-date input')();
-  }
-
   async getErrorMessages(): Promise<string[]> {
     const errorElements = await this.locatorForAll('mat-error')();
     const messages: string[] = [];
@@ -64,14 +50,6 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
     }
 
     return messages;
-  }
-
-  async selectPeriod(period: string): Promise<void> {
-    const select = await this.getPeriodSelect();
-    if (select) {
-      await select.open();
-      await select.clickOptions({ text: period });
-    }
   }
 
   async getSelectedPlans(): Promise<string[] | null> {
@@ -97,25 +75,6 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
     }
   }
 
-  async setCustomDateRange(fromDate: moment.Moment, toDate: moment.Moment): Promise<void> {
-    // For date inputs, we'll use the native input elements directly
-    const inputs = await this.getCustomDateInputs();
-
-    if (inputs.length >= 2) {
-      // Set from date
-      await inputs[0].sendKeys(fromDate.format('MM/DD/YYYY HH:mm'));
-      // Set to date
-      await inputs[1].sendKeys(toDate.format('MM/DD/YYYY HH:mm'));
-    }
-  }
-
-  async clickApply(): Promise<void> {
-    const button = await this.getApplyButton();
-    if (button) {
-      await button.click();
-    }
-  }
-
   async clickRefresh(): Promise<void> {
     const button = await this.getRefreshButton();
     if (button) {
@@ -123,13 +82,12 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
     }
   }
 
-  async isApplyButtonDisabled(): Promise<boolean> {
-    const button = await this.getApplyButton();
-    return await button.isDisabled();
-  }
-
   async isApplyButtonEnabled(): Promise<boolean> {
     const button = await this.getApplyButton();
+    if (!button) {
+      // If the apply button is not present, it's not enabled.
+      return false;
+    }
     return !(await button.isDisabled());
   }
 
@@ -141,22 +99,9 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
     return null;
   }
 
-  async isCustomPeriodVisible(): Promise<boolean> {
-    const fromField = await this.getFromDateField();
-    return fromField !== null;
-  }
-
   async hasDateRangeError(): Promise<boolean> {
     const errors = await this.getErrorMessages();
     return errors.some((error) => error.toLowerCase().includes('date range') || error.toLowerCase().includes('earlier'));
-  }
-
-  async getFormValidationState(): Promise<{ isValid: boolean; errors: string[] }> {
-    const errors = await this.getErrorMessages();
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
   }
 
   async getSelectedHttpStatuses() {
