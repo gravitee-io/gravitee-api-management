@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Collections;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -122,9 +123,11 @@ public class TargetTokenCommandHandler implements CommandHandler<TargetTokenComm
     }
 
     private boolean assignOrganizationRole(ExecutionContext context, TargetTokenCommandPayload payload, UserEntity user) {
-        String roleName = payload.scope() == TargetTokenCommandPayload.Scope.GKO
-            ? SystemRole.ADMIN.name()
-            : DEFAULT_ROLE_ORGANIZATION_USER.getName();
+        Set<TargetTokenCommandPayload.Scope> adminScopes = Set.of(
+            TargetTokenCommandPayload.Scope.GKO,
+            TargetTokenCommandPayload.Scope.AUTOMATION
+        );
+        String roleName = adminScopes.contains(payload.scope()) ? SystemRole.ADMIN.name() : DEFAULT_ROLE_ORGANIZATION_USER.getName();
         if (roleService.findByScopeAndName(RoleScope.ORGANIZATION, roleName, payload.organizationId()).isEmpty()) {
             log.error("Couldn't find {} role for organization with id [{}]", roleName, payload.organizationId());
             return false;
