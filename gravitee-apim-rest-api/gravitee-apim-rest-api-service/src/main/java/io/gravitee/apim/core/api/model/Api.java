@@ -115,7 +115,8 @@ public class Api {
     /**
      * The current runtime life cycle state.
      */
-    private LifecycleState lifecycleState;
+    @Builder.Default
+    private LifecycleState lifecycleState = LifecycleState.STOPPED;
 
     /**
      * The api picture
