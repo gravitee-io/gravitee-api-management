@@ -469,6 +469,7 @@ class StartIngestIntegrationApisUseCaseTest {
                         .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
                         .groups(Set.of())
                         .federatedAgent(federatedAgent)
+                        .lifecycleState(null)
                         .build()
                 );
             assertThat(planCrudService.storage())
@@ -559,6 +560,7 @@ class StartIngestIntegrationApisUseCaseTest {
                         .createdAt(ZonedDateTime.parse("2023-10-22T12:15:30+02:00[Europe/Paris]"))
                         .updatedAt(ZonedDateTime.parse("2023-10-22T12:15:30+02:00[Europe/Paris]"))
                         .federatedAgent(federatedAgent1)
+                        .lifecycleState(null)
                         .build(),
                     Api
                         .builder()
@@ -573,6 +575,7 @@ class StartIngestIntegrationApisUseCaseTest {
                         .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
                         .groups(Set.of())
                         .federatedAgent(federatedAgent2)
+                        .lifecycleState(null)
                         .build()
                 );
             assertThat(planCrudService.storage())
