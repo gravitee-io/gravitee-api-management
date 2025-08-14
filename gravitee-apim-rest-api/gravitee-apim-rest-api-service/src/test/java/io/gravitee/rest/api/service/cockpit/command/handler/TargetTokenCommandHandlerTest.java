@@ -38,9 +38,13 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -80,9 +84,10 @@ class TargetTokenCommandHandlerTest {
         user.setId(USER_ID);
     }
 
-    @Test
-    void shouldGenerateTokenSuccessfullyForGKO() {
-        command = new TargetTokenCommand(generatePayload(TargetTokenCommandPayload.Scope.GKO));
+    @ParameterizedTest
+    @MethodSource("provideAdminScopes")
+    void shouldGenerateTokenSuccessfullyForAdminScopes(TargetTokenCommandPayload.Scope scope, String expectedTokenPrefix) {
+        command = new TargetTokenCommand(generatePayload(scope));
 
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
         when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID)))
@@ -91,7 +96,7 @@ class TargetTokenCommandHandlerTest {
             .thenReturn(Optional.of(new RoleEntity()));
 
         TokenEntity tokenEntity = new TokenEntity();
-        tokenEntity.setToken("token gko");
+        tokenEntity.setToken(expectedTokenPrefix);
         when(tokenService.create(any(), any(), eq(USER_ID))).thenReturn(tokenEntity);
 
         targetTokenCommandHandler
@@ -102,7 +107,14 @@ class TargetTokenCommandHandlerTest {
             .assertNoErrors()
             .assertValue(reply -> nonNull(reply.getCommandId()))
             .assertValue(reply -> CommandStatus.SUCCEEDED.equals(reply.getCommandStatus()))
-            .assertValue(reply -> "token gko".equals(reply.getTargetToken()));
+            .assertValue(reply -> expectedTokenPrefix.equals(reply.getTargetToken()));
+    }
+
+    private static Stream<Arguments> provideAdminScopes() {
+        return Stream.of(
+            Arguments.of(TargetTokenCommandPayload.Scope.GKO, "token gko"),
+            Arguments.of(TargetTokenCommandPayload.Scope.AUTOMATION, "token automation")
+        );
     }
 
     @Test
