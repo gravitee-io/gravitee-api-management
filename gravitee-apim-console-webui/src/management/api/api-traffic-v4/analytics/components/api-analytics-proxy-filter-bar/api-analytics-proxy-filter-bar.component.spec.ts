@@ -231,7 +231,6 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
       fixture.detectChanges();
 
       // Assert
-
       expect(await harness.hasDateRangeError()).toBe(false);
     });
 
@@ -246,6 +245,77 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
 
       // Assert
       expect(await harness.isApplyButtonEnabled()).toBe(false);
+    });
+  });
+
+  describe('Selected Filter Chips', () => {
+    let emitSpy: jest.SpyInstance;
+
+    const filters: ApiAnalyticsProxyFilters = {
+      ...mockActiveFilters,
+      httpStatuses: ['200', '404'],
+      plans: ['plan1', 'plan2'],
+    };
+
+    beforeEach(() => {
+      emitSpy = jest.spyOn(component.filtersChange, 'emit');
+      component.form.controls.httpStatuses.setValue(['200', '404']);
+      component.form.controls.plans.setValue(['plan1', 'plan2']);
+      fixture.componentRef.setInput('activeFilters', filters);
+      fixture.detectChanges();
+    });
+
+    it('should create filter chips from activeFilters using computed signals', () => {
+      expect(component.currentFilterChips()).toHaveLength(4);
+      expect(component.currentFilterChips()).toEqual([
+        { key: 'httpStatuses', value: '200', display: '200 - Ok' },
+        { key: 'httpStatuses', value: '404', display: '404 - Not Found' },
+        { key: 'plans', value: 'plan1', display: 'plan1' },
+        { key: 'plans', value: 'plan2', display: 'plan2' },
+      ]);
+
+      expect(component.isFiltering()).toBeTruthy();
+    });
+
+    it('should remove any filter and update form', () => {
+      component.removeFilter('httpStatuses', '200');
+
+      expect(component.form.controls.httpStatuses.value).toEqual(['404']);
+      expect(emitSpy).toHaveBeenCalledWith({
+        ...filters,
+        httpStatuses: ['404'],
+      });
+    });
+
+    it('should reset all filters', () => {
+      component.resetAllFilters();
+
+      expect(emitSpy).toHaveBeenCalledWith({
+        ...filters,
+        httpStatuses: null,
+        plans: null,
+      });
+    });
+
+    it('should update filter chips when activeFilters change', () => {
+      // Arrange
+      const newFilters: ApiAnalyticsProxyFilters = {
+        ...mockActiveFilters,
+        httpStatuses: ['500'],
+        plans: ['plan1'],
+      };
+
+      // Act
+      fixture.componentRef.setInput('activeFilters', newFilters);
+      fixture.detectChanges();
+
+      // Assert
+      expect(component.currentFilterChips()).toHaveLength(2);
+      expect(component.currentFilterChips()).toEqual([
+        { key: 'httpStatuses', value: '500', display: '500 - Internal Server Error' },
+        { key: 'plans', value: 'plan1', display: 'plan1' },
+      ]);
+      expect(component.isFiltering()).toBeTruthy();
     });
   });
 });
