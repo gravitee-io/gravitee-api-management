@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, ElementRef, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, signal, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -21,7 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { debounceTime, distinctUntilChanged, startWith, tap } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
@@ -46,17 +46,20 @@ export interface SelectOption {
     MatButtonModule,
     MatCheckboxModule,
     GioIconsModule,
+    GioLoaderModule,
     MatOptionModule,
     MatCardModule,
   ],
   templateUrl: './gio-select-search-overlay.component.html',
   styleUrls: ['./gio-select-search-overlay.component.scss'],
 })
-export class GioSelectSearchOverlayComponent {
+export class GioSelectSearchOverlayComponent implements AfterViewInit, OnDestroy {
   // Input from gio-select-search component
   options = signal<SelectOption[]>([]);
   selectedValues: string[] = [];
   placeholder = 'Search...';
+  isLoading = false;
+  hasNextPage = false;
 
   searchControl = new FormControl('');
   private readonly searchControlValue = toSignal(
@@ -64,7 +67,10 @@ export class GioSelectSearchOverlayComponent {
       startWith(''),
       debounceTime(300),
       distinctUntilChanged(),
-      tap(() => this.scrollToTop()),
+      tap((value) => {
+        this.scrollToTop();
+        this.searchChange.next(value || '');
+      }),
     ),
   );
 
@@ -84,6 +90,20 @@ export class GioSelectSearchOverlayComponent {
   selectionChange = new Subject<string>();
   clearSelectionChange = new Subject<void>();
   close = new Subject<void>();
+  loadMoreChange = new Subject<void>();
+  searchChange = new Subject<string>();
+
+  // Scroll handling for automatic load more
+  private scrollThreshold = 100; // pixels from bottom to trigger load more
+  private isLoadMoreTriggered = false;
+
+  ngAfterViewInit() {
+    this.setupScrollListener();
+  }
+
+  ngOnDestroy() {
+    this.removeScrollListener();
+  }
 
   toggleOption(option: SelectOption) {
     if (option.disabled) return;
@@ -92,6 +112,39 @@ export class GioSelectSearchOverlayComponent {
 
   clearSelection() {
     this.clearSelectionChange.next();
+  }
+
+  private setupScrollListener() {
+    if (this.optionsContainer) {
+      this.optionsContainer.nativeElement.addEventListener('scroll', this.onScroll.bind(this));
+    }
+  }
+
+  private removeScrollListener() {
+    if (this.optionsContainer) {
+      this.optionsContainer.nativeElement.removeEventListener('scroll', this.onScroll.bind(this));
+    }
+  }
+
+  private onScroll() {
+    if (!this.optionsContainer || this.isLoading || !this.hasNextPage || this.isLoadMoreTriggered) {
+      return;
+    }
+
+    const element = this.optionsContainer.nativeElement;
+    const scrollPosition = element.scrollTop + element.clientHeight;
+    const scrollHeight = element.scrollHeight;
+
+    // Check if user has scrolled near the bottom
+    if (scrollHeight - scrollPosition <= this.scrollThreshold) {
+      this.isLoadMoreTriggered = true;
+      this.loadMoreChange.next();
+      
+      // Reset the flag after a short delay to allow for new content to load
+      setTimeout(() => {
+        this.isLoadMoreTriggered = false;
+      }, 1000);
+    }
   }
 
   private scrollToTop() {

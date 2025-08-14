@@ -27,7 +27,16 @@ import { GioTestingModule } from '../../testing';
 @Component({
   template: `
     <form [formGroup]="form">
-      <gio-select-search [options]="options" [label]="label" [placeholder]="placeholder" formControlName="selection"></gio-select-search>
+      <gio-select-search
+        [options]="options"
+        [label]="label"
+        [placeholder]="placeholder"
+        [isLoading]="isLoading"
+        [hasNextPage]="hasNextPage"
+        formControlName="selection"
+        (searchChange)="onSearchChange($event)"
+        (loadMore)="onLoadMore()">
+      </gio-select-search>
     </form>
   `,
   imports: [ReactiveFormsModule, GioSelectSearchComponent],
@@ -38,11 +47,21 @@ class TestComponent {
   options: SelectOption[] = [];
   label = 'Test Label';
   placeholder = 'Search options...';
+  isLoading = false;
+  hasNextPage = false;
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
       selection: [[]],
     });
+  }
+
+  onSearchChange(searchTerm: string) {
+    // This method will be spied on in tests
+  }
+
+  onLoadMore() {
+    // This method will be spied on in tests
   }
 }
 
@@ -350,6 +369,107 @@ describe('GioSelectSearchComponent', () => {
 
       const isOpen = await harness.isOpen();
       expect(isOpen).toBe(true);
+    });
+  });
+
+  describe('Loading states and events', () => {
+    beforeEach(() => {
+      component.options = [
+        { value: 'option1', label: 'Option 1' },
+        { value: 'option2', label: 'Option 2' },
+        { value: 'option3', label: 'Option 3' },
+      ];
+      fixture.detectChanges();
+    });
+
+    it('should show loader when loading is true and no results yet', async () => {
+      component.options = [];
+      component.isLoading = true;
+      fixture.detectChanges();
+
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      const isLoaderVisible = await harness.isLoaderVisible();
+      expect(isLoaderVisible).toBe(true);
+    });
+
+    it('should show load more loader when loading is true and there are already results', async () => {
+      component.options = [
+        { value: 'option1', label: 'Option 1' },
+        { value: 'option2', label: 'Option 2' },
+      ];
+      component.isLoading = true;
+      component.hasNextPage = true;
+      fixture.detectChanges();
+
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      const isLoadMoreLoaderVisible = await harness.isLoaderVisible();
+      expect(isLoadMoreLoaderVisible).toBe(true);
+    });
+
+    it('should emit searchChange event when user types a search term', async () => {
+      const searchChangeSpy = jest.spyOn(component, 'onSearchChange');
+
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      await harness.setSearchValue('Option');
+      fixture.detectChanges();
+
+      // Wait for debounce time (300ms) + a bit more for the event to emit
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      expect(searchChangeSpy).toHaveBeenCalledWith('Option');
+    });
+
+    it('should emit loadMore event when user scrolls near the bottom', async () => {
+      component.hasNextPage = true;
+      fixture.detectChanges();
+
+      const loadMoreSpy = jest.spyOn(component, 'onLoadMore');
+      
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Simulate scrolling near the bottom
+      await harness.scrollNearBottom();
+
+      expect(loadMoreSpy).toHaveBeenCalled();
+    });
+
+    it('should not emit loadMore event when loading', async () => {
+      component.hasNextPage = true;
+      component.isLoading = true;
+      fixture.detectChanges();
+
+      const loadMoreSpy = jest.spyOn(component, 'onLoadMore');
+      
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Simulate scrolling near the bottom while loading
+      await harness.scrollNearBottom();
+
+      expect(loadMoreSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not emit loadMore event when hasNextPage is false', async () => {
+      component.hasNextPage = false;
+      component.isLoading = false;
+      fixture.detectChanges();
+
+      const loadMoreSpy = jest.spyOn(component, 'onLoadMore');
+      
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Simulate scrolling near the bottom when no more pages
+      await harness.scrollNearBottom();
+
+      expect(loadMoreSpy).not.toHaveBeenCalled();
     });
   });
 });

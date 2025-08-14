@@ -136,7 +136,7 @@
     "lint": "yarn lint:eslint && yarn prettier",
     "lint:eslint": "eslint --ext .json,.ts ./src",
     "lint:eslint:fix": "eslint --ext .json,.ts ./src --fix",
-    "lint:fix": "yarn lint:eslint:fix && yarn lint:license:fix && yarn prettier:fix",
+    "lint:fix": "NODE_OPTIONS=--max_old_space_size=7168 yarn lint:eslint:fix && yarn lint:license:fix && yarn prettier:fix",
     "lint:license": "license-check-and-add check -f license-check-config.json",
     "lint:license:fix": "license-check-and-add add -f license-check-config.json -r",
     "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",

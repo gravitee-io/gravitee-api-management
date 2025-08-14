@@ -20,13 +20,15 @@ import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { OverlayModule } from '@angular/cdk/overlay';
 
 import { GioSelectSearchComponent, SelectOption } from './gio-select-search.component';
+import { GioSelectSearchWrapperStoryComponent } from './gio-select-search-wrapper.story.component';
 
 export default {
   title: 'Shared / Gio Select Search Component',
   component: GioSelectSearchComponent,
   decorators: [
     moduleMetadata({
-      imports: [MatCardModule, MatButtonModule, ReactiveFormsModule, OverlayModule, GioSelectSearchComponent],
+      imports: [MatCardModule, MatButtonModule, ReactiveFormsModule, OverlayModule, GioSelectSearchComponent, GioSelectSearchWrapperStoryComponent],
+      declarations: [],
     }),
   ],
 } as Meta;
@@ -315,6 +317,56 @@ export const WithDisabledOptions: StoryObj = {
   },
 };
 
+export const WithInitialLoading: StoryObj = {
+  render: () => {
+    // Create a state object to hold the component state
+    const state = {
+      options: [],
+      isLoading: true,
+      hasNextPage: false,
+    };
+
+    return {
+      template: `
+        <mat-card style="width: 500px; padding: 20px;">
+          <h3>Initial Loading State</h3>
+          <p style="color: #666; margin-bottom: 15px;">
+            This example shows the initial loading state when the component first opens.
+            <br>• Component starts with loading state
+            <br>• After 3 seconds, options are loaded
+            <br>• Demonstrates how to handle initial data fetching
+          </p>
+
+          <gio-select-search
+            [options]="options"
+            [isLoading]="isLoading"
+            [hasNextPage]="hasNextPage"
+            label="Loading Options"
+            placeholder="Search options..."
+            (loadMore)="onLoadMore()"
+            (searchChange)="onSearchChange($event)"
+          />
+
+          <div style="margin-top: 20px; font-size: 12px; color: #666;">
+            <div>Loading: {{ isLoading ? 'Yes' : 'No' }}</div>
+            <div>Options Count: {{ options.length }}</div>
+            <div>Status: {{ isLoading ? 'Loading options...' : 'Options loaded!' }}</div>
+          </div>
+        </mat-card>
+      `,
+      props: {
+        ...state,
+        onLoadMore() {
+          console.log('Load more requested');
+        },
+        onSearchChange(searchTerm: string) {
+          console.log('Search changed:', searchTerm);
+        },
+      },
+    };
+  },
+};
+
 export const KeyboardAccessibility: StoryObj = {
   render: () => ({
     template: `
@@ -337,5 +389,11 @@ export const KeyboardAccessibility: StoryObj = {
     props: {
       options: httpStatusOptions,
     },
+  }),
+};
+
+export const LoadingStatesAndPagination: StoryObj = {
+  render: () => ({
+    template: `<app-wrapper-for-story />`,
   }),
 };
