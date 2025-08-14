@@ -27,6 +27,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import moment, { Moment } from 'moment';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { customTimeFrames, DATE_TIME_FORMATS, timeFrames } from '../../../../../../shared/utils/timeFrameRanges';
 import { httpStatuses } from '../../../../../../shared/utils/httpStatuses';
@@ -51,6 +53,12 @@ export interface ApiAnalyticsProxyFilters {
   applications: string[] | null;
 }
 
+interface FilterChip {
+  key: string;
+  value: string;
+  display: string;
+}
+
 @Component({
   selector: 'api-analytics-proxy-filter-bar',
   imports: [
@@ -66,6 +74,8 @@ export interface ApiAnalyticsProxyFilters {
     OwlDateTimeModule,
     OwlMomentDateTimeModule,
     GioSelectSearchComponent,
+    MatChipsModule,
+    MatTooltipModule,
   ],
   providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
   templateUrl: './api-analytics-proxy-filter-bar.component.html',
@@ -83,6 +93,39 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
     const plans = this.plans() || [];
     return plans.map((plan) => ({ value: plan.id, label: plan.name }));
   });
+
+  public currentFilterChips = computed<FilterChip[]>(() => {
+    const filters = this.activeFilters();
+    const chips: FilterChip[] = [];
+
+    if (filters?.httpStatuses?.length) {
+      filters.httpStatuses.forEach((status) => {
+        const statusOption = this.httpStatuses?.find((opt) => opt.value === status);
+        chips.push({
+          key: 'httpStatuses',
+          value: status,
+          display: statusOption?.label || status,
+        });
+      });
+    }
+
+    if (filters?.plans?.length) {
+      const plans = this.plans();
+      filters.plans.forEach((planId) => {
+        const plan = plans?.find((p) => p.id === planId);
+        const display = plan ? plan.name : planId;
+        chips.push({
+          key: 'plans',
+          value: planId,
+          display: display,
+        });
+      });
+    }
+
+    return chips;
+  });
+
+  public isFiltering = computed(() => this.currentFilterChips().length > 0);
 
   form: FormGroup<ApiAnalyticsProxyFilterBarForm> = this.formBuilder.group(
     {
@@ -111,17 +154,9 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
 
   ngOnInit() {
     this.form.controls.period.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((period) => {
-      const currentFilters = this.activeFilters();
-      const updatedFilters = { ...currentFilters, period };
       if (period !== this.customPeriod) {
-        this.filtersChange.emit(updatedFilters);
+        this.emitFilters({ period });
       }
-    });
-
-    this.form.controls.httpStatuses.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((httpStatuses) => {
-      const currentFilters = this.activeFilters();
-      const updatedFilters = { ...currentFilters, httpStatuses: httpStatuses };
-      this.filtersChange.emit(updatedFilters);
     });
 
     this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((from) => {
@@ -133,10 +168,12 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
       this.form.updateValueAndValidity();
     });
 
+    this.form.controls.httpStatuses.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((httpStatuses) => {
+      this.emitFilters({ httpStatuses: httpStatuses });
+    });
+
     this.form.controls.plans.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((plans) => {
-      const currentFilters = this.activeFilters();
-      const updatedFilters = { ...currentFilters, plans };
-      this.filtersChange.emit(updatedFilters);
+      this.emitFilters({ plans });
     });
   }
 
@@ -157,6 +194,23 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
 
   refreshFilters() {
     this.refresh.emit();
+  }
+
+  private removeValueFromFilter(currentList: string[] | null, value: string, formControl: FormControl<string[] | null>): void {
+    const filteredList = (currentList || []).filter((item) => item !== value);
+    formControl.setValue(filteredList.length > 0 ? filteredList : null);
+  }
+
+  removeFilter(key: string, value: string) {
+    if (key === 'httpStatuses') {
+      this.removeValueFromFilter(this.form.controls.httpStatuses.value, value, this.form.controls.httpStatuses);
+    } else if (key === 'plans') {
+      this.removeValueFromFilter(this.form.controls.plans.value, value, this.form.controls.plans);
+    }
+  }
+
+  resetAllFilters() {
+    this.emitFilters({ httpStatuses: null, plans: null });
   }
 
   private dateRangeValidator(group: FormGroup): { [key: string]: any } | null {
@@ -180,5 +234,12 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
         httpStatuses: filters.httpStatuses,
       });
     }
+  }
+
+  private emitFilters(partial: Partial<ApiAnalyticsProxyFilters>) {
+    this.filtersChange.emit({
+      ...this.activeFilters(),
+      ...partial,
+    });
   }
 }
