@@ -33,7 +33,7 @@ class PlanMigration {
                 .toBuilder()
                 .definitionVersion(DefinitionVersion.V4)
                 .needRedeployAt(Date.from(TimeProvider.instantNow()))
-                .planDefinitionHttpV4(mapPlanDefinition(plan.getPlanDefinitionV2()))
+                .planDefinitionHttpV4(plan.getPlanDefinitionV2() != null ? mapPlanDefinition(plan.getPlanDefinitionV2()) : null)
                 .planDefinitionV2(null)
                 .apiType(ApiType.PROXY)
                 .build()
