@@ -21,7 +21,7 @@
         "test:report:dev": "ENV=dev ant -f jacoco/build.xml",
         "test:report:merge": "ant -f jacoco/merge.xml",
         "lint": "yarn prettier && yarn lint:license",
-        "lint:fix": "yarn prettier:fix && yarn lint:license:fix && tsc --noEmit",
+        "lint:fix": "yarn lint:license:fix && yarn prettier:fix && tsc --noEmit",
         "lint:license": "license-check-and-add check -f license-check-config.json",
         "lint:license:fix": "license-check-and-add add -f license-check-config.json -r",
         "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
