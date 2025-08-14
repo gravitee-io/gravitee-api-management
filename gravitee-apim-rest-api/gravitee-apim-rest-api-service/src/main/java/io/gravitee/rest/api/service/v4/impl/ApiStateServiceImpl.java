@@ -21,7 +21,11 @@ import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -61,10 +65,12 @@ import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -481,6 +487,10 @@ public class ApiStateServiceImpl implements ApiStateService {
                     } else if (genericApiEntity instanceof ApiEntity httpApiEntity) {
                         ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, false);
 
+                        List<Flow> oldFlows = deployedApiEntity.getFlows();
+                        List<Flow> newFlows = httpApiEntity.getFlows();
+                        reorderFlowMethods(oldFlows, newFlows);
+
                         sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApiEntity, httpApiEntity);
                     } else if (genericApiEntity instanceof NativeApiEntity nativeApiEntity) {
                         NativeApiEntity deployedApiEntity = apiMapper.toNativeEntity(executionContext, payloadEntity, null, false);
@@ -510,7 +520,6 @@ public class ApiStateServiceImpl implements ApiStateService {
             );
             log.error(errorMsg, genericApiEntity.getId(), e);
         }
-
         return false;
     }
 
@@ -529,5 +538,99 @@ public class ApiStateServiceImpl implements ApiStateService {
     private void removeFlowsIdsFromApiV2(io.gravitee.rest.api.model.api.ApiEntity api) {
         api.getFlows().forEach(flow -> flow.setId(null));
         api.getPlans().forEach(plan -> plan.getFlows().forEach(flow -> flow.setId(null)));
+    }
+
+    /**
+     * Reorders methods in oldFlows to match the sequence in newFlows
+     *
+     * @param oldFlows The list of flows whose methods need to be reordered
+     * @param newFlows The list of flows with the reference method ordering
+     */
+    private void reorderFlowMethods(List<Flow> oldFlows, List<Flow> newFlows) {
+        if (oldFlows == null || newFlows == null || oldFlows.isEmpty() || newFlows.isEmpty()) {
+            return;
+        }
+
+        for (int i = 0; i < oldFlows.size(); i++) {
+            Flow oldFlow = oldFlows.get(i);
+            Flow newFlow = (i < newFlows.size()) ? newFlows.get(i) : null;
+
+            if (newFlow == null || !hasSelectors(oldFlow)) {
+                continue;
+            }
+
+            processHttpSelectors(oldFlow, newFlow);
+        }
+    }
+
+    private boolean hasSelectors(Flow flow) {
+        return flow.getSelectors() != null && !flow.getSelectors().isEmpty();
+    }
+
+    private void processHttpSelectors(Flow flow, Flow referenceFlow) {
+        if (!hasSelectors(referenceFlow)) {
+            return;
+        }
+
+        Map<String, HttpSelector> referenceSelectors = getHttpSelectorsMap(referenceFlow);
+        if (referenceSelectors.isEmpty()) {
+            return;
+        }
+
+        for (Selector selector : flow.getSelectors()) {
+            if (
+                !(selector instanceof HttpSelector httpSelector) || httpSelector.getMethods() == null || httpSelector.getMethods().isEmpty()
+            ) {
+                continue;
+            }
+
+            String selectorKey = getSelectorKey(httpSelector);
+            HttpSelector matchingSelector = referenceSelectors.get(selectorKey);
+
+            if (matchingSelector != null && methodSetsMatch(httpSelector, matchingSelector)) {
+                reorderMethods(httpSelector, matchingSelector);
+            }
+        }
+    }
+
+    private Map<String, HttpSelector> getHttpSelectorsMap(Flow flow) {
+        Map<String, HttpSelector> selectorsMap = new HashMap<>();
+
+        if (hasSelectors(flow)) {
+            for (Selector selector : flow.getSelectors()) {
+                if (selector instanceof HttpSelector httpSelector) {
+                    String key = getSelectorKey(httpSelector);
+                    selectorsMap.put(key, httpSelector);
+                }
+            }
+        }
+
+        return selectorsMap;
+    }
+
+    private String getSelectorKey(HttpSelector selector) {
+        String methodsPart = selector.getMethods() == null
+            ? ""
+            : selector.getMethods().stream().sorted().map(Enum::name).collect(Collectors.joining(","));
+        return selector.getPath() + ":" + selector.getPathOperator() + ":" + methodsPart;
+    }
+
+    private boolean methodSetsMatch(HttpSelector selector1, HttpSelector selector2) {
+        Set<HttpMethod> methods1 = selector1.getMethods();
+        Set<HttpMethod> methods2 = selector2.getMethods();
+
+        return methods1 != null && methods2 != null && methods1.containsAll(methods2) && methods2.containsAll(methods1);
+    }
+
+    private void reorderMethods(HttpSelector selector, HttpSelector referenceSelector) {
+        Set<HttpMethod> orderedMethods = new LinkedHashSet<>();
+
+        for (HttpMethod method : referenceSelector.getMethods()) {
+            if (selector.getMethods().contains(method)) {
+                orderedMethods.add(method);
+            }
+        }
+
+        selector.setMethods(orderedMethods);
     }
 }
