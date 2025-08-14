@@ -52,7 +52,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
         .and('contain.text', 'Access')
         .and('contain.text', 'Sharding Tags')
         .and('contain.text', 'Owner')
-        .and('contain.text', 'Visibility');
+        .and('contain.text', 'Portal Status');
     });
   });
 
