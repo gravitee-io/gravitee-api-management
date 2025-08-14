@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model.mapper;
 
+import static io.gravitee.apim.core.api.model.utils.MigrationResultUtils.get;
 import static io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.*;
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,23 +25,30 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PlanFixtures;
-import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.definition.model.LoadBalancerType;
+import io.gravitee.definition.model.ProtocolVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
+import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,6 +79,7 @@ class V2ToV4MigrationOperatorTest {
         void should_preserve_api_metadata_when_mapping() {
             // Given
             var originalApi = ApiFixtures.aProxyApiV2();
+            originalApi.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
             // When
             var result = get(mapper.mapApi(originalApi));
@@ -101,6 +110,7 @@ class V2ToV4MigrationOperatorTest {
         @Test
         void should_upgrade_definition_version_to_v4() {
             var v2Api = ApiFixtures.aProxyApiV2().toBuilder().definitionVersion(DefinitionVersion.V2).build();
+            v2Api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
             var result = get(mapper.mapApi(v2Api));
 
@@ -214,7 +224,7 @@ class V2ToV4MigrationOperatorTest {
             var endpoint = new Endpoint();
             endpoint.setName("test-endpoint");
             endpoint.setTarget("http://example.com");
-
+            endpoint.setInherit(false);
             var loadBalancer = new LoadBalancer();
             loadBalancer.setType(v2Type);
 
@@ -291,7 +301,7 @@ class V2ToV4MigrationOperatorTest {
             endpoint.setBackup(isBackup);
             endpoint.setWeight(10);
             endpoint.setTenants(List.of("tenant1", "tenant2"));
-
+            endpoint.setInherit(false);
             var endpointGroup = new EndpointGroup();
             endpointGroup.setName("default-group");
             endpointGroup.setEndpoints(Set.of(endpoint));
@@ -323,7 +333,7 @@ class V2ToV4MigrationOperatorTest {
             endpoint.setTarget("http://example.com");
             endpoint.setType("http");
             endpoint.setConfiguration("{\"target\": \"http://example.com\", \"ssl\": {\"trustStore\": true}}");
-
+            endpoint.setInherit(false);
             var endpointGroup = new EndpointGroup();
             endpointGroup.setName("default-group");
             endpointGroup.setEndpoints(Set.of(endpoint));
@@ -347,6 +357,230 @@ class V2ToV4MigrationOperatorTest {
                 softly.assertThat(mappedEndpoint.getName()).isEqualTo("test-endpoint");
                 softly.assertThat(mappedEndpoint.getType()).isEqualTo("http-proxy");
                 softly.assertThat(mappedEndpoint.getConfiguration()).contains("\"target\":\"http://example.com\"");
+            });
+        }
+
+        @Test
+        void should_migrate_endpoint_and_group() {
+            // Setup Endpoint
+            Endpoint v2Endpoint = new Endpoint();
+            v2Endpoint.setName("endpoint-1");
+            v2Endpoint.setBackup(true);
+            v2Endpoint.setTenants(List.of("tenant-a"));
+            v2Endpoint.setWeight(5);
+            v2Endpoint.setInherit(false);
+            v2Endpoint.setConfiguration("{\"target\":\"http://example.com\"}");
+
+            // Setup EndpointGroup
+            EndpointGroup v2Group = new EndpointGroup();
+            v2Group.setName("default-group");
+            Set<Endpoint> endpoints = new HashSet<>();
+            endpoints.add(v2Endpoint);
+            v2Group.setEndpoints(endpoints);
+
+            HttpClientOptions httpClientOptions = new HttpClientOptions();
+            httpClientOptions.setConnectTimeout(2000);
+            httpClientOptions.setReadTimeout(3000);
+            httpClientOptions.setVersion(ProtocolVersion.HTTP_1_1);
+            httpClientOptions.setClearTextUpgrade(true);
+            httpClientOptions.setUseCompression(true);
+            httpClientOptions.setFollowRedirects(true);
+            httpClientOptions.setIdleTimeout(1000);
+            httpClientOptions.setKeepAlive(true);
+            httpClientOptions.setMaxConcurrentConnections(5);
+            httpClientOptions.setKeepAliveTimeout(5);
+            httpClientOptions.setPipelining(false);
+            httpClientOptions.setPropagateClientAcceptEncoding(true);
+            v2Group.setHttpClientOptions(httpClientOptions);
+
+            HttpClientSslOptions sslOptions = new HttpClientSslOptions();
+            sslOptions.setTrustAll(false);
+
+            PEMTrustStore trustStore = new PEMTrustStore();
+            trustStore.setPath("/a/b/c");
+            trustStore.setContent("abc");
+            sslOptions.setTrustStore(trustStore);
+
+            PEMKeyStore keyStore = new PEMKeyStore();
+            keyStore.setKeyContent("abc");
+            keyStore.setKeyPath("/a/b/c");
+            sslOptions.setKeyStore(keyStore);
+
+            v2Group.setHttpClientSslOptions(sslOptions);
+            ArrayList<HttpHeader> headers = new ArrayList<HttpHeader>();
+            headers.add(new HttpHeader("X-Test", "yes"));
+            v2Group.setHeaders(headers);
+
+            LoadBalancer lb = new LoadBalancer();
+            lb.setType(LoadBalancerType.RANDOM);
+            v2Group.setLoadBalancer(lb);
+
+            // Setup Proxy
+            Proxy proxy = new Proxy();
+            Set<EndpointGroup> endpointGroups = new HashSet<>();
+            endpointGroups.add(v2Group);
+            proxy.setGroups(endpointGroups);
+
+            proxy.setVirtualHosts(List.of(new VirtualHost("localhost", "/api", false)));
+            proxy.setCors(new Cors());
+            proxy.setServers(List.of("localhost"));
+
+            // Setup Api V2
+            io.gravitee.definition.model.Api v2ApiDefinition = new io.gravitee.definition.model.Api();
+            v2ApiDefinition.setId("api-id");
+            v2ApiDefinition.setName("Test API");
+            v2ApiDefinition.setVersion("1.0");
+            v2ApiDefinition.setTags(Set.of("test", "v2"));
+            v2ApiDefinition.setProxy(proxy);
+            var apiDef = new io.gravitee.definition.model.Api();
+            apiDef.setId("test-api");
+            apiDef.setName("Test API");
+            apiDef.setVersion("1.0");
+            apiDef.setProxy(proxy);
+            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+            // Act
+            var result = get(mapper.mapApi(api));
+
+            // Check Endpoint Group
+            var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+            String configJson =
+                "{\"http\":{\"http2MultiplexingLimit\":-1,\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"clearTextUpgrade\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}],\"proxy\":null}";
+            assertSoftly(softly -> {
+                softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                softly.assertThat(group.getName()).isEqualTo("default-group");
+                softly.assertThat(group.getType()).isEqualTo("http-proxy");
+                softly.assertThat(group.getSharedConfiguration()).isNotNull();
+                softly.assertThat(group.getSharedConfiguration()).contains(configJson);
+            });
+
+            // Check Endpoint
+            var endpoint = group.getEndpoints().getFirst();
+            assertSoftly(softly -> {
+                softly.assertThat(endpoint.getType()).isEqualTo("http-proxy");
+                softly.assertThat(endpoint.getName()).isEqualTo("endpoint-1");
+                softly.assertThat(endpoint.getWeight()).isEqualTo(5);
+                softly.assertThat(endpoint.getConfiguration()).isEqualTo("{\"target\":\"http://example.com\"}");
+            });
+        }
+
+        @Test
+        void should_migrate_endpoint_and_group_with_inherit() {
+            // Setup Endpoint
+            Endpoint v2Endpoint1 = new Endpoint();
+            v2Endpoint1.setName("endpoint-1");
+            v2Endpoint1.setBackup(true);
+            v2Endpoint1.setTenants(List.of("tenant-a"));
+            v2Endpoint1.setWeight(5);
+            v2Endpoint1.setInherit(true);
+
+            Endpoint v2Endpoint2 = new Endpoint();
+            v2Endpoint2.setName("endpoint-2");
+            v2Endpoint2.setBackup(true);
+            v2Endpoint2.setTenants(List.of("tenant-b"));
+            v2Endpoint2.setWeight(5);
+            v2Endpoint2.setInherit(false);
+            String configJsonForEndpoint =
+                "{\"http\":{\"http2MultiplexingLimit\":-1,\"idleTimeout\":2000,\"keepAliveTimeout\":6,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"clearTextUpgrade\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/d/e/f\",\"content\":\"def\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/d/e/f\",\"keyContent\":\"def\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test1\",\"value\":\"no\"}],\"proxy\":null}";
+            v2Endpoint2.setConfiguration(configJsonForEndpoint);
+            // Setup EndpointGroup
+            EndpointGroup v2Group = new EndpointGroup();
+            v2Group.setName("default-group");
+            Set<Endpoint> endpoints = new HashSet<>();
+            endpoints.add(v2Endpoint1);
+            endpoints.add(v2Endpoint2);
+            v2Group.setEndpoints(endpoints);
+
+            HttpClientOptions httpClientOptions = new HttpClientOptions();
+            httpClientOptions.setConnectTimeout(2000);
+            httpClientOptions.setReadTimeout(3000);
+            httpClientOptions.setVersion(ProtocolVersion.HTTP_1_1);
+            httpClientOptions.setClearTextUpgrade(true);
+            httpClientOptions.setUseCompression(true);
+            httpClientOptions.setFollowRedirects(true);
+            httpClientOptions.setIdleTimeout(1000);
+            httpClientOptions.setKeepAlive(true);
+            httpClientOptions.setMaxConcurrentConnections(5);
+            httpClientOptions.setKeepAliveTimeout(5);
+            httpClientOptions.setPipelining(false);
+            httpClientOptions.setPropagateClientAcceptEncoding(true);
+            v2Group.setHttpClientOptions(httpClientOptions);
+
+            HttpClientSslOptions sslOptions = new HttpClientSslOptions();
+            sslOptions.setTrustAll(false);
+
+            PEMTrustStore trustStore = new PEMTrustStore();
+            trustStore.setPath("/a/b/c");
+            trustStore.setContent("abc");
+            sslOptions.setTrustStore(trustStore);
+
+            PEMKeyStore keyStore = new PEMKeyStore();
+            keyStore.setKeyContent("abc");
+            keyStore.setKeyPath("/a/b/c");
+            sslOptions.setKeyStore(keyStore);
+
+            v2Group.setHttpClientSslOptions(sslOptions);
+            ArrayList<HttpHeader> headers = new ArrayList<HttpHeader>();
+            headers.add(new HttpHeader("X-Test", "yes"));
+            v2Group.setHeaders(headers);
+
+            LoadBalancer lb = new LoadBalancer();
+            lb.setType(LoadBalancerType.RANDOM);
+            v2Group.setLoadBalancer(lb);
+
+            // Setup Proxy
+            Proxy proxy = new Proxy();
+            Set<EndpointGroup> endpointGroups = new HashSet<>();
+            endpointGroups.add(v2Group);
+            proxy.setGroups(endpointGroups);
+
+            proxy.setVirtualHosts(List.of(new VirtualHost("localhost", "/api", false)));
+            proxy.setCors(new Cors());
+            proxy.setServers(List.of("localhost"));
+
+            // Setup Api V2
+            io.gravitee.definition.model.Api v2ApiDefinition = new io.gravitee.definition.model.Api();
+            v2ApiDefinition.setId("api-id");
+            v2ApiDefinition.setName("Test API");
+            v2ApiDefinition.setVersion("1.0");
+            v2ApiDefinition.setTags(Set.of("test", "v2"));
+            v2ApiDefinition.setProxy(proxy);
+            var apiDef = new io.gravitee.definition.model.Api();
+            apiDef.setId("test-api");
+            apiDef.setName("Test API");
+            apiDef.setVersion("1.0");
+            apiDef.setProxy(proxy);
+            var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+            // Act
+            var result = get(mapper.mapApi(api));
+
+            // Check Endpoint Group
+            var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+            String configJson =
+                "{\"http\":{\"http2MultiplexingLimit\":-1,\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"clearTextUpgrade\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}],\"proxy\":null}";
+            assertSoftly(softly -> {
+                softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                softly.assertThat(group.getName()).isEqualTo("default-group");
+                softly.assertThat(group.getType()).isEqualTo("http-proxy");
+                softly.assertThat(group.getSharedConfiguration()).isNotNull();
+                softly.assertThat(group.getSharedConfiguration()).contains(configJson);
+            });
+
+            // Check Endpoint
+            var endpoint1 = group.getEndpoints().stream().filter(e -> e.getName().equals("endpoint-1")).findFirst().get();
+            var endpoint2 = group.getEndpoints().stream().filter(e -> e.getName().equals("endpoint-2")).findFirst().get();
+
+            assertSoftly(softly -> {
+                softly.assertThat(endpoint1.getType()).isEqualTo("http-proxy");
+                softly.assertThat(endpoint1.getName()).isEqualTo("endpoint-1");
+                softly.assertThat(endpoint1.getWeight()).isEqualTo(5);
+                softly.assertThat(endpoint1.isInheritConfiguration()).isTrue();
+                softly.assertThat(endpoint2.getType()).isEqualTo("http-proxy");
+                softly.assertThat(endpoint2.getName()).isEqualTo("endpoint-2");
+                softly.assertThat(endpoint2.getWeight()).isEqualTo(5);
+                softly.assertThat(endpoint2.isInheritConfiguration()).isFalse();
+                softly.assertThat(endpoint2.getSharedConfigurationOverride()).isEqualTo(configJsonForEndpoint);
             });
         }
     }
@@ -514,9 +748,5 @@ class V2ToV4MigrationOperatorTest {
             assertThat(migratedPlanResult).isNotNull();
             assertThat(migratedPlanResult.getPlanDefinitionHttpV4()).isNull();
         }
-    }
-
-    private <T> T get(MigrationResult<T> result) {
-        return Objects.requireNonNull(result.value());
     }
 }
