@@ -79,9 +79,7 @@ describe('ApiAnalyticsProxyComponent', () => {
 
     it('should refresh when filters are applied', async () => {
       const filtersBar = await componentHarness.getFiltersBarHarness();
-      await filtersBar.getRefreshButton().then((button) => button.click());
-
-      // Handle all refresh requests
+      await filtersBar.clickRefresh();
       handleAllRequests();
     });
   });
