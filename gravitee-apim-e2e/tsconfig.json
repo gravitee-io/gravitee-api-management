@@ -5,6 +5,7 @@
     "lib": ["ES2020", "dom"],
     "types": ["./types", "cypress", "node", "node-fetch", "jsonwebtoken"],
     "baseUrl": ".",
+    "allowJs": true,
     "resolveJsonModule": true,
     "module": "Node16",
     "moduleResolution": "Node16",
@@ -18,7 +19,8 @@
       "@api-test-resources/*": ["<rootDir>/api-test/resources/$1"],
       "@lib/jest-utils": ["lib/jest-utils"],
       "@gravitee/utils/*": ["<rootDir>/lib/utils/$1"]
-    }
+    },
+    "isolatedModules": true
   },
   "include": ["**/*.ts"]
 }
