@@ -284,15 +284,21 @@ public class EndpointMapperTest {
         var configurationNode = mapper.valueToTree(endpointV2);
 
         var proxy = configurationNode.get("httpProxy");
-        ((ObjectNode) configurationNode).set("proxy", proxy);
+        if (proxy != null && !proxy.isNull()) {
+            ((ObjectNode) configurationNode).set("proxy", proxy);
+        }
         ((ObjectNode) configurationNode).remove("httpProxy");
 
         var httpclient = configurationNode.get("httpClientOptions");
-        ((ObjectNode) configurationNode).set("http", httpclient);
+        if (httpclient != null && !httpclient.isNull()) {
+            ((ObjectNode) configurationNode).set("http", httpclient);
+        }
         ((ObjectNode) configurationNode).remove("httpClientOptions");
 
         var ssl = configurationNode.get("httpClientSslOptions");
-        ((ObjectNode) configurationNode).set("ssl", ssl);
+        if (ssl != null && !ssl.isNull()) {
+            ((ObjectNode) configurationNode).set("ssl", ssl);
+        }
         ((ObjectNode) configurationNode).remove("httpClientSslOptions");
 
         var healthcheck = configurationNode.get("healthCheck");
