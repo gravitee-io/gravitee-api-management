@@ -5986,6 +5986,9 @@ components:
         EndpointStatus:
             type: string
             description: The status of the endpoint.
+            x-field-extra-annotation: "@com.fasterxml.jackson.annotation.JsonIgnore"
+            x-getter-extra-annotation: "@com.fasterxml.jackson.annotation.JsonIgnore"
+            x-setter-extra-annotation: "@com.fasterxml.jackson.annotation.JsonIgnore"
             example: UP
             enum:
                 - UP
