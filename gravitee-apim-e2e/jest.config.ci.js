@@ -26,5 +26,7 @@ module.exports = {
     '^.+\\.xml$': '<rootDir>/lib/jest-raw-loader.js',
   },
 
+  setupFilesAfterEnv: ['<rootDir>/dist/api-test/jest.setup.js'],
+
   reporters: ['default', ['jest-junit', { outputDirectory: '.tmp', outputName: 'e2e-test-report.xml' }]],
 };

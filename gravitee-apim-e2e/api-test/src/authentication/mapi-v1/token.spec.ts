@@ -36,7 +36,7 @@ describe('User tokens crud tests', () => {
   let apiUser: UserEntity;
 
   beforeAll(async () => {
-    const users = await managementUserResourceAsAdminUser.getAllUsers({ orgId, envId });
+    const users = await managementUserResourceAsAdminUser.getAllUsers({ orgId, envId, size: 200 });
     apiUser = users.data.find((user) => user.displayName === API_USER.username);
   });
 
