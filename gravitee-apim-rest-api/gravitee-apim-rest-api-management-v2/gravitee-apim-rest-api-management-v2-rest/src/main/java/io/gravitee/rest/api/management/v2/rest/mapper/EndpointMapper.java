@@ -92,16 +92,24 @@ public interface EndpointMapper {
                 // We need to map the httpProxy, httpClientOptions and httpClientSslOptions to the new configuration
                 var configurationNode = mapper.valueToTree(endpoint);
                 var proxy = configurationNode.get("httpProxy");
-                ((ObjectNode) configurationNode).set("proxy", proxy);
+                if (proxy != null && !proxy.isNull()) {
+                    ((ObjectNode) configurationNode).set("proxy", proxy);
+                }
                 ((ObjectNode) configurationNode).remove("httpProxy");
                 var httpclient = configurationNode.get("httpClientOptions");
-                ((ObjectNode) configurationNode).set("http", httpclient);
+                if (httpclient != null && !httpclient.isNull()) {
+                    ((ObjectNode) configurationNode).set("http", httpclient);
+                }
                 ((ObjectNode) configurationNode).remove("httpClientOptions");
                 var ssl = configurationNode.get("httpClientSslOptions");
-                ((ObjectNode) configurationNode).set("ssl", ssl);
+                if (ssl != null && !ssl.isNull()) {
+                    ((ObjectNode) configurationNode).set("ssl", ssl);
+                }
                 ((ObjectNode) configurationNode).remove("httpClientSslOptions");
                 var healthcheck = configurationNode.get("healthCheck");
-                ((ObjectNode) configurationNode).set("healthcheck", healthcheck);
+                if (healthcheck != null && !healthcheck.isNull()) {
+                    ((ObjectNode) configurationNode).set("healthcheck", healthcheck);
+                }
                 ((ObjectNode) configurationNode).remove("healthCheck");
 
                 configuration = mapper.writeValueAsString(configurationNode);
