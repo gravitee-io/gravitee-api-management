@@ -464,7 +464,6 @@ class ApiHistoryControllerAjs {
     delete payload.picture_url;
     delete payload.background_url;
     delete payload.categories;
-    delete payload.groups;
     delete payload.context_path;
     delete payload.disable_membership_notifications;
     delete payload.labels;
@@ -490,6 +489,9 @@ class ApiHistoryControllerAjs {
     }
     if (payload.tags && isEmpty(payload.tags)) {
       delete payload.tags;
+    }
+    if (payload.groups && isEmpty(payload.groups)) {
+      delete payload.groups;
     }
 
     payload.plans = (payload.plans ?? [])
