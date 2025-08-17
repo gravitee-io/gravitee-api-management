@@ -88,10 +88,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
                 return this.toTabularResponse(result.blockingGet());
             } else {
+                // For payload filtering, search with reasonable batch size to handle most cases
                 final TabularQuery logQuery = tabular()
                     .timeRange(query.timeRange().range(), query.timeRange().interval())
-                    .page(query.page())
-                    .size(query.size())
+                    .page(1)
+                    .size(10000) // Fixed size limit - handles most practical cases
                     .query(logQueryString)
                     .build();
                 final String sQuery = this.createElasticsearchJsonQuery(logQuery);
@@ -116,7 +117,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     final String requestQuery = isEmpty(queryString) ? logIdsQuery : format("(%s) AND (%s)", queryString, logIdsQuery);
                     final TabularQueryBuilder requestQueryBuilder = tabular()
                         .timeRange(query.timeRange().range(), query.timeRange().interval())
-                        .page(1)
+                        .page(query.page())
                         .size(query.size())
                         .sort(query.sort())
                         .query(requestQuery);
@@ -134,9 +135,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                 SearchResponse searchResponseRequest = result.blockingGet();
                 return this.toTabularResponse(
                         searchResponseRequest,
-                        searchResponseRequest.getSearchHits().getTotal().getValue() == query.size() || query.page() > 1
-                            ? searchResponseLog.getSearchHits().getTotal().getValue()
-                            : searchResponseRequest.getSearchHits().getTotal().getValue()
+                        searchResponseRequest.getSearchHits().getTotal().getValue()
                     );
             }
         } catch (final Exception eex) {
