@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input, computed, Signal } from '@angular/core';
+import { Component, computed, inject, input, output, Signal } from '@angular/core';
 import { NgClass } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   GioWidgetLayoutComponent,
@@ -33,7 +34,13 @@ import { AnalyticsStatsComponent, StatsWidgetData } from '../../../../../../shar
 
 type PieWidgetData = GioChartPieInput[];
 type LineWidgetData = { data: GioChartLineData[]; options?: GioChartLineOptions };
-export type TableWidgetData = { columns: ApiAnalyticsWidgetTableDataColumn[]; data: ApiAnalyticsWidgetTableRowData[] };
+export type TableWidgetData = {
+  columns: ApiAnalyticsWidgetTableDataColumn[];
+  data: ApiAnalyticsWidgetTableRowData[];
+  keyIdentifier?: string;
+  firstColumnClickable?: boolean;
+  relativePath?: string;
+};
 
 interface BaseApiAnalyticsWidgetConfig {
   title: string;
@@ -83,7 +90,11 @@ export type ApiAnalyticsWidgetType = 'pie' | 'line' | 'table' | 'stats';
   styleUrl: './api-analytics-widget.component.scss',
 })
 export class ApiAnalyticsWidgetComponent {
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
   config = input.required<ApiAnalyticsWidgetConfig>();
+
+  tableFirstColumnClick = output<{ row: ApiAnalyticsWidgetTableRowData; keyIdentifier?: string }>();
 
   statsData: Signal<StatsWidgetData | null> = computed(() => {
     const currentConfig = this.config();
@@ -104,6 +115,28 @@ export class ApiAnalyticsWidgetComponent {
     const currentConfig = this.config();
     return currentConfig.widgetType === 'table' ? currentConfig.widgetData : null;
   });
+
+  firstColumnClickable = computed(() => {
+    const td = this.tableData();
+    if (!td) return false;
+    return Boolean(td.relativePath);
+  });
+
+  onChildTableFirstColumnClick(row: ApiAnalyticsWidgetTableRowData) {
+    const td = this.tableData();
+    if (!td) {
+      return;
+    }
+    const key = row && (row['__key'] as string | undefined);
+    if (!key || row['unknown'] === 'true') {
+      return;
+    }
+    if (td.relativePath) {
+      this.router.navigate([td.relativePath, key], { relativeTo: this.activatedRoute });
+    }
+    const keyIdentifier = td.keyIdentifier;
+    this.tableFirstColumnClick.emit({ row, keyIdentifier });
+  }
 
   public pieChartLabelFormatter = function () {
     const value = this.point.y;
