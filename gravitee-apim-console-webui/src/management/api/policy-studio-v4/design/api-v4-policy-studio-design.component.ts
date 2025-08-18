@@ -15,7 +15,7 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
+import { combineLatest, EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import {
   ConnectorInfo,
@@ -28,7 +28,7 @@ import {
   SharedPolicyGroupPolicy,
 } from '@gravitee/ui-policy-studio-angular';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -74,6 +74,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly location: Location,
+    private router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly iconService: IconService,
@@ -87,26 +88,32 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    combineLatest([
-      this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map((api) => api as ApiV4)),
-      this.connectorPluginsV2Service.listEntrypointPlugins(),
-      this.connectorPluginsV2Service.listEndpointPlugins(),
-      this.apiPlanV2Service
-        .list(
-          this.activatedRoute.snapshot.params.apiId,
-          undefined,
-          ['PUBLISHED'],
-          undefined,
-          1,
-          // No pagination here. Policy Studio doesn't support it for now.
-          9999,
-        )
-        .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
-      this.policyV2Service.list(),
-      this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),
-      this.activatedRoute.params,
-    ])
-      .pipe(takeUntil(this.unsubscribe$))
+    this.activatedRoute.params
+      .pipe(
+        tap(() => (this.isLoading = true)),
+        switchMap((params) =>
+          combineLatest([
+            this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map((api) => api as ApiV4)),
+            this.connectorPluginsV2Service.listEntrypointPlugins(),
+            this.connectorPluginsV2Service.listEndpointPlugins(),
+            this.apiPlanV2Service
+              .list(
+                this.activatedRoute.snapshot.params.apiId,
+                undefined,
+                ['PUBLISHED'],
+                undefined,
+                1,
+                // No pagination here. Policy Studio doesn't support it for now.
+                9999,
+              )
+              .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
+            this.policyV2Service.list(),
+            this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),
+            of(params),
+          ]),
+        ),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe(([api, entrypoints, endpoints, plans, policies, sharedPolicyGroupPolicyPlugins, params]) => {
         this.apiType = api.type;
         this.flowExecution = api.flowExecution;
@@ -196,7 +203,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         tap(() => this.snackBarService.success('Policy Studio configuration saved')),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => this.ngOnInit());
+      .subscribe(() => this.router.navigateByUrl(this.location.path(), { skipLocationChange: true }));
   }
 
   onFlowSelectionChange(flowSelection: FlowSelection) {
@@ -213,16 +220,38 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   private checkAndAdjustIndexes() {
     const totalPlans = this.plans.length + 1; // Adding 1 for common flows.
     const { planIndex, flowIndex } = this.selectedFlowIndexes;
+
     if (planIndex < 0 || planIndex >= totalPlans) {
       this.selectedFlowIndexes = { planIndex: 0, flowIndex: 0 };
       this.updateIndexesInURL(this.selectedFlowIndexes);
     } else {
       const currentPlanFlowsLength = planIndex < this.plans.length ? this.plans[planIndex].flows.length : this.commonFlows.length;
+
       if (flowIndex < 0 || flowIndex >= currentPlanFlowsLength) {
-        this.selectedFlowIndexes = { planIndex: planIndex, flowIndex: 0 };
+        const firstAvailableFlow = this.findFirstAvailableFlow();
+
+        if (firstAvailableFlow) {
+          this.selectedFlowIndexes = firstAvailableFlow;
+        } else {
+          this.selectedFlowIndexes = { planIndex: 0, flowIndex: 0 };
+        }
         this.updateIndexesInURL(this.selectedFlowIndexes);
       }
     }
+  }
+
+  private findFirstAvailableFlow(): FlowSelection | null {
+    for (let planIdx = 0; planIdx < this.plans.length; planIdx++) {
+      if (this.plans[planIdx].flows.length > 0) {
+        return { planIndex: planIdx, flowIndex: 0 };
+      }
+    }
+
+    if (this.commonFlows.length > 0) {
+      return { planIndex: this.plans.length, flowIndex: 0 };
+    }
+
+    return null;
   }
 
   private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
