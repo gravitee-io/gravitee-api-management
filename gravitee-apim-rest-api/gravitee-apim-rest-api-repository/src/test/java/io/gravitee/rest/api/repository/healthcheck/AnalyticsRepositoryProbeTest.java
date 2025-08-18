@@ -20,8 +20,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.healthcheck.Result;
+import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.InstallationRepository;
 import io.vertx.core.Vertx;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,22 +33,21 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class ManagementRepositoryProbeTest {
+class AnalyticsRepositoryProbeTest {
 
     @Mock
-    private InstallationRepository installationRepository;
+    private AnalyticsRepository analyticsRepository;
 
-    private ManagementRepositoryProbe cut;
+    private AnalyticsRepositoryProbe cut;
 
     @BeforeEach
     public void beforeEach() {
-        cut = new ManagementRepositoryProbe();
-        cut.setInstallationRepository(installationRepository);
+        cut = new AnalyticsRepositoryProbe();
+        cut.setAnalyticsRepository(analyticsRepository);
         cut.setVertx(Vertx.vertx());
     }
 
@@ -62,13 +61,13 @@ class ManagementRepositoryProbeTest {
     void should_check_completed_with_unhealthy_state_when_repository_failed()
         throws TechnicalException, ExecutionException, InterruptedException {
         RuntimeException runtimeException = new RuntimeException();
-        when(installationRepository.find()).thenThrow(runtimeException);
+        when(analyticsRepository.query(any(), any())).thenThrow(runtimeException);
         Result result = cut.check().toCompletableFuture().get();
         assertThat(result.isHealthy()).isFalse();
     }
 
     @Test
-    void should_be_cacheable() {
-        assertThat(cut.isCacheable()).isTrue();
+    void should_not_be_cacheable() {
+        assertThat(cut.isCacheable()).isFalse();
     }
 }

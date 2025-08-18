@@ -57,6 +57,7 @@ export class ApiRuntimeLogsListComponent {
     'status',
     'URI',
     'application',
+    'plan',
     'responseTime',
     ...(this.isMessageApi() ? [] : ['endpoint']),
     'actions',

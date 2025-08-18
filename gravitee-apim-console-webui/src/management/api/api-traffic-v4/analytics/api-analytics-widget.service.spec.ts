@@ -25,9 +25,9 @@ import { fakeGroupByResponse } from '../../../../entities/management-api-v2/anal
 import { fakeAnalyticsHistogram } from '../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { GroupByResponse } from '../../../../entities/management-api-v2/analytics/analyticsGroupBy';
 import {
-  HistogramAnalyticsResponse,
   AggregationFields,
   AggregationTypes,
+  HistogramAnalyticsResponse,
 } from '../../../../entities/management-api-v2/analytics/analyticsHistogram';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
@@ -39,6 +39,14 @@ describe('ApiAnalyticsWidgetService', () => {
 
   const API_ID = 'api-123';
   const TIME_RANGE_PARAMS = { from: 1000, to: 2000, interval: 10 };
+
+  const baseUrlParams = {
+    timeRangeParams: null,
+    plans: null,
+    httpStatuses: null,
+    hosts: null,
+    applications: null,
+  };
 
   function expectGroupByRequest(
     field: string,
@@ -88,7 +96,7 @@ describe('ApiAnalyticsWidgetService', () => {
   describe('getApiAnalyticsWidgetConfig$', () => {
     describe('when no time range is selected', () => {
       beforeEach(() => {
-        service.setUrlParamsData({ timeRangeParams: null });
+        service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: null });
       });
 
       it('should return error config', (done) => {
@@ -119,7 +127,7 @@ describe('ApiAnalyticsWidgetService', () => {
     describe('STATS', () => {
       describe('stats widget', () => {
         beforeEach(() => {
-          service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+          service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
         });
 
         it('should transform STATS response to stats chart config', (done) => {
@@ -211,7 +219,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('GROUP_BY analytics', () => {
       beforeEach(() => {
-        service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+        service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
       });
 
       describe('pie chart widget', () => {
@@ -489,6 +497,12 @@ describe('ApiAnalyticsWidgetService', () => {
             groupByField: 'application-id',
             shouldSortBuckets: false,
             orderBy: '-count:_count',
+            tableData: {
+              columns: [
+                { label: 'Host', dataType: 'string' },
+                { label: 'count', dataType: 'number' },
+              ],
+            },
           };
 
           const mockGroupByResponse: GroupByResponse = fakeGroupByResponse({
@@ -517,38 +531,27 @@ describe('ApiAnalyticsWidgetService', () => {
             if (result.widgetType === 'table') {
               expect(result.widgetData.columns).toHaveLength(2);
               expect(result.widgetData.columns[0]).toEqual({
-                name: 'name',
-                label: 'Name',
-                isSortable: true,
+                name: 'col-0',
+                label: 'Host',
                 dataType: 'string',
               });
               expect(result.widgetData.columns[1]).toEqual({
-                name: 'count',
-                label: 'Count',
-                isSortable: true,
+                name: 'col-1',
+                label: 'count',
                 dataType: 'number',
               });
               expect(result.widgetData.data).toHaveLength(3);
               expect(result.widgetData.data[0]).toEqual({
-                name: 'Application 2',
-                count: 200,
-                id: 'app-2',
-                isUnknown: false,
-                order: 0,
+                'col-0': 'Application 2',
+                'col-1': 200,
               });
               expect(result.widgetData.data[1]).toEqual({
-                name: 'Application 1',
-                count: 100,
-                id: 'app-1',
-                isUnknown: false,
-                order: 1,
+                'col-0': 'Application 1',
+                'col-1': 100,
               });
               expect(result.widgetData.data[2]).toEqual({
-                name: 'Application 3',
-                count: 50,
-                id: 'app-3',
-                isUnknown: false,
-                order: 2,
+                'col-0': 'Application 3',
+                'col-1': 50,
               });
             }
             done();
@@ -566,6 +569,12 @@ describe('ApiAnalyticsWidgetService', () => {
             analyticsType: 'GROUP_BY',
             groupByField: 'application-id',
             shouldSortBuckets: false,
+            tableData: {
+              columns: [
+                { label: 'app-id', dataType: 'string' },
+                { label: 'count', dataType: 'number' },
+              ],
+            },
           };
 
           const mockGroupByResponse: GroupByResponse = fakeGroupByResponse({
@@ -583,9 +592,65 @@ describe('ApiAnalyticsWidgetService', () => {
             }
 
             if (result.widgetType === 'table') {
-              expect(result.widgetData.data[0].count).toBe(100);
-              expect(result.widgetData.data[1].count).toBe(200);
-              expect(result.widgetData.data[2].count).toBe(50);
+              expect(result.widgetData.data[0]['col-1']).toBe(100);
+              expect(result.widgetData.data[1]['col-1']).toBe(200);
+              expect(result.widgetData.data[2]['col-1']).toBe(50);
+            }
+            done();
+          });
+
+          expectGroupByRequest('application-id', mockGroupByResponse);
+        });
+
+        it('should use default column names when no columns are provided for table widget', (done) => {
+          const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
+            type: 'table',
+            apiId: API_ID,
+            title: 'Test Widget',
+            tooltip: 'Test tooltip',
+            analyticsType: 'GROUP_BY',
+            groupByField: 'application-id',
+            shouldSortBuckets: false,
+            // No tableData.columns provided
+          };
+
+          const mockGroupByResponse: GroupByResponse = fakeGroupByResponse({
+            values: {
+              'app-1': 100,
+              'app-2': 200,
+              'app-3': 50,
+            },
+            metadata: {
+              'app-1': { name: 'Application 1', order: 1 },
+              'app-2': { name: 'Application 2', order: 0 },
+              'app-3': { name: 'Application 3', order: 2 },
+            },
+          });
+
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+            // Skip loading state and wait for the actual result
+            if (result.state === 'loading') {
+              return;
+            }
+
+            expect(result.state).toBe('success');
+            expect(result.widgetType).toBe('table');
+            if (result.widgetType === 'table') {
+              // Should have default columns
+              expect(result.widgetData.columns).toHaveLength(2);
+              expect(result.widgetData.columns[0]).toEqual({
+                name: 'col-0',
+                label: 'Name',
+                dataType: 'string',
+              });
+              expect(result.widgetData.columns[1]).toEqual({
+                name: 'col-1',
+                label: 'Value',
+                dataType: 'number',
+              });
+
+              // Data should be properly formatted with default column names
+              expect(result.widgetData.data).toHaveLength(3);
             }
             done();
           });
@@ -597,7 +662,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('HISTOGRAM analytics', () => {
       beforeEach(() => {
-        service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+        service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
       });
 
       describe('line chart widget', () => {
@@ -861,7 +926,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('error handling', () => {
       beforeEach(() => {
-        service.setUrlParamsData({ timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
+        service.setUrlParamsData({ ...baseUrlParams, timeRangeParams: { from: 1000, to: 2000, interval: 10 } });
       });
 
       it('should handle unsupported analytics type', (done) => {
@@ -940,6 +1005,55 @@ describe('ApiAnalyticsWidgetService', () => {
         });
 
         expectHistogramRequest('AVG:gateway-response-time-ms', mockHistogramResponse);
+      });
+    });
+
+    describe('queryOf', () => {
+      it('should return null when all params are empty or undefined', () => {
+        expect(service['queryOf']({ httpStatuses: [], plans: [], hosts: [], applications: [], timeRangeParams: undefined })).toBe(null);
+        expect(service['queryOf']({ httpStatuses: [], plans: [], hosts: [], applications: [], timeRangeParams: undefined })).toBe(null);
+      });
+
+      it('should build query for httpStatuses', () => {
+        expect(
+          service['queryOf']({ httpStatuses: ['200', '404'], plans: [], hosts: [], applications: [], timeRangeParams: undefined }),
+        ).toBe('status:("200" OR "404")');
+      });
+
+      it('should build query for hosts', () => {
+        expect(
+          service['queryOf']({ httpStatuses: [], plans: [], hosts: ['host1', 'host2'], applications: [], timeRangeParams: undefined }),
+        ).toBe('host:("host1" OR "host2")');
+      });
+
+      it('should build query for plans', () => {
+        expect(
+          service['queryOf']({ httpStatuses: [], plans: ['planA', 'planB'], hosts: [], applications: [], timeRangeParams: undefined }),
+        ).toBe('plan-id:("planA" OR "planB")');
+      });
+
+      it('should build query for applications', () => {
+        expect(
+          service['queryOf']({ httpStatuses: [], plans: [], hosts: [], applications: ['app1', 'app2'], timeRangeParams: undefined }),
+        ).toBe('application-id:("app1" OR "app2")');
+      });
+
+      it('should build query for multiple filters', () => {
+        expect(
+          service['queryOf']({
+            httpStatuses: ['200'],
+            plans: ['planA'],
+            hosts: ['host1'],
+            applications: ['app1'],
+            timeRangeParams: undefined,
+          }),
+        ).toBe('status:("200") AND host:("host1") AND plan-id:("planA") AND application-id:("app1")');
+      });
+
+      it('should ignore empty arrays', () => {
+        expect(service['queryOf']({ httpStatuses: [], plans: [], hosts: ['host1'], applications: [], timeRangeParams: undefined })).toBe(
+          'host:("host1")',
+        );
       });
     });
   });

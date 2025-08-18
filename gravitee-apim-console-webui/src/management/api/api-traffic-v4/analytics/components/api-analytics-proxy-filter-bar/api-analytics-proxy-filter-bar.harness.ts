@@ -19,11 +19,17 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import moment from 'moment';
 
+import { GioSelectSearchHarness } from '../../../../../../shared/components/gio-select-search/gio-select-search.harness';
+
 export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-proxy-filter-bar';
 
   async getPeriodSelect(): Promise<MatSelectHarness | null> {
     return this.locatorForOptional(MatSelectHarness)();
+  }
+
+  async getPlanSelect(): Promise<GioSelectSearchHarness | null> {
+    return await this.locatorForOptional(GioSelectSearchHarness.with({ formControlName: 'plans' }))();
   }
 
   async getApplyButton(): Promise<MatButtonHarness | null> {
@@ -65,6 +71,29 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
     if (select) {
       await select.open();
       await select.clickOptions({ text: period });
+    }
+  }
+
+  async getSelectedPlans(): Promise<string[] | null> {
+    const select = await this.getPlanSelect();
+    await select.open();
+    return await select.getSelectedValues();
+  }
+
+  async selectPlan(optionText: string): Promise<void> {
+    const select = await this.getPlanSelect();
+    if (select) {
+      await select.open();
+      await select.checkOptionByLabel(optionText);
+      await select.close();
+    }
+  }
+
+  async searchPlan(query: string): Promise<void> {
+    const select = await this.getPlanSelect();
+    if (select) {
+      await select.open();
+      await select.setSearchValue(query);
     }
   }
 
@@ -128,5 +157,24 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
       isValid: errors.length === 0,
       errors,
     };
+  }
+
+  async getSelectedHttpStatuses() {
+    const select = await this.getHttpStatusesSelect();
+    await select.open();
+    return await select.getSelectedValues();
+  }
+
+  private async getHttpStatusesSelect() {
+    return await this.locatorForOptional(GioSelectSearchHarness.with({ formControlName: 'httpStatuses' }))();
+  }
+
+  async selectHttpStatus(optionText: string) {
+    const select = await this.getHttpStatusesSelect();
+    if (select) {
+      await select.open();
+      await select.checkOptionByLabel(optionText);
+      await select.close();
+    }
   }
 }

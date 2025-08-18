@@ -66,9 +66,12 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.Failover;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.Date;
@@ -490,6 +493,37 @@ class MigrateApiUseCaseTest {
     }
 
     @Test
+    void should_upgrade_api_with_closed_plans() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiCrudService.initWith(List.of(v2Api));
+
+        var plan1 = PlanFixtures.aPlanV2().toBuilder().id("plan-1").apiId(API_ID).build();
+        plan1.setPlanStatus(PlanStatus.CLOSED);
+        planCrudService.initWith(List.of(plan1));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var upgradedApiOpt = apiCrudService.findById(API_ID);
+        assertThat(upgradedApiOpt).hasValueSatisfying(MigrateApiUseCaseTest::assertApiV4);
+
+        var upgradedPlans = planCrudService.findByApiId(API_ID);
+        assertThat(upgradedPlans).hasSize(1).extracting(Plan::getId).containsExactlyInAnyOrder("plan-1");
+        assertThat(upgradedPlans).allSatisfy(MigrateApiUseCaseTest::assertPlanV4);
+    }
+
+    @Test
     void should_upgrade_api_with_no_plans() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
@@ -637,6 +671,71 @@ class MigrateApiUseCaseTest {
     }
 
     @Test
+    void should_migrate_api_with_null_failover_and_disable_failover() {
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2api.getApiDefinition().getProxy().setFailover(null);
+        apiCrudService.initWith(java.util.List.of(v2api));
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedFailOver = api.getApiDefinitionHttpV4().getFailover();
+
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().failoverEnabled()).isFalse();
+                    softly.assertThat(migratedFailOver).isNull();
+                });
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_valid_failover_and_enable_failover() {
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        Failover failover = new Failover();
+        failover.setMaxAttempts(5);
+        failover.setRetryTimeout(1000L);
+
+        v2api.getApiDefinition().getProxy().setFailover(failover);
+        apiCrudService.initWith(java.util.List.of(v2api));
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedFailOver = api.getApiDefinitionHttpV4().getFailover();
+
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().failoverEnabled()).isTrue();
+                    softly.assertThat(migratedFailOver).isNotNull();
+                    softly.assertThat(migratedFailOver.isEnabled()).isTrue();
+                    softly.assertThat(migratedFailOver.getMaxFailures()).isEqualTo(5);
+                    softly.assertThat(migratedFailOver.getMaxRetries()).isEqualTo(5);
+                    softly.assertThat(migratedFailOver.getOpenStateDuration()).isEqualTo(10000L);
+                    softly.assertThat(migratedFailOver.getSlowCallDuration()).isEqualTo(1000L);
+                });
+            });
+    }
+
+    @Test
     void should_migrate_api_with_logging_configuration() {
         // Given
         var logging = new io.gravitee.definition.model.Logging();
@@ -736,6 +835,36 @@ class MigrateApiUseCaseTest {
                 var migratedAnalytics = api.getApiDefinitionHttpV4().getAnalytics();
                 assertThat(migratedAnalytics.isEnabled()).isTrue();
                 assertThat(migratedAnalytics.getLogging()).isNull();
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_best_match_flow_mode() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api.getApiDefinition().setFlowMode(io.gravitee.definition.model.FlowMode.BEST_MATCH);
+        apiCrudService.initWith(List.of(v2Api));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var migratedApi = apiCrudService.findById(API_ID);
+
+        assertThat(migratedApi)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+                var migratedDefinition = api.getApiDefinitionHttpV4().getFlowExecution().getMode();
+                assertThat(migratedDefinition).isEqualTo(FlowMode.BEST_MATCH);
             });
     }
 

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, computed, effect, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { map, shareReplay } from 'rxjs/operators';
 
 import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
 import {
@@ -41,6 +42,7 @@ import {
 import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../api-analytics-widget.service';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { Stats, StatsField } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
+import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
 type WidgetDisplayConfig = {
   title: string;
@@ -57,6 +59,11 @@ interface Range {
   color?: string;
 }
 
+export interface WidgetDataConfigColumn {
+  label: string;
+  dataType: 'string' | 'number';
+}
+
 type WidgetDataConfig = {
   apiId: string;
   analyticsType: 'STATS' | 'GROUP_BY' | 'HISTOGRAM';
@@ -65,7 +72,20 @@ type WidgetDataConfig = {
   statsField?: StatsField;
   ranges?: Range[];
   orderBy?: string;
+  tableData?: {
+    columns: WidgetDataConfigColumn[];
+  };
 };
+
+interface QueryParamsBase {
+  from?: string;
+  to?: string;
+  period?: string;
+  httpStatuses?: string;
+  plans?: string;
+  hosts?: string[];
+  applications?: string[];
+}
 
 export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetDataConfig;
 
@@ -86,6 +106,7 @@ export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetData
 export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
   private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
+  private planService = inject(ApiPlanV2Service);
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
@@ -227,16 +248,28 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      tableData: {
+        columns: [
+          { label: 'App', dataType: 'string' },
+          { label: 'Requests Count', dataType: 'number' },
+        ],
+      },
     },
     {
       type: 'table',
       apiId: this.apiId,
-      title: 'Top Api Plans',
+      title: 'Top API Plans',
       tooltip: 'Distribution of hits across API plans',
       shouldSortBuckets: false,
       groupByField: 'plan-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      tableData: {
+        columns: [
+          { label: 'Plan', dataType: 'string' },
+          { label: 'Usage Count', dataType: 'number' },
+        ],
+      },
     },
     {
       type: 'table',
@@ -247,6 +280,12 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'path-info.keyword',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      tableData: {
+        columns: [
+          { label: 'Path', dataType: 'string' },
+          { label: 'Hits', dataType: 'number' },
+        ],
+      },
     },
     {
       type: 'table',
@@ -257,6 +296,12 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-avg:gateway-response-time-ms',
+      tableData: {
+        columns: [
+          { label: 'App', dataType: 'string' },
+          { label: 'Avg. Response Time (ms)', dataType: 'number' },
+        ],
+      },
     },
     {
       type: 'table',
@@ -267,8 +312,21 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'host',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      tableData: {
+        columns: [
+          { label: 'Host', dataType: 'string' },
+          { label: 'Hits', dataType: 'number' },
+        ],
+      },
     },
   ];
+
+  apiPlans$ = this.planService
+    .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
+    .pipe(
+      map((plans) => plans.data),
+      shareReplay(1),
+    );
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -316,56 +374,86 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   }
 
   private createQueryParamsFromFilters(filters: ApiAnalyticsProxyFilters): Record<string, any> {
+    const params: Record<string, any> = {};
+
     if (filters.period === 'custom' && filters.from && filters.to) {
-      return {
-        from: filters.from,
-        to: filters.to,
-        period: 'custom',
-      };
+      params.from = filters.from;
+      params.to = filters.to;
+      params.period = 'custom';
     } else {
-      return {
-        period: filters.period,
-      };
+      params.period = filters.period;
     }
+
+    if (filters.httpStatuses?.length) {
+      params.httpStatuses = filters.httpStatuses.join(',');
+    }
+
+    if (filters.plans?.length) {
+      params.plans = filters.plans.join(',');
+    }
+
+    return params;
   }
 
   private mapQueryParamsToUrlParamsData(queryParams: unknown): ApiAnalyticsWidgetUrlParamsData {
-    const { from, to, period } = queryParams as { from?: string; to?: string; period?: string };
-    const normalizedPeriod = period || '1d';
+    const params = queryParams as QueryParamsBase;
+    const normalizedPeriod = params.period || '1d';
+    const filters = this.getFilterFields(params);
 
-    if (normalizedPeriod === 'custom' && from && to) {
-      return {
+    if (normalizedPeriod === 'custom' && params.from && params.to) {
+      return <ApiAnalyticsWidgetUrlParamsData>{
         timeRangeParams: {
-          from: +from,
-          to: +to,
-          interval: this.calculateCustomInterval(+from, +to),
+          from: +params.from,
+          to: +params.to,
+          interval: this.calculateCustomInterval(+params.from, +params.to),
         },
-      };
-    } else {
-      const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
-      return {
-        timeRangeParams: timeFrame.timeFrameRangesParams(),
+        ...filters,
       };
     }
+
+    const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
+    return {
+      timeRangeParams: timeFrame.timeFrameRangesParams(),
+      ...filters,
+    };
   }
 
   private mapQueryParamsToFilters(queryParams: unknown): ApiAnalyticsProxyFilters {
-    const { from, to, period } = queryParams as { from?: string; to?: string; period?: string };
-    const normalizedPeriod = period || '1d';
+    const params = queryParams as QueryParamsBase;
+    const normalizedPeriod = params.period || '1d';
+    const filters = this.getFilterFields(params);
 
-    if (normalizedPeriod === 'custom' && from && to) {
-      return {
-        period: 'custom',
-        from: +from,
-        to: +to,
-      };
-    } else {
-      return {
+    if (normalizedPeriod === 'custom' && params.from && params.to) {
+      return <ApiAnalyticsProxyFilters>{
         period: normalizedPeriod,
-        from: null,
-        to: null,
+        from: +params.from,
+        to: +params.to,
+        ...filters,
       };
     }
+
+    return {
+      period: normalizedPeriod,
+      from: null,
+      to: null,
+      ...filters,
+    };
+  }
+
+  private getFilterFields(queryParams: QueryParamsBase) {
+    return {
+      httpStatuses: this.processFilter(queryParams.httpStatuses),
+      plans: this.processFilter(queryParams.plans),
+      hosts: this.processFilter(queryParams.hosts),
+      applications: this.processFilter(queryParams.applications),
+    };
+  }
+
+  private processFilter(value: string | string[] | undefined): string[] | undefined {
+    if (value === undefined) {
+      return undefined;
+    }
+    return Array.isArray(value) ? value : value.split(',');
   }
 
   private calculateCustomInterval(from: number, to: number, nbValuesByBucket = 30): number {

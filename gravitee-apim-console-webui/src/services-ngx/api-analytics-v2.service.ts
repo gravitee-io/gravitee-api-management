@@ -33,6 +33,7 @@ interface UrlParamsData {
   field?: GroupByField | StatsField;
   order?: string;
   ranges?: string;
+  query?: string;
 }
 
 @Injectable({
@@ -104,8 +105,8 @@ export class ApiAnalyticsV2Service {
     );
   }
 
-  getHistogramAnalytics(apiId: string, aggregations: string, { from, to, interval }: TimeRangeParams) {
-    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=HISTOGRAM&from=${from}&to=${to}&interval=${interval}&aggregations=${aggregations}`;
+  getHistogramAnalytics(apiId: string, aggregations: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlParamsData = {}) {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=HISTOGRAM&from=${from}&to=${to}&interval=${interval}&aggregations=${aggregations}${this.buildUrlParams({ ...urlParamsData })}`;
     return this.http.get<HistogramAnalyticsResponse>(url);
   }
 
@@ -120,7 +121,7 @@ export class ApiAnalyticsV2Service {
   }
 
   buildUrlParams(params: UrlParamsData) {
-    const { order, ranges, field } = params;
+    const { order, ranges, field, query } = params;
 
     let url = '';
 
@@ -134,6 +135,10 @@ export class ApiAnalyticsV2Service {
 
     if (ranges) {
       url += `&ranges=${ranges}`;
+    }
+
+    if (query) {
+      url += `&query=${query}`;
     }
 
     return url;

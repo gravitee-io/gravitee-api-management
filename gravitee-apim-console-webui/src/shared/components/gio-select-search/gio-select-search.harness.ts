@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseHarnessFilters, ComponentHarness } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
@@ -21,10 +21,22 @@ import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 export interface GioSelectSearchHarnessFilters extends BaseHarnessFilters {
   label?: string;
   placeholder?: string;
+  selector?: string;
+  formControlName?: string;
 }
 
 export class GioSelectSearchHarness extends ComponentHarness {
   static readonly hostSelector = 'gio-select-search';
+
+  static with(options: GioSelectSearchHarnessFilters = {}): HarnessPredicate<GioSelectSearchHarness> {
+    return new HarnessPredicate(GioSelectSearchHarness, options).addOption(
+      'formControlName',
+      options.formControlName,
+      async (harness, formControlName) => {
+        return HarnessPredicate.stringMatches(harness.getFormControlName(), formControlName);
+      },
+    );
+  }
 
   private readonly _documentRootLocator = this.documentRootLocatorFactory();
 
@@ -109,6 +121,7 @@ export class GioSelectSearchHarness extends ComponentHarness {
         return;
       }
     }
+    throw Error(`Unable to check option: ${label}`);
   }
 
   /**
@@ -170,5 +183,11 @@ export class GioSelectSearchHarness extends ComponentHarness {
   async clearSelection(): Promise<void> {
     const clearSelectionButton = await this.getClearSelectionButton();
     await clearSelectionButton.click();
+  }
+
+  private async getFormControlName() {
+    const host = await this.host();
+    const formControlName = host.getAttribute('formControlName');
+    return formControlName ? formControlName : '';
   }
 }
