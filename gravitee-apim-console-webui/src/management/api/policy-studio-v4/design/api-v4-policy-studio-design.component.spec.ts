@@ -746,11 +746,11 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/0');
       }));
 
-      it('should reset flow index to 0 for out-of-range flowIndex', fakeAsync(() => {
+      it('should reset flow index and plan index to 0 for out-of-range flowIndex', fakeAsync(() => {
         routeParams$.next({ planIndex: 1, flowIndex: 99 });
         fixture.detectChanges();
         tick();
-        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/1/0');
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/0');
       }));
     });
   });

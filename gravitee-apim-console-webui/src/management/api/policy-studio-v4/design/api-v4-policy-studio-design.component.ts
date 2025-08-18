@@ -87,6 +87,111 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.loadData();
+    this.trialURL = this.gioLicenseService.getTrialURL({ feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V4 });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  onSave(outputSave: SaveOutput) {
+    const { commonFlows, plansToUpdate, flowExecution } = outputSave;
+
+    const currentSelection = this.getCurrentFlowSelectionFromURL();
+
+    const updates$: Observable<unknown>[] = [];
+    if (commonFlows || flowExecution) {
+      updates$.push(this.updateApiFlows(commonFlows, flowExecution));
+    }
+    if (plansToUpdate) {
+      updates$.push(this.updatePlans(plansToUpdate));
+    }
+    forkJoin(updates$)
+      .pipe(
+        tap(() => this.snackBarService.success('Policy Studio configuration saved')),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => {
+        this.loadData(currentSelection);
+      });
+  }
+
+  onFlowSelectionChange(flowSelection: FlowSelection) {
+    this.updateIndexesInURL(flowSelection);
+  }
+
+  private updateIndexesInURL(flowSelection: FlowSelection) {
+    const segments = this.location.path().split('/');
+    segments[segments.length - 2] = flowSelection.planIndex.toString();
+    segments[segments.length - 1] = flowSelection.flowIndex.toString();
+    this.location.go(segments.join('/'));
+  }
+
+  private getCurrentFlowSelectionFromURL(): FlowSelection {
+    const pathSegments = this.location.path().split('/');
+    return {
+      planIndex: Number(pathSegments[pathSegments.length - 2] ?? 0),
+      flowIndex: Number(pathSegments[pathSegments.length - 1] ?? 0),
+    };
+  }
+
+  private checkAndAdjustIndexes() {
+    const totalPlans = this.plans.length + 1; // Adding 1 for common flows.
+    const { planIndex, flowIndex } = this.selectedFlowIndexes;
+    if (planIndex < 0 || planIndex >= totalPlans) {
+      this.selectedFlowIndexes = { planIndex: 0, flowIndex: 0 };
+      this.updateIndexesInURL(this.selectedFlowIndexes);
+    } else {
+      const currentPlanFlowsLength = planIndex < this.plans.length ? this.plans[planIndex].flows.length : this.commonFlows.length;
+      if (flowIndex < 0 || flowIndex >= currentPlanFlowsLength) {
+        this.selectedFlowIndexes = { planIndex: 0, flowIndex: 0 };
+        this.updateIndexesInURL(this.selectedFlowIndexes);
+      }
+    }
+  }
+
+  private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
+    return this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(
+      switchMap((api: ApiV4) => {
+        const updatedApi: UpdateApiV4 = {
+          ...api,
+          ...(commonFlows ? { flows: commonFlows } : {}),
+          ...(flowExecution ? { flowExecution } : {}),
+        };
+
+        return this.apiV2Service.update(this.activatedRoute.snapshot.params.apiId, updatedApi);
+      }),
+      catchError((err) => {
+        this.snackBarService.error(err.error?.message ?? err.message);
+        return EMPTY;
+      }),
+      takeUntil(this.unsubscribe$),
+    );
+  }
+
+  private updatePlans(plans: PSPlan[]) {
+    const updatePlan$ = (plan: PSPlan) =>
+      this.apiPlanV2Service.get(this.activatedRoute.snapshot.params.apiId, plan.id).pipe(
+        switchMap((apiPlan: PlanV4) => {
+          const updatedApiPlan: UpdatePlanV4 = {
+            ...apiPlan,
+            flows: plan.flows,
+          };
+
+          return this.apiPlanV2Service.update(this.activatedRoute.snapshot.params.apiId, apiPlan.id, updatedApiPlan);
+        }),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message ?? err.message);
+          return EMPTY;
+        }),
+      );
+
+    return forkJoin(plans.map((plan) => updatePlan$(plan)));
+  }
+
+  private loadData(preservedSelection?: FlowSelection) {
     combineLatest([
       this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map((api) => api as ApiV4)),
       this.connectorPluginsV2Service.listEntrypointPlugins(),
@@ -166,101 +271,15 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
         // Set resources for specific json schema resource type component
         this.resourceTypeService.setResources(api.resources ?? []);
-
-        this.selectedFlowIndexes.planIndex = Number(params['planIndex'] ?? 0);
-        this.selectedFlowIndexes.flowIndex = Number(params['flowIndex'] ?? 0);
+        if (preservedSelection) {
+          this.selectedFlowIndexes = preservedSelection;
+        } else {
+          this.selectedFlowIndexes.planIndex = Number(params['planIndex'] ?? 0);
+          this.selectedFlowIndexes.flowIndex = Number(params['flowIndex'] ?? 0);
+        }
         this.checkAndAdjustIndexes();
         this.isReadOnly = api.definitionContext.origin === 'KUBERNETES';
         this.isLoading = false;
       });
-    this.trialURL = this.gioLicenseService.getTrialURL({ feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V4 });
-  }
-
-  ngOnDestroy() {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
-  }
-
-  onSave(outputSave: SaveOutput) {
-    const { commonFlows, plansToUpdate, flowExecution } = outputSave;
-
-    const updates$: Observable<unknown>[] = [];
-    if (commonFlows || flowExecution) {
-      updates$.push(this.updateApiFlows(commonFlows, flowExecution));
-    }
-    if (plansToUpdate) {
-      updates$.push(this.updatePlans(plansToUpdate));
-    }
-    forkJoin(updates$)
-      .pipe(
-        tap(() => this.snackBarService.success('Policy Studio configuration saved')),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.ngOnInit());
-  }
-
-  onFlowSelectionChange(flowSelection: FlowSelection) {
-    this.updateIndexesInURL(flowSelection);
-  }
-
-  private updateIndexesInURL(flowSelection: FlowSelection) {
-    const segments = this.location.path().split('/');
-    segments[segments.length - 2] = flowSelection.planIndex.toString();
-    segments[segments.length - 1] = flowSelection.flowIndex.toString();
-    this.location.go(segments.join('/'));
-  }
-
-  private checkAndAdjustIndexes() {
-    const totalPlans = this.plans.length + 1; // Adding 1 for common flows.
-    const { planIndex, flowIndex } = this.selectedFlowIndexes;
-    if (planIndex < 0 || planIndex >= totalPlans) {
-      this.selectedFlowIndexes = { planIndex: 0, flowIndex: 0 };
-      this.updateIndexesInURL(this.selectedFlowIndexes);
-    } else {
-      const currentPlanFlowsLength = planIndex < this.plans.length ? this.plans[planIndex].flows.length : this.commonFlows.length;
-      if (flowIndex < 0 || flowIndex >= currentPlanFlowsLength) {
-        this.selectedFlowIndexes = { planIndex: planIndex, flowIndex: 0 };
-        this.updateIndexesInURL(this.selectedFlowIndexes);
-      }
-    }
-  }
-
-  private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
-    return this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(
-      switchMap((api: ApiV4) => {
-        const updatedApi: UpdateApiV4 = {
-          ...api,
-          ...(commonFlows ? { flows: commonFlows } : {}),
-          ...(flowExecution ? { flowExecution } : {}),
-        };
-
-        return this.apiV2Service.update(this.activatedRoute.snapshot.params.apiId, updatedApi);
-      }),
-      catchError((err) => {
-        this.snackBarService.error(err.error?.message ?? err.message);
-        return EMPTY;
-      }),
-      takeUntil(this.unsubscribe$),
-    );
-  }
-
-  private updatePlans(plans: PSPlan[]) {
-    const updatePlan$ = (plan: PSPlan) =>
-      this.apiPlanV2Service.get(this.activatedRoute.snapshot.params.apiId, plan.id).pipe(
-        switchMap((apiPlan: PlanV4) => {
-          const updatedApiPlan: UpdatePlanV4 = {
-            ...apiPlan,
-            flows: plan.flows,
-          };
-
-          return this.apiPlanV2Service.update(this.activatedRoute.snapshot.params.apiId, apiPlan.id, updatedApiPlan);
-        }),
-        catchError((err) => {
-          this.snackBarService.error(err.error?.message ?? err.message);
-          return EMPTY;
-        }),
-      );
-
-    return forkJoin(plans.map((plan) => updatePlan$(plan)));
   }
 }
