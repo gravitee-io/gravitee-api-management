@@ -24,6 +24,11 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ClusterMapper;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.cluster.ClusterMembersResource;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -32,14 +37,20 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
 public class ClusterResource extends AbstractResource {
 
     @PathParam("clusterId")
     String clusterId;
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private GetClusterUseCase getClusterUseCase;
@@ -52,8 +63,7 @@ public class ClusterResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    // TODO add permissions
-    //      @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.READ }) })
     public Response getCluster() {
         var executionContext = GraviteeContext.getExecutionContext();
 
@@ -65,8 +75,7 @@ public class ClusterResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // TODO add permissions
-    //      @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
     public Response updateCluster(@Valid @NotNull final UpdateCluster updateCluster) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -93,8 +102,7 @@ public class ClusterResource extends AbstractResource {
     }
 
     @DELETE
-    // TODO add permissions
-    //      @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.DELETE }) })
     public Response deleteCluster() {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -116,5 +124,10 @@ public class ClusterResource extends AbstractResource {
         deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(clusterId, audit));
 
         return Response.noContent().build();
+    }
+
+    @Path("members")
+    public ClusterMembersResource getClusterMembersResource() {
+        return resourceContext.getResource(ClusterMembersResource.class);
     }
 }

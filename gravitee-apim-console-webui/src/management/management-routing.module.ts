@@ -194,7 +194,7 @@ const managementRoutes: Routes = [
       },
       {
         path: 'clusters',
-        loadChildren: () => import('./clusters/cluster-routing.module').then((m) => m.ClusterRoutingModule),
+        loadChildren: () => import('./clusters/cluster.module').then((m) => m.ClusterModule),
         data: {
           permissions: {
             // TODO: When we have a permission for clusters

@@ -26,6 +26,8 @@ import { CurrentUserService as AjsCurrentUserService } from '../../../ajs-upgrad
 import { ApplicationService } from '../../../services-ngx/application.service';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { GroupV2Service } from '../../../services-ngx/group-v2.service';
+import { ClusterMemberService } from 'src/services-ngx/cluster-member.service';
+import { RoleScope } from 'src/entities/role/role';
 
 export type GioTestingPermission = string[];
 
@@ -38,6 +40,7 @@ export class GioPermissionService {
   private currentEnvironmentPermissions: string[] = [];
   private currentApplicationPermissions: string[] = [];
   private currentIntegrationPermissions: string[] = [];
+  private currentClusterPermissions: string[] = [];
   private permissions: string[] = [];
 
   constructor(
@@ -47,6 +50,7 @@ export class GioPermissionService {
     private readonly environmentService: EnvironmentService,
     private readonly applicationService: ApplicationService,
     private readonly integrationService: IntegrationsService,
+    private readonly clusterMemberService: ClusterMemberService,
     private readonly groupService: GroupV2Service,
   ) {
     if (this.gioTestingPermission) {
@@ -136,6 +140,16 @@ export class GioPermissionService {
     );
   }
 
+  loadClusterPermissions(clusterId: string): Observable<void> {
+    return this.clusterMemberService.getPermissions(clusterId).pipe(
+      map((clusterPermissions) => {
+        this.currentClusterPermissions = Object.entries(clusterPermissions).flatMap(([key, crudValues]) =>
+          crudValues.split('').map((crudValue) => toLower(`cluster-${key}-${crudValue}`)),
+        );
+      }),
+    );
+  }
+
   public fetchGroupPermissions(groupId: string): Observable<string[]> {
     return this.groupService
       .getPermissions(groupId)
@@ -164,8 +178,16 @@ export class GioPermissionService {
       intersection(this.currentApiPermissions, permissions).length > 0 ||
       intersection(this.currentApplicationPermissions, permissions).length > 0 ||
       intersection(this.currentIntegrationPermissions, permissions).length > 0 ||
+      intersection(this.currentClusterPermissions, permissions).length > 0 ||
       intersection(this.permissions, permissions).length > 0
     );
+  }
+
+  hasPermissionsByScope(scope: RoleScope, permissions: string[]) {
+    switch (scope) {
+      case 'CLUSTER':
+        return intersection(this.currentClusterPermissions, permissions).length > 0;
+    }
   }
 
   clearEnvironmentPermissions() {
@@ -182,6 +204,10 @@ export class GioPermissionService {
 
   clearIntegrationPermissions() {
     this.currentIntegrationPermissions = [];
+  }
+
+  clearClusterPermissions() {
+    this.currentClusterPermissions = [];
   }
 
   hasAllMatching(permissions: string[]): boolean {
