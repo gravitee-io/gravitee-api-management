@@ -15,4 +15,27 @@
  */
 package inmemory;
 
-public abstract class AbstractQueryServiceInMemory<T> extends AbstractServiceInMemory<T> {}
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class AbstractServiceInMemory<T> implements InMemoryAlternative<T> {
+
+    protected final ArrayList<T> storage = new ArrayList<>();
+
+    @Override
+    public void initWith(List<T> items) {
+        storage.clear();
+        storage.addAll(items);
+    }
+
+    @Override
+    public void reset() {
+        storage.clear();
+    }
+
+    @Override
+    public List<T> storage() {
+        return Collections.unmodifiableList(storage);
+    }
+}

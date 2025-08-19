@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import assertions.MAPIAssertions;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
@@ -47,6 +49,8 @@ import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.management.v2.rest.JerseySpringTest;
 import io.gravitee.rest.api.management.v2.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -60,6 +64,7 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
@@ -67,8 +72,10 @@ import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.stream.Stream;
+import org.glassfish.jersey.internal.util.Producer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -242,5 +249,21 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         parametersQueryService.initWith(
             List.of(new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), environmentId, ParameterReferenceType.ENVIRONMENT, mode.name()))
         );
+    }
+
+    protected void shouldReturn403(
+        RolePermission permission,
+        String referenceId,
+        RolePermissionAction action,
+        Producer<Response> response
+    ) {
+        when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), permission, referenceId, action)).thenReturn(false);
+
+        MAPIAssertions
+            .assertThat(response.call())
+            .hasStatus(FORBIDDEN_403)
+            .asError()
+            .hasHttpStatus(FORBIDDEN_403)
+            .hasMessage("You do not have sufficient rights to access this resource");
     }
 }

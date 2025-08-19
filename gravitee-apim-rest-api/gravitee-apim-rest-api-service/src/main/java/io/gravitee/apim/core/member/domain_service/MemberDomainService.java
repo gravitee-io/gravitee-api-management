@@ -13,6 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package io.gravitee.apim.core.member.domain_service;
 
-public abstract class AbstractQueryServiceInMemory<T> extends AbstractServiceInMemory<T> {}
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Set;
+
+public interface MemberDomainService {
+    Set<MemberEntity> getMembersByReference(ExecutionContext executionContext, MembershipReferenceType referenceType, String referenceId);
+}

@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.cluster.use_case.members;
 
-import static io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION;
 import static io.gravitee.rest.api.model.permissions.RoleScope.CLUSTER;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 
@@ -24,19 +23,11 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.model.AddMember;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 
@@ -45,7 +36,7 @@ import lombok.AllArgsConstructor;
 public class AddClusterMemberUseCase {
 
     private final MembershipCrudService membershipCrudService;
-    private final RoleService roleService;
+    private final RoleQueryService roleQueryService;
 
     public record Input(AuditInfo audit, AddMember addMember, String clusterId) {}
 
@@ -54,8 +45,8 @@ public class AddClusterMemberUseCase {
     public Output execute(Input input) {
         validateMembership(input.addMember);
 
-        RoleEntity role = roleService
-            .findByScopeAndName(RoleScope.CLUSTER, input.addMember.getRoleName(), input.audit.organizationId())
+        Role role = roleQueryService
+            .findByScopeAndName(Role.Scope.CLUSTER, input.addMember.getRoleName(), input.audit.organizationId())
             .orElseThrow();
         ZonedDateTime now = TimeProvider.now();
         Membership membership = Membership

@@ -56,6 +56,11 @@ import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.AddClusterMemberUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.DeleteClusterMemberUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
@@ -930,5 +935,30 @@ public class ResourceContextConfiguration {
     @Bean
     public ApimProductInfo apimProductInfo() {
         return mock(ApimProductInfo.class);
+    }
+
+    @Bean
+    public GetClusterMembersUseCase getClusterMembersUseCase() {
+        return mock(GetClusterMembersUseCase.class);
+    }
+
+    @Bean
+    public GetClusterPermissionsUseCase getClusterPermissionsUseCase() {
+        return mock(GetClusterPermissionsUseCase.class);
+    }
+
+    @Bean
+    public AddClusterMemberUseCase addClusterMemberUseCase() {
+        return mock(AddClusterMemberUseCase.class);
+    }
+
+    @Bean
+    public UpdateClusterMemberUseCase updateClusterMemberUseCase() {
+        return mock(UpdateClusterMemberUseCase.class);
+    }
+
+    @Bean
+    public DeleteClusterMemberUseCase deleteClusterMemberUseCase() {
+        return mock(DeleteClusterMemberUseCase.class);
     }
 }

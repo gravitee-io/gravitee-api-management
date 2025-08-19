@@ -36,6 +36,7 @@ public class DeleteClusterMemberUseCase {
         Membership membershipToDelete = membershipQueryService
             .findByReference(Membership.ReferenceType.CLUSTER, input.clusterId)
             .stream()
+            .filter(membership -> membership.getMemberType().equals(Membership.Type.USER))
             .filter(membership -> membership.getMemberId().equals(input.memberId))
             .findFirst()
             .orElseThrow();
