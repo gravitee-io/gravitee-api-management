@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.member.model;
+package io.gravitee.apim.core.membership.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Builder
 @AllArgsConstructor
-@Data
-public class MembershipRole {
+@NoArgsConstructor
+public class AddMember {
 
-    private final RoleScope scope;
-    private final String name;
+    private String userId;
+    private String externalReference;
+    private String roleName;
 }
