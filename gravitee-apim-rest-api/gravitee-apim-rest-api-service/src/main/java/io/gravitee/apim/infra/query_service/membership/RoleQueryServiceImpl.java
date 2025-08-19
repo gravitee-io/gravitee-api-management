@@ -28,9 +28,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class RoleQueryServiceImpl implements RoleQueryService {
 
@@ -85,6 +87,22 @@ public class RoleQueryServiceImpl implements RoleQueryService {
                 .map(RoleAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find integration role", e);
+        }
+    }
+
+    @Override
+    public Optional<Role> findByScopeAndNameAndOrganizationId(Role.Scope scope, String name, String organizationId) {
+        try {
+            return roleRepository
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                    RoleScope.valueOf(scope.name()),
+                    name,
+                    organizationId,
+                    RoleReferenceType.ORGANIZATION
+                )
+                .map(RoleAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find " + scope.name() + " role", e);
         }
     }
 
