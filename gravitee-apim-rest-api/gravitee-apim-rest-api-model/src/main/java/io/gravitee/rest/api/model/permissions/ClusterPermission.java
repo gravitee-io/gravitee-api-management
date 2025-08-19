@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.member.model;
+package io.gravitee.rest.api.model.permissions;
 
-/**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum RoleScope {
-    API,
-    APPLICATION,
-    GROUP,
-    ENVIRONMENT,
-    ORGANIZATION,
-    PLATFORM,
-    INTEGRATION,
-    CLUSTER,
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Schema(enumAsRef = true)
+@AllArgsConstructor
+@Getter
+public enum ClusterPermission implements Permission {
+    DEFINITION("DEFINITION", 1000),
+    USE("USE", 1100),
+    ANALYTICS("ANALYTICS", 1200),
+    TOPICS("TOPICS", 1300),
+    CONSUMER_GROUPS("CONSUMER_GROUPS", 1400),
+    MESSAGES("MESSAGES", 1500),
+    GATEWAY_DEFINITION("GATEWAY_DEFINITION", 1600),
+    MEMBER("MEMBER", 1700);
+
+    String name;
+    int mask;
 }

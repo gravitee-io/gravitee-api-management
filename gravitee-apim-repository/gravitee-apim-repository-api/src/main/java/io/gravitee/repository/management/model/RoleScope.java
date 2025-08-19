@@ -27,4 +27,5 @@ public enum RoleScope {
     ORGANIZATION,
     PLATFORM,
     INTEGRATION,
+    CLUSTER,
 }

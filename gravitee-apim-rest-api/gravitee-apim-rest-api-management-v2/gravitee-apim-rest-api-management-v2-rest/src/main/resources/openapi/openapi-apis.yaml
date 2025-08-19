@@ -5536,6 +5536,7 @@ components:
                 - ORGANIZATION
                 - PLATFORM
                 - INTEGRATION
+                - CLUSTER
         AddMember:
             type: object
             description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
