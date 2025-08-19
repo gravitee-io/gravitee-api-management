@@ -250,7 +250,7 @@ export const settingsRoutes: Routes = [
             page: 'management-configuration-portal-pages',
           },
           permissions: {
-            anyOf: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
+            anyOf: ['environment-documentation-r'],
             unauthorizedFallbackTo: '../shared-policy-groups',
           },
         },
