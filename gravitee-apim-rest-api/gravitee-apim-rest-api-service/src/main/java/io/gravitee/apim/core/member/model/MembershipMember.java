@@ -16,8 +16,10 @@
 package io.gravitee.apim.core.member.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
+@Builder
 @AllArgsConstructor
 @Data
 public class MembershipMember {

@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { RoleScope } from 'src/entities/role/role';
+
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { intersection, toLower } from 'lodash';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
+import { ClusterMemberService } from '../../../services-ngx/cluster-member.service';
 import UserService from '../../../services/user.service';
 import { ApiService } from '../../../services-ngx/api.service';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
@@ -38,6 +42,7 @@ export class GioPermissionService {
   private currentEnvironmentPermissions: string[] = [];
   private currentApplicationPermissions: string[] = [];
   private currentIntegrationPermissions: string[] = [];
+  private currentClusterPermissions: string[] = [];
   private permissions: string[] = [];
 
   constructor(
@@ -47,6 +52,7 @@ export class GioPermissionService {
     private readonly environmentService: EnvironmentService,
     private readonly applicationService: ApplicationService,
     private readonly integrationService: IntegrationsService,
+    private readonly clusterMemberService: ClusterMemberService,
     private readonly groupService: GroupV2Service,
   ) {
     if (this.gioTestingPermission) {
@@ -136,6 +142,16 @@ export class GioPermissionService {
     );
   }
 
+  loadClusterPermissions(clusterId: string): Observable<void> {
+    return this.clusterMemberService.getPermissions(clusterId).pipe(
+      map((clusterPermissions) => {
+        this.currentClusterPermissions = Object.entries(clusterPermissions).flatMap(([key, crudValues]) =>
+          crudValues.split('').map((crudValue) => toLower(`cluster-${key}-${crudValue}`)),
+        );
+      }),
+    );
+  }
+
   public fetchGroupPermissions(groupId: string): Observable<string[]> {
     return this.groupService
       .getPermissions(groupId)
@@ -164,8 +180,16 @@ export class GioPermissionService {
       intersection(this.currentApiPermissions, permissions).length > 0 ||
       intersection(this.currentApplicationPermissions, permissions).length > 0 ||
       intersection(this.currentIntegrationPermissions, permissions).length > 0 ||
+      intersection(this.currentClusterPermissions, permissions).length > 0 ||
       intersection(this.permissions, permissions).length > 0
     );
+  }
+
+  hasPermissionsByScope(scope: RoleScope, permissions: string[]) {
+    switch (scope) {
+      case 'CLUSTER':
+        return intersection(this.currentClusterPermissions, permissions).length > 0;
+    }
   }
 
   clearEnvironmentPermissions() {
@@ -182,6 +206,10 @@ export class GioPermissionService {
 
   clearIntegrationPermissions() {
     this.currentIntegrationPermissions = [];
+  }
+
+  clearClusterPermissions() {
+    this.currentClusterPermissions = [];
   }
 
   hasAllMatching(permissions: string[]): boolean {

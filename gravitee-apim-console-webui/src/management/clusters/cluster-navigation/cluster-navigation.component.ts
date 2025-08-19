@@ -85,20 +85,22 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
             {
               displayName: 'General',
               routerLink: '',
-              // TODO
-              // permissions: ['cluster-definition-r'],
+              permissions: ['cluster-definition-r'],
               tabs: [
                 {
                   displayName: 'General',
                   routerLink: 'general',
-                  // TODO
-                  // permissions: ['cluster-definition-r'],
+                  permissions: ['cluster-definition-r'],
                 },
                 {
                   displayName: 'Configuration',
                   routerLink: 'configuration',
-                  // TODO
-                  // permissions: ['cluster-definition-r'],
+                  permissions: ['cluster-definition-r'],
+                },
+                {
+                  displayName: 'User Permissions',
+                  routerLink: 'user-permissions',
+                  permissions: ['cluster-definition-r'],
                 },
               ],
             },
