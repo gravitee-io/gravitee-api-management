@@ -72,13 +72,17 @@ public class PortalPagesResource extends AbstractResource {
     @GET
     @Path("/{page}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get a page", description = "Every users can use this service")
+    @Operation(
+        summary = "Get a page",
+        description = "Retrieves a portal page by its identifier. Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission."
+    )
     @ApiResponse(
         responseCode = "200",
         description = "Page",
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
     public PageEntity getPortalPage(
         @HeaderParam("Accept-Language") String acceptLang,
         @PathParam("page") String page,
@@ -95,30 +99,27 @@ public class PortalPagesResource extends AbstractResource {
         ) {
             throw new PageNotFoundException(page);
         }
-
-        if (isDisplayable(executionContext, pageEntity)) {
-            if (!isAuthenticated() && pageEntity.getMetadata() != null) {
-                pageEntity.getMetadata().clear();
-            }
-            if (portal) {
-                pageService.transformWithTemplate(executionContext, pageEntity, null);
-            }
-            return pageEntity;
-        } else {
-            throw new UnauthorizedAccessException();
+        if (portal) {
+            pageService.transformWithTemplate(executionContext, pageEntity, null);
         }
+        return pageEntity;
     }
 
     @GET
     @Path("/{page}/content")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Get the page's content", description = "Every users can use this service")
+    @Operation(
+        summary = "Get the page's content",
+        description = "Retrieves the raw content of a portal page by its identifier. " +
+        "Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission."
+    )
     @ApiResponse(
         responseCode = "200",
         description = "Page's content",
         content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = "string"))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
     public Response getPortalPageContent(@PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -128,17 +129,17 @@ public class PortalPagesResource extends AbstractResource {
         ) {
             throw new PageNotFoundException(page);
         }
-        if (isDisplayable(executionContext, pageEntity)) {
-            pageService.transformSwagger(executionContext, pageEntity);
-            return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
-        } else {
-            throw new UnauthorizedAccessException();
-        }
+        pageService.transformSwagger(executionContext, pageEntity);
+        return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List pages", description = "Every users can use this service")
+    @Operation(
+        summary = "List documentation pages",
+        description = "Returns documentation pages for the current environment. " +
+        "Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission."
+    )
     @ApiResponse(
         responseCode = "200",
         description = "List of pages",
@@ -148,6 +149,7 @@ public class PortalPagesResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
     public List<PageEntity> getPortalPages(
         @HeaderParam("Accept-Language") String acceptLang,
         @QueryParam("homepage") Boolean homepage,
@@ -160,22 +162,18 @@ public class PortalPagesResource extends AbstractResource {
     ) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        return pageService
-            .search(
-                executionContext.getEnvironmentId(),
-                new PageQuery.Builder()
-                    .homepage(homepage)
-                    .published(published)
-                    .type(type)
-                    .parent(parent)
-                    .name(name)
-                    .rootParent(rootParent)
-                    .build(),
-                translated ? acceptedLocale : null
-            )
-            .stream()
-            .filter(pageEntity -> isDisplayable(executionContext, pageEntity))
-            .collect(Collectors.toList());
+        return pageService.search(
+            executionContext.getEnvironmentId(),
+            new PageQuery.Builder()
+                .homepage(homepage)
+                .published(published)
+                .type(type)
+                .parent(parent)
+                .name(name)
+                .rootParent(rootParent)
+                .build(),
+            translated ? acceptedLocale : null
+        );
     }
 
     @POST
