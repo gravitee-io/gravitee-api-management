@@ -46,7 +46,6 @@ export interface ApiAnalyticsProxyFilters {
   to?: number | null;
   httpStatuses: string[] | null;
   plans: string[] | null;
-  hosts: string[] | null;
   applications: string[] | null;
 }
 

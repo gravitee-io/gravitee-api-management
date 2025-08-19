@@ -36,7 +36,6 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
     httpStatuses: [],
     applications: [],
     plans: [],
-    hosts: [],
   };
 
   beforeEach(async () => {
