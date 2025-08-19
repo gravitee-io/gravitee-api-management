@@ -44,7 +44,6 @@ describe('ApiAnalyticsWidgetService', () => {
     timeRangeParams: null,
     plans: null,
     httpStatuses: null,
-    hosts: null,
     applications: null,
   };
 
@@ -1020,7 +1019,6 @@ describe('ApiAnalyticsWidgetService', () => {
           service['queryOf']({
             httpStatuses: [],
             plans: [],
-            hosts: [],
             applications: [],
             timeRangeParams: undefined,
           }),
@@ -1029,7 +1027,6 @@ describe('ApiAnalyticsWidgetService', () => {
           service['queryOf']({
             httpStatuses: [],
             plans: [],
-            hosts: [],
             applications: [],
             timeRangeParams: undefined,
           }),
@@ -1041,23 +1038,10 @@ describe('ApiAnalyticsWidgetService', () => {
           service['queryOf']({
             httpStatuses: ['200', '404'],
             plans: [],
-            hosts: [],
             applications: [],
             timeRangeParams: undefined,
           }),
         ).toBe('status:("200" OR "404")');
-      });
-
-      it('should build query for hosts', () => {
-        expect(
-          service['queryOf']({
-            httpStatuses: [],
-            plans: [],
-            hosts: ['host1', 'host2'],
-            applications: [],
-            timeRangeParams: undefined,
-          }),
-        ).toBe('host:("host1" OR "host2")');
       });
 
       it('should build query for plans', () => {
@@ -1065,7 +1049,6 @@ describe('ApiAnalyticsWidgetService', () => {
           service['queryOf']({
             httpStatuses: [],
             plans: ['planA', 'planB'],
-            hosts: [],
             applications: [],
             timeRangeParams: undefined,
           }),
@@ -1077,7 +1060,6 @@ describe('ApiAnalyticsWidgetService', () => {
           service['queryOf']({
             httpStatuses: [],
             plans: [],
-            hosts: [],
             applications: ['app1', 'app2'],
             timeRangeParams: undefined,
           }),
@@ -1089,23 +1071,21 @@ describe('ApiAnalyticsWidgetService', () => {
           service['queryOf']({
             httpStatuses: ['200'],
             plans: ['planA'],
-            hosts: ['host1'],
             applications: ['app1'],
             timeRangeParams: undefined,
           }),
-        ).toBe('status:("200") AND host:("host1") AND plan-id:("planA") AND application-id:("app1")');
+        ).toBe('status:("200") AND plan-id:("planA") AND application-id:("app1")');
       });
 
       it('should ignore empty arrays', () => {
         expect(
           service['queryOf']({
             httpStatuses: [],
-            plans: [],
-            hosts: ['host1'],
+            plans: ['plan1'],
             applications: [],
             timeRangeParams: undefined,
           }),
-        ).toBe('host:("host1")');
+        ).toBe('plan-id:("plan1")');
       });
     });
   });

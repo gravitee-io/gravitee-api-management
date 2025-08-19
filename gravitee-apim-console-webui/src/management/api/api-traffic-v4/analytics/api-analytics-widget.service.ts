@@ -36,7 +36,6 @@ export interface ApiAnalyticsWidgetUrlParamsData {
   httpStatuses: string[];
   applications: string[];
   plans: string[];
-  hosts: string[];
 }
 
 // Colors for charts
@@ -51,7 +50,6 @@ export class ApiAnalyticsWidgetService {
     httpStatuses: [],
     applications: [],
     plans: [],
-    hosts: [],
   });
 
   // Cache for stats requests to avoid multiple backend calls
@@ -345,9 +343,6 @@ export class ApiAnalyticsWidgetService {
     const filters: EsFilter[] = [];
     if (urlParamsData.httpStatuses && urlParamsData.httpStatuses.length > 0) {
       filters.push({ type: 'isin', field: 'status', values: urlParamsData.httpStatuses });
-    }
-    if (urlParamsData.hosts && urlParamsData.hosts.length > 0) {
-      filters.push({ type: 'isin', field: 'host', values: urlParamsData.hosts });
     }
     if (urlParamsData.plans && urlParamsData.plans.length > 0) {
       filters.push({ type: 'isin', field: 'plan-id', values: urlParamsData.plans });

@@ -85,7 +85,6 @@ interface QueryParamsBase {
   period?: string;
   httpStatuses?: string;
   plans?: string;
-  hosts?: string[];
   applications?: string[];
 }
 
@@ -454,7 +453,6 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     return {
       httpStatuses: this.processFilter(queryParams.httpStatuses),
       plans: this.processFilter(queryParams.plans),
-      hosts: this.processFilter(queryParams.hosts),
       applications: this.processFilter(queryParams.applications),
     };
   }
