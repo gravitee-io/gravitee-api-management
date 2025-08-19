@@ -72,7 +72,10 @@ export class InstanceListComponent implements OnInit, OnDestroy {
           state: instance.state,
           // Instance version is like "4.2.0-SNAPSHOT (build: 508664) revision#26c06dbf46547447c420f8683d62ada5c1e15617"
           // so keep only the version number for this screen
-          version: instance.version.substring(0, instance.version.indexOf('(')),
+          version:
+            instance.version && instance.version.includes('(')
+              ? instance.version.substring(0, instance.version.indexOf('(')).trim()
+              : (instance.version ?? ''),
           ip: instance.ip,
           port: instance.port,
           os: instance.operating_system_name,
