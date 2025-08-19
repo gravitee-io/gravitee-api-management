@@ -16,10 +16,10 @@
 package io.gravitee.apim.core.cluster.use_case.members;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.member.domain_service.MemberDomainService;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Comparator;
 import java.util.List;
@@ -29,14 +29,14 @@ import lombok.AllArgsConstructor;
 @UseCase
 public class GetClusterMembersUseCase {
 
-    private final MembershipService membershipService;
+    private final MemberDomainService memberDomainService;
 
     public record Input(String clusterId) {}
 
     public record Output(List<MemberEntity> members) {}
 
     public Output execute(Input input) {
-        var members = membershipService
+        var members = memberDomainService
             .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.CLUSTER, input.clusterId)
             .stream()
             .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)

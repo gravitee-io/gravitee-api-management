@@ -15,34 +15,14 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.cluster.model.Cluster;
-import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
-public abstract class AbstractCrudServiceInMemory<T> implements InMemoryAlternative<T> {
+public abstract class AbstractCrudServiceInMemory<T> extends AbstractServiceInMemory<T> {
 
     final ArrayList<T> storage = new ArrayList<>();
 
     public T create(T toCreate) {
         storage.add(toCreate);
         return toCreate;
-    }
-
-    @Override
-    public void initWith(List<T> items) {
-        storage.clear();
-        storage.addAll(items);
-    }
-
-    @Override
-    public void reset() {
-        storage.clear();
-    }
-
-    @Override
-    public List<T> storage() {
-        return Collections.unmodifiableList(storage);
     }
 }

@@ -104,9 +104,10 @@ public class ClusterMembersResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = { RolePermissionAction.READ }) })
     public MembersResponse getClusterMembers(@BeanParam @Valid PaginationParam paginationParam) {
         var output = getClusterMembersUseCase.execute(new GetClusterMembersUseCase.Input(clusterId));
+        var membersSubList = computePaginationData(output.members(), paginationParam);
         return new MembersResponse()
-            .data(MemberMapper.INSTANCE.map(output.members()))
-            .pagination(PaginationInfo.computePaginationInfo(output.members().size(), output.members().size(), paginationParam))
+            .data(MemberMapper.INSTANCE.map(membersSubList))
+            .pagination(PaginationInfo.computePaginationInfo(output.members().size(), membersSubList.size(), paginationParam))
             .links(computePaginationLinks(output.members().size(), paginationParam));
     }
 
@@ -144,7 +145,7 @@ public class ClusterMembersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.UPDATE) })
-    public Response updateClusterMember(@PathParam("memberId") String memberId, UpdateMember updateMember) {
+    public Response updateClusterMember(@PathParam("memberId") String memberId, @Valid @NotNull UpdateMember updateMember) {
         var output = updateClusterMemberUseCase.execute(
             new UpdateClusterMemberUseCase.Input(updateMember.getRoleName(), memberId, clusterId)
         );

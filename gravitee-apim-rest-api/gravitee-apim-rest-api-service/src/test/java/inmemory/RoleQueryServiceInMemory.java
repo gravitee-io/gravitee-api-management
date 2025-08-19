@@ -90,6 +90,17 @@ public class RoleQueryServiceInMemory implements RoleQueryService, InMemoryAlter
         return storage.stream().filter(role -> ids.contains(role.getId())).collect(Collectors.toSet());
     }
 
+    @Override
+    public Optional<Role> findByScopeAndName(Role.Scope scope, String name, String organizationId) {
+        return storage
+            .stream()
+            .filter(role -> role.getScope().equals(scope))
+            .filter(role -> role.getName().equals(name))
+            .filter(role -> role.getReferenceType().equals(Role.ReferenceType.ORGANIZATION))
+            .filter(role -> role.getReferenceId().equals(organizationId))
+            .findFirst();
+    }
+
     public void resetSystemRoles(String organizationId) {
         this.storage.clear();
         // Organization Admin

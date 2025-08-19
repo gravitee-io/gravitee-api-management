@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -30,6 +31,7 @@ import lombok.NoArgsConstructor;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -46,6 +48,7 @@ public class Member {
     private Date createdAt;
     private Date updatedAt;
 
+    @Builder
     @AllArgsConstructor
     @NoArgsConstructor
     @Data

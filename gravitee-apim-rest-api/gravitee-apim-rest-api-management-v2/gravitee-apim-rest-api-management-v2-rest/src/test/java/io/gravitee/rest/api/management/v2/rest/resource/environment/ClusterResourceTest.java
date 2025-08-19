@@ -29,11 +29,14 @@ import assertions.MAPIAssertions;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.inject.Inject;
@@ -52,6 +55,9 @@ class ClusterResourceTest extends AbstractResourceTest {
 
     private static final String ENV_ID = "my-env";
     private static final String CLUSTER_ID = "my-cluster";
+
+    @Inject
+    private GetClusterUseCase getClusterUseCase;
 
     @Inject
     private UpdateClusterUseCase updateClusterUseCase;
@@ -83,7 +89,45 @@ class ClusterResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(updateClusterUseCase);
+        reset(updateClusterUseCase, deleteClusterUseCase);
+    }
+
+    @Nested
+    class GetClusterTest {
+
+        @Test
+        void should_get_cluster() {
+            when(getClusterUseCase.execute(any())).thenReturn(new GetClusterUseCase.Output(Cluster.builder().id("cluster-1").build()));
+
+            final Response response = rootTarget().request().get();
+
+            var cluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
+
+            assertAll(() -> assertThat(response.getStatus()).isEqualTo(OK_200), () -> assertThat(cluster.getId()).isEqualTo("cluster-1"));
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+            /*when(
+                    permissionService.hasPermission(
+                            GraviteeContext.getExecutionContext(),
+                            RolePermission.CLUSTER_DEFINITION,
+                            CLUSTER_ID,
+                            RolePermissionAction.READ
+                    )
+            )
+                    .thenReturn(false);
+
+            final Response response = rootTarget().request().get();
+
+            MAPIAssertions
+                    .assertThat(response)
+                    .hasStatus(FORBIDDEN_403)
+                    .asError()
+                    .hasHttpStatus(FORBIDDEN_403)
+                    .hasMessage("You do not have sufficient rights to access this resource");*/
+        }
     }
 
     @Nested
@@ -149,28 +193,16 @@ class ClusterResourceTest extends AbstractResourceTest {
                 assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
             }
         }
-        // TODO add the permissions
-        /*@Test
+
+        @Test
         public void should_return_403_if_incorrect_permissions() {
-            when(
-                    permissionService.hasPermission(
-                            eq(GraviteeContext.getExecutionContext()),
-                            eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
-                            eq(ENV_ID),
-                            eq(RolePermissionAction.UPDATE)
-                    )
-            )
-                    .thenReturn(false);
-
-            final Response response = rootTarget().request().put(json(aUpdateSharedPolicyGroup()));
-
-            MAPIAssertions
-                    .assertThat(response)
-                    .hasStatus(FORBIDDEN_403)
-                    .asError()
-                    .hasHttpStatus(FORBIDDEN_403)
-                    .hasMessage("You do not have sufficient rights to access this resource");
-        }*/
+            shouldReturn403(
+                RolePermission.CLUSTER_DEFINITION,
+                CLUSTER_ID,
+                RolePermissionAction.UPDATE,
+                () -> rootTarget().request().put(json(""))
+            );
+        }
     }
 
     @Nested
@@ -193,6 +225,16 @@ class ClusterResourceTest extends AbstractResourceTest {
                 soft.assertThat(input.clusterId()).isEqualTo(CLUSTER_ID);
                 soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
             });
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(
+                RolePermission.CLUSTER_DEFINITION,
+                CLUSTER_ID,
+                RolePermissionAction.DELETE,
+                () -> rootTarget().request().delete()
+            );
         }
     }
 }

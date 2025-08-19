@@ -35,6 +35,8 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.management.v2.rest.model.CreateCluster;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.inject.Inject;
@@ -159,28 +161,16 @@ class ClustersResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
         }
-        // TODO add the permissions
-        /*@Test
-    public void should_return_403_if_incorrect_permissions() {
-        when(
-                permissionService.hasPermission(
-                        eq(GraviteeContext.getExecutionContext()),
-                        eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
-                        eq(ENV_ID),
-                        eq(RolePermissionAction.CREATE)
-                )
-        )
-                .thenReturn(false);
 
-        final Response response = rootTarget().request().post(json(SharedPolicyGroupFixtures.aCreateSharedPolicyGroup()));
-
-        MAPIAssertions
-                .assertThat(response)
-                .hasStatus(FORBIDDEN_403)
-                .asError()
-                .hasHttpStatus(FORBIDDEN_403)
-                .hasMessage("You do not have sufficient rights to access this resource");
-    }*/
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(
+                RolePermission.ENVIRONMENT_CLUSTER,
+                ENV_ID,
+                RolePermissionAction.CREATE,
+                () -> rootTarget().request().post(json(new CreateCluster()))
+            );
+        }
     }
 
     @Nested
@@ -222,6 +212,11 @@ class ClustersResourceTest extends AbstractResourceTest {
                 () -> assertThat(clustersResponse.getPagination().getTotalCount()).isEqualTo(23),
                 () -> assertThat(clustersResponse.getLinks()).isNotNull()
             );
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
         }
     }
 }
