@@ -73,7 +73,7 @@ export class SettingsNavigationService {
           {
             displayName: 'Documentation',
             routerLink: './documentation',
-            permissions: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
+            permissions: ['environment-documentation-r'],
           },
           {
             displayName: 'Metadata',
