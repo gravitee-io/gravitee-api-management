@@ -47,6 +47,20 @@ public class UpdateRoleEntity {
 
     private Map<String, char[]> permissions;
 
+    public static UpdateRoleEntity from(RoleEntity roleEntity) {
+        if (roleEntity == null) {
+            return null;
+        }
+        final UpdateRoleEntity role = new UpdateRoleEntity();
+        role.setId(roleEntity.getId());
+        role.setName(roleEntity.getName());
+        role.setDescription(roleEntity.getDescription());
+        role.setScope(roleEntity.getScope());
+        role.setDefaultRole(roleEntity.isDefaultRole());
+        role.setPermissions(roleEntity.getPermissions());
+        return role;
+    }
+
     public String getId() {
         return id;
     }

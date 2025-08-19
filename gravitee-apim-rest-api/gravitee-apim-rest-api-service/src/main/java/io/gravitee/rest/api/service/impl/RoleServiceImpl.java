@@ -70,7 +70,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         Map.entry("<APPLICATION> USER (default)", DEFAULT_ROLE_APPLICATION_USER),
         Map.entry("<APPLICATION> OWNER", ROLE_APPLICATION_OWNER),
         Map.entry("<INTEGRATION> OWNER", ROLE_INTEGRATION_OWNER),
-        Map.entry("<INTEGRATION> USER", ROLE_INTEGRATION_USER)
+        Map.entry("<INTEGRATION> USER", ROLE_INTEGRATION_USER),
+        Map.entry("<CLUSTER> USER", CLUSTER_ROLE_USER),
+        Map.entry("<CLUSTER> OWNER", CLUSTER_ROLE_OWNER)
     );
 
     private final Logger LOGGER = LoggerFactory.getLogger(RoleServiceImpl.class);
@@ -521,6 +523,14 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             );
             //GROUP - ADMINISTRATOR
             createOrUpdateSystemRole(executionContext, SystemRole.ADMIN, RoleScope.GROUP, GroupPermission.values(), organizationId);
+            // CLUSTER - PRIMARY_OWNER
+            createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.CLUSTER,
+                ClusterPermission.values(),
+                organizationId
+            );
         } catch (TechnicalManagementException ex) {
             LOGGER.error("An error occurs while trying to create admin roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to create admin roles ", ex);

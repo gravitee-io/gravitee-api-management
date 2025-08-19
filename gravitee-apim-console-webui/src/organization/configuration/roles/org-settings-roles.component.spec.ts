@@ -106,6 +106,14 @@ describe('OrgSettingsRolesComponent', () => {
           scope: 'INTEGRATION',
         }),
       ],
+      [
+        fakeRole({
+          id: 'role-7',
+          name: 'Role 7',
+          description: 'Role 7 description',
+          scope: 'CLUSTER',
+        }),
+      ],
     );
 
     expect(component.rolesByScope).toStrictEqual([
@@ -199,6 +207,22 @@ describe('OrgSettingsRolesComponent', () => {
           },
         ],
       },
+      {
+        scope: 'Cluster',
+        scopeId: 'CLUSTER',
+        roles: [
+          {
+            canBeDeleted: false,
+            description: 'Role 7 description',
+            hasUserRoleManagement: false,
+            icon: '',
+            isDefault: true,
+            isReadOnly: false,
+            isSystem: false,
+            name: 'Role 7',
+          },
+        ],
+      },
     ]);
   });
 
@@ -224,6 +248,7 @@ describe('OrgSettingsRolesComponent', () => {
         [],
         [],
         [],
+        [],
       );
 
       fixture.detectChanges();
@@ -241,7 +266,7 @@ describe('OrgSettingsRolesComponent', () => {
         })
         .flush(null);
 
-      respondToGetRolesRequests([], [], [], [], []);
+      respondToGetRolesRequests([], [], [], [], [], []);
     });
   });
 
@@ -249,11 +274,19 @@ describe('OrgSettingsRolesComponent', () => {
     httpTestingController.verify();
   });
 
-  function respondToGetRolesRequests(orgRoles: Role[], envRoles: Role[], apiRoles: Role[], appRoles: Role[], integrationRoles: Role[]) {
+  function respondToGetRolesRequests(
+    orgRoles: Role[],
+    envRoles: Role[],
+    apiRoles: Role[],
+    appRoles: Role[],
+    integrationRoles: Role[],
+    clusterRoles: Role[],
+  ) {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles`).flush(orgRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ENVIRONMENT/roles`).flush(envRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/API/roles`).flush(apiRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/APPLICATION/roles`).flush(appRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/INTEGRATION/roles`).flush(integrationRoles);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/CLUSTER/roles`).flush(clusterRoles);
   }
 });
