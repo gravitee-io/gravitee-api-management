@@ -190,4 +190,12 @@ export class GioSelectSearchHarness extends ComponentHarness {
     const formControlName = host.getAttribute('formControlName');
     return formControlName ? formControlName : '';
   }
+
+  /**
+   * Simulates scrolling near the bottom of the options container to trigger load more
+   */
+  async scrollNearBottom(): Promise<void> {
+    const optionsContainer = await this._documentRootLocator.locatorForOptional('.gio-select-search__options')();
+    await optionsContainer.dispatchEvent('scroll');
+  }
 }

@@ -30,8 +30,8 @@
   </div>
 
   <!-- Options list -->
-  <div class="gio-select-search__options" #optionsContainer>
-    @for (option of filteredOptions(); track option.value) {
+  <div class="gio-select-search__options" cdkScrollable>
+    @for (option of options(); track option.value) {
       <div class="gio-select-search__option" [class.disabled-option]="option.disabled" (click)="toggleOption(option)">
         <mat-checkbox
           [checked]="selectedValues.includes(option.value)"
@@ -44,7 +44,11 @@
       </div>
     }
 
-    @if (filteredOptions().length === 0) {
+    @if (isLoading) {
+      <div class="gio-select-search__loading-more">
+        <gio-loader />
+      </div>
+    } @else if (options().length === 0) {
       <div class="gio-select-search__option disabled-option">
         <mat-checkbox disabled checked="false" class="gio-select-search__option-checkbox"> </mat-checkbox>
         <span class="gio-select-search__option-label">No options available</span>
