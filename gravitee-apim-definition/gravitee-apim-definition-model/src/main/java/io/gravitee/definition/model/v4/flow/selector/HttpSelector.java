@@ -16,11 +16,13 @@
 package io.gravitee.definition.model.v4.flow.selector;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Operator;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -50,6 +52,7 @@ public class HttpSelector extends Selector {
     @Builder.Default
     private Operator pathOperator = DEFAULT_OPERATOR;
 
+    @JsonDeserialize(as = LinkedHashSet.class, contentAs = HttpMethod.class)
     private Set<HttpMethod> methods;
 
     public HttpSelector() {
