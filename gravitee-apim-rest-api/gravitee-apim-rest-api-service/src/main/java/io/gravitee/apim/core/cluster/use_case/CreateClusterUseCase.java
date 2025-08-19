@@ -25,9 +25,15 @@ import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.CreateCluster;
+import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 
@@ -38,6 +44,8 @@ public class CreateClusterUseCase {
     private final ClusterCrudService clusterCrudService;
     private final ValidateClusterService validateClusterService;
     private final AuditDomainService auditService;
+    private final MembershipCrudService membershipCrudService;
+    private final RoleQueryService roleQueryService;
 
     public record Input(CreateCluster createCluster, AuditInfo auditInfo) {}
 
@@ -61,9 +69,34 @@ public class CreateClusterUseCase {
 
         Cluster createdCluster = clusterCrudService.create(clusterToCreate);
 
+        createClusterPrimaryOwner(input.auditInfo.actor().userId(), createdCluster.getId(), now);
+
         createAuditLog(createdCluster, input.auditInfo());
 
         return new Output(createdCluster);
+    }
+
+    private Membership createClusterPrimaryOwner(String memberId, String clusterId, Instant createdAt) {
+        ZonedDateTime createdAtZonedDateTime = createdAt.atZone(TimeProvider.clock().getZone());
+        Role role = roleQueryService
+            .findByScopeAndNameAndOrganizationId(
+                Role.Scope.CLUSTER,
+                "PRIMARY_OWNER",
+                GraviteeContext.getExecutionContext().getOrganizationId()
+            )
+            .orElseThrow();
+        Membership membership = Membership
+            .builder()
+            .id(UuidString.generateRandom())
+            .memberId(memberId)
+            .memberType(Membership.Type.USER)
+            .referenceId(clusterId)
+            .referenceType(Membership.ReferenceType.CLUSTER)
+            .roleId(role.getId())
+            .createdAt(createdAtZonedDateTime)
+            .updatedAt(createdAtZonedDateTime)
+            .build();
+        return membershipCrudService.create(membership);
     }
 
     private void createAuditLog(Cluster cluster, AuditInfo auditInfo) {
