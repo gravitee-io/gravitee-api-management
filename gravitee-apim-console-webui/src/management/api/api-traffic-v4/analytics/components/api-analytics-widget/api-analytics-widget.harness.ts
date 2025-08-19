@@ -18,13 +18,19 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { GioWidgetLayoutHarness } from '../../../../../../shared/components/gio-widget-layout/gio-widget-layout.harness';
 import { ApiAnalyticsWidgetTableHarness } from '../api-analytics-widget-table/api-analytics-widget-table.harness';
 import { GioChartPieHarness } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.harness';
+import { AnalyticsStatsComponentHarness } from '../../../../../../shared/components/analytics-stats/analytics-stats.component.harness';
 
 export class ApiAnalyticsWidgetHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-widget';
 
+  protected getStatsWidget = this.locatorFor(AnalyticsStatsComponentHarness);
   protected getWidgetLayout = this.locatorFor(GioWidgetLayoutHarness);
   protected getTableWidget = this.locatorForOptional(ApiAnalyticsWidgetTableHarness);
   protected getPieChart = this.locatorForOptional(GioChartPieHarness);
+
+  async getStatsComponentHarness(): Promise<AnalyticsStatsComponentHarness> {
+    return this.getStatsWidget();
+  }
 
   /**
    * Gets the widget layout harness

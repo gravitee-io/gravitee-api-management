@@ -16,5 +16,7 @@
 
 -->
 <div class="analytics-stats">
-  <p class="analytics-stats__record">{{ input().stats | number }}{{ input().statsUnit }}</p>
+  <p class="analytics-stats__record">
+    {{ input().stats != null ? (input().stats | number) + (input().statsUnit ?? '') : '-' }}
+  </p>
 </div>
