@@ -81,8 +81,19 @@ public class MemberQueryServiceInMemory implements MemberQueryService, InMemoryA
         if (memberOptional.isPresent()) {
             memberOptional
                 .get()
-                .getRoles()
-                .add(new Member.Role(UUID.random().toString(), null, null, RoleScope.valueOf(role.getScope().name()), false, false, null));
+                .setRoles(
+                    List.of(
+                        new Member.Role(
+                            UUID.random().toString(),
+                            role.getName(),
+                            null,
+                            RoleScope.valueOf(role.getScope().name()),
+                            false,
+                            false,
+                            null
+                        )
+                    )
+                );
             return memberOptional.get();
         } else {
             return null;

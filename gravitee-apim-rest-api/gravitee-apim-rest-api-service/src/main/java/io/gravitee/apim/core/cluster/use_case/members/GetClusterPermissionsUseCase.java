@@ -21,9 +21,9 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.ClusterPermission;
-import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.HashMap;
@@ -34,7 +34,7 @@ import lombok.AllArgsConstructor;
 @UseCase
 public class GetClusterPermissionsUseCase {
 
-    private final MembershipService membershipService;
+    private final MembershipDomainService membershipDomainService;
 
     public record Input(boolean isAuthenticated, boolean isAdmin, String authenticatedUser, String clusterId) {}
 
@@ -52,7 +52,7 @@ public class GetClusterPermissionsUseCase {
                 final String username = input.authenticatedUser;
                 final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
                 permissions =
-                    membershipService.getUserMemberPermissions(
+                    membershipDomainService.getUserMemberPermissions(
                         executionContext,
                         MembershipReferenceType.CLUSTER,
                         input.clusterId,
