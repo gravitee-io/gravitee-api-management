@@ -28,6 +28,9 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -55,6 +58,13 @@ public class PlanMongoRepositoryImpl implements PlanMongoRepositoryCustom {
             .aggregate(pipeline);
 
         return getListFromAggregate(aggregate);
+    }
+
+    @Override
+    public void updateOrder(String planId, int order) {
+        Query query = Query.query(Criteria.where("_id").is(planId));
+        Update update = new Update().set("order", order);
+        mongoTemplate.updateFirst(query, update, PlanMongo.class);
     }
 
     private List<PlanMongo> getListFromAggregate(AggregateIterable<Document> aggregate) {
