@@ -67,7 +67,7 @@
   </div>
 </form>
 <div class="applied-filters">
-  @if (isFiltering) {
+  @if (isFiltering()) {
     <mat-chip-listbox class="applied-filters__chip_list">
       <div class="applied-filters-text">Filters applied:</div>
       @for (chip of currentFilterChips(); track chip.key) {
@@ -88,6 +88,6 @@
       </button>
     </mat-chip-listbox>
   } @else {
-    <span>No filter applied</span>
+    <span class="no-filters-applied">No filter applied</span>
   }
 </div>

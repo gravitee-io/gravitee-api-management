@@ -248,6 +248,13 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
     });
   });
 
+  describe('Empty filters chips', () => {
+    it('should display message with No filter applied', async () => {
+      expect(await harness.getFiltersAppliedText()).toBeFalsy();
+      expect(await harness.getNoFiltersAppliedText()).toBe('No filter applied');
+    });
+  });
+
   describe('Selected Filter Chips', () => {
     let emitSpy: jest.SpyInstance;
 
@@ -265,7 +272,7 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
       fixture.detectChanges();
     });
 
-    it('should create filter chips from activeFilters using computed signals', () => {
+    it('should create filter chips from activeFilters using computed signals', async () => {
       expect(component.currentFilterChips()).toHaveLength(4);
       expect(component.currentFilterChips()).toEqual([
         { key: 'httpStatuses', value: '200', display: '200 - Ok' },
@@ -275,6 +282,9 @@ describe('ApiAnalyticsProxyFilterBarComponent', () => {
       ]);
 
       expect(component.isFiltering()).toBeTruthy();
+
+      expect(await harness.getFiltersAppliedText()).toBe('Filters applied:');
+      expect(await harness.getNoFiltersAppliedText()).toBeFalsy();
     });
 
     it('should remove any filter and update form', () => {

@@ -177,4 +177,14 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
       await select.close();
     }
   }
+
+  async getFiltersAppliedText() {
+    const filtersApplied = await this.locatorForOptional('.applied-filters-text')();
+    return filtersApplied?.text();
+  }
+
+  async getNoFiltersAppliedText() {
+    const noFilters = await this.locatorForOptional('.no-filters-applied')();
+    return noFilters?.text();
+  }
 }
