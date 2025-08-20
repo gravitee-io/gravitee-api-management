@@ -295,4 +295,54 @@ class MembershipQueryServiceImplTest {
                 .hasMessage("An error occurs while trying to find Group memberships of member user-id");
         }
     }
+
+    @Nested
+    class FindClustersIdsThatUserBelongsTo {
+
+        @Test
+        @SneakyThrows
+        void should_return_all_cluster_ids_where_user_is_a_member() {
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(any(), any(), any()))
+                .thenAnswer(invocation ->
+                    Set.of(
+                        Membership
+                            .builder()
+                            .referenceType(invocation.getArgument(2))
+                            .referenceId("cluster-1")
+                            .roleId("role-id")
+                            .id("membership-1")
+                            .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
+                            .memberId(invocation.getArgument(0))
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                            .source("system")
+                            .build()
+                    )
+                );
+
+            var result = service.findClustersIdsThatUserBelongsTo("user-id");
+
+            assertThat(result).hasSize(1).containsExactly("cluster-1");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_collection_when_no_match() {
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(any(), any(), any())).thenAnswer(invocation -> Set.of());
+            var result = service.findClustersIdsThatUserBelongsTo("user-id");
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(any(), any(), any())).thenThrow(TechnicalException.class);
+            // When
+            Throwable throwable = catchThrowable(() -> service.findClustersIdsThatUserBelongsTo("user-id"));
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occured while trying to find clusters ids of member user-id");
+        }
+    }
 }

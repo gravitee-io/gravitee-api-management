@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api.search;
+package io.gravitee.apim.infra.adapter;
 
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import io.gravitee.apim.core.cluster.model.ClusterSearchCriteria;
+import io.gravitee.repository.management.api.search.ClusterCriteria;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-@Getter
-@Builder
-@AllArgsConstructor
-public class ClusterCriteria {
+@Mapper
+public interface ClusterSearchCriteriaAdapter {
+    ClusterSearchCriteriaAdapter INSTANCE = Mappers.getMapper(ClusterSearchCriteriaAdapter.class);
 
-    private String environmentId;
-    private List<String> ids;
+    ClusterCriteria toCriteriaForRepository(ClusterSearchCriteria criteria);
 }

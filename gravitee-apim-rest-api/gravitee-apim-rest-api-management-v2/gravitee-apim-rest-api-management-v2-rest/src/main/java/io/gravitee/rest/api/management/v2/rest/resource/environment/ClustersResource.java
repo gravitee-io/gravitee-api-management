@@ -95,7 +95,13 @@ public class ClustersResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
 
         SearchClusterUseCase.Output result = searchClusterUseCase.execute(
-            new SearchClusterUseCase.Input(executionContext.getEnvironmentId(), paginationParam.toPageable(), sortBy)
+            new SearchClusterUseCase.Input(
+                executionContext.getEnvironmentId(),
+                paginationParam.toPageable(),
+                sortBy,
+                isAdmin(),
+                getAuthenticatedUser()
+            )
         );
 
         return new ClustersResponse()

@@ -17,7 +17,9 @@ package io.gravitee.apim.core.cluster.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.cluster.model.Cluster;
+import io.gravitee.apim.core.cluster.model.ClusterSearchCriteria;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -32,12 +34,27 @@ import lombok.Builder;
 public class SearchClusterUseCase {
 
     private final ClusterQueryService clusterQueryService;
+    private final MembershipQueryService membershipQueryService;
+
+    @Builder
+    public record Input(String environmentId, Pageable pageable, String sortBy, boolean isAdmin, String userId) {}
+
+    public record Output(Page<Cluster> pageResult) {}
 
     public Output execute(Input input) {
-        var pageable = input.pageable != null ? input.pageable : new PageableImpl(1, 10);
+        ClusterSearchCriteria.ClusterSearchCriteriaBuilder criteriaBuilder = ClusterSearchCriteria
+            .builder()
+            .environmentId(input.environmentId);
+
+        if (!input.isAdmin) {
+            var clustersIdsUserCanRead = membershipQueryService.findClustersIdsThatUserBelongsTo(input.userId);
+            criteriaBuilder.ids(clustersIdsUserCanRead);
+        }
+
+        var pageable = Optional.ofNullable(input.pageable).orElse(new PageableImpl(1, 10));
 
         return new SearchClusterUseCase.Output(
-            clusterQueryService.searchByEnvironmentId(input.environmentId, pageable, generateSortable(input.sortBy))
+            clusterQueryService.search(criteriaBuilder.build(), pageable, generateSortable(input.sortBy))
         );
     }
 
@@ -50,9 +67,4 @@ public class SearchClusterUseCase {
         String field = isAscending ? sortBy : sortBy.substring(1);
         return Optional.of(new SortableImpl(field, isAscending));
     }
-
-    @Builder
-    public record Input(String environmentId, Pageable pageable, String sortBy) {}
-
-    public record Output(Page<Cluster> pageResult) {}
 }

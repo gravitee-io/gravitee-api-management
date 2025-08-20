@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api.search;
+package io.gravitee.apim.core.cluster.model;
 
 import java.util.List;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
+@Data
 @Builder
-@AllArgsConstructor
-public class ClusterCriteria {
+public class ClusterSearchCriteria {
 
     private String environmentId;
     private List<String> ids;
