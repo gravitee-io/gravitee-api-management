@@ -52,4 +52,9 @@ public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, S
     public boolean exists(String id) throws TechnicalException {
         return false;
     }
+
+    @Override
+    public void updateOrder(String planId, int order) throws TechnicalException {
+        // no-op
+    }
 }
