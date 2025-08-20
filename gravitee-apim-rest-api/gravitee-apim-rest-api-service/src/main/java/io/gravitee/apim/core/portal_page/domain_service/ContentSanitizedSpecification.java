@@ -15,17 +15,22 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
+import io.gravitee.apim.core.portal_page.exception.PortalPageSpecificationException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.model.PortalPage;
 
-public class ContentSanitizedSpecification implements PortalPageSpecification {
+public class ContentSanitizedSpecification {
 
-    public boolean satisfies(PortalPage page) {
-        GraviteeMarkdown content = page.pageContent();
+    public boolean satisfies(GraviteeMarkdown content) {
         return content != null && !content.isEmpty();
     }
 
     public String getErrorMessage() {
         return "Page content is empty or invalid";
+    }
+
+    public void throwIfNotSatisfied(GraviteeMarkdown pageContent) {
+        if (!satisfies(pageContent)) {
+            throw new PortalPageSpecificationException(getErrorMessage());
+        }
     }
 }

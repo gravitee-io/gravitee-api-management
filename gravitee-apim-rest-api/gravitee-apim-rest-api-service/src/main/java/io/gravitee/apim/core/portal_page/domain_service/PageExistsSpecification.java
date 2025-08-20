@@ -15,22 +15,38 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
-import io.gravitee.apim.core.portal_page.model.PageLocator;
+import io.gravitee.apim.core.portal_page.exception.PortalPageSpecificationException;
+import io.gravitee.apim.core.portal_page.model.Entrypoint;
+import io.gravitee.apim.core.portal_page.model.PageId;
 import java.util.function.Predicate;
 
-public class PageExistsSpecification implements PageLocatorSpecification {
+public class PageExistsSpecification<T> {
 
-    private final Predicate<PageLocator> existenceChecker;
+    private final Predicate<T> existenceChecker;
 
-    public PageExistsSpecification(Predicate<PageLocator> existenceChecker) {
+    public PageExistsSpecification(Predicate<T> existenceChecker) {
         this.existenceChecker = existenceChecker;
     }
 
-    public boolean satisfies(PageLocator locator) {
+    public boolean satisfies(T locator) {
         return existenceChecker.test(locator);
     }
 
     public String getErrorMessage() {
         return "Page does not exist";
+    }
+
+    public void throwIfNotSatisfied(T locator) {
+        if (!satisfies(locator)) {
+            throw new PortalPageSpecificationException(getErrorMessage());
+        }
+    }
+
+    public static PageExistsSpecification<Entrypoint> byEntrypoint(Predicate<Entrypoint> existenceChecker) {
+        return new PageExistsSpecification<>(existenceChecker);
+    }
+
+    public static PageExistsSpecification<PageId> byPageId(Predicate<PageId> existenceChecker) {
+        return new PageExistsSpecification<>(existenceChecker);
     }
 }

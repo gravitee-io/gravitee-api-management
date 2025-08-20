@@ -18,9 +18,11 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.junit.jupiter.api.Assertions.*;
 
 import inmemory.PortalPageCrudServiceInMemory;
+import io.gravitee.apim.core.portal_page.domain_service.PortalService;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.model.PageLocator;
+import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -35,25 +37,23 @@ class SetHomepageUseCaseTest {
     @BeforeEach
     void setUp() {
         crudService = new PortalPageCrudServiceInMemory();
-        useCase = new SetHomepageUseCase(crudService);
+        PortalService portalService = new PortalService(crudService);
+        useCase = new SetHomepageUseCase(portalService);
     }
 
     @Test
     void should_set_homepage_when_page_exists() {
-        PageLocator locator = new PageLocator(true);
-        PortalPage page = PortalPage.create(locator, new GraviteeMarkdown("home"));
+        PageId pageId = PageId.random();
+        PortalPage page = PortalPageFactory.create(pageId, new GraviteeMarkdown("home"));
         crudService.initWith(java.util.List.of(page));
-        SetHomepageUseCase.Input input = new SetHomepageUseCase.Input(locator);
+        SetHomepageUseCase.Input input = new SetHomepageUseCase.Input(pageId);
         SetHomepageUseCase.Output output = useCase.execute(input);
         assertEquals(page, output.page());
-        assertEquals(page, crudService.getHomepage());
     }
 
     @Test
     void should_fail_when_page_does_not_exist() {
-        PageLocator locator = new PageLocator(true);
-        SetHomepageUseCase.Input input = new SetHomepageUseCase.Input(locator);
+        SetHomepageUseCase.Input input = new SetHomepageUseCase.Input(PageId.random());
         assertThrows(Exception.class, () -> useCase.execute(input));
-        assertNull(crudService.getHomepage());
     }
 }

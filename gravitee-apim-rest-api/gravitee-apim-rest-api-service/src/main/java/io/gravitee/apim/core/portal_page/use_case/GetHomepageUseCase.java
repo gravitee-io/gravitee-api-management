@@ -15,22 +15,23 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
-import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
-import io.gravitee.apim.core.portal_page.domain_service.PageExistsSpecification;
-import io.gravitee.apim.core.portal_page.model.PageLocator;
+import static io.gravitee.apim.core.portal_page.model.Entrypoint.HOMEPAGE;
+
+import io.gravitee.apim.core.portal_page.domain_service.PortalService;
+import io.gravitee.apim.core.portal_page.model.Portal;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 
 public class GetHomepageUseCase {
 
-    private final PortalPageCrudService crudService;
+    private final PortalService portalService;
 
-    public GetHomepageUseCase(PortalPageCrudService crudService) {
-        this.crudService = crudService;
+    public GetHomepageUseCase(PortalService portalService) {
+        this.portalService = portalService;
     }
 
     public Output execute() {
-        new PageExistsSpecification(crudService::locatorExists).throwIfNotSatisfied(PageLocator.HOMEPAGE);
-        PortalPage page = crudService.getHomepage();
+        Portal portal = portalService.getPortal();
+        PortalPage page = portal.getEntrypointPage(HOMEPAGE);
         return new Output(page);
     }
 

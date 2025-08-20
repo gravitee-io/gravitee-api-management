@@ -15,30 +15,28 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
-import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
-import io.gravitee.apim.core.portal_page.domain_service.ContentSanitizedSpecification;
-import io.gravitee.apim.core.portal_page.domain_service.LocatorUniqueSpecification;
+import io.gravitee.apim.core.portal_page.domain_service.PortalService;
+import io.gravitee.apim.core.portal_page.model.Entrypoint;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.model.PageLocator;
+import io.gravitee.apim.core.portal_page.model.Portal;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import java.util.UUID;
 
 public class CreatePortalPageUseCase {
 
-    private final PortalPageCrudService crudService;
+    private final PortalService portalService;
 
-    public CreatePortalPageUseCase(PortalPageCrudService crudService) {
-        this.crudService = crudService;
+    public CreatePortalPageUseCase(PortalService portalService) {
+        this.portalService = portalService;
     }
 
     public Output execute(Input input) {
-        PageLocator locator = new PageLocator(input.homepage);
-        new LocatorUniqueSpecification(l -> !crudService.locatorExists(l)).throwIfNotSatisfied(locator);
-        ContentSanitizedSpecification contentSpec = new ContentSanitizedSpecification();
-        PortalPage page = PortalPage.create(locator, input.pageContent);
-        contentSpec.throwIfNotSatisfied(page);
-        PortalPage created = crudService.create(page);
-        return new Output(created);
+        Portal portal = portalService.getPortal();
+        PortalPage page = portal.create(input.pageContent);
+        if (input.homepage) {
+            page = portal.setEntrypointPage(Entrypoint.HOMEPAGE, page.id());
+        }
+        return new Output(page);
     }
 
     public record Input(UUID environmentId, boolean homepage, GraviteeMarkdown pageContent) {}
