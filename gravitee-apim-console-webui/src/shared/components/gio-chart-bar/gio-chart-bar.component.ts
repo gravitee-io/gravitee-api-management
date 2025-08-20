@@ -1,0 +1,113 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { Component, Input, OnInit } from '@angular/core';
+import { HighchartsChartModule } from 'highcharts-angular';
+import * as Highcharts from 'highcharts';
+
+export interface GioChartBarData {
+  name: string;
+  values: number[];
+  color?: string;
+}
+
+export interface GioChartBarOptions {
+  categories?: string[];
+  stacked?: boolean;
+  pointStart?: number;
+  pointInterval?: number;
+}
+
+export const defineBarColors = (code: string | number) => {
+  const colors = ['#7B61FF', '#00D4AA', '#FF6B6B', '#FF8C00', '#9370DB', '#20B2AA', '#FFD700', '#FF69B4'];
+  return colors[Math.floor(+code / 100) - 1] || colors[0];
+};
+
+@Component({
+  selector: 'gio-chart-bar',
+  templateUrl: './gio-chart-bar.component.html',
+  styleUrls: ['./gio-chart-bar.component.scss'],
+  standalone: true,
+  imports: [HighchartsChartModule],
+})
+export class GioChartBarComponent implements OnInit {
+  @Input()
+  public data: GioChartBarData[];
+
+  @Input()
+  public options: GioChartBarOptions;
+
+  Highcharts: typeof Highcharts = Highcharts;
+  chartOptions: Highcharts.Options;
+
+  callbackFunction: Highcharts.ChartCallbackFunction = function (chart) {
+    // Redraw the chart after the component is loaded. to fix the issue of the chart display with bad size
+    setTimeout(() => {
+      chart?.reflow();
+    }, 0);
+  };
+
+  ngOnInit() {
+    this.chartOptions = {
+      credits: { enabled: false },
+      chart: {
+        plotBackgroundColor: '#F7F7F8',
+        type: 'column',
+        marginTop: 32,
+      },
+
+      title: {
+        text: '',
+      },
+
+      xAxis: {
+        categories: this.options?.categories || [],
+        type: this.options?.categories ? 'category' : 'datetime',
+      },
+
+      yAxis: {
+        title: {
+          text: '',
+        },
+      },
+
+      legend: {
+        align: 'center',
+        verticalAlign: 'bottom',
+      },
+
+      plotOptions: {
+        series: {
+          pointStart: this.options?.pointStart,
+          pointInterval: this.options?.pointInterval,
+        },
+        column: {
+          stacking: this.options?.stacked ? 'normal' : undefined,
+        },
+        bar: {
+          stacking: this.options?.stacked ? 'normal' : undefined,
+        },
+      },
+
+      series: this.data?.map((item) => ({
+        name: item.name,
+        data: item.values,
+        type: 'column',
+        color: item.color || defineBarColors(item.name),
+      })),
+    };
+  }
+}
