@@ -626,8 +626,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             .forEachOrdered(plan -> {
                 try {
                     if (plan.getOrder() > planRemoved.getOrder()) {
-                        plan.setOrder(plan.getOrder() - 1);
-                        planRepository.update(plan);
+                        planRepository.updateOrder(plan.getId(), plan.getOrder() - 1);
                     }
                 } catch (final TechnicalException ex) {
                     logger.error("An error occurs while trying to reorder plan {}", plan.getId(), ex);
