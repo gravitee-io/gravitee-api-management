@@ -32,7 +32,7 @@
   @if (isFiltering()) {
     <mat-chip-listbox class="applied-filters__chip_list">
       <div class="applied-filters-text">Filters applied:</div>
-      @for (chip of currentFilterChips(); track chip.key) {
+      @for (chip of currentFilterChips(); track $index) {
         <mat-chip-option
           class="applied-filters__chip"
           [removable]="true"
