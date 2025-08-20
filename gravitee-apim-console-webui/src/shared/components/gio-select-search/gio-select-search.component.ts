@@ -112,7 +112,7 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
   // PAGINATION & SEARCH STATE
   private searchParams = signal<{ searchTerm: string; page: number }>({
     searchTerm: '',
-    page: 0,
+    page: 1,
   });
   private accumulatedOptions: SelectOption[] = [];
   private searchState$ = toObservable(
@@ -239,7 +239,7 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
     this.componentRef.instance.searchChange.pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef)).subscribe((searchTerm: string) => {
       this.searchParams.set({
         searchTerm: searchTerm,
-        page: 0, // Reset page on new search
+        page: 1, // Reset page to 1 on new search
       });
     });
 
@@ -299,7 +299,7 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
           return of({ data: [], isLoading: false, hasNextPage: false });
         }
 
-        if (page === 0) {
+        if (page === 1) {
           this.accumulatedOptions = [];
         }
 
