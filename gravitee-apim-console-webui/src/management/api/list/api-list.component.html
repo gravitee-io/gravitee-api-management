@@ -71,20 +71,6 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field class="published-filter">
-      <mat-label>Portal Status</mat-label>
-      <mat-select
-        class="portal__form__card__form-field"
-        [multiple]="true"
-        [(value)]="checkedPublished"
-        (selectionChange)="onAdditionalFiltersChanged(FilterType.PUBLISHED)"
-        [panelWidth]="'180px'"
-      >
-        <mat-option value="PUBLISHED">Published</mat-option>
-        <mat-option value="UNPUBLISHED">Unpublished</mat-option>
-      </mat-select>
-    </mat-form-field>
-
     <mat-form-field class="tags-filter">
       <mat-label>Sharding Tags</mat-label>
       <mat-select
@@ -108,6 +94,33 @@
         [panelWidth]="'200px'"
       >
         <mat-option *ngFor="let category of categoriesNames | keyvalue" [value]="category.key">{{ category.value }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="published-filter">
+      <mat-label>Portal Status</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedPublished"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.PUBLISHED)"
+        [panelWidth]="'180px'"
+      >
+        <mat-option value="PUBLISHED">Published</mat-option>
+        <mat-option value="UNPUBLISHED">Unpublished</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="portal-visibility-filter">
+      <mat-label>Portal Visibility</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedPortalVisibilities"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.PORTAL_VISIBILITY)"
+      >
+        <mat-option value="PUBLIC">Public</mat-option>
+        <mat-option value="PRIVATE">Private</mat-option>
       </mat-select>
     </mat-form-field>
   </div>
@@ -156,6 +169,14 @@
         } @else if (element.state) {
           <mat-icon matTooltip="Stopped" class="states__api-not-started" size="20" svgIcon="gio:stop-circle" />
         }
+
+        <mat-icon
+          *ngIf="element.origin === 'KUBERNETES'"
+          matTooltip="Kubernetes Origin"
+          class="states__api-origin"
+          size="20"
+          svgIcon="gio:kubernetes"
+        />
 
         <mat-icon
           *ngIf="element.isNotSynced$ | async"
@@ -233,24 +254,23 @@
       </td>
     </ng-container>
 
-    <!-- Display Visibility Column -->
-    <ng-container matColumnDef="visibility">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header id="visibility">Portal Status</th>
+    <!-- Display Portal Status Column -->
+    <ng-container matColumnDef="portalStatus">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="portalStatus">Portal Status</th>
       <td mat-cell *matCellDef="let element">
-        <mat-icon class="visibility" size="20" [matTooltip]="element.visibility.label | titlecase">{{ element.visibility.icon }} </mat-icon>
-
         @if (element.lifecycleState === 'PUBLISHED') {
           <mat-icon matTooltip="Published" class="states__api-published" size="20" svgIcon="gio:cloud-published" />
         } @else if (element.lifecycleState) {
           <mat-icon matTooltip="Unpublished" class="states__api-not-published" size="20" svgIcon="gio:cloud-unpublished" />
         }
-        <mat-icon
-          *ngIf="element.origin === 'KUBERNETES'"
-          matTooltip="Kubernetes Origin"
-          class="states__api-origin"
-          size="20"
-          svgIcon="gio:kubernetes"
-        />
+      </td>
+    </ng-container>
+
+    <!-- Display Visibility Column -->
+    <ng-container matColumnDef="visibility">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="visibility">Portal Visibility</th>
+      <td mat-cell *matCellDef="let element">
+        <mat-icon class="visibility" size="20" [matTooltip]="element.visibility.label | titlecase">{{ element.visibility.icon }}</mat-icon>
       </td>
     </ng-container>
 
@@ -263,15 +283,16 @@
         <mat-menu #visibleColumnsMenu="matMenu">
           <div matMenuContent class="visible-columns-menu">
             <mat-checkbox [(ngModel)]="checkedVisibleColumns.apiType" (click)="$event.stopPropagation()">API Type</mat-checkbox>
-            <mat-checkbox [(ngModel)]="checkedVisibleColumns.states" (click)="$event.stopPropagation()">Status</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.states" (click)="$event.stopPropagation()">API Status</mat-checkbox>
             <mat-checkbox [(ngModel)]="checkedVisibleColumns.access" (click)="$event.stopPropagation()">Access</mat-checkbox>
-            <mat-checkbox [(ngModel)]="checkedVisibleColumns.qualityScore" (click)="$event.stopPropagation()">Quality</mat-checkbox>
-            <mat-checkbox *ngIf="isQualityDisplayed" [(ngModel)]="checkedVisibleColumns.tags" (click)="$event.stopPropagation()"
-              >Sharding Tags</mat-checkbox
+            <mat-checkbox *ngIf="isQualityDisplayed" [(ngModel)]="checkedVisibleColumns.qualityScore" (click)="$event.stopPropagation()"
+              >Quality</mat-checkbox
             >
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.tags" (click)="$event.stopPropagation()">Sharding Tags</mat-checkbox>
             <mat-checkbox [(ngModel)]="checkedVisibleColumns.categories" (click)="$event.stopPropagation()">Categories</mat-checkbox>
             <mat-checkbox [(ngModel)]="checkedVisibleColumns.owner" (click)="$event.stopPropagation()">Owner</mat-checkbox>
-            <mat-checkbox [(ngModel)]="checkedVisibleColumns.visibility" (click)="$event.stopPropagation()">Visibility</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.portalStatus" (click)="$event.stopPropagation()">Portal Status</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.visibility" (click)="$event.stopPropagation()">Portal Visibility</mat-checkbox>
           </div>
           <button mat-raised-button class="apply-visible-columns" (click)="updateVisibleColumns()">Apply</button>
         </mat-menu>
