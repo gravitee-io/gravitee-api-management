@@ -31,4 +31,5 @@ export interface ApiSearchQuery {
   tags?: string[];
   categories?: string[];
   published?: string[];
+  visibilities?: string[];
 }

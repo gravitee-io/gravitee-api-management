@@ -57,4 +57,5 @@ public class UpgraderOrder {
     public static final int APPLICATION_HRID_UPGRADER = 709;
     public static final int PLAN_HRID_UPGRADER = 709;
     public static final int PAGE_HRID_UPGRADER = 710;
+    public static final int CLUSTER_ROLES_UPGRADER = 900;
 }

@@ -35,7 +35,13 @@
           </div>
         }
         @case ('table') {
-          <api-analytics-widget-table [columns]="tableData().columns" [data]="tableData().data" />
+          <api-analytics-widget-table
+            [columns]="tableData().columns"
+            [data]="tableData().data"
+            [firstColumnClickable]="firstColumnClickable()"
+            [keyIdentifier]="tableData()?.keyIdentifier"
+            (firstColumnCellClick)="onChildTableFirstColumnClick($event)"
+          />
         }
         @default {
           <div class="content">No content to display</div>

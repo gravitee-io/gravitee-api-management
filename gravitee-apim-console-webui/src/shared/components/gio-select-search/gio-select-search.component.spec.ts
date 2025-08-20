@@ -18,8 +18,9 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { Observable, of } from 'rxjs';
 
-import { GioSelectSearchComponent, SelectOption } from './gio-select-search.component';
+import { GioSelectSearchComponent, SelectOption, ResultsLoaderInput, ResultsLoaderOutput } from './gio-select-search.component';
 import { GioSelectSearchHarness } from './gio-select-search.harness';
 
 import { GioTestingModule } from '../../testing';
@@ -27,7 +28,17 @@ import { GioTestingModule } from '../../testing';
 @Component({
   template: `
     <form [formGroup]="form">
-      <gio-select-search [options]="options" [label]="label" [placeholder]="placeholder" formControlName="selection"></gio-select-search>
+      @if (resultsLoader) {
+        <gio-select-search
+          [options]="options"
+          [label]="label"
+          [placeholder]="placeholder"
+          [resultsLoader]="resultsLoader"
+          formControlName="selection"
+        />
+      } @else {
+        <gio-select-search [options]="options" [label]="label" [placeholder]="placeholder" formControlName="selection" />
+      }
     </form>
   `,
   imports: [ReactiveFormsModule, GioSelectSearchComponent],
@@ -38,6 +49,7 @@ class TestComponent {
   options: SelectOption[] = [];
   label = 'Test Label';
   placeholder = 'Search options...';
+  resultsLoader: (data: ResultsLoaderInput) => Observable<ResultsLoaderOutput>;
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -51,6 +63,7 @@ describe('GioSelectSearchComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
+  let mockNewResults: jest.Mock;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -61,7 +74,6 @@ describe('GioSelectSearchComponent', () => {
     component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    fixture.detectChanges();
   });
 
   describe('Basic functionality', () => {
@@ -350,6 +362,197 @@ describe('GioSelectSearchComponent', () => {
 
       const isOpen = await harness.isOpen();
       expect(isOpen).toBe(true);
+    });
+  });
+
+  describe('Internal pagination functionality', () => {
+    beforeEach(async () => {
+      mockNewResults = jest.fn();
+      component.resultsLoader = (data: any) => mockNewResults(data);
+    });
+
+    it('should have newResults$ properly set up', () => {
+      expect(component.resultsLoader).toBeDefined();
+      expect(typeof component.resultsLoader).toBe('function');
+    });
+
+    it('should not call backend when component is closed', async () => {
+      // Mock the newResults function to return an observable
+      mockNewResults.mockReturnValue(of({ data: [], hasNextPage: false }));
+
+      // Verify no backend calls were made
+      expect(mockNewResults).not.toHaveBeenCalled();
+    });
+
+    it('should request first page with empty search term when opened', async () => {
+      // Mock the newResults function to return an observable
+      mockNewResults.mockReturnValue(of({ data: [], hasNextPage: false }));
+
+      // Open the overlay
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Verify the first page was requested with empty search term
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 0 });
+      expect(mockNewResults).toHaveBeenCalledTimes(1);
+    });
+
+    it('should load next page and accumulate results when scrolled', async () => {
+      // Mock the newResults function to return different data for each page
+      mockNewResults
+        .mockReturnValueOnce(of({ data: [{ value: '1', label: 'Option 1' }], hasNextPage: true }))
+        .mockReturnValueOnce(of({ data: [{ value: '2', label: 'Option 2' }], hasNextPage: false }));
+
+      // Open the overlay
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Verify first page was loaded
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 0 });
+
+      // Simulate scrolling to load more
+      await harness.scrollNearBottom();
+
+      // // Verify second page was requested
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 1 });
+
+      // Verify total calls
+      expect(mockNewResults).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not call for new page when reaching last page', async () => {
+      // Mock the newResults function to return data with no next page
+      mockNewResults.mockReturnValue(of({ data: [{ value: '1', label: 'Option 1' }], hasNextPage: false }));
+
+      // Open the overlay
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Verify first page was loaded
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 0 });
+
+      // Simulate scrolling multiple times
+      await harness.scrollNearBottom();
+      await harness.scrollNearBottom();
+      await harness.scrollNearBottom();
+
+      // Verify only the first page was requested (no more pages available)
+      expect(mockNewResults).toHaveBeenCalledTimes(1);
+    });
+
+    it('should request first page with search term when searching', async () => {
+      // Mock the newResults function to return an observable
+      mockNewResults.mockReturnValue(of({ data: [], hasNextPage: false }));
+
+      // Open the overlay
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Search for something
+      await harness.setSearchValue('test');
+
+      // Verify search was requested with the search term
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: 'test', page: 0 });
+    });
+
+    it('should request first page with empty search term when clearing search', async () => {
+      // Mock the newResults function to return an observable
+      mockNewResults.mockReturnValue(of({ data: [], hasNextPage: false }));
+
+      // Open the overlay
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Clear the initial call
+      mockNewResults.mockClear();
+
+      // Search for something first
+      await harness.setSearchValue('test');
+
+      // Clear the search
+      await harness.clearSearch();
+
+      // Verify search was requested with empty search term
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 0 });
+    });
+
+    it('should accumulate results from multiple pages correctly', async () => {
+      // Mock the newResults function to return different data for each page
+      mockNewResults
+        .mockReturnValueOnce(
+          of({
+            data: [
+              { value: '1', label: 'Option 1' },
+              { value: '2', label: 'Option 2' },
+            ],
+            hasNextPage: true,
+          }),
+        )
+        .mockReturnValueOnce(
+          of({
+            data: [
+              { value: '3', label: 'Option 3' },
+              { value: '4', label: 'Option 4' },
+            ],
+            hasNextPage: false,
+          }),
+        );
+
+      // Open the overlay
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Verify first page was loaded
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 0 });
+
+      // Simulate scrolling to load more
+      await harness.scrollNearBottom();
+
+      // Verify second page was requested
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 1 });
+
+      // Verify total calls
+      expect(mockNewResults).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle search and pagination together', async () => {
+      // Mock the newResults function to return different data for search and pagination
+      mockNewResults
+        .mockReturnValueOnce(of({ data: [{ value: '0', label: 'Empty search term result' }], hasNextPage: false })) // Initial empty search
+        .mockReturnValueOnce(
+          of({
+            data: [
+              { value: '1', label: 'Search Result 1' },
+              { value: '2', label: 'Search Result 2' },
+            ],
+            hasNextPage: true,
+          }),
+        )
+        .mockReturnValueOnce(
+          of({
+            data: [{ value: '3', label: 'Search Result 3' }],
+            hasNextPage: false,
+          }),
+        );
+
+      // Open the overlay
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Search for something
+      await harness.setSearchValue('search');
+
+      // Verify search was requested
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: 'search', page: 0 });
+
+      // Simulate scrolling to load more
+      await harness.scrollNearBottom();
+
+      // Verify next page was requested with same search term
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: 'search', page: 1 });
+
+      // Verify total calls
+      expect(mockNewResults).toHaveBeenCalledTimes(3);
     });
   });
 });

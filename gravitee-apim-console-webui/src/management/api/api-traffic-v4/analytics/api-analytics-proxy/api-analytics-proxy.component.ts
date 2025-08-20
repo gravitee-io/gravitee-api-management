@@ -51,6 +51,8 @@ type WidgetDisplayConfig = {
   tooltip: string;
   shouldSortBuckets?: boolean;
   type: ApiAnalyticsWidgetType;
+  isClickable?: boolean;
+  relativePath?: string;
 };
 
 interface Range {
@@ -248,6 +250,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      isClickable: true,
+      relativePath: '../../../../applications',
       tableData: {
         columns: [
           { label: 'App', dataType: 'string' },
@@ -264,6 +268,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'plan-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      isClickable: true,
+      relativePath: '../../plans',
       tableData: {
         columns: [
           { label: 'Plan', dataType: 'string' },
@@ -280,6 +286,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'path-info.keyword',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      isClickable: false,
       tableData: {
         columns: [
           { label: 'Path', dataType: 'string' },
@@ -296,6 +303,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-avg:gateway-response-time-ms',
+      isClickable: true,
+      relativePath: '../../../../applications',
       tableData: {
         columns: [
           { label: 'App', dataType: 'string' },
@@ -312,6 +321,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'host',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      isClickable: false,
       tableData: {
         columns: [
           { label: 'Host', dataType: 'string' },

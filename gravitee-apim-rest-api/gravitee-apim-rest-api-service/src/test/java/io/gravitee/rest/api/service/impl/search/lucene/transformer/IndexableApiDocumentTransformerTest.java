@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer.FIELD_REFERENCE_ID;
 import static io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer.FIELD_REFERENCE_TYPE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_LIFECYCLE_STATE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
@@ -40,7 +39,6 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER_MAIL;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE;
@@ -96,11 +94,9 @@ public class IndexableApiDocumentTransformerTest {
 
         // Then
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(result.getFields()).hasSize(6);
+            softly.assertThat(result.getFields()).hasSize(2);
             softly.assertThat(result.getField(FIELD_ID).stringValue()).isEqualTo(API_ID);
             softly.assertThat(result.getField(FIELD_TYPE).stringValue()).isEqualTo("api");
-            softly.assertThat(result.getField(FIELD_STATUS).stringValue()).isEqualTo(Api.LifecycleState.STARTED.name());
-            softly.assertThat(result.getField(FIELD_API_LIFECYCLE_STATE).stringValue()).isEqualTo(Api.ApiLifecycleState.CREATED.name());
         });
     }
 

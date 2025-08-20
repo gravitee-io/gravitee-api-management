@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
+import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.model.permissions.IntegrationPermission;
 import io.gravitee.rest.api.model.permissions.OrganizationPermission;
@@ -59,6 +60,13 @@ public class DefaultOrganizationAdminRoleInitializer extends OrganizationInitial
             SystemRole.PRIMARY_OWNER,
             RoleScope.INTEGRATION,
             IntegrationPermission.values(),
+            executionContext.getOrganizationId()
+        );
+        roleService.createOrUpdateSystemRole(
+            executionContext,
+            SystemRole.PRIMARY_OWNER,
+            RoleScope.CLUSTER,
+            ClusterPermission.values(),
             executionContext.getOrganizationId()
         );
     }

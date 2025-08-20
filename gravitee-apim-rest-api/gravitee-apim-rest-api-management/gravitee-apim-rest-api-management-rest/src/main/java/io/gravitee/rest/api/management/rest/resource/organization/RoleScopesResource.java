@@ -24,6 +24,7 @@ import io.gravitee.rest.api.management.rest.model.wrapper.RoleScopesLinkedHashMa
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
+import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.model.permissions.IntegrationPermission;
 import io.gravitee.rest.api.model.permissions.OrganizationPermission;
@@ -76,6 +77,7 @@ public class RoleScopesResource extends AbstractResource {
             RoleScope.INTEGRATION.name(),
             stream(IntegrationPermission.values()).map(IntegrationPermission::getName).sorted().collect(toList())
         );
+        roles.put(RoleScope.CLUSTER.name(), stream(ClusterPermission.values()).map(ClusterPermission::getName).sorted().collect(toList()));
         return roles;
     }
 

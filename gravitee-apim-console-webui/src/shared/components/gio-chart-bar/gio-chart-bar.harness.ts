@@ -13,11 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
 
-export interface Role {
-  /**
-   * Role's name.
-   */
-  name?: string;
-  scope?: 'API' | 'APPLICATION' | 'GROUP' | 'ENVIRONMENT' | 'ORGANIZATION' | 'PLATFORM' | 'INTEGRATION' | 'CLUSTER';
+export class GioChartBarHarness extends ComponentHarness {
+  static hostSelector = '.gio-chart-bar';
+
+  protected getBarChart = this.locatorForOptional('.gio-chart-bar__chart');
+  protected getNoDataDisplayed = this.locatorForOptional('.gio-chart-bar__no-data');
+
+  async hasNoData(): Promise<boolean> {
+    return this.getNoDataDisplayed()
+      .then((v) => !!v)
+      .catch((_) => false);
+  }
+
+  async displaysChart() {
+    return this.getBarChart()
+      .then((v) => !!v)
+      .catch((_) => false);
+  }
 }

@@ -66,10 +66,10 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(6))
+        verify(mockRoleRepository, times(7))
             .findByScopeAndNameAndReferenceIdAndReferenceType(any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(6)).create(any());
+        verify(mockRoleRepository, times(7)).create(any());
     }
 
     @Test
@@ -117,7 +117,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(6))
+        verify(mockRoleRepository, times(7))
             .findByScopeAndNameAndReferenceIdAndReferenceType(any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
         verify(mockRoleRepository, times(1))
             .update(
@@ -176,7 +176,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), REFERENCE_ID);
 
-        verify(mockRoleRepository, times(6))
+        verify(mockRoleRepository, times(7))
             .findByScopeAndNameAndReferenceIdAndReferenceType(any(), anyString(), eq(REFERENCE_ID), eq(REFERENCE_TYPE));
         verify(mockRoleRepository, never()).update(any());
         verify(mockRoleRepository, times(5))

@@ -282,10 +282,16 @@ export class ApiAnalyticsWidgetService {
       return orderA - orderB;
     });
 
-    const tableData = entries.map(({ label, value }) => ({
-      [transformedColumns[0].name]: groupByResponse.metadata[label]?.name || label,
-      [transformedColumns[1].name]: value,
-    }));
+    const tableData = entries.map(({ label, value }) => {
+      const meta = groupByResponse.metadata?.[label];
+      const row: any = {
+        __key: label,
+        [transformedColumns[0].name]: meta?.name || label,
+        [transformedColumns[1].name]: value,
+        unknown: !!meta?.unknown,
+      };
+      return row;
+    });
 
     if (!tableData.length) {
       return this.createEmptyConfig(widgetConfig);
@@ -299,6 +305,12 @@ export class ApiAnalyticsWidgetService {
       widgetData: {
         columns: transformedColumns,
         data: tableData,
+        keyIdentifier: widgetConfig.groupByField,
+        firstColumnClickable:
+          typeof widgetConfig.isClickable === 'boolean'
+            ? widgetConfig.isClickable
+            : widgetConfig.groupByField === 'application-id' || widgetConfig.groupByField === 'plan-id',
+        relativePath: widgetConfig.relativePath,
       },
     };
   }
