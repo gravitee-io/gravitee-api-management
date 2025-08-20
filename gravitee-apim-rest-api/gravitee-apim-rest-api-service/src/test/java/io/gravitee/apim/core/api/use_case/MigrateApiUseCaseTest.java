@@ -64,11 +64,18 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Failover;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
+import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -751,6 +758,279 @@ class MigrateApiUseCaseTest {
                     softly.assertThat(migratedFailOver.getMaxRetries()).isEqualTo(5);
                     softly.assertThat(migratedFailOver.getOpenStateDuration()).isEqualTo(10000L);
                     softly.assertThat(migratedFailOver.getSlowCallDuration()).isEqualTo(1000L);
+                });
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_hc_in_endpointgroups() {
+        // Given
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+
+        HealthCheckStep step = new HealthCheckStep();
+        step.setName("hc-step");
+
+        HealthCheckRequest request = new HealthCheckRequest();
+        request.setPath("/hc");
+        request.setMethod(HttpMethod.POST);
+        step.setRequest(request);
+        // Configure the expected response
+        HealthCheckResponse response = new HealthCheckResponse();
+        response.setAssertions(java.util.List.of("#status == 200"));
+        step.setResponse(response);
+        HealthCheckService healthCheckService = HealthCheckService
+            .builder()
+            .enabled(true) // comes from ScheduledService (superclass)
+            .schedule("*/30 * * * * *") // run every 30s, for example
+            .steps(List.of(step))
+            .build();
+        Services services = new Services();
+        services.setHealthCheckService(healthCheckService);
+        v2api.getApiDefinition().setServices(services);
+
+        apiCrudService.initWith(java.util.List.of(v2api));
+
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedEndpointGroup = api.getApiDefinitionHttpV4().getEndpointGroups();
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                    softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck()).isNotNull();
+                    softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck().isEnabled()).isTrue();
+                    softly
+                        .assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck().getConfiguration())
+                        .isEqualTo(
+                            "{\"schedule\":\"*/30 * * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"POST\",\"target\":\"/hc\",\"assertion\":\"{#status == 200}\",\"overrideEndpointPath\":false}"
+                        );
+                });
+            });
+    }
+
+    @Test
+    void should_not_migrate_api_with_hc_more_than_one_Assertion_in_endpointgroups() {
+        // Given
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+
+        HealthCheckStep step = new HealthCheckStep();
+        step.setName("hc-step");
+
+        HealthCheckRequest request = new HealthCheckRequest();
+        request.setPath("/hc");
+        request.setMethod(HttpMethod.POST);
+        step.setRequest(request);
+        // Configure the expected response
+        HealthCheckResponse response = new HealthCheckResponse();
+        response.setAssertions(java.util.List.of("status == 200", "status == 201"));
+        step.setResponse(response);
+        HealthCheckService healthCheckService = HealthCheckService
+            .builder()
+            .enabled(true) // comes from ScheduledService (superclass)
+            .schedule("*/30 * * * * *") // run every 30s, for example
+            .steps(List.of(step))
+            .build();
+        Services services = new Services();
+        services.setHealthCheckService(healthCheckService);
+        v2api.getApiDefinition().setServices(services);
+
+        apiCrudService.initWith(java.util.List.of(v2api));
+
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+    }
+
+    @Test
+    void should_migrate_endpoints_api_with_hc_in_endpointgroups() {
+        // Given
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+
+        HealthCheckStep step = new HealthCheckStep();
+        step.setName("hc-step");
+
+        HealthCheckRequest request = new HealthCheckRequest();
+        request.setPath("/hc");
+        request.setMethod(HttpMethod.POST);
+        step.setRequest(request);
+        // Configure the expected response
+        HealthCheckResponse response = new HealthCheckResponse();
+        response.setAssertions(java.util.List.of("status == 200"));
+        step.setResponse(response);
+        HealthCheckService healthCheckService = EndpointHealthCheckService
+            .builder()
+            .enabled(true) // comes from ScheduledService (superclass)
+            .schedule("*/30 * * * * *") // run every 30s, for example
+            .steps(List.of(step))
+            .build();
+        Services services = new Services();
+        services.setHealthCheckService(healthCheckService);
+        v2api.getApiDefinition().setServices(services);
+        v2api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group ->
+                group
+                    .getEndpoints()
+                    .forEach(e -> {
+                        EndpointHealthCheckService endpointHealthCheckService = new EndpointHealthCheckService();
+                        endpointHealthCheckService.setInherit(false);
+                        e.setHealthCheck(endpointHealthCheckService);
+                        e.setConfiguration(
+                            "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"proxy\":null,\"http\":null,\"ssl\":null,\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertions\":[\"#response.status == 202\"]}}],\"enabled\":true,\"inherit\":false}}"
+                        );
+                    })
+            );
+
+        apiCrudService.initWith(java.util.List.of(v2api));
+
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedEndpointGroup = api.getApiDefinitionHttpV4().getEndpointGroups();
+                var migratedEndpoint = migratedEndpointGroup.getFirst().getEndpoints().getFirst();
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                    softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck()).isNotNull();
+                    softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck().isEnabled()).isTrue();
+                    softly
+                        .assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck().getConfiguration())
+                        .isEqualTo(
+                            "{\"schedule\":\"*/30 * * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"POST\",\"target\":\"/hc\",\"assertion\":\"status == 200\",\"overrideEndpointPath\":false}"
+                        );
+                    softly
+                        .assertThat(migratedEndpoint.getSharedConfigurationOverride())
+                        .isEqualTo(
+                            "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"proxy\":null,\"http\":null,\"ssl\":null,\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertion\":\"{#response.status == 202}\"}}],\"enabled\":true,\"inherit\":false}}"
+                        );
+                    softly.assertThat(migratedEndpoint.getServices().getHealthCheck()).isNotNull();
+                    softly
+                        .assertThat(migratedEndpoint.getServices().getHealthCheck().getConfiguration())
+                        .isEqualTo(
+                            "{\"schedule\":\"0 */1 * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"GET\",\"target\":\"/hc3\",\"assertion\":\"{#response.status == 202}\",\"overrideEndpointPath\":false}"
+                        );
+                });
+            });
+    }
+
+    @Test
+    void should_migrate_endpoints_with_different_hc_than_in_endpointgroups() {
+        // Given
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+
+        HealthCheckStep step1 = new HealthCheckStep();
+        step1.setName("hc-step");
+
+        HealthCheckRequest request1 = new HealthCheckRequest();
+        request1.setPath("/hc");
+        request1.setMethod(HttpMethod.POST);
+        step1.setRequest(request1);
+        HealthCheckResponse response1 = new HealthCheckResponse();
+        response1.setAssertions(java.util.List.of("{#status == 200}"));
+        step1.setResponse(response1);
+
+        HealthCheckStep step2 = new HealthCheckStep();
+        step2.setName("hc-step");
+
+        HealthCheckRequest request2 = new HealthCheckRequest();
+        request2.setPath("/hc1");
+        request2.setMethod(HttpMethod.GET);
+        step2.setRequest(request2);
+        // Configure the expected response
+
+        HealthCheckResponse response2 = new HealthCheckResponse();
+        response2.setAssertions(java.util.List.of("{#status == 202}"));
+        step2.setResponse(response2);
+        HealthCheckService healthCheckService = HealthCheckService
+            .builder()
+            .enabled(true) // comes from ScheduledService (superclass)
+            .schedule("*/30 * * * * *") // run every 30s, for example
+            .steps(List.of(step1))
+            .build();
+
+        Services services1 = new Services();
+        services1.setHealthCheckService(healthCheckService);
+        v2api.getApiDefinition().setServices(services1);
+        v2api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> {
+                group
+                    .getEndpoints()
+                    .forEach(e -> {
+                        EndpointHealthCheckService endpointHealthCheckService = EndpointHealthCheckService
+                            .builder()
+                            .enabled(true) // comes from ScheduledService (superclass)
+                            .schedule("*/1 * * * * *") // run every 30s, for example
+                            .steps(List.of(step2))
+                            .build();
+                        endpointHealthCheckService.setInherit(false);
+                        e.setConfiguration(
+                            "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"proxy\":null,\"http\":null,\"ssl\":null,\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertions\":[\"#response.status == 202\"]}}],\"enabled\":true,\"inherit\":false}}"
+                        );
+                        e.setInherit(false);
+
+                        e.setHealthCheck(endpointHealthCheckService);
+                    });
+            });
+
+        apiCrudService.initWith(java.util.List.of(v2api));
+
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedEndpointGroup = api.getApiDefinitionHttpV4().getEndpointGroups();
+                var migratedEndpoint = migratedEndpointGroup.getFirst().getEndpoints().getFirst();
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                    softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck()).isNotNull();
+                    softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck().isEnabled()).isTrue();
+                    softly
+                        .assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck().getConfiguration())
+                        .isEqualTo(
+                            "{\"schedule\":\"*/30 * * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"POST\",\"target\":\"/hc\",\"assertion\":\"{#status == 200}\",\"overrideEndpointPath\":false}"
+                        );
+                    softly
+                        .assertThat(migratedEndpoint.getServices().getHealthCheck().getConfiguration())
+                        .isEqualTo(
+                            "{\"schedule\":\"0 */1 * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"GET\",\"target\":\"/hc3\",\"assertion\":\"{#response.status == 202}\",\"overrideEndpointPath\":false}"
+                        );
                 });
             });
     }
