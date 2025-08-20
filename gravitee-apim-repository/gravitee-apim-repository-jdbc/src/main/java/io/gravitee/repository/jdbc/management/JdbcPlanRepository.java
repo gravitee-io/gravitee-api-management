@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -389,6 +390,23 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         } catch (final Exception ex) {
             LOGGER.error("Failed to check if plan exists", ex);
             throw new TechnicalException("Failed to check if plan exists", ex);
+        }
+    }
+
+    @Override
+    public void updateOrder(String planId, int order) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.updateOrder({}, {})", planId, order);
+        try {
+            jdbcTemplate.update(
+                "update " + tableName + " set " + escapeReservedWord("order") + " = ? where id = ?",
+                ps -> {
+                    ps.setInt(1, order);
+                    ps.setString(2, planId);
+                }
+            );
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to update plan order", ex);
+            throw new TechnicalException("Failed to update plan order", ex);
         }
     }
 }
