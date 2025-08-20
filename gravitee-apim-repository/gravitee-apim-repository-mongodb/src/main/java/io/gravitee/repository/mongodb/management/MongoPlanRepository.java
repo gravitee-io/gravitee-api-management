@@ -139,4 +139,15 @@ public class MongoPlanRepository implements PlanRepository {
             throw new TechnicalException("Failed to determine if plan exists by id", e);
         }
     }
+
+    @Override
+    public void updateOrder(String planId, int order) throws TechnicalException {
+        LOGGER.debug("Update plan order for id [{}] to [{}]", planId, order);
+        try {
+            internalPlanRepository.updateOrder(planId, order);
+        } catch (Exception e) {
+            LOGGER.error("Failed to update plan order for id [{}]", planId, e);
+            throw new TechnicalException("Failed to update plan order", e);
+        }
+    }
 }
