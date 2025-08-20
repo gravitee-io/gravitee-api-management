@@ -54,6 +54,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.property.Property;
@@ -584,6 +585,7 @@ class ImportApiDefinitionUseCaseTest {
             .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
             .tags(TAGS)
             .type(ApiType.PROXY)
+            .flowExecution(new FlowExecution())
             .build();
     }
 
@@ -603,6 +605,7 @@ class ImportApiDefinitionUseCaseTest {
                     .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
                     .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
                     .tags(Set.of("tag"))
+                    .flowExecution(new FlowExecution())
                     .build()
             )
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
