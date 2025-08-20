@@ -33,6 +33,7 @@ export class MapProviderNamePipe implements PipeTransform {
     'ibm-api-connect': 'IBM API Connect',
     mulesoft: 'Mulesoft',
     'dell-boomi': 'Boomi',
+    'edge-stack': 'Edge Stack',
   };
 
   transform(value: string): string {
