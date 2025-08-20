@@ -428,7 +428,11 @@ class ApiHistoryControllerAjs {
       .then((response) => {
         this.events = response.data;
       })
-      .then(() => this.ngApiV2Service.get(this.api.id).toPromise()); // To update the deploy banner
+      .then(() => this.ngApiV2Service.get(this.api.id).toPromise()) // To update the deploy banner
+      .catch((err) => {
+        const errorMessage = err?.data?.message || 'An unexpected error occurred while rolling back the API';
+        this.NotificationService.showError(errorMessage);
+      });
   }
 
   showRollbackAPIConfirm(ev, api) {

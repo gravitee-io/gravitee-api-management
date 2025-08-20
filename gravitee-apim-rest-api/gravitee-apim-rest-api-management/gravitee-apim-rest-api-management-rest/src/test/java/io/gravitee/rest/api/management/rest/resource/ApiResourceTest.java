@@ -529,4 +529,83 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals("application/yaml", response.getHeaders().getFirst("Content-Type"));
         assertEquals("attachment;filename=my-api-1.yml", response.getHeaders().getFirst("Content-Disposition"));
     }
+
+    @Test
+    public void shouldRollbackApi_withV2Payload() {
+        //given
+        final String v2Payload =
+            """
+        {
+          "id": "my-api",
+          "name": "My Api",
+          "version": "v1.0",
+          "description": "rollback test for v2",
+          "visibility": "PUBLIC",
+          "proxy": {
+            "virtual_hosts": [ { "path": "/test" } ],
+            "groups": []
+          },
+          "plans": [],
+          "flows": [],
+          "paths": {}
+        }
+        """;
+
+        ApiEntity rollbacked = new ApiEntity();
+        rollbacked.setId(API);
+        rollbacked.setName(API);
+        rollbacked.setUpdatedAt(new Date());
+        doReturn(rollbacked).when(apiService).rollback(eq(GraviteeContext.getExecutionContext()), eq(API), any());
+
+        // when
+        Response response = envTarget(API + "/rollback").request().post(Entity.json(v2Payload));
+
+        // then
+        assertEquals(OK_200, response.getStatus());
+        verify(apiService, times(1)).rollback(eq(GraviteeContext.getExecutionContext()), eq(API), any());
+        ApiEntity body = response.readEntity(ApiEntity.class);
+        assertNotNull(body);
+        assertEquals(API, body.getId());
+    }
+
+    @Test
+    public void shouldReturnBadRequest_onV4PayloadForRollback() {
+        //given
+        final String v4Payload =
+            """
+        {
+          "id": "my-api",
+          "name": "v4 api",
+          "version": "1.0",
+          "description": "v4 api description",
+          "visibility": "PRIVATE",
+          "definitionVersion": "4.0.0",
+          "proxy": {
+            "virtual_hosts": [ { "path": "/" } ],
+            "groups": []
+          },
+          "plans": [],
+          "flows": [],
+          "paths": {}
+        }
+        """;
+
+        // when
+        Response response = envTarget(API + "/rollback").request().post(Entity.json(v4Payload));
+
+        // then
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        try {
+            ErrorEntity err = response.readEntity(ErrorEntity.class);
+            assertNotNull(err);
+            System.out.println(err.getMessage());
+            assertEquals("Detected a v4 API definition. Please use the migration tool instead of rollback.", err.getMessage());
+        } catch (Exception ignore) {
+            String msg = response.readEntity(String.class);
+            assertTrue(msg.toLowerCase().contains("v4"));
+        }
+
+        verify(apiService, never()).rollback(any(), any(), any());
+    }
 }
