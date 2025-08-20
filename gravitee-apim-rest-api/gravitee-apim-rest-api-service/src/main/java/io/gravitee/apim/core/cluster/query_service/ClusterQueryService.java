@@ -17,10 +17,11 @@ package io.gravitee.apim.core.cluster.query_service;
 
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import java.util.Optional;
 
 public interface ClusterQueryService {
-    Page<Cluster> searchByEnvironmentId(String envId, Pageable pageable, Optional<Sortable> sortable);
+    Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortable);
 }

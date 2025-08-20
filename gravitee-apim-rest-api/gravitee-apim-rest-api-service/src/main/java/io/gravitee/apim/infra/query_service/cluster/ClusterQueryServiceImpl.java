@@ -51,9 +51,7 @@ public class ClusterQueryServiceImpl implements ClusterQueryService {
     }
 
     @Override
-    public Page<Cluster> searchByEnvironmentId(String envId, Pageable pageable, Optional<Sortable> sortableOpt) {
-        var criteria = ClusterCriteria.builder().environmentId(envId).build();
-
+    public Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortableOpt) {
         var result = clusterRepository.search(
             criteria,
             new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build(),

@@ -17,7 +17,9 @@ package inmemory;
 
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import java.util.Comparator;
@@ -25,22 +27,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ClusterQueryServiceInMemory extends AbstractQueryServiceInMemory<Cluster> implements ClusterQueryService {
-
-    @Override
-    public Page<Cluster> searchByEnvironmentId(String envId, Pageable pageable, Optional<Sortable> sortable) {
-        var pageNumber = pageable.getPageNumber();
-        var pageSize = pageable.getPageSize();
-
-        var stream = storage.stream().filter(cluster -> cluster.getEnvironmentId().equals(envId)).sorted(sortClusters(sortable));
-
-        var matches = stream.collect(Collectors.toList());
-
-        var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
-
-        return new Page<>(page, pageNumber, pageSize, matches.size());
-    }
 
     private Comparator<Cluster> sortClusters(Optional<Sortable> sortableOpt) {
         if (sortableOpt.isEmpty()) {
@@ -59,5 +45,27 @@ public class ClusterQueryServiceInMemory extends AbstractQueryServiceInMemory<Cl
             return comparator;
         }
         return comparator.reversed();
+    }
+
+    @Override
+    public Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortable) {
+        var pageNumber = pageable.getPageNumber();
+        var pageSize = pageable.getPageSize();
+
+        var stream = storage.stream().filter(cluster -> cluster.getEnvironmentId().equals(criteria.getEnvironmentId()));
+
+        if (CollectionUtils.isNotEmpty(criteria.getIds())) {
+            stream = stream.filter(cluster -> criteria.getIds().contains(cluster.getId()));
+        }
+
+        stream = stream.sorted(sortClusters(sortable));
+
+        var matches = stream.collect(Collectors.toList());
+
+        var page = matches.size() <= pageSize
+            ? matches
+            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+
+        return new Page<>(page, pageNumber, pageSize, matches.size());
     }
 }
