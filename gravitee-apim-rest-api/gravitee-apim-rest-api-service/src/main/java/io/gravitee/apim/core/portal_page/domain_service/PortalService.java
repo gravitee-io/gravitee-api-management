@@ -23,7 +23,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPage;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public class PortalService {
 
@@ -36,7 +36,7 @@ public class PortalService {
     public Portal getPortal() {
         Map<Entrypoint, PortalPage> entrypoints = new AbstractMap<>() {
             @Override
-            public @NotNull Set<Entry<Entrypoint, PortalPage>> entrySet() {
+            public @Nonnull Set<Entry<Entrypoint, PortalPage>> entrySet() {
                 return Set.of();
             }
 
@@ -63,7 +63,7 @@ public class PortalService {
         };
         Map<PageId, PortalPage> pages = new AbstractMap<>() {
             @Override
-            public @NotNull Set<Entry<PageId, PortalPage>> entrySet() {
+            public @Nonnull Set<Entry<PageId, PortalPage>> entrySet() {
                 return Set.of();
             }
 
