@@ -147,6 +147,7 @@ public class ApiExport {
             .failover(failover)
             .flows((List<Flow>) flows)
             .listeners((List<Listener>) listeners)
+            .flowExecution(flowExecution)
             .name(name)
             .properties(properties)
             .resources(resources)
