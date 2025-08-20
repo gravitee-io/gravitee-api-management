@@ -117,15 +117,15 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         doc.add(new StringField(FIELD_ID, api.getId(), YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, YES));
 
-        doc.add(new StringField(FIELD_STATUS, api.getState().name(), Field.Store.NO));
-        doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
-        doc.add(new StringField(FIELD_API_LIFECYCLE_STATE, api.getLifecycleState().name(), Field.Store.NO));
-        doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
-
         // If no definition version or name, the api is being deleted. No need for more info in doc.
         if (api.getDefinitionVersion() == null && api.getName() == null) {
             return doc;
         }
+
+        doc.add(new StringField(FIELD_STATUS, api.getState().name(), Field.Store.NO));
+        doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
+        doc.add(new StringField(FIELD_API_LIFECYCLE_STATE, api.getLifecycleState().name(), Field.Store.NO));
+        doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
 
         if (api.getDefinitionVersion() != null) {
             doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), NO));
