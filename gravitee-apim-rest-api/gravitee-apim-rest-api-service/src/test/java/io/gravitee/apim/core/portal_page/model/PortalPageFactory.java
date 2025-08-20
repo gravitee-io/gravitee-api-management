@@ -13,24 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.domain_service;
+package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.apim.core.portal_page.model.PageLocator;
-import java.util.function.Predicate;
+public class PortalPageFactory {
 
-public class LocatorUniqueSpecification implements PageLocatorSpecification {
-
-    private final Predicate<PageLocator> uniquenessChecker;
-
-    public LocatorUniqueSpecification(Predicate<PageLocator> uniquenessChecker) {
-        this.uniquenessChecker = uniquenessChecker;
-    }
-
-    public boolean satisfies(PageLocator locator) {
-        return uniquenessChecker.test(locator);
-    }
-
-    public String getErrorMessage() {
-        return "Page locator is not unique";
+    public static PortalPage create(PageId id, GraviteeMarkdown existingContent) {
+        return new PortalPage(id, existingContent);
     }
 }

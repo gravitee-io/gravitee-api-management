@@ -23,27 +23,15 @@ public class PortalPage {
     private final PageId id;
 
     @Nonnull
-    private final PageLocator locator;
-
-    @Nonnull
     private final GraviteeMarkdown pageContent;
 
-    private PortalPage(@Nonnull PageId id, @Nonnull PageLocator locator, @Nonnull GraviteeMarkdown pageContent) {
+    PortalPage(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
         this.id = id;
-        this.locator = locator;
         this.pageContent = pageContent;
-    }
-
-    public static PortalPage create(PageLocator locator, GraviteeMarkdown pageContent) {
-        return new PortalPage(PageId.random(), locator, pageContent);
     }
 
     public PageId id() {
         return id;
-    }
-
-    public PageLocator locator() {
-        return locator;
     }
 
     public GraviteeMarkdown pageContent() {
@@ -55,13 +43,12 @@ public class PortalPage {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PortalPage that = (PortalPage) o;
-        return id.equals(that.id) && locator.equals(that.locator) && pageContent.equals(that.pageContent);
+        return id.equals(that.id) && pageContent.equals(that.pageContent);
     }
 
     @Override
     public int hashCode() {
         int result = id.hashCode();
-        result = 31 * result + locator.hashCode();
         result = 31 * result + pageContent.hashCode();
         return result;
     }

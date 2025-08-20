@@ -15,13 +15,20 @@
  */
 package io.gravitee.apim.core.portal_page.crud_service;
 
-import io.gravitee.apim.core.portal_page.model.PageLocator;
+import io.gravitee.apim.core.portal_page.model.Entrypoint;
+import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 
 public interface PortalPageCrudService {
     PortalPage getHomepage();
-    PortalPage getByLocator(PageLocator locator);
     PortalPage create(PortalPage page);
-    PortalPage setHomepage(PortalPage page);
-    boolean locatorExists(PageLocator locator);
+    PortalPage byEntrypoint(Entrypoint entrypoint);
+
+    PortalPage setEntrypoint(Entrypoint entrypoint, PortalPage page);
+
+    PortalPage getById(PageId pageId);
+
+    boolean entrypointExists(Entrypoint key);
+
+    boolean idExists(PageId pageId);
 }

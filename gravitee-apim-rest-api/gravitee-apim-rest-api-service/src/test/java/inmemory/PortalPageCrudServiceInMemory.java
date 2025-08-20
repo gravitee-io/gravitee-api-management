@@ -16,24 +16,36 @@
 package inmemory;
 
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
-import io.gravitee.apim.core.portal_page.model.PageLocator;
+import io.gravitee.apim.core.portal_page.model.Entrypoint;
+import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InMemoryAlternative<PortalPage> {
 
     private final List<PortalPage> storage = new ArrayList<>();
+    private final Map<PageId, PortalPage> pages = new HashMap<>();
+    private final Map<Entrypoint, PortalPage> entrypoints = new HashMap<>();
 
     @Override
     public void initWith(List<PortalPage> items) {
         storage.clear();
         storage.addAll(items);
+        pages.clear();
+        entrypoints.clear();
+        for (PortalPage page : items) {
+            pages.put(page.id(), page);
+        }
     }
 
     @Override
     public void reset() {
         storage.clear();
+        pages.clear();
+        entrypoints.clear();
     }
 
     @Override
@@ -43,29 +55,41 @@ public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InM
 
     @Override
     public PortalPage getHomepage() {
-        return storage.stream().filter(p -> p.locator().isHomepage()).findFirst().orElse(null);
-    }
-
-    @Override
-    public PortalPage getByLocator(PageLocator locator) {
-        return storage.stream().filter(p -> p.locator().equals(locator)).findFirst().orElse(null);
-    }
-
-    @Override
-    public boolean locatorExists(PageLocator locator) {
-        return storage.stream().anyMatch(p -> p.locator().equals(locator));
+        return entrypoints.get(Entrypoint.HOMEPAGE);
     }
 
     @Override
     public PortalPage create(PortalPage page) {
         storage.add(page);
+        pages.put(page.id(), page);
         return page;
     }
 
     @Override
-    public PortalPage setHomepage(PortalPage page) {
-        storage.removeIf(p -> p.locator().isHomepage());
-        storage.add(page);
+    public PortalPage setEntrypoint(Entrypoint entrypoint, PortalPage page) {
+        entrypoints.put(entrypoint, page);
+        pages.put(page.id(), page);
+        if (!storage.contains(page)) {
+            storage.add(page);
+        }
         return page;
+    }
+
+    public PortalPage byEntrypoint(Entrypoint entrypoint) {
+        return entrypoints.get(entrypoint);
+    }
+
+    public PortalPage getById(PageId id) {
+        return pages.get(id);
+    }
+
+    @Override
+    public boolean entrypointExists(Entrypoint key) {
+        return entrypoints.containsKey(key);
+    }
+
+    @Override
+    public boolean idExists(PageId pageId) {
+        return pages.containsKey(pageId);
     }
 }

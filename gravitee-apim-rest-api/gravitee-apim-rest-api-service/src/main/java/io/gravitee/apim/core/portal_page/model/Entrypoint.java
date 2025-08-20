@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.domain_service;
+package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.apim.core.portal_page.exception.PortalPageSpecificationException;
-import io.gravitee.apim.core.portal_page.model.PageLocator;
-
-public interface PageLocatorSpecification {
-    boolean satisfies(PageLocator locator);
-    String getErrorMessage();
-
-    default void throwIfNotSatisfied(PageLocator locator) {
-        if (!satisfies(locator)) {
-            throw new PortalPageSpecificationException(getErrorMessage());
-        }
-    }
+public enum Entrypoint {
+    HOMEPAGE,
 }
