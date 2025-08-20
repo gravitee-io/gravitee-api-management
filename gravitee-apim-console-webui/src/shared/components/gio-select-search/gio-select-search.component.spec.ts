@@ -393,7 +393,7 @@ describe('GioSelectSearchComponent', () => {
       await harness.open();
 
       // Verify the first page was requested with empty search term
-      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 0 });
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 1 });
       expect(mockNewResults).toHaveBeenCalledTimes(1);
     });
 
@@ -408,13 +408,13 @@ describe('GioSelectSearchComponent', () => {
       await harness.open();
 
       // Verify first page was loaded
-      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 0 });
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 1 });
 
       // Simulate scrolling to load more
       await harness.scrollNearBottom();
 
       // // Verify second page was requested
-      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 1 });
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 2 });
 
       // Verify total calls
       expect(mockNewResults).toHaveBeenCalledTimes(2);
@@ -429,7 +429,7 @@ describe('GioSelectSearchComponent', () => {
       await harness.open();
 
       // Verify first page was loaded
-      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 0 });
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 1 });
 
       // Simulate scrolling multiple times
       await harness.scrollNearBottom();
@@ -452,7 +452,7 @@ describe('GioSelectSearchComponent', () => {
       await harness.setSearchValue('test');
 
       // Verify search was requested with the search term
-      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: 'test', page: 0 });
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: 'test', page: 1 });
     });
 
     it('should request first page with empty search term when clearing search', async () => {
@@ -473,7 +473,7 @@ describe('GioSelectSearchComponent', () => {
       await harness.clearSearch();
 
       // Verify search was requested with empty search term
-      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 0 });
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 1 });
     });
 
     it('should accumulate results from multiple pages correctly', async () => {
@@ -503,13 +503,13 @@ describe('GioSelectSearchComponent', () => {
       await harness.open();
 
       // Verify first page was loaded
-      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 0 });
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 1 });
 
       // Simulate scrolling to load more
       await harness.scrollNearBottom();
 
       // Verify second page was requested
-      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 1 });
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 2 });
 
       // Verify total calls
       expect(mockNewResults).toHaveBeenCalledTimes(2);
@@ -543,13 +543,13 @@ describe('GioSelectSearchComponent', () => {
       await harness.setSearchValue('search');
 
       // Verify search was requested
-      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: 'search', page: 0 });
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: 'search', page: 1 });
 
       // Simulate scrolling to load more
       await harness.scrollNearBottom();
 
       // Verify next page was requested with same search term
-      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: 'search', page: 1 });
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: 'search', page: 2 });
 
       // Verify total calls
       expect(mockNewResults).toHaveBeenCalledTimes(3);
