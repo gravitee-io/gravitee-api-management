@@ -67,4 +67,12 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 
     boolean exists(String id) throws TechnicalException;
+
+    /**
+     * Update order of a plan identified by its id.
+     * @param planId the plan id
+     * @param order the new order value
+     * @throws TechnicalException in case of error
+     */
+    void updateOrder(String planId, int order) throws TechnicalException;
 }
