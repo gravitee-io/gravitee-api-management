@@ -120,7 +120,25 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_search_no_sortable() {
+    public void search_by_env_id_and_ids_no_sortable() {
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        ClusterCriteria criteria = ClusterCriteria
+            .builder()
+            .environmentId("env-1")
+            .ids(List.of("cluster-id-1", "cluster-id-2", "cluster-id-3", "cluster-id-4"))
+            .build();
+        Page<Cluster> clusters = clusterRepository.search(criteria, pageable, Optional.empty());
+        assertAll(
+            () -> assertThat(clusters.getContent().size()).isEqualTo(2),
+            () -> assertThat(clusters.getPageNumber()).isEqualTo(0),
+            () -> assertThat(clusters.getPageElements()).isEqualTo(2),
+            () -> assertThat(clusters.getTotalElements()).isEqualTo(2),
+            () -> assertThat(clusters.getContent().stream().map(Cluster::getName).toList()).isEqualTo(List.of("cluster-1", "cluster-no-2"))
+        );
+    }
+
+    @Test
+    public void search_by_env_id_no_sortable() {
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
         ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-1").build();
         Page<Cluster> clusters = clusterRepository.search(criteria, pageable, Optional.empty());
@@ -136,7 +154,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_search_no_criteria_sort_by_name_desc() {
+    public void search_no_criteria_sort_by_name_desc() {
         ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-1").build();
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
         Sortable sortable = new SortableBuilder().field("name").order(Order.DESC).build();

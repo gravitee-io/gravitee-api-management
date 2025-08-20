@@ -73,6 +73,22 @@ public class MembershipQueryServiceImpl implements MembershipQueryService {
     }
 
     @Override
+    public List<String> findClustersIdsThatUserBelongsTo(String memberId) {
+        try {
+            return membershipRepository
+                .findByMemberIdAndMemberTypeAndReferenceType(memberId, MembershipMemberType.USER, MembershipReferenceType.CLUSTER)
+                .stream()
+                .map(io.gravitee.repository.management.model.Membership::getReferenceId)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occured while trying to find clusters ids of member %s", memberId),
+                e
+            );
+        }
+    }
+
+    @Override
     public Collection<Membership> findGroupsThatUserBelongsTo(String memberId) {
         try {
             return membershipRepository

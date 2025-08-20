@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.util.CollectionUtils;
 
 public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom {
 
@@ -41,6 +42,10 @@ public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom 
         final Query query = new Query();
 
         query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
+
+        if (!CollectionUtils.isEmpty(criteria.getIds())) {
+            query.addCriteria(where("id").in(criteria.getIds()));
+        }
 
         final long total = mongoTemplate.count(query, ClusterMongo.class);
         if (total == 0) {
