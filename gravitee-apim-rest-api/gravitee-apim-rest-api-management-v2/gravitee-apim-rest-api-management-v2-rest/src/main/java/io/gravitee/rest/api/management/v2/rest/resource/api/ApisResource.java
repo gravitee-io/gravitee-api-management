@@ -17,13 +17,14 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_LIFECYCLE_STATE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PORTAL_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_VISIBILITY;
 
 import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
@@ -39,6 +40,7 @@ import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -382,7 +384,15 @@ public class ApisResource extends AbstractResource {
         }
 
         if (apiSearchQuery.getPublished() != null && !apiSearchQuery.getPublished().isEmpty()) {
-            apiQueryBuilder.addFilter(FIELD_API_LIFECYCLE_STATE, apiSearchQuery.getPublished());
+            apiQueryBuilder.addFilter(FIELD_PORTAL_STATUS, apiSearchQuery.getPublished());
+        }
+
+        if (apiSearchQuery.getPublished() != null && !apiSearchQuery.getPublished().isEmpty()) {
+            apiQueryBuilder.addFilter(FIELD_PORTAL_STATUS, apiSearchQuery.getPublished());
+        }
+
+        if (CollectionUtils.isNotEmpty(apiSearchQuery.getVisibilities())) {
+            apiQueryBuilder.addFilter(FIELD_VISIBILITY, apiSearchQuery.getVisibilities());
         }
 
         var selectedDefinitions = Stream

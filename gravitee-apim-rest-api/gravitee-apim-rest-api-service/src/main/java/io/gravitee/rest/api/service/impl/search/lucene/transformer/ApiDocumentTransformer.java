@@ -25,6 +25,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -100,7 +101,9 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_HAS_HEALTH_CHECK = "has_health_check";
     public static final String FIELD_STATUS = "status";
     public static final String FIELD_STATUS_SORTED = "status_sorted";
-    public static final String FIELD_API_LIFECYCLE_STATE = "api_lifecycle_state";
+    public static final String FIELD_PORTAL_STATUS = "portal_status";
+    public static final String FIELD_PORTAL_STATUS_SORTED = "portal_status_sorted";
+    public static final String FIELD_VISIBILITY = "visibility";
     public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
 
     private final ApiService apiService;
@@ -124,7 +127,14 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
 
         doc.add(new StringField(FIELD_STATUS, api.getState().name(), Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
-        doc.add(new StringField(FIELD_API_LIFECYCLE_STATE, api.getLifecycleState().name(), Field.Store.NO));
+
+        String portalStatus = api.getLifecycleState() == ApiLifecycleState.PUBLISHED
+            ? ApiLifecycleState.PUBLISHED.name()
+            : ApiLifecycleState.UNPUBLISHED.name();
+        doc.add(new StringField(FIELD_PORTAL_STATUS, portalStatus, Field.Store.NO));
+        doc.add(new SortedDocValuesField(FIELD_PORTAL_STATUS_SORTED, toSortedValue(portalStatus)));
+
+        doc.add(new StringField(FIELD_VISIBILITY, api.getVisibility().name(), Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
 
         if (api.getDefinitionVersion() != null) {

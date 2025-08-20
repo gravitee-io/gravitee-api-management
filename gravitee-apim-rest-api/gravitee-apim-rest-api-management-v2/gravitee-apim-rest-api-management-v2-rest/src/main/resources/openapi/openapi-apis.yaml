@@ -3821,6 +3821,10 @@ components:
                   type: array
                   items:
                     type: string
+                visibilities:
+                  type: array
+                  items:
+                    type: string
         ApiType:
             type: string
             description: API's type.
