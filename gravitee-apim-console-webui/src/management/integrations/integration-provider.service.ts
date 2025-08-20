@@ -34,6 +34,7 @@ export class IntegrationProviderService {
       { icon: 'ibm-api-connect', value: 'ibm-api-connect', apimDocsName: 'ibm-api-connect' },
       { icon: 'confluent', value: 'confluent-platform', apimDocsName: 'confluent-platform' },
       { icon: 'mulesoft', value: 'mulesoft', apimDocsName: 'mulesoft-anypoint' },
+      { icon: 'edge-stack', value: 'edge-stack', apimDocsName: 'edge-stack' },
     ],
     comingSoon: [],
   };
