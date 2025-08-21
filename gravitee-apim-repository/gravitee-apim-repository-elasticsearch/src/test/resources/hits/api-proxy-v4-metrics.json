@@ -1,0 +1,45 @@
+{
+  "request-ended": "true",
+  "api-id": "2ebe3deb-1859-4d5b-be3d-eb1859dd5b16",
+  "request-content-length": 0,
+  "local-address": "0:0:0:0:0:0:0:1",
+  "transaction-id": "39107cc9-b8bf-4f16-907c-c9b8bf8f16fb",
+  "endpoint": "https://api.gravitee.io/echo",
+  "response-content-length": 276,
+  "endpoint-response-time-ms": 16,
+  "entrypoint-id": "http-proxy",
+  "remote-address": "0:0:0:0:0:0:0:1",
+  "host": "localhost:8082",
+  "user_agent": {
+    "original": "HTTPie/3.2.4",
+    "name": "Other",
+    "os_name": "",
+    "device": {
+      "name": "Generic Feature Phone"
+    }
+  },
+  "geoip": {
+    "continent_name": "Unknown",
+    "city_name": "Unknown",
+    "country_iso_code": "Unknown",
+    "region_name": "Unknown"
+  },
+  "subscription-id": "0:0:0:0:0:0:0:1",
+  "custom": {
+    "foo": "bar"
+  },
+  "client-identifier": "b6cf5bd6081fb775fc3f89927e582d7e945f955c35b73a07879d75bb4ea96a01",
+  "request-id": "39107cc9-b8bf-4f16-907c-c9b8bf8f16fb",
+  "uri": "/v4/echo",
+  "path-info": "",
+  "plan-id": "ccefeab8-2f7c-45dc-afea-b82f7c75dc1a",
+  "http-method": 3,
+  "@timestamp": "2025-08-01T17:29:20.385+02:00",
+  "gateway-latency-ms": 3,
+  "api-name": "v4 echo",
+  "gateway": "b504bb7b-8b6e-426f-84bb-7b8b6e626f3f",
+  "application-id": "1",
+  "gateway-response-time-ms": 19,
+  "user-agent": "HTTPie/3.2.4",
+  "status": 202
+}

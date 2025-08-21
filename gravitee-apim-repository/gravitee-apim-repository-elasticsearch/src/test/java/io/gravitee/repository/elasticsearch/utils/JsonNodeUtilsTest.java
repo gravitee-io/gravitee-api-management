@@ -61,4 +61,16 @@ class JsonNodeUtilsTest {
         final JsonNode jsonNode = JsonNodeFactory.instance.objectNode().put("key", true);
         assertThat(JsonNodeUtils.asBooleanOrFalse(jsonNode.get("absent-key"))).isFalse();
     }
+
+    @Test
+    void should_get_field_as_long() {
+        final JsonNode jsonNode = JsonNodeFactory.instance.objectNode().put("key", 1);
+        assertThat(JsonNodeUtils.asLongOr(jsonNode.get("key"), -1)).isOne();
+    }
+
+    @Test
+    void should_get_default_long() {
+        final JsonNode jsonNode = JsonNodeFactory.instance.objectNode().put("key", 1);
+        assertThat(JsonNodeUtils.asLongOr(jsonNode.get("absent-key"), -1)).isEqualTo(-1);
+    }
 }
