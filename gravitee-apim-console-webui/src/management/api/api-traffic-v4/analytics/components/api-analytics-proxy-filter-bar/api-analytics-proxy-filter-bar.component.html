@@ -18,6 +18,12 @@
 <form [formGroup]="form" class="form">
   <gio-select-search formControlName="httpStatuses" [options]="httpStatuses" label="HTTP Status" />
   <gio-select-search [options]="planOptions()" formControlName="plans" label="Plan" placeholder="Search plans..." />
+  <gio-select-search
+    formControlName="applications"
+    [resultsLoader]="applicationResultsLoader"
+    label="Application"
+    placeholder="Search applications..."
+  />
   <div class="form__timeframe">
     <gio-timeframe
       formControlName="timeframe"
