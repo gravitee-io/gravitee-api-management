@@ -36,48 +36,41 @@ export interface GroupItem {
 export class PortalNavigationService {
   constructor(private readonly permissionService: GioPermissionService) {}
 
-  public getCustomizationRoutes(): GroupItem {
+  public getMainMenuItems(): GroupItem {
     const items: MenuItem[] = [];
 
-    const customization: MenuItem = {
-      displayName: 'Customization',
-      routerLink: 'customization',
-      icon: 'gio:palette',
-      children: [],
-    };
     if (this.permissionService.hasAnyMatching(['environment-category-r', 'environment-category-u'])) {
-      customization.children.push({
+      items.push({
         displayName: 'Catalog',
         routerLink: 'catalog',
         icon: 'gio:report-columns',
       });
     }
+
     if (this.permissionService.hasAnyMatching(['environment-settings-r', 'environment-settings-u'])) {
-      customization.children.push({
+      items.push({
         displayName: 'Top Bar',
         routerLink: 'top-bar',
         icon: 'gio:top-bar',
       });
-      customization.children.push({
+      items.push({
         displayName: 'API',
         routerLink: 'api',
         icon: 'gio:cloud-settings',
       });
-      customization.children.push({
+      items.push({
         displayName: 'Banner',
         routerLink: 'banner',
         icon: 'gio:chat-lines',
       });
     }
+
     if (this.permissionService.hasAnyMatching(['environment-theme-r', 'environment-theme-u'])) {
-      customization.children.push({
+      items.push({
         displayName: 'Theme',
         routerLink: 'theme',
         icon: 'gio:color-picker',
       });
-    }
-    if (customization.children.length) {
-      items.push(customization);
     }
 
     return {
