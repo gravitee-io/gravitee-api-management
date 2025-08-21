@@ -29,6 +29,10 @@ export interface GioChartBarOptions {
   stacked?: boolean;
   pointStart?: number;
   pointInterval?: number;
+  reverseStack?: boolean;
+  customTooltip?: {
+    formatter?: () => string;
+  };
 }
 
 export const defineBarColors = (code: string | number) => {
@@ -89,6 +93,15 @@ export class GioChartBarComponent implements OnInit {
         verticalAlign: 'bottom',
       },
 
+      tooltip: this.options?.customTooltip?.formatter
+        ? {
+            formatter: this.options.customTooltip.formatter,
+            useHTML: true,
+          }
+        : {
+            shared: true,
+          },
+
       plotOptions: {
         series: {
           pointStart: this.options?.pointStart,
@@ -102,7 +115,7 @@ export class GioChartBarComponent implements OnInit {
         },
       },
 
-      series: this.data?.map((item) => ({
+      series: (this.options?.reverseStack ? [...this.data].reverse() : this.data)?.map((item) => ({
         name: item.name,
         data: item.values,
         type: 'column',
