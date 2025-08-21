@@ -24,10 +24,12 @@ import static org.assertj.core.api.Assertions.not;
 import static org.assertj.core.api.Assertions.offset;
 import static org.assertj.core.api.Assertions.withPrecision;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.analytics.Aggregation;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
+import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
@@ -1003,6 +1005,56 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .hasValueSatisfying(countAggregate -> {
                     assertThat(countAggregate.total()).isGreaterThan(0);
                 });
+        }
+    }
+
+    @Nested
+    class findApiMetricsDetail {
+
+        private final QueryContext queryContext = new QueryContext("org#1", "env#1");
+
+        @Test
+        void should_return_empty_result_when_api_does_not_exist() {
+            var result = cut.findApiMetricsDetail(
+                queryContext,
+                new ApiMetricsDetailQuery("notExisting", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+            );
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_result_when_request_id_does_not_exist() {
+            var result = cut.findApiMetricsDetail(
+                queryContext,
+                new ApiMetricsDetailQuery("f1608475-dd77-4603-a084-75dd775603e9", "notExisting")
+            );
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_v4_metric_result() {
+            var result = cut.findApiMetricsDetail(
+                queryContext,
+                new ApiMetricsDetailQuery("f1608475-dd77-4603-a084-75dd775603e9", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(apiMetricsDetail ->
+                    assertThat(apiMetricsDetail)
+                        .hasFieldOrPropertyWithValue("apiId", "f1608475-dd77-4603-a084-75dd775603e9")
+                        .hasFieldOrPropertyWithValue("requestId", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                        .hasFieldOrPropertyWithValue("transactionId", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                        .hasFieldOrPropertyWithValue("host", "apim-master-gateway.team-apim.gravitee.dev")
+                        .hasFieldOrPropertyWithValue("applicationId", "1e478236-e6e4-4cf5-8782-36e6e4ccf57d")
+                        .hasFieldOrPropertyWithValue("planId", "733b78f1-1a16-4c16-bb78-f11a16ac1693")
+                        .hasFieldOrPropertyWithValue("gateway", "2c99d50d-d318-42d3-99d5-0dd31862d3d2")
+                        .hasFieldOrPropertyWithValue("uri", "/jgi-message-logs-kafka/")
+                        .hasFieldOrPropertyWithValue("status", 404)
+                        .hasFieldOrPropertyWithValue("requestContentLength", 0L)
+                        .hasFieldOrPropertyWithValue("responseContentLength", 41L)
+                        .hasFieldOrPropertyWithValue("remoteAddress", "127.0.0.1")
+                        .hasFieldOrPropertyWithValue("method", HttpMethod.GET)
+                );
         }
     }
 }
