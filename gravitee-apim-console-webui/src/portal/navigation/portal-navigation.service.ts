@@ -30,6 +30,13 @@ export interface GroupItem {
   items: MenuItem[];
 }
 
+interface MenuItemConfig {
+  displayName: string;
+  routerLink: string;
+  icon: string;
+  permissions: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -37,41 +44,46 @@ export class PortalNavigationService {
   constructor(private readonly permissionService: GioPermissionService) {}
 
   public getMainMenuItems(): GroupItem {
-    const items: MenuItem[] = [];
-
-    if (this.permissionService.hasAnyMatching(['environment-category-r', 'environment-category-u'])) {
-      items.push({
+    const allMenuItems: MenuItemConfig[] = [
+      {
         displayName: 'Catalog',
         routerLink: 'catalog',
         icon: 'gio:report-columns',
-      });
-    }
-
-    if (this.permissionService.hasAnyMatching(['environment-settings-r', 'environment-settings-u'])) {
-      items.push({
+        permissions: ['environment-category-r', 'environment-category-u'],
+      },
+      {
         displayName: 'Top Bar',
         routerLink: 'top-bar',
         icon: 'gio:top-bar',
-      });
-      items.push({
+        permissions: ['environment-settings-r', 'environment-settings-u'],
+      },
+      {
         displayName: 'API',
         routerLink: 'api',
         icon: 'gio:cloud-settings',
-      });
-      items.push({
+        permissions: ['environment-settings-r', 'environment-settings-u'],
+      },
+      {
         displayName: 'Banner',
         routerLink: 'banner',
         icon: 'gio:chat-lines',
-      });
-    }
-
-    if (this.permissionService.hasAnyMatching(['environment-theme-r', 'environment-theme-u'])) {
-      items.push({
+        permissions: ['environment-settings-r', 'environment-settings-u'],
+      },
+      {
         displayName: 'Theme',
         routerLink: 'theme',
         icon: 'gio:color-picker',
-      });
-    }
+        permissions: ['environment-theme-r', 'environment-theme-u'],
+      },
+    ];
+
+    const items: MenuItem[] = allMenuItems
+      .filter((item) => this.permissionService.hasAnyMatching(item.permissions))
+      .map(({ displayName, routerLink, icon }) => ({
+        displayName,
+        routerLink,
+        icon
+      }));
 
     return {
       title: 'Customization',
