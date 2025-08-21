@@ -17,13 +17,11 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import inmemory.PortalPageCrudServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
-import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -33,30 +31,26 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreatePortalPageUseCaseTest {
 
-    private PortalPageCrudServiceInMemory crudService;
     private CreatePortalPageUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        crudService = new PortalPageCrudServiceInMemory();
+        PortalPageCrudServiceInMemory crudService = new PortalPageCrudServiceInMemory();
         useCase = new CreatePortalPageUseCase(crudService);
     }
 
     @Test
     void should_create_page_when_valid_and_unique() {
-        CreatePortalPageUseCase.Input input = new CreatePortalPageUseCase.Input(UUID.randomUUID(), true, new GraviteeMarkdown("content"));
+        CreatePortalPageUseCase.Input input = new CreatePortalPageUseCase.Input(UUID.randomUUID(), new GraviteeMarkdown("content"));
         CreatePortalPageUseCase.Output output = useCase.execute(input);
         PortalPage page = output.page();
         assertNotNull(page);
-        assertNotNull(crudService.byPortalViewContext(PortalViewContext.HOMEPAGE));
         assertEquals("content", page.pageContent().content());
     }
 
     @Test
     void should_fail_when_content_is_empty() {
-        CreatePortalPageUseCase.Input input = new CreatePortalPageUseCase.Input(UUID.randomUUID(), true, new GraviteeMarkdown("   "));
+        CreatePortalPageUseCase.Input input = new CreatePortalPageUseCase.Input(UUID.randomUUID(), new GraviteeMarkdown("   "));
         assertThrows(Exception.class, () -> useCase.execute(input));
-        PortalPage page = crudService.byPortalViewContext(PortalViewContext.HOMEPAGE);
-        assertNull(page);
     }
 }

@@ -19,7 +19,6 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.ContentSanitizedSpecification;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
-import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.UUID;
 
 public class CreatePortalPageUseCase {
@@ -33,13 +32,10 @@ public class CreatePortalPageUseCase {
     public Output execute(Input input) {
         new ContentSanitizedSpecification().throwIfNotSatisfied(input.pageContent);
         PortalPage page = crudService.create(PortalPage.create(input.pageContent));
-        if (input.homepage) {
-            page = crudService.setPortalViewContextPage(PortalViewContext.HOMEPAGE, page);
-        }
         return new Output(page);
     }
 
-    public record Input(UUID environmentId, boolean homepage, GraviteeMarkdown pageContent) {}
+    public record Input(UUID environmentId, GraviteeMarkdown pageContent) {}
 
     public record Output(PortalPage page) {}
 }

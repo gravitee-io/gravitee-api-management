@@ -42,7 +42,7 @@ public class PageExistsSpecification<T> {
         }
     }
 
-    public static PageExistsSpecification<PortalViewContext> byEntrypoint(Predicate<PortalViewContext> existenceChecker) {
+    public static PageExistsSpecification<PortalViewContext> byPortalViewContext(Predicate<PortalViewContext> existenceChecker) {
         return new PageExistsSpecification<>(existenceChecker);
     }
 
