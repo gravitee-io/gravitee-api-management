@@ -76,7 +76,7 @@ export class PortalNavigationComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.mainMenuItems = this.portalNavigationService.getCustomizationRoutes().items;
+    this.mainMenuItems = this.portalNavigationService.getMainMenuItems().items;
 
     if (this.constants.customization && this.constants.customization.logo) {
       this.customLogo = this.constants.customization.logo;

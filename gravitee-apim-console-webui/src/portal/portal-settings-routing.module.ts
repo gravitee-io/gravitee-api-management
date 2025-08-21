@@ -18,7 +18,6 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { PortalSettingsModule } from './portal-settings.module';
 import { PortalNavigationComponent } from './navigation/portal-navigation.component';
-import { PortalCustomizationComponent } from './customization/portal-customization.component';
 import { PortalBannerComponent } from './customization/banner/portal-banner.component';
 import { PortalThemeComponent } from './customization/theme/portal-theme.component';
 import { PortalTopBarComponent } from './customization/top-bar/portal-top-bar.component';
@@ -42,115 +41,104 @@ const portalRoutes: Routes = [
     canActivateChild: [HasLicenseGuard, PermissionGuard.checkRouteDataPermissions],
     children: [
       {
-        path: 'customization',
-        component: PortalCustomizationComponent,
+        path: 'top-bar',
+        component: PortalTopBarComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-settings-r', 'environment-settings-u'],
+          },
+        },
         children: [
           {
-            path: 'top-bar',
-            component: PortalTopBarComponent,
-            data: {
-              permissions: {
-                anyOf: ['environment-settings-r', 'environment-settings-u'],
-              },
-            },
-            children: [
-              {
-                path: '',
-                component: MenuLinkListComponent,
-                data: {
-                  permissions: {
-                    anyOf: ['environment-settings-r', 'environment-settings-u'],
-                  },
-                },
-              },
-              {
-                path: ':menuLinkId',
-                component: MenuLinkEditComponent,
-                data: {
-                  permissions: {
-                    anyOf: ['environment-settings-u'],
-                  },
-                },
-              },
-            ],
-          },
-          {
-            path: 'catalog',
-            component: PortalCatalogComponent,
-            children: [
-              {
-                path: '',
-                component: CategoryListComponent,
-                data: {
-                  permissions: {
-                    anyOf: ['environment-category-r', 'environment-category-u'],
-                  },
-                },
-              },
-              {
-                path: 'category/new',
-                component: CategoryCatalogComponent,
-                data: {
-                  permissions: {
-                    anyOf: ['environment-category-r', 'environment-category-u'],
-                  },
-                },
-              },
-              {
-                path: 'category/:categoryId',
-                component: CategoryCatalogComponent,
-                data: {
-                  permissions: {
-                    anyOf: ['environment-category-r', 'environment-category-u'],
-                  },
-                },
-              },
-            ],
-          },
-          {
-            path: 'banner',
-            component: PortalBannerComponent,
-            data: {
-              permissions: {
-                anyOf: ['environment-settings-r', 'environment-settings-u'],
-              },
-            },
-          },
-          {
-            path: 'api',
-            component: PortalApiComponent,
-            children: [
-              {
-                path: '',
-                component: PortalApiListComponent,
-                data: {
-                  permissions: {
-                    anyOf: ['environment-settings-r', 'environment-settings-u'],
-                  },
-                },
-              },
-            ],
-          },
-          {
-            path: 'theme',
-            component: PortalThemeComponent,
-            data: {
-              permissions: {
-                anyOf: ['environment-theme-r', 'environment-theme-u'],
-              },
-            },
-          },
-          {
             path: '',
-            pathMatch: 'full',
-            redirectTo: 'top-bar',
+            component: MenuLinkListComponent,
+            data: {
+              permissions: {
+                anyOf: ['environment-settings-r', 'environment-settings-u'],
+              },
+            },
+          },
+          {
+            path: ':menuLinkId',
+            component: MenuLinkEditComponent,
+            data: {
+              permissions: {
+                anyOf: ['environment-settings-u'],
+              },
+            },
           },
         ],
       },
       {
+        path: 'catalog',
+        component: PortalCatalogComponent,
+        children: [
+          {
+            path: '',
+            component: CategoryListComponent,
+            data: {
+              permissions: {
+                anyOf: ['environment-category-r', 'environment-category-u'],
+              },
+            },
+          },
+          {
+            path: 'category/new',
+            component: CategoryCatalogComponent,
+            data: {
+              permissions: {
+                anyOf: ['environment-category-r', 'environment-category-u'],
+              },
+            },
+          },
+          {
+            path: 'category/:categoryId',
+            component: CategoryCatalogComponent,
+            data: {
+              permissions: {
+                anyOf: ['environment-category-r', 'environment-category-u'],
+              },
+            },
+          },
+        ],
+      },
+      {
+        path: 'banner',
+        component: PortalBannerComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-settings-r', 'environment-settings-u'],
+          },
+        },
+      },
+      {
+        path: 'api',
+        component: PortalApiComponent,
+        children: [
+          {
+            path: '',
+            component: PortalApiListComponent,
+            data: {
+              permissions: {
+                anyOf: ['environment-settings-r', 'environment-settings-u'],
+              },
+            },
+          },
+        ],
+      },
+      {
+        path: 'theme',
+        component: PortalThemeComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-theme-r', 'environment-theme-u'],
+          },
+        },
+      },
+      {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'customization',
+        redirectTo: 'top-bar',
       },
     ],
   },
