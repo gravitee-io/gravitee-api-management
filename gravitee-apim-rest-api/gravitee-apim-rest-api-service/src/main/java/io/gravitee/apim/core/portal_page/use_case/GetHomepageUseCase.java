@@ -29,7 +29,7 @@ public class GetHomepageUseCase {
     }
 
     public Output execute() {
-        var spec = PageExistsSpecification.byEntrypoint(crudService::portalViewContextExists);
+        var spec = PageExistsSpecification.byPortalViewContext(crudService::portalViewContextExists);
         spec.throwIfNotSatisfied(PortalViewContext.HOMEPAGE);
         PortalPage page = crudService.byPortalViewContext(PortalViewContext.HOMEPAGE);
         return new Output(page);
