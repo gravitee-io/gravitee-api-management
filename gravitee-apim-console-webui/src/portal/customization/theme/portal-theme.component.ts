@@ -22,12 +22,12 @@ import { MatInputModule } from '@angular/material/input';
 import { GioAvatarModule, GioFormFilePickerModule, GioMonacoEditorModule, GioSaveBarModule, NewFile } from '@gravitee/ui-particles-angular';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButton } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { catchError, map, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { isEqual } from 'lodash';
-import { MatOption, MatSelect } from '@angular/material/select';
+import { MatSelectModule } from '@angular/material/select';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 
 import { GioFormColorInputModule } from '../../../shared/components/gio-form-color-input/gio-form-color-input.module';
@@ -57,23 +57,21 @@ export interface ThemeVM {
   styleUrls: ['./portal-theme.component.scss'],
   imports: [
     CommonModule,
-    GioFormFilePickerModule,
-    GioSaveBarModule,
+    ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
-    ReactiveFormsModule,
     MatExpansionModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatButtonModule,
+    MatSelectModule,
     GioFormColorInputModule,
     GioAvatarModule,
     GioFormFilePickerModule,
-    MatButton,
-    MatTooltipModule,
+    GioSaveBarModule,
     GioMonacoEditorModule,
     PortalHeaderComponent,
-    MatSelect,
-    MatOption,
     NewPortalBadgeComponent,
   ],
   standalone: true,
