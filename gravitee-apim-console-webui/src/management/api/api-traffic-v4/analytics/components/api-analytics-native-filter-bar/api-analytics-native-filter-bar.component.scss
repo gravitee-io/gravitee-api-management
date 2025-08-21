@@ -1,0 +1,73 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  display: block;
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+
+  .custom-date {
+    width: 212px;
+  }
+}
+
+.errors {
+  width: 100%;
+}
+
+.applied-filters {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+  margin-left: 8px;
+
+  .applied-filters-text {
+    align-self: center;
+  }
+
+  &__chip_list {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &__chip {
+    @include mat.chips-overrides(
+      (
+        container-shape-radius: 16px,
+        label-text-color: black,
+        elevated-container-color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, default),
+      )
+    );
+    min-height: 24px;
+    height: 24px;
+    padding: 0;
+    align-self: center;
+
+    &__key {
+      @include mat.m2-typography-level($typography, body-2);
+    }
+
+    &__value {
+      @include mat.m2-typography-level($typography, subtitle-2);
+      margin-left: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+  }
+
+  &__reset {
+    margin-left: 12px;
+  }
+}
