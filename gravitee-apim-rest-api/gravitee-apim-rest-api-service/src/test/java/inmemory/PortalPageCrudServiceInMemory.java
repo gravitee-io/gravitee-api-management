@@ -16,9 +16,9 @@
 package inmemory;
 
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
-import io.gravitee.apim.core.portal_page.model.Entrypoint;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
+import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +28,7 @@ public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InM
 
     private final List<PortalPage> storage = new ArrayList<>();
     private final Map<PageId, PortalPage> pages = new HashMap<>();
-    private final Map<Entrypoint, PortalPage> entrypoints = new HashMap<>();
+    private final Map<PortalViewContext, PortalPage> entrypoints = new HashMap<>();
 
     @Override
     public void initWith(List<PortalPage> items) {
@@ -54,11 +54,6 @@ public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InM
     }
 
     @Override
-    public PortalPage getHomepage() {
-        return entrypoints.get(Entrypoint.HOMEPAGE);
-    }
-
-    @Override
     public PortalPage create(PortalPage page) {
         storage.add(page);
         pages.put(page.id(), page);
@@ -66,8 +61,8 @@ public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InM
     }
 
     @Override
-    public PortalPage setEntrypoint(Entrypoint entrypoint, PortalPage page) {
-        entrypoints.put(entrypoint, page);
+    public PortalPage setPortalViewContextPage(PortalViewContext portalViewContext, PortalPage page) {
+        entrypoints.put(portalViewContext, page);
         pages.put(page.id(), page);
         if (!storage.contains(page)) {
             storage.add(page);
@@ -75,8 +70,8 @@ public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InM
         return page;
     }
 
-    public PortalPage byEntrypoint(Entrypoint entrypoint) {
-        return entrypoints.get(entrypoint);
+    public PortalPage byPortalViewContext(PortalViewContext portalViewContext) {
+        return entrypoints.get(portalViewContext);
     }
 
     public PortalPage getById(PageId id) {
@@ -84,12 +79,12 @@ public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InM
     }
 
     @Override
-    public boolean entrypointExists(Entrypoint key) {
+    public boolean portalViewContextExists(PortalViewContext key) {
         return entrypoints.containsKey(key);
     }
 
     @Override
-    public boolean idExists(PageId pageId) {
+    public boolean pageIdExists(PageId pageId) {
         return pages.containsKey(pageId);
     }
 }

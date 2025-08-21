@@ -19,12 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import inmemory.PortalPageCrudServiceInMemory;
-import io.gravitee.apim.core.portal_page.domain_service.PortalService;
-import io.gravitee.apim.core.portal_page.model.Entrypoint;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageFactory;
+import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -39,15 +38,14 @@ class GetHomepageUseCaseTest {
     @BeforeEach
     void setUp() {
         crudService = new PortalPageCrudServiceInMemory();
-        PortalService portalService = new PortalService(crudService);
-        useCase = new GetHomepageUseCase(portalService);
+        useCase = new GetHomepageUseCase(crudService);
     }
 
     @Test
     void should_return_homepage_when_exists() {
         PortalPage homepage = PortalPageFactory.create(PageId.random(), new GraviteeMarkdown("home"));
         crudService.initWith(java.util.List.of(homepage));
-        crudService.setEntrypoint(Entrypoint.HOMEPAGE, homepage);
+        crudService.setPortalViewContextPage(PortalViewContext.HOMEPAGE, homepage);
         GetHomepageUseCase.Output output = useCase.execute();
         assertEquals(homepage, output.page());
     }

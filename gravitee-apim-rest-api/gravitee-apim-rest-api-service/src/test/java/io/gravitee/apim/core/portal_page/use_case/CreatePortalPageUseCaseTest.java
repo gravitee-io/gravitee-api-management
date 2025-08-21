@@ -21,10 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import inmemory.PortalPageCrudServiceInMemory;
-import io.gravitee.apim.core.portal_page.domain_service.PortalService;
-import io.gravitee.apim.core.portal_page.model.Entrypoint;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
+import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -40,8 +39,7 @@ class CreatePortalPageUseCaseTest {
     @BeforeEach
     void setUp() {
         crudService = new PortalPageCrudServiceInMemory();
-        PortalService portalService = new PortalService(crudService);
-        useCase = new CreatePortalPageUseCase(portalService);
+        useCase = new CreatePortalPageUseCase(crudService);
     }
 
     @Test
@@ -50,7 +48,7 @@ class CreatePortalPageUseCaseTest {
         CreatePortalPageUseCase.Output output = useCase.execute(input);
         PortalPage page = output.page();
         assertNotNull(page);
-        assertNotNull(crudService.byEntrypoint(Entrypoint.HOMEPAGE));
+        assertNotNull(crudService.byPortalViewContext(PortalViewContext.HOMEPAGE));
         assertEquals("content", page.pageContent().content());
     }
 
@@ -58,7 +56,7 @@ class CreatePortalPageUseCaseTest {
     void should_fail_when_content_is_empty() {
         CreatePortalPageUseCase.Input input = new CreatePortalPageUseCase.Input(UUID.randomUUID(), true, new GraviteeMarkdown("   "));
         assertThrows(Exception.class, () -> useCase.execute(input));
-        PortalPage page = crudService.byEntrypoint(Entrypoint.HOMEPAGE);
+        PortalPage page = crudService.byPortalViewContext(PortalViewContext.HOMEPAGE);
         assertNull(page);
     }
 }
