@@ -401,6 +401,10 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       params.plans = filters.plans.join(',');
     }
 
+    if (filters.applications?.length) {
+      params.applications = filters.applications.join(',');
+    }
+
     return params;
   }
 
