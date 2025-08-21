@@ -23,6 +23,11 @@ import {
 } from '../../../../../../shared/components/gio-widget-layout/gio-widget-layout.component';
 import { GioChartPieInput } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.component';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
+import {
+  GioChartBarData,
+  GioChartBarOptions,
+  GioChartBarComponent,
+} from '../../../../../../shared/components/gio-chart-bar/gio-chart-bar.component';
 import { GioChartPieModule } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { GioChartLineModule } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import {
@@ -41,6 +46,7 @@ export type TableWidgetData = {
   firstColumnClickable?: boolean;
   relativePath?: string;
 };
+type BarWidgetData = { data: GioChartBarData[]; options?: GioChartBarOptions };
 
 interface BaseApiAnalyticsWidgetConfig {
   title: string;
@@ -64,6 +70,11 @@ type ApiAnalyticsWidgetLineConfig = BaseApiAnalyticsWidgetConfig & {
   widgetData: LineWidgetData;
 };
 
+type ApiAnalyticsWidgetBarConfig = BaseApiAnalyticsWidgetConfig & {
+  widgetType: 'bar';
+  widgetData: BarWidgetData;
+};
+
 export type ApiAnalyticsWidgetTableConfig = BaseApiAnalyticsWidgetConfig & {
   widgetType: 'table';
   widgetData: TableWidgetData;
@@ -73,8 +84,9 @@ export type ApiAnalyticsWidgetConfig =
   | ApiAnalyticsWidgetStatsConfig
   | ApiAnalyticsWidgetPieConfig
   | ApiAnalyticsWidgetLineConfig
+  | ApiAnalyticsWidgetBarConfig
   | ApiAnalyticsWidgetTableConfig;
-export type ApiAnalyticsWidgetType = 'pie' | 'line' | 'table' | 'stats';
+export type ApiAnalyticsWidgetType = 'pie' | 'line' | 'bar' | 'table' | 'stats';
 
 @Component({
   selector: 'api-analytics-widget',
@@ -82,6 +94,7 @@ export type ApiAnalyticsWidgetType = 'pie' | 'line' | 'table' | 'stats';
     GioWidgetLayoutComponent,
     GioChartPieModule,
     GioChartLineModule,
+    GioChartBarComponent,
     ApiAnalyticsWidgetTableComponent,
     NgClass,
     AnalyticsStatsComponent,
@@ -109,6 +122,11 @@ export class ApiAnalyticsWidgetComponent {
   lineData: Signal<LineWidgetData | null> = computed(() => {
     const currentConfig = this.config();
     return currentConfig.widgetType === 'line' ? currentConfig.widgetData : null;
+  });
+
+  barData: Signal<BarWidgetData | null> = computed(() => {
+    const currentConfig = this.config();
+    return currentConfig.widgetType === 'bar' ? currentConfig.widgetData : null;
   });
 
   tableData: Signal<TableWidgetData | null> = computed(() => {
