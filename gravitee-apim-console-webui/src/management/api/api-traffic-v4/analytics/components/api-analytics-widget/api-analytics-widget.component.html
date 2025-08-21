@@ -34,6 +34,11 @@
             <gio-chart-line [data]="lineData()!.data" [options]="lineData()!.options" />
           </div>
         }
+        @case ('bar') {
+          <div>
+            <gio-chart-bar [data]="barData()!.data" [options]="barData()!.options" />
+          </div>
+        }
         @case ('table') {
           <api-analytics-widget-table
             [columns]="tableData().columns"
