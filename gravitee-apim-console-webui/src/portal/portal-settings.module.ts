@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatTabsModule } from '@angular/material/tabs';
-import { RouterModule } from '@angular/router';
 
 @NgModule({
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, MatButtonModule, MatIconModule, MatCardModule, MatTabsModule],
+  imports: [],
   declarations: [],
 })
 export class PortalSettingsModule {}
