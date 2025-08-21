@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
+import io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
@@ -59,6 +60,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public HistogramAnalytics histogramAnalytics;
     public GroupByAnalytics groupByAnalytics;
     public StatsAnalytics statsAnalytics;
+    public ApiMetricsDetail apiMetricsDetail;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -162,5 +164,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query) {
         return Optional.ofNullable(requestsCount);
+    }
+
+    @Override
+    public Optional<ApiMetricsDetail> findApiMetricsDetail(ExecutionContext executionContext, String apiId, String requestId) {
+        return Optional.ofNullable(apiMetricsDetail);
     }
 }

@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
+import io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
@@ -102,6 +103,8 @@ public interface AnalyticsQueryService {
     Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery);
 
     Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query);
+
+    Optional<ApiMetricsDetail> findApiMetricsDetail(ExecutionContext executionContext, String apiId, String requestId);
 
     record CountQuery(SearchTermId searchTermId, Instant from, Instant to, Optional<String> query) {}
 
