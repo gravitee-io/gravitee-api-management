@@ -15,6 +15,6 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-public enum Entrypoint {
+public enum PortalViewContext {
     HOMEPAGE,
 }

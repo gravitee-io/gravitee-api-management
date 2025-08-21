@@ -30,6 +30,10 @@ public class PortalPage {
         this.pageContent = pageContent;
     }
 
+    public static PortalPage create(GraviteeMarkdown pageContent) {
+        return new PortalPage(PageId.random(), pageContent);
+    }
+
     public PageId id() {
         return id;
     }

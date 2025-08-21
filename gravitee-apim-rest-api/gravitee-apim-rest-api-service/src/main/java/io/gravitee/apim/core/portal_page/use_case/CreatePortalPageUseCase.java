@@ -15,26 +15,26 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
-import io.gravitee.apim.core.portal_page.domain_service.PortalService;
-import io.gravitee.apim.core.portal_page.model.Entrypoint;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.ContentSanitizedSpecification;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.model.Portal;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
+import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.UUID;
 
 public class CreatePortalPageUseCase {
 
-    private final PortalService portalService;
+    private final PortalPageCrudService crudService;
 
-    public CreatePortalPageUseCase(PortalService portalService) {
-        this.portalService = portalService;
+    public CreatePortalPageUseCase(PortalPageCrudService crudService) {
+        this.crudService = crudService;
     }
 
     public Output execute(Input input) {
-        Portal portal = portalService.getPortal();
-        PortalPage page = portal.create(input.pageContent);
+        new ContentSanitizedSpecification().throwIfNotSatisfied(input.pageContent);
+        PortalPage page = crudService.create(PortalPage.create(input.pageContent));
         if (input.homepage) {
-            page = portal.setEntrypointPage(Entrypoint.HOMEPAGE, page.id());
+            page = crudService.setPortalViewContextPage(PortalViewContext.HOMEPAGE, page);
         }
         return new Output(page);
     }

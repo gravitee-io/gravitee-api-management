@@ -18,7 +18,6 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.junit.jupiter.api.Assertions.*;
 
 import inmemory.PortalPageCrudServiceInMemory;
-import io.gravitee.apim.core.portal_page.domain_service.PortalService;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
@@ -37,8 +36,7 @@ class SetHomepageUseCaseTest {
     @BeforeEach
     void setUp() {
         crudService = new PortalPageCrudServiceInMemory();
-        PortalService portalService = new PortalService(crudService);
-        useCase = new SetHomepageUseCase(portalService);
+        useCase = new SetHomepageUseCase(crudService);
     }
 
     @Test
