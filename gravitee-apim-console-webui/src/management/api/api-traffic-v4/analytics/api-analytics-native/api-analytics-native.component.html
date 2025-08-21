@@ -15,12 +15,43 @@
     limitations under the License.
 
 -->
+<api-analytics-native-filter-bar
+  [activeFilters]="activeFilters()"
+  [plans]="apiPlans$ | async"
+  (filtersChange)="onFiltersChange($event)"
+  (refresh)="onRefreshFilters()"
+/>
 
-@if (isEmptyNativeAnalytics) {
-  <gio-card-empty-state title="Work In Progress"></gio-card-empty-state>
-  <gio-loader></gio-loader>
-} @else {
-  <ng-container>
-    <div class="container"></div>
-  </ng-container>
-}
+<div class="widgets">
+  <div class="top-row">
+    @for (widgetConfig$ of topRowTransformed$; track $index) {
+      @if (widgetConfig$ | async; as widgetConfig) {
+        <api-analytics-widget [config]="widgetConfig" />
+      }
+    }
+  </div>
+
+  <div class="left-column">
+    @for (widgetConfig$ of leftColumnTransformed$; track $index) {
+      @if (widgetConfig$ | async; as widgetConfig) {
+        <api-analytics-widget [config]="widgetConfig" />
+      }
+    }
+  </div>
+
+  <div class="right-column">
+    @for (widgetConfig$ of rightColumnTransformed$; track $index) {
+      @if (widgetConfig$ | async; as widgetConfig) {
+        <api-analytics-widget [config]="widgetConfig" />
+      }
+    }
+  </div>
+
+  <div class="bottom-row">
+    @for (widgetConfig$ of bottomRowTransformed$; track $index) {
+      @if (widgetConfig$ | async; as widgetConfig) {
+        <api-analytics-widget [config]="widgetConfig" />
+      }
+    }
+  </div>
+</div>
