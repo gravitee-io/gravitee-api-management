@@ -15,12 +15,16 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
+import { ApiAnalyticsNativeFilterBarHarness } from '../components/api-analytics-native-filter-bar/api-analytics-native-filter-bar.harness';
+
 export class ApiAnalyticsNativeHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-native';
 
-  protected loaderElement = this.locatorForOptional('gio-loader');
+  protected emptyPanelHarness = this.locatorForOptional('gio-card-empty-state');
 
-  async isLoaderDisplayed(): Promise<boolean> {
-    return (await this.loaderElement()) !== null;
+  getFiltersBarHarness = this.locatorForOptional(ApiAnalyticsNativeFilterBarHarness);
+
+  async isEmptyPanelDisplayed(): Promise<boolean> {
+    return (await this.emptyPanelHarness()) !== null;
   }
 }
