@@ -311,6 +311,223 @@ describe('ApiAnalyticsWidgetComponent', () => {
     });
   });
 
+  describe('Bar Charts', () => {
+    beforeEach(async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'loading',
+        widgetType: 'bar',
+        widgetData: {
+          data: [],
+          options: {},
+        },
+      });
+      fixture.detectChanges();
+      harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+      harness = await harnessLoader.getHarness(ApiAnalyticsWidgetHarness);
+    });
+
+    it('should show loading state', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'loading',
+        widgetType: 'bar',
+        widgetData: {
+          data: [],
+          options: {},
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.isLoading()).toBe(true);
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+    });
+
+    it('should show success state with bar chart data', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'success',
+        widgetType: 'bar',
+        widgetData: {
+          data: [
+            { name: 'Category A', value: 10 },
+            { name: 'Category B', value: 20 },
+            { name: 'Category C', value: 15 },
+          ],
+          options: {
+            yAxis: { title: 'Count' },
+            xAxis: { title: 'Categories' },
+          },
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+      // Note: Bar chart harness would need to be added to ApiAnalyticsWidgetHarness
+      // For now, we can check that the component renders without errors
+    });
+
+    it('should show success state with empty bar data', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'success',
+        widgetType: 'bar',
+        widgetData: {
+          data: [],
+          options: {},
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+    });
+
+    it('should show empty state', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'empty',
+        widgetType: 'bar',
+        widgetData: {
+          data: [],
+          options: {},
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.isEmpty()).toBe(true);
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+    });
+
+    it('should show error state with errors', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'error',
+        errors: ['Test error message'],
+        widgetType: 'bar',
+        widgetData: {
+          data: [],
+          options: {},
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.hasError()).toBe(true);
+      expect(await harness.getErrorText()).toBe('Test error message');
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+    });
+
+    it('should show tooltip when provided', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'success',
+        tooltip: 'Test tooltip',
+        widgetType: 'bar',
+        widgetData: {
+          data: [],
+          options: {},
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.hasTooltipIcon()).toBe(true);
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+    });
+
+    it('should not show tooltip when not provided', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'success',
+        widgetType: 'bar',
+        widgetData: {
+          data: [],
+          options: {},
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.hasTooltipIcon()).toBe(false);
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+    });
+
+    it('should handle bar chart with custom options', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'success',
+        widgetType: 'bar',
+        widgetData: {
+          data: [
+            { name: 'Jan', value: 100 },
+            { name: 'Feb', value: 150 },
+            { name: 'Mar', value: 200 },
+          ],
+          options: {
+            yAxis: { title: 'Revenue ($)' },
+            xAxis: { title: 'Months' },
+            colors: ['#ff6b6b', '#4ecdc4', '#45b7d1'],
+          },
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+      // Component should render successfully with custom options
+    });
+
+    it('should handle bar chart with single data point', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'success',
+        widgetType: 'bar',
+        widgetData: {
+          data: [{ name: 'Single Category', value: 42 }],
+          options: {},
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+      // Component should handle single data point gracefully
+    });
+
+    it('should handle bar chart with zero values', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'success',
+        widgetType: 'bar',
+        widgetData: {
+          data: [
+            { name: 'Zero A', value: 0 },
+            { name: 'Zero B', value: 0 },
+          ],
+          options: {},
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+      // Component should handle zero values appropriately
+    });
+
+    it('should handle bar chart with large numbers', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Bar Chart Widget',
+        state: 'success',
+        widgetType: 'bar',
+        widgetData: {
+          data: [
+            { name: 'Large Value A', value: 1000000 },
+            { name: 'Large Value B', value: 2500000 },
+          ],
+          options: {},
+        },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.getTitleText()).toBe('Test Bar Chart Widget');
+      // Component should handle large numbers appropriately
+    });
+  });
+
   describe('Unknown Widget Types', () => {
     it('should show default content for unknown widget type', async () => {
       // Create a config with an unknown widget type
