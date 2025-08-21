@@ -23,7 +23,7 @@ import {
   GioTopBarMenuModule,
   GioTopBarModule,
 } from '@gravitee/ui-particles-angular';
-import { MatIconButton } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { isEmpty } from 'lodash';
@@ -42,23 +42,28 @@ import { PortalSettingsService } from '../../services-ngx/portal-settings.servic
 @Component({
   selector: 'portal-navigation',
   imports: [
-    GioSideNavModule,
-    GioTopNavModule,
+    // Angular
+    AsyncPipe,
+    NgOptimizedImage,
+    RouterLink,
+    RouterLinkActive,
     RouterOutlet,
+    MatButtonModule,
+
+    // Gravitee UI Particles & Custom Modules
+    GioLicenseExpirationNotificationModule,
+    GioMenuModule,
     GioNotificationMenuModule,
+    GioPermissionModule,
+    GioSideNavModule,
     GioTopBarLinkModule,
     GioTopBarMenuModule,
     GioTopBarModule,
+    GioTopNavModule,
     GioUserMenuModule,
-    MatIconButton,
-    RouterLink,
-    AsyncPipe,
-    GioLicenseExpirationNotificationModule,
-    GioMenuModule,
-    GioPermissionModule,
-    RouterLinkActive,
+
+    // Custom Components
     PortalUserAvatarComponent,
-    NgOptimizedImage,
   ],
   templateUrl: './portal-navigation.component.html',
   styleUrl: './portal-navigation.component.scss',

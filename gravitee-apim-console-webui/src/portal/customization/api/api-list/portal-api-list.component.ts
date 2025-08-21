@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef, MatTable, MatTableModule } from '@angular/material/table';
-import { MatIcon } from '@angular/material/icon';
-import { MatTooltip } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { EMPTY, Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { catchError, filter, switchMap, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import { MatFormFieldModule, MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatInput } from '@angular/material/input';
+import { MatInputModule } from '@angular/material/input';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
 
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { ApiPortalHeader } from '../../../../entities/apiPortalHeader';
@@ -54,30 +53,20 @@ interface ApiForm {
   selector: 'portal-api-list',
   imports: [
     GioPermissionModule,
-    MatButton,
-    MatCard,
-    MatCardContent,
-    MatHeaderRow,
-    MatHeaderRowDef,
-    MatIcon,
-    MatIconButton,
-    MatRow,
-    MatRowDef,
-    MatTable,
-    MatTooltip,
+    GioSaveBarModule,
+    BothPortalsBadgeComponent,
+    FormsModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatTooltipModule,
     MatTableModule,
     CdkDropList,
     CdkDrag,
-    FormsModule,
-    MatFormField,
-    MatInput,
-    MatLabel,
-    ReactiveFormsModule,
     MatFormFieldModule,
-    GioSaveBarModule,
-    BothPortalsBadgeComponent,
+    MatInputModule,
     MatSelectModule,
-    MatOptionModule,
   ],
   templateUrl: './portal-api-list.component.html',
   styleUrl: './portal-api-list.component.scss',

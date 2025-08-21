@@ -21,7 +21,6 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { PortalThemeComponent } from './portal-theme.component';
 import { PortalThemeHarness } from './portal-theme.harness';
 
-import { PortalSettingsModule } from '../../portal-settings.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ThemePortalNext } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -36,7 +35,7 @@ describe('PortalThemeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PortalSettingsModule, GioTestingModule, NoopAnimationsModule],
+      imports: [GioTestingModule, NoopAnimationsModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,

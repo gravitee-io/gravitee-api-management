@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import {
-  MatCell,
-  MatCellDef,
-  MatColumnDef,
-  MatHeaderCell,
-  MatHeaderCellDef,
-  MatHeaderRow,
-  MatHeaderRowDef,
-  MatNoDataRow,
-  MatRow,
-  MatRowDef,
-  MatTable,
-} from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { catchError, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import {
   GioAvatarModule,
@@ -41,10 +29,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { AsyncPipe } from '@angular/common';
-import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardContent } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
-import { MatTooltip } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
 
@@ -65,34 +53,31 @@ interface CatalogViewModeVM {
 @Component({
   selector: 'category-list',
   imports: [
+    // Angular Common & Forms
     AsyncPipe,
     FormsModule,
+    ReactiveFormsModule,
+    RouterLink,
+
+    // Gravitee UI Particles & Custom Components
     GioAvatarModule,
     GioFormSlideToggleModule,
     GioPermissionModule,
     GioSaveBarModule,
-    MatButton,
-    MatCard,
-    MatCardContent,
-    MatCell,
-    MatCellDef,
-    MatColumnDef,
-    MatHeaderCell,
-    MatHeaderRow,
-    MatHeaderRowDef,
-    MatIcon,
-    MatRow,
-    MatRowDef,
-    MatTable,
-    MatTooltip,
-    ReactiveFormsModule,
-    RouterLink,
-    MatHeaderCellDef,
-    MatNoDataRow,
+    BothPortalsBadgeComponent,
+
+    // Angular Material
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatTableModule,
+    MatTooltipModule,
+    MatSelectModule,
+    MatDialogModule,
+
+    // Angular CDK
     CdkDropList,
     CdkDrag,
-    BothPortalsBadgeComponent,
-    MatSelectModule,
   ],
   templateUrl: './category-list.component.html',
   styleUrl: './category-list.component.scss',

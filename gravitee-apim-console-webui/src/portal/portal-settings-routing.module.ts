@@ -16,7 +16,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { PortalSettingsModule } from './portal-settings.module';
 import { PortalNavigationComponent } from './navigation/portal-navigation.component';
 import { PortalBannerComponent } from './customization/banner/portal-banner.component';
 import { PortalThemeComponent } from './customization/theme/portal-theme.component';
@@ -145,7 +144,7 @@ const portalRoutes: Routes = [
 ];
 
 @NgModule({
-  imports: [PortalSettingsModule, RouterModule.forChild(portalRoutes)],
+  imports: [RouterModule.forChild(portalRoutes)],
   exports: [RouterModule],
 })
 export class PortalSettingsRoutingModule {}
