@@ -294,7 +294,7 @@
         <gravitee-resource-schema-registry-confluent.version>4.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-storage-azure-blob.version>1.0.0</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>8.0.0-alpha.1</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>4.0.0-alpha.7</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-native-kafka.version>4.0.0-alpha.9</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>7.0.0</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
@@ -303,7 +303,7 @@
 
         <gravitee-policy-kafka-quota.version>1.0.2</gravitee-policy-kafka-quota.version>
         <gravitee-policy-kafka-topic-mapping.version>2.0.0-alpha.1</gravitee-policy-kafka-topic-mapping.version>
-        <gravitee-policy-kafka-acl.version>2.0.0-alpha.1</gravitee-policy-kafka-acl.version>
+        <gravitee-policy-kafka-acl.version>2.0.0-alpha.4</gravitee-policy-kafka-acl.version>
         <gravitee-policy-kafka-transform-key.version>1.0.0</gravitee-policy-kafka-transform-key.version>
         <gravitee-policy-kafka-message-filtering.version>1.0.0</gravitee-policy-kafka-message-filtering.version>
         <gravitee-policy-offloading.version>1.1.0</gravitee-policy-offloading.version>
