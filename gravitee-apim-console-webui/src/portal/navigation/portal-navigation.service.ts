@@ -24,12 +24,6 @@ export interface MenuItem {
   children?: MenuItem[];
 }
 
-export interface GroupItem {
-  title: string;
-  subtitle?: string;
-  items: MenuItem[];
-}
-
 interface MenuItemConfig {
   displayName: string;
   routerLink: string;
@@ -43,52 +37,46 @@ interface MenuItemConfig {
 export class PortalNavigationService {
   constructor(private readonly permissionService: GioPermissionService) {}
 
-  public getMainMenuItems(): GroupItem {
-    const allMenuItems: MenuItemConfig[] = [
-      {
-        displayName: 'Catalog',
-        routerLink: 'catalog',
-        icon: 'gio:report-columns',
-        permissions: ['environment-category-r', 'environment-category-u'],
-      },
-      {
-        displayName: 'Top Bar',
-        routerLink: 'top-bar',
-        icon: 'gio:top-bar',
-        permissions: ['environment-settings-r', 'environment-settings-u'],
-      },
-      {
-        displayName: 'API',
-        routerLink: 'api',
-        icon: 'gio:cloud-settings',
-        permissions: ['environment-settings-r', 'environment-settings-u'],
-      },
-      {
-        displayName: 'Banner',
-        routerLink: 'banner',
-        icon: 'gio:chat-lines',
-        permissions: ['environment-settings-r', 'environment-settings-u'],
-      },
-      {
-        displayName: 'Theme',
-        routerLink: 'theme',
-        icon: 'gio:color-picker',
-        permissions: ['environment-theme-r', 'environment-theme-u'],
-      },
-    ];
+  private allMenuItems: MenuItemConfig[] = [
+    {
+      displayName: 'Catalog',
+      routerLink: 'catalog',
+      icon: 'gio:report-columns',
+      permissions: ['environment-category-r', 'environment-category-u'],
+    },
+    {
+      displayName: 'Top Bar',
+      routerLink: 'top-bar',
+      icon: 'gio:top-bar',
+      permissions: ['environment-settings-r', 'environment-settings-u'],
+    },
+    {
+      displayName: 'API',
+      routerLink: 'api',
+      icon: 'gio:cloud-settings',
+      permissions: ['environment-settings-r', 'environment-settings-u'],
+    },
+    {
+      displayName: 'Banner',
+      routerLink: 'banner',
+      icon: 'gio:chat-lines',
+      permissions: ['environment-settings-r', 'environment-settings-u'],
+    },
+    {
+      displayName: 'Theme',
+      routerLink: 'theme',
+      icon: 'gio:color-picker',
+      permissions: ['environment-theme-r', 'environment-theme-u'],
+    },
+  ];
 
-    const items: MenuItem[] = allMenuItems
+  public getMainMenuItems(): MenuItem[] {
+    return this.allMenuItems
       .filter((item) => this.permissionService.hasAnyMatching(item.permissions))
       .map(({ displayName, routerLink, icon }) => ({
         displayName,
         routerLink,
-        icon
+        icon,
       }));
-
-    return {
-      title: 'Customization',
-      subtitle: 'Customize the look, feel, and behavior of the new Developer Portal.',
-      items,
-    };
   }
 }
