@@ -791,21 +791,22 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
 
     @Test
     public void should_return_false_for_V4_http_API_with_modified_http_selector() throws JsonProcessingException {
-        io.gravitee.definition.model.v4.Api apiDefinition = io.gravitee.definition.model.v4.Api
+        io.gravitee.definition.model.v4.Api deployedApiDefinition = io.gravitee.definition.model.v4.Api
             .builder()
             .id("apiId")
             .name("Api name")
             .definitionVersion(DefinitionVersion.V4)
             .build();
 
-        Api api = new Api();
-        api.setId("apiId");
-        api.setName("Api name");
-        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+        Api deployedApi = new Api();
+        deployedApi.setId("apiId");
+        deployedApi.setName("Api name");
+        deployedApi.setDefinitionVersion(DefinitionVersion.V4);
+        deployedApi.setDefinition(objectMapper.writeValueAsString(deployedApiDefinition));
 
         Event event = new Event();
         event.setType(io.gravitee.repository.management.model.EventType.PUBLISH_API);
-        event.setPayload(objectMapper.writeValueAsString(api));
+        event.setPayload(objectMapper.writeValueAsString(deployedApi));
 
         when(
             eventLatestRepository.search(
@@ -828,16 +829,19 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         )
             .thenReturn(List.of(event));
 
-        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false);
-        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        ApiEntity currentApiEntity = new ApiEntity();
+        currentApiEntity.setId("apiId");
+        currentApiEntity.setName("Api name");
+        currentApiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
         Flow flow = Flow.builder().build();
         HttpSelector httpSelector = HttpSelector.builder().path("/api").pathOperator(Operator.STARTS_WITH).build();
         flow.setSelectors(List.of(httpSelector));
+        currentApiEntity.setFlows(List.of(flow));
 
-        apiEntity.setFlows(List.of(flow));
+        when(synchronizationService.checkSynchronization(any(), any(), any())).thenReturn(false);
 
-        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), currentApiEntity);
 
         assertThat(isSynchronized).isFalse();
 
@@ -859,7 +863,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                 0L,
                 1L
             );
-        verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
+        verify(synchronizationService, times(2)).checkSynchronization(any(), any(), any());
     }
 
     @Test
@@ -883,6 +887,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         Api api = new Api();
         api.setId("apiId");
         api.setName("Api name");
+        api.setDefinitionVersion(DefinitionVersion.V4);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
         Event event = new Event();
@@ -910,10 +915,15 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         )
             .thenReturn(List.of(event));
 
-        ApiEntity apiEntity = apiMapper.toEntity(GraviteeContext.getExecutionContext(), api, false);
-        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        ApiEntity currentApiEntity = new ApiEntity();
+        currentApiEntity.setId("apiId");
+        currentApiEntity.setName("Api name");
+        currentApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        currentApiEntity.setFlows(List.of(flow));
 
-        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        when(synchronizationService.checkSynchronization(any(), any(), any())).thenReturn(true);
+
+        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), currentApiEntity);
         assertThat(isSynchronized).isTrue();
 
         Flow modifiedFlow = Flow.builder().build();
@@ -929,9 +939,11 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             .build();
         modifiedFlow.setSelectors(List.of(modifiedHttpSelector));
 
-        apiEntity.setFlows(List.of(modifiedFlow));
+        currentApiEntity.setFlows(List.of(modifiedFlow));
 
-        isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
+        when(synchronizationService.checkSynchronization(any(), any(), any())).thenReturn(false);
+
+        isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), currentApiEntity);
         assertThat(isSynchronized).isFalse();
 
         verify(eventLatestRepository, times(2))
@@ -952,6 +964,6 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                 0L,
                 1L
             );
-        verify(synchronizationService, times(2)).checkSynchronization(any(), any(), any());
+        verify(synchronizationService, times(3)).checkSynchronization(any(), any(), any());
     }
 }

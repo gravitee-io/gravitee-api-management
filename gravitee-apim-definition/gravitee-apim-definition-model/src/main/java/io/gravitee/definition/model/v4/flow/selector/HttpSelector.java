@@ -52,7 +52,7 @@ public class HttpSelector extends Selector {
     @Builder.Default
     private Operator pathOperator = DEFAULT_OPERATOR;
 
-    @JsonDeserialize(as = LinkedHashSet.class)
+    @JsonDeserialize(as = LinkedHashSet.class, contentAs = HttpMethod.class)
     private Set<HttpMethod> methods;
 
     public HttpSelector() {
