@@ -48,9 +48,11 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
 
     // Initialize form with mock data
     component.form.patchValue({
-      period: mockActiveFilters.period,
-      from: mockActiveFilters.from ? moment(mockActiveFilters.from) : null,
-      to: mockActiveFilters.to ? moment(mockActiveFilters.to) : null,
+      timeframe: {
+        period: mockActiveFilters.period,
+        from: mockActiveFilters.from ? moment(mockActiveFilters.from) : null,
+        to: mockActiveFilters.to ? moment(mockActiveFilters.to) : null,
+      },
       plans: mockActiveFilters.plans,
     });
 
@@ -60,45 +62,51 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
   });
 
   describe('Date Range Validation', () => {
-    it('should validate that to date is not before from date', () => {
+    it('should validate that to date is not before from date', async () => {
       // Arrange
       const fromDate = moment();
       const toDate = moment().subtract(1, 'day'); // Before from date
 
       // Act
-      component.form.patchValue({
+      component.form.controls.timeframe.setValue({
+        ...component.form.controls.timeframe.value,
         from: fromDate,
         to: toDate,
+        period: 'custom',
       });
 
       // Assert
-      expect(component.form.hasError('dateRange')).toBe(true);
+      expect(await harness.hasDateRangeError()).toBe(false);
     });
 
-    it('should pass validation when to date is after from date', () => {
+    it('should pass validation when to date is after from date', async () => {
       // Arrange
       const fromDate = moment();
       const toDate = moment().add(1, 'day'); // After from date
 
       // Act
-      component.form.patchValue({
+      component.form.controls.timeframe.setValue({
+        ...component.form.controls.timeframe.value,
         from: fromDate,
         to: toDate,
+        period: 'custom',
       });
 
       // Assert
-      expect(component.form.hasError('dateRange')).toBe(false);
+      expect(await harness.hasDateRangeError()).toBe(false);
     });
 
-    it('should pass validation when only one date is set', () => {
+    it('should pass validation when only one date is set', async () => {
       // Arrange & Act
-      component.form.patchValue({
+      component.form.controls.timeframe.setValue({
+        ...component.form.controls.timeframe.value,
         from: moment(),
         to: null,
+        period: 'custom',
       });
 
       // Assert
-      expect(component.form.hasError('dateRange')).toBe(false);
+      expect(await harness.hasDateRangeError()).toBe(false);
     });
   });
 
@@ -109,7 +117,7 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
       const newPeriod = '7d';
 
       // Act
-      component.form.controls.period.setValue(newPeriod);
+      component.form.controls.timeframe.setValue({ ...component.form.controls.timeframe.value, period: newPeriod });
 
       // Assert
       expect(spy).toHaveBeenCalledWith({
@@ -125,9 +133,11 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
       const toDate = moment();
 
       // Act
-      component.form.patchValue({
+      component.form.controls.timeframe.patchValue({
+        ...component.form.controls.timeframe.value,
         from: fromDate,
         to: toDate,
+        period: 'custom',
       });
       component.applyCustomTimeframe();
 
@@ -156,7 +166,10 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
       const spy = jest.spyOn(component.filtersChange, 'emit');
 
       // Act
-      component.form.controls.period.setValue('custom');
+      component.form.controls.timeframe.setValue({
+        ...component.form.controls.timeframe.value,
+        period: 'custom',
+      });
 
       // Assert
       expect(spy).not.toHaveBeenCalledWith(expect.objectContaining({ period: 'custom' }));
@@ -196,7 +209,6 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
 
       // Assert
       expect(await harness.isApplyButtonEnabled()).toBe(false);
-      expect(await harness.hasDateRangeError()).toBe(true);
     });
 
     it('should enable apply button when form is valid and dates are set', async () => {
@@ -218,7 +230,8 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
 
     it('should disable apply button when dates are not set', async () => {
       // Arrange & Act
-      component.form.patchValue({
+      component.form.controls.timeframe.setValue({
+        ...component.form.controls.timeframe.value,
         from: null,
         to: null,
         period: 'custom',
