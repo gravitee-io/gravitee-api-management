@@ -1285,12 +1285,35 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
         if (results.hasResults()) {
+<<<<<<< HEAD
             List<String> orderedIds = new ArrayList<>(results.getDocuments());
 
             List<UserEntity> users = new ArrayList<>((findByIds(executionContext, orderedIds)));
 
             // Sort users based on their position in orderedIds
             users.sort(Comparator.comparingInt(user -> orderedIds.indexOf(user.getId())));
+=======
+            Set<UserEntity> fetched = findByIds(executionContext, results.getDocuments());
+            Map<String, UserEntity> byId = fetched.stream().collect(Collectors.toMap(UserEntity::getId, u -> u));
+
+            List<UserEntity> users = new ArrayList<>(results.getDocuments().size());
+            Set<String> seen = new HashSet<>();
+
+            for (String id : results.getDocuments()) {
+                if (seen.add(id)) {
+                    UserEntity u = byId.get(id);
+                    if (u != null) {
+                        users.add(u);
+                    }
+                }
+            }
+
+            users.sort(
+                Comparator
+                    .comparing(UserEntity::getFirstname, Comparator.nullsLast(String::compareToIgnoreCase))
+                    .thenComparing(UserEntity::getLastname, Comparator.nullsLast(String::compareToIgnoreCase))
+            );
+>>>>>>> e0bbdc3b18 (fix(api): eliminate duplicate entries in organization search users results)
 
             populateUserFlags(executionContext.getOrganizationId(), users);
 
@@ -1344,6 +1367,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .getContent()
                 .stream()
                 .map(u -> convert(u, false, userMetadataService.findAllByUserId(u.getId())))
+                .sorted(
+                    Comparator
+                        .comparing(UserEntity::getFirstname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                        .thenComparing(UserEntity::getLastname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                )
                 .collect(toList());
 
             populateUserFlags(executionContext.getOrganizationId(), entities);
