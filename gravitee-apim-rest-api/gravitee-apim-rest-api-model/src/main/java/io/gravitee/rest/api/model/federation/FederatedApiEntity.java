@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,6 +99,10 @@ public class FederatedApiEntity implements GenericApiEntity {
     @JsonIgnore
     private String referenceId;
 
+    @JsonIgnore
+    @Builder.Default
+    private Map<String, Object> metadata = new HashMap<>();
+
     @Override
     public Lifecycle.State getState() {
         return null;
@@ -105,12 +110,12 @@ public class FederatedApiEntity implements GenericApiEntity {
 
     @Override
     public Map<String, Object> getMetadata() {
-        return null;
+        return metadata;
     }
 
     @Override
     public void setMetadata(Map<String, Object> metadata) {
-        // Federated APIs have no metadata for now
+        this.metadata = metadata;
     }
 
     @Override
