@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListene
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.rest.api.management.v2.rest.mapper.CorsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
@@ -120,7 +121,9 @@ public interface ImportExportApiMapper {
         };
     }
 
+    @Mapping(target = "cors", expression = "java(CorsMapper.INSTANCE.map(http.getCors()))")
     io.gravitee.rest.api.management.v2.rest.model.HttpListener mapHttpListener(HttpListener http);
+
     io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener mapSubscriptionListener(SubscriptionListener subscription);
     io.gravitee.rest.api.management.v2.rest.model.TcpListener mapTcpListener(TcpListener tcp);
 
