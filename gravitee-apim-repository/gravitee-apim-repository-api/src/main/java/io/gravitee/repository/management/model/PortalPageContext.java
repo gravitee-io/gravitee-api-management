@@ -13,11 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.repository.management.model;
 
-public class PortalPageFactory {
+import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
-    public static PortalPage createGraviteeMarkdownPage(String id, String content) {
-        return new PortalPage(PageId.of(id), new GraviteeMarkdown(content));
+@Setter
+@Getter
+public class PortalPageContext {
+
+    private String pageId;
+    private String context;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PortalPageContext that = (PortalPageContext) o;
+        return Objects.equals(pageId, that.pageId) && Objects.equals(context, that.context);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pageId, context);
     }
 }

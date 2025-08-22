@@ -1,21 +1,45 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.repository.management.model.PortalPage;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Repository;
+import io.gravitee.repository.management.model.PortalPageContext;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
 @Repository
-public class JdbcPortalPageRepository implements PortalPageRepository {
-    private final JdbcTemplate jdbcTemplate;
+public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalPage, String> implements PortalPageRepository {
 
-    public JdbcPortalPageRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    private final JdbcPortalPageContextRepository contextRepository;
+
+    public JdbcPortalPageRepository(
+        JdbcPortalPageContextRepository contextRepository,
+        @Value("${management.jdbc.prefix:}") String tablePrefix
+    ) {
+        super(tablePrefix, "portal_pages");
+        this.contextRepository = contextRepository;
     }
 
     private static final RowMapper<PortalPage> PAGE_ROW_MAPPER = new RowMapper<>() {
@@ -29,74 +53,111 @@ public class JdbcPortalPageRepository implements PortalPageRepository {
     };
 
     @Override
+    protected JdbcObjectMapper<PortalPage> buildOrm() {
+        return JdbcObjectMapper
+            .builder(PortalPage.class, this.tableName, "id")
+            .addColumn("id", java.sql.Types.NVARCHAR, String.class)
+            .addColumn("content", java.sql.Types.NVARCHAR, String.class)
+            .build();
+    }
+
+    @Override
+    protected String getId(PortalPage item) {
+        return item.getId();
+    }
+
+    @Override
+    public Optional<PortalPage> findById(String id) throws TechnicalException {
+        Optional<PortalPage> pageOpt = super.findById(id);
+        if (pageOpt.isPresent()) {
+            PortalPage page = pageOpt.get();
+            page.setContexts(findContextsByPageId(page.getId()));
+        }
+        return pageOpt;
+    }
+
+    @Override
+    public Set<PortalPage> findAll() throws TechnicalException {
+        Set<PortalPage> pages = super.findAll();
+        for (PortalPage page : pages) {
+            page.setContexts(findContextsByPageId(page.getId()));
+        }
+        return pages;
+    }
+
+    @Override
     public PortalPage create(PortalPage page) throws TechnicalException {
-        try {
-            jdbcTemplate.update("INSERT INTO portal_pages (id, content) VALUES (?, ?)", page.getId(), page.getContent());
-            return page;
-        } catch (Exception e) {
-            throw new TechnicalException("Failed to create portal page", e);
+        PortalPage created = super.create(page);
+        for (String context : page.getContexts()) {
+            PortalPageContext pageContext = new PortalPageContext();
+            pageContext.setPageId(created.getId());
+            pageContext.setContext(context);
+            contextRepository.create(pageContext);
         }
-    }
-
-    @Override
-    public PortalPage findById(String id) throws TechnicalException {
-        try {
-            PortalPage page = jdbcTemplate.queryForObject("SELECT * FROM portal_pages WHERE id = ?", PAGE_ROW_MAPPER, id);
-            if (page != null) {
-                page.setContexts(findContextsByPageId(id));
-            }
-            return page;
-        } catch (Exception e) {
-            throw new TechnicalException("Failed to find portal page by id", e);
-        }
-    }
-
-    @Override
-    public List<PortalPage> findAll() throws TechnicalException {
-        try {
-            List<PortalPage> pages = jdbcTemplate.query("SELECT * FROM portal_pages", PAGE_ROW_MAPPER);
-            for (PortalPage page : pages) {
-                page.setContexts(findContextsByPageId(page.getId()));
-            }
-            return pages;
-        } catch (Exception e) {
-            throw new TechnicalException("Failed to find all portal pages", e);
-        }
+        return created;
     }
 
     @Override
     public PortalPage update(PortalPage page) throws TechnicalException {
-        try {
-            jdbcTemplate.update("UPDATE portal_pages SET content = ? WHERE id = ?", page.getContent(), page.getId());
-            return page;
-        } catch (Exception e) {
-            throw new TechnicalException("Failed to update portal page", e);
+        PortalPage updated = super.update(page);
+        var existingContexts = contextRepository.findAllByPageId(page.getId());
+        for (String existingContext : existingContexts) {
+            if (!page.getContexts().contains(existingContext)) {
+                contextRepository.deleteByPageIdAndContext(page.getId(), existingContext);
+            }
         }
+        for (String newContext : page.getContexts()) {
+            if (!existingContexts.contains(newContext)) {
+                PortalPageContext pageContext = new PortalPageContext();
+                pageContext.setPageId(updated.getId());
+                pageContext.setContext(newContext);
+                contextRepository.create(pageContext);
+            }
+        }
+        return updated;
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        try {
-            jdbcTemplate.update("DELETE FROM portal_page_contexts WHERE page_id = ?", id);
-            jdbcTemplate.update("DELETE FROM portal_pages WHERE id = ?", id);
-        } catch (Exception e) {
-            throw new TechnicalException("Failed to delete portal page", e);
+        List<PortalPageContext> contexts = contextRepository.findAll().stream().filter(ctx -> ctx.getPageId().equals(id)).toList();
+        for (PortalPageContext ctx : contexts) {
+            contextRepository.delete(ctx.getPageId());
         }
+        super.delete(id);
     }
 
     @Override
     public void assignContext(String pageId, String context) throws TechnicalException {
         try {
-            jdbcTemplate.update("INSERT INTO portal_page_contexts (page_id, context) VALUES (?, ?)", pageId, context);
+            PortalPageContext ctx = new PortalPageContext();
+            ctx.setPageId(pageId);
+            ctx.setContext(context);
+            contextRepository.create(ctx);
         } catch (Exception e) {
             throw new TechnicalException("Failed to assign context to portal page", e);
         }
     }
 
+    public List<String> findContextsByPageId(String pageId) throws TechnicalException {
+        return contextRepository
+            .findAll()
+            .stream()
+            .filter(ctx -> ctx.getPageId().equals(pageId))
+            .map(PortalPageContext::getContext)
+            .toList();
+    }
+
     @Override
     public void removeContext(String pageId, String context) throws TechnicalException {
         try {
-            jdbcTemplate.update("DELETE FROM portal_page_contexts WHERE page_id = ? AND context = ?", pageId, context);
+            List<PortalPageContext> contexts = contextRepository
+                .findAll()
+                .stream()
+                .filter(ctx -> ctx.getPageId().equals(pageId) && ctx.getContext().equals(context))
+                .toList();
+            for (PortalPageContext ctx : contexts) {
+                contextRepository.delete(ctx.getPageId());
+            }
         } catch (Exception e) {
             throw new TechnicalException("Failed to remove context from portal page", e);
         }
@@ -105,10 +166,15 @@ public class JdbcPortalPageRepository implements PortalPageRepository {
     @Override
     public List<PortalPage> findByContext(String context) throws TechnicalException {
         try {
-            List<String> pageIds = jdbcTemplate.query("SELECT page_id FROM portal_page_contexts WHERE context = ?", (rs, rowNum) -> rs.getString("page_id"), context);
+            List<PortalPageContext> contexts = contextRepository
+                .findAll()
+                .stream()
+                .filter(ctx -> ctx.getContext().equals(context))
+                .toList();
+            List<String> pageIds = contexts.stream().map(PortalPageContext::getPageId).toList();
             if (pageIds.isEmpty()) return List.of();
             String inSql = String.join(",", pageIds.stream().map(id -> "'" + id + "'").toList());
-            List<PortalPage> pages = jdbcTemplate.query("SELECT * FROM portal_pages WHERE id IN (" + inSql + ")", PAGE_ROW_MAPPER);
+            List<PortalPage> pages = jdbcTemplate.query("SELECT * FROM " + tableName + " WHERE id IN (" + inSql + ")", PAGE_ROW_MAPPER);
             for (PortalPage page : pages) {
                 page.setContexts(findContextsByPageId(page.getId()));
             }
@@ -116,9 +182,5 @@ public class JdbcPortalPageRepository implements PortalPageRepository {
         } catch (Exception e) {
             throw new TechnicalException("Failed to find portal pages by context", e);
         }
-    }
-
-    private List<String> findContextsByPageId(String pageId) {
-        return jdbcTemplate.query("SELECT context FROM portal_page_contexts WHERE page_id = ?", (rs, rowNum) -> rs.getString("context"), pageId);
     }
 }

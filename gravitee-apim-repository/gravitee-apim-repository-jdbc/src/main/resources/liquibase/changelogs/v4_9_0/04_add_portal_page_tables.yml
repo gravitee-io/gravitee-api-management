@@ -1,10 +1,10 @@
 databaseChangeLog:
   - changeSet:
       id: v4_9_0-portal-pages
-      author: copilot
+      author: GraviteeSource Team
       changes:
         - createTable:
-            tableName: portal_pages
+            tableName: ${gravitee_prefix}portal_pages
             columns:
               - column:
                   name: id
@@ -18,7 +18,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - createTable:
-            tableName: portal_page_contexts
+            tableName: ${gravitee_prefix}portal_page_contexts
             columns:
               - column:
                   name: page_id
@@ -31,17 +31,17 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - addPrimaryKey:
-            tableName: portal_page_contexts
+            tableName: ${gravitee_prefix}portal_page_contexts
             columnNames: page_id, context
             constraintName: pk_portal_page_contexts
         - addForeignKeyConstraint:
-            baseTableName: portal_page_contexts
+            baseTableName: ${gravitee_prefix}portal_page_contexts
             baseColumnNames: page_id
-            referencedTableName: portal_pages
+            referencedTableName: ${gravitee_prefix}portal_pages
             referencedColumnNames: id
             constraintName: fk_portal_page_contexts_page_id
         - createIndex:
-            tableName: portal_page_contexts
+            tableName: ${gravitee_prefix}portal_page_contexts
             indexName: idx_portal_page_contexts_context
             columns:
               - column:

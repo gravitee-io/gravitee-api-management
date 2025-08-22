@@ -1,3 +1,18 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.gravitee.apim.infra.crud_service.portal_page;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -15,6 +30,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PortalPageCrudServiceImpl implements PortalPageCrudService {
+
     private final PortalPageRepository portalPageRepository;
 
     public PortalPageCrudServiceImpl(@Lazy PortalPageRepository portalPageRepository) {
@@ -47,8 +63,9 @@ public class PortalPageCrudServiceImpl implements PortalPageCrudService {
     public PortalPage setPortalViewContextPage(PortalViewContext portalViewContext, PortalPage page) {
         try {
             portalPageRepository.assignContext(page.id().id().toString(), portalViewContext.name());
-            var updated = portalPageRepository.findById(page.id().id().toString());
-            return PortalPageAdapter.toDomain(updated);
+            var updatedOpt = portalPageRepository.findById(page.id().id().toString());
+            if (updatedOpt.isEmpty()) throw new PortalPageNotFoundException(page.id().id().toString());
+            return PortalPageAdapter.toDomain(updatedOpt.get());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(e.getMessage(), e);
         }
@@ -57,9 +74,9 @@ public class PortalPageCrudServiceImpl implements PortalPageCrudService {
     @Override
     public PortalPage getById(PageId pageId) {
         try {
-            var entity = portalPageRepository.findById(pageId.id().toString());
-            if (entity == null) throw new PortalPageNotFoundException(pageId.id().toString());
-            return PortalPageAdapter.toDomain(entity);
+            var entityOpt = portalPageRepository.findById(pageId.id().toString());
+            if (entityOpt.isEmpty()) throw new PortalPageNotFoundException(pageId.id().toString());
+            return PortalPageAdapter.toDomain(entityOpt.get());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(e.getMessage(), e);
         }
@@ -78,8 +95,8 @@ public class PortalPageCrudServiceImpl implements PortalPageCrudService {
     @Override
     public boolean pageIdExists(PageId pageId) {
         try {
-            var entity = portalPageRepository.findById(pageId.id().toString());
-            return entity != null;
+            var entityOpt = portalPageRepository.findById(pageId.id().toString());
+            return entityOpt.isPresent();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(e.getMessage(), e);
         }
