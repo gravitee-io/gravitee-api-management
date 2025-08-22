@@ -18,7 +18,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 import { GioSelectSearchComponent, SelectOption, ResultsLoaderInput, ResultsLoaderOutput } from './gio-select-search.component';
 import { GioSelectSearchHarness } from './gio-select-search.harness';
@@ -553,6 +553,40 @@ describe('GioSelectSearchComponent', () => {
 
       // Verify total calls
       expect(mockNewResults).toHaveBeenCalledTimes(3);
+    });
+
+    it('should not add new results when resultsLoader throws an error', async () => {
+      // Mock the newResults function to return data for first page, then throw error for second page
+      mockNewResults
+        .mockReturnValueOnce(
+          of({
+            data: [
+              { value: '1', label: 'Option 1' },
+              { value: '2', label: 'Option 2' },
+            ],
+            hasNextPage: true,
+          }),
+        )
+        .mockReturnValueOnce(throwError(() => new Error('API Error')));
+
+      // Open the overlay
+      const harness = await loader.getHarness(GioSelectSearchHarness);
+      await harness.open();
+
+      // Verify first page was loaded successfully
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 1 });
+
+      // Simulate scrolling to load more (this should trigger an error)
+      await harness.scrollNearBottom();
+
+      // Verify second page was requested
+      expect(mockNewResults).toHaveBeenCalledWith({ searchTerm: '', page: 2 });
+
+      // Should not search new page again after error
+      await harness.scrollNearBottom(); // Trigger the error handling
+
+      // Verify total calls
+      expect(mockNewResults).toHaveBeenCalledTimes(2);
     });
   });
 });

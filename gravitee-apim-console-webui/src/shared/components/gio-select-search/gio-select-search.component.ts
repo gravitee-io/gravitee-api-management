@@ -40,7 +40,7 @@ import { Overlay, OverlayPositionBuilder, OverlayRef } from '@angular/cdk/overla
 import { ComponentPortal } from '@angular/cdk/portal';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { merge, Observable, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
 
 import { GioSelectSearchOverlayComponent } from './gio-select-search-overlay.component';
 
@@ -315,7 +315,10 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
   }
 
   private accumulateNewPageFromBackend$(searchTerm: string, page: number): Observable<ResultsState> {
-    return this.resultsLoader()({ searchTerm, page }).pipe(map(({ data, hasNextPage }) => this.accumulateNewOptions(data, hasNextPage)));
+    return this.resultsLoader()({ searchTerm, page }).pipe(
+      map(({ data, hasNextPage }) => this.accumulateNewOptions(data, hasNextPage)),
+      catchError(() => of(this.accumulateNewOptions([], false))),
+    );
   }
 
   private accumulateNewOptions(newOptions: SelectOption[], hasNextPage: boolean): ResultsState {
