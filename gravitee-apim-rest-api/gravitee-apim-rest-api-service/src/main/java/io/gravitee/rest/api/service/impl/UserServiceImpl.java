@@ -148,6 +148,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1287,7 +1288,26 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
         if (results.hasResults()) {
-            List<UserEntity> users = new ArrayList<>((findByIds(executionContext, results.getDocuments())));
+            Set<UserEntity> fetched = findByIds(executionContext, results.getDocuments());
+            Map<String, UserEntity> byId = fetched.stream().collect(Collectors.toMap(UserEntity::getId, u -> u));
+
+            List<UserEntity> users = new ArrayList<>(results.getDocuments().size());
+            Set<String> seen = new HashSet<>();
+
+            for (String id : results.getDocuments()) {
+                if (seen.add(id)) {
+                    UserEntity u = byId.get(id);
+                    if (u != null) {
+                        users.add(u);
+                    }
+                }
+            }
+
+            users.sort(
+                Comparator
+                    .comparing(UserEntity::getFirstname, Comparator.nullsLast(String::compareToIgnoreCase))
+                    .thenComparing(UserEntity::getLastname, Comparator.nullsLast(String::compareToIgnoreCase))
+            );
 
             populateUserFlags(executionContext.getOrganizationId(), users);
 
@@ -1341,6 +1361,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .getContent()
                 .stream()
                 .map(u -> convert(u, false, userMetadataService.findAllByUserId(u.getId())))
+                .sorted(
+                    Comparator
+                        .comparing(UserEntity::getFirstname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                        .thenComparing(UserEntity::getLastname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                )
                 .collect(toList());
 
             populateUserFlags(executionContext.getOrganizationId(), entities);
