@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.analytics.model.ApiMetricsDetail;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.apim.core.analytics.model.Timestamp;
@@ -25,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessages
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiMetricsDetailResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CountAnalytics;
 import io.gravitee.rest.api.management.v2.rest.model.GroupByAnalytics;
 import io.gravitee.rest.api.management.v2.rest.model.HistogramAnalytics;
@@ -45,7 +47,7 @@ import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mapper
+@Mapper(uses = { ApplicationMapper.class, DateMapper.class, PlanMapper.class })
 public interface ApiAnalyticsMapper {
     Logger logger = LoggerFactory.getLogger(ApiAnalyticsMapper.class);
     ApiAnalyticsMapper INSTANCE = Mappers.getMapper(ApiAnalyticsMapper.class);
@@ -75,6 +77,9 @@ public interface ApiAnalyticsMapper {
     @Mapping(target = "analyticsType", expression = "java(io.gravitee.rest.api.management.v2.rest.model.AnalyticsType.COUNT)")
     @Mapping(target = "count", source = "total")
     CountAnalytics mapToCountAnalytics(RequestsCount requestsCount);
+
+    @Mapping(source = "timestamp", target = "timestamp", qualifiedByName = "mapTimestamp")
+    ApiMetricsDetailResponse map(ApiMetricsDetail apiMetricsDetail);
 
     Map<String, Number> map(Map<String, Long> value);
 

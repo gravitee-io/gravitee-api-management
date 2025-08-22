@@ -130,6 +130,7 @@ import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainService
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
+import io.gravitee.apim.infra.query_service.gateway.InstanceQueryServiceLegacyWrapper;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.util.DataEncryptor;
@@ -144,6 +145,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.OrganizationService;
@@ -814,5 +816,10 @@ public class ResourceContextConfiguration {
     @Bean
     public DeleteClusterMemberUseCase deleteClusterMemberUseCase() {
         return mock(DeleteClusterMemberUseCase.class);
+    }
+
+    @Bean
+    public InstanceQueryServiceLegacyWrapper instanceQueryServiceLegacyWrapper() {
+        return new InstanceQueryServiceLegacyWrapper(mock(InstanceService.class));
     }
 }

@@ -24,17 +24,26 @@ import assertions.MAPIAssertions;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.InstanceQueryServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.gateway.model.Instance;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiMetricsDetailResponse;
+import io.gravitee.rest.api.management.v2.rest.model.BaseApplication;
+import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
+import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
@@ -47,6 +56,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -76,6 +86,12 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     @Inject
     ApiCrudServiceInMemory apiCrudServiceInMemory;
 
+    @Inject
+    InstanceQueryServiceInMemory instanceQueryService;
+
+    @Inject
+    private PlanCrudServiceInMemory planCrudServiceInMemory;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API + "/analytics";
@@ -94,6 +110,8 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         GraviteeContext.cleanContext();
         fakeAnalyticsQueryService.reset();
         apiCrudServiceInMemory.reset();
+        instanceQueryService.reset();
+        planCrudServiceInMemory.reset();
     }
 
     @Nested
@@ -936,6 +954,136 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         assertThat(result.getCountAnalytics().getCount()).isNotNull();
                     });
             }
+        }
+    }
+
+    @Nested
+    class SearchApiMetricsDetail {
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = rootTarget().path("request-id").request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_get_api_metrics_detail() {
+            var applicationId = "application-id";
+            var planId = "plan-id";
+            var requestId = "request-id";
+
+            var appName = "app-name";
+            applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(applicationId).name(appName).build()));
+
+            var planName = "plan-name";
+            planCrudServiceInMemory.initWith(
+                List.of(
+                    fixtures.core.model.PlanFixtures
+                        .aPlanHttpV4()
+                        .toBuilder()
+                        .apiId(API)
+                        .name(planName)
+                        .id(planId)
+                        .validation(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL)
+                        .build()
+                )
+            );
+
+            var instanceId = "instance-id";
+            var hostname = "foo.example.com";
+            var ip = "42.42.42.1";
+            instanceQueryService.initWith(
+                List.of(Instance.builder().id(instanceId).hostname(hostname).ip(ip).environments(Set.of(ENVIRONMENT)).build())
+            );
+
+            var timestamp = "2025-08-01T17:29:20.385+02:00";
+            var transactionId = "transaction-id";
+            var host = "request.host.example.com";
+            var uri = "/example/api";
+            var status = 200;
+            var requestContentLength = 100;
+            var responseContentLength = 200;
+            var gatewayLatency = 300;
+            var gatewayResponseTime = 400;
+            var endpointResponseTime = 100;
+            var remoteAddress = "192.168.1.1";
+            var endpoint = "https://endpoint.example.com/foo";
+            fakeAnalyticsQueryService.apiMetricsDetail =
+                ApiMetricsDetail
+                    .builder()
+                    .timestamp(timestamp)
+                    .apiId(API)
+                    .requestId(requestId)
+                    .applicationId(applicationId)
+                    .planId(planId)
+                    .transactionId(transactionId)
+                    .host(host)
+                    .uri(uri)
+                    .status(status)
+                    .gateway(instanceId)
+                    .requestContentLength(requestContentLength)
+                    .responseContentLength(responseContentLength)
+                    .gatewayLatency(gatewayLatency)
+                    .gatewayResponseTime(gatewayResponseTime)
+                    .remoteAddress(remoteAddress)
+                    .method(io.gravitee.common.http.HttpMethod.GET)
+                    .endpointResponseTime(endpointResponseTime)
+                    .endpoint(endpoint)
+                    .build();
+
+            final Response response = rootTarget().path(requestId).request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiMetricsDetailResponse.class)
+                .satisfies(apiMetricsDetail -> {
+                    assertThat(apiMetricsDetail.getTimestamp()).isEqualTo(timestamp);
+                    assertThat(apiMetricsDetail.getApiId()).isEqualTo(API);
+                    assertThat(apiMetricsDetail.getRequestId()).isEqualTo(requestId);
+                    assertThat(apiMetricsDetail.getTransactionId()).isEqualTo(transactionId);
+                    assertThat(apiMetricsDetail.getHost()).isEqualTo(host);
+                    assertThat(apiMetricsDetail.getUri()).isEqualTo(uri);
+                    assertThat(apiMetricsDetail.getStatus()).isEqualTo(status);
+                    assertThat(apiMetricsDetail.getRequestContentLength()).isEqualTo(requestContentLength);
+                    assertThat(apiMetricsDetail.getResponseContentLength()).isEqualTo(responseContentLength);
+                    assertThat(apiMetricsDetail.getGatewayLatency()).isEqualTo(gatewayLatency);
+                    assertThat(apiMetricsDetail.getGatewayResponseTime()).isEqualTo(gatewayResponseTime);
+                    assertThat(apiMetricsDetail.getRemoteAddress()).isEqualTo(remoteAddress);
+                    assertThat(apiMetricsDetail.getMethod()).isEqualTo(HttpMethod.GET);
+                    assertThat(apiMetricsDetail.getEndpointResponseTime()).isEqualTo(endpointResponseTime);
+                    assertThat(apiMetricsDetail.getEndpoint()).isEqualTo(endpoint);
+
+                    assertThat(apiMetricsDetail.getApplication())
+                        .extracting(BaseApplication::getId, BaseApplication::getName)
+                        .containsExactly(applicationId, appName);
+
+                    assertThat(apiMetricsDetail.getPlan()).extracting(BasePlan::getId, BasePlan::getName).containsExactly(planId, planName);
+
+                    assertThat(apiMetricsDetail.getGateway())
+                        .extracting(
+                            io.gravitee.rest.api.management.v2.rest.model.BaseInstance::getId,
+                            io.gravitee.rest.api.management.v2.rest.model.BaseInstance::getHostname,
+                            io.gravitee.rest.api.management.v2.rest.model.BaseInstance::getIp
+                        )
+                        .containsExactly(instanceId, hostname, ip);
+                });
         }
     }
 }
