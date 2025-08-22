@@ -119,9 +119,9 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
 
     @Override
     public void delete(String id) throws TechnicalException {
-        List<PortalPageContext> contexts = contextRepository.findAll().stream().filter(ctx -> ctx.getPageId().equals(id)).toList();
-        for (PortalPageContext ctx : contexts) {
-            contextRepository.delete(ctx.getPageId());
+        Set<String> contexts = contextRepository.findAllByPageId(id);
+        for (String ctx : contexts) {
+            contextRepository.deleteByPageIdAndContext(id, ctx);
         }
         super.delete(id);
     }

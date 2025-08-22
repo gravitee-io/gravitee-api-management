@@ -24,6 +24,7 @@ import io.gravitee.apim.infra.adapter.PortalPageAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.rest.api.service.exceptions.PortalPageNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PortalViewContextPageNotFoundException;
 import java.util.List;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -52,7 +53,7 @@ public class PortalPageCrudServiceImpl implements PortalPageCrudService {
     public PortalPage byPortalViewContext(PortalViewContext portalViewContext) {
         try {
             var pages = portalPageRepository.findByContext(portalViewContext.name());
-            if (pages == null || pages.isEmpty()) throw new PortalPageNotFoundException(portalViewContext.name());
+            if (pages == null || pages.isEmpty()) throw new PortalViewContextPageNotFoundException(portalViewContext.name());
             return PortalPageAdapter.toDomain(pages.stream().findFirst().orElse(null));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(e.getMessage(), e);
@@ -62,9 +63,9 @@ public class PortalPageCrudServiceImpl implements PortalPageCrudService {
     @Override
     public PortalPage setPortalViewContextPage(PortalViewContext portalViewContext, PortalPage page) {
         try {
-            portalPageRepository.assignContext(page.id().id().toString(), portalViewContext.name());
-            var updatedOpt = portalPageRepository.findById(page.id().id().toString());
-            if (updatedOpt.isEmpty()) throw new PortalPageNotFoundException(page.id().id().toString());
+            portalPageRepository.assignContext(page.id().toString(), portalViewContext.name());
+            var updatedOpt = portalPageRepository.findById(page.id().toString());
+            if (updatedOpt.isEmpty()) throw new PortalPageNotFoundException(page.id().toString());
             return PortalPageAdapter.toDomain(updatedOpt.get());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(e.getMessage(), e);

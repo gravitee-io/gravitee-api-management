@@ -18,14 +18,14 @@ package io.gravitee.apim.infra.adapter;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageFactory;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import jakarta.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class PortalPageAdapter {
 
-    public static PortalPage toDomain(io.gravitee.repository.management.model.PortalPage entity) {
-        if (entity == null) return null;
+    public static PortalPage toDomain(@Nonnull io.gravitee.repository.management.model.PortalPage entity) {
         return PortalPageFactory.createGraviteeMarkdownPage(entity.getId(), entity.getContent());
     }
 
