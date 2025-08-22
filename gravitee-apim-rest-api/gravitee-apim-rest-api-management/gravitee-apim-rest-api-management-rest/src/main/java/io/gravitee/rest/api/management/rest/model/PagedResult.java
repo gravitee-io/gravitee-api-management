@@ -47,7 +47,7 @@ public class PagedResult<T> {
     }
 
     public PagedResult(io.gravitee.common.data.domain.Page<T> page, int perPage) {
-        this(page.getContent(), page.getPageNumber()+1, perPage, (int) page.getTotalElements());
+        this(page.getContent(), page.getPageNumber(), perPage, (int) page.getTotalElements());
     }
 
     @Getter
