@@ -167,8 +167,8 @@ public class MongoEventRepository implements EventRepository {
     }
 
     @Override
-    public Stream<EventToClean> findGatewayEvents(String environmentId) {
-        return internalEventRepo.findGatewayEvents(environmentId);
+    public Stream<EventToClean> findEventsToClean(String environmentId) {
+        return internalEventRepo.findEventsToClean(environmentId);
     }
 
     @Override
