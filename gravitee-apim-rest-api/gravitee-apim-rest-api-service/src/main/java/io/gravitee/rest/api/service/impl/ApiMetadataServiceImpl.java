@@ -102,7 +102,17 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Override
     public ApiMetadataEntity create(final ExecutionContext executionContext, final NewApiMetadataEntity metadataEntity) {
-        return convert(create(executionContext, metadataEntity, API, metadataEntity.getApiId(), true), metadataEntity.getApiId());
+        ApiMetadataEntity created = convert(
+            create(executionContext, metadataEntity, API, metadataEntity.getApiId(), true),
+            metadataEntity.getApiId()
+        );
+
+        // Re-index the API so newly created metadata is searchable immediately
+        GenericApiEntity genericApi = apiSearchService.findGenericById(executionContext, created.getApiId());
+        GenericApiEntity genericApiWithMetadata = fetchMetadataForApi(executionContext, genericApi);
+        searchEngineService.index(executionContext, genericApiWithMetadata, false);
+
+        return created;
     }
 
     @Override
