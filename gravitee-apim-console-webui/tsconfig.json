@@ -3,7 +3,8 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "path": ["./node_modules/path-browserify"]
+      "path": ["./node_modules/path-browserify"],
+      "gravitee-markdown": ["./node_modules/gravitee-markdown"]
     },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

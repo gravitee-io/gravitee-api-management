@@ -35,6 +35,24 @@ Here are the useful NPM scripts available when developing in APIM Console:
  - `build:prod`: Build the app in production mode and output the result to `dist`
  - `serve:prod`: Start the built app (from `dist` folder) and proxy backend calls to `http://localhost:8083`. Don't forget to run `npm run build:prod` to build the app before starting serving it.
 
+=== About gravitee-markdown library
+
+This project uses the `gravitee-markdown` library which is built from the portal-webui-next project. Before running any development, linting, or build commands, you need to build this library first.
+
+**Important**: The following commands automatically build the library before execution:
+- `serve` - Builds library then starts dev server
+- `build` - Builds library then builds the app
+- `build:prod` - Builds library then builds the app in production mode
+- `lint` - Builds library then runs linting
+- `lint:fix` - Builds library then runs linting with auto-fix
+
+If you need to build the library manually, you can run:
+```bash
+yarn build:gravitee-markdown
+```
+
+The library is built to `node_modules/gravitee-markdown` and is automatically linked as a local dependency.
+
 
 === About WIP dependencies
 
