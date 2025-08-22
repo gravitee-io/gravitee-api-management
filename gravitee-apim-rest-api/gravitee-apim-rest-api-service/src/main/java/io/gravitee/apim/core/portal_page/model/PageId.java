@@ -31,6 +31,10 @@ public class PageId {
         return new PageId(UUID.randomUUID());
     }
 
+    public static PageId of(String id) {
+        return new PageId(UUID.fromString(id));
+    }
+
     public UUID id() {
         return id;
     }
