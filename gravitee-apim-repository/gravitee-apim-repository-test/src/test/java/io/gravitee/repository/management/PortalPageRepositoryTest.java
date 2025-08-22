@@ -20,7 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.PortalPage;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
@@ -29,14 +32,14 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindAll() throws TechnicalException {
+    public void should_find_all() throws TechnicalException {
         var pages = portalPageRepository.findAll();
         assertThat(pages).isNotNull().hasSize(1);
         assertThat(pages).allMatch(p -> "test-page-id".equals(p.getId()));
     }
 
     @Test
-    public void shouldAssignAndRemoveContext() throws TechnicalException {
+    public void should_assign_and_remove_context() throws TechnicalException {
         String pageId = "test-page-id";
         String context = "test-context";
         portalPageRepository.assignContext(pageId, context);

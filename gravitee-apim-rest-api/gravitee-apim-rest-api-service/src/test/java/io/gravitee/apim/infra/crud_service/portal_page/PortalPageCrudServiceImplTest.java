@@ -32,10 +32,13 @@ import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.rest.api.service.exceptions.PortalPageNotFoundException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalPageCrudServiceImplTest {
 
     @Mock
@@ -50,7 +53,7 @@ class PortalPageCrudServiceImplTest {
     }
 
     @Test
-    void shouldCreatePortalPage() throws Exception {
+    void should_create_portal_page() throws Exception {
         PortalPage page = PortalPage.create(new GraviteeMarkdown("test content"));
         var entity = mock(io.gravitee.repository.management.model.PortalPage.class);
         when(portalPageRepository.create(any())).thenReturn(entity);
@@ -63,7 +66,7 @@ class PortalPageCrudServiceImplTest {
     }
 
     @Test
-    void shouldFindPortalPageById() throws Exception {
+    void should_find_portal_page_by_id() throws Exception {
         PortalPage page = PortalPage.create(new GraviteeMarkdown("find content"));
         var entity = mock(io.gravitee.repository.management.model.PortalPage.class);
         when(portalPageRepository.findById(page.id().id().toString())).thenReturn(java.util.Optional.of(entity));
@@ -76,7 +79,7 @@ class PortalPageCrudServiceImplTest {
     }
 
     @Test
-    void shouldAssignContextToPortalPage() throws Exception {
+    void should_assign_context_to_portal_page() throws Exception {
         PortalPage page = PortalPage.create(new GraviteeMarkdown("context content"));
         PortalViewContext context = PortalViewContext.HOMEPAGE;
         var entity = mock(io.gravitee.repository.management.model.PortalPage.class);
@@ -90,7 +93,7 @@ class PortalPageCrudServiceImplTest {
     }
 
     @Test
-    void shouldThrowNotFoundException() throws Exception {
+    void should_throw_not_found_exception() throws Exception {
         PageId pageId = PageId.random();
         when(portalPageRepository.findById(pageId.id().toString())).thenReturn(java.util.Optional.empty());
         assertThatThrownBy(() -> portalPageCrudService.getById(pageId))
@@ -99,7 +102,7 @@ class PortalPageCrudServiceImplTest {
     }
 
     @Test
-    void shouldThrowTechnicalDomainException() throws Exception {
+    void should_throw_technical_domain_exception() throws Exception {
         PortalPage page = PortalPage.create(new GraviteeMarkdown("fail content"));
         when(portalPageRepository.create(any())).thenThrow(new TechnicalException("error"));
         assertThatThrownBy(() -> portalPageCrudService.create(page))
