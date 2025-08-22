@@ -28,11 +28,16 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EventCrudServiceLegacyWrapper implements EventCrudService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EventCrudServiceLegacyWrapper.class);
 
     private final EventService eventService;
     private final EventRepository eventRepository;
@@ -70,13 +75,82 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
 
     @Override
     public void cleanupEvents(String environmentId, int nbEventsToKeep, Duration timeToLive) {
-        var counters = AtomicLongMap.<String>create();
-        Flowable
-            .fromStream(eventRepository.findGatewayEvents(environmentId))
-            .filter(event -> event.apiId() != null && counters.incrementAndGet(event.apiId()) > nbEventsToKeep)
-            .map(EventRepository.EventToClean::id)
-            .buffer(20)
-            .takeUntil(Flowable.timer(timeToLive.toSeconds(), TimeUnit.SECONDS))
-            .blockingForEach(eventRepository::delete);
+        var counters = AtomicLongMap.<EventRepository.EventToCleanGroup>create();
+
+        logger.info(
+            "Starting cleanup for environment: {} (keep {} events per type, max duration: {}s)",
+            environmentId,
+            nbEventsToKeep,
+            timeToLive.toSeconds()
+        );
+
+        long startTime = System.currentTimeMillis();
+        AtomicLong processedCount = new AtomicLong(0);
+        AtomicLong deletedCount = new AtomicLong(0);
+        AtomicLong skippedCount = new AtomicLong(0);
+
+        try {
+            Flowable
+                .fromStream(eventRepository.findEventsToClean(environmentId))
+                .filter(eventToClean -> {
+                    long currentProcessed = processedCount.incrementAndGet();
+
+                    if (currentProcessed % 1000 == 0) {
+                        logger.info(
+                            "Processed {} events, deleted {} events, skipped {} events",
+                            currentProcessed,
+                            deletedCount.get(),
+                            skippedCount.get()
+                        );
+                    }
+
+                    // Use the structured group directly for safe counting
+                    EventRepository.EventToCleanGroup group = eventToClean.group();
+                    if (group == null) {
+                        skippedCount.incrementAndGet();
+                        return false;
+                    }
+
+                    // Check if we've already seen enough events for this group
+                    long currentGroupCount = counters.get(group);
+
+                    if (currentGroupCount >= nbEventsToKeep) {
+                        // We've already seen enough events for this group, this one should be deleted
+                        deletedCount.incrementAndGet();
+                        return true;
+                    } else {
+                        // We haven't seen enough events yet, keep this one
+                        counters.incrementAndGet(group);
+                        skippedCount.incrementAndGet();
+                        return false;
+                    }
+                })
+                .map(EventRepository.EventToClean::id)
+                .buffer(20)
+                .takeUntil(Flowable.timer(timeToLive.toSeconds(), TimeUnit.SECONDS))
+                .blockingForEach(eventRepository::delete);
+
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info(
+                "Cleanup completed for environment: {}. Processed: {} events, Deleted: {} events, Skipped: {} events, Duration: {}ms",
+                environmentId,
+                processedCount.get(),
+                deletedCount.get(),
+                skippedCount.get(),
+                duration
+            );
+        } catch (Exception e) {
+            long duration = System.currentTimeMillis() - startTime;
+            logger.error(
+                "Cleanup failed for environment: {} after {}ms. Processed: {} events, Deleted: {} events, Skipped: {} events",
+                environmentId,
+                duration,
+                processedCount.get(),
+                deletedCount.get(),
+                skippedCount.get(),
+                e
+            );
+            throw e;
+        }
     }
 }
