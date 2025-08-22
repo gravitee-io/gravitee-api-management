@@ -39,6 +39,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -47,6 +48,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -399,6 +401,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     }
 
     @Override
+<<<<<<< HEAD
     public Stream<EventToClean> findGatewayEvents(String environmentId) {
         List<String> nonApiEventTypes = List.of(
             "GATEWAY_STARTED",
@@ -420,12 +423,48 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         sql = sql.replace("(?)", "(" + inClause + ")");
         var params = new ArrayList<Object>(nonApiEventTypes);
         params.add(environmentId);
+=======
+    public Stream<EventToClean> findEventsToClean(String environmentId) {
+        log.debug("JdbcEventRepository.findEventsToClean({})", environmentId);
+        final List<Object> args = new ArrayList<>();
+        final StringBuilder builder = createSearchQueryBuilder();
+        addStringsWhereClause(Set.of(environmentId), "ev.environment_id", args, builder, false);
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 
-        return jdbcTemplate.queryForStream(
-            sql,
-            (rs, rowNum) -> new EventToClean(rs.getString("id"), rs.getString("api")),
-            params.toArray()
-        );
+        builder.append(" ORDER BY e.created_at DESC");
+
+        String sql = builder.toString();
+
+        return jdbcTemplate
+            .queryForStream(
+                sql,
+                (rs, rowNum) -> {
+                    // Extract basic event info
+                    String eventId = rs.getString("id");
+                    String type = rs.getString("type");
+                    String propertyKey = rs.getString("property_key");
+                    String propertyValue = rs.getString("property_value");
+
+                    // Create event with basic info
+                    Event event = new Event();
+                    event.setId(eventId);
+                    EventType eventType = Arrays.stream(EventType.values()).filter(e -> e.name().equals(type)).findFirst().orElse(null);
+                    event.setType(eventType);
+
+                    // Initialize properties map
+                    Map<String, String> properties = new HashMap<>();
+                    if (propertyKey != null && propertyValue != null) {
+                        properties.put(propertyKey, propertyValue);
+                    }
+                    event.setProperties(properties);
+
+                    // Determine group and create EventToClean
+                    EventRepository.EventToCleanGroup group = EventGroupKeyHelper.determineGroup(event.getType(), event.getProperties());
+                    return group != null ? new EventToClean(event.getId(), group) : null;
+                },
+                args.toArray()
+            )
+            .filter(Objects::nonNull);
     }
 
     @Override

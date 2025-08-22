@@ -22,8 +22,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.event.use_case.CleanupEventsUseCase;
+<<<<<<< HEAD
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.cluster.Member;
+=======
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import java.time.Duration;
@@ -51,13 +54,17 @@ class ScheduledEventsCleaningServiceTest {
     @Mock
     private TaskScheduler scheduler;
 
+<<<<<<< HEAD
     @Mock
     private ClusterManager clusterManager;
 
+=======
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
     private ScheduledEventsCleaningService scheduledEventsCleaningService;
 
     @BeforeEach
     void setUp() {
+<<<<<<< HEAD
         scheduledEventsCleaningService = new ScheduledEventsCleaningService(
             cleanupEventsUseCase,
             organizationService,
@@ -69,11 +76,25 @@ class ScheduledEventsCleaningServiceTest {
             true,
             30
         );
+=======
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                "@daily",
+                5,
+                true,
+                30
+            );
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
     }
 
     @Test
     void should_be_enabled_by_default() throws Exception {
         // Given
+<<<<<<< HEAD
         Member mockMember = org.mockito.Mockito.mock(Member.class);
         when(mockMember.primary()).thenReturn(true);
         when(clusterManager.self()).thenReturn(mockMember);
@@ -93,6 +114,23 @@ class ScheduledEventsCleaningServiceTest {
         // When
         scheduledEventsCleaningService.doStart();
 
+=======
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                "@daily",
+                5,
+                true, // enabled = true
+                30
+            );
+
+        // When
+        scheduledEventsCleaningService.doStart();
+
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
         // Then
         verify(scheduler).schedule(eq(scheduledEventsCleaningService), any(CronTrigger.class));
     }
@@ -100,6 +138,7 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_schedule_task_when_enabled() throws Exception {
         // Given
+<<<<<<< HEAD
         Member mockMember = org.mockito.Mockito.mock(Member.class);
         when(mockMember.primary()).thenReturn(true);
         when(clusterManager.self()).thenReturn(mockMember);
@@ -115,6 +154,20 @@ class ScheduledEventsCleaningServiceTest {
             true,
             30
         );
+=======
+        String cronExpression = "@hourly";
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                cronExpression,
+                5,
+                true,
+                30
+            );
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 
         // When
         scheduledEventsCleaningService.doStart();
@@ -126,6 +179,7 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_use_correct_cron_expression() throws Exception {
         // Given
+<<<<<<< HEAD
         Member mockMember = org.mockito.Mockito.mock(Member.class);
         when(mockMember.primary()).thenReturn(true);
         when(clusterManager.self()).thenReturn(mockMember);
@@ -141,6 +195,20 @@ class ScheduledEventsCleaningServiceTest {
             true,
             30
         );
+=======
+        String cronExpression = "0 0 2 * * ?"; // Daily at 2 AM
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                cronExpression,
+                5,
+                true,
+                30
+            );
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 
         // When
         scheduledEventsCleaningService.doStart();
@@ -153,6 +221,7 @@ class ScheduledEventsCleaningServiceTest {
     void should_use_correct_events_keep_value() {
         // Given
         int eventsKeep = 10;
+<<<<<<< HEAD
         scheduledEventsCleaningService = new ScheduledEventsCleaningService(
             cleanupEventsUseCase,
             organizationService,
@@ -164,6 +233,19 @@ class ScheduledEventsCleaningServiceTest {
             true,
             30
         );
+=======
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                "@daily",
+                eventsKeep,
+                true,
+                30
+            );
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 
         // When
         int actualEventsKeep = (int) ReflectionTestUtils.getField(scheduledEventsCleaningService, "eventsKeep");
@@ -176,6 +258,7 @@ class ScheduledEventsCleaningServiceTest {
     void should_use_correct_time_to_live_value() {
         // Given
         long timeToLiveMinutes = 60;
+<<<<<<< HEAD
         scheduledEventsCleaningService = new ScheduledEventsCleaningService(
             cleanupEventsUseCase,
             organizationService,
@@ -187,6 +270,19 @@ class ScheduledEventsCleaningServiceTest {
             true,
             timeToLiveMinutes
         );
+=======
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                "@daily",
+                5,
+                true,
+                timeToLiveMinutes
+            );
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 
         // When
         Duration actualTimeToLive = (Duration) ReflectionTestUtils.getField(scheduledEventsCleaningService, "timeToLive");
@@ -198,6 +294,7 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_use_default_events_keep_when_not_specified() {
         // Given
+<<<<<<< HEAD
         scheduledEventsCleaningService = new ScheduledEventsCleaningService(
             cleanupEventsUseCase,
             organizationService,
@@ -209,6 +306,19 @@ class ScheduledEventsCleaningServiceTest {
             true,
             30
         );
+=======
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                "@daily",
+                5, // Use default value instead of null
+                true,
+                30
+            );
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 
         // When
         int actualEventsKeep = (int) ReflectionTestUtils.getField(scheduledEventsCleaningService, "eventsKeep");
@@ -220,6 +330,7 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_use_default_time_to_live_when_not_specified() {
         // Given
+<<<<<<< HEAD
         scheduledEventsCleaningService = new ScheduledEventsCleaningService(
             cleanupEventsUseCase,
             organizationService,
@@ -231,6 +342,19 @@ class ScheduledEventsCleaningServiceTest {
             true,
             30 // Use default value instead of null
         );
+=======
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                "@daily",
+                5,
+                true,
+                30 // Use default value instead of null
+            );
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 
         // When
         Duration actualTimeToLive = (Duration) ReflectionTestUtils.getField(scheduledEventsCleaningService, "timeToLive");
@@ -242,6 +366,7 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_use_default_enabled_when_not_specified() {
         // Given
+<<<<<<< HEAD
         scheduledEventsCleaningService = new ScheduledEventsCleaningService(
             cleanupEventsUseCase,
             organizationService,
@@ -253,6 +378,19 @@ class ScheduledEventsCleaningServiceTest {
             true, // Use default value instead of null
             30
         );
+=======
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                "@daily",
+                5,
+                true, // Use default value instead of null
+                30
+            );
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 
         // When
         boolean actualEnabled = (boolean) ReflectionTestUtils.getField(scheduledEventsCleaningService, "enabled");
@@ -269,7 +407,10 @@ class ScheduledEventsCleaningServiceTest {
             organizationService,
             environmentService,
             scheduler,
+<<<<<<< HEAD
             clusterManager,
+=======
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
             "@daily",
             5,
             true,
@@ -291,6 +432,7 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_log_info_message_when_starting() throws Exception {
         // Given
+<<<<<<< HEAD
         Member mockMember = org.mockito.Mockito.mock(Member.class);
         when(mockMember.primary()).thenReturn(true);
         when(clusterManager.self()).thenReturn(mockMember);
@@ -305,6 +447,19 @@ class ScheduledEventsCleaningServiceTest {
             true,
             30
         );
+=======
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                "@daily",
+                5,
+                true,
+                30
+            );
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 
         // When
         scheduledEventsCleaningService.doStart();
@@ -318,6 +473,7 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_not_log_warning_when_enabled() throws Exception {
         // Given
+<<<<<<< HEAD
         Member mockMember = org.mockito.Mockito.mock(Member.class);
         when(mockMember.primary()).thenReturn(true);
         when(clusterManager.self()).thenReturn(mockMember);
@@ -332,6 +488,19 @@ class ScheduledEventsCleaningServiceTest {
             true, // enabled = true
             30
         );
+=======
+        scheduledEventsCleaningService =
+            new ScheduledEventsCleaningService(
+                cleanupEventsUseCase,
+                organizationService,
+                environmentService,
+                scheduler,
+                "@daily",
+                5,
+                true, // enabled = true
+                30
+            );
+>>>>>>> bf02dd9287 (feat: cleanup all event types from events)
 
         // When
         scheduledEventsCleaningService.doStart();
