@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.gateway.query_service;
+package io.gravitee.apim.core.gateway.model;
 
-import io.gravitee.apim.core.gateway.model.BaseInstance;
-import io.gravitee.apim.core.gateway.model.Instance;
-import io.gravitee.rest.api.model.InstanceEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.List;
+import lombok.Builder;
+import lombok.Data;
 
-public interface InstanceQueryService {
-    List<Instance> findAllStarted(String organizationId, String environmentId);
-    BaseInstance findById(ExecutionContext executionContext, String instanceId);
+@Data
+@Builder
+public class BaseInstance {
+
+    private final String id;
+    private String hostname;
+    private String ip;
 }

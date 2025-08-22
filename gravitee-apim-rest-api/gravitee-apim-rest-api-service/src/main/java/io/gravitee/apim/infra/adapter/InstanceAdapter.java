@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.gateway.model.BaseInstance;
 import io.gravitee.apim.core.gateway.model.Instance;
 import io.gravitee.rest.api.model.InstanceEntity;
 import java.util.List;
@@ -29,6 +30,8 @@ public interface InstanceAdapter {
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     Instance fromEntity(InstanceEntity entity);
+
+    BaseInstance toBaseInstance(InstanceEntity entity);
 
     List<Instance> fromEntities(List<InstanceEntity> entities);
 }
