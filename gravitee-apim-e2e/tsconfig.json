@@ -17,8 +17,7 @@
       "@api-test-resources/*": ["<rootDir>/api-test/resources/$1"],
       "@lib/jest-utils": ["lib/jest-utils"],
       "@gravitee/utils/*": ["<rootDir>/lib/utils/$1"]
-    },
-    "isolatedModules": true
+    }
   },
   "include": ["**/*.ts"]
 }
