@@ -34,6 +34,6 @@ public class ApplicationListItemPagedResult extends PagedResult<ApplicationListI
     }
 
     public ApplicationListItemPagedResult(io.gravitee.common.data.domain.Page<ApplicationListItem> page, int perPage) {
-        super(page, perPage);
+        super(page.getContent(), page.getPageNumber() + 1, perPage, (int) page.getTotalElements());
     }
 }
