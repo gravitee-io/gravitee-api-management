@@ -97,6 +97,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         Mockito.reset(membershipService, groupService);
+        groupQueryServiceInMemory.reset();
         GraviteeContext.cleanContext();
     }
 
@@ -567,6 +568,101 @@ public class GroupsResourceTest extends AbstractResourceTest {
             } catch (IOException e) {
                 throw new IllegalArgumentException(e);
             }
+        }
+    }
+
+    @Nested
+    class SearchGroupsByIds {
+
+        @BeforeEach
+        void setUp() {
+            target = rootTarget("/_search");
+        }
+
+        @Test
+        public void should_control_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_GROUP),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = target.request().post(jakarta.ws.rs.client.Entity.json(Map.of("ids", Set.of("group-1", "group-2"))));
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+
+        @Test
+        public void should_return_empty_list_if_no_results() {
+            groupQueryServiceInMemory.reset();
+
+            final Response response = target.request().post(jakarta.ws.rs.client.Entity.json(Map.of("ids", Set.of("group-1", "group-2"))));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(GroupsResponse.class)
+                .isEqualTo(
+                    new GroupsResponse().data(List.of()).pagination(new Pagination()).links(new Links().self(target.getUri().toString()))
+                );
+        }
+
+        @Test
+        public void should_return_groups_with_pagination() {
+            io.gravitee.apim.core.group.model.Group group1 = io.gravitee.apim.core.group.model.Group
+                .builder()
+                .id("group-1")
+                .name("Group 1")
+                .environmentId(ENVIRONMENT)
+                .build();
+
+            io.gravitee.apim.core.group.model.Group group2 = io.gravitee.apim.core.group.model.Group
+                .builder()
+                .id("group-2")
+                .name("Group 2")
+                .environmentId(ENVIRONMENT)
+                .build();
+
+            givenExistingGroup(List.of(group1, group2));
+
+            final Response response = target.request().post(jakarta.ws.rs.client.Entity.json(Map.of("ids", Set.of("group-1", "group-2"))));
+
+            assertThat(response).hasStatus(OK_200);
+
+            GroupsResponse groupsResponse = response.readEntity(GroupsResponse.class);
+            assertThat(groupsResponse.getData()).hasSize(2);
+            assertThat(groupsResponse.getPagination().getTotalCount()).isEqualTo(2);
+        }
+
+        @Test
+        public void should_return_groups_with_links() {
+            io.gravitee.apim.core.group.model.Group group1 = io.gravitee.apim.core.group.model.Group
+                .builder()
+                .id("group-1")
+                .name("Group 1")
+                .environmentId(ENVIRONMENT)
+                .build();
+
+            io.gravitee.apim.core.group.model.Group group2 = io.gravitee.apim.core.group.model.Group
+                .builder()
+                .id("group-2")
+                .name("Group 2")
+                .environmentId(ENVIRONMENT)
+                .build();
+
+            givenExistingGroup(List.of(group1, group2));
+
+            final Response response = target.request().post(jakarta.ws.rs.client.Entity.json(Map.of("ids", Set.of("group-1", "group-2"))));
+
+            assertThat(response).hasStatus(OK_200);
+
+            GroupsResponse groupsResponse = response.readEntity(GroupsResponse.class);
+            assertThat(groupsResponse.getData()).hasSize(2);
+            assertThat(groupsResponse.getPagination().getTotalCount()).isEqualTo(2);
+            assertThat(groupsResponse.getLinks().getSelf()).isEqualTo(target.getUri().toString());
         }
     }
 }
