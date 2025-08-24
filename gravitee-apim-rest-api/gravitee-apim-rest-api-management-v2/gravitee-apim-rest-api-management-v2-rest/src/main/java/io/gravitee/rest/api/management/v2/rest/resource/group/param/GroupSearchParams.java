@@ -13,19 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.group.query_service;
+package io.gravitee.rest.api.management.v2.rest.resource.group.param;
 
-import io.gravitee.apim.core.group.model.Group;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.List;
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-public interface GroupQueryService {
-    Optional<Group> findById(String id);
-    Set<Group> findByIds(Set<String> ids);
-    Set<Group> findByEvent(String environmentId, Group.GroupEvent event);
-    List<Group> findByNames(String environmentId, Set<String> name);
-    Set<GroupEntity> findGroupsInEnvironmentByIds(ExecutionContext executionContext, Set<String> groupIds);
+@Getter
+@Setter
+@NoArgsConstructor
+public class GroupSearchParams {
+
+    @Valid
+    @NotNull
+    @JsonProperty("ids")
+    private Set<String> ids;
+
+    public GroupSearchParams(Set<String> ids) {
+        this.ids = ids;
+    }
 }

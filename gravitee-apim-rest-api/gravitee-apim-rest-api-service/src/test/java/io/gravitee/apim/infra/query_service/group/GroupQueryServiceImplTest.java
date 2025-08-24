@@ -27,7 +27,10 @@ import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
@@ -277,6 +280,140 @@ class GroupQueryServiceImplTest {
                         .apiPrimaryOwner("api-po-id")
                         .build()
                 );
+        }
+    }
+
+    @Nested
+    class FindGroupsInEnvironmentByIds {
+
+        @Test
+        @SneakyThrows
+        void should_find_groups_matching_the_ids_and_environment() {
+            when(groupRepository.findByIds(anySet()))
+                .thenAnswer(invocation ->
+                    Set.of(
+                        aGroup("1").environmentId("environment-id").build(),
+                        aGroup("2").environmentId("environment-id").build(),
+                        aGroup("3").environmentId("other-environment-id").build()
+                    )
+                );
+
+            var executionContext = mock(io.gravitee.rest.api.service.common.ExecutionContext.class);
+            when(executionContext.hasEnvironmentId()).thenReturn(true);
+            when(executionContext.getEnvironmentId()).thenReturn("environment-id");
+
+            var groupEntities = service.findGroupsInEnvironmentByIds(executionContext, Set.of("1", "2", "3"));
+
+            Assertions.assertThat(groupEntities).hasSize(2).extracting(GroupEntity::getId).containsExactly("1", "2");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_all_groups_when_no_environment_specified() {
+            when(groupRepository.findByIds(anySet()))
+                .thenAnswer(invocation ->
+                    Set.of(
+                        aGroup("1").environmentId("environment-id").build(),
+                        aGroup("2").environmentId("environment-id").build(),
+                        aGroup("3").environmentId("other-environment-id").build()
+                    )
+                );
+
+            var executionContext = mock(io.gravitee.rest.api.service.common.ExecutionContext.class);
+            when(executionContext.hasEnvironmentId()).thenReturn(false);
+
+            var groupEntities = service.findGroupsInEnvironmentByIds(executionContext, Set.of("1", "2", "3"));
+
+            Assertions.assertThat(groupEntities).hasSize(3).extracting(GroupEntity::getId).containsExactly("1", "2", "3");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_adapt_groups_to_entities() {
+            when(groupRepository.findByIds(anySet())).thenAnswer(invocation -> Set.of(aGroup("1").environmentId("environment-id").build()));
+
+            var executionContext = mock(io.gravitee.rest.api.service.common.ExecutionContext.class);
+            when(executionContext.hasEnvironmentId()).thenReturn(true);
+            when(executionContext.getEnvironmentId()).thenReturn("environment-id");
+
+            var groupEntities = service.findGroupsInEnvironmentByIds(executionContext, Set.of("1"));
+
+            Assertions
+                .assertThat(groupEntities)
+                .hasSize(1)
+                .extracting(
+                    GroupEntity::getId,
+                    GroupEntity::getName,
+                    GroupEntity::getMaxInvitation,
+                    GroupEntity::isLockApiRole,
+                    GroupEntity::isLockApplicationRole,
+                    GroupEntity::isSystemInvitation,
+                    GroupEntity::isEmailInvitation,
+                    GroupEntity::isDisableMembershipNotifications
+                )
+                .containsExactly(org.assertj.core.api.Assertions.tuple("1", "group-1", 12, true, true, true, true, true));
+        }
+
+        @Test
+        @SneakyThrows
+        void should_handle_empty_group_ids() {
+            var executionContext = mock(io.gravitee.rest.api.service.common.ExecutionContext.class);
+            when(executionContext.hasEnvironmentId()).thenReturn(true);
+            when(executionContext.getEnvironmentId()).thenReturn("environment-id");
+
+            var groupEntities = service.findGroupsInEnvironmentByIds(executionContext, Set.of());
+
+            Assertions.assertThat(groupEntities).isEmpty();
+        }
+
+        @Test
+        @SneakyThrows
+        void should_handle_case_insensitive_environment_id_comparison() {
+            when(groupRepository.findByIds(anySet()))
+                .thenAnswer(invocation ->
+                    Set.of(
+                        aGroup("1").environmentId("ENVIRONMENT-ID").build(),
+                        aGroup("2").environmentId("environment-id").build(),
+                        aGroup("3").environmentId("other-environment-id").build()
+                    )
+                );
+
+            var executionContext = mock(io.gravitee.rest.api.service.common.ExecutionContext.class);
+            when(executionContext.hasEnvironmentId()).thenReturn(true);
+            when(executionContext.getEnvironmentId()).thenReturn("environment-id");
+
+            var groupEntities = service.findGroupsInEnvironmentByIds(executionContext, Set.of("1", "2", "3"));
+
+            Assertions.assertThat(groupEntities).hasSize(2).extracting(GroupEntity::getId).containsExactly("1", "2");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_handle_null_environment_id_in_group() {
+            when(groupRepository.findByIds(anySet()))
+                .thenAnswer(invocation ->
+                    Set.of(aGroup("1").environmentId(null).build(), aGroup("2").environmentId("environment-id").build())
+                );
+
+            var executionContext = mock(io.gravitee.rest.api.service.common.ExecutionContext.class);
+            when(executionContext.hasEnvironmentId()).thenReturn(true);
+            when(executionContext.getEnvironmentId()).thenReturn("environment-id");
+
+            var groupEntities = service.findGroupsInEnvironmentByIds(executionContext, Set.of("1", "2"));
+
+            Assertions.assertThat(groupEntities).hasSize(1).extracting(GroupEntity::getId).containsExactly("2");
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(groupRepository.findByIds(anySet())).thenThrow(TechnicalException.class);
+            var executionContext = mock(io.gravitee.rest.api.service.common.ExecutionContext.class);
+
+            Throwable throwable = catchThrowable(() -> service.findGroupsInEnvironmentByIds(executionContext, Set.of("1", "2")));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find groups by ids and environment");
         }
     }
 
