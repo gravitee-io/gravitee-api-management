@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.group.model.Group.GroupEventRule;
 import io.gravitee.rest.api.management.v2.rest.model.Group;
 import io.gravitee.rest.api.management.v2.rest.model.GroupEvent;
 import io.gravitee.rest.api.model.GroupEntity;
@@ -26,6 +27,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
@@ -75,5 +77,29 @@ public interface GroupMapper {
             return null;
         }
         return roles.get(RoleScope.APPLICATION);
+    }
+
+    List<Group> mapFromCoreList(List<io.gravitee.apim.core.group.model.Group> coreGroups);
+
+    Group mapFromCore(io.gravitee.apim.core.group.model.Group coreGroup);
+
+    default List<GroupEvent> mapCoreGroupEventRules(List<GroupEventRule> eventRules) {
+        if (Objects.isNull(eventRules)) {
+            return null;
+        }
+
+        return eventRules
+            .stream()
+            .filter(Objects::nonNull)
+            .map(rule -> {
+                try {
+                    return GroupEvent.fromValue(rule.event().name());
+                } catch (IllegalArgumentException e) {
+                    logger.error("Unable to parse GroupEventRule: " + rule.event().name());
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 }

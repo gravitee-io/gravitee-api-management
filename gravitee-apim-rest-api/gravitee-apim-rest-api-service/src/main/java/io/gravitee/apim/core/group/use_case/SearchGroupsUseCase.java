@@ -13,21 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.group.query_service;
+package io.gravitee.apim.core.group.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
-public interface GroupQueryService {
-    Optional<Group> findById(String id);
-    Set<Group> findByIds(Set<String> ids);
-    Set<Group> findByEvent(String environmentId, Group.GroupEvent event);
-    List<Group> findByNames(String environmentId, Set<String> name);
-    Page<Group> searchGroups(ExecutionContext executionContext, Set<String> groupIds, Pageable pageable);
+@UseCase
+public class SearchGroupsUseCase {
+
+    private final GroupQueryService groupQueryService;
+
+    public SearchGroupsUseCase(GroupQueryService groupQueryService) {
+        this.groupQueryService = groupQueryService;
+    }
+
+    public Page<Group> execute(ExecutionContext executionContext, Set<String> groupIds, Pageable pageable) {
+        if (groupIds == null || groupIds.isEmpty()) return new Page<>(List.of(), 0, 0, 0);
+        return groupQueryService.searchGroups(executionContext, groupIds, pageable);
+    }
 }

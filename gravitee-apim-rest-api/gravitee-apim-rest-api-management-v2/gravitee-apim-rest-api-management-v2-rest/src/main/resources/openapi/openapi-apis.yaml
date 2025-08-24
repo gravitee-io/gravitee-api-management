@@ -1124,6 +1124,30 @@ paths:
                     $ref: "#/components/responses/GroupsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/groups/_search:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - Groups
+            summary: Search for groups using filters
+            description: |
+                Search for groups using filters.
+                User must have the ENVIRONMENT_GROUP[READ] permission.
+            operationId: searchGroups
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/GroupSearchParams"
+            responses:
+                "200":
+                    $ref: "#/components/responses/GroupsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/groups/{groupId}/members:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -5184,6 +5208,15 @@ components:
             enum:
                 - API_CREATE
                 - APPLICATION_CREATE
+        GroupSearchParams:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    description: List of group IDs to search for.
+                    items:
+                        type: string
+                    uniqueItems: true
         Member:
             type: object
             properties:
