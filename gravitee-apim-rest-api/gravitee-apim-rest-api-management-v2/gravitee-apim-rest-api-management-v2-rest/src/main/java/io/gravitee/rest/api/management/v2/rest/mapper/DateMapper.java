@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Objects;
 import org.mapstruct.Mapper;
@@ -39,6 +40,13 @@ public interface DateMapper {
             return null;
         }
         return Date.from(offsetDateTime.toInstant());
+    }
+
+    default OffsetDateTime map(ZonedDateTime zonedDateTime) {
+        if (Objects.isNull(zonedDateTime)) {
+            return null;
+        }
+        return zonedDateTime.toOffsetDateTime();
     }
 
     @Named("mapTimestamp")
