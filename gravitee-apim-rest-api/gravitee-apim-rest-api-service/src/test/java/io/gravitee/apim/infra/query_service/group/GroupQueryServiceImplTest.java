@@ -24,9 +24,13 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
@@ -298,5 +302,67 @@ class GroupQueryServiceImplTest {
             .disableMembershipNotifications(true)
             .apiPrimaryOwner("api-po-id")
             .origin("MANAGEMENT");
+    }
+
+    @Nested
+    class SearchGroups {
+
+        @Test
+        @SneakyThrows
+        void should_search_groups_with_pagination() {
+            Set<String> groupIds = Set.of("1", "2", "3");
+            io.gravitee.rest.api.model.common.Pageable pageable = new PageableImpl(1, 10);
+            io.gravitee.repository.management.api.search.Pageable repoPageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+            List<io.gravitee.repository.management.model.Group> groups = List.of(aGroup("1").build(), aGroup("2").build());
+
+            Page<io.gravitee.repository.management.model.Group> page = new Page<>(groups, 0, groups.size(), 2);
+
+            when(groupRepository.search(any(), any())).thenReturn(page);
+
+            ExecutionContext executionContext = mock(ExecutionContext.class);
+            Page<Group> result = service.searchGroups(executionContext, groupIds, pageable);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getContent().get(0).getId()).isEqualTo("1");
+            assertThat(result.getContent().get(1).getId()).isEqualTo("2");
+            assertThat(result.getPageNumber()).isEqualTo(0);
+            assertThat(result.getPageElements()).isEqualTo(2);
+            assertThat(result.getTotalElements()).isEqualTo(2);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_page_when_no_results() {
+            Set<String> groupIds = Set.of("1", "2", "3");
+            io.gravitee.rest.api.model.common.Pageable pageable = new PageableImpl(1, 10);
+
+            Page<io.gravitee.repository.management.model.Group> page = new Page<>(List.of(), 0, 0, 0);
+
+            when(groupRepository.search(any(), any())).thenReturn(page);
+
+            ExecutionContext executionContext = mock(ExecutionContext.class);
+            Page<Group> result = service.searchGroups(executionContext, groupIds, pageable);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+            assertThat(result.getPageNumber()).isEqualTo(0);
+            assertThat(result.getPageElements()).isEqualTo(0);
+            assertThat(result.getTotalElements()).isEqualTo(0);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() {
+            Set<String> groupIds = Set.of("1", "2", "3");
+            io.gravitee.rest.api.model.common.Pageable pageable = new PageableImpl(1, 10);
+
+            when(groupRepository.search(any(), any())).thenThrow(new RuntimeException("Test exception"));
+
+            ExecutionContext executionContext = mock(ExecutionContext.class);
+            Throwable throwable = catchThrowable(() -> service.searchGroups(executionContext, groupIds, pageable));
+
+            assertThat(throwable).isInstanceOf(RuntimeException.class).hasMessage("Test exception");
+        }
     }
 }
