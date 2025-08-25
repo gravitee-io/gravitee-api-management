@@ -17,6 +17,7 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -36,6 +37,7 @@ import java.util.StringJoiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @Repository
@@ -77,6 +79,11 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
 
         andWhere.add("environment_id = ?");
         andWhereParams.add(criteria.getEnvironmentId());
+
+        if (!CollectionUtils.isEmpty(criteria.getIds())) {
+            andWhere.add("id in (" + getOrm().buildInClause(criteria.getIds()) + ")");
+            andWhereParams.addAll(criteria.getIds());
+        }
 
         Long total = jdbcTemplate.queryForObject(
             "select count(*) from " + this.tableName + " WHERE " + andWhere,

@@ -25,4 +25,5 @@ public interface MembershipQueryService {
     Collection<Membership> findByReference(Membership.ReferenceType referenceType, String referenceId);
 
     Collection<Membership> findGroupsThatUserBelongsTo(String userId);
+    List<String> findClustersIdsThatUserBelongsTo(String userId);
 }

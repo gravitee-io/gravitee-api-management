@@ -47,7 +47,14 @@ public abstract class ClusterAdapter {
 
     @Named("mapConfiguration")
     public Object mapConfiguration(io.gravitee.repository.management.model.Cluster cluster) throws JsonProcessingException {
+        if (cluster.getDefinition() == null || cluster.getDefinition().isEmpty()) {
+            return null;
+        }
+
         var clusterDefinition = mapper.readValue(cluster.getDefinition(), io.gravitee.definition.model.cluster.Cluster.class);
+        if (clusterDefinition == null) {
+            return null;
+        }
         return clusterDefinition.getConfiguration();
     }
 }
