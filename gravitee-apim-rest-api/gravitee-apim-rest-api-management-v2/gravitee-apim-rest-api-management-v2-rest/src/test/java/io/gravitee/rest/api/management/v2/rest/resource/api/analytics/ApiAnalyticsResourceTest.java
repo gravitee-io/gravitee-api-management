@@ -938,4 +938,30 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             }
         }
     }
+
+    @Nested
+    class SearchApiAnalytic {
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = rootTarget().path("request-id").request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+    }
 }

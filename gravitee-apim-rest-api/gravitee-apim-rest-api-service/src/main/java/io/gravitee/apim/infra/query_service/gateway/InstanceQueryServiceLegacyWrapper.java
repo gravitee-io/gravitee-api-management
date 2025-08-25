@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.query_service.gateway;
 
+import io.gravitee.apim.core.gateway.model.BaseInstance;
 import io.gravitee.apim.core.gateway.model.Instance;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.infra.adapter.InstanceAdapter;
@@ -33,5 +34,10 @@ public class InstanceQueryServiceLegacyWrapper implements InstanceQueryService {
     @Override
     public List<Instance> findAllStarted(String organizationId, String environmentId) {
         return InstanceAdapter.INSTANCE.fromEntities(instanceService.findAllStarted(new ExecutionContext(organizationId, environmentId)));
+    }
+
+    @Override
+    public BaseInstance findById(ExecutionContext executionContext, String instanceId) {
+        return InstanceAdapter.INSTANCE.toBaseInstance(instanceService.findById(executionContext, instanceId));
     }
 }

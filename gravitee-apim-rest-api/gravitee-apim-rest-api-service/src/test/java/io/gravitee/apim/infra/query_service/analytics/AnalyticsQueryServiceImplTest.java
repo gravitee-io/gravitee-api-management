@@ -26,9 +26,11 @@ import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.ApiAnalytic;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
@@ -74,6 +76,8 @@ class AnalyticsQueryServiceImplTest {
 
     private static final String ORGANIZATION_ID = "org#1";
     private static final String ENVIRONMENT_ID = "env#1";
+    private static final String API_ID = "api#1";
+    private static final String REQUEST_ID = "request#1";
 
     @Mock
     AnalyticsRepository analyticsRepository;
@@ -562,6 +566,73 @@ class AnalyticsQueryServiceImplTest {
                 )
             )
                 .isEmpty();
+        }
+    }
+
+    @Nested
+    class searchApiMetric {
+
+        @Test
+        void should_return_empty_when_repository_returns_empty() {
+            when(analyticsRepository.searchApiMetric(any(QueryContext.class), any())).thenReturn(Optional.empty());
+
+            var result = cut.searchApiMetric(GraviteeContext.getExecutionContext(), API_ID, REQUEST_ID);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_map_stats_aggregate_to_stats_analytics() {
+            when(analyticsRepository.searchApiMetric(any(QueryContext.class), any()))
+                .thenReturn(
+                    Optional.of(
+                        ApiAnalytic
+                            .builder()
+                            .timestamp("2025-08-01T17:29:20.385+02:00")
+                            .apiId(API_ID)
+                            .requestId(REQUEST_ID)
+                            .transactionId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
+                            .host("localhost:8082")
+                            .applicationId("1")
+                            .planId("ccefeab8-2f7c-45dc-afea-b82f7c75dc1a")
+                            .gateway("b504bb7b-8b6e-426f-84bb-7b8b6e626f3f")
+                            .status(202)
+                            .uri("/v4/echo")
+                            .requestContentLength(0L)
+                            .responseContentLength(276L)
+                            .remoteAddress("0:0:0:0:0:0:0:1")
+                            .gatewayLatency(3L)
+                            .gatewayResponseTime(276L)
+                            .endpointResponseTime(273L)
+                            .method(HttpMethod.GET)
+                            .endpoint("http://endpoint.example.com/foo")
+                            .build()
+                    )
+                );
+
+            var result = cut.searchApiMetric(GraviteeContext.getExecutionContext(), API_ID, REQUEST_ID);
+
+            assertThat(result)
+                .hasValueSatisfying(apiAnalytic -> {
+                    assertThat(apiAnalytic.getTimestamp()).isEqualTo("2025-08-01T17:29:20.385+02:00");
+                    assertThat(apiAnalytic.getApiId()).isEqualTo(API_ID);
+                    assertThat(apiAnalytic.getRequestId()).isEqualTo(REQUEST_ID);
+                    assertThat(apiAnalytic.getTransactionId()).isEqualTo("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb");
+                    assertThat(apiAnalytic.getHost()).isEqualTo("localhost:8082");
+                    assertThat(apiAnalytic.getApplicationId()).isEqualTo("1");
+                    assertThat(apiAnalytic.getPlanId()).isEqualTo("ccefeab8-2f7c-45dc-afea-b82f7c75dc1a");
+                    assertThat(apiAnalytic.getGateway()).isEqualTo("b504bb7b-8b6e-426f-84bb-7b8b6e626f3f");
+                    assertThat(apiAnalytic.getStatus()).isEqualTo(202);
+                    assertThat(apiAnalytic.getUri()).isEqualTo("/v4/echo");
+                    assertThat(apiAnalytic.getRequestContentLength()).isEqualTo(0L);
+                    assertThat(apiAnalytic.getResponseContentLength()).isEqualTo(276L);
+                    assertThat(apiAnalytic.getRemoteAddress()).isEqualTo("0:0:0:0:0:0:0:1");
+                    assertThat(apiAnalytic.getGatewayLatency()).isEqualTo(3L);
+                    assertThat(apiAnalytic.getGatewayResponseTime()).isEqualTo(276L);
+                    assertThat(apiAnalytic.getEndpointResponseTime()).isEqualTo(273L);
+                    assertThat(apiAnalytic.getMethod()).isEqualTo(HttpMethod.GET);
+                    assertThat(apiAnalytic.getEndpoint()).isEqualTo("http://endpoint.example.com/foo");
+                });
         }
     }
 }

@@ -13,15 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.gateway.query_service;
+package io.gravitee.repository.log.v4.model.analytics;
 
-import io.gravitee.apim.core.gateway.model.BaseInstance;
-import io.gravitee.apim.core.gateway.model.Instance;
-import io.gravitee.rest.api.model.InstanceEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.List;
-
-public interface InstanceQueryService {
-    List<Instance> findAllStarted(String organizationId, String environmentId);
-    BaseInstance findById(ExecutionContext executionContext, String instanceId);
-}
+public record ApiAnalyticQuery(String apiId, String requestId) {}

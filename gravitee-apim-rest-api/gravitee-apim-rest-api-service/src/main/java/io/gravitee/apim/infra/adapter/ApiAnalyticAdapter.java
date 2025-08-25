@@ -15,23 +15,13 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.gateway.model.BaseInstance;
-import io.gravitee.apim.core.gateway.model.Instance;
-import io.gravitee.rest.api.model.InstanceEntity;
-import java.util.List;
+import io.gravitee.rest.api.model.v4.analytics.ApiAnalytic;
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
-public interface InstanceAdapter {
-    InstanceAdapter INSTANCE = Mappers.getMapper(InstanceAdapter.class);
+public interface ApiAnalyticAdapter {
+    ApiAnalyticAdapter INSTANCE = Mappers.getMapper(ApiAnalyticAdapter.class);
 
-    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
-    Instance fromEntity(InstanceEntity entity);
-
-    BaseInstance toBaseInstance(InstanceEntity entity);
-
-    List<Instance> fromEntities(List<InstanceEntity> entities);
+    ApiAnalytic map(io.gravitee.repository.log.v4.model.analytics.ApiAnalytic apiAnalytic);
 }
