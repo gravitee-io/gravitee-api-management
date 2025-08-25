@@ -182,7 +182,21 @@ data:
       {{- end }}
 
       {{- if .Values.api.services.metrics }}
-      metrics: {{- toYaml .Values.api.services.metrics | nindent 8 }}
+      metrics:
+        enabled: {{ .Values.api.services.metrics.enabled }}
+        {{- if .Values.api.services.metrics.labels }}
+        labels:
+        {{- range .Values.api.services.metrics.labels }}
+        - {{ . }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.api.services.metrics.prometheus }}
+        prometheus:
+          enabled: {{ .Values.api.services.metrics.prometheus.enabled }}
+          {{- if .Values.api.services.metrics.prometheus.concurrencyLimit }}
+          concurrencyLimit: {{ .Values.api.services.metrics.prometheus.concurrencyLimit }}
+          {{- end }}
+        {{- end }}
       {{- end }}
       {{- if .Values.api.services.subscription.enabled }}
       subscription:
