@@ -129,7 +129,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         var responseContent = response.readEntity(ApplicationListItemPagedResult.class);
         var pagedApplicationsResult = (ApplicationListItemPagedResult) responseContent;
-        assertEquals(0, pagedApplicationsResult.getPage().getCurrent());
+        assertEquals(1, pagedApplicationsResult.getPage().getCurrent());
         assertEquals(20, pagedApplicationsResult.getPage().getPerPage());
         assertEquals(3, pagedApplicationsResult.getPage().getSize());
         assertEquals(1, pagedApplicationsResult.getPage().getTotalPages());
@@ -154,7 +154,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         var responseContent = response.readEntity(ApplicationListItemPagedResult.class);
         var pagedApplicationsResult = (ApplicationListItemPagedResult) responseContent;
-        assertEquals(2, pagedApplicationsResult.getPage().getCurrent());
+        assertEquals(3, pagedApplicationsResult.getPage().getCurrent());
         assertEquals(3, pagedApplicationsResult.getPage().getPerPage());
         assertEquals(1, pagedApplicationsResult.getPage().getSize());
         assertEquals(3, pagedApplicationsResult.getPage().getTotalPages());
