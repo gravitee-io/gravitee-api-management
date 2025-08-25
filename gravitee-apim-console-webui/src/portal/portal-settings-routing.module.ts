@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { GraviteeMarkdownComponent } from 'gravitee-markdown';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
@@ -141,6 +142,7 @@ const portalRoutes: Routes = [
       },
     ],
   },
+  { path: 'gravitee-md', component: GraviteeMarkdownComponent },
 ];
 
 @NgModule({

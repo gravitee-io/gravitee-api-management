@@ -14,6 +14,24 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `yarn build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
+### Building gravitee-markdown library
+
+This project contains the `gravitee-markdown` library. The library can be built with different configurations:
+
+**For portal-webui-next:**
+```bash
+yarn build:gravitee-markdown
+```
+This builds the library using the default configuration and outputs to `dist/gravitee-markdown`.
+
+**For console-webui:**
+```bash
+yarn build:gravitee-markdown:console
+```
+This builds the library using the console configuration and outputs to `../gravitee-apim-console-webui/node_modules/gravitee-markdown`.
+
+**Note**: The console-webui project automatically builds this library before running any development, linting, or build commands using the `build:gravitee-markdown` script.
+
 ## Running unit tests
 
 Run `yarn test` to execute the unit tests via [Jest](https://jestjs.io/).
