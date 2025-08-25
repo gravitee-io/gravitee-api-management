@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.repository.mongodb.management.internal.portal_page;
 
-public class PortalPageFactory {
+import io.gravitee.repository.mongodb.management.internal.model.PortalPageMongo;
+import java.util.List;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.stereotype.Repository;
 
-    public static PortalPage create(PageId id, GraviteeMarkdown existingContent) {
-        return new PortalPage(id, existingContent);
-    }
+@Repository
+public interface PortalPageMongoRepository extends MongoRepository<PortalPageMongo, String> {
+    @Query("{ 'contexts': ?0 }")
+    List<PortalPageMongo> findByContext(String context);
 }

@@ -223,6 +223,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected ClusterRepository clusterRepository;
 
+    @Inject
+    protected PortalPageRepository portalPageRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         switch (object) {
             case Application application -> applicationRepository.create(application);
@@ -297,6 +300,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case SharedPolicyGroup sharedPolicyGroup -> sharedPolicyGroupRepository.create(sharedPolicyGroup);
             case PortalMenuLink portalMenuLink -> portalMenuLinkRepository.create(portalMenuLink);
             case Cluster cluster -> clusterRepository.create(cluster);
+            case PortalPage portalPage -> portalPageRepository.create(portalPage);
             case null, default -> {}
         }
     }

@@ -13,47 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.repository.management.model;
 
-import java.util.UUID;
-import javax.annotation.Nonnull;
+import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
-public class PageId {
+@Setter
+@Getter
+public class PortalPageContext {
 
-    @Nonnull
-    private final UUID id;
-
-    private PageId(UUID id) {
-        this.id = id;
-    }
-
-    public static PageId random() {
-        return new PageId(UUID.randomUUID());
-    }
-
-    public static PageId of(String id) {
-        return new PageId(UUID.fromString(id));
-    }
-
-    public UUID id() {
-        return id;
-    }
+    private String pageId;
+    private String context;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PageId pageId = (PageId) o;
-        return id.equals(pageId.id);
+        PortalPageContext that = (PortalPageContext) o;
+        return Objects.equals(pageId, that.pageId) && Objects.equals(context, that.context);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return id.toString();
+        return Objects.hash(pageId, context);
     }
 }

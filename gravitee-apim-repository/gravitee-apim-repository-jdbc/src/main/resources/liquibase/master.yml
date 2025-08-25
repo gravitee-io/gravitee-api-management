@@ -263,3 +263,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_9_0/02_add_hrid_to_pages_table.yml
     - include:
         - file: liquibase/changelogs/v4_9_0/03_add_clusters_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/04_add_portal_page_tables.yml
