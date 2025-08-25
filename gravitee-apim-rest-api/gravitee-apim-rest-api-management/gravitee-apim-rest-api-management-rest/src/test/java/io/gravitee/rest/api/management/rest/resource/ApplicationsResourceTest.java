@@ -158,19 +158,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         var responseContent = response.readEntity(ApplicationListItemPagedResult.class);
-<<<<<<< HEAD
-        assertEquals(2, responseContent.getPage().getCurrent());
-        assertEquals(3, responseContent.getPage().getPerPage());
-        assertEquals(1, responseContent.getPage().getSize());
-        assertEquals(3, responseContent.getPage().getTotalPages());
-        assertEquals(7, responseContent.getPage().getTotalElements());
-=======
         var pagedApplicationsResult = (ApplicationListItemPagedResult) responseContent;
         assertEquals(3, pagedApplicationsResult.getPage().getCurrent());
         assertEquals(3, pagedApplicationsResult.getPage().getPerPage());
         assertEquals(1, pagedApplicationsResult.getPage().getSize());
         assertEquals(3, pagedApplicationsResult.getPage().getTotalPages());
         assertEquals(7, pagedApplicationsResult.getPage().getTotalElements());
->>>>>>> f9d8949967 (fix: correct pagination response to use 1-based indexing)
     }
 }
