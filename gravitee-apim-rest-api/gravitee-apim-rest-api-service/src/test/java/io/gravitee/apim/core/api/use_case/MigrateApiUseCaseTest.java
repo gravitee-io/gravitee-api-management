@@ -1173,6 +1173,106 @@ class MigrateApiUseCaseTest {
             });
     }
 
+    @Test
+    void should_migrate_api_with_resources() {
+        // Given
+        var resource = new io.gravitee.definition.model.plugins.resources.Resource();
+        resource.setName("cache-resource");
+        resource.setType("cache");
+        resource.setConfiguration("{\"timeToLiveSeconds\": 3600}");
+        resource.setEnabled(true);
+
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api.getApiDefinition().setResources(List.of(resource));
+        v2Api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+        apiCrudService.initWith(List.of(v2Api));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var migratedApi = apiCrudService.findById(API_ID);
+
+        assertThat(migratedApi)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+                var migratedResources = api.getApiDefinitionHttpV4().getResources();
+                assertThat(migratedResources).hasSize(1);
+                assertThat(migratedResources.get(0).getName()).isEqualTo("cache-resource");
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_empty_resources() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api.getApiDefinition().setResources(List.of());
+        v2Api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+        apiCrudService.initWith(List.of(v2Api));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var migratedApi = apiCrudService.findById(API_ID);
+
+        assertThat(migratedApi)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+                var migratedResources = api.getApiDefinitionHttpV4().getResources();
+                assertThat(migratedResources).isEmpty();
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_null_resources() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api.getApiDefinition().setResources(null);
+        v2Api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+        apiCrudService.initWith(List.of(v2Api));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var migratedApi = apiCrudService.findById(API_ID);
+
+        assertThat(migratedApi)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+                var migratedResources = api.getApiDefinitionHttpV4().getResources();
+                assertThat(migratedResources).isEmpty();
+            });
+    }
+
     private static void assertApiV4(Api upgradedApi) {
         assertSoftly(softly -> {
             softly.assertThat(upgradedApi.getId()).as("id").isEqualTo(API_ID);
