@@ -23,7 +23,10 @@ import io.gravitee.apim.infra.adapter.GroupAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.GroupEventRule;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -106,6 +109,50 @@ public class GroupQueryServiceImpl implements GroupQueryService {
                 .toList();
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException("An error occurs while trying to find groups by names", ex);
+        }
+    }
+
+    @Override
+    public Set<GroupEntity> findGroupsInEnvironmentByIds(ExecutionContext executionContext, Set<String> groupIds) {
+        try {
+            Set<io.gravitee.repository.management.model.Group> groups = groupRepository.findByIds(groupIds);
+
+            return groups
+                .stream()
+                .filter(group ->
+                    !executionContext.hasEnvironmentId() ||
+                    (group.getEnvironmentId() != null && group.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                )
+                .map(GroupAdapter.INSTANCE::toModel)
+                .sorted(Comparator.comparing(Group::getName))
+                .map(group -> {
+                    if (group == null) {
+                        return null;
+                    }
+
+                    GroupEntity entity = new GroupEntity();
+                    entity.setId(group.getId());
+                    entity.setName(group.getName());
+
+                    if (group.getCreatedAt() != null) {
+                        entity.setCreatedAt(Date.from(group.getCreatedAt().toInstant()));
+                    }
+                    if (group.getUpdatedAt() != null) {
+                        entity.setUpdatedAt(Date.from(group.getUpdatedAt().toInstant()));
+                    }
+
+                    entity.setMaxInvitation(group.getMaxInvitation());
+                    entity.setLockApiRole(group.isLockApiRole());
+                    entity.setLockApplicationRole(group.isLockApplicationRole());
+                    entity.setSystemInvitation(group.isSystemInvitation());
+                    entity.setEmailInvitation(group.isEmailInvitation());
+                    entity.setDisableMembershipNotifications(group.isDisableMembershipNotifications());
+
+                    return entity;
+                })
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        } catch (TechnicalException ex) {
+            throw new TechnicalDomainException("An error occurs while trying to find groups by ids and environment", ex);
         }
     }
 }

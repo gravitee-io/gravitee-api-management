@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.rest.api.management.v2.rest.mapper.GroupMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.management.v2.rest.model.GroupsResponse;
@@ -26,6 +27,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.group.param.GroupSearchParams;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MemberEntity;
@@ -46,11 +48,15 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Path("/environments/{envId}/groups")
@@ -58,6 +64,9 @@ public class GroupsResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
+
+    @Inject
+    private GroupQueryService groupQueryService;
 
     private final GroupMapper mapper = GroupMapper.INSTANCE;
 
@@ -73,6 +82,25 @@ public class GroupsResource extends AbstractResource {
             .data(mapper.map(groupsSubset))
             .pagination(PaginationInfo.computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
             .links(computePaginationLinks(groups.size(), paginationParam));
+    }
+
+    @POST
+    @Path("/_search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { RolePermissionAction.READ }) })
+    public GroupsResponse searchGroupsByIds(@BeanParam PaginationParam paginationParam, @Valid GroupSearchParams searchParams) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Set<GroupEntity> groupEntities = groupQueryService.findGroupsInEnvironmentByIds(executionContext, searchParams.getIds());
+
+        List<GroupEntity> groupsSubset = computePaginationData(groupEntities, paginationParam);
+        io.gravitee.rest.api.management.v2.rest.model.Links links;
+        links = computePaginationLinks(groupEntities.size(), paginationParam);
+
+        return new GroupsResponse()
+            .data(mapper.map(groupsSubset))
+            .pagination(PaginationInfo.computePaginationInfo(groupEntities.size(), groupsSubset.size(), paginationParam))
+            .links(links);
     }
 
     @GET

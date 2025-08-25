@@ -19,11 +19,16 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GroupQueryServiceInMemory implements GroupQueryService, InMemoryAlternative<Group> {
 
@@ -59,6 +64,42 @@ public class GroupQueryServiceInMemory implements GroupQueryService, InMemoryAlt
             .filter(group -> environmentId.equals(group.getEnvironmentId()))
             .filter(group -> names.contains(group.getName()))
             .toList();
+    }
+
+    @Override
+    public Set<GroupEntity> findGroupsInEnvironmentByIds(ExecutionContext executionContext, Set<String> groupIds) {
+        return storage
+            .stream()
+            .filter(group -> groupIds.contains(group.getId()))
+            .filter(group ->
+                !executionContext.hasEnvironmentId() || executionContext.getEnvironmentId().equalsIgnoreCase(group.getEnvironmentId())
+            )
+            .map(group -> {
+                if (group == null) {
+                    return null;
+                }
+
+                GroupEntity entity = new GroupEntity();
+                entity.setId(group.getId());
+                entity.setName(group.getName());
+
+                if (group.getCreatedAt() != null) {
+                    entity.setCreatedAt(Date.from(group.getCreatedAt().toInstant()));
+                }
+                if (group.getUpdatedAt() != null) {
+                    entity.setUpdatedAt(Date.from(group.getUpdatedAt().toInstant()));
+                }
+
+                entity.setMaxInvitation(group.getMaxInvitation());
+                entity.setLockApiRole(group.isLockApiRole());
+                entity.setLockApplicationRole(group.isLockApplicationRole());
+                entity.setSystemInvitation(group.isSystemInvitation());
+                entity.setEmailInvitation(group.isEmailInvitation());
+                entity.setDisableMembershipNotifications(group.isDisableMembershipNotifications());
+
+                return entity;
+            })
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override
