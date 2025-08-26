@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-import { RoleScope } from 'src/entities/role/role';
-
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { intersection, toLower } from 'lodash';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { map, shareReplay } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 
 import { ClusterMemberService } from '../../../services-ngx/cluster-member.service';
 import UserService from '../../../services/user.service';
@@ -33,7 +31,16 @@ import { GroupV2Service } from '../../../services-ngx/group-v2.service';
 
 export type GioTestingPermission = string[];
 
+export type GioTestingRoleScopePermission = {
+  roleScope: 'API' | 'APPLICATION' | 'CLUSTER';
+  id: string;
+  permissions: string[];
+};
+
 export const GioTestingPermissionProvider = new InjectionToken<GioTestingPermission>('GioTestingPermission');
+export const GioTestingRolesScopePermissionProvider = new InjectionToken<GioTestingRoleScopePermission[]>(
+  'GioTestingRolesScopePermissionProvider',
+);
 
 @Injectable({ providedIn: 'root' })
 export class GioPermissionService {
@@ -44,10 +51,14 @@ export class GioPermissionService {
   private currentIntegrationPermissions: string[] = [];
   private currentClusterPermissions: string[] = [];
   private permissions: string[] = [];
+  private roleScopePermissionsCache = new Map<string, Observable<string[]>>();
 
   constructor(
     @Optional() @Inject(AjsCurrentUserService) private readonly ajsCurrentUserService: UserService | null,
     @Optional() @Inject(GioTestingPermissionProvider) private readonly gioTestingPermission: GioTestingPermission | null,
+    @Optional()
+    @Inject(GioTestingRolesScopePermissionProvider)
+    private readonly gioTestingRolesScopePermissionProvider: GioTestingRoleScopePermission[] | null,
     private readonly apiService: ApiService,
     private readonly environmentService: EnvironmentService,
     private readonly applicationService: ApplicationService,
@@ -57,6 +68,14 @@ export class GioPermissionService {
   ) {
     if (this.gioTestingPermission) {
       this._setPermissions(this.gioTestingPermission);
+    }
+    if (this.gioTestingRolesScopePermissionProvider) {
+      this.gioTestingRolesScopePermissionProvider.forEach((roleScopePermission) => {
+        this.roleScopePermissionsCache.set(
+          `${roleScopePermission.roleScope}:${roleScopePermission.id}`,
+          of(roleScopePermission.permissions).pipe(shareReplay({ bufferSize: 1, refCount: false })),
+        );
+      });
     }
   }
 
@@ -164,6 +183,49 @@ export class GioPermissionService {
       );
   }
 
+  /**
+   * Retrieves the permissions associated with a specific role scope and ID.
+   * A Cache is used to store previously fetched permissions to optimize performance and reduce redundant API calls.
+   * The Cache is cleared with scope clear methods in the service.
+   *
+   * @param {('API'|'APPLICATON'|'CLUSTER')} roleScope - The scope of the role.
+   * @param {string} id - The unique identifier associated with the role.
+   * @return {Observable<string[]>} An observable that emits an array of string permissions corresponding to the specified role and ID.
+   */
+  getPermissionsByRoleScope(roleScope: 'API' | 'APPLICATION' | 'CLUSTER', id: string): Observable<string[]> {
+    const cacheKey = `${roleScope}:${id}`;
+
+    if (this.roleScopePermissionsCache.has(cacheKey)) {
+      return this.roleScopePermissionsCache.get(cacheKey)!;
+    }
+
+    const mapToStringPermissions = (permissions: Record<string, ('C' | 'R' | 'U' | 'D')[] | string>): string[] => {
+      return Object.entries(permissions).flatMap(([key, crudValuesOrString]) => {
+        const crudValues = Array.isArray(crudValuesOrString) ? crudValuesOrString : crudValuesOrString.split('');
+        return crudValues.map((crudValue) => toLower(`${roleScope}-${key}-${crudValue}`));
+      });
+    };
+
+    let permissions$: Observable<string[]>;
+    switch (roleScope) {
+      case 'API':
+        permissions$ = this.apiService.getPermissions(id).pipe(map(mapToStringPermissions));
+        break;
+      case 'APPLICATION':
+        permissions$ = this.applicationService.getPermissions(id).pipe(map(mapToStringPermissions));
+        break;
+      case 'CLUSTER':
+        permissions$ = this.clusterMemberService.getPermissions(id).pipe(map(mapToStringPermissions));
+        break;
+      default:
+        permissions$ = of([]);
+    }
+
+    const shared$ = permissions$.pipe(shareReplay({ bufferSize: 1, refCount: false }));
+    this.roleScopePermissionsCache.set(cacheKey, shared$);
+    return shared$;
+  }
+
   // Set static permissions for tests
   _setPermissions(permissions: GioTestingPermission): void {
     this.permissions = permissions ?? [];
@@ -185,23 +247,18 @@ export class GioPermissionService {
     );
   }
 
-  hasPermissionsByScope(scope: RoleScope, permissions: string[]) {
-    switch (scope) {
-      case 'CLUSTER':
-        return intersection(this.currentClusterPermissions, permissions).length > 0;
-    }
-  }
-
   clearEnvironmentPermissions() {
     this.currentEnvironmentPermissions = [];
   }
 
   clearApiPermissions() {
     this.currentApiPermissions = [];
+    this.clearRoleScopePermissionsCache('API');
   }
 
   clearApplicationPermissions() {
     this.currentApplicationPermissions = [];
+    this.clearRoleScopePermissionsCache('APPLICATION');
   }
 
   clearIntegrationPermissions() {
@@ -210,6 +267,13 @@ export class GioPermissionService {
 
   clearClusterPermissions() {
     this.currentClusterPermissions = [];
+    this.clearRoleScopePermissionsCache('CLUSTER');
+  }
+
+  clearRoleScopePermissionsCache(scope: 'API' | 'APPLICATION' | 'CLUSTER') {
+    Array.from(this.roleScopePermissionsCache.keys())
+      .filter((key) => key.startsWith(`${scope}:`))
+      .forEach((key) => this.roleScopePermissionsCache.delete(key));
   }
 
   hasAllMatching(permissions: string[]): boolean {
