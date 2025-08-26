@@ -15,15 +15,20 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
+import io.gravitee.gateway.reactive.core.connection.DefaultConnectionDrainManager;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.reactor.processor.alert.AlertProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.connection.ConnectionDrainProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor;
@@ -67,9 +72,12 @@ class DefaultPlatformProcessorChainFactoryTest {
     @Mock
     private GatewayConfiguration gatewayConfiguration;
 
+    private ConnectionDrainManager connectionDrainManager;
+
     @BeforeEach
     public void setup() {
         lenient().when(transactionHandlerFactory.create()).thenReturn(mock(TransactionPreProcessor.class));
+        connectionDrainManager = new DefaultConnectionDrainManager();
     }
 
     @Nested
@@ -86,15 +94,17 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 false,
-                gatewayConfiguration
+                gatewayConfiguration,
+                connectionDrainManager
             );
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
-            assertEquals(4, processors.size());
-            assertTrue(processors.get(0) instanceof TransactionPreProcessor);
-            assertTrue(processors.get(1) instanceof MetricsProcessor);
-            assertTrue(processors.get(2) instanceof XForwardForProcessor);
-            assertTrue(processors.get(3) instanceof TraceContextProcessor);
+            assertEquals(5, processors.size());
+            assertInstanceOf(ConnectionDrainProcessor.class, processors.get(0));
+            assertInstanceOf(TransactionPreProcessor.class, processors.get(1));
+            assertInstanceOf(MetricsProcessor.class, processors.get(2));
+            assertInstanceOf(XForwardForProcessor.class, processors.get(3));
+            assertInstanceOf(TraceContextProcessor.class, processors.get(4));
         }
 
         @Test
@@ -108,14 +118,16 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 false,
-                gatewayConfiguration
+                gatewayConfiguration,
+                connectionDrainManager
             );
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
-            assertEquals(3, processors.size());
-            assertTrue(processors.get(0) instanceof TransactionPreProcessor);
-            assertTrue(processors.get(1) instanceof MetricsProcessor);
-            assertTrue(processors.get(2) instanceof XForwardForProcessor);
+            assertEquals(4, processors.size());
+            assertInstanceOf(ConnectionDrainProcessor.class, processors.get(0));
+            assertInstanceOf(TransactionPreProcessor.class, processors.get(1));
+            assertInstanceOf(MetricsProcessor.class, processors.get(2));
+            assertInstanceOf(XForwardForProcessor.class, processors.get(3));
         }
     }
 
@@ -133,7 +145,8 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 false,
-                gatewayConfiguration
+                gatewayConfiguration,
+                connectionDrainManager
             );
             when(eventProducer.isEmpty()).thenReturn(true);
 
@@ -155,7 +168,8 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 false,
-                gatewayConfiguration
+                gatewayConfiguration,
+                connectionDrainManager
             );
             when(eventProducer.isEmpty()).thenReturn(false);
 

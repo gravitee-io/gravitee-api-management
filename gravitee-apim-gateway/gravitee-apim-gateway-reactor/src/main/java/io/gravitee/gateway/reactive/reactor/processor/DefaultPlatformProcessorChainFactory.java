@@ -16,7 +16,9 @@
 package io.gravitee.gateway.reactive.reactor.processor;
 
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.core.processor.Processor;
+import io.gravitee.gateway.reactive.reactor.processor.connection.ConnectionDrainProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor;
@@ -37,6 +39,7 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
     private final boolean xForwardProcessor;
     private final boolean traceContext;
     private final GatewayConfiguration gatewayConfiguration;
+    private final ConnectionDrainManager connectionDrainManager;
 
     public DefaultPlatformProcessorChainFactory(
         TransactionPreProcessorFactory transactionHandlerFactory,
@@ -47,17 +50,20 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
         Node node,
         String port,
         boolean tracing,
-        GatewayConfiguration gatewayConfiguration
+        GatewayConfiguration gatewayConfiguration,
+        ConnectionDrainManager connectionDrainManager
     ) {
         super(transactionHandlerFactory, reporterService, eventProducer, node, port, tracing);
         this.traceContext = traceContext;
         this.xForwardProcessor = xForwardProcessor;
         this.gatewayConfiguration = gatewayConfiguration;
+        this.connectionDrainManager = connectionDrainManager;
     }
 
     @Override
     protected List<Processor> buildPreProcessorList() {
         List<Processor> preProcessorList = new ArrayList<>();
+        preProcessorList.add(new ConnectionDrainProcessor(connectionDrainManager));
         preProcessorList.add(transactionHandlerFactory.create());
         preProcessorList.add(new MetricsProcessor(gatewayConfiguration));
 

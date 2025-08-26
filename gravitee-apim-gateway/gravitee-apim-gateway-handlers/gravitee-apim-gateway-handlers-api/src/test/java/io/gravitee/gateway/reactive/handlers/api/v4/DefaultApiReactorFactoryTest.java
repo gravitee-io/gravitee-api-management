@@ -43,6 +43,8 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.impl.PolicyLoader;
+import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
+import io.gravitee.gateway.reactive.core.connection.DefaultConnectionDrainManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
@@ -155,8 +157,11 @@ class DefaultApiReactorFactoryTest {
     @Mock
     private LogGuardService logGuardService;
 
+    private ConnectionDrainManager connectionDrainManager;
+
     @BeforeEach
     void init() {
+        connectionDrainManager = new DefaultConnectionDrainManager();
         lenient().when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
         lenient().when(policyFactoryManager.get(any())).thenReturn(policyFactory);
         cut =
@@ -181,7 +186,8 @@ class DefaultApiReactorFactoryTest {
                 List.of(),
                 gatewayConfiguration,
                 dictionaryManager,
-                logGuardService
+                logGuardService,
+                connectionDrainManager
             );
     }
 

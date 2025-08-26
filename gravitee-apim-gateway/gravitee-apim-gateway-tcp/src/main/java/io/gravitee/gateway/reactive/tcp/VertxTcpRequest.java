@@ -70,6 +70,7 @@ public class VertxTcpRequest extends AbstractRequest {
         this.tlsSession = new DefaultTlsSession(this.sslSession);
         this.parameters = new LinkedMultiValueMap<>();
         this.pathParameters = new LinkedMultiValueMap<>();
+        this.connectionTimestamp = System.currentTimeMillis();
     }
 
     @Override
