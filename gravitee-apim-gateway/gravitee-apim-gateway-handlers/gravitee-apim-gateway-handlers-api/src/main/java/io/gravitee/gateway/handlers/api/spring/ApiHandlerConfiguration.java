@@ -42,6 +42,7 @@ import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
+import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.reactive.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
@@ -266,7 +267,8 @@ public class ApiHandlerConfiguration {
         @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
         GatewayConfiguration gatewayConfiguration,
         DictionaryManager dictionaryManager,
-        LogGuardService logGuardService
+        LogGuardService logGuardService,
+        ConnectionDrainManager connectionDrainManager
     ) {
         return new DefaultApiReactorFactory(
             applicationContext,
@@ -289,7 +291,8 @@ public class ApiHandlerConfiguration {
             instrumenterTracerFactories,
             gatewayConfiguration,
             dictionaryManager,
-            logGuardService
+            logGuardService,
+            connectionDrainManager
         );
     }
 

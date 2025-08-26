@@ -15,14 +15,18 @@
  */
 package io.gravitee.gateway.reactive.standalone.vertx;
 
+import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_CONNECTION_TIME;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
+import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
+import io.vertx.core.http.impl.HttpServerConnection;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.core.RxHelper;
 import io.vertx.rxjava3.core.http.HttpServer;
@@ -79,6 +83,10 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
                 // Listen and dispatch http requests.
                 return rxHttpServer
+                    .connectionHandler(connection -> {
+                        HttpServerConnection delegate = (HttpServerConnection) connection.getDelegate();
+                        delegate.channel().attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME)).set(System.currentTimeMillis());
+                    })
                     .requestHandler(request -> dispatchRequest(request, gioServer.id()))
                     .rxListen()
                     .ignoreElement()

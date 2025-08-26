@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
-import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.api.message.Message;
 
@@ -68,4 +67,14 @@ public interface HttpRequestInternal extends HttpRequest, OnMessagesInterceptor<
      * @return {@link HttpRequestInternal}.
      */
     HttpRequestInternal remoteAddress(final String remoteAddress);
+
+    /**
+     * Returns the timestamp indicating when the underlying connection associated with this request was established.
+     * <p>
+     * Note that connections may be persistent and reused across multiple requests (e.g., in HTTP keep-alive scenarios),
+     * so this timestamp reflects the creation time of the connection itself—not the time when this specific request was received.
+     *
+     * @return the timestamp (in milliseconds since the epoch) when the connection was established.
+     */
+    long connectionTimestamp();
 }

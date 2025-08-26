@@ -24,6 +24,7 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
+import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultEndpointManager;
 import io.gravitee.gateway.reactive.debug.handlers.api.DebugV4ApiReactor;
@@ -69,7 +70,8 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
         final EventManager eventManager,
         final HttpAcceptorFactory httpAcceptorFactory,
         final GatewayConfiguration gatewayConfiguration,
-        final DictionaryManager dictionaryManager
+        final DictionaryManager dictionaryManager,
+        final ConnectionDrainManager connectionDrainManager
     ) {
         super(
             applicationContext,
@@ -92,7 +94,8 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
             null,
             gatewayConfiguration,
             dictionaryManager,
-            null
+            null,
+            connectionDrainManager
         );
     }
 
@@ -117,7 +120,8 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
         ResourceLifecycleManager resourceLifecycleManager,
         FlowChainFactory flowChainFactory,
         io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory,
-        LogGuardService logGuardService
+        LogGuardService logGuardService,
+        ConnectionDrainManager connectionDrainManager
     ) {
         return new DebugV4ApiReactor(
             api,

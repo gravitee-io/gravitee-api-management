@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.http.vertx;
 
+import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_CONNECTION_TIME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -34,21 +35,23 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.gravitee.gateway.reactive.core.MessageFlow;
 import io.gravitee.gateway.reactive.core.context.OnMessagesInterceptor;
+import io.netty.channel.Channel;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import io.vertx.core.http.impl.HttpServerConnection;
+import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -91,7 +94,23 @@ class VertxHttpServerRequestTest {
 
         when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers());
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
+
+        mockConnectionCreationTimestamp();
+
         cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+    }
+
+    private void mockConnectionCreationTimestamp() {
+        HttpConnection httpConnection = mock(HttpConnection.class);
+        HttpServerConnection httpServerConnection = mock(HttpServerConnection.class);
+        Channel channel = mock(Channel.class);
+        Attribute attribute = mock(Attribute.class);
+
+        when(httpServerRequest.connection()).thenReturn(httpConnection);
+        when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
+        when(httpServerConnection.channel()).thenReturn(channel);
+        when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
+        when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
 
     @Nested
@@ -376,6 +395,8 @@ class VertxHttpServerRequestTest {
             reset(httpServerRequest);
             lenient().when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers());
             lenient().when(httpServerRequest.toFlowable()).thenReturn(Flowable.empty());
+
+            mockConnectionCreationTimestamp();
         }
 
         @Test
