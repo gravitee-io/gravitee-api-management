@@ -523,21 +523,7 @@ data:
       {{- end }}
 
       {{- if .Values.gateway.services.metrics }}
-      metrics:
-        enabled: {{ .Values.gateway.services.metrics.enabled }}
-        {{- if .Values.gateway.services.metrics.labels }}
-        labels:
-        {{- range .Values.gateway.services.metrics.labels }}
-        - {{ . }}
-        {{- end }}
-        {{- end }}
-        {{- if .Values.gateway.services.metrics.prometheus }}
-        prometheus:
-          enabled: {{ .Values.gateway.services.metrics.prometheus.enabled }}
-          {{- if .Values.gateway.services.metrics.prometheus.concurrencyLimit }}
-          concurrencyLimit: {{ .Values.gateway.services.metrics.prometheus.concurrencyLimit }}
-          {{- end }}
-        {{- end }}
+      metrics: {{- toYaml .Values.gateway.services.metrics | nindent 8 }}
       {{- end }}
 
       {{- if .Values.gateway.services.tracing.enabled }}
