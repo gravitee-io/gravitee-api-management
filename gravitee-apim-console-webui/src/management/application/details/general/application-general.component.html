@@ -23,7 +23,7 @@
           <div class="details-card__header__info-inputs__first-row">
             <mat-form-field class="details-card__header__info-inputs__first-row__name-field">
               <mat-label>Application name</mat-label>
-              <input formControlName="name" matInput type="text" maxlength="50" required />
+              <input formControlName="name" matInput type="text" maxlength="512" required />
               <mat-error *ngIf="applicationForm.get('details.name').hasError('required')">Application name is required. </mat-error>
             </mat-form-field>
           </div>
