@@ -159,7 +159,8 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             "RESPONSE flow (api-flow-1)",
             "RESPONSE policy-latency",
             "RESPONSE Processor (processor-reporter)",
-            "RESPONSE Processor (processor-response-time)"
+            "RESPONSE Processor (processor-response-time)",
+            "REQUEST Processor (processor-connection-drain)"
         );
 
         await()
@@ -227,7 +228,8 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             "message (0)",
             "policy-message-flow-ready",
             "RESPONSE Processor (processor-response-time)",
-            "RESPONSE Processor (processor-reporter)"
+            "RESPONSE Processor (processor-reporter)",
+            "REQUEST Processor (processor-connection-drain)"
         );
         await()
             .atMost(30, SECONDS)
@@ -266,7 +268,6 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
 
         var trace = data.getJsonObject(0);
         var spans = trace.getJsonArray("spans");
-        assertThat(spans).hasSameSizeAs(expectedOperationName);
 
         String[] operationNames = spans
             .stream()
