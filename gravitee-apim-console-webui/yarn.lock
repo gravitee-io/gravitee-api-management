@@ -3062,15 +3062,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-analytics@npm:15.5.0":
-  version: 15.5.0
-  resolution: "@gravitee/ui-analytics@npm:15.5.0"
+"@gravitee/ui-analytics@npm:15.7.1":
+  version: 15.7.1
+  resolution: "@gravitee/ui-analytics@npm:15.7.1"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
     "@angular/common": ^19.0.0
     "@angular/core": ^19.0.0
-  checksum: 10c0/bd0b9650604f2ef853c0ae492c24ba08b3937e52207d3c26a3b31af5e490a44a5c3bd207c2b8987a95bdeed780bf94cee985f1653996085ef1d57f603e3ec5ed
+  checksum: 10c0/4d28b5280ef324d15192a2f6c17b92af0c84b4f6cebc7f1e7f11e44188a0b8539478a48981b5915fccb72c708f2f41e141c4147a7d63164007c4db3d9d7b8aca
   languageName: node
   linkType: hard
 
@@ -3119,9 +3119,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:15.5.0":
-  version: 15.5.0
-  resolution: "@gravitee/ui-particles-angular@npm:15.5.0"
+"@gravitee/ui-particles-angular@npm:15.7.1-apim-8652-fix-monaco-parser-ca63e4c":
+  version: 15.7.1-apim-8652-fix-monaco-parser-ca63e4c
+  resolution: "@gravitee/ui-particles-angular@npm:15.7.1-apim-8652-fix-monaco-parser-ca63e4c"
   dependencies:
     "@fontsource/fira-mono": "npm:5.0.14"
     "@fontsource/kanit": "npm:^5.2.6"
@@ -3150,13 +3150,13 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/b8bbac26c0fbcd7a916730112d2808d349d94eec2a466967bbc63fa7caab47ab086c6a101455a5ed0d95515e37cf973fba9d62704208e66ac29ee26a92115217
+  checksum: 10c0/8c5d5b35a4a809373b4f7d2889f59d4531e163338388ce2f47117afff829525e1f4d77e20034f3eac9740a3bf2a5304e3bddb08ef3740727b8b536b47b848d70
   languageName: node
   linkType: hard
 
-"@gravitee/ui-policy-studio-angular@npm:15.5.0":
-  version: 15.5.0
-  resolution: "@gravitee/ui-policy-studio-angular@npm:15.5.0"
+"@gravitee/ui-policy-studio-angular@npm:15.7.1-apim-8652-fix-monaco-parser-ca63e4c":
+  version: 15.7.1-apim-8652-fix-monaco-parser-ca63e4c
+  resolution: "@gravitee/ui-policy-studio-angular@npm:15.7.1-apim-8652-fix-monaco-parser-ca63e4c"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -3169,19 +3169,19 @@ __metadata:
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
     ngx-markdown: ^19.1.1
-  checksum: 10c0/956b60f16fe222d67bd9e00e128d52d0b2811e87cfef16f0eec63bae67a5e819ef2313436cbe60062e6fb927386501241fd1bebfb0298df796398e052a431494
+  checksum: 10c0/21ce2114049841e70a15eee820c273439003d366ae492c832710e29e884d4a1e6cf3c57472d29ea84967b3ce496366c79334fbae2a6181295a2d76af1e9622af
   languageName: node
   linkType: hard
 
-"@gravitee/ui-schematics@npm:15.5.0":
-  version: 15.5.0
-  resolution: "@gravitee/ui-schematics@npm:15.5.0"
+"@gravitee/ui-schematics@npm:15.7.1-apim-8652-fix-monaco-parser-ca63e4c":
+  version: 15.7.1-apim-8652-fix-monaco-parser-ca63e4c
+  resolution: "@gravitee/ui-schematics@npm:15.7.1-apim-8652-fix-monaco-parser-ca63e4c"
   dependencies:
     tslib: "npm:^2.6.3"
   peerDependencies:
     "@angular/common": ^17.2.0
     "@angular/core": ^17.2.0
-  checksum: 10c0/e2611163ad962eb7429a602d451234abc2ba74deb5d1d94a9f8ad8c8a8f92be58846377f85b8f019437bc888af72bff13e5a671aa4c554712a2c46113bde22d2
+  checksum: 10c0/53184590e2d31135d574770192ed003a49e3ec10f7b6061288ca88a7a58b6a48ab9363a4bbfcf061156558df497817a0222d53f3474fb6f8bd59a319442347e0
   languageName: node
   linkType: hard
 
@@ -12117,11 +12117,11 @@ __metadata:
     "@danielmoncada/angular-datetime-picker": "npm:19.0.0"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:6.0.2"
     "@fontsource/libre-franklin": "npm:4.5.11"
-    "@gravitee/ui-analytics": "npm:15.5.0"
+    "@gravitee/ui-analytics": "npm:15.7.1"
     "@gravitee/ui-components": "npm:4.4.0"
-    "@gravitee/ui-particles-angular": "npm:15.5.0"
-    "@gravitee/ui-policy-studio-angular": "npm:15.5.0"
-    "@gravitee/ui-schematics": "npm:15.5.0"
+    "@gravitee/ui-particles-angular": "npm:15.7.1-apim-8652-fix-monaco-parser-ca63e4c"
+    "@gravitee/ui-policy-studio-angular": "npm:15.7.1-apim-8652-fix-monaco-parser-ca63e4c"
+    "@gravitee/ui-schematics": "npm:15.7.1-apim-8652-fix-monaco-parser-ca63e4c"
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.12"
     "@ngx-formly/material": "npm:6.3.12"
