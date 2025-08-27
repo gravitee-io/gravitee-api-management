@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.offset;
 import static org.assertj.core.api.Assertions.withPrecision;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.query.stats.EventAnalyticsQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.analytics.Aggregation;
@@ -65,6 +66,7 @@ import java.util.function.DoublePredicate;
 import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.SoftAssertions;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -1055,6 +1057,105 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                         .hasFieldOrPropertyWithValue("remoteAddress", "127.0.0.1")
                         .hasFieldOrPropertyWithValue("method", HttpMethod.GET)
                 );
+        }
+    }
+
+    @Nested
+    class EventAnalytics {
+
+        private static final String NATIVE_API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
+
+        @Test
+        void should_search_top_value_hits_for_active_connections() {
+            Aggregation agg1 = new Aggregation("downstream-active-connections", AggregationType.VALUE);
+            Aggregation agg2 = new Aggregation("upstream-active-connections", AggregationType.VALUE);
+
+            var result = cut.searchEventAnalytics(new QueryContext("DEFAULT", "DEFAULT"), buildEventAnalyticsQuery(List.of(agg1, agg2)));
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-active-connections_latest");
+                    assertThat(data).containsKey("upstream-active-connections_latest");
+                    assertThat(data.get("downstream-active-connections_latest")).containsKey("downstream-active-connections");
+                    assertThat(data.get("downstream-active-connections_latest").get("downstream-active-connections")).isEqualTo(56L);
+                    assertThat(data.get("upstream-active-connections_latest")).containsKey("upstream-active-connections");
+                    assertThat(data.get("upstream-active-connections_latest").get("upstream-active-connections")).isEqualTo(56L);
+                });
+        }
+
+        @Test
+        void should_search_top_value_hits_for_total_messages_consumed() {
+            Aggregation agg1 = new Aggregation("downstream-subscribe-messages-total", AggregationType.VALUE);
+            Aggregation agg2 = new Aggregation("upstream-subscribe-messages-total", AggregationType.VALUE);
+            Aggregation agg3 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.VALUE);
+            Aggregation agg4 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.VALUE);
+
+            var result = cut.searchEventAnalytics(
+                new QueryContext("DEFAULT", "DEFAULT"),
+                buildEventAnalyticsQuery(List.of(agg1, agg2, agg3, agg4))
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-subscribe-messages-total_latest");
+                    assertThat(data).containsKey("upstream-subscribe-messages-total_latest");
+                    assertThat(data).containsKey("downstream-subscribe-message-bytes_latest");
+                    assertThat(data).containsKey("upstream-subscribe-message-bytes_latest");
+                    assertThat(data.get("downstream-subscribe-messages-total_latest")).containsKey("downstream-subscribe-messages-total");
+                    assertThat(data.get("downstream-subscribe-messages-total_latest").get("downstream-subscribe-messages-total"))
+                        .isEqualTo(10L);
+                    assertThat(data.get("downstream-subscribe-message-bytes_latest")).containsKey("downstream-subscribe-message-bytes");
+                    assertThat(data.get("downstream-subscribe-message-bytes_latest").get("downstream-subscribe-message-bytes"))
+                        .isEqualTo(48237L);
+                    assertThat(data.get("upstream-subscribe-messages-total_latest")).containsKey("upstream-subscribe-messages-total");
+                    assertThat(data.get("upstream-subscribe-messages-total_latest").get("upstream-subscribe-messages-total"))
+                        .isEqualTo(10L);
+                    assertThat(data.get("upstream-subscribe-message-bytes_latest")).containsKey("upstream-subscribe-message-bytes");
+                    assertThat(data.get("upstream-subscribe-message-bytes_latest").get("upstream-subscribe-message-bytes"))
+                        .isEqualTo(8739L);
+                });
+        }
+
+        @Test
+        void should_search_top_value_hits_for_total_messages_produced() {
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.VALUE);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.VALUE);
+            Aggregation agg3 = new Aggregation("downstream-publish-message-bytes", AggregationType.VALUE);
+            Aggregation agg4 = new Aggregation("upstream-publish-message-bytes", AggregationType.VALUE);
+
+            var result = cut.searchEventAnalytics(
+                new QueryContext("DEFAULT", "DEFAULT"),
+                buildEventAnalyticsQuery(List.of(agg1, agg2, agg3, agg4))
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-publish-messages-total_latest");
+                    assertThat(data).containsKey("upstream-publish-messages-total_latest");
+                    assertThat(data).containsKey("downstream-publish-message-bytes_latest");
+                    assertThat(data).containsKey("upstream-publish-message-bytes_latest");
+                    assertThat(data.get("downstream-publish-messages-total_latest")).containsKey("downstream-publish-messages-total");
+                    assertThat(data.get("downstream-publish-messages-total_latest").get("downstream-publish-messages-total"))
+                        .isEqualTo(121L);
+                    assertThat(data.get("downstream-publish-message-bytes_latest")).containsKey("downstream-publish-message-bytes");
+                    assertThat(data.get("downstream-publish-message-bytes_latest").get("downstream-publish-message-bytes"))
+                        .isEqualTo(2132911L);
+                    assertThat(data.get("upstream-publish-messages-total_latest")).containsKey("upstream-publish-messages-total");
+                    assertThat(data.get("upstream-publish-messages-total_latest").get("upstream-publish-messages-total")).isEqualTo(1321L);
+                    assertThat(data.get("upstream-publish-message-bytes_latest")).containsKey("upstream-publish-message-bytes");
+                    assertThat(data.get("upstream-publish-message-bytes_latest").get("upstream-publish-message-bytes"))
+                        .isEqualTo(18921229L);
+                });
+        }
+
+        private static @NotNull EventAnalyticsQuery buildEventAnalyticsQuery(List<@NotNull Aggregation> aggregations) {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofSeconds(12 * 60 * 60));
+
+            return new EventAnalyticsQuery(NATIVE_API_ID, new TimeRange(from, now), aggregations);
         }
     }
 }

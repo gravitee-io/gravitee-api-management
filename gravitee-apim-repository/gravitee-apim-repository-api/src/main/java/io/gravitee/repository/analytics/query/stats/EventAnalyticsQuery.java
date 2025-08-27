@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.model.analytics;
+package io.gravitee.repository.analytics.query.stats;
 
-public enum AggregationType {
-    FIELD,
-    AVG,
-    MIN,
-    MAX,
-    VALUE,
-}
+import io.gravitee.repository.log.v4.model.analytics.Aggregation;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
+import jakarta.validation.constraints.NotNull;
+import java.util.List;
+
+public record EventAnalyticsQuery(@NotNull String apiId, @NotNull TimeRange timeRange, @NotNull List<Aggregation> aggregations) {}

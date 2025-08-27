@@ -17,6 +17,7 @@ package io.gravitee.apim.core.analytics.query_service;
 
 import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
@@ -106,6 +107,8 @@ public interface AnalyticsQueryService {
 
     Optional<ApiMetricsDetail> findApiMetricsDetail(ExecutionContext executionContext, String apiId, String requestId);
 
+    Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, EventAnalyticsParams params);
+
     record CountQuery(SearchTermId searchTermId, Instant from, Instant to, Optional<String> query) {}
 
     record HistogramQuery(
@@ -171,4 +174,6 @@ public interface AnalyticsQueryService {
             this.versions = versions == null || versions.isEmpty() ? List.of(DefinitionVersion.V4) : versions;
         }
     }
+
+    record EventAnalyticsParams(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
 }

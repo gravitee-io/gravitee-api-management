@@ -15,7 +15,10 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
@@ -78,5 +81,23 @@ class TimeRangeAdapterTest {
             Optional.empty()
         );
         assertThrows(IllegalArgumentException.class, () -> TimeRangeAdapter.createTimestampAggregationNode(query));
+    }
+
+    @Test
+    void shouldCreateRangeFilterNode() {
+        Instant from = Instant.parse("2025-07-01T00:00:00Z");
+        Instant to = Instant.parse("2025-07-02T00:00:00Z");
+        Duration interval = Duration.ofHours(1);
+        TimeRange timeRange = new TimeRange(from, to, Optional.of(interval));
+
+        ObjectNode node = TimeRangeAdapter.createRangeFilterNode(timeRange);
+
+        assertNotNull(node);
+        assertTrue(node.has("range"));
+        ObjectNode range = (ObjectNode) node.get("range");
+        assertTrue(range.has("@timestamp"));
+        ObjectNode ts = (ObjectNode) range.get("@timestamp");
+        assertEquals(from.toEpochMilli(), ts.get("gte").asLong());
+        assertEquals(to.toEpochMilli(), ts.get("lte").asLong());
     }
 }
