@@ -34,9 +34,16 @@ const ApiCreationStep1Component: ng.IComponentOptions = {
       private isLoading = false; // to prevent repititive call at once
       private hasLoadedOnce = false;
       public hasMoreGroups = true;
+      public useGroupAsPrimaryOwner = false;
 
       constructor(private ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService) {
         this.advancedMode = false;
+      }
+
+      $onInit() {
+        if (this.ApiPrimaryOwnerModeService.isGroupOnly()) {
+          this.useGroupAsPrimaryOwner = true; // auto-enable select for group-only mode
+        }
       }
 
       toggleAdvancedMode = () => {
