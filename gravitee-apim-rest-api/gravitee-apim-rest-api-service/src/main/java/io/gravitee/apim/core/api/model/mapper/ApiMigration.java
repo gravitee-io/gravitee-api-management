@@ -49,6 +49,7 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.SslOptions;
@@ -125,7 +126,7 @@ class ApiMigration {
             api.setTags(apiDefinitionV2.getTags());
             api.setType(ApiType.PROXY);
             api.setProperties(mapProperties(apiDefinitionV2.getProperties()));
-            api.setResources(List.of()); // TODO apiDefinitionV2.getResources());
+            api.setResources(mapResources(apiDefinitionV2.getResources()));
             api.setFlowExecution(mapFlowExecution(apiDefinitionV2.getFlowMode()));
             return api;
         });
@@ -176,6 +177,14 @@ class ApiMigration {
         return properties == null
             ? null
             : stream(properties.getProperties()).map(a -> new Property(a.getKey(), a.getValue(), a.isEncrypted(), a.isDynamic())).toList();
+    }
+
+    private List<Resource> mapResources(List<io.gravitee.definition.model.plugins.resources.Resource> resources) {
+        return stream(resources).map(this::toV4Resource).toList();
+    }
+
+    private Resource toV4Resource(io.gravitee.definition.model.plugins.resources.Resource resource) {
+        return new Resource(resource.getName(), resource.getType(), resource.getConfiguration(), resource.isEnabled());
     }
 
     private FlowExecution mapFlowExecution(FlowMode flowMode) {
