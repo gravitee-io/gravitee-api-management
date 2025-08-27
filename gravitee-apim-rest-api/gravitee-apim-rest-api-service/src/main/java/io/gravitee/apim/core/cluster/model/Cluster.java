@@ -17,6 +17,7 @@ package io.gravitee.apim.core.cluster.model;
 
 import io.gravitee.common.utils.TimeProvider;
 import java.time.Instant;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,6 +37,7 @@ public class Cluster {
     private String name;
     private String description;
     private Object configuration;
+    private Set<String> groups;
 
     public void update(UpdateCluster updateCluster) {
         this.updatedAt = TimeProvider.instantNow();

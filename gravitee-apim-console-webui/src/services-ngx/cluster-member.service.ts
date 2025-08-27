@@ -52,4 +52,8 @@ export class ClusterMemberService {
   deleteMember(clusterId: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/members/${memberId}`);
   }
+
+  transferOwnership(clusterId: string): Observable<any> {
+    return this.http.post(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/_transfer-ownership`, {});
+  }
 }

@@ -17,25 +17,32 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
-import static org.springframework.util.CollectionUtils.isEmpty;
+import static java.lang.String.format;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Cluster;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
@@ -43,8 +50,11 @@ import org.springframework.util.CollectionUtils;
 @Repository
 public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, String> implements ClusterRepository {
 
+    private final String API_GROUPS;
+
     JdbcClusterRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "clusters");
+        API_GROUPS = getTableNameFor("cluster_groups");
     }
 
     @Override
@@ -65,6 +75,82 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("definition", Types.NVARCHAR, String.class)
             .build();
+    }
+
+    private class Rm implements RowMapper<Cluster> {
+
+        @Override
+        public Cluster mapRow(ResultSet rs, int i) throws SQLException {
+            Cluster cluster = new Cluster();
+            getOrm().setFromResultSet(cluster, rs);
+            addGroups(cluster);
+            return cluster;
+        }
+    }
+
+    private final Rm mapper = new Rm();
+
+    @Override
+    public Optional<Cluster> findById(String id) throws TechnicalException {
+        log.debug("JdbcApplicationRepository.findById({})", id);
+        try {
+            return jdbcTemplate.query(
+                    "select * from " + this.tableName + " where id = ?",
+                    mapper,
+                    id
+            ).stream().findFirst();
+        } catch (final Exception ex) {
+            log.error("Failed to find application by id:", ex);
+            throw new TechnicalException("Failed to find application by id", ex);
+        }
+    }
+
+
+    @Override
+    public Cluster create(Cluster item) throws TechnicalException {
+        log.debug("JdbcApiRepository.create({})", item);
+        try {
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
+            storeGroups(item, false);
+            return findById(item.getId()).orElse(null);
+        } catch (final Exception ex) {
+            log.error("Failed to create api:", ex);
+            throw new TechnicalException("Failed to create api", ex);
+        }
+    }
+
+
+
+    @Override
+    public Cluster update(final Cluster application) throws TechnicalException {
+        log.debug("JdbcApplicationRepository.update({})", application);
+        if (application == null) {
+            throw new IllegalStateException("Failed to update null");
+        }
+        try {
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(application, application.getId()));
+            storeGroups(application, true);
+            return findById(application.getId())
+                    .orElseThrow(() -> new IllegalStateException(format("No application found with id [%s]", application.getId())));
+        } catch (final IllegalStateException ex) {
+            throw ex;
+        } catch (final Exception ex) {
+            log.error("Failed to update application", ex);
+            throw new TechnicalException("Failed to update application", ex);
+        }
+    }
+
+    private void storeGroups(Cluster api, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update("delete from " + API_GROUPS + " where cluster_id = ?", api.getId());
+        }
+        List<String> filteredGroups = getOrm().filterStrings(api.getGroups());
+        if (!filteredGroups.isEmpty()) {
+            jdbcTemplate.batchUpdate(
+                    "insert into " + API_GROUPS + " ( cluster_id, group_id ) values ( ?, ? )",
+                    getOrm().getBatchStringSetter(api.getId(), filteredGroups)
+            );
+        }
     }
 
     @Override
@@ -99,7 +185,7 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
         final String sortOrder = sortable.order().name();
         final String sortField = toSnakeCase(sortable.field());
 
-        var result = jdbcTemplate.query(
+        List<Cluster> result = jdbcTemplate.query(
             getOrm().getSelectAllSql() +
             " WHERE " +
             andWhere +
@@ -113,6 +199,17 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
             andWhereParams.toArray()
         );
 
+        result.forEach(this::addGroups);
+
         return new Page<>(result, pageable.pageNumber(), result.size(), total);
+    }
+
+    private void addGroups(Cluster cluster) {
+        List<String> groups = getGroups(cluster.getId());
+        cluster.setGroups(new HashSet<>(groups));
+    }
+
+    private List<String> getGroups(String clusterId) {
+        return jdbcTemplate.queryForList("select group_id from " + API_GROUPS + " where cluster_id = ?", String.class, clusterId);
     }
 }

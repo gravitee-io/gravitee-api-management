@@ -40,9 +40,15 @@ import { GioPermissionModule } from 'src/shared/components/gio-permission/gio-pe
 import { GioTableWrapperModule } from 'src/shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioFormUserAutocompleteModule } from 'src/shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
 import { GioUsersSelectorModule } from 'src/shared/components/gio-users-selector/gio-users-selector.module';
+import { ClusterTransferOwnershipComponent } from './transfer-ownership/cluster-transfer-ownership.component';
+import { ClusterManageGroupsComponent } from './manage-groups/cluster-manage-groups.component';
+import { ClusterGroupMembersComponent } from './group-members/cluster-group-members.component';
 
 @NgModule({
-  declarations: [ClusterUserPermissionsComponent],
+  declarations: [ClusterUserPermissionsComponent,
+    ClusterTransferOwnershipComponent,
+    ClusterManageGroupsComponent,
+    ClusterGroupMembersComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,

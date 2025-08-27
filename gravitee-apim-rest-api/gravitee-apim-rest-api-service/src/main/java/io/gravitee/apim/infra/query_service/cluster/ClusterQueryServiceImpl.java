@@ -17,25 +17,15 @@ package io.gravitee.apim.infra.query_service.cluster;
 
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
-import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.infra.adapter.ClusterAdapter;
-import io.gravitee.apim.infra.adapter.SharedPolicyGroupAdapter;
-import io.gravitee.apim.infra.query_service.shared_policy_group.SharedPolicyGroupQueryServiceImpl;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClusterRepository;
-import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
-import io.gravitee.repository.management.api.search.SharedPolicyGroupCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import java.util.Optional;
-import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 

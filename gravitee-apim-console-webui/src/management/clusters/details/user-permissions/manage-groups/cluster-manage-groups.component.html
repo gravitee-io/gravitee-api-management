@@ -1,0 +1,33 @@
+<div class="api-portal-access-groups">
+    <div class="api-portal-access-groups__header">
+      <div class="api-portal-access-groups__header__title">Manage groups</div>
+      <div class="api-portal-access-groups__header__subtitle">Give groups access to your API through the API Management console</div>
+    </div>
+  
+      <div class="api-portal-access-groups__body">
+        <mat-form-field>
+          <mat-label>Groups</mat-label>
+          <mat-select [formControl]="groupsControl" multiple>
+            <mat-option *ngFor="let group of groups" [value]="group.id">{{ group.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <ng-template #readOnlyGroups>
+          <div class="mat-h4">Groups</div>
+          <div class="api-portal-access-groups__body__read-only-groups">
+            <div class="mat-subtitle-2">Associated groups</div>
+            <span></span>
+          </div>
+        </ng-template>
+      </div>
+  
+      <div class="api-portal-access-groups__actions">
+        <button
+          color="primary"
+          aria-label="Save api groups"
+          mat-raised-button
+          (click)="save()"
+        >
+          Save
+        </button>
+      </div>
+  </div>

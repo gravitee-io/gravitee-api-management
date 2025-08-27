@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -28,9 +28,21 @@ import { RoleService } from 'src/services-ngx/role.service';
 import { SnackBarService } from 'src/services-ngx/snack-bar.service';
 import { UsersService } from 'src/services-ngx/users.service';
 import { GioPermissionService } from 'src/shared/components/gio-permission/gio-permission.service';
-import { GioUsersSelectorComponent, GioUsersSelectorData } from 'src/shared/components/gio-users-selector/gio-users-selector.component';
+import {
+  GioUsersSelectorComponent,
+  GioUsersSelectorData,
+} from 'src/shared/components/gio-users-selector/gio-users-selector.component';
 import { Member } from '../../../../entities/management-api-v2';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { Group } from '../../../../entities/group/group';
+import { GroupData } from '../../../../permissions/model/group-data';
+import { ClustersService } from '../../../../services-ngx/clusters.service';
+import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
+import { ClusterTransferOwnershipComponent } from './transfer-ownership/cluster-transfer-ownership.component';
+import { TransferOwnershipDialogData } from '../../../../permissions/model/transfer-ownership-dialog-data';
+import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+import { switchMap } from 'rxjs/operators';
+import { ClusterManageGroupsComponent } from './manage-groups/cluster-manage-groups.component';
 
 @Component({
   selector: 'cluster-user-permissions',
@@ -48,6 +60,8 @@ export class ClusterUserPermissionsComponent implements OnInit {
   membersToAdd: (Member & { _viewId: string; reference: string })[] = [];
   defaultRole?: Role;
   roles: Role[];
+  groups: Group[];
+  groupData: GroupData[];
 
   private members: Member[];
 
@@ -64,6 +78,8 @@ export class ClusterUserPermissionsComponent implements OnInit {
     private readonly clusterMemberService: ClusterMemberService,
     private readonly userService: UsersService,
     private readonly roleService: RoleService,
+    private readonly clusterService: ClustersService,
+    private readonly groupService: GroupV2Service,
     private readonly snackBarService: SnackBarService,
     public readonly activatedRoute: ActivatedRoute,
   ) {}
@@ -77,14 +93,25 @@ export class ClusterUserPermissionsComponent implements OnInit {
   }
 
   private getMembersWithPagination(page = 1, perPage = 10): void {
-    forkJoin([this.clusterMemberService.getMembers(this.clusterId, page, perPage), this.roleService.list('CLUSTER')])
+    forkJoin([
+      this.clusterMemberService.getMembers(this.clusterId, page, perPage),
+      this.roleService.list('CLUSTER'),
+      this.clusterService.get(this.clusterId),
+      this.groupService.list(1, 9999),
+    ])
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        tap(([members, roles]) => {
+        tap(([members, roles, cluster, groups]) => {
           this.members = members.data;
           this.membersTableLength = members.pagination.totalCount;
           this.roleNames = roles.map((r) => r.name) ?? [];
           this.defaultRole = roles.find((role) => role.default);
+          this.groups = groups.data;
+          this.groupData = cluster.groups?.map((id) => ({
+              id,
+              name: groups.data.find((g) => g.id === id)?.name,
+              isVisible: true,
+            }));
           this.initDataSource();
           this.initForm();
         }),
@@ -122,6 +149,52 @@ export class ClusterUserPermissionsComponent implements OnInit {
 
   public get canAddMembers() {
     return this.permissionService.hasPermissionsByScope('CLUSTER', ['cluster-member-c']);
+  }
+
+  public get canTransferOwnership() {
+    return this.permissionService.hasPermissionsByScope('CLUSTER', ['cluster-member-u']);
+  }
+
+  public transferOwnership() {
+    this.matDialog
+      .open<ClusterTransferOwnershipComponent, TransferOwnershipDialogData>(ClusterTransferOwnershipComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'alertdialog',
+        id: 'transferOwnershipDialog',
+        data: {
+          groups: this.groups,
+          roles: this.roles,
+          members: this.members,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap(() => {
+          return this.clusterMemberService.transferOwnership(
+            this.clusterId,
+          );
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
+  public get canManageGroups() {
+    return this.permissionService.hasPermissionsByScope('CLUSTER', ['cluster-member-u']);
+  }
+
+  public updateGroups() {
+    this.matDialog
+      .open<ClusterManageGroupsComponent>(ClusterManageGroupsComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'alertdialog',
+        id: 'addGroupsDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 
   public addMembers() {

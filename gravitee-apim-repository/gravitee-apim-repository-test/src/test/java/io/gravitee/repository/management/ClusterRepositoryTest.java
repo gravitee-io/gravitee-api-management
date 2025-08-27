@@ -30,6 +30,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Test;
 
 public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
@@ -50,7 +51,8 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
             () -> assertThat(cluster.getOrganizationId()).isEqualTo("org-1"),
             () -> assertThat(cluster.getName()).isEqualTo("cluster-1"),
             () -> assertThat(cluster.getDescription()).isEqualTo("The cluster no 1"),
-            () -> assertThat(cluster.getDefinition()).isEqualTo("Cluster 1 definition")
+            () -> assertThat(cluster.getDefinition()).isEqualTo("Cluster 1 definition"),
+            () -> assertThat(cluster.getGroups()).containsExactlyInAnyOrder("group1", "group2")
         );
     }
 
@@ -67,6 +69,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
             .name("my-cluster")
             .description("My cluster description")
             .definition("definition")
+                .groups(Set.of("group-1", "group-2"))
             .build();
 
         final Cluster createdCluster = clusterRepository.create(cluster);
@@ -79,7 +82,8 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
             () -> assertThat(createdCluster.getOrganizationId()).isEqualTo(cluster.getOrganizationId()),
             () -> assertThat(createdCluster.getName()).isEqualTo(cluster.getName()),
             () -> assertThat(createdCluster.getDescription()).isEqualTo(cluster.getDescription()),
-            () -> assertThat(createdCluster.getDefinition()).isEqualTo(cluster.getDefinition())
+            () -> assertThat(createdCluster.getDefinition()).isEqualTo(cluster.getDefinition()),
+            () -> assertThat(createdCluster.getGroups()).containsExactlyInAnyOrder("group-1", "group-2")
         );
     }
 
@@ -95,6 +99,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
             .environmentId("org-1")
             .name("new-cluster-1")
             .description("New description for the cluster no 1")
+                .groups(Set.of("group-1", "group-2"))
             .build();
 
         Cluster update = clusterRepository.update(toUpdate);
@@ -107,7 +112,8 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
             () -> assertThat(update.getOrganizationId()).isEqualTo(toUpdate.getOrganizationId()),
             () -> assertThat(update.getName()).isEqualTo(toUpdate.getName()),
             () -> assertThat(update.getDescription()).isEqualTo(toUpdate.getDescription()),
-            () -> assertThat(update.getDefinition()).isNull()
+            () -> assertThat(update.getDefinition()).isNull(),
+            () -> assertThat(update.getGroups()).containsExactlyInAnyOrder("group-1", "group-2")
         );
     }
 

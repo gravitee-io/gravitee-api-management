@@ -23,7 +23,7 @@ import { Constants } from '../entities/Constants';
 @Injectable({
   providedIn: 'root',
 })
-export class ClustersService {
+export class ClusterService {
   private readonly http = inject(HttpClient);
   private readonly constants = inject(Constants);
 

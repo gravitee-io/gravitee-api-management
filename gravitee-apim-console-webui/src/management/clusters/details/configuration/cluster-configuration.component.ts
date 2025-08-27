@@ -28,7 +28,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import securityJsonSchema from './security-schema-form.json';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { ClustersService } from '../../../../services-ngx/clusters.service';
+import { ClusterService } from '../../../../services-ngx/clusters.service';
 import { Cluster, UpdateCluster } from '../../../../entities/management-api-v2';
 
 @Component({
@@ -61,12 +61,12 @@ export class ClusterConfigurationComponent implements OnInit {
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly activatedRoute = inject(ActivatedRoute);
-  private readonly clustersService = inject(ClustersService);
+  private readonly clusterService = inject(ClusterService);
   private readonly snackBarService = inject(SnackBarService);
 
   public ngOnInit() {
     this.isLoadingData = true;
-    this.clustersService
+    this.clusterService
       .get(this.activatedRoute.snapshot.params.clusterId)
       .pipe(
         tap((cluster) => {
@@ -98,7 +98,7 @@ export class ClusterConfigurationComponent implements OnInit {
       },
     };
 
-    this.clustersService
+    this.clusterService
       .update(this.initialCluster.id, configToUpdate)
       .pipe(
         tap(() => this.snackBarService.success('Cluster configuration successfully updated!')),

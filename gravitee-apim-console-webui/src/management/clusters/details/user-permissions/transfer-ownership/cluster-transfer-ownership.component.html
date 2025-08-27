@@ -1,0 +1,57 @@
+
+<div class="transfer-ownership">
+
+    <div class="transfer-ownership__header">
+      <div>
+        <div class="transfer-ownership__header__title">Transfer ownership</div>
+        <div class="transfer-ownership__header__subtitle">Transfer ownership and grant access to your API to another user</div>
+      </div>
+    </div>
+  
+    <form [formGroup]="form" *ngIf="form" (ngSubmit)="onSubmit()">
+
+  <ng-container>
+    <p>Select your preferred method for granting complete API access</p>
+    <mat-button-toggle-group
+      aria-label="Select User or Group"
+      class="transfer-ownership__body__userOrGroup__toggle-group"
+      formControlName="transferMode"
+    >
+      <mat-button-toggle class="transfer-ownership__body__userOrGroup__toggle-group__toggle" value="ENTITY_MEMBER">
+        Cluster member
+      </mat-button-toggle>
+      <mat-button-toggle class="transfer-ownership__body__userOrGroup__toggle-group__toggle" value="OTHER_USER"> Other user </mat-button-toggle>
+      <mat-button-toggle class="transfer-ownership__body__userOrGroup__toggle-group__toggle" value="PRIMARY_OWNER_GROUP">
+        Primary owner group
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  </ng-container>
+
+  <div class="transfer-ownership__body__userOrGroup" *ngIf="form.get('transferMode').value === 'ENTITY_MEMBER'">
+    <mat-form-field class="transfer-ownership__body__userOrGroup__field">
+      <mat-label>Select Cluster member</mat-label>
+      <mat-select formControlName="user">
+        <mat-option *ngFor="let member of entityMembers" [value]="member">{{ member.displayName }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="transfer-ownership__body__userOrGroup" *ngIf="form.get('transferMode').value === 'OTHER_USER'">
+    <gio-form-user-autocomplete class="transfer-ownership__body__userOrGroup__field" formControlName="user"></gio-form-user-autocomplete>
+  </div>
+
+  <div class="transfer-ownership__body__userOrGroup" *ngIf="form.get('transferMode').value === 'PRIMARY_OWNER_GROUP'">
+    <mat-form-field class="transfer-ownership__body__userOrGroup__field">
+      <mat-label>Select a primary owner group</mat-label>
+      <mat-select formControlName="groupId">
+        <mat-option *ngFor="let group of poGroups" [value]="group.id">{{ group.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="transfer-ownership__actions">
+    <button mat-raised-button color="primary" [disabled]="!form.valid">Transfer</button>
+  </div>
+
+</form>
+</div>

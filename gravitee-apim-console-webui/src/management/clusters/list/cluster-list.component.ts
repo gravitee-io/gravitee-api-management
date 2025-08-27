@@ -39,7 +39,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { ClustersService } from '../../../services-ngx/clusters.service';
+import { ClusterService } from '../../../services-ngx/clusters.service';
 import { ClustersSortByParam } from '../../../entities/management-api-v2';
 
 type PageTableVM = {
@@ -74,7 +74,7 @@ type PageTableVM = {
   standalone: true,
 })
 export class ClusterListComponent implements OnInit {
-  private readonly clustersService = inject(ClustersService);
+  private readonly clusterService = inject(ClusterService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
@@ -96,7 +96,6 @@ export class ClusterListComponent implements OnInit {
     isLoading: true,
   });
 
-  // TODO: When permissions are implemented
   protected isReadOnly = false;
 
   ngOnInit(): void {
@@ -105,7 +104,7 @@ export class ClusterListComponent implements OnInit {
         debounceTime(200),
         tap(() => this.pageTableVM$.next({ items: [], totalItems: 0, isLoading: true })),
         switchMap(() =>
-          this.clustersService.list(
+          this.clusterService.list(
             this.filters.searchTerm,
             toClustersSortByParam(this.filters.sort),
             this.filters.pagination.index,
@@ -154,7 +153,7 @@ export class ClusterListComponent implements OnInit {
             return EMPTY;
           }
 
-          return this.clustersService.create({
+          return this.clusterService.create({
             name: result.name,
             description: result.description,
             configuration: {
@@ -194,7 +193,7 @@ export class ClusterListComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.clustersService.delete(cluster.id)),
+        switchMap(() => this.clusterService.delete(cluster.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;

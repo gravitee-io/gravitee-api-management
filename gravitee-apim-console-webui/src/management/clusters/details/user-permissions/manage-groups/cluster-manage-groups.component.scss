@@ -1,0 +1,45 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../../scss/gio-layout' as gio-layout;
+$typography: map.get(gio.$mat-theme, typography);
+
+.api-portal-access-groups {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  margin: 20px;
+
+  &__header {
+    margin-bottom: 24px;
+
+    &__title {
+      @include mat.m2-typography-level($typography, headline-6);
+    }
+
+    &__subtitle {
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.m2-typography-level($typography, body-2);
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+
+    &__read-only-groups {
+      display: flex;
+      gap: 14px;
+
+      .mat-subtitle-2 {
+        white-space: nowrap;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: end;
+  }
+}
