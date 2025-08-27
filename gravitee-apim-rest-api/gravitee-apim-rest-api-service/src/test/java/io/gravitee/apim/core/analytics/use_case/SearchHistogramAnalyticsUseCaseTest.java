@@ -15,8 +15,11 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
+import static fixtures.core.model.ApiFixtures.MY_API;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
@@ -24,6 +27,7 @@ import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
 import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
 import io.gravitee.apim.core.analytics.model.Aggregation;
+import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase.Input;
@@ -36,6 +40,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -127,6 +132,34 @@ class SearchHistogramAnalyticsUseCaseTest {
         assertThat(output).isNotNull();
         assertThat(output.timestamp()).isEqualTo(expectedTimestamp);
         assertThat(output.values()).isEqualTo(expectedBuckets);
+    }
+
+    @Test
+    void shouldReturnTopValueHitsForANativeAPI() {
+        apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
+        GraviteeContext.setCurrentEnvironment("environment-id");
+        Map<String, Map<String, Long>> analytics = new HashMap<>();
+        analytics.put("downstream-active-connections_latest", Map.of("downstream-active-connections", 1L));
+        analytics.put("upstream-active-connections_latest", Map.of("upstream-active-connections", 1L));
+        analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
+        long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
+        long to = INSTANT_NOW.toEpochMilli();
+        long interval = 60000L;
+        var input = new SearchHistogramAnalyticsUseCase.Input(MY_API, from, to, interval, List.of(), Optional.empty());
+
+        var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        List<HistogramAnalytics.Bucket> buckets = result.values();
+        assertFalse(buckets.isEmpty());
+        assertEquals(2, buckets.size());
+        HistogramAnalytics.MetricBucket bucket0 = (HistogramAnalytics.MetricBucket) buckets.getFirst();
+        assertEquals("downstream-active-connections", bucket0.getField());
+        assertEquals("downstream-active-connections_latest", bucket0.getName());
+        assertEquals(1L, bucket0.getValues().getFirst());
+        HistogramAnalytics.MetricBucket bucket1 = (HistogramAnalytics.MetricBucket) buckets.get(1);
+        assertEquals("upstream-active-connections", bucket1.getField());
+        assertEquals("upstream-active-connections_latest", bucket1.getName());
+        assertEquals(1L, bucket1.getValues().getFirst());
     }
 
     @Test
