@@ -571,6 +571,14 @@ class RollbackApiUseCaseTest {
             resource.setConfiguration("{\"timeToLiveSeconds\": 3600}");
             resource.setEnabled(true);
 
+            var consulDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
+            consulDiscoveryService.setEnabled(true);
+            consulDiscoveryService.setProvider("consul-service-discovery");
+            consulDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}");
+
+            var services = new io.gravitee.definition.model.services.Services();
+            services.setDiscoveryService(consulDiscoveryService);
+
             var eventV2ApiDefinition = io.gravitee.definition.model.Api
                 .builder()
                 .id(existingV4Api.getId())
@@ -587,6 +595,7 @@ class RollbackApiUseCaseTest {
                                     .builder()
                                     .name("default-endpoint")
                                     .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
+                                    .services(services)
                                     .build()
                             )
                         )
@@ -661,6 +670,14 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(rolledBackResource.getType()).isEqualTo("cache");
                 softly.assertThat(rolledBackResource.getConfiguration()).isEqualTo("{\"timeToLiveSeconds\":3600}");
                 softly.assertThat(rolledBackResource.isEnabled()).isTrue();
+
+                var rolledBackDiscoveryService = apiDefinition.getProxy().getGroups().iterator().next().getServices().getDiscoveryService();
+                softly.assertThat(rolledBackDiscoveryService).isNotNull();
+                softly.assertThat(rolledBackDiscoveryService.getProvider()).isEqualTo("consul-service-discovery");
+                softly.assertThat(rolledBackDiscoveryService.isEnabled()).isTrue();
+                softly
+                    .assertThat(rolledBackDiscoveryService.getConfiguration())
+                    .isEqualTo("{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}");
             });
 
             var rolledBackPlan = planCrudService.getById("plan-to-rollback");

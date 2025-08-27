@@ -924,12 +924,6 @@ class MigrateApiUseCaseTest {
                             "{\"schedule\":\"*/30 * * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"POST\",\"target\":\"/hc\",\"assertion\":\"status == 200\",\"overrideEndpointPath\":false}"
                         );
                     softly
-                        .assertThat(migratedEndpoint.getSharedConfigurationOverride())
-                        .isEqualTo(
-                            "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"proxy\":null,\"http\":null,\"ssl\":null,\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertion\":\"{#response.status == 202}\"}}],\"enabled\":true,\"inherit\":false}}"
-                        );
-                    softly.assertThat(migratedEndpoint.getServices().getHealthCheck()).isNotNull();
-                    softly
                         .assertThat(migratedEndpoint.getServices().getHealthCheck().getConfiguration())
                         .isEqualTo(
                             "{\"schedule\":\"0 */1 * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"GET\",\"target\":\"/hc3\",\"assertion\":\"{#response.status == 202}\",\"overrideEndpointPath\":false}"
@@ -1271,6 +1265,171 @@ class MigrateApiUseCaseTest {
                 var migratedResources = api.getApiDefinitionHttpV4().getResources();
                 assertThat(migratedResources).isEmpty();
             });
+    }
+
+    @Test
+    void should_migrate_api_without_discovery_service() {
+        // Given
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+        apiCrudService.initWith(List.of(v2Api));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var migratedApi = apiCrudService.findById(API_ID);
+
+        assertThat(migratedApi)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+                var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
+                assertThat(endpointGroups).hasSize(1);
+                var services = endpointGroups.get(0).getServices();
+                assertThat(services.getDiscovery()).isNull();
+            });
+    }
+
+    @Test
+    void should_warn_about_migration_with_consul_discovery_service_on_dry_run() {
+        // Given
+        var consulDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
+        consulDiscoveryService.setEnabled(true);
+        consulDiscoveryService.setProvider("consul-service-discovery");
+        consulDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}");
+
+        var services = new io.gravitee.definition.model.services.Services();
+        services.setDiscoveryService(consulDiscoveryService);
+
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> {
+                group.setServices(services);
+                group.getEndpoints().forEach(e -> e.setInherit(false));
+            });
+        apiCrudService.initWith(List.of(v2Api));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, DRY_RUN, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
+        assertThat(result.issues())
+            .map(MigrationResult.Issue::message)
+            .containsExactly(
+                "Service discovery configuration can be migrated, but the configuration page will not be available in the new version."
+            );
+    }
+
+    @Test
+    void should_forced_migrate_api_with_consul_discovery_service() {
+        // Given
+        var consulDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
+        consulDiscoveryService.setEnabled(true);
+        consulDiscoveryService.setProvider("consul-service-discovery");
+        consulDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}");
+
+        var services = new io.gravitee.definition.model.services.Services();
+        services.setDiscoveryService(consulDiscoveryService);
+
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> {
+                group.setServices(services);
+                group.getEndpoints().forEach(e -> e.setInherit(false));
+            });
+        apiCrudService.initWith(List.of(v2Api));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+        var migratedApi = apiCrudService.findById(API_ID);
+
+        assertThat(migratedApi)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+                var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
+                assertThat(endpointGroups).hasSize(1);
+                var migratedServices = endpointGroups.get(0).getServices();
+                assertThat(migratedServices.getDiscovery()).isNotNull();
+                assertThat(migratedServices.getDiscovery().getType()).isEqualTo("consul-service-discovery");
+                assertThat(migratedServices.getDiscovery().isEnabled()).isTrue();
+                assertThat(migratedServices.getDiscovery().getConfiguration())
+                    .isEqualTo("{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}");
+            });
+    }
+
+    @Test
+    void should_fail_migration_with_forbidden_discovery_service() {
+        // Given
+        var forbiddenDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
+        forbiddenDiscoveryService.setEnabled(true);
+        forbiddenDiscoveryService.setProvider("kubernetes-service-discovery");
+        forbiddenDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8080\",\"service\":\"my-service\"}");
+
+        var services = new io.gravitee.definition.model.services.Services();
+        services.setDiscoveryService(forbiddenDiscoveryService);
+
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> {
+                group.setServices(services);
+                group.getEndpoints().forEach(e -> e.setInherit(false));
+            });
+        apiCrudService.initWith(List.of(v2Api));
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).displayName("User").type(PrimaryOwnerEntity.Type.USER).build();
+        primaryOwnerDomainService.add(API_ID, primaryOwner);
+
+        var user = BaseUserEntity.builder().id(USER_ID).firstname("John").lastname("Doe").build();
+        userCrudService.initWith(List.of(user));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+        assertThat(result.issues())
+            .anySatisfy(issue ->
+                assertThat(issue.message())
+                    .contains("Service discovery provider 'kubernetes-service-discovery' is not supported for migration")
+            );
     }
 
     private static void assertApiV4(Api upgradedApi) {
