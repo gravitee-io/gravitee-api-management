@@ -35,9 +35,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.ProtocolVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.services.Services;
-import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
-import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingContent;
@@ -64,8 +62,10 @@ import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.SslOptions;
 import io.gravitee.definition.model.v4.ssl.TrustStore;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 
@@ -76,6 +76,8 @@ class ApiMigration {
     public static final String HTTP_PROXY = "http-proxy";
     private static final String TYPE_ENDPOINT = "ENDPOINT";
     private static final String TYPE_ENDPOINTGROUP = "ENDPOINTGROUP";
+    public static final String CONSUL_DISCOVERY_SERVICE_TYPE = "consul-service-discovery";
+    public static final String HTTP_HEALTH_CHECK_SERVICE_TYPE = "http-health-check";
 
     MigrationResult<Api> mapApi(Api source) {
         return apiDefinitionHttpV4(source.getApiDefinition())
@@ -155,7 +157,7 @@ class ApiMigration {
             : null;
     }
 
-    private MigrationResult<EndpointGroup> mapEndpointGroup(io.gravitee.definition.model.EndpointGroup source, Services services) {
+    private MigrationResult<EndpointGroup> mapEndpointGroup(io.gravitee.definition.model.EndpointGroup source, Services endpointServices) {
         ObjectNode httpClientOptions = mapHttpClientOptions(source.getHttpClientOptions());
         ObjectNode httpClientSslOptionsNode = mapHttpClientSslOptions(source.getHttpClientSslOptions());
         ObjectNode target1 = OBJECT_MAPPER.createObjectNode();
@@ -164,7 +166,11 @@ class ApiMigration {
         target1.set("headers", source.getHeaders() == null ? null : OBJECT_MAPPER.valueToTree(source.getHeaders()));
         target1.set("proxy", source.getHttpProxy() == null ? null : OBJECT_MAPPER.valueToTree((source.getHttpProxy())));
         String finalString = null;
-        MigrationResult<EndpointGroupServices> endpointGroupServicesMigrationResult = mapEndpointGroupServices(services, source.getName());
+        MigrationResult<EndpointGroupServices> endpointGroupServicesMigrationResult = mapEndpointGroupServices(
+            endpointServices,
+            source.getServices(),
+            source.getName()
+        );
         MigrationResult<List<Endpoint>> endpoints = null;
         MigrationResult<EndpointGroup> endpointGroupMigrationResult = MigrationResult.value(
             EndpointGroup.builder().name(source.getName()).type(HTTP_PROXY).loadBalancer(mapLoadBalancer(source.getLoadBalancer())).build()
@@ -212,31 +218,35 @@ class ApiMigration {
             );
     }
 
-    private MigrationResult<EndpointGroupServices> mapEndpointGroupServices(Services services, String name) {
-        EndpointGroupServices endpointGroupServices = new EndpointGroupServices();
-        MigrationResult<EndpointGroupServices> migrationResult = MigrationResult.value(endpointGroupServices);
-        if (services == null) {
-            return migrationResult;
+    private MigrationResult<EndpointGroupServices> mapEndpointGroupServices(
+        Services endpointServices,
+        Services endpointGroupServices,
+        String name
+    ) {
+        if (endpointServices == null && endpointGroupServices == null) {
+            return MigrationResult.value(new EndpointGroupServices());
         }
-        var migratedServices = stream(services.getAll())
+
+        var migratedServices = Stream
+            .of(endpointServices, endpointGroupServices)
+            .filter(Objects::nonNull)
+            .flatMap(s -> s.getAll().stream())
             .map(service -> ServiceMapper.convert(service, TYPE_ENDPOINTGROUP, name).map(List::of))
             .reduce(MigrationResult.value(List.of()), MigrationResult::mergeList);
-        return migrationResult.foldLeft(
-            migratedServices,
-            (egs, svcs) -> {
-                if (svcs == null) {
-                    return egs;
-                }
-                for (Service svc : svcs) {
-                    if ("consul-service-discovery".equals(svc.getType())) {
-                        egs.setDiscovery(svc);
-                    } else if ("http-health-check".equals(svc.getType())) {
-                        egs.setHealthCheck(svc);
-                    }
-                }
-                return egs;
-            }
-        );
+
+        return migratedServices.map(services -> {
+            var servicesByType = services
+                .stream()
+                .filter(service ->
+                    CONSUL_DISCOVERY_SERVICE_TYPE.equals(service.getType()) || HTTP_HEALTH_CHECK_SERVICE_TYPE.equals(service.getType())
+                )
+                .collect(Collectors.toMap(Service::getType, svc -> svc, (svc1, svc2) -> svc2));
+
+            var egs = new EndpointGroupServices();
+            egs.setDiscovery(servicesByType.get(CONSUL_DISCOVERY_SERVICE_TYPE));
+            egs.setHealthCheck(servicesByType.get(HTTP_HEALTH_CHECK_SERVICE_TYPE));
+            return egs;
+        });
     }
 
     private MigrationResult<EndpointServices> mapEndPointServices(String configuration, String name) {

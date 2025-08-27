@@ -20,9 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.utils.StringUtils;
+import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.service.Service;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +36,7 @@ public final class ServiceMapper {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String TYPE_ENDPOINT = "ENDPOINT";
+    private static final List<String> ALLOWED_DISCOVERY_PLUGIN_IDS = List.of("consul-service-discovery");
 
     private ServiceMapper() {}
 
@@ -55,7 +58,9 @@ public final class ServiceMapper {
                 name
             );
             case io.gravitee.definition.model.services.schedule.ScheduledService v2ScheduledService -> null;
-            case io.gravitee.definition.model.services.discovery.EndpointDiscoveryService v2EndpointDiscoveryService -> null;
+            case io.gravitee.definition.model.services.discovery.EndpointDiscoveryService v2EndpointDiscoveryService -> mapServiceDiscovery(
+                v2EndpointDiscoveryService
+            );
             case null -> null;
             default -> MigrationResult.issue("Unsupported Service", MigrationResult.State.IMPOSSIBLE);
         };
@@ -132,5 +137,36 @@ public final class ServiceMapper {
                 plainHealthCheckService.setOverrideConfiguration(!v2EPHealthCheckService.isInherit());
                 return plainHealthCheckService;
             });
+    }
+
+    private static MigrationResult<Service> mapServiceDiscovery(EndpointDiscoveryService discoveryService) {
+        if (discoveryService == null) {
+            return MigrationResult.value(new Service());
+        }
+
+        if (!ALLOWED_DISCOVERY_PLUGIN_IDS.contains(discoveryService.getProvider())) {
+            return MigrationResult.issue(
+                "Service discovery provider '" +
+                discoveryService.getProvider() +
+                "' is not supported for migration. Only consul-service-discovery is supported.",
+                MigrationResult.State.IMPOSSIBLE
+            );
+        }
+
+        var service = Service
+            .builder()
+            .configuration(discoveryService.getConfiguration())
+            .type(discoveryService.getProvider())
+            .enabled(discoveryService.isEnabled())
+            .build();
+
+        return MigrationResult
+            .value(service)
+            .addIssue(
+                new MigrationResult.Issue(
+                    "Service discovery configuration can be migrated, but the configuration page will not be available in the new version.",
+                    MigrationResult.State.CAN_BE_FORCED
+                )
+            );
     }
 }
