@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, workflow, Workflow } from '@circleci/circleci-config-sdk';
+import { commands, Config, Job, reusable, workflow, Workflow } from '@circleci/circleci-config-sdk';
 
 import { CircleCIEnvironment } from '../pipelines';
 import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
@@ -80,9 +80,38 @@ export class PullRequestsWorkflow {
     addValidationJob: boolean,
     shouldBuildDockerImages: boolean,
   ): workflow.WorkflowJob[] {
-    dynamicConfig.importOrb(orbs.keeper);
+    dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
 
+<<<<<<< HEAD
     const jobs: workflow.WorkflowJob[] = [];
+=======
+    const dangerJSJob = DangerJsJob.create(dynamicConfig);
+    dynamicConfig.addJob(dangerJSJob);
+
+    const jobs: workflow.WorkflowJob[] = [
+      new workflow.WorkflowJob(orbs.aquasec.jobs.fs_scan, {
+        context: config.jobContext,
+        preSteps: [
+          new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+            'secret-url': config.secrets.aquaKey,
+            'var-name': 'AQUA_KEY',
+          }),
+          new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+            'secret-url': config.secrets.aquaSecret,
+            'var-name': 'AQUA_SECRET',
+          }),
+          new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+            'secret-url': config.secrets.githubApiToken,
+            'var-name': 'GITHUB_TOKEN',
+          }),
+        ],
+      }),
+      new workflow.WorkflowJob(dangerJSJob, {
+        name: 'Run Danger JS',
+        context: config.jobContext,
+      }),
+    ];
+>>>>>>> b8704ab4cd (ci: revert aqua integration removal)
     const requires: string[] = [];
 
     if (!filterJobs || shouldBuildHelm(environment.changedFiles)) {
