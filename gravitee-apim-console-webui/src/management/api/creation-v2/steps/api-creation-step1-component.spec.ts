@@ -98,4 +98,18 @@ describe('ApiCreationStep1Component Scroll Events', () => {
     expect(instance.scrollListener).toBeNull();
     expect(instance.scrollContainer).toBeNull();
   });
+
+  it('should set useGroupAsPrimaryOwner to true if isGroupOnly returns true', () => {
+    const ctrl = new ControllerClass({ isHybrid: () => false, isGroupOnly: () => true });
+    expect(ctrl.useGroupAsPrimaryOwner).toBe(false); // default
+    ctrl.$onInit();
+    expect(ctrl.useGroupAsPrimaryOwner).toBe(true); // should be enabled
+  });
+
+  it('should keep useGroupAsPrimaryOwner false if isGroupOnly returns false', () => {
+    const ctrl = new ControllerClass({ isHybrid: () => false, isGroupOnly: () => false });
+    expect(ctrl.useGroupAsPrimaryOwner).toBe(false); // default
+    ctrl.$onInit();
+    expect(ctrl.useGroupAsPrimaryOwner).toBe(false); // should remain false
+  });
 });
