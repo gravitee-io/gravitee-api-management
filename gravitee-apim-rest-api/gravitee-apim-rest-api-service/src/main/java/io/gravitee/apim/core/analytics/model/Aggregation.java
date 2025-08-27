@@ -29,6 +29,7 @@ public class Aggregation {
         AVG,
         MIN,
         MAX,
+        VALUE,
     }
 
     private String field;

@@ -17,11 +17,14 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.analytics.query.stats.EventAnalyticsAggregate;
+import io.gravitee.repository.analytics.query.stats.EventAnalyticsQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.AggregateValueCountByFieldAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.EventAnalyticsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.FindApiMetricsDetailQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.FindApiMetricsDetailResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.GroupByQueryAdapter;
@@ -39,6 +42,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseS
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopFailedApisAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.StatsQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregateQueryAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
@@ -253,6 +257,15 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         return this.client.search(indexV4Metrics, null, FindApiMetricsDetailQueryAdapter.adapt(query))
             .map(FindApiMetricsDetailResponseAdapter::adaptFirst)
             .blockingGet();
+    }
+
+    @Override
+    public Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, EventAnalyticsQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var esQuery = TopHitsAggregateQueryAdapter.adapt(query);
+        log.debug("Search native stats query: {}", esQuery);
+
+        return client.search(index, null, esQuery).map(EventAnalyticsResponseAdapter::adapt).blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {

@@ -23,6 +23,10 @@ public class TimeRangeAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    /**
+     * Use {@code gte} and {@code lte} for ranges; {@code from}, {@code to}, {@code include_lower}, and {@code include_upper} are deprecated.
+     * See {@link #createRangeFilterNode} for more details.
+     */
     public static ObjectNode toRangeNode(TimeRange timeRange) {
         ObjectNode rangeNode = MAPPER.createObjectNode();
         ObjectNode tsRange = MAPPER.createObjectNode();
@@ -31,6 +35,16 @@ public class TimeRangeAdapter {
         tsRange.put("include_lower", true);
         tsRange.put("include_upper", true);
         rangeNode.set("@timestamp", tsRange);
+        return MAPPER.createObjectNode().set("range", rangeNode);
+    }
+
+    public static ObjectNode createRangeFilterNode(TimeRange range) {
+        ObjectNode rangeNode = MAPPER.createObjectNode();
+        ObjectNode tsRange = MAPPER.createObjectNode();
+        tsRange.put("gte", range.from().toEpochMilli());
+        tsRange.put("lte", range.to().toEpochMilli());
+        rangeNode.set("@timestamp", tsRange);
+
         return MAPPER.createObjectNode().set("range", rangeNode);
     }
 
