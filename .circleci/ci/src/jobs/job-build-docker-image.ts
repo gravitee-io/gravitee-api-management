@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import { commands, Config, parameters, reusable } from '@circleci/circleci-config-sdk';
-import { computeImagesTag, GraviteeioVersion, isBlank, parse } from '../utils';
+import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMaster, parse } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { DockerLoginCommand, DockerLogoutCommand, CreateDockerContextCommand } from '../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
+import { orbs } from '../orbs';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
 
@@ -56,6 +57,45 @@ export class BuildDockerImageJob {
         working_directory: '<< parameters.apim-project >>',
       }),
     ];
+
+    if (isProd || isSupportBranchOrMaster(environment.branch)) {
+      dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
+      steps.push(
+        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+          'secret-url': config.secrets.aquaKey,
+          'var-name': 'AQUA_KEY',
+        }),
+        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+          'secret-url': config.secrets.aquaSecret,
+          'var-name': 'AQUA_SECRET',
+        }),
+        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+          'secret-url': config.secrets.aquaRegistryUsername,
+          'var-name': 'AQUA_USERNAME',
+        }),
+        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+          'secret-url': config.secrets.aquaRegistryPassword,
+          'var-name': 'AQUA_PASSWORD',
+        }),
+        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+          'secret-url': config.secrets.aquaScannerKey,
+          'var-name': 'SCANNER_TOKEN',
+        }),
+        new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+          'secret-url': config.secrets.githubApiToken,
+          'var-name': 'GITHUB_TOKEN',
+        }),
+        new reusable.ReusedCommand(orbs.aquasec.commands['install_billy']),
+        new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
+        new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
+          artifact_to_register: `${dockerTags[0]}`,
+        }),
+        new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
+          docker_image_to_scan: `${dockerTags[0]}`,
+          scanner_url: config.aqua.scannerUrl,
+        }),
+      );
+    }
 
     steps.push(new reusable.ReusedCommand(dockerLogoutCommand));
 

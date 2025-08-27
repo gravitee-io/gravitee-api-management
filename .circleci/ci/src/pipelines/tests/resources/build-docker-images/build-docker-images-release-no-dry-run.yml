@@ -270,6 +270,31 @@ jobs:
             -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
+          var-name: AQUA_KEY
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
+          var-name: AQUA_SECRET
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login
+          var-name: AQUA_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password
+          var-name: AQUA_PASSWORD
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken
+          var-name: SCANNER_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - aquasec/install_billy
+      - aquasec/pull_aqua_scanner_image
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio/<< parameters.docker-image-name >>:4.2.0
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio/<< parameters.docker-image-name >>:4.2.0
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
       - cmd-docker-logout
 workflows:
   build-docker-images:
@@ -335,3 +360,4 @@ workflows:
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5
+  aquasec: gravitee-io/aquasec@1.0.5
