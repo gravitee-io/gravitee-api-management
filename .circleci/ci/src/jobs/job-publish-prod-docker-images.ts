@@ -21,11 +21,12 @@ import { config } from '../config';
 import { GraviteeioVersion, isBlank, parse } from '../utils';
 import { CreateDockerContextCommand } from '../commands';
 import { BaseExecutor } from '../executors';
+import { orbs } from '../orbs';
 
 export class PublishProdDockerImagesJob {
   private static jobName = 'job-publish-prod-docker-images';
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
-    dynamicConfig.importOrb(keeper);
+    dynamicConfig.importOrb(keeper).importOrb(orbs.aquasec);
 
     const createDockerContextCommand = CreateDockerContextCommand.get();
     dynamicConfig.addReusableCommand(createDockerContextCommand);
@@ -48,6 +49,44 @@ export class PublishProdDockerImagesJob {
         name: 'Build & Publish Gravitee.io APIM Docker images',
         command: this.buildAndPublishDockerImages(environment, parsedGraviteeioVersion),
       }),
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': config.secrets.aquaKey,
+        'var-name': 'AQUA_KEY',
+      }),
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': config.secrets.aquaSecret,
+        'var-name': 'AQUA_SECRET',
+      }),
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': config.secrets.aquaRegistryUsername,
+        'var-name': 'AQUA_USERNAME',
+      }),
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': config.secrets.aquaRegistryPassword,
+        'var-name': 'AQUA_PASSWORD',
+      }),
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': config.secrets.aquaScannerKey,
+        'var-name': 'SCANNER_TOKEN',
+      }),
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': config.secrets.githubApiToken,
+        'var-name': 'GITHUB_TOKEN',
+      }),
+      new reusable.ReusedCommand(orbs.aquasec.commands['install_billy']),
+      new reusable.ReusedCommand(orbs.aquasec.commands['pull_aqua_scanner_image']),
+
+      ...[config.dockerImages.gateway, config.dockerImages.managementApi, config.dockerImages.console, config.dockerImages.portal].flatMap(
+        ({ image }) => [
+          new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
+            artifact_to_register: `graviteeio/${image}:${parsedGraviteeioVersion.full}`,
+          }),
+          new reusable.ReusedCommand(orbs.aquasec.commands['scan_docker_image'], {
+            docker_image_to_scan: `graviteeio/${image}:${parsedGraviteeioVersion.full}`,
+            scanner_url: config.aqua.scannerUrl,
+          }),
+        ],
+      ),
     ];
 
     return new Job(PublishProdDockerImagesJob.jobName, BaseExecutor.create(), steps);
