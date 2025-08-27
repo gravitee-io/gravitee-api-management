@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.query_service.analytics;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
@@ -25,7 +26,11 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ApiMetricsDetailAdapter;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.analytics.query.stats.EventAnalyticsAggregate;
+import io.gravitee.repository.analytics.query.stats.EventAnalyticsQuery;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.Aggregation;
+import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
@@ -53,6 +58,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -398,6 +405,30 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .findApiMetricsDetail(executionContext.getQueryContext(), new ApiMetricsDetailQuery(apiId, requestId))
             .map(ApiMetricsDetailAdapter.INSTANCE::map);
+    }
+
+    @Override
+    public Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, EventAnalyticsParams params) {
+        List<Aggregation> aggregations = new ArrayList<>();
+        params
+            .aggregations()
+            .forEach(aggregation ->
+                Arrays
+                    .stream(AggregationType.values())
+                    .filter(value -> value.name().equals(aggregation.getAggregationType().name()))
+                    .findFirst()
+                    .ifPresent(type -> aggregations.add(new Aggregation(aggregation.getField(), type)))
+            );
+
+        EventAnalyticsQuery query = new EventAnalyticsQuery(
+            params.apiId(),
+            new TimeRange(params.from(), params.to(), Optional.of(params.interval())),
+            aggregations
+        );
+
+        Optional<EventAnalyticsAggregate> aggregate = analyticsRepository.searchEventAnalytics(executionContext.getQueryContext(), query);
+
+        return aggregate.map(analyticsAggregate -> new EventAnalytics(analyticsAggregate.values()));
     }
 
     private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(
