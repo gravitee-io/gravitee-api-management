@@ -31,7 +31,7 @@
 
             <dt class="mat-caption">Method</dt>
             <dd class="gio-caption-2">
-              <div class="gio-badge-neutral">{{ metric.method }}</div>
+              <div [class]="'gio-method-badge-' + metric.method.toLocaleLowerCase()">{{ metric.method }}</div>
             </dd>
 
             <dt class="mat-caption">URI</dt>
@@ -64,7 +64,7 @@
             <dt class="mat-caption">Global response time</dt>
             <dd class="gio-caption-2">{{ metric.gatewayResponseTime }}</dd>
 
-            <dt class="mat-caption">Endpoint response time</dt>
+            <dt class="mat-caption">API response time</dt>
             <dd class="gio-caption-2">{{ metric.endpointResponseTime }}</dd>
 
             <dt class="mat-caption">Latency</dt>
@@ -87,10 +87,10 @@
           <dt class="mat-caption">Plan</dt>
           <dd class="gio-caption-2">{{ metric.plan.name }}</dd>
 
-          <dt class="mat-caption">Gateway</dt>
+          <dt class="mat-caption">Endpoint</dt>
           <dd class="gio-caption-2">{{ metric.endpoint }}</dd>
 
-          <dt class="mat-caption">Gateway</dt>
+          <dt class="mat-caption">Gateway Host</dt>
           <dd class="gio-caption-2">{{ metric.gateway?.hostname }}</dd>
 
           <dt class="mat-caption">Gateway IP</dt>
