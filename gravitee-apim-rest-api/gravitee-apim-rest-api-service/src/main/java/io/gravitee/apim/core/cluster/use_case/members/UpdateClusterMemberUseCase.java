@@ -25,9 +25,7 @@ import io.gravitee.apim.core.member.model.MembershipReference;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.member.model.MembershipRole;
 import io.gravitee.apim.core.member.query_service.MemberQueryService;
-import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import lombok.AllArgsConstructor;
 

@@ -25,6 +25,7 @@ import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.exception.DbEntityNotFoundException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,7 @@ class GetClusterUseCaseTest extends AbstractUseCaseTest {
                 .environmentId(ENV_ID)
                 .organizationId(ORG_ID)
                 .configuration(Map.of("bootstrapServers", "localhost:9092"))
+                .groups(Set.of("group-1", "group-2"))
                 .build();
         ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
     }

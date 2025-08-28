@@ -22,6 +22,7 @@ import io.gravitee.apim.infra.adapter.ClusterAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Set;
 import java.util.function.Predicate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -83,5 +84,12 @@ public class ClusterCrudServiceImpl implements ClusterCrudService {
         } catch (TechnicalException e) {
             throw TechnicalManagementException.ofTryingToDeleteWithId(Cluster.class, clusterId, e);
         }
+    }
+
+    @Override
+    public void updateGroups(String id, String environmentId, Set<String> groups) {
+        findByIdAndEnvironmentId(id, environmentId);
+
+        clusterRepository.updateGroups(id, groups);
     }
 }
