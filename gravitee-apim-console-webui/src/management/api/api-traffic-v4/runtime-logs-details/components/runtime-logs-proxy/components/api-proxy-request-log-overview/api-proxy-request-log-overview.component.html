@@ -42,6 +42,8 @@
             <dd class="gio-caption-2">
               <div class="gio-badge-neutral">{{ log.endpointRequest.method }}</div>
             </dd>
+            <dt class="mat-caption">URI</dt>
+            <dd class="gio-caption-2">{{ log.endpointRequest.uri }}</dd>
           </dl>
 
           <api-proxy-request-log-headers [headers]="log.endpointRequest.headers" />
