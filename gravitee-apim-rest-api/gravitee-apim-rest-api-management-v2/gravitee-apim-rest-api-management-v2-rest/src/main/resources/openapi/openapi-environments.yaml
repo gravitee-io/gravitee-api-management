@@ -589,6 +589,30 @@ paths:
           default:
             $ref: "#/components/responses/Error"
 
+    /clusters/{clusterId}/groups:
+      put:
+        tags:
+          - Clusters
+        summary: Update a cluster's groups
+        operationId: updateClusterGroups
+        parameters:
+          - $ref: "#/components/parameters/clusterId"
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateClusterGroups"
+          required: true
+        responses:
+          "200":
+            description: Cluster groups updated
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ClusterGroups"
+          default:
+            $ref: "#/components/responses/Error"
+
 components:
     schemas:
         # Analytics
@@ -862,6 +886,10 @@ components:
                     type: string
                 configuration:
                     type: object
+                groups:
+                  type: array
+                  items:
+                    type: string
         UpdateCluster:
             type: object
             properties:
@@ -871,6 +899,14 @@ components:
                     type: string
                 configuration:
                     type: object
+        ClusterGroups:
+            type: array
+            items:
+                type: string
+        UpdateClusterGroups:
+            type: array
+            items:
+                type: string
 
         # Scoring
         EnvironmentApiScore:

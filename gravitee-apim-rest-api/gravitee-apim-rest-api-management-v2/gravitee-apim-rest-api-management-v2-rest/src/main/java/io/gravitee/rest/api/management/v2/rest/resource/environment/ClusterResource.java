@@ -19,6 +19,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ClusterMapper;
@@ -42,6 +43,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ClusterResource extends AbstractResource {
 
@@ -59,6 +64,9 @@ public class ClusterResource extends AbstractResource {
 
     @Inject
     private DeleteClusterUseCase deleteClusterUseCase;
+
+    @Inject
+    private UpdateClusterGroupsUseCase updateClusterGroupsUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -123,6 +131,38 @@ public class ClusterResource extends AbstractResource {
         deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(clusterId, audit));
 
         return Response.noContent().build();
+    }
+
+    @PUT
+    @Path("groups")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    public Response updateClusterGroups(@Valid @NotNull final List<@NotNull String> groups) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        AuditInfo audit = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+
+        Set<String> groupsSet = Collections.unmodifiableSet(new LinkedHashSet<>(groups));
+
+        UpdateClusterGroupsUseCase.Output output = updateClusterGroupsUseCase.execute(
+            new UpdateClusterGroupsUseCase.Input(clusterId, groupsSet, audit)
+        );
+
+        return Response.ok().entity(output.groups()).build();
     }
 
     @Path("members")
