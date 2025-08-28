@@ -55,6 +55,7 @@ import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.AddClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.DeleteClusterMemberUseCase;
@@ -960,5 +961,10 @@ public class ResourceContextConfiguration {
     @Bean
     public DeleteClusterMemberUseCase deleteClusterMemberUseCase() {
         return mock(DeleteClusterMemberUseCase.class);
+    }
+
+    @Bean
+    public UpdateClusterGroupsUseCase updateClusterGroupsUseCase() {
+        return mock(UpdateClusterGroupsUseCase.class);
     }
 }

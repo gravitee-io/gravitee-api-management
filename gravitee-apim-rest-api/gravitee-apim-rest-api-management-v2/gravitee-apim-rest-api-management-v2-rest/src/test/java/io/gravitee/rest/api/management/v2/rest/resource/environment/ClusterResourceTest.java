@@ -30,6 +30,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
@@ -43,13 +44,16 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class ClusterResourceTest extends AbstractResourceTest {
 
@@ -64,6 +68,9 @@ class ClusterResourceTest extends AbstractResourceTest {
 
     @Inject
     private DeleteClusterUseCase deleteClusterUseCase;
+
+    @Autowired
+    private UpdateClusterGroupsUseCase updateClusterGroupsUseCase;
 
     @Override
     protected String contextPath() {
@@ -235,6 +242,39 @@ class ClusterResourceTest extends AbstractResourceTest {
                 RolePermissionAction.DELETE,
                 () -> rootTarget().request().delete()
             );
+        }
+    }
+
+    @Nested
+    class UpdateClusterGroupsTest {
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(
+                RolePermission.CLUSTER_DEFINITION,
+                CLUSTER_ID,
+                RolePermissionAction.UPDATE,
+                () -> rootTarget().path("groups").request().put(json(Map.of("groups", Set.of("G1", "G2"))))
+            );
+        }
+
+        @Test
+        void should_update_cluster_groups() {
+            when(updateClusterGroupsUseCase.execute(any())).thenReturn(new UpdateClusterGroupsUseCase.Output(Set.of("G1", "G2")));
+
+            try (Response response = rootTarget().path("groups").request().put(json(List.of("G1", "G2")))) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+                List<String> groups = response.readEntity(List.class);
+                assertThat(groups).containsExactlyInAnyOrder("G1", "G2");
+            }
+            var captor = ArgumentCaptor.forClass(UpdateClusterGroupsUseCase.Input.class);
+            verify(updateClusterGroupsUseCase).execute(captor.capture());
+            SoftAssertions.assertSoftly(soft -> {
+                var input = captor.getValue();
+                soft.assertThat(input.clusterId()).isEqualTo(CLUSTER_ID);
+                soft.assertThat(input.groups()).containsExactlyInAnyOrder("G1", "G2");
+                soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
+            });
         }
     }
 }
