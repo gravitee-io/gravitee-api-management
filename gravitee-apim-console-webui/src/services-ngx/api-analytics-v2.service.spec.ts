@@ -24,6 +24,7 @@ import { fakeAnalyticsAverageConnectionDuration } from '../entities/management-a
 import { fakeAnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest.fixture';
 import { fakeAnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
 import { timeFrameRangesParams } from '../shared/utils/timeFrameRanges';
+import { fakeApiMetricResponse } from '../entities/management-api-v2/analytics/apiMetricsDetailResponse.fixture';
 
 describe('ApiAnalyticsV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -87,6 +88,24 @@ describe('ApiAnalyticsV2Service', () => {
       });
 
       expectApiAnalyticsResponseStatusRangesGetRequest();
+    });
+  });
+
+  describe('getApiMetricsDetail', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api-id';
+      const requestId = 'request-id';
+      const fakeMetric = fakeApiMetricResponse();
+
+      service.getApiMetricsDetail(apiId, requestId).subscribe((result) => {
+        expect(result).toEqual(fakeMetric);
+        done();
+      });
+
+      const req = httpTestingController.expectOne((req) => {
+        return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/analytics/${requestId}`);
+      });
+      req.flush(fakeMetric);
     });
   });
 
