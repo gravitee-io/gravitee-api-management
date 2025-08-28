@@ -35,7 +35,7 @@
         <gravitee-bom.version>8.2.22</gravitee-bom.version>
         <gravitee-apim.version>4.9.0-SNAPSHOT</gravitee-apim.version>
         <gravitee-reporter-common.version>1.7.0-alpha.7</gravitee-reporter-common.version>
-        <gravitee-common-elasticsearch.version>6.3.0-alpha.4</gravitee-common-elasticsearch.version>
+        <gravitee-common-elasticsearch.version>6.3.0-alpha.5</gravitee-common-elasticsearch.version>
         <gravitee-node-api.version>4.8.7</gravitee-node-api.version>
 
         <commons-validator.version>1.7</commons-validator.version>
