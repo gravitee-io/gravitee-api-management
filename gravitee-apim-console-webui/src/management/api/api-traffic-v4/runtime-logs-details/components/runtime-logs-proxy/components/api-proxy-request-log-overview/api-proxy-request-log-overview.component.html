@@ -32,13 +32,7 @@
             <dd class="gio-caption-2">{{ log.entrypointRequest.uri }}</dd>
           </dl>
 
-          <span class="body-strong">Headers</span>
-          <dl class="card__section__kv">
-            @for (header of log.entrypointRequest.headers | keyvalue; track header) {
-              <dt class="mat-caption">{{ header.key }}</dt>
-              <dd class="gio-caption-2">{{ header.value }}</dd>
-            }
-          </dl>
+          <api-proxy-request-log-headers [headers]="log.entrypointRequest.headers" />
 
           @if (!!log.entrypointRequest.body) {
             <div class="log__body">
@@ -63,13 +57,7 @@
             </dd>
           </dl>
 
-          <span class="body-strong">Headers</span>
-          <dl class="card__section__kv">
-            @for (header of log.endpointRequest.headers | keyvalue; track header) {
-              <dt class="mat-caption">{{ header.key }}</dt>
-              <dd class="gio-caption-2">{{ header.value }}</dd>
-            }
-          </dl>
+          <api-proxy-request-log-headers [headers]="log.endpointRequest.headers" />
 
           @if (!!log.endpointRequest.body) {
             <div class="log__body">
@@ -107,13 +95,8 @@
               </div>
             </dd>
           </dl>
-          <span class="body-strong">Headers</span>
-          <dl class="card__section__kv">
-            @for (header of log.entrypointResponse.headers | keyvalue; track header) {
-              <dt class="mat-caption">{{ header.key }}</dt>
-              <dd class="gio-caption-2">{{ header.value }}</dd>
-            }
-          </dl>
+
+          <api-proxy-request-log-headers [headers]="log.entrypointResponse.headers" />
 
           @if (!!log.entrypointResponse.body) {
             <div class="log__body">
@@ -143,13 +126,8 @@
               </div>
             </dd>
           </dl>
-          <span class="body-strong">Headers</span>
-          <dl class="card__section__kv">
-            @for (header of log.endpointResponse.headers | keyvalue; track header) {
-              <dt class="mat-caption">{{ header.key }}</dt>
-              <dd class="gio-caption-2">{{ header.value }}</dd>
-            }
-          </dl>
+
+          <api-proxy-request-log-headers [headers]="log.endpointResponse.headers" />
 
           @if (!!log.endpointResponse.body) {
             <div class="log__body">
