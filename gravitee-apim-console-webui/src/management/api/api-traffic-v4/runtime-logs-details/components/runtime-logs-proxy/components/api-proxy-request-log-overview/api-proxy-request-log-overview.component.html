@@ -39,6 +39,20 @@
               <dd class="gio-caption-2">{{ header.value }}</dd>
             }
           </dl>
+
+          @if (!!log.entrypointRequest.body) {
+            <div class="log__body">
+              <span class="body-strong">Body</span>
+              <div gioMonacoClipboardCopy class="log__body__editor">
+                <gio-monaco-editor
+                  disabled
+                  [options]="monacoEditorOptions"
+                  [ngModel]="log.entrypointRequest.body"
+                  [disableMiniMap]="true"
+                ></gio-monaco-editor>
+              </div>
+            </div>
+          }
         </div>
         <div class="card__section">
           <span class="body-strong">Gateway</span>
@@ -56,6 +70,20 @@
               <dd class="gio-caption-2">{{ header.value }}</dd>
             }
           </dl>
+
+          @if (!!log.endpointRequest.body) {
+            <div class="log__body">
+              <span class="body-strong">Body</span>
+              <div gioMonacoClipboardCopy class="log__body__editor">
+                <gio-monaco-editor
+                  disabled
+                  [options]="monacoEditorOptions"
+                  [ngModel]="log.endpointRequest.body"
+                  [disableMiniMap]="true"
+                ></gio-monaco-editor>
+              </div>
+            </div>
+          }
         </div>
       </div>
     </mat-card-content>
@@ -81,11 +109,25 @@
           </dl>
           <span class="body-strong">Headers</span>
           <dl class="card__section__kv">
-            @for (header of log.entrypointRequest.headers | keyvalue; track header) {
+            @for (header of log.entrypointResponse.headers | keyvalue; track header) {
               <dt class="mat-caption">{{ header.key }}</dt>
               <dd class="gio-caption-2">{{ header.value }}</dd>
             }
           </dl>
+
+          @if (!!log.entrypointResponse.body) {
+            <div class="log__body">
+              <span class="body-strong">Body</span>
+              <div gioMonacoClipboardCopy class="log__body__editor">
+                <gio-monaco-editor
+                  disabled
+                  [options]="monacoEditorOptions"
+                  [ngModel]="log.entrypointResponse.body"
+                  [disableMiniMap]="true"
+                ></gio-monaco-editor>
+              </div>
+            </div>
+          }
         </div>
         <div class="card__section">
           <span class="mat-body-strong">Gateway</span>
@@ -108,6 +150,20 @@
               <dd class="gio-caption-2">{{ header.value }}</dd>
             }
           </dl>
+
+          @if (!!log.endpointResponse.body) {
+            <div class="log__body">
+              <span class="body-strong">Body</span>
+              <div gioMonacoClipboardCopy class="log__body__editor">
+                <gio-monaco-editor
+                  disabled
+                  [options]="monacoEditorOptions"
+                  [ngModel]="log.endpointResponse.body"
+                  [disableMiniMap]="true"
+                ></gio-monaco-editor>
+              </div>
+            </div>
+          }
         </div>
       </div>
     </mat-card-content>

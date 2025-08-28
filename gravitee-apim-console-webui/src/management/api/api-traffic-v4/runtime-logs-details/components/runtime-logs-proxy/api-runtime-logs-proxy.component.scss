@@ -4,7 +4,7 @@
 @use '../../../../../../scss/gio-layout' as gio-layout;
 
 :host {
-  @include gio-layout.gio-responsive-margin-container;
+  @include gio-layout.gio-full-width-content-container;
 }
 
 .log-details {
@@ -24,7 +24,10 @@
   }
 
   &__section {
-    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
     box-sizing: border-box;
     border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
     border-radius: 8px;
@@ -32,9 +35,11 @@
 
     &__kv {
       display: grid;
-      grid-template-columns: 150px 1fr;
-      gap: 8px 0;
+      grid-template-columns: 160px 1fr;
+      gap: 6px 0;
       font-size: 14px;
+      overflow-wrap: break-word;
+      word-break: break-all;
     }
   }
 }

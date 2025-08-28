@@ -1,8 +1,17 @@
 @use 'sass:map';
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
 @use '../../api-runtime-logs-proxy.component' as parent;
 
 .card {
   @include parent.card;
+}
+
+.log__body {
+  margin-top: auto;
+
+  &__editor {
+    border: 1px solid grey;
+    border-radius: 4px;
+    height: 180px;
+    overflow: hidden;
+  }
 }
