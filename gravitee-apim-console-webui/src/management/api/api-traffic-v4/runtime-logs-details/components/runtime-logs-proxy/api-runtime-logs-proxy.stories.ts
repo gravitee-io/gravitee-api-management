@@ -13,15 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
+import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { of } from 'rxjs';
+import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
+import { importProvidersFrom } from '@angular/core';
 
 import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component';
 
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 import { fakeApiMetricResponse } from '../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse.fixture';
 import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.service';
-import { fakeConnectionLogDetail } from '../../../../../../entities/management-api-v2';
+import {
+  fakeConnectionLogDetail,
+  fakeConnectionLogDetailRequest,
+  fakeConnectionLogDetailResponse,
+} from '../../../../../../entities/management-api-v2';
+
+const bodyExample = `{
+  "message": "hello world"
+}
+`;
 
 export default {
   title: 'API / Logs / Details / Proxy Connection Log',
@@ -44,6 +55,7 @@ export default {
         },
       ],
     }),
+    applicationConfig({ providers: [importProvidersFrom(GioMonacoEditorModule.forRoot({ theme: 'vs-dark', baseUrl: '.' }))] }),
   ],
   argTypes: {},
   render: (args) => ({
@@ -73,3 +85,63 @@ export default {
 } as Meta;
 
 export const Default: StoryObj = {};
+
+export const WithResponseBody: StoryObj = {};
+WithResponseBody.decorators = [
+  moduleMetadata({
+    providers: [
+      {
+        provide: ApiAnalyticsV2Service,
+        useValue: {
+          getApiMetricsDetail: (apiId: string, requestId: string) => of(fakeApiMetricResponse({ apiId, requestId })),
+        },
+      },
+      {
+        provide: ApiLogsV2Service,
+        useValue: {
+          searchConnectionLogDetail: (apiId: string, requestId: string) =>
+            of(
+              fakeConnectionLogDetail({
+                apiId,
+                requestId,
+                entrypointResponse: fakeConnectionLogDetailResponse({
+                  body: bodyExample,
+                }),
+                endpointResponse: fakeConnectionLogDetailResponse({
+                  body: bodyExample,
+                }),
+              }),
+            ),
+        },
+      },
+    ],
+  }),
+];
+
+export const WithRequestBody: StoryObj = {};
+WithRequestBody.decorators = [
+  moduleMetadata({
+    providers: [
+      {
+        provide: ApiAnalyticsV2Service,
+        useValue: {
+          getApiMetricsDetail: (apiId: string, requestId: string) => of(fakeApiMetricResponse({ apiId, requestId })),
+        },
+      },
+      {
+        provide: ApiLogsV2Service,
+        useValue: {
+          searchConnectionLogDetail: (apiId: string, requestId: string) =>
+            of(
+              fakeConnectionLogDetail({
+                apiId,
+                requestId,
+                endpointRequest: fakeConnectionLogDetailRequest({ method: 'POST', body: bodyExample }),
+                entrypointRequest: fakeConnectionLogDetailRequest({ method: 'POST', body: bodyExample }),
+              }),
+            ),
+        },
+      },
+    ],
+  }),
+];
