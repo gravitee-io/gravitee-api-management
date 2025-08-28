@@ -17,7 +17,7 @@ package io.gravitee.apim.infra.json.jackson;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -42,17 +42,25 @@ public class JacksonJsonDiffProcessor implements JsonDiffProcessor {
         // The json-patch library is not able to compute diff for such objects because it does not handle the token type
         // VALUE_EMBEDDED_OBJECT
 
-        String oldJson = object1 == null
-            ? "{}"
-            : mapper.convertValue(object1, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt")).toString();
-        String newJson = object2 == null
-            ? "{}"
-            : mapper.convertValue(object2, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt")).toString();
+        String oldJson = convertToString(object1);
+        String newJson = convertToString(object2);
 
         try {
             return JsonDiff.asJson(mapper.readTree(oldJson), mapper.readTree(newJson)).toString();
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Error while computing JSON diff", e);
         }
+    }
+
+    private String convertToString(Object obj) {
+        if (obj == null) {
+            return "{}";
+        }
+
+        if (obj.getClass().isArray() || obj instanceof Iterable) {
+            return mapper.convertValue(obj, ArrayNode.class).toString();
+        }
+
+        return mapper.convertValue(obj, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt")).toString();
     }
 }
