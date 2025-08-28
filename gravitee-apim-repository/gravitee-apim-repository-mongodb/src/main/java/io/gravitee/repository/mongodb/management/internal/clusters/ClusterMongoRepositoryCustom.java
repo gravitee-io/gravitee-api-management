@@ -18,8 +18,17 @@ package io.gravitee.repository.mongodb.management.internal.clusters;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.ClusterMongo;
+import java.util.Set;
 import org.springframework.data.domain.PageRequest;
 
 public interface ClusterMongoRepositoryCustom {
     Page<ClusterMongo> search(ClusterCriteria criteria, PageRequest pageRequest);
+
+    /**
+     * Updates the groups of the cluster identified by the given id.
+     * @param id the cluster id
+     * @param groups the new groups list (can be null)
+     * @return true if a document was matched and updated, false otherwise
+     */
+    boolean updateGroups(String id, Set<String> groups);
 }

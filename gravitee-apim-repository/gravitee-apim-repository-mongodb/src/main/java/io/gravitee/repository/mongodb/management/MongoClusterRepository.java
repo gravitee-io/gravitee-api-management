@@ -110,4 +110,14 @@ public class MongoClusterRepository implements ClusterRepository {
             )
             .map(mapper::map);
     }
+
+    @Override
+    public void updateGroups(String clusterId, Set<String> groups) {
+        log.debug("Update groups for cluster id [{}]", clusterId);
+        boolean updated = internalClusterMongoRepo.updateGroups(clusterId, groups);
+        if (!updated) {
+            throw new IllegalStateException(String.format("No cluster found with id [%s]", clusterId));
+        }
+        log.debug("Update groups for cluster id [{}] - Done", clusterId);
+    }
 }

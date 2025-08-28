@@ -21,7 +21,10 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Cluster;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ClusterRepository extends CrudRepository<Cluster, String> {
     Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortable);
+
+    void updateGroups(String clusterId, Set<String> groups);
 }

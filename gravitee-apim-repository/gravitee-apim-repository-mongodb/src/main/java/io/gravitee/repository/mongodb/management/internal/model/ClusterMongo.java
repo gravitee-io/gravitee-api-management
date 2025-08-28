@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -33,4 +34,5 @@ public class ClusterMongo extends Auditable {
     private String name;
     private String description;
     private String definition;
+    private List<String> groups;
 }
