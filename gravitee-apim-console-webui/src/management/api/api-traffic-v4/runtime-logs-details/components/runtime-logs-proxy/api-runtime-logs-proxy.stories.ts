@@ -20,6 +20,8 @@ import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component
 
 import { ApiAnalyticsV2Service } from '../../../../../../services-ngx/api-analytics-v2.service';
 import { fakeApiMetricResponse } from '../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse.fixture';
+import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.service';
+import { fakeConnectionLogDetail } from '../../../../../../entities/management-api-v2';
 
 export default {
   title: 'API / Logs / Details / Proxy Connection Log',
@@ -31,7 +33,13 @@ export default {
         {
           provide: ApiAnalyticsV2Service,
           useValue: {
-            getApiMetric: (apiId: string, requestId: string) => of(fakeApiMetricResponse({ apiId, requestId })),
+            getApiMetricsDetail: (apiId: string, requestId: string) => of(fakeApiMetricResponse({ apiId, requestId })),
+          },
+        },
+        {
+          provide: ApiLogsV2Service,
+          useValue: {
+            searchConnectionLogDetail: (apiId: string, requestId: string) => of(fakeConnectionLogDetail({ apiId, requestId })),
           },
         },
       ],
