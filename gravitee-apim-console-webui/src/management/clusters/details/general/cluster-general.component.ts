@@ -38,6 +38,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ClustersService } from '../../../../services-ngx/clusters.service';
 import { Cluster } from '../../../../entities/management-api-v2';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'cluster-general',
@@ -74,9 +75,11 @@ export class ClusterGeneralComponent implements OnInit {
   private readonly snackBarService = inject(SnackBarService);
   private readonly matDialog = inject(MatDialog);
   private readonly router = inject(Router);
+  private readonly permissionService = inject(GioPermissionService);
 
   public ngOnInit() {
     this.isLoadingData = true;
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['cluster-definition-u']);
     this.clustersService
       .get(this.activatedRoute.snapshot.params.clusterId)
       .pipe(

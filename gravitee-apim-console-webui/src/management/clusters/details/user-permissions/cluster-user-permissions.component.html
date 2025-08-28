@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,7 +24,7 @@
           <p>Manage who can interact with your Cluster</p>
         </div>
         <button
-          *ngIf="canAddMembers"
+          *gioPermission="{ anyOf: ['cluster-member-c'] }"
           (click)="addMembers()"
           class="card__header__actions__button"
           mat-raised-button
@@ -72,7 +72,7 @@
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let member">
             <div class="action-cell" *ngIf="member.role !== 'PRIMARY_OWNER'">
-              <button type="button" mat-icon-button (click)="removeMember(member)">
+              <button type="button" mat-button (click)="removeMember(member)">
                 <mat-icon svgIcon="gio:trash"></mat-icon>
               </button>
             </div>

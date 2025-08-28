@@ -21,6 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
 import { ClusterMemberService } from '../../../../services-ngx/cluster-member.service';
 import {
@@ -59,6 +60,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
   membersToAdd: (Member & { _viewId: string; reference: string })[] = [];
   defaultRole?: Role;
   roles: Role[];
+  isReadOnly: boolean;
 
   private members: Member[];
 
@@ -81,7 +83,9 @@ export class ClusterUserPermissionsComponent implements OnInit {
 
   ngOnInit(): void {
     this.clusterId = this.activatedRoute.snapshot.params.clusterId;
-    if (this.permissionService.hasPermissionsByScope('CLUSTER', ['cluster-member-d']) && !this.displayedColumns.includes('delete')) {
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['cluster-member-u']);
+
+    if (this.permissionService.hasAnyMatching(['cluster-member-d']) && !this.displayedColumns.includes('delete')) {
       this.displayedColumns.push('delete');
     }
     this.getMembersWithPagination(this.filters.pagination.index, this.filters.pagination.size);
@@ -114,10 +118,6 @@ export class ClusterUserPermissionsComponent implements OnInit {
     });
   }
 
-  get isReadOnly(): boolean {
-    return !this.permissionService.hasPermissionsByScope('CLUSTER', ['cluster-member-u']);
-  }
-
   private initForm() {
     this.form = new FormGroup({});
     this.members?.forEach((member) => {
@@ -131,14 +131,10 @@ export class ClusterUserPermissionsComponent implements OnInit {
     });
   }
 
-  public get canAddMembers() {
-    return this.permissionService.hasPermissionsByScope('CLUSTER', ['cluster-member-c']);
-  }
-
   public addMembers() {
     this.matDialog
       .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
-        width: '500px',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           userFilterPredicate: (user) => !this.members.some((member) => member.id === user.id),
         },
