@@ -20,6 +20,7 @@ export interface Cluster {
   configuration: KafkaClusterConfiguration;
   updatedAt: Date;
   createdAt: Date;
+  groups: string[];
 }
 
 export interface KafkaClusterConfiguration {
