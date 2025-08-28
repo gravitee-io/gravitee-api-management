@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.time.Instant;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,4 +38,5 @@ public class Cluster {
     private String name;
     private String description;
     private String definition;
+    private Set<String> groups;
 }

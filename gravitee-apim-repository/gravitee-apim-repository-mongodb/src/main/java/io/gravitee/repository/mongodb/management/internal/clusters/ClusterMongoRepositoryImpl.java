@@ -22,10 +22,12 @@ import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.ClusterMongo;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.util.CollectionUtils;
 
 public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom {
@@ -57,5 +59,15 @@ public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom 
         final List<ClusterMongo> clusters = mongoTemplate.find(query, ClusterMongo.class);
 
         return new Page<>(clusters, pageRequest.getPageNumber(), clusters.size(), total);
+    }
+
+    @Override
+    public boolean updateGroups(String id, Set<String> groups) {
+        Objects.requireNonNull(id, "id must not be null");
+        final Query query = new Query(where("id").is(id));
+        final Update update = new Update();
+        update.set("groups", groups);
+        var result = mongoTemplate.updateFirst(query, update, ClusterMongo.class);
+        return result.getMatchedCount() > 0;
     }
 }
