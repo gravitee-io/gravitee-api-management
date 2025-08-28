@@ -26,7 +26,7 @@
           <dl class="card__section__kv">
             <dt class="mat-caption">Method</dt>
             <dd class="gio-caption-2">
-              <div class="gio-badge-neutral">{{ log.entrypointRequest.method }}</div>
+              <div [class]="'gio-method-badge-' + log.entrypointRequest.method.toLocaleLowerCase()">{{ log.entrypointRequest.method }}</div>
             </dd>
             <dt class="mat-caption">URI</dt>
             <dd class="gio-caption-2">{{ log.entrypointRequest.uri }}</dd>
@@ -40,7 +40,7 @@
           <dl class="card__section__kv">
             <dt class="mat-caption">Method</dt>
             <dd class="gio-caption-2">
-              <div class="gio-badge-neutral">{{ log.endpointRequest.method }}</div>
+              <div [class]="'gio-method-badge-' + log.endpointRequest.method.toLocaleLowerCase()">{{ log.endpointRequest.method }}</div>
             </dd>
             <dt class="mat-caption">URI</dt>
             <dd class="gio-caption-2">{{ log.endpointRequest.uri }}</dd>

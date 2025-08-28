@@ -17,15 +17,22 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
 import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component';
+import { ApiProxyRequestMetricOverviewHarness } from './components/api-proxy-request-metric-overview/api-proxy-request-metric-overview.harness';
+import { ApiProxyRequestLogOverviewHarness } from './components/api-proxy-request-log-overview/api-proxy-request-log-overview.harness';
 
-import { ConnectionLogDetail, fakeConnectionLogDetail } from '../../../../../../entities/management-api-v2';
+import {
+  ConnectionLogDetail,
+  fakeConnectionLogDetail,
+  fakeConnectionLogDetailRequest,
+  fakeConnectionLogDetailResponse,
+} from '../../../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
 import { ApiMetricsDetailResponse } from '../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse';
 import { fakeApiMetricResponse } from '../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse.fixture';
-import { HarnessLoader } from '@angular/cdk/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
 describe('ApiRuntimeLogsProxyComponent', () => {
   const API_ID = 'an-api-id';
@@ -33,7 +40,7 @@ describe('ApiRuntimeLogsProxyComponent', () => {
 
   let fixture: ComponentFixture<ApiRuntimeLogsProxyComponent>;
   let httpTestingController: HttpTestingController;
-  let rootLoader: HarnessLoader;
+  let loader: HarnessLoader;
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
@@ -46,7 +53,7 @@ describe('ApiRuntimeLogsProxyComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
-    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    loader = TestbedHarnessEnvironment.loader(fixture);
   };
 
   afterEach(() => {
@@ -72,6 +79,76 @@ describe('ApiRuntimeLogsProxyComponent', () => {
 
     expect(fixture.nativeElement.querySelector('api-proxy-request-log-overview')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('api-proxy-request-metric-overview')).toBeTruthy();
+  });
+
+  it('should display the component with all metrics and logs detail', async () => {
+    await initComponent();
+
+    expectApiMetric(fakeApiMetricResponse({ apiId: API_ID, requestId: REQUEST_ID }));
+    expectApiWithConnectionLog(
+      fakeConnectionLogDetail({
+        apiId: API_ID,
+        requestId: REQUEST_ID,
+        entrypointRequest: fakeConnectionLogDetailRequest({ body: 'entrypointRequestBody' }),
+        endpointRequest: fakeConnectionLogDetailRequest({ body: 'endpointRequestBody', uri: '' }),
+        entrypointResponse: fakeConnectionLogDetailResponse({ body: 'entrypointResponseBody' }),
+        endpointResponse: fakeConnectionLogDetailResponse({ body: 'endpointResponseBody', headers: {} }),
+      }),
+    );
+
+    const metricsHarness = await loader.getHarness(ApiProxyRequestMetricOverviewHarness);
+    expect(await metricsHarness.getAllKeyValues()).toEqual([
+      { key: 'Date', value: 'Aug 1, 2025, 3:29:20 PM' },
+      { key: 'Host', value: 'localhost:8082' },
+      { key: 'Method', value: 'GET' },
+      { key: 'URI', value: '/v4/echo' },
+      { key: 'Request ID', value: 'a-request-id' },
+      { key: 'Transaction ID', value: '39107cc9-b8bf-4f16-907c-c9b8bf8f16fb' },
+      { key: 'Remote IP', value: '0:0:0:0:0:0:0:1' },
+      { key: 'Status', value: '202' },
+      { key: 'Global response time', value: '276' },
+      { key: 'API response time', value: '150' },
+      { key: 'Latency', value: '3' },
+      { key: 'Content-length', value: '276' },
+      { key: 'Application', value: 'Unknown' },
+      { key: 'Plan', value: 'Default Keyless (UNSECURED)' },
+      { key: 'Endpoint', value: 'https://example.endpoint.com' },
+      { key: 'Gateway Host', value: 'Mac.lan' },
+      { key: 'Gateway IP', value: '192.168.1.139' },
+    ]);
+
+    const logHarness = await loader.getHarness(ApiProxyRequestLogOverviewHarness);
+    expect(await logHarness.getAllKeyValues()).toEqual([
+      { key: 'Method', value: 'GET' },
+      { key: 'URI', value: '/api-uri' },
+      { key: 'X-Header', value: 'first-header' },
+      { key: 'X-Header-Multiple', value: 'first-header,second-header' },
+      { key: 'Method', value: 'GET' },
+      { key: 'URI', value: null },
+      { key: 'X-Header', value: 'first-header' },
+      { key: 'X-Header-Multiple', value: 'first-header,second-header' },
+      { key: 'Status', value: '200' },
+      { key: 'X-Header', value: 'first-header' },
+      { key: 'X-Header-Multiple', value: 'first-header,second-header' },
+      { key: 'Status', value: '200' },
+    ]);
+
+    expect(await logHarness.getBodies()).toEqual([
+      'entrypointRequestBody',
+      'endpointRequestBody',
+      'entrypointResponseBody',
+      'endpointResponseBody',
+    ]);
+  });
+
+  it('should display nothing when connection log is not found', async () => {
+    await initComponent();
+
+    expectApiMetric(fakeApiMetricResponse({ apiId: API_ID, requestId: REQUEST_ID }));
+    expectApiConnectionLogNotFound();
+
+    const logHarness = await loader.getHarness(ApiProxyRequestLogOverviewHarness);
+    expect(await logHarness.getAllKeyValues()).toEqual([]);
   });
 
   function expectApiMetric(data: ApiMetricsDetailResponse) {
