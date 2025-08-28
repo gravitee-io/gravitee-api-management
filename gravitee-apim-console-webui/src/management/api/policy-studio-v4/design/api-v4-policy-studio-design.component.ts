@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import {
@@ -85,12 +85,16 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly sharedPolicyGroupsService: SharedPolicyGroupsService,
     private readonly resourceTypeService: ResourceTypeService,
     private readonly gioLicenseService: GioLicenseService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.activatedRoute.params
       .pipe(
-        tap(() => (this.isLoading = true)),
+        tap(() => {
+          this.isLoading = true;
+          this.changeDetectorRef.detectChanges();
+        }),
         switchMap((params) =>
           combineLatest([
             this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map((api) => api as ApiV4)),
