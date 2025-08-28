@@ -14,7 +14,10 @@
         "extensionValue": {
           "type": "string",
           "title": "Extension value",
-          "description": "Must be valid ASCII characters (supports EL and Secrets)."
+          "description": "Must be valid ASCII characters (supports EL and Secrets).",
+          "gioConfig": {
+            "el": true
+          }
         }
       },
       "gioConfig": {
@@ -64,6 +67,7 @@
                       "title": "SASL JAAS Config  (sasl.jaas.config)",
                       "description": "(supports EL and Secrets)",
                       "gioConfig": {
+                        "el": true,
                         "banner": {
                           "title": "SASL JAAS Config",
                           "text": "JAAS login context parameters for SASL connections in the format used by JAAS configuration files. JAAS configuration file format is described here. The format for the value is: loginModuleClass controlFlag (optionName=optionValue)*;"
@@ -84,6 +88,7 @@
                       "title": "OAuth token url",
                       "description": "The OAuth token url to call to issue a new token (supports EL and Secrets).",
                       "gioConfig": {
+                        "el": true,
                         "banner": {
                           "title": "OAUTHBEARER Method",
                           "text": "Defines how the token to send to the broker is retrieved."
@@ -93,17 +98,26 @@
                     "clientId": {
                       "type": "string",
                       "title": "Client id",
-                      "description": "The client id to use to call the OAuth server to issue a new token (supports EL and Secrets)."
+                      "description": "The client id to use to call the OAuth server to issue a new token (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
                     },
                     "clientSecret": {
                       "type": "string",
                       "title": "Client secret",
-                      "description": "The client id to use to call the OAuth server to issue a new token (supports EL and Secrets)."
+                      "description": "The client id to use to call the OAuth server to issue a new token (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
                     },
                     "scopes": {
                       "type": "string",
                       "title": "Scopes",
-                      "description": "The scopes to request when issuing the token, comma-separated (supports EL and Secrets)."
+                      "description": "The scopes to request when issuing the token, comma-separated (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
                     },
                     "saslExtensions": {
                       "type": "array",
@@ -128,7 +142,10 @@
                     "token": {
                       "type": "string",
                       "title": "Token value",
-                      "description": "The token to use (supports EL and Secrets)."
+                      "description": "The token to use (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -142,12 +159,18 @@
                     "username": {
                       "type": "string",
                       "title": "Username",
-                      "description": "The username to connect to the broker (supports EL and Secrets)."
+                      "description": "The username to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
                     },
                     "password": {
                       "type": "string",
                       "title": "Password",
-                      "description": "The password to connect to the broker (supports EL and Secrets)."
+                      "description": "The password to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -161,12 +184,18 @@
                     "username": {
                       "type": "string",
                       "title": "Username",
-                      "description": "The username to connect to the broker (supports EL and Secrets)."
+                      "description": "The username to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
                     },
                     "password": {
                       "type": "string",
                       "title": "Password",
-                      "description": "The password to connect to the broker (supports EL and Secrets)."
+                      "description": "The password to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -180,12 +209,18 @@
                     "username": {
                       "type": "string",
                       "title": "Username",
-                      "description": "The username to connect to the broker (supports EL and Secrets)."
+                      "description": "The username to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
                     },
                     "password": {
                       "type": "string",
                       "title": "Password",
-                      "description": "The password to connect to the broker (supports EL and Secrets)."
+                      "description": "The password to connect to the broker (supports EL and Secrets).",
+                      "gioConfig": {
+                        "el": true
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -201,6 +236,7 @@
                       "title": "SASL JAAS Config  (sasl.jaas.config)",
                       "description": "(supports EL and Secrets)",
                       "gioConfig": {
+                        "el": true,
                         "banner": {
                           "title": "SASL JAAS Config",
                           "text": "JAAS login context parameters for SASL connections in the format used by JAAS configuration files. JAAS configuration file format is described here. The format for the value is: loginModuleClass controlFlag (optionName=optionValue)*;"
@@ -244,6 +280,7 @@
       "description": "Truststore password (supports EL and Secrets)",
       "format": "password",
       "gioConfig": {
+        "el": true,
         "banner": {
           "title": "SSL truststore password",
           "text": "The password for the truststore file. If a password is not set, truststore file configured will still be used, but integrity checking is disabled. Truststore password is not supported for PEM format."
@@ -253,63 +290,96 @@
     "sslTrustStorePath": {
       "type": "string",
       "title": "Path to truststore",
-      "description": "Path to the truststore file (supports EL and Secrets)"
+      "description": "Path to the truststore file (supports EL and Secrets)",
+      "gioConfig": {
+        "el": true
+      }
     },
     "sslTrustStoreContent": {
       "type": "string",
       "title": "Content",
       "description": "Binary content as Base64 (supports EL and Secrets)",
-      "format": "text"
+      "format": "text",
+      "gioConfig": {
+        "el": true
+      }
     },
     "sslKeyStorePassword": {
       "type": "string",
       "title": "Password",
       "description": "Password to use to open the key store (supports EL and Secrets)",
-      "format": "password"
+      "format": "password",
+      "gioConfig": {
+        "el": true
+      }
     },
     "sslKeyStoreAlias": {
       "type": "string",
       "title": "Alias for the key",
-      "description": "Alias of the key to use in case the key store contains more than one key (supports EL and Secrets)"
+      "description": "Alias of the key to use in case the key store contains more than one key (supports EL and Secrets)",
+      "gioConfig": {
+        "el": true
+      }
     },
     "sslKeyStoreKeyPassword": {
       "type": "string",
       "title": "Key Password",
       "description": "Password to use to access the key when protected by password (supports EL and Secrets)",
-      "format": "password"
+      "format": "password",
+      "gioConfig": {
+        "el": true
+      }
     },
     "sslKeyStorePath": {
       "type": "string",
       "title": "Path to key store",
-      "description": "Path to the key store file (supports EL and Secrets)"
+      "description": "Path to the key store file (supports EL and Secrets)",
+      "gioConfig": {
+        "el": true
+      }
     },
     "sslKeyStoreContent": {
       "type": "string",
       "title": "Content",
       "description": "Binary content as Base64 (supports EL and Secrets)",
-      "format": "text"
+      "format": "text",
+      "gioConfig": {
+        "el": true
+      }
     },
     "sslKeyStoreCertPath": {
       "type": "string",
       "title": "Path to cert file",
-      "description": "Path to cert file (.PEM) (supports EL and Secrets)"
+      "description": "Path to cert file (.PEM) (supports EL and Secrets)",
+      "gioConfig": {
+        "el": true
+      }
     },
     "sslKeyStoreCertContent": {
       "type": "string",
       "title": "Certificate",
       "description": "(supports EL and Secrets)",
-      "format": "text"
+      "format": "text",
+      "gioConfig": {
+        "el": true
+      }
     },
     "sslKeyStoreKeyPath": {
       "type": "string",
       "title": "Path to private key file",
-      "description": "Path to private key file (.PEM) (supports EL and Secrets)"
+      "description": "Path to private key file (.PEM) (supports EL and Secrets)",
+      "gioConfig": {
+        "el": true
+      }
     },
     "sslKeyStoreKeyContent": {
       "type": "string",
       "title": "Private key",
       "description": "(supports EL and Secrets)",
-      "format": "text"
+      "format": "text",
+      "gioConfig": {
+        "el": true
+      }
     },
     "securitySsl": {
       "type": "object",

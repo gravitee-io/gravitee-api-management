@@ -6,7 +6,10 @@
             "title": "Target url",
             "description": "The target url to use to contact the backend. (Supports EL and secrets)",
             "type": "string",
-            "pattern": "^\\S+$"
+            "pattern": "^\\S+$",
+            "gioConfig": {
+                "el": true
+            }
         }
     },
     "properties": {
