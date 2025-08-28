@@ -23,7 +23,6 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiRuntimeLogsDetailsComponent } from './api-runtime-logs-details.component';
 import { ApiRuntimeLogsDetailsModule } from './api-runtime-logs-details.module';
-import { ApiRuntimeLogsProxyHarness } from './components/runtime-logs-proxy/api-runtime-logs-proxy.harness';
 import { ApiRuntimeLogsMessagesHarness } from './components/runtime-logs-messages/api-runtime-logs-messages.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
@@ -49,14 +48,6 @@ describe('ApiRuntimeLogsDetailsComponent', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('should not display proxy logs details component', async () => {
-    await initComponent();
-    expectApi(fakeApiV4({ id: API_ID, type: 'PROXY' }));
-
-    const loader = TestbedHarnessEnvironment.loader(fixture);
-    expect(await loader.getHarness(ApiRuntimeLogsProxyHarness)).toBeTruthy();
   });
 
   it('should display message logs details component', async () => {

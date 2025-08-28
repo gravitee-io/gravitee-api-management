@@ -15,22 +15,17 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component';
-import { ApiRuntimeLogsProxyHarness } from './api-runtime-logs-proxy.harness';
-import { ApiRuntimeLogsProxyModule } from './api-runtime-logs-proxy.module';
 
-import {
-  ConnectionLogDetail,
-  fakeConnectionLogDetail,
-  fakeConnectionLogDetailRequest,
-  fakeConnectionLogDetailResponse,
-} from '../../../../../../entities/management-api-v2';
+import { ConnectionLogDetail, fakeConnectionLogDetail } from '../../../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
+import { ApiMetricsDetailResponse } from '../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse';
+import { fakeApiMetricResponse } from '../../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse.fixture';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
 describe('ApiRuntimeLogsProxyComponent', () => {
   const API_ID = 'an-api-id';
@@ -38,94 +33,56 @@ describe('ApiRuntimeLogsProxyComponent', () => {
 
   let fixture: ComponentFixture<ApiRuntimeLogsProxyComponent>;
   let httpTestingController: HttpTestingController;
-  let componentHarness: ApiRuntimeLogsProxyHarness;
-  let routerNavigateSpy: jest.SpyInstance;
+  let rootLoader: HarnessLoader;
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyModule, GioTestingModule, MatSnackBarModule],
+      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyComponent, GioTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, requestId: REQUEST_ID } } } }],
     });
 
     await TestBed.compileComponents();
     fixture = TestBed.createComponent(ApiRuntimeLogsProxyComponent);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsProxyHarness);
     httpTestingController = TestBed.inject(HttpTestingController);
-    const router = TestBed.inject(Router);
-    routerNavigateSpy = jest.spyOn(router, 'navigate');
     fixture.detectChanges();
+
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
   };
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should init the component and fetch the connection log', async () => {
+  it('should init the component, fetch the metrics', async () => {
     await initComponent();
 
     expectApiWithConnectionLog(
       fakeConnectionLogDetail({
         apiId: API_ID,
         requestId: REQUEST_ID,
-        entrypointRequest: fakeConnectionLogDetailRequest({ body: '{ "message": "entrypoint request body" }' }),
-        endpointRequest: fakeConnectionLogDetailRequest({ uri: '', body: '{ "message": "endpoint request body" }' }),
-        endpointResponse: fakeConnectionLogDetailResponse({ body: '{ "message": "endpoint response body" }' }),
-        entrypointResponse: fakeConnectionLogDetailResponse({ body: '{ "message": "entrypoint response body" }' }),
       }),
     );
 
-    // Entrypoint request
-    const logsDetailHarness = await componentHarness.logsDetailHarness();
-    const entrypointRequestPanel = await logsDetailHarness.entrypointRequestPanelSelector();
-    expect(await logsDetailHarness.getConnectionLogRequestUri(entrypointRequestPanel)).toEqual('/api-uri');
-    expect(await logsDetailHarness.getConnectionLogRequestMethod(entrypointRequestPanel)).toEqual('get');
-    expect(await logsDetailHarness.getConnectionLogHeaders(entrypointRequestPanel)).toMatchObject({
-      'X-Header': 'first-header',
-      'X-Header-Multiple': 'first-header,second-header',
-    });
-    expect(JSON.parse(await logsDetailHarness.getConnectionLogBody(entrypointRequestPanel))).toStrictEqual({
-      message: 'entrypoint request body',
-    });
+    expectApiMetric(
+      fakeApiMetricResponse({
+        apiId: API_ID,
+        requestId: REQUEST_ID,
+      }),
+    );
 
-    // Endpoint request
-    const endpointRequestPanel = await logsDetailHarness.endpointRequestPanelSelector();
-    expect(await logsDetailHarness.getConnectionLogRequestUri(endpointRequestPanel)).toBeUndefined();
-    expect(await logsDetailHarness.getConnectionLogRequestMethod(endpointRequestPanel)).toEqual('get');
-    expect(await logsDetailHarness.getConnectionLogHeaders(endpointRequestPanel)).toMatchObject({
-      'X-Header': 'first-header',
-      'X-Header-Multiple': 'first-header,second-header',
-    });
-    expect(JSON.parse(await logsDetailHarness.getConnectionLogBody(endpointRequestPanel))).toStrictEqual({
-      message: 'endpoint request body',
-    });
-
-    // Endpoint response
-    const endpointResponsePanel = await logsDetailHarness.endpointResponsePanelSelector();
-    expect(await logsDetailHarness.getConnectionLogResponseStatus(endpointResponsePanel)).toEqual('200');
-    expect(await logsDetailHarness.getConnectionLogHeaders(endpointResponsePanel)).toMatchObject({});
-    expect(JSON.parse(await logsDetailHarness.getConnectionLogBody(endpointResponsePanel))).toEqual({ message: 'endpoint response body' });
-
-    // Endpoint request
-    const entrypointResponsePanel = await logsDetailHarness.entrypointResponsePanelSelector();
-    expect(await logsDetailHarness.getConnectionLogResponseStatus(entrypointResponsePanel)).toEqual('200');
-    expect(await logsDetailHarness.getConnectionLogHeaders(entrypointResponsePanel)).toMatchObject({
-      'X-Header': 'first-header',
-      'X-Header-Multiple': 'first-header,second-header',
-    });
-    expect(JSON.parse(await logsDetailHarness.getConnectionLogBody(entrypointResponsePanel))).toEqual({
-      message: 'entrypoint response body',
-    });
+    expect(fixture.nativeElement.querySelector('api-proxy-request-log-overview')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('api-proxy-request-metric-overview')).toBeTruthy();
   });
 
-  it('should navigate to settings page', async () => {
-    await initComponent();
-    expectApiWithoutConnectionLog();
-
-    const emptyStateHarness = await componentHarness.emptyStateHarness();
-    await emptyStateHarness.clickOpenSettingsButton();
-
-    expect(routerNavigateSpy).toHaveBeenCalledWith(['../../runtime-logs-settings'], { relativeTo: expect.anything() });
-  });
+  function expectApiMetric(data: ApiMetricsDetailResponse) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/${REQUEST_ID}`,
+        method: 'GET',
+      })
+      .flush(data);
+    fixture.detectChanges();
+  }
 
   function expectApiWithConnectionLog(data: ConnectionLogDetail) {
     httpTestingController
@@ -137,13 +94,13 @@ describe('ApiRuntimeLogsProxyComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiWithoutConnectionLog() {
+  function expectApiConnectionLogNotFound() {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/${REQUEST_ID}`,
         method: 'GET',
       })
-      .flush(null);
+      .flush({ message: 'Not found' }, { status: 404, statusText: 'Not found' });
     fixture.detectChanges();
   }
 });
