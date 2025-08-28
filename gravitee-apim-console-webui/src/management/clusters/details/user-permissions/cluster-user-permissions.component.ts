@@ -23,6 +23,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
+import {
+  ClusterManageGroupsDialogComponent,
+  ClusterManageGroupsDialogData,
+  ClusterManageGroupsDialogResult,
+} from './manage-groups-dialog/cluster-manage-groups-dialog.component';
+
 import { ClusterMemberService } from '../../../../services-ngx/cluster-member.service';
 import {
   GioUsersSelectorComponent,
@@ -235,6 +241,27 @@ export class ClusterUserPermissionsComponent implements OnInit {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        tap(() => this.ngOnInit()),
+      )
+      .subscribe();
+  }
+
+  updateGroups() {
+    this.matDialog
+      .open<ClusterManageGroupsDialogComponent, ClusterManageGroupsDialogData, ClusterManageGroupsDialogResult>(
+        ClusterManageGroupsDialogComponent,
+        {
+          width: GIO_DIALOG_WIDTH.MEDIUM,
+          role: 'alertdialog',
+          id: 'updateGroupsDialog',
+          data: {
+            clusterId: this.clusterId,
+          },
+        },
+      )
+      .afterClosed()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
         tap(() => this.ngOnInit()),
       )
       .subscribe();

@@ -80,6 +80,18 @@ describe('ClustersService', () => {
     });
   });
 
+  describe('updateGroups', () => {
+    it('should call the API', (done) => {
+      const groupId = ['group1', 'group2'];
+      service.updateGroups('clusterId', groupId).subscribe((cluster) => {
+        expect(cluster).toBeTruthy();
+        done();
+      });
+
+      expectUpdateGroupsRequest(httpTestingController, 'clusterId', groupId);
+    });
+  });
+
   describe('delete', () => {
     it('should call the API', (done) => {
       service.delete('clusterId').subscribe(() => {
@@ -144,4 +156,16 @@ export const expectDeleteClusterRequest = (httpTestingController: HttpTestingCon
   const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/${clusterId}`);
   expect(req.request.method).toEqual('DELETE');
   req.flush({});
+};
+
+export const expectUpdateGroupsRequest = (
+  httpTestingController: HttpTestingController,
+  clusterId: string,
+  groups: string[],
+  clusterUpdated: Cluster = fakeCluster(),
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/${clusterId}/groups`);
+  expect(req.request.method).toEqual('PUT');
+  expect(req.request.body).toStrictEqual(groups);
+  req.flush(clusterUpdated);
 };
