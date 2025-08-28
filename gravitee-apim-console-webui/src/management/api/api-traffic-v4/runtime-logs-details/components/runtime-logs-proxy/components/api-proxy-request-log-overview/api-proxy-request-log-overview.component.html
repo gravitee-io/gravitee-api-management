@@ -33,20 +33,7 @@
           </dl>
 
           <api-proxy-request-log-headers [headers]="log.entrypointRequest.headers" />
-
-          @if (!!log.entrypointRequest.body) {
-            <div class="log__body">
-              <span class="body-strong">Body</span>
-              <div gioMonacoClipboardCopy class="log__body__editor">
-                <gio-monaco-editor
-                  disabled
-                  [options]="monacoEditorOptions"
-                  [ngModel]="log.entrypointRequest.body"
-                  [disableMiniMap]="true"
-                ></gio-monaco-editor>
-              </div>
-            </div>
-          }
+          <api-proxy-request-log-body class="log__body" [body]="log.entrypointRequest.body" />
         </div>
         <div class="card__section">
           <span class="body-strong">Gateway</span>
@@ -58,20 +45,7 @@
           </dl>
 
           <api-proxy-request-log-headers [headers]="log.endpointRequest.headers" />
-
-          @if (!!log.endpointRequest.body) {
-            <div class="log__body">
-              <span class="body-strong">Body</span>
-              <div gioMonacoClipboardCopy class="log__body__editor">
-                <gio-monaco-editor
-                  disabled
-                  [options]="monacoEditorOptions"
-                  [ngModel]="log.endpointRequest.body"
-                  [disableMiniMap]="true"
-                ></gio-monaco-editor>
-              </div>
-            </div>
-          }
+          <api-proxy-request-log-body class="log__body" [body]="log.endpointRequest.body" />
         </div>
       </div>
     </mat-card-content>
@@ -97,20 +71,7 @@
           </dl>
 
           <api-proxy-request-log-headers [headers]="log.entrypointResponse.headers" />
-
-          @if (!!log.entrypointResponse.body) {
-            <div class="log__body">
-              <span class="body-strong">Body</span>
-              <div gioMonacoClipboardCopy class="log__body__editor">
-                <gio-monaco-editor
-                  disabled
-                  [options]="monacoEditorOptions"
-                  [ngModel]="log.entrypointResponse.body"
-                  [disableMiniMap]="true"
-                ></gio-monaco-editor>
-              </div>
-            </div>
-          }
+          <api-proxy-request-log-body class="log__body" [body]="log.entrypointResponse.body" />
         </div>
         <div class="card__section">
           <span class="mat-body-strong">Gateway</span>
@@ -128,20 +89,7 @@
           </dl>
 
           <api-proxy-request-log-headers [headers]="log.endpointResponse.headers" />
-
-          @if (!!log.endpointResponse.body) {
-            <div class="log__body">
-              <span class="body-strong">Body</span>
-              <div gioMonacoClipboardCopy class="log__body__editor">
-                <gio-monaco-editor
-                  disabled
-                  [options]="monacoEditorOptions"
-                  [ngModel]="log.endpointResponse.body"
-                  [disableMiniMap]="true"
-                ></gio-monaco-editor>
-              </div>
-            </div>
-          }
+          <api-proxy-request-log-body class="log__body" [body]="log.endpointResponse.body" />
         </div>
       </div>
     </mat-card-content>
