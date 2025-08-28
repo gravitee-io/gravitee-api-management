@@ -18,7 +18,6 @@ package io.gravitee.apim.core.newtai.model;
 import java.util.Map;
 
 public interface ELGenQuery {
-    String apiId();
     String message();
     Map<String, String> properties();
 }

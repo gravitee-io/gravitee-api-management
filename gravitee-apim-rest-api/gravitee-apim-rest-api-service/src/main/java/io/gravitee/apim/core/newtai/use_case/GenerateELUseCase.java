@@ -16,12 +16,13 @@
 package io.gravitee.apim.core.newtai.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.newtai.model.ELGenQuery;
 import io.gravitee.apim.core.newtai.model.ELGenReply;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.reactivex.rxjava3.core.Single;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
@@ -30,20 +31,31 @@ import lombok.RequiredArgsConstructor;
 public class GenerateELUseCase {
 
     private final NewtAIProvider newtAIProvider;
-    private final ApimProductInfo apimProductInfo;
 
     public Single<Output> execute(Input input) {
         var inputWithContext = input.withProperties(Map.of("elContextVariables", CONTEXT));
         return newtAIProvider.generateEL(inputWithContext).map(Output::new);
     }
 
-    public record Input(String apiId, String message, Map<String, String> properties, AuditInfo auditInfo) implements ELGenQuery {
-        public Input(String apiId, String message, AuditInfo auditInfo) {
-            this(apiId, message, Map.of(), auditInfo);
+    public record Input(String message, Map<String, String> properties, AuditInfo auditInfo) implements ELGenQuery {
+        public Input(String message, AuditInfo auditInfo) {
+            this(message, new HashMap<>(), auditInfo);
         }
 
         public Input withProperties(Map<String, String> properties) {
-            return new Input(apiId, message, properties, auditInfo);
+            final var props = new HashMap<>(this.properties);
+            props.putAll(properties);
+            return new Input(message, props, auditInfo);
+        }
+
+        public Input withApiId(String apiId) {
+            final var props = new HashMap<>(this.properties);
+            props.put("apiId", apiId);
+            return new Input(message, props, auditInfo);
+        }
+
+        public Map<String, String> properties() {
+            return Collections.unmodifiableMap(properties);
         }
     }
 

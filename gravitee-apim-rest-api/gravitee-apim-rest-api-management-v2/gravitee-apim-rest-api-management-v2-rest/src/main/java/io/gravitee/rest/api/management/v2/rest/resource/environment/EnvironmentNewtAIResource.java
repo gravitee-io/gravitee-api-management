@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.api;
+package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.newtai.use_case.GenerateELUseCase;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.model.FeedbackRequestId;
 import io.gravitee.rest.api.management.v2.rest.model.GenerateExpressionLanguage;
@@ -28,24 +29,25 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-public class ApiNewtAIResource extends AbstractResource {
+public class EnvironmentNewtAIResource extends AbstractResource {
 
     @Inject
     private GenerateELUseCase generateELUseCase;
 
-    @Path("_generate")
+    @Path("el/_generate")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ResponseStatus(HttpStatus.OK)
-    public GenerateExpressionLanguageResponse generate(
-        @PathParam("apiId") String apiId,
-        @Valid GenerateExpressionLanguage generateExpressionLanguage
-    ) {
-        var in = new GenerateELUseCase.Input(apiId, generateExpressionLanguage.getMessage(), getAuditInfo());
+    public GenerateExpressionLanguageResponse generate(@Valid GenerateExpressionLanguage generateExpressionLanguage) {
+        var in = new GenerateELUseCase.Input(generateExpressionLanguage.getMessage(), getAuditInfo());
+        if (!StringUtils.isEmpty(generateExpressionLanguage.getContext().getApiId())) {
+            in = in.withApiId(generateExpressionLanguage.getContext().getApiId());
+        }
 
         return generateELUseCase
             .execute(in)

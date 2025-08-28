@@ -20,7 +20,6 @@ import static org.mockito.Mockito.mock;
 
 import inmemory.InMemoryAlternative;
 import inmemory.NewtAIProviderInMemory;
-import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.newtai.exception.NewtAIReplyException;
 import io.gravitee.apim.core.newtai.model.ELGenReply;
@@ -28,9 +27,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import java.util.List;
 import java.util.stream.Stream;
-import lombok.Data;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -41,13 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class GenerateELUseCaseTest {
 
     private final NewtAIProviderInMemory newtAIProvider = new NewtAIProviderInMemory();
-    private final ProductInfo apimMetadata = new ProductInfo();
-    private final GenerateELUseCase generateELUseCase = new GenerateELUseCase(newtAIProvider, apimMetadata);
-
-    @BeforeEach
-    void setUp() {
-        apimMetadata.setVersion("4.9");
-    }
+    private final GenerateELUseCase generateELUseCase = new GenerateELUseCase(newtAIProvider);
 
     @AfterEach
     void tearDown() {
@@ -57,7 +48,7 @@ class GenerateELUseCaseTest {
     @Test
     void should_generate_el() {
         // Given
-        var input = new GenerateELUseCase.Input("apiId", "message", mock(AuditInfo.class));
+        var input = new GenerateELUseCase.Input("message", mock(AuditInfo.class)).withApiId("apiId");
         var expectedReply = new Reply("el-expression", new Reply.FeedbackId("chatId", "userMessageId", "agentMessageId"));
         newtAIProvider.initWith(List.of(new NewtAIProviderInMemory.Tuple.Success("message", expectedReply)));
 
@@ -74,7 +65,7 @@ class GenerateELUseCaseTest {
     @Test
     void fail_generate_el(VertxTestContext context) {
         // Given
-        var input = new GenerateELUseCase.Input("apiId", "message", mock(AuditInfo.class));
+        var input = new GenerateELUseCase.Input("message", mock(AuditInfo.class)).withApiId("apiId");
         newtAIProvider.initWith(List.of(new NewtAIProviderInMemory.Tuple.Fail("message", new NewtAIReplyException("cmdId", "error"))));
 
         // When
@@ -93,12 +84,5 @@ class GenerateELUseCaseTest {
 
     private record Reply(String message, FeedbackId feedbackId) implements ELGenReply {
         private record FeedbackId(String chatId, String userMessageId, String agentMessageId) implements ELGenReply.FeedbackId {}
-    }
-
-    @Data
-    private static class ProductInfo implements ApimProductInfo {
-
-        private String name;
-        private String version;
     }
 }
