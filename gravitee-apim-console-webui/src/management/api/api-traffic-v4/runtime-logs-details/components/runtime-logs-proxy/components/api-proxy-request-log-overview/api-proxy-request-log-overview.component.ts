@@ -15,18 +15,18 @@
  */
 import { Component, input, InputSignal } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { KeyValuePipe } from '@angular/common';
 import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { editor } from 'monaco-editor';
 
 import { ConnectionLogDetail } from '../../../../../../../../entities/management-api-v2';
+import { ApiProxyRequestLogHeadersComponent } from '../api-proxy-request-log-headers/api-proxy-request-log-headers.component';
 
 @Component({
   selector: 'api-proxy-request-log-overview',
   templateUrl: './api-proxy-request-log-overview.component.html',
   styleUrls: ['./api-proxy-request-log-overview.component.scss'],
-  imports: [MatCard, MatCardContent, KeyValuePipe, GioMonacoEditorModule, ReactiveFormsModule, FormsModule],
+  imports: [MatCard, MatCardContent, GioMonacoEditorModule, ReactiveFormsModule, FormsModule, ApiProxyRequestLogHeadersComponent],
 })
 export class ApiProxyRequestLogOverviewComponent {
   log: InputSignal<ConnectionLogDetail> = input.required<ConnectionLogDetail>();

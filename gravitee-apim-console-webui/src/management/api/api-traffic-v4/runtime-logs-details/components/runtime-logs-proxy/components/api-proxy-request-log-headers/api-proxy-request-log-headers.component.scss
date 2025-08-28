@@ -1,0 +1,6 @@
+@use 'sass:map';
+@use '../../api-runtime-logs-proxy.component' as parent;
+
+.card {
+  @include parent.card;
+}
