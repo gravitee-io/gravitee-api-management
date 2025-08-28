@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.cluster.model.Cluster;
@@ -29,6 +30,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -96,6 +98,23 @@ public class ClusterCrudServiceImplTest {
             assertThat(createdCluster.getName()).isEqualTo(cluster.getName());
             assertThat(createdCluster.getEnvironmentId()).isEqualTo(cluster.getEnvironmentId());
             assertThat(createdCluster.getConfiguration()).isEqualTo(cluster.getConfiguration());
+        }
+    }
+
+    @Nested
+    class UpdateGroups {
+
+        @Test
+        public void update_groups() throws TechnicalException {
+            Set<String> groupsToUpdate = Set.of("updated-group-1", "updated-group-2");
+            var cluster = Cluster.builder().id("cluster-id").name("cluster-name").environmentId("env-1").configuration("{}").build();
+
+            when(clusterRepository.findById(cluster.getId())).thenReturn(Optional.of(clusterAdapter.toRepository(cluster)));
+
+            clusterCrudService.updateGroups(cluster.getId(), cluster.getEnvironmentId(), groupsToUpdate);
+
+            verify(clusterRepository).findById(cluster.getId());
+            verify(clusterRepository).updateGroups(cluster.getId(), groupsToUpdate);
         }
     }
 }
