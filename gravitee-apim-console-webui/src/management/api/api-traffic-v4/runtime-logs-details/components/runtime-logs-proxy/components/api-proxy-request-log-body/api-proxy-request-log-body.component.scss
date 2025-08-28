@@ -1,0 +1,15 @@
+@use 'sass:map';
+@use '../../api-runtime-logs-proxy.component' as parent;
+@use '@angular/material/index' as mat;
+@use '@gravitee/ui-particles-angular/index' as gio;
+
+.card {
+  @include parent.card;
+}
+
+.editor {
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter60');
+  border-radius: 4px;
+  height: 180px;
+  overflow: hidden;
+}

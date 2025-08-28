@@ -17,27 +17,25 @@ import { Component, input, InputSignal } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { editor } from 'monaco-editor';
 
 import { ConnectionLogDetail } from '../../../../../../../../entities/management-api-v2';
 import { ApiProxyRequestLogHeadersComponent } from '../api-proxy-request-log-headers/api-proxy-request-log-headers.component';
+import { ApiProxyRequestLogBodyComponent } from '../api-proxy-request-log-body/api-proxy-request-log-body.component';
 
 @Component({
   selector: 'api-proxy-request-log-overview',
   templateUrl: './api-proxy-request-log-overview.component.html',
   styleUrls: ['./api-proxy-request-log-overview.component.scss'],
-  imports: [MatCard, MatCardContent, GioMonacoEditorModule, ReactiveFormsModule, FormsModule, ApiProxyRequestLogHeadersComponent],
+  imports: [
+    MatCard,
+    MatCardContent,
+    GioMonacoEditorModule,
+    ReactiveFormsModule,
+    FormsModule,
+    ApiProxyRequestLogHeadersComponent,
+    ApiProxyRequestLogBodyComponent,
+  ],
 })
 export class ApiProxyRequestLogOverviewComponent {
   log: InputSignal<ConnectionLogDetail> = input.required<ConnectionLogDetail>();
-  monacoEditorOptions: editor.IStandaloneEditorConstructionOptions = {
-    renderLineHighlight: 'none',
-    hideCursorInOverviewRuler: true,
-    overviewRulerBorder: false,
-    scrollbar: {
-      vertical: 'hidden',
-      horizontal: 'hidden',
-      useShadows: false,
-    },
-  };
 }
