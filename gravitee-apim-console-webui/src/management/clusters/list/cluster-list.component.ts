@@ -96,9 +96,6 @@ export class ClusterListComponent implements OnInit {
     isLoading: true,
   });
 
-  // TODO: When permissions are implemented
-  protected isReadOnly = false;
-
   ngOnInit(): void {
     this.refreshPageTableVM$
       .pipe(

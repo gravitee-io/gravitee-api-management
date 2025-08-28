@@ -30,6 +30,7 @@ const clusterRoutes: Routes = [
     path: '',
     component: ClusterListComponent,
     canActivate: [PermissionGuard.checkRouteDataPermissions],
+    canDeactivate: [ClusterGuard.clearPermissions],
     data: {
       useAngularMaterial: true,
       permissions: {
@@ -72,7 +73,7 @@ const clusterRoutes: Routes = [
         component: ClusterUserPermissionsComponent,
         data: {
           permissions: {
-            anyOf: ['cluster-definition-r'],
+            anyOf: ['cluster-member-r'],
           },
         },
       },

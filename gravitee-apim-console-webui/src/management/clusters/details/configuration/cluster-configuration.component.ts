@@ -30,6 +30,7 @@ import securityJsonSchema from './security-schema-form.json';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ClustersService } from '../../../../services-ngx/clusters.service';
 import { Cluster, UpdateCluster } from '../../../../entities/management-api-v2';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'cluster-configuration',
@@ -63,9 +64,11 @@ export class ClusterConfigurationComponent implements OnInit {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly clustersService = inject(ClustersService);
   private readonly snackBarService = inject(SnackBarService);
+  private readonly permissionService = inject(GioPermissionService);
 
   public ngOnInit() {
     this.isLoadingData = true;
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['cluster-definition-u']);
     this.clustersService
       .get(this.activatedRoute.snapshot.params.clusterId)
       .pipe(
