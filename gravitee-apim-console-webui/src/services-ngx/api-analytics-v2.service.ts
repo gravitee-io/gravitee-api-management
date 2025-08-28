@@ -28,6 +28,7 @@ import { ApiAnalyticsMessageFilters } from '../management/api/api-traffic-v4/ana
 import { HistogramAnalyticsResponse } from '../entities/management-api-v2/analytics/analyticsHistogram';
 import { GroupByField, GroupByResponse } from '../entities/management-api-v2/analytics/analyticsGroupBy';
 import { AnalyticsStatsResponse, StatsField } from '../entities/management-api-v2/analytics/analyticsStats';
+import { ApiMetricsDetailResponse } from '../entities/management-api-v2/analytics/apiMetricsDetailResponse';
 
 interface UrlParamsData {
   field?: GroupByField | StatsField;
@@ -118,6 +119,10 @@ export class ApiAnalyticsV2Service {
   getStats(apiId: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlParamsData = {}) {
     const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=STATS&from=${from}&to=${to}&interval=${interval}${this.buildUrlParams({ ...urlParamsData })}`;
     return this.http.get<AnalyticsStatsResponse>(url);
+  }
+
+  getApiMetricsDetail(apiId: string, requestId: string): Observable<ApiMetricsDetailResponse> {
+    return this.http.get<ApiMetricsDetailResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/${requestId}`);
   }
 
   buildUrlParams(params: UrlParamsData) {

@@ -17,11 +17,11 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ApiRuntimeLogsDetailsComponent } from './api-runtime-logs-details.component';
-import { ApiRuntimeLogsProxyModule, ApiRuntimeLogsMessagesModule } from './components';
+import { ApiRuntimeLogsProxyComponent, ApiRuntimeLogsMessagesModule } from './components';
 
 @NgModule({
   declarations: [ApiRuntimeLogsDetailsComponent],
   exports: [ApiRuntimeLogsDetailsComponent],
-  imports: [CommonModule, ApiRuntimeLogsProxyModule, ApiRuntimeLogsMessagesModule],
+  imports: [CommonModule, ApiRuntimeLogsProxyComponent, ApiRuntimeLogsMessagesModule],
 })
 export class ApiRuntimeLogsDetailsModule {}
