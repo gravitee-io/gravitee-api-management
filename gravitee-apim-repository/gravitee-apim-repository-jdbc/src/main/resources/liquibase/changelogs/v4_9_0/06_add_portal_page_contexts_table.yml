@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.9.0_06_add_portal_page_contexts_table
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # Portal Page Contexts Table
+        # ################
+        - createTable:
+            tableName: ${gravitee_prefix}portal_page_contexts
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: context_type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: published, type: boolean, constraints: { nullable: false, default: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}portal_page_contexts
+            columnNames: id
+            tableName: ${gravitee_prefix}portal_page_contexts
+        - addUniqueConstraint:
+            columnNames: page_id, context_type, environment_id
+            constraintName: uk_${gravitee_prefix}portal_page_contexts_page_context_env
+            tableName: ${gravitee_prefix}portal_page_contexts

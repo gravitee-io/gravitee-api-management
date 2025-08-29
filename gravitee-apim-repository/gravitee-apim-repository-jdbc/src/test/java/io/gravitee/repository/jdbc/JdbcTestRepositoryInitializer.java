@@ -151,7 +151,9 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "scoring_functions",
         "portal_menu_links",
         "clusters",
-        "cluster_groups"
+        "cluster_groups",
+        "portal_pages",
+        "portal_page_contexts"
     );
     private static final List<String> tablesToDrop = concatenate(tablesToTruncate, List.of("databasechangelog", "databasechangeloglock"));
     private final DataSource dataSource;
