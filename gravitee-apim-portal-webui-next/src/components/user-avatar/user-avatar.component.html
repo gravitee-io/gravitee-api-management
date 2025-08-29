@@ -19,5 +19,6 @@
   {{ initials }}
 </button>
 <mat-menu #user="matMenu">
+  <button i18n="@@applications" mat-menu-item [routerLink]="['applications']">Applications</button>
   <button i18n="@@userAvatarMenuLogOut" mat-menu-item [routerLink]="['log-out']">Log out</button>
 </mat-menu>
