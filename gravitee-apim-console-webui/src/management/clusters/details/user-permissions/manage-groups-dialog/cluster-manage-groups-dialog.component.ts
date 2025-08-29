@@ -31,7 +31,7 @@ import { map, startWith } from 'rxjs/operators';
 import { AsyncPipe, NgForOf } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { ClustersService } from '../../../../../services-ngx/clusters.service';
+import { ClusterService } from '../../../../../services-ngx/cluster.service';
 import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
@@ -72,7 +72,7 @@ export class ClusterManageGroupsDialogComponent implements OnInit {
   destroyRef = inject(DestroyRef);
 
   groupService = inject(GroupV2Service);
-  clustersService = inject(ClustersService);
+  clusterService = inject(ClusterService);
   snackBarService = inject(SnackBarService);
 
   groups$: Observable<GroupsVm> = this.groupService.list(1, 9999).pipe(
@@ -98,7 +98,7 @@ export class ClusterManageGroupsDialogComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    this.clustersService
+    this.clusterService
       .get(this.dialogData.clusterId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cluster) => {
@@ -107,7 +107,7 @@ export class ClusterManageGroupsDialogComponent implements OnInit {
   }
 
   save() {
-    this.clustersService
+    this.clusterService
       .updateGroups(this.dialogData.clusterId, this.groupsControl?.value ? this.groupsControl.value : [])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

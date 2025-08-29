@@ -16,7 +16,7 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { ClustersService } from './clusters.service';
+import { ClusterService } from './cluster.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import {
@@ -30,9 +30,9 @@ import {
   UpdateCluster,
 } from '../entities/management-api-v2';
 
-describe('ClustersService', () => {
+describe('ClusterService', () => {
   let httpTestingController: HttpTestingController;
-  let service: ClustersService;
+  let service: ClusterService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -40,7 +40,7 @@ describe('ClustersService', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    service = TestBed.inject<ClustersService>(ClustersService);
+    service = TestBed.inject<ClusterService>(ClusterService);
   });
 
   afterEach(() => {

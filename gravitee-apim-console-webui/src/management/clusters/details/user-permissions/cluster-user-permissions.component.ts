@@ -50,7 +50,7 @@ import { Role } from '../../../../entities/role/role';
 import { Member } from '../../../../entities/management-api-v2';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
-import { ClustersService } from '../../../../services-ngx/clusters.service';
+import { ClusterService } from '../../../../services-ngx/cluster.service';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../../../shared/components/gio-users-selector/gio-users-selector.module';
@@ -124,7 +124,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
     private readonly roleService: RoleService,
     private readonly snackBarService: SnackBarService,
     public readonly activatedRoute: ActivatedRoute,
-    private readonly clustersService: ClustersService,
+    private readonly clusterService: ClusterService,
     private readonly groupService: GroupV2Service,
   ) {}
 
@@ -142,7 +142,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
     forkJoin([
       this.clusterMemberService.getMembers(this.clusterId, page, perPage),
       this.roleService.list('CLUSTER'),
-      this.clustersService.get(this.clusterId),
+      this.clusterService.get(this.clusterId),
       this.groupService.list(1, 9999),
     ])
       .pipe(
