@@ -21,6 +21,7 @@ Global variables
 $font-family: var(--gio-app-font-family);
 $background-color: var(--gio-app-background-color);
 $nav-bar-background-color: var(--gio-app-nav-bar-container-color, color-mix(in srgb, $background-color, transparent 20%));
+$nav-bar-border-color: var(--mdc-outlined-card-outline-color, #c7c7c7);
 $card-background-color: var(--gio-app-card-background-color);
 $card-container-shape: var(--gio-app-card-container-shape, 4px);
 $button-container-shape: var(--gio-app-button-container-shape, 4px);

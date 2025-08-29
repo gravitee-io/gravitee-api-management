@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 @use '../../scss/theme/theme' as *;
+@use '../../scss/theme' as app-theme;
+@use '@angular/material' as mat;
 
 .user-avatar {
-  --mdc-outlined-button-container-height: 48px;
-  --mdc-outlined-button-container-shape: 50%;
-  --mdc-outlined-button-label-text-transform: uppercase;
+  @include mat.button-overrides(
+    (
+      outlined-outline-color: app-theme.$nav-bar-border-color,
+      outlined-label-text-transform: uppercase,
+      outlined-horizontal-padding: 8px,
+    )
+  );
 
-  width: 48px;
-  min-width: 48px;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
 }

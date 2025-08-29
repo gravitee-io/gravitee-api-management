@@ -41,10 +41,10 @@ describe('NavBarComponent', () => {
   });
 
   it('should show login button if user not connected', async () => {
-    let logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Log in' }));
+    let logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Sign in' }));
     expect(logInButton).toBeTruthy();
     componentRef.setInput('currentUser', fakeUser());
-    logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Log in' }));
+    logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Sign in' }));
     expect(logInButton).toBeFalsy();
   });
 
