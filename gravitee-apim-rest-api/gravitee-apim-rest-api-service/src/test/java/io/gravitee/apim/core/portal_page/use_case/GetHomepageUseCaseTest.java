@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import inmemory.PortalPageCrudServiceInMemory;
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageFactory;
@@ -43,7 +42,7 @@ class GetHomepageUseCaseTest {
 
     @Test
     void should_return_homepage_when_exists() {
-        PortalPage homepage = PortalPageFactory.create(PageId.random(), new GraviteeMarkdown("home"));
+        PortalPage homepage = PortalPageFactory.createGraviteeMarkdownPage(PageId.random().id().toString(), "home");
         crudService.initWith(java.util.List.of(homepage));
         crudService.setPortalViewContextPage(PortalViewContext.HOMEPAGE, homepage);
         GetHomepageUseCase.Output output = useCase.execute();

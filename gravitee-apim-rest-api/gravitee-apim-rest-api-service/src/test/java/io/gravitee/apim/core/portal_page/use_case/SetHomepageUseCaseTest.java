@@ -18,7 +18,6 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.junit.jupiter.api.Assertions.*;
 
 import inmemory.PortalPageCrudServiceInMemory;
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageFactory;
@@ -42,7 +41,7 @@ class SetHomepageUseCaseTest {
     @Test
     void should_set_homepage_when_page_exists() {
         PageId pageId = PageId.random();
-        PortalPage page = PortalPageFactory.create(pageId, new GraviteeMarkdown("home"));
+        PortalPage page = PortalPageFactory.createGraviteeMarkdownPage(pageId.id().toString(), "home");
         crudService.initWith(java.util.List.of(page));
         SetHomepageUseCase.Input input = new SetHomepageUseCase.Input(pageId);
         SetHomepageUseCase.Output output = useCase.execute(input);

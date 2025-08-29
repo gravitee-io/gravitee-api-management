@@ -347,4 +347,9 @@ public interface GraviteeMapper {
 
     Cluster map(ClusterMongo source);
     ClusterMongo map(Cluster source);
+
+    // PortalPage mapping
+    PortalPage map(PortalPageMongo toMap);
+    PortalPageMongo map(PortalPage toMap);
+    List<PortalPage> mapPortalPages(Collection<PortalPageMongo> toMap);
 }
