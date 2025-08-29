@@ -232,9 +232,6 @@
             "type": "array",
             "title": "HTTP Headers",
             "description": "Default HTTP headers added or overridden by the API gateway to upstream. Supports EL and secrets.",
-          "gioConfig": {
-            "el": true
-          },
             "items": {
                 "type": "object",
                 "title": "Header",
@@ -251,6 +248,7 @@
                 "required": ["name", "value"]
             },
             "gioConfig": {
+                "el": true,
                 "uiType": "gio-headers-array"
             }
         },
