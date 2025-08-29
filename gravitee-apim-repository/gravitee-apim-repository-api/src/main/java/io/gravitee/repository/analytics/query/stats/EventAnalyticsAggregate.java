@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.model.analytics;
+package io.gravitee.repository.analytics.query.stats;
 
-public enum AggregationType {
-    FIELD,
-    AVG,
-    MIN,
-    MAX,
-    VALUE,
-}
+import java.util.Map;
+
+public record EventAnalyticsAggregate(Map<String, Map<String, Long>> values) {}

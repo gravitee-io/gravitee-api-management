@@ -21,13 +21,16 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.analytics.query.stats.EventAnalyticsAggregate;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
@@ -54,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -633,6 +637,50 @@ class AnalyticsQueryServiceImplTest {
                     assertThat(apiMetricsDetail.getMethod()).isEqualTo(HttpMethod.GET);
                     assertThat(apiMetricsDetail.getEndpoint()).isEqualTo("http://endpoint.example.com/foo");
                 });
+        }
+    }
+
+    @Nested
+    class SearchEventAnalytics {
+
+        private static final String API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
+        private static final long FROM = 1755691682768L;
+        private static final long TO = 1755778082768L;
+
+        @Test
+        void should_search_top_value_hits_for_a_given_api() {
+            EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
+                Map.of(
+                    "downstream-active-connections_latest",
+                    Map.of("downstream-active-connections", 2L),
+                    "upstream-active-connections_latest",
+                    Map.of("upstream-active-connections", 2L)
+                )
+            );
+            when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
+            AnalyticsQueryService.EventAnalyticsParams params = getEventAnalyticsParams();
+
+            Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), params);
+
+            assertThat(stats)
+                .hasValueSatisfying(analytics -> {
+                    assertThat(analytics.values().containsKey("downstream-active-connections_latest")).isTrue();
+                    assertThat(analytics.values().get("downstream-active-connections_latest")).containsValue(2L);
+                    assertThat(analytics.values().containsKey("upstream-active-connections_latest")).isTrue();
+                    assertThat(analytics.values().get("upstream-active-connections_latest")).containsValue(2L);
+                });
+        }
+
+        private AnalyticsQueryService.@NotNull EventAnalyticsParams getEventAnalyticsParams() {
+            Aggregation agg1 = new Aggregation("downstream-active-connections", Aggregation.AggregationType.VALUE);
+            Aggregation agg2 = new Aggregation("upstream-active-connections", Aggregation.AggregationType.VALUE);
+            return new AnalyticsQueryService.EventAnalyticsParams(
+                API_ID,
+                Instant.ofEpochMilli(FROM),
+                Instant.ofEpochMilli(TO),
+                Duration.ofMinutes(1),
+                List.of(agg2, agg1)
+            );
         }
     }
 }
