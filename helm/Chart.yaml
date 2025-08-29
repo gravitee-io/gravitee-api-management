@@ -45,3 +45,5 @@ annotations:
       description: 'Make embedded MongoDB and Elastic database deployable on OpenShift cluster. BREAKING CHANGE: as we upgrade to newer release of mongo and elastic dependencies'
     - kind: changed
       description: 'BREAKING CHANGE: Disable file logging by default for Openshift compatibility'
+    - kind: changed
+      description: 'Enhance secret renewal settings configuration and documentation in values.yaml.'
