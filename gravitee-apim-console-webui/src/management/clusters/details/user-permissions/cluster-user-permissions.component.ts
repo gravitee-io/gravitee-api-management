@@ -17,17 +17,24 @@
 import { catchError, combineLatest, EMPTY, filter, forkJoin, Observable, tap } from 'rxjs';
 import { isEmpty, isEqual, uniqueId } from 'lodash';
 import { ActivatedRoute } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioAvatarModule, GioIconsModule, GioLoaderModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table';
 
 import {
   ClusterManageGroupsDialogComponent,
   ClusterManageGroupsDialogData,
   ClusterManageGroupsDialogResult,
 } from './manage-groups-dialog/cluster-manage-groups-dialog.component';
+import { ClusterGroupMembersComponent } from './group-members/cluster-group-members.component';
 
 import { ClusterMemberService } from '../../../../services-ngx/cluster-member.service';
 import {
@@ -42,6 +49,11 @@ import { SearchableUser } from '../../../../entities/user/searchableUser';
 import { Role } from '../../../../entities/role/role';
 import { Member } from '../../../../entities/management-api-v2';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
+import { ClustersService } from '../../../../services-ngx/clusters.service';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioUsersSelectorModule } from '../../../../shared/components/gio-users-selector/gio-users-selector.module';
 
 interface MemberDataSource {
   id: string;
@@ -50,11 +62,37 @@ interface MemberDataSource {
   picture: string;
 }
 
+export interface GroupsMembersVM {
+  id: string;
+  name: string;
+  isVisible?: boolean;
+}
+
 @Component({
   selector: 'cluster-user-permissions',
   templateUrl: './cluster-user-permissions.component.html',
   styleUrls: ['./cluster-user-permissions.component.scss'],
-  standalone: false,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+
+    MatButtonModule,
+    MatCardModule,
+    MatSelectModule,
+    MatSnackBarModule,
+
+    MatTableModule,
+    MatDialogModule,
+
+    GioAvatarModule,
+    GioIconsModule,
+    GioPermissionModule,
+    GioSaveBarModule,
+    GioTableWrapperModule,
+    GioLoaderModule,
+    GioUsersSelectorModule,
+    ClusterGroupMembersComponent,
+  ],
 })
 export class ClusterUserPermissionsComponent implements OnInit {
   clusterId: string;
@@ -67,6 +105,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
   defaultRole?: Role;
   roles: Role[];
   isReadOnly: boolean;
+  groupsMembersVM: GroupsMembersVM[];
 
   private members: Member[];
 
@@ -85,6 +124,8 @@ export class ClusterUserPermissionsComponent implements OnInit {
     private readonly roleService: RoleService,
     private readonly snackBarService: SnackBarService,
     public readonly activatedRoute: ActivatedRoute,
+    private readonly clustersService: ClustersService,
+    private readonly groupService: GroupV2Service,
   ) {}
 
   ngOnInit(): void {
@@ -98,19 +139,34 @@ export class ClusterUserPermissionsComponent implements OnInit {
   }
 
   private getMembersWithPagination(page = 1, perPage = 10): void {
-    forkJoin([this.clusterMemberService.getMembers(this.clusterId, page, perPage), this.roleService.list('CLUSTER')])
+    forkJoin([
+      this.clusterMemberService.getMembers(this.clusterId, page, perPage),
+      this.roleService.list('CLUSTER'),
+      this.clustersService.get(this.clusterId),
+      this.groupService.list(1, 9999),
+    ])
       .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        tap(([members, roles]) => {
+        tap(([members, roles, cluster, groupResponse]) => {
           this.members = members.data;
           this.membersTableLength = members.pagination.totalCount;
           this.roleNames = roles.map((r) => r.name) ?? [];
           this.defaultRole = roles.find((role) => role.default);
+
+          this.groupsMembersVM = cluster.groups?.map((id) => ({
+            id,
+            name: groupResponse.data.find((g) => g.id === id)?.name ?? id,
+            isVisible: true,
+          }));
           this.initDataSource();
           this.initForm();
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe();
+      .subscribe({
+        error: (error) => {
+          this.snackBarService.error(error.error?.message ?? 'An error occurred while fetching members.');
+        },
+      });
   }
 
   private initDataSource() {
