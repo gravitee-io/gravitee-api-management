@@ -25,6 +25,8 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
@@ -70,28 +72,37 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Failover;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -1200,8 +1211,7 @@ class MigrateApiUseCaseTest {
             .hasValueSatisfying(api -> {
                 assertApiV4(api);
                 var migratedResources = api.getApiDefinitionHttpV4().getResources();
-                assertThat(migratedResources).hasSize(1);
-                assertThat(migratedResources.get(0).getName()).isEqualTo("cache-resource");
+                assertThat(migratedResources).map(Resource::getName).containsExactly("cache-resource");
             });
     }
 
@@ -1293,9 +1303,11 @@ class MigrateApiUseCaseTest {
             .hasValueSatisfying(api -> {
                 assertApiV4(api);
                 var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
-                assertThat(endpointGroups).hasSize(1);
-                var services = endpointGroups.get(0).getServices();
-                assertThat(services.getDiscovery()).isNull();
+                assertThat(endpointGroups)
+                    .map(EndpointGroup::getServices)
+                    .map(EndpointGroupServices::getDiscovery)
+                    .singleElement()
+                    .isNull();
             });
     }
 
@@ -1382,8 +1394,7 @@ class MigrateApiUseCaseTest {
                 assertApiV4(api);
                 var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
                 assertThat(endpointGroups).hasSize(1);
-                var migratedServices = endpointGroups.get(0).getServices();
-                assertThat(migratedServices.getDiscovery()).isNotNull();
+                var migratedServices = endpointGroups.getFirst().getServices();
                 assertThat(migratedServices.getDiscovery().getType()).isEqualTo("consul-service-discovery");
                 assertThat(migratedServices.getDiscovery().isEnabled()).isTrue();
                 assertThat(migratedServices.getDiscovery().getConfiguration())
@@ -1567,6 +1578,159 @@ class MigrateApiUseCaseTest {
                     softly.assertThat(sharedConfiguration).contains("\"http2MultiplexingLimit\":-1");
                 });
             });
+    }
+
+    @Nested
+    class FlowSpecific {
+
+        @Nested
+        class GroovyPolicy {
+
+            private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+            private static final String GROOVY_SCRIPT = "println(Hello World);";
+            private static final Collection<String> OLD_KEYS = List.of(
+                "onRequestContentScript",
+                "onResponseContentScript",
+                "onRequestScript",
+                "onResponseScript"
+            );
+
+            @BeforeEach
+            void setUp() {
+                var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+                v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+                v2Api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+                apiCrudService.initWith(List.of(v2Api));
+
+                var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+                planCrudService.initWith(List.of(plan));
+
+                var planFlow = new io.gravitee.definition.model.flow.Flow();
+                planFlow.setName("plan-flow");
+                flowCrudService.savePlanFlowsV2("plan-id", List.of(planFlow));
+            }
+
+            @ParameterizedTest
+            @CsvSource(
+                delimiterString = "|",
+                textBlock = """
+                onRequestContentScript  | true        | true
+                onRequestScript         | false       | false
+                onResponseContentScript | true        | true
+                onResponseScript        | false       | false
+                """
+            )
+            void should_map_the_configuration(String inputField, boolean expectedReadContent, boolean expectedOverrideContent) {
+                // Given
+                var apiFlow = buildFlow(
+                    """
+                        {
+                          "%s" : "%s",
+                          "scope" : "REQUEST"
+                        }
+                        """.formatted(
+                            inputField,
+                            GROOVY_SCRIPT
+                        )
+                );
+                flowCrudService.saveApiFlowsV2(API_ID, List.of(apiFlow));
+
+                // When
+                var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+                // Then
+                assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+                var apiV4Flows = flowCrudService.getApiV4Flows(API_ID);
+                assertGroovyConfiguration(apiV4Flows)
+                    .satisfies(cfg -> {
+                        JsonNode jsonNode = OBJECT_MAPPER.readTree(cfg);
+                        assertSoftly(softly -> {
+                            softly.assertThat(jsonNode.get("scope").asText()).isEqualTo("REQUEST");
+                            softly.assertThat(jsonNode.get("script").asText()).isEqualTo(GROOVY_SCRIPT);
+                            softly.assertThat(jsonNode.get("readContent").asBoolean()).isEqualTo(expectedReadContent);
+                            softly.assertThat(jsonNode.get("overrideContent").asBoolean()).isEqualTo(expectedOverrideContent);
+                            for (var key : OLD_KEYS) {
+                                softly.assertThat(jsonNode.has(key)).isFalse();
+                            }
+                        });
+                    });
+            }
+
+            @Test
+            void impossible_to_parse_configuration() {
+                // Given
+                var apiFlow = buildFlow("""
+                    {
+                      "%s" : "%s
+                    """);
+                flowCrudService.saveApiFlowsV2(API_ID, List.of(apiFlow));
+
+                // When
+                var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+                // Then
+                assertThat(result.issues())
+                    .singleElement()
+                    .satisfies(issue ->
+                        assertSoftly(softly -> {
+                            softly.assertThat(issue.message()).startsWith("Impossible to parse groovy policy configuration");
+                            softly.assertThat(issue.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+                        })
+                    );
+            }
+
+            @Test
+            void bad_policy_configuration() {
+                // Given
+                var v2Flow = buildFlow(
+                    """
+                            {
+                              "onRequestContentScript" : "%s",
+                              "onRequestScript" : "%s",
+                              "scope" : "REQUEST"
+                            }
+                            """.formatted(
+                            GROOVY_SCRIPT,
+                            GROOVY_SCRIPT
+                        )
+                );
+                flowCrudService.saveApiFlowsV2(API_ID, List.of(v2Flow));
+
+                // When
+                var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+                // Then
+                assertThat(result.issues())
+                    .singleElement()
+                    .satisfies(issue ->
+                        assertSoftly(softly -> {
+                            softly
+                                .assertThat(issue.message())
+                                .startsWith(
+                                    "Multiple groovy scripts found in groovy policy configuration (non 'content' scripts are ignored if a 'content' script is present)"
+                                );
+                            softly.assertThat(issue.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
+                        })
+                    );
+            }
+
+            private static io.gravitee.definition.model.flow.Flow buildFlow(String policyConfiguration) {
+                var apiFlow = new io.gravitee.definition.model.flow.Flow();
+                apiFlow.setName("api-flow");
+                apiFlow.setPre(List.of(Step.builder().policy("groovy").configuration(policyConfiguration).build()));
+                return apiFlow;
+            }
+
+            private static ObjectAssert<String> assertGroovyConfiguration(List<Flow> apiV4Flows) {
+                return assertThat(apiV4Flows)
+                    .filteredOn(e -> "api-flow".equals(e.getName()))
+                    .flatMap(Flow::getRequest)
+                    .filteredOn(e -> "groovy".equals(e.getPolicy()))
+                    .map(io.gravitee.definition.model.v4.flow.step.Step::getConfiguration)
+                    .singleElement();
+            }
+        }
     }
 
     private static void assertApiV4(Api upgradedApi) {

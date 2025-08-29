@@ -15,8 +15,13 @@
  */
 package io.gravitee.apim.core.api.model.mapper;
 
+import static io.gravitee.apim.core.api.model.utils.MigrationResult.State.*;
+import static io.gravitee.apim.core.utils.CollectionUtils.size;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
@@ -26,12 +31,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 
 @Slf4j
 public class FlowMigration {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final Collection<String> INCOMPATIBLES_POLICIES = Set.of(
         "cloud-events",
@@ -155,25 +163,25 @@ public class FlowMigration {
 
     private MigrationResult<Step> migrateV4(io.gravitee.definition.model.flow.Step v2Step) {
         if (INCOMPATIBLES_POLICIES.contains(v2Step.getPolicy())) {
-            return MigrationResult.issue(
-                "Policy " + v2Step.getPolicy() + " is not compatible with V4 APIs",
-                MigrationResult.State.IMPOSSIBLE
-            );
+            return MigrationResult.issue("Policy %s is not compatible with V4 APIs".formatted(v2Step.getPolicy()), IMPOSSIBLE);
         } else if (!GRAVITEE_POLICIES.contains(v2Step.getPolicy())) {
             return MigrationResult.issue(
-                "Policy " +
-                v2Step.getPolicy() +
-                " is not a Gravitee policy. Please ensure it is compatible with V4 API before migrating to V4",
-                MigrationResult.State.CAN_BE_FORCED
+                "Policy %s is not a Gravitee policy. Please ensure it is compatible with V4 API before migrating to V4".formatted(
+                        v2Step.getPolicy()
+                    ),
+                CAN_BE_FORCED
             );
         }
-        return MigrationResult.value(
+        var config = !"groovy".equals(v2Step.getPolicy())
+            ? MigrationResult.value(v2Step.getConfiguration())
+            : migrateGroovyPolicy(v2Step.getConfiguration());
+        return config.map(cfg ->
             new Step(
                 v2Step.getName(),
                 nullIfEmpty(v2Step.getDescription()),
                 v2Step.isEnabled(),
                 v2Step.getPolicy(),
-                v2Step.getConfiguration(),
+                cfg,
                 nullIfEmpty(v2Step.getCondition()),
                 null
             )
@@ -211,5 +219,34 @@ public class FlowMigration {
             var steps = step != null ? List.of(step) : List.<Step>of();
             return new MigratedSteps(new ArrayList<>(), new ArrayList<>(steps));
         }
+    }
+
+    private MigrationResult<String> migrateGroovyPolicy(String config) {
+        try {
+            List<String> v2CfgScripts = List.of("onRequestContentScript", "onResponseContentScript", "onRequestScript", "onResponseScript");
+            ObjectNode jsonNode = OBJECT_MAPPER.readTree(config).deepCopy();
+            var upds = v2CfgScripts
+                .stream()
+                .filter(jsonNode::has)
+                .map(scriptName ->
+                    buildV4groovyCfg(jsonNode.get(scriptName).asText(), scriptName.contains("Content"), scriptName.contains("Content"))
+                )
+                .toList();
+            return switch (size(upds)) {
+                case 1 -> MigrationResult.value(upds.getFirst().apply(jsonNode).remove(v2CfgScripts).toString());
+                case 0 -> MigrationResult.issue("Impossible to find script in groovy policy configuration", IMPOSSIBLE);
+                default -> MigrationResult.issue(
+                    "Multiple groovy scripts found in groovy policy configuration (non 'content' scripts are ignored if a 'content' script is present)",
+                    CAN_BE_FORCED
+                );
+            };
+        } catch (JsonProcessingException e) {
+            log.error("Unable to parse groovy configuration", e);
+            return MigrationResult.issue("Impossible to parse groovy policy configuration: " + e.getMessage(), IMPOSSIBLE);
+        }
+    }
+
+    private UnaryOperator<ObjectNode> buildV4groovyCfg(String script, boolean readContent, boolean overrideContent) {
+        return objectNode -> objectNode.put("script", script).put("readContent", readContent).put("overrideContent", overrideContent);
     }
 }
