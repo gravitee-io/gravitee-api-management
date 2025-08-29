@@ -20,22 +20,30 @@ import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.adapter.GroupAdapter;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.api.search.GroupCriteria;
 import io.gravitee.repository.management.model.GroupEventRule;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class GroupQueryServiceImpl implements GroupQueryService {
+public class GroupQueryServiceImpl extends AbstractService implements GroupQueryService {
 
     private final GroupRepository groupRepository;
 
@@ -107,5 +115,12 @@ public class GroupQueryServiceImpl implements GroupQueryService {
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException("An error occurs while trying to find groups by names", ex);
         }
+    }
+
+    @Override
+    public Page<Group> searchGroups(ExecutionContext executionContext, Set<String> groupIds, Pageable pageable) {
+        return groupRepository
+            .search(GroupCriteria.builder().idIn(groupIds).build(), convert(pageable))
+            .map(GroupAdapter.INSTANCE::toModel);
     }
 }
