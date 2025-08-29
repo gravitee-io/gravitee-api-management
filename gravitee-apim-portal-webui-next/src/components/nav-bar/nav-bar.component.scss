@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,49 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/theme';
+@use '@angular/material' as mat;
+@use '../../scss/theme' as app-theme;
 
 :host {
-  position: sticky;
+  position: relative;
   z-index: 99;
-  top: 0;
-  backdrop-filter: blur(10px);
-  background-color: theme.$nav-bar-background-color;
+  display: block;
 }
 
 .nav-bar__container {
+  position: relative;
   display: flex;
-  min-width: 1040px;
-  max-width: 1280px;
-  flex-flow: row;
+  width: 100%;
+  box-sizing: border-box;
+  flex-direction: row;
   align-items: center;
-  padding: 18px 24px;
-  margin: auto;
-  gap: 40px;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid app-theme.$nav-bar-border-color;
+  background: app-theme.$background-color;
+  gap: 16px;
 }
 
 .menu-items {
   display: flex;
-  flex: 1 1 100%;
+  flex: 1 1 auto;
+  align-items: center;
   gap: 16px;
 
-  &__custom_link {
-    width: max-content;
-  }
+  @include mat.button-overrides(
+    (
+      outlined-outline-color: transparent,
+      outlined-label-text-color: app-theme.$default-text-color,
+      filled-label-text-color: app-theme.$primary-main-color,
+      filled-container-color: color-mix(in srgb, app-theme.$primary-main-color, transparent 90%),
+      outlined-hover-state-layer-opacity: 7%,
+    )
+  );
 }
 
-.menu-title,
+.authenticated-actions,
 .unauthenticated-actions {
   display: flex;
-  flex: 1;
-  flex-flow: row;
   align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.authenticated-actions {
-  display: flex;
-  align-items: center;
-  gap: 28px;
+  gap: 16px;
 }
