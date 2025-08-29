@@ -16,7 +16,7 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { ClustersService } from './clusters.service';
+import { ClusterService } from './cluster.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import {
@@ -30,9 +30,9 @@ import {
   UpdateCluster,
 } from '../entities/management-api-v2';
 
-describe('ClustersService', () => {
+describe('ClusterService', () => {
   let httpTestingController: HttpTestingController;
-  let service: ClustersService;
+  let service: ClusterService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -40,7 +40,7 @@ describe('ClustersService', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    service = TestBed.inject<ClustersService>(ClustersService);
+    service = TestBed.inject<ClusterService>(ClusterService);
   });
 
   afterEach(() => {
@@ -77,6 +77,18 @@ describe('ClustersService', () => {
       });
 
       expectUpdateClusterRequest(httpTestingController, 'clusterId', fakeUpdateCluster());
+    });
+  });
+
+  describe('updateGroups', () => {
+    it('should call the API', (done) => {
+      const groupId = ['group1', 'group2'];
+      service.updateGroups('clusterId', groupId).subscribe((cluster) => {
+        expect(cluster).toBeTruthy();
+        done();
+      });
+
+      expectUpdateGroupsRequest(httpTestingController, 'clusterId', groupId);
     });
   });
 
@@ -144,4 +156,16 @@ export const expectDeleteClusterRequest = (httpTestingController: HttpTestingCon
   const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/${clusterId}`);
   expect(req.request.method).toEqual('DELETE');
   req.flush({});
+};
+
+export const expectUpdateGroupsRequest = (
+  httpTestingController: HttpTestingController,
+  clusterId: string,
+  groups: string[],
+  clusterUpdated: Cluster = fakeCluster(),
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/${clusterId}/groups`);
+  expect(req.request.method).toEqual('PUT');
+  expect(req.request.body).toStrictEqual(groups);
+  req.flush(clusterUpdated);
 };

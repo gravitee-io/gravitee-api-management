@@ -15,10 +15,10 @@
  */
 import { NgModule } from '@angular/core';
 
-import { ClusterUserPermissionsModule } from './details/user-permissions/cluster-user-permissions.module';
 import { ClusterRoutingModule } from './cluster-routing.module';
+import { ClusterUserPermissionsComponent } from './details/user-permissions/cluster-user-permissions.component';
 
 @NgModule({
-  imports: [ClusterUserPermissionsModule, ClusterRoutingModule],
+  imports: [ClusterUserPermissionsComponent, ClusterRoutingModule],
 })
 export class ClusterModule {}

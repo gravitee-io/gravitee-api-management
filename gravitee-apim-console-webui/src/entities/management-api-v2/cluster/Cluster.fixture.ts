@@ -24,6 +24,7 @@ export function fakeCluster(overrides: Partial<Cluster> = {}): Cluster {
       bootstrapServers: 'kafka.example.com:9092',
       security: 'none',
     },
+    groups: [],
     updatedAt: new Date('2023-01-01T00:00:00Z'),
     createdAt: new Date('2023-01-01T00:00:00Z'),
     ...overrides,

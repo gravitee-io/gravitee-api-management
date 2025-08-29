@@ -23,7 +23,7 @@ import { Constants } from '../entities/Constants';
 @Injectable({
   providedIn: 'root',
 })
-export class ClustersService {
+export class ClusterService {
   private readonly http = inject(HttpClient);
   private readonly constants = inject(Constants);
 
@@ -55,5 +55,9 @@ export class ClustersService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/clusters/${id}`);
+  }
+
+  updateGroups(id: string, groups: string[]): Observable<Cluster> {
+    return this.http.put<Cluster>(`${this.constants.env.v2BaseURL}/clusters/${id}/groups`, groups);
   }
 }
