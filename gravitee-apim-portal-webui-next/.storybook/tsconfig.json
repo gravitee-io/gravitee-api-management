@@ -5,7 +5,7 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true
   },
-  "exclude": ["../src/**/*.spec.ts"],
-  "include": ["../src/**/*.stories.*", "./preview.ts"],
+  "exclude": ["../**/*.spec.ts"],
+  "include": ["../src/**/*.stories.*", "./preview.ts", "../projects/gravitee-markdown/src/**/*"],
   "files": ["./typings.d.ts"]
 }
