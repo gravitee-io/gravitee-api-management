@@ -14,6 +14,17 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `yarn build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
+### Building gravitee-markdown library
+
+This project contains the `@gravitee/gravitee-markdown` library. The library can be built with the command:
+
+```bash
+yarn build:gravitee-markdown
+```
+This builds the library using the default configuration and outputs to `dist/gravitee-markdown`.
+
+The changes made to the library components will be immediately reflected in the portal application during development.
+
 ## Running unit tests
 
 Run `yarn test` to execute the unit tests via [Jest](https://jestjs.io/).
