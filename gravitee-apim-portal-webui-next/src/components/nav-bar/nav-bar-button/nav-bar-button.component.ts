@@ -15,12 +15,12 @@
  */
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { MatButton } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
 import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-nav-bar-button',
-  imports: [RouterModule, MatButton, CommonModule],
+  imports: [RouterModule, MatButtonModule, CommonModule],
   templateUrl: './nav-bar-button.component.html',
 })
 export class NavBarButtonComponent {
