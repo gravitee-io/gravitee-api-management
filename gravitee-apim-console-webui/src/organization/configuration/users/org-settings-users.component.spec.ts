@@ -195,7 +195,10 @@ describe('OrgSettingsUsersComponent', () => {
     fixture.detectChanges();
     tick(400);
 
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users?page=${page}&size=10${q ? `&q=${q}` : ''}`);
+    const order = 'firstname,lastname,displayName,email,id,reference';
+    const req = httpTestingController.expectOne(
+      `${CONSTANTS_TESTING.org.baseURL}/users?page=${page}&size=10${q ? `&q=${q}` : ''}&order=${order}`,
+    );
     expect(req.request.method).toEqual('GET');
     req.flush(fakePagedResult(usersResponse));
   }
