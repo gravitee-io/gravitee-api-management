@@ -105,6 +105,7 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "workflowState", source = "workflowState")
     @Mapping(target = "groups", source = "groups")
     @Mapping(target = "metadata", source = "metadata")
+    @Mapping(target = "services", source = "apiEntity.apiDefinitionHttpV4.services")
     ApiDescriptor.ApiDescriptorV4 mapV4(
         Api apiEntity,
         PrimaryOwnerEntity primaryOwner,
