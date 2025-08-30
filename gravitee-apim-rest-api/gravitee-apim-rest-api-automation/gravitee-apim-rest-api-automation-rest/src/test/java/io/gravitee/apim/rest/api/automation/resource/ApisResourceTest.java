@@ -27,12 +27,16 @@ import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +44,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class ApisResourceTest extends AbstractResourceTest {
+
+    static final String API_ID = "b2b2d9b9-93fb-317e-a685-21c1b585bb3c";
 
     @Inject
     private ImportApiCRDUseCase importApiCRDUseCase;
@@ -51,6 +57,47 @@ class ApisResourceTest extends AbstractResourceTest {
     void tearDown() {
         reset(importApiCRDUseCase);
         reset(validateApiCRDDomainService);
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+    }
+
+    @BeforeEach
+    void init() {
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_API),
+                eq(ENVIRONMENT),
+                eq(RolePermissionAction.CREATE),
+                eq(RolePermissionAction.UPDATE)
+            )
+        )
+            .thenReturn(true);
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_GATEWAY_DEFINITION),
+                eq(API_ID),
+                eq(RolePermissionAction.CREATE),
+                eq(RolePermissionAction.UPDATE)
+            )
+        )
+            .thenReturn(true);
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_DEFINITION),
+                eq(API_ID),
+                eq(RolePermissionAction.CREATE),
+                eq(RolePermissionAction.UPDATE)
+            )
+        )
+            .thenReturn(true);
     }
 
     @Nested
@@ -70,6 +117,22 @@ class ApisResourceTest extends AbstractResourceTest {
                             .build()
                     )
                 );
+        }
+
+        @Test
+        void should_be_forbidden_without_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DEFINITION),
+                    eq(API_ID),
+                    eq(RolePermissionAction.CREATE),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            )
+                .thenReturn(false);
+
+            expectForbidden("api-with-hrid.json");
         }
 
         @Test
@@ -129,7 +192,7 @@ class ApisResourceTest extends AbstractResourceTest {
                     .queryParam("dryRun", false)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("api-with-no-hrid.json")))
+                    .put(Entity.json(readJSON("api-with-no-hrid.json")));
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
@@ -196,6 +259,22 @@ class ApisResourceTest extends AbstractResourceTest {
         boolean dryRun = true;
 
         @Test
+        void should_be_forbidden_without_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DEFINITION),
+                    eq(API_ID),
+                    eq(RolePermissionAction.CREATE),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            )
+                .thenReturn(false);
+
+            expectForbidden("api-with-hrid.json", dryRun);
+        }
+
+        @Test
         void should_return_state_from_hrid() {
             when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
                 .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
@@ -246,6 +325,22 @@ class ApisResourceTest extends AbstractResourceTest {
 
     private ApiV4State expectEntity(String spec) {
         return expectEntity(spec, false, false);
+    }
+
+    private void expectForbidden(String spec) {
+        expectForbidden(spec, false);
+    }
+
+    private void expectForbidden(String spec, boolean dryRun) {
+        try (
+            var response = rootTarget()
+                .queryParam("dryRun", dryRun)
+                .request()
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .put(Entity.json(readJSON(spec)))
+        ) {
+            Assertions.assertThat(response.getStatus()).isEqualTo(403);
+        }
     }
 
     private ApiV4State expectEntity(String spec, boolean dryRun) {
