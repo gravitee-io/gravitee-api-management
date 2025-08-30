@@ -17,12 +17,18 @@ package io.gravitee.apim.rest.api.automation.resource;
 
 import static io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupResourceGetTest.HRID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.use_case.DeleteSharedPolicyGroupUseCase;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import java.util.List;
@@ -63,6 +69,19 @@ class SharedPolicyGroupResourceDeleteTest extends AbstractResourceTest {
                     .build()
             )
         );
+
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                eq(ENVIRONMENT),
+                any(RolePermissionAction.class)
+            )
+        )
+            .thenReturn(true);
     }
 
     @AfterEach
@@ -72,6 +91,21 @@ class SharedPolicyGroupResourceDeleteTest extends AbstractResourceTest {
 
     @Nested
     class Run {
+
+        @Test
+        void should_be_forbidden_without_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                    eq(ENVIRONMENT),
+                    any(RolePermissionAction.class)
+                )
+            )
+                .thenReturn(false);
+
+            expectForbidden(HRID);
+        }
 
         @Test
         void should_delete_shared_policy_group_and_return_no_content() {
@@ -91,6 +125,21 @@ class SharedPolicyGroupResourceDeleteTest extends AbstractResourceTest {
     class DryRun {
 
         boolean dryRun = true;
+
+        @Test
+        void should_be_forbidden_without_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                    eq(ENVIRONMENT),
+                    any(RolePermissionAction.class)
+                )
+            )
+                .thenReturn(false);
+
+            expectForbidden(HRID, dryRun);
+        }
 
         @Test
         void should_not_delete_shared_policy_group_and_return_no_content() {
@@ -113,6 +162,16 @@ class SharedPolicyGroupResourceDeleteTest extends AbstractResourceTest {
     private void expectNotFound(String hrid, boolean dryRun) {
         try (var response = rootTarget().path(hrid).queryParam("dryRun", dryRun).request().delete()) {
             assertThat(response.getStatus()).isEqualTo(404);
+        }
+    }
+
+    private void expectForbidden(String hrid) {
+        expectForbidden(hrid, false);
+    }
+
+    private void expectForbidden(String hrid, boolean dryRun) {
+        try (var response = rootTarget().path(hrid).queryParam("dryRun", dryRun).request().delete()) {
+            assertThat(response.getStatus()).isEqualTo(403);
         }
     }
 
