@@ -27,7 +27,10 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -55,10 +58,12 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @Inject
     private ValidateSharedPolicyGroupCRDDomainService validateSharedPolicyGroupCRDDomainService;
 
+    @Inject
+    protected PermissionService permissionService;
+
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
     public Response createOrUpdate(@Valid @NotNull LegacySharedPolicyGroupSpec spec, @QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -76,6 +81,18 @@ public class SharedPolicyGroupsResource extends AbstractResource {
                     .build()
             )
             .build();
+
+        if (
+            !permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.CREATE,
+                RolePermissionAction.UPDATE
+            )
+        ) {
+            throw new ForbiddenAccessException();
+        }
 
         if (dryRun) {
             var statusBuilder = SharedPolicyGroupCRDStatus.builder();

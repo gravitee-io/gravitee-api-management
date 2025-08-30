@@ -24,6 +24,8 @@ import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
@@ -34,6 +36,7 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.MediaType;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -45,18 +48,50 @@ class ApiResourceTest extends AbstractResourceTest {
     @Inject
     private ApiService apiService;
 
-    static final String API_ID = "api-id";
-    static final String API_CROSS_ID = "api-cross-id";
     static final String HRID = "api-hrid";
+    static final String API_ID = "b2b2d9b9-93fb-317e-a685-21c1b585bb3c";
+    static final String API_CROSS_ID = "2e370f09-cc32-47f9-b1a6-5f56afe33f84";
     static final AuditInfo auditInfo = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
 
     @AfterEach
     void tearDown() {
         reset(exportApiCRDUseCase);
+        GraviteeContext.cleanContext();
+    }
+
+    @BeforeEach
+    void init() {
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_DEFINITION),
+                eq(API_ID),
+                any(RolePermissionAction.class)
+            )
+        )
+            .thenReturn(true);
     }
 
     @Nested
     class GET {
+
+        @Test
+        void should_be_forbidden_without_permission() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_DEFINITION,
+                    API_ID,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            expectForbidden(HRID);
+        }
 
         @Test
         void should_get_api_from_known_hrid() {
@@ -83,6 +118,12 @@ class ApiResourceTest extends AbstractResourceTest {
             expectNotFound("unknown");
         }
 
+        private void expectForbidden(String hrid) {
+            try (var response = rootTarget().path(hrid).request().get()) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+        }
+
         private void expectNotFound(String hrid) {
             try (var response = rootTarget().path(hrid).request().get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -100,6 +141,21 @@ class ApiResourceTest extends AbstractResourceTest {
     class DELETE {
 
         @Test
+        void should_be_forbidden_without_permission() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_DEFINITION,
+                    API_ID,
+                    RolePermissionAction.DELETE
+                )
+            )
+                .thenReturn(false);
+
+            expectForbidden(HRID);
+        }
+
+        @Test
         void should_delete_shared_policy_group_and_return_no_content() {
             expectNoContent(HRID);
 
@@ -111,6 +167,12 @@ class ApiResourceTest extends AbstractResourceTest {
             doThrow(new ApiNotFoundException("unknown")).when(apiService).delete(any(), any(), eq(true));
 
             expectNotFound("unknown");
+        }
+
+        private void expectForbidden(String hrid) {
+            try (var response = rootTarget().path(hrid).request().delete()) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
         }
 
         private void expectNoContent(String hrid) {

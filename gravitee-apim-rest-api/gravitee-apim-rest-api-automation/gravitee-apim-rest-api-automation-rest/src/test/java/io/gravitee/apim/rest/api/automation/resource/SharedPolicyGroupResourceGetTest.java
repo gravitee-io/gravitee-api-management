@@ -16,13 +16,19 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import java.util.List;
@@ -38,6 +44,7 @@ import org.junit.jupiter.api.Test;
 class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
 
     static final String HRID = "spg-foo";
+    static final String SPG_ID = "e2b59e74-11c7-3866-a475-e8df59419663";
 
     @Inject
     SharedPolicyGroupCrudServiceInMemory sharedPolicyGroupCrudService;
@@ -49,6 +56,19 @@ class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
 
     @BeforeEach
     void setUp() {
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                eq(ENVIRONMENT),
+                any(RolePermissionAction.class)
+            )
+        )
+            .thenReturn(true);
+
         IdBuilder builder = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), HRID);
         sharedPolicyGroupCrudService.initWith(
             List.of(
@@ -68,6 +88,21 @@ class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
     @AfterEach
     void tearDown() {
         sharedPolicyGroupCrudService.reset();
+    }
+
+    @Test
+    void should_be_forbidden_without_permission() {
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                eq(ENVIRONMENT),
+                any(RolePermissionAction.class)
+            )
+        )
+            .thenReturn(false);
+
+        expectForbidden(HRID);
     }
 
     @Test
@@ -95,8 +130,15 @@ class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
         }
     }
 
+    private void expectForbidden(String hrid) {
+        try (var response = rootTarget().path(hrid).request().get()) {
+            assertThat(response.getStatus()).isEqualTo(403);
+        }
+    }
+
     private SharedPolicyGroupState expectEntity(String hrid) {
         try (var response = rootTarget().path(hrid).request().get()) {
+            assertThat(response.getStatus()).isEqualTo(200);
             return response.readEntity(SharedPolicyGroupState.class);
         }
     }

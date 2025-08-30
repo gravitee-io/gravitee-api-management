@@ -31,8 +31,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -46,11 +50,13 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.Map;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ApisResource extends AbstractResource {
 
     public static final String SHARED_POLICY_GROUP_ID_FIELD = "sharedPolicyGroupId";
@@ -61,6 +67,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private ValidateApiCRDDomainService validateApiCRDDomainService;
+
+    @Inject
+    protected PermissionService permissionService;
 
     @Context
     private ResourceContext resourceContext;
@@ -73,7 +82,6 @@ public class ApisResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
     public Response createOrUpdate(@Valid @NotNull ApiV4Spec spec, @QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -91,6 +99,8 @@ public class ApisResource extends AbstractResource {
                     .build()
             )
             .build();
+
+        enforceAccessControls(executionContext, IdBuilder.builder(executionContext, spec.getHrid()).buildId());
 
         if (dryRun) {
             var statusBuilder = ApiCRDStatus.builder();
@@ -112,6 +122,7 @@ public class ApisResource extends AbstractResource {
                             .environmentId(audit.environmentId()),
                     errors -> statusBuilder.errors(ApiCRDStatus.Errors.fromErrorList(errors))
                 );
+
             return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, statusBuilder.build())).build();
         }
 
@@ -127,6 +138,48 @@ public class ApisResource extends AbstractResource {
             .status();
 
         return Response.ok(ApiMapper.INSTANCE.apiV4SpecAndStatusToApiV4State(spec, apiCRDStatus)).build();
+    }
+
+    private void enforceAccessControls(ExecutionContext executionContext, String id) {
+        if (
+            !permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_API,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.CREATE,
+                RolePermissionAction.UPDATE
+            )
+        ) {
+            throw new ForbiddenAccessException();
+        }
+
+        try {
+            if (
+                !permissionService.hasPermission(
+                    executionContext,
+                    RolePermission.API_DEFINITION,
+                    id,
+                    RolePermissionAction.CREATE,
+                    RolePermissionAction.UPDATE
+                )
+            ) {
+                throw new ForbiddenAccessException();
+            }
+
+            if (
+                !permissionService.hasPermission(
+                    executionContext,
+                    RolePermission.API_GATEWAY_DEFINITION,
+                    id,
+                    RolePermissionAction.CREATE,
+                    RolePermissionAction.UPDATE
+                )
+            ) {
+                throw new ForbiddenAccessException();
+            }
+        } catch (ApiNotFoundException e) {
+            log.debug("No enforcing access controls for [{}] because the resource is being created", id);
+        }
     }
 
     private void mapSharedPolicyGroupHrid(ApiV4Spec spec, AuditInfo audit) {

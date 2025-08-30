@@ -26,8 +26,10 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -51,10 +53,23 @@ public class SharedPolicyGroupResource extends AbstractResource {
     @Inject
     private DeleteSharedPolicyGroupUseCase deleteSharedPolicyGroupUseCase;
 
+    @Inject
+    protected PermissionService permissionService;
+
     @GET
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
     public Response get() {
         var executionContext = GraviteeContext.getExecutionContext();
+
+        if (
+            !permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ
+            )
+        ) {
+            throw new ForbiddenAccessException();
+        }
 
         try {
             var sharedPolicyGroup = sharedPolicyGroupCrudService.getByEnvironmentId(
@@ -68,10 +83,20 @@ public class SharedPolicyGroupResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.DELETE }) })
     public Response delete(@QueryParam("dryRun") boolean dryRun) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
+
+        if (
+            !permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.DELETE
+            )
+        ) {
+            throw new ForbiddenAccessException();
+        }
 
         var auditInfo = AuditInfo
             .builder()
