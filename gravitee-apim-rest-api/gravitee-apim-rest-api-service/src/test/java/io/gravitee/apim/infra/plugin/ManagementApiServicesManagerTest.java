@@ -28,6 +28,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -109,6 +110,63 @@ class ManagementApiServicesManagerTest {
                 .satisfies(managementApiService -> {
                     assertThat(managementApiService).isInstanceOf(FakeDynamicPropertiesApiService.class);
                     final FakeDynamicPropertiesApiService fakeService = (FakeDynamicPropertiesApiService) managementApiService;
+                    assertThat(fakeService.hasBeenStarted).isTrue();
+                    assertThat(fakeService.hasBeenStopped).isFalse();
+                    assertThat(fakeService.hasBeenRestarted).isFalse();
+                });
+        }
+    }
+
+    @Nested
+    class StartDynamicProperties {
+
+        @ParameterizedTest
+        @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+        void should_not_start_dp_for_non_v4_api(DefinitionVersion definitionVersion) {
+            final Api api = ApiFixtures.aProxyApiV2();
+            api.setDefinitionVersion(definitionVersion);
+
+            cut.startDynamicProperties(api);
+
+            verifyNoInteractions(apiServicePluginManager);
+        }
+
+        @Test
+        void should_not_start_dp_for_v4_api_without_service_factories() {
+            final Api api = ApiFixtures.aProxyApiV4();
+
+            cut.startDynamicProperties(api);
+            assertThat(cut.servicesByApi).isEmpty();
+        }
+
+        @Test
+        void should_not_start_dp_for_v4_api_without_service_configured() {
+            final Api api = ApiFixtures.aProxyApiV4();
+
+            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class))
+                .thenReturn(
+                    List.of(new FakeDynamicPropertiesApiServiceFactory(false), new FakeHttpDynamicPropertiesApiServiceFactory(false))
+                );
+
+            cut.startDynamicProperties(api);
+            assertThat(cut.servicesByApi).isEmpty();
+        }
+
+        @Test
+        void should_start_dp_for_v4_api() {
+            final Api api = ApiFixtures.aProxyApiV4();
+
+            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class))
+                .thenReturn(List.of(new FakeHttpDynamicPropertiesApiServiceFactory(true)));
+
+            cut.startDynamicProperties(api);
+            assertThat(cut.servicesByApi).hasSize(1).containsKey(api.getId());
+            assertThat(cut.servicesByApi.get(api.getId()))
+                .hasSize(1)
+                .first()
+                .satisfies(managementApiService -> {
+                    assertThat(managementApiService).isInstanceOf(FakeHttpDynamicPropertiesApiService.class);
+                    final FakeHttpDynamicPropertiesApiService fakeService = (FakeHttpDynamicPropertiesApiService) managementApiService;
                     assertThat(fakeService.hasBeenStarted).isTrue();
                     assertThat(fakeService.hasBeenStopped).isFalse();
                     assertThat(fakeService.hasBeenRestarted).isFalse();
@@ -223,6 +281,41 @@ class ManagementApiServicesManagerTest {
     }
 
     @Nested
+    class StopDynamicProperties {
+
+        @Test
+        void shouldStopDynamicPropertiesServiceSuccessfully() {
+            // Arrange
+            final Api api = ApiFixtures.aProxyApiV4();
+            final FakeDynamicPropertiesApiService fakeService1 = new FakeHttpDynamicPropertiesApiService();
+            final FakeDynamicPropertiesApiService fakeService2 = new FakeDynamicPropertiesApiService();
+            cut.servicesByApi.put(api.getId(), new ArrayList<>(List.of(fakeService1, fakeService2)));
+            // Act
+            cut.stopDynamicProperties(api);
+            // Assert
+            assertThat(fakeService1.hasBeenStopped).isTrue();
+            assertThat(fakeService2.hasBeenStopped).isFalse();
+            assertThat(cut.servicesByApi.get(api.getId()).contains(fakeService1)).isFalse();
+        }
+
+        @Test
+        void shouldDoNothingWhenNoServicesForApiFound() {
+            // Arrange
+            final Api api = ApiFixtures.aProxyApiV4();
+            final FakeDynamicPropertiesApiService fakeService1 = new FakeDynamicPropertiesApiService();
+            final FakeDynamicPropertiesApiService fakeService2 = new FakeDynamicPropertiesApiService();
+            cut.servicesByApi.put(api.getId(), new ArrayList<>(List.of(fakeService1, fakeService2)));
+            // Act
+            cut.stopDynamicProperties(api);
+            // Assert
+            assertThat(fakeService1.hasBeenStopped).isFalse();
+            assertThat(fakeService2.hasBeenStopped).isFalse();
+            assertThat(cut.servicesByApi.get(api.getId()).contains(fakeService1)).isTrue();
+            assertThat(cut.servicesByApi.get(api.getId()).contains(fakeService2)).isTrue();
+        }
+    }
+
+    @Nested
     class StopServicesOnNodeStop {
 
         @SneakyThrows
@@ -270,12 +363,27 @@ class ManagementApiServicesManagerTest {
         }
     }
 
+    static class FakeHttpDynamicPropertiesApiServiceFactory extends FakeDynamicPropertiesApiServiceFactory {
+
+        private boolean returnService;
+
+        public FakeHttpDynamicPropertiesApiServiceFactory(boolean returnService) {
+            super(returnService);
+            this.returnService = returnService;
+        }
+
+        @Override
+        public FakeDynamicPropertiesApiService createService(DefaultManagementDeploymentContext deploymentContext) {
+            return returnService ? new FakeHttpDynamicPropertiesApiService() : null;
+        }
+    }
+
     @Getter
     static class FakeDynamicPropertiesApiService implements ManagementApiService {
 
-        private boolean hasBeenStarted;
-        private boolean hasBeenStopped;
-        private boolean hasBeenRestarted;
+        protected boolean hasBeenStarted;
+        protected boolean hasBeenStopped;
+        protected boolean hasBeenRestarted;
 
         @Override
         public String id() {
@@ -303,6 +411,15 @@ class ManagementApiServicesManagerTest {
         public Completable update(AbstractApi api) {
             hasBeenRestarted = true;
             return Completable.complete();
+        }
+    }
+
+    @Getter
+    static class FakeHttpDynamicPropertiesApiService extends FakeDynamicPropertiesApiService {
+
+        @Override
+        public String id() {
+            return "http-dynamic-properties";
         }
     }
 }

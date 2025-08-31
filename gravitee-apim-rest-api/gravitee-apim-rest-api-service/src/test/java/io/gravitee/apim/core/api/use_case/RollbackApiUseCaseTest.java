@@ -41,6 +41,7 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
@@ -54,6 +55,7 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.api.UpdateApiDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
@@ -71,6 +73,8 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiStateService;
+import io.gravitee.rest.api.service.v4.impl.ApiStateServiceImpl;
 import java.sql.Date;
 import java.time.Clock;
 import java.time.Instant;
@@ -109,6 +113,8 @@ class RollbackApiUseCaseTest {
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
+    private final ApiStateService apiStateService = mock(ApiStateServiceImpl.class);
+    private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainServiceLegacyWrapper.class);
 
     @Mock
     CreatePlanDomainService createPlanDomainService;
@@ -151,7 +157,8 @@ class RollbackApiUseCaseTest {
                 closePlanDomainService,
                 planCrudService,
                 auditDomainService,
-                flowCrudService
+                flowCrudService,
+                apiStateDomainService
             );
 
         // Add existing API

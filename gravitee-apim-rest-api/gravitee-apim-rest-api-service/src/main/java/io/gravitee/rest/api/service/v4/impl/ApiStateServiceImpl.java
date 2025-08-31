@@ -22,6 +22,7 @@ import static java.util.Comparator.comparing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -46,6 +47,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.event.ApiEvent;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -96,6 +98,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final PlanSearchService planSearchService;
     private final ApiConverter apiConverter;
     private final SynchronizationService synchronizationService;
+    private final EventManager eventManager;
 
     public ApiStateServiceImpl(
         @Lazy final ApiSearchService apiSearchService,
@@ -112,7 +115,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         @Lazy final ApiValidationService apiValidationService,
         final PlanSearchService planSearchService,
         final ApiConverter apiConverter,
-        final SynchronizationService synchronizationService
+        final SynchronizationService synchronizationService,
+        final EventManager eventManager
     ) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
@@ -129,6 +133,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.planSearchService = planSearchService;
         this.apiConverter = apiConverter;
         this.synchronizationService = synchronizationService;
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -271,6 +276,32 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     @Override
+    public boolean startV2DynamicProperties(String apiId) {
+        try {
+            log.debug("Start V2 Dynamic properties for API {}", apiId);
+            Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+
+            eventManager.publishEvent(ApiEvent.START_DYNAMIC_PROPERTY_V2, apiToUpdate);
+            return true;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("Fail to start Dynamic properties for API " + apiId, ex);
+        }
+    }
+
+    @Override
+    public boolean startV4DynamicProperties(String apiId) {
+        try {
+            log.debug("starting V4 Dynamic properties for API {}", apiId);
+            Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+
+            eventManager.publishEvent(ApiEvent.START_DYNAMIC_PROPERTY_V4, apiToUpdate);
+            return true;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("Fail to start Dynamic properties for API " + apiId, ex);
+        }
+    }
+
+    @Override
     public GenericApiEntity stop(ExecutionContext executionContext, String apiId, String userId) {
         try {
             log.debug("Stop API {}", apiId);
@@ -281,6 +312,32 @@ public class ApiStateServiceImpl implements ApiStateService {
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to stop API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
+        }
+    }
+
+    @Override
+    public boolean stopV2DynamicProperties(String apiId) {
+        try {
+            log.debug("Stopping V2 Dynamic properties for API {}", apiId);
+            Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+
+            eventManager.publishEvent(ApiEvent.STOP_DYNAMIC_PROPERTY_V2, apiToUpdate);
+            return true;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("Fail to stop Dynamic properties for API " + apiId, ex);
+        }
+    }
+
+    @Override
+    public boolean stopV4DynamicProperties(String apiId) {
+        try {
+            log.debug("stopping V4 Dynamic properties for API {}", apiId);
+            Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+
+            eventManager.publishEvent(ApiEvent.STOP_DYNAMIC_PROPERTY_V4, apiToUpdate);
+            return true;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("Fail to stop Dynamic properties for API " + apiId, ex);
         }
     }
 
