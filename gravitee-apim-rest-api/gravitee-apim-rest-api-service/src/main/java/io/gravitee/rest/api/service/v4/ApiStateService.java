@@ -58,7 +58,15 @@ public interface ApiStateService {
 
     GenericApiEntity start(ExecutionContext executionContext, String apiId, String userId);
 
+    boolean startV2DynamicProperties(String apiId);
+
+    boolean startV4DynamicProperties(String apiId);
+
     GenericApiEntity stop(ExecutionContext executionContext, String apiId, String userId);
+
+    boolean stopV2DynamicProperties(String apiId);
+
+    boolean stopV4DynamicProperties(String apiId);
 
     boolean isSynchronized(ExecutionContext executionContext, GenericApiEntity apiEntity);
 }

@@ -68,6 +68,8 @@ import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrap
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.common.event.EventManager;
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
@@ -76,6 +78,8 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
+import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
@@ -138,6 +142,7 @@ class MigrateApiUseCaseTest {
     private final ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     private final PageQueryService pageQueryService = mock(PageQueryService.class);
+    private final EventManager eventManager = mock(EventManager.class);
     private final AuditDomainService auditDomainService = new AuditDomainService(
         auditCrudService,
         userCrudService,
@@ -704,6 +709,86 @@ class MigrateApiUseCaseTest {
                         new io.gravitee.definition.model.v4.property.Property("key2", "value2", true, false),
                         new io.gravitee.definition.model.v4.property.Property("key3", "value3", true, false)
                     );
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_null_dp_and_disable_dynamicProps() {
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        Services services = new Services();
+        v2api.getApiDefinition().setServices(services);
+        v2api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+
+        apiCrudService.initWith(java.util.List.of(v2api));
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedServices = api.getApiDefinitionHttpV4().getServices();
+
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().getServices().getDynamicProperty()).isNull();
+                });
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_valid_dynamicprops_and_enable_dynamicprops() {
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+
+        HttpDynamicPropertyProviderConfiguration httpDynamicPropertyProviderConfiguration = new HttpDynamicPropertyProviderConfiguration();
+        httpDynamicPropertyProviderConfiguration.setBody("abc");
+        httpDynamicPropertyProviderConfiguration.setHeaders(List.of(new HttpHeader("key1", "value1")));
+        httpDynamicPropertyProviderConfiguration.setUrl("http://localhost:8082/api/dynamicprops");
+        httpDynamicPropertyProviderConfiguration.setSpecification("xyz");
+        httpDynamicPropertyProviderConfiguration.setUseSystemProxy(false);
+        DynamicPropertyService dynamicPropertyService = DynamicPropertyService
+            .builder()
+            .enabled(true) // comes from ScheduledService (superclass)
+            .schedule("*/30 * * * * *") // run every 30s, for example
+            .build();
+        dynamicPropertyService.setConfiguration(httpDynamicPropertyProviderConfiguration);
+        Services services = new Services();
+        services.setDynamicPropertyService(dynamicPropertyService);
+        v2api.getApiDefinition().setServices(services);
+        apiCrudService.initWith(java.util.List.of(v2api));
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedDP = api.getApiDefinitionHttpV4().getServices().getDynamicProperty();
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().getServices().getDynamicProperty()).isNotNull();
+                    softly.assertThat(api.getApiDefinitionHttpV4().getServices().getDynamicProperty().isEnabled()).isTrue();
+                    softly.assertThat(migratedDP).isNotNull();
+                    softly.assertThat(migratedDP.isEnabled()).isTrue();
+                    softly
+                        .assertThat(migratedDP.getConfiguration())
+                        .isEqualTo(
+                            "{\"schedule\":\"*/30 * * * * *\",\"headers\":[{\"name\":\"key1\",\"value\":\"value1\"}],\"method\":\"GET\",\"systemProxy\":false,\"transformation\":\"xyz\",\"url\":\"http://localhost:8082/api/dynamicprops\"}"
+                        );
+                });
             });
     }
 

@@ -239,7 +239,21 @@ public class MigrateApiUseCase {
     }
 
     private void storeMigration(Input input, Migration migration, Api api) {
+        if (
+            migration.api().getApiDefinitionHttpV4().getServices() != null &&
+            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty() != null &&
+            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty().isEnabled()
+        ) {
+            apiStateService.stopV2DynamicProperties(input.apiId());
+        }
         var upgraded = apiCrudService.update(migration.api());
+        if (
+            migration.api().getApiDefinitionHttpV4().getServices() != null &&
+            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty() != null &&
+            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty().isEnabled()
+        ) {
+            apiStateService.startV4DynamicProperties(input.apiId());
+        }
         var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), input.apiId());
 
         auditService.createApiAuditLog(

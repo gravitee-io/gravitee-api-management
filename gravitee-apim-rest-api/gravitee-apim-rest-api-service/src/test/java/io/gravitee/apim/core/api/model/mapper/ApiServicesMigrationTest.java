@@ -25,6 +25,9 @@ import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
+import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
@@ -212,6 +215,41 @@ class ApiServicesMigrationTest {
             .satisfies(v4 -> {
                 assertThat(v4).isNotNull();
                 assertThat(v4.isOverrideConfiguration()).isFalse();
+            });
+    }
+
+    @Test
+    void shouldConvertValidDynamicPropertyService() throws Exception {
+        // Arrange
+        HttpDynamicPropertyProviderConfiguration config = new HttpDynamicPropertyProviderConfiguration();
+        config.setHeaders(List.of(new HttpHeader("key", "value")));
+        config.setMethod(HttpMethod.GET);
+        config.setUseSystemProxy(true);
+        config.setSpecification("JSON");
+        config.setUrl("https://example.com/api");
+        DynamicPropertyService v2DynamicPropertyService = DynamicPropertyService
+            .builder()
+            .schedule("*/5 * * * * *")
+            .provider(DynamicPropertyProvider.HTTP)
+            .configuration(config)
+            .build();
+
+        // Act
+        var result = apiServicesMigration.convert(v2DynamicPropertyService, null, null);
+        // Assert
+        assertThat(get(result))
+            .satisfies(v4 -> {
+                assertThat(v4).isNotNull();
+                assertThat(v4.isOverrideConfiguration()).isFalse();
+                assertThat(v4.getType()).isEqualTo("http-dynamic-properties");
+                assertThat(v4.getConfiguration()).isNotNull();
+                assertThat(
+                    v4
+                        .getConfiguration()
+                        .equals(
+                            "{\"schedule\":\"*/5 * * * * *\",\"headers\":[{\"name\":\"key\",\"value\":\"value\"}],\"method\":\"GET\",\"systemProxy\":true,\"transformation\":\"JSON\",\"url\":\"https://example.com/api\"}"
+                        )
+                );
             });
     }
 }

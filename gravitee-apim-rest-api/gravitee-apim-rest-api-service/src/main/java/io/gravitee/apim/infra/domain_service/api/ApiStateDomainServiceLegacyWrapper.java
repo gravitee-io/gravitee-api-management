@@ -74,10 +74,30 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
     }
 
     @Override
+    public boolean startV2DynamicProperties(String apiId) {
+        return apiStateService.startV2DynamicProperties(apiId);
+    }
+
+    @Override
+    public boolean startV4DynamicProperties(String apiId) {
+        return apiStateService.startV4DynamicProperties(apiId);
+    }
+
+    @Override
     public Api stop(Api api, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var userId = auditInfo.actor().userId();
         var stopped = apiStateService.stop(executionContext, api.getId(), userId);
         return ApiAdapter.INSTANCE.fromApiEntity(stopped);
+    }
+
+    @Override
+    public boolean stopV2DynamicProperties(String apiId) {
+        return apiStateService.stopV2DynamicProperties(apiId);
+    }
+
+    @Override
+    public boolean stopV4DynamicProperties(String apiId) {
+        return apiStateService.stopV4DynamicProperties(apiId);
     }
 }
