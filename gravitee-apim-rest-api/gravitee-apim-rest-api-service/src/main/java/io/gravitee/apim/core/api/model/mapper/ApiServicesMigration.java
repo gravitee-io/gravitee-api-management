@@ -23,6 +23,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
+import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
+import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
@@ -45,6 +49,9 @@ public final class ApiServicesMigration {
         String name
     ) {
         return switch (v2Service) {
+            case io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService v2dynamicPropertyService -> convertDynamicPropertyService(
+                v2dynamicPropertyService
+            );
             case io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService vEP2HealthCheckService -> convertEPHealthCheckService(
                 vEP2HealthCheckService,
                 type,
@@ -55,11 +62,10 @@ public final class ApiServicesMigration {
                 type,
                 name
             );
+            case io.gravitee.definition.model.services.schedule.ScheduledService v2ScheduledService -> null;
             case io.gravitee.definition.model.services.discovery.EndpointDiscoveryService v2EndpointDiscoveryService -> mapServiceDiscovery(
                 v2EndpointDiscoveryService
             );
-            case io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService v2dynamicPropertyService -> null;
-            case io.gravitee.definition.model.services.schedule.ScheduledService v2ScheduledService -> null;
             case null -> null;
             default -> MigrationResult.issue("Unsupported Service", IMPOSSIBLE);
         };
@@ -142,6 +148,59 @@ public final class ApiServicesMigration {
                 plainHealthCheckService.setOverrideConfiguration(!v2EPHealthCheckService.isInherit());
                 return plainHealthCheckService;
             });
+    }
+
+    private MigrationResult<io.gravitee.definition.model.v4.service.Service> convertDynamicPropertyService(
+        DynamicPropertyService v2dynamicPropertyService
+    ) {
+        if (v2dynamicPropertyService == null) {
+            return MigrationResult.value(new Service());
+        }
+        ObjectNode configNode = jsonMapper.createObjectNode();
+        MigrationResult<Service> migrationResult = MigrationResult.value(
+            Service
+                .builder()
+                .overrideConfiguration(false)
+                .type("http-dynamic-properties")
+                .enabled(v2dynamicPropertyService.isEnabled())
+                .build()
+        );
+        try {
+            configNode.put("schedule", v2dynamicPropertyService.getSchedule());
+
+            if (
+                v2dynamicPropertyService.getProvider() != null &&
+                !v2dynamicPropertyService.getProvider().equals(DynamicPropertyProvider.HTTP)
+            ) {
+                String errorMessage = "Unable to migrate Dynamic properties configuration as provider is different from HTTP";
+                log.error(errorMessage);
+                return migrationResult.addIssue(new MigrationResult.Issue(errorMessage, MigrationResult.State.IMPOSSIBLE));
+            }
+            if (
+                v2dynamicPropertyService.getConfiguration() instanceof HttpDynamicPropertyProviderConfiguration httpDPProviderConfiguration
+            ) {
+                configNode.set(
+                    "headers",
+                    jsonMapper.valueToTree(
+                        httpDPProviderConfiguration.getHeaders() != null
+                            ? httpDPProviderConfiguration.getHeaders()
+                            : jsonMapper.createArrayNode()
+                    )
+                );
+                configNode.put("method", httpDPProviderConfiguration.getMethod().name());
+                configNode.put("systemProxy", httpDPProviderConfiguration.isUseSystemProxy());
+                configNode.put("transformation", httpDPProviderConfiguration.getSpecification());
+                configNode.put("url", httpDPProviderConfiguration.getUrl());
+            }
+        } catch (Exception e) {
+            String errorMessage = "Unable to map configuration for Dynamic Property Service";
+            log.error(errorMessage, e);
+            return migrationResult.addIssue(new MigrationResult.Issue(errorMessage, MigrationResult.State.IMPOSSIBLE));
+        }
+        return migrationResult.map(service -> {
+            service.setConfiguration(configNode.toString());
+            return service;
+        });
     }
 
     private static MigrationResult<Service> mapServiceDiscovery(EndpointDiscoveryService discoveryService) {

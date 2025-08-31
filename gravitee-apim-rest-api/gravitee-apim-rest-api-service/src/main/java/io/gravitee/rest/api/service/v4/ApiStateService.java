@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -58,7 +59,15 @@ public interface ApiStateService {
 
     GenericApiEntity start(ExecutionContext executionContext, String apiId, String userId);
 
+    boolean startV2DynamicProperties(String apiId);
+
+    boolean startV4DynamicProperties(String apiId);
+
     GenericApiEntity stop(ExecutionContext executionContext, String apiId, String userId);
+
+    boolean stopV2DynamicProperties(String apiId);
+
+    boolean stopV4DynamicProperties(String apiId);
 
     boolean isSynchronized(ExecutionContext executionContext, GenericApiEntity apiEntity);
 }

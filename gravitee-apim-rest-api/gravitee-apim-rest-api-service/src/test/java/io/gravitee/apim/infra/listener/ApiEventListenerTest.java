@@ -125,4 +125,54 @@ class ApiEventListenerTest {
                 assertThat(api.getName()).isEqualTo(eventApi.getName());
             });
     }
+
+    @ParameterizedTest
+    @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+    void should_do_nothing_on_not_v4_api_dynamic_property_started(DefinitionVersion definitionVersion) {
+        final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
+        eventManager.publishEvent(ApiEvent.START_DYNAMIC_PROPERTY_V4, eventApi);
+        verify(managementApiServicesManager, never()).startDynamicProperties(any());
+    }
+
+    @Test
+    void should_do_actions_on_v4_api_dynamic_property_started() {
+        final Api eventApi = ApiFixtures.anApi(); // defaults to V4
+        eventManager.publishEvent(ApiEvent.START_DYNAMIC_PROPERTY_V4, eventApi);
+
+        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor = ArgumentCaptor.forClass(
+            io.gravitee.apim.core.api.model.Api.class
+        );
+        verify(managementApiServicesManager).startDynamicProperties(coreApiCaptor.capture());
+
+        assertThat(coreApiCaptor.getValue())
+            .satisfies(api -> {
+                assertThat(api.getId()).isEqualTo(eventApi.getId());
+                assertThat(api.getName()).isEqualTo(eventApi.getName());
+            });
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+    void should_do_nothing_on_not_v4_api_dynamic_property_stopped(DefinitionVersion definitionVersion) {
+        final Api eventApi = ApiFixtures.anApi().withDefinitionVersion(definitionVersion);
+        eventManager.publishEvent(ApiEvent.STOP_DYNAMIC_PROPERTY_V4, eventApi);
+        verify(managementApiServicesManager, never()).stopDynamicProperties(any());
+    }
+
+    @Test
+    void should_do_actions_on_v4_api_dynamic_property_stopped() {
+        final Api eventApi = ApiFixtures.anApi(); // defaults to V4
+        eventManager.publishEvent(ApiEvent.STOP_DYNAMIC_PROPERTY_V4, eventApi);
+
+        final ArgumentCaptor<io.gravitee.apim.core.api.model.Api> coreApiCaptor = ArgumentCaptor.forClass(
+            io.gravitee.apim.core.api.model.Api.class
+        );
+        verify(managementApiServicesManager).stopDynamicProperties(coreApiCaptor.capture());
+
+        assertThat(coreApiCaptor.getValue())
+            .satisfies(api -> {
+                assertThat(api.getId()).isEqualTo(eventApi.getId());
+                assertThat(api.getName()).isEqualTo(eventApi.getName());
+            });
+    }
 }

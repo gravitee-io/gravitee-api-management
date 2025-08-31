@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -134,6 +135,9 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
     @Mock
     private PlanSearchService planSearchService;
 
+    @Mock
+    private EventManager eventManager;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -198,7 +202,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                 apiValidationService,
                 planSearchService,
                 apiConverter,
-                synchronizationService
+                synchronizationService,
+                eventManager
             );
         reset(searchEngineService);
     }
