@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@use '../../../../../scss/theme' as theme;
+
 .settings__form {
   display: flex;
   flex-direction: column;
@@ -39,6 +41,10 @@
         align-items: center;
         margin: 10px 0;
         gap: 8px;
+
+        &__avatar {
+          display: #{theme.$application-avatar-display};
+        }
       }
     }
 
