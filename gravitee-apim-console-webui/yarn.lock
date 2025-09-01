@@ -4593,9 +4593,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-components@npm:4.3.2":
-  version: 4.3.2
-  resolution: "@gravitee/ui-components@npm:4.3.2"
+"@gravitee/ui-components@npm:4.3.3":
+  version: 4.3.3
+  resolution: "@gravitee/ui-components@npm:4.3.3"
   dependencies:
     "@codemirror/basic-setup": "npm:^0.19.1"
     "@codemirror/language-data": "npm:^0.19.1"
@@ -4609,7 +4609,7 @@ __metadata:
     date-fns: "npm:^2.26.0"
     dompurify: "npm:3.1.5"
     jdenticon: "npm:^3.1.0"
-    jsonschema: "npm:^1.4.0"
+    jsonschema: "npm:1.4.1"
     lit: "npm:^2.0.2"
     object-path: "npm:^0.11.8"
     resize-observer-polyfill: "npm:^1.5.1"
@@ -4634,7 +4634,7 @@ __metadata:
       optional: true
     highlight.js:
       optional: true
-  checksum: 10c0/2418f85b063bab96845d7b53ff128f99f16c1ab42c9eabbebca94b10baf2301d15b17d24f596896fa437c7a6008ca65750696861748b79be15ff75570c152ceb
+  checksum: 10c0/ddd68bfb060327b96f9289f21a53d907b116095f7215d8fe39fc29dd7269c5fe5772a5f1e5d3b0d354806e974289211b3b51b017f23c439d959cfa2c3ccab3e2
   languageName: node
   linkType: hard
 
@@ -14939,7 +14939,7 @@ __metadata:
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:4.0.0"
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/ui-analytics": "npm:13.12.4"
-    "@gravitee/ui-components": "npm:4.3.2"
+    "@gravitee/ui-components": "npm:4.3.3"
     "@gravitee/ui-particles-angular": "npm:13.12.4"
     "@gravitee/ui-policy-studio-angular": "npm:13.12.4"
     "@gravitee/ui-schematics": "npm:13.12.4"
@@ -17277,7 +17277,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonschema@npm:^1.4.0":
+"jsonschema@npm:1.4.1":
   version: 1.4.1
   resolution: "jsonschema@npm:1.4.1"
   checksum: 10c0/c3422d3fc7d33ff7234a806ffa909bb6fb5d1cd664bea229c64a1785dc04cbccd5fc76cf547c6ab6dd7881dbcaf3540a6a9f925a5956c61a9cd3e23a3c1796ef
