@@ -66,7 +66,7 @@ public class GroupsResource extends AbstractResource {
     @Inject
     private SearchGroupsUseCase searchGroupsUseCase;
 
-    private final GroupMapper mapper = GroupMapper.INSTANCE;
+    private static final GroupMapper MAPPER = GroupMapper.INSTANCE;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -77,7 +77,7 @@ public class GroupsResource extends AbstractResource {
         List<GroupEntity> groupsSubset = computePaginationData(groups, paginationParam);
 
         return new GroupsResponse()
-            .data(mapper.map(groupsSubset))
+            .data(MAPPER.map(groupsSubset))
             .pagination(PaginationInfo.computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
             .links(computePaginationLinks(groups.size(), paginationParam));
     }
@@ -95,7 +95,7 @@ public class GroupsResource extends AbstractResource {
         io.gravitee.rest.api.management.v2.rest.model.Links links = computePaginationLinks(pagedGroups.getTotalElements(), paginationParam);
 
         return new GroupsResponse()
-            .data(mapper.mapFromCoreList(pagedGroups.getContent()))
+            .data(MAPPER.mapFromCoreList(pagedGroups.getContent()))
             .pagination(PaginationInfo.computePaginationInfo(pagedGroups.getPageElements(), paginationParam.getPerPage(), paginationParam))
             .links(links);
     }
