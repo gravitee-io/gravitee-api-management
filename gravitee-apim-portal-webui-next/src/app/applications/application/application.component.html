@@ -19,7 +19,7 @@
 <mat-card class="application" appearance="outlined">
   <mat-card-content>
     <div class="application__header">
-      <app-picture [picture]="application._links?.picture" [hashValue]="application.name" [size]="40" />
+      <app-picture [picture]="application._links?.picture" [hashValue]="application.name" [size]="40" class="application__header__avatar" />
       <div class="application__header__content">
         <div class="m3-headline-small">{{ application.name }}</div>
         <div class="m3-body-medium"><span i18n="@@applicationOwner">Owner: </span>{{ application.owner?.display_name }}</div>
