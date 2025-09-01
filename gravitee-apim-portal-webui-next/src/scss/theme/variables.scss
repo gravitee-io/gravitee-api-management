@@ -14,37 +14,105 @@
  * limitations under the License.
  */
 
-/**
-Global variables
- */
+// ============================================================================
+// Global variables
+// ============================================================================
 
-$font-family: var(--gio-app-font-family);
+// -- Layout & Background --
 $background-color: var(--gio-app-background-color);
-$nav-bar-background-color: var(--gio-app-nav-bar-container-color, color-mix(in srgb, $background-color, transparent 20%));
-$card-background-color: var(--gio-app-card-background-color);
-$card-container-shape: var(--gio-app-card-container-shape, 4px);
-$button-container-shape: var(--gio-app-button-container-shape, 4px);
+$card-background-color: var(--gio-app-card-background-color); // already specified in
+
+// -- Typography --
+$font-family: var(--gio-app-font-family);
 $default-text-color: var(--gio-app-font-color, #1d192b);
 $default-text-contrast-color: var(--gio-app-font-contrast-color, #fff);
 $paragraph-color: color-mix(in srgb, $default-text-color 75%, transparent);
 
-// HSL values calculated in theme.service.ts
+// -- Shapes --
+$card-container-shape: var(--gio-app-card-container-shape, 4px);
+
+// -- Theme Color Palette calculated by a theme service --
 $primary-main-color: var(--gio-app-primary-main-color);
 $secondary-main-color: var(--gio-app-secondary-main-color);
 $tertiary-main-color: var(--gio-app-tertiary-main-color);
 $error-main-color: var(--gio-app-error-main-color);
 
-/**
-Component variables
- */
+// ============================================================================
+// Component-Specific variables
+// ============================================================================
+
+// -- Banner --
 $banner-background-color: var(--mdc-list-list-item-leading-avatar-color);
-$banner-error-background-color: color-mix(in srgb, $error-main-color 16%, $card-background-color);
 $banner-text-color: var(--mdc-outlined-text-field-focus-label-text-color);
+$banner-error-background-color: color-mix(in srgb, $error-main-color 16%, $card-background-color);
 $banner-error-text-color: $error-main-color;
-$chip-background: var(--gio-app-chip-container-color, $card-background-color);
-$table-border-color: color-mix(in srgb, $secondary-main-color 35%, transparent);
+
+// -- User Avatar --
+$user-avatar-height:          var(--gio-app-user-avatar-height, 48px);
+$user-avatar-container-shape: var(--gio-app-user-avatar-container-shape, 50%);
+$user-avatar-border-color:    var(--gio-app-user-avatar-outline-color);
+$user-avatar-text-transform:  var(--gio-app-user-avatar-text-transform, uppercase);
+
+// -- Api & Application avatars --
+$api-avatar-display: var(--gio-app-api-avatar-display);
+$application-avatar-display: var(--gio-app-application-avatar-display);
+
+// -- Buttons --
+// General
+$button-container-shape:  var(--gio-app-button-container-shape, 4px);
+$button-container-color: var(--gio-app-button-container-color, transparent);
+$button-text-transform:   var(--gio-app-button-text-transform);
+$button-text-color:       var(--gio-app-button-text-color);
+$button-outline-width:     var(--gio-app-button-outline-width, 1px);
+$button-outline-color:     var(--gio-app-button-outline-color, $primary-main-color);
+
+// Outlined Button
+$button-outlined-text-transform:    var(--gio-app-button-outlined-text-tranform, $button-text-transform);
+$button-outlined-text-color:        var(--gio-app-button-outlined-text-color, $button-text-color);
+$button-outlined-outline-width:     var(--gio-app-button-outlined-outline-width, $button-outline-width);
+
+// Filled Button
+$button-filled-container-color: var(--gio-app-button-filled-container-color, $button-container-color);
+$button-filled-text-transform: var(--gio-app-button-filled-text-tranform, $button-text-transform);
+$button-filled-text-color: var(--gio-app-button-filled-text-color, $button-text-color);
+
+// Text Button
+$button-text-text-transform: var(--gio-app-button-text-text-tranform, $button-text-transform);
+$button-text-text-color: var(--gio-app-button-text-text-color, $button-text-color);
+
+// -- Cards --
+$card-container-shape: var(--gio-app-card-container-shape, 4px);
+$card-container-color: var(--gio-app-card-container-color);
+$card-outline-width: var(--gio-app-card-outline-width);
+$card-outline-color: var(--gio-app-card-outline-color);
+$card-title-text-size:    var(--gio-app-card-title-text-size);
+$card-title-text-weight: var(--gio-app-card-title-text-weight);
+$card-subtitle-text-size:    var(--gio-app-card-subtitle-text-size);
+$card-subtitle-text-weight: var(--gio-app-card-subtitle-text-weight);
+$card-elevation: var(--gio-app-card-elevation, 0);
+
+// -- Nav Bar --
+// toDo: add overrides to nav-bar component, when last navbar changes merged (story: ???)
+$nav-bar-background-color:  var(--gio-app-nav-bar-container-color, color-mix(in srgb, $background-color, transparent 20%)); // already in use in component, move to overrides scoped to component
+$nav-bar-elevation:         var(--gio-app-nav-bar-elevation, 1);
+$nav-bar-link-padding:      var(--gio-app-nav-bar-link-padding);
+$nav-bar-link-color:        var(--gio-app-nav-bar-link-color);
+$nav-bar-link-active-color: var(--gio-app-nav-bar-link-active-color);
+
+// -- Search Bar --
+$search-bar-container-shape:  var(--gio-app-search-bar-container-shape, 4px);
+$search-bar-outline-color:    var(--gio-app-search-bar-outline-color);
+$search-bar-icon-color:       var(--gio-app-search-bar-icon-color, $primary-main-color);
+$search-bar-input-text-color: var(--gio-app-search-bar-input-text-color, $default-text-color);
+
+// -- Table --
+$table-border-color:            var(--gio-app-table-outline-color, color-mix(in srgb, $secondary-main-color 35%, transparent));
+$table-border-radius:           var(--gio-app-table-container-shape, 4px);
+$table-background-color:        var(--gio-app-table-container-color, $secondary-main-color);
 $table-header-background-color: var(--gio-app-table-header-container-color, $secondary-main-color);
-$table-border-radius: var(--gio-app-table-container-shape, 4px);
+$table-header-headline-color:   var(--gio-app-table-header-headline-color, $default-text-color);
+
+// -- Other Components --
+$chip-background: var(--gio-app-chip-container-color, $card-background-color);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
-$search-bar-container-shape: var(--gio-app-search-bar-container-shape, 4px);
