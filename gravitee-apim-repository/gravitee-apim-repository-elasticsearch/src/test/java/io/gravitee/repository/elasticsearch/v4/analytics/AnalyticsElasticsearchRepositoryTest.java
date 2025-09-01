@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.offset;
 import static org.assertj.core.api.Assertions.withPrecision;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.repository.analytics.query.stats.EventAnalyticsQuery;
+import io.gravitee.repository.analytics.query.events.EventAnalyticsQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.analytics.Aggregation;
@@ -1105,16 +1105,16 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(data).containsKey("upstream-subscribe-message-bytes_latest");
                     assertThat(data.get("downstream-subscribe-messages-total_latest")).containsKey("downstream-subscribe-messages-total");
                     assertThat(data.get("downstream-subscribe-messages-total_latest").get("downstream-subscribe-messages-total"))
-                        .isEqualTo(10L);
+                        .isEqualTo(119L);
                     assertThat(data.get("downstream-subscribe-message-bytes_latest")).containsKey("downstream-subscribe-message-bytes");
                     assertThat(data.get("downstream-subscribe-message-bytes_latest").get("downstream-subscribe-message-bytes"))
-                        .isEqualTo(48237L);
+                        .isEqualTo(104511L);
                     assertThat(data.get("upstream-subscribe-messages-total_latest")).containsKey("upstream-subscribe-messages-total");
                     assertThat(data.get("upstream-subscribe-messages-total_latest").get("upstream-subscribe-messages-total"))
-                        .isEqualTo(10L);
+                        .isEqualTo(119L);
                     assertThat(data.get("upstream-subscribe-message-bytes_latest")).containsKey("upstream-subscribe-message-bytes");
                     assertThat(data.get("upstream-subscribe-message-bytes_latest").get("upstream-subscribe-message-bytes"))
-                        .isEqualTo(8739L);
+                        .isEqualTo(104511L);
                 });
         }
 
@@ -1139,15 +1139,96 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(data).containsKey("upstream-publish-message-bytes_latest");
                     assertThat(data.get("downstream-publish-messages-total_latest")).containsKey("downstream-publish-messages-total");
                     assertThat(data.get("downstream-publish-messages-total_latest").get("downstream-publish-messages-total"))
-                        .isEqualTo(121L);
+                        .isEqualTo(119L);
                     assertThat(data.get("downstream-publish-message-bytes_latest")).containsKey("downstream-publish-message-bytes");
                     assertThat(data.get("downstream-publish-message-bytes_latest").get("downstream-publish-message-bytes"))
-                        .isEqualTo(2132911L);
+                        .isEqualTo(104511L);
                     assertThat(data.get("upstream-publish-messages-total_latest")).containsKey("upstream-publish-messages-total");
-                    assertThat(data.get("upstream-publish-messages-total_latest").get("upstream-publish-messages-total")).isEqualTo(1321L);
+                    assertThat(data.get("upstream-publish-messages-total_latest").get("upstream-publish-messages-total")).isEqualTo(119L);
                     assertThat(data.get("upstream-publish-message-bytes_latest")).containsKey("upstream-publish-message-bytes");
-                    assertThat(data.get("upstream-publish-message-bytes_latest").get("upstream-publish-message-bytes"))
-                        .isEqualTo(18921229L);
+                    assertThat(data.get("upstream-publish-message-bytes_latest").get("upstream-publish-message-bytes")).isEqualTo(104511L);
+                });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_messages_produced() {
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(new QueryContext("DEFAULT", "DEFAULT"), buildEventAnalyticsQuery(List.of(agg1, agg2)));
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-publish-messages-total_delta");
+                    assertThat(data).containsKey("upstream-publish-messages-total_delta");
+                    assertThat(data.get("downstream-publish-messages-total_delta")).containsKey("downstream-publish-messages-total");
+                    assertThat(data.get("downstream-publish-messages-total_delta").get("downstream-publish-messages-total"))
+                        .isEqualTo(108L);
+                    assertThat(data.get("upstream-publish-messages-total_delta")).containsKey("upstream-publish-messages-total");
+                    assertThat(data.get("upstream-publish-messages-total_delta").get("upstream-publish-messages-total")).isEqualTo(108L);
+                });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_messages_consumed() {
+            Aggregation agg1 = new Aggregation("downstream-subscribe-messages-total", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-subscribe-messages-total", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(new QueryContext("DEFAULT", "DEFAULT"), buildEventAnalyticsQuery(List.of(agg1, agg2)));
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-subscribe-messages-total_delta");
+                    assertThat(data).containsKey("upstream-subscribe-messages-total_delta");
+                    assertThat(data.get("downstream-subscribe-messages-total_delta")).containsKey("downstream-subscribe-messages-total");
+                    assertThat(data.get("downstream-subscribe-messages-total_delta").get("downstream-subscribe-messages-total"))
+                        .isEqualTo(107L);
+                    assertThat(data.get("upstream-subscribe-messages-total_delta")).containsKey("upstream-subscribe-messages-total");
+                    assertThat(data.get("upstream-subscribe-messages-total_delta").get("upstream-subscribe-messages-total"))
+                        .isEqualTo(107L);
+                });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_message_bytes_produced() {
+            Aggregation agg1 = new Aggregation("downstream-publish-message-bytes", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-publish-message-bytes", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(new QueryContext("DEFAULT", "DEFAULT"), buildEventAnalyticsQuery(List.of(agg1, agg2)));
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-publish-message-bytes_delta");
+                    assertThat(data).containsKey("upstream-publish-message-bytes_delta");
+                    assertThat(data.get("downstream-publish-message-bytes_delta")).containsKey("downstream-publish-message-bytes");
+                    assertThat(data.get("downstream-publish-message-bytes_delta").get("downstream-publish-message-bytes"))
+                        .isEqualTo(99798L);
+                    assertThat(data.get("upstream-publish-message-bytes_delta")).containsKey("upstream-publish-message-bytes");
+                    assertThat(data.get("upstream-publish-message-bytes_delta").get("upstream-publish-message-bytes")).isEqualTo(99798L);
+                });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_message_bytes_consumed() {
+            Aggregation agg1 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(new QueryContext("DEFAULT", "DEFAULT"), buildEventAnalyticsQuery(List.of(agg1, agg2)));
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-subscribe-message-bytes_delta");
+                    assertThat(data).containsKey("upstream-subscribe-message-bytes_delta");
+                    assertThat(data.get("downstream-subscribe-message-bytes_delta")).containsKey("downstream-subscribe-message-bytes");
+                    assertThat(data.get("downstream-subscribe-message-bytes_delta").get("downstream-subscribe-message-bytes"))
+                        .isEqualTo(99674L);
+                    assertThat(data.get("upstream-subscribe-message-bytes_delta")).containsKey("upstream-subscribe-message-bytes");
+                    assertThat(data.get("upstream-subscribe-message-bytes_delta").get("upstream-subscribe-message-bytes"))
+                        .isEqualTo(99674L);
                 });
         }
 

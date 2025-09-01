@@ -15,8 +15,8 @@
  */
 package io.gravitee.repository.log.v4.api;
 
-import io.gravitee.repository.analytics.query.stats.EventAnalyticsAggregate;
-import io.gravitee.repository.analytics.query.stats.EventAnalyticsQuery;
+import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
+import io.gravitee.repository.analytics.query.events.EventAnalyticsQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;

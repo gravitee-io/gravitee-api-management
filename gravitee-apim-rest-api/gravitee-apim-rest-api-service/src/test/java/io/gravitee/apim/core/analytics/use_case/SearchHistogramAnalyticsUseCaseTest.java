@@ -163,6 +163,34 @@ class SearchHistogramAnalyticsUseCaseTest {
     }
 
     @Test
+    void shouldReturnTopDeltaHitsForANativeAPI() {
+        apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
+        GraviteeContext.setCurrentEnvironment("environment-id");
+        Map<String, Map<String, Long>> analytics = new HashMap<>();
+        analytics.put("downstream-message-bytes_delta", Map.of("downstream-message-bytes", 1432142112L));
+        analytics.put("upstream-message-bytes_delta", Map.of("upstream-message-bytes", 12321213L));
+        analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
+        long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
+        long to = INSTANT_NOW.toEpochMilli();
+        long interval = 60000L;
+        var input = new SearchHistogramAnalyticsUseCase.Input(MY_API, from, to, interval, List.of(), Optional.empty());
+
+        var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        List<HistogramAnalytics.Bucket> buckets = result.values();
+        assertFalse(buckets.isEmpty());
+        assertEquals(2, buckets.size());
+        HistogramAnalytics.MetricBucket bucket0 = (HistogramAnalytics.MetricBucket) buckets.getFirst();
+        assertEquals("downstream-message-bytes", bucket0.getField());
+        assertEquals("downstream-message-bytes_delta", bucket0.getName());
+        assertEquals(1432142112L, bucket0.getValues().getFirst());
+        HistogramAnalytics.MetricBucket bucket1 = (HistogramAnalytics.MetricBucket) buckets.get(1);
+        assertEquals("upstream-message-bytes", bucket1.getField());
+        assertEquals("upstream-message-bytes_delta", bucket1.getName());
+        assertEquals(12321213L, bucket1.getValues().getFirst());
+    }
+
+    @Test
     void shouldThrowWhenApiNotV4() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
         var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty());
