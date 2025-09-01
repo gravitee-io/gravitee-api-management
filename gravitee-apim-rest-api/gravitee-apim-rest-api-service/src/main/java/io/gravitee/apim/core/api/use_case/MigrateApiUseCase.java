@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static io.gravitee.apim.core.api.model.utils.MigrationResult.State.*;
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
@@ -43,6 +44,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.flow.Flow;
 import jakarta.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -97,7 +99,6 @@ public class MigrateApiUseCase {
 
     public Output execute(Input input) {
         var api = apiCrudService.findById(input.apiId()).orElseThrow(() -> new ApiNotFoundException(input.apiId()));
-        MigrationResult<?> precondition = MigrationResult.value(1);
         if (api.getDefinitionVersion() != DefinitionVersion.V2) {
             // Fatal issue, we don’t try to do anything in this case
             return new Output(
@@ -105,50 +106,9 @@ public class MigrateApiUseCase {
                 List.of(new MigrationResult.Issue("Cannot migrate an API which is not a v2 definition", MigrationResult.State.IMPOSSIBLE))
             );
         }
-        if (!apiStateService.isSynchronized(api, input.auditInfo())) {
-            precondition =
-                precondition.addIssue(
-                    new MigrationResult.Issue("Cannot migrate an API which is out of sync", MigrationResult.State.CAN_BE_FORCED)
-                );
-        }
-        if (api.getApiDefinition().getExecutionMode() == ExecutionMode.V3) {
-            precondition =
-                precondition.addIssue(
-                    new MigrationResult.Issue("Cannot migrate an API not using V4 emulation", MigrationResult.State.IMPOSSIBLE)
-                );
-        }
-        List<Page> pageEntities = pageQueryService.searchByApiId(input.apiId());
-        var pagesById = pageEntities.stream().collect(Collectors.toMap(Page::getId, Function.identity()));
-        for (Page page : pageEntities) {
-            if (page.getType() == Page.Type.TRANSLATION) {
-                String pageName = pagesById.get(page.getParentId()).getName();
-                precondition =
-                    precondition.addIssue(
-                        new MigrationResult.Issue(
-                            String.format("Cannot migrate an API having document: %s, with translations", pageName),
-                            MigrationResult.State.IMPOSSIBLE
-                        )
-                    );
-            }
-            if (isNotEmpty(page.getAccessControls())) {
-                precondition =
-                    precondition.addIssue(
-                        new MigrationResult.Issue(
-                            String.format("Cannot migrate an API having document: %s, with Access Control", page.getName()),
-                            MigrationResult.State.IMPOSSIBLE
-                        )
-                    );
-            }
-            if (isNotEmpty(page.getAttachedMedia())) {
-                precondition =
-                    precondition.addIssue(
-                        new MigrationResult.Issue(
-                            String.format("Cannot migrate an API having document: %s, with Attached Resources", page.getName()),
-                            MigrationResult.State.IMPOSSIBLE
-                        )
-                    );
-            }
-        }
+        MigrationResult<?> precondition = chekPreconditions(input, api);
+        var pageEntities = pageQueryService.searchByApiId(input.apiId());
+        precondition = precondition.addIssues(checkPages(pageEntities));
         // Migration
         var migrationResult = precondition.flatMap(ignored -> migrationOperator.mapApi(api)).map(Migration::new);
 
@@ -171,42 +131,19 @@ public class MigrateApiUseCase {
         }
 
         // Apply
-        MigrationResult.State state = applyMigration(
-            migrationResult,
-            input.mode(),
-            migration -> {
-                var upgraded = apiCrudService.update(migration.api());
-                var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), input.apiId());
-
-                auditService.createApiAuditLog(
-                    ApiAuditLogEntity
-                        .builder()
-                        .event(ApiAuditEvent.API_UPDATED)
-                        .actor(AuditActor.builder().userId(input.auditInfo().actor().userId()).build())
-                        .apiId(input.apiId())
-                        .environmentId(input.auditInfo().environmentId())
-                        .organizationId(input.auditInfo().organizationId())
-                        .createdAt(TimeProvider.now())
-                        .oldValue(api)
-                        .newValue(upgraded)
-                        .properties(Map.of(AuditProperties.API, input.apiId()))
-                        .build()
-                );
-                var indexerContext = new ApiIndexerDomainService.Context(input.auditInfo(), false);
-                apiIndexerDomainService.delete(indexerContext, api);
-                apiIndexerDomainService.index(indexerContext, upgraded, apiPrimaryOwner);
-                // Plans
-                migration.plans().forEach(planService::update);
-
-                for (var a : migration.flows()) {
-                    switch (a) {
-                        case Migration.ReferencedFlow.Plan planFlows -> flowCrudService.savePlanFlows(planFlows.id(), planFlows.flows());
-                        case Migration.ReferencedFlow.Api apiFlows -> flowCrudService.saveApiFlows(apiFlows.id(), apiFlows.flows());
-                    }
-                }
-            }
-        );
+        var state = applyMigration(migrationResult, input.mode(), migration -> storeMigration(input, migration, api));
         return new Output(input.apiId(), migrationResult.issues(), state);
+    }
+
+    private MigrationResult<?> chekPreconditions(Input input, Api api) {
+        MigrationResult<?> precondition = MigrationResult.value(1);
+        if (!apiStateService.isSynchronized(api, input.auditInfo())) {
+            precondition = precondition.addIssue("Cannot migrate an API which is out of sync", CAN_BE_FORCED);
+        }
+        if (api.getApiDefinition().getExecutionMode() == ExecutionMode.V3) {
+            precondition = precondition.addIssue("Cannot migrate an API not using V4 emulation", IMPOSSIBLE);
+        }
+        return precondition;
     }
 
     private <T> MigrationResult.State applyMigration(MigrationResult<T> result, Input.UpgradeMode mode, Consumer<T> consumer) {
@@ -267,6 +204,71 @@ public class MigrateApiUseCase {
                 issues,
                 stream(issues).map(MigrationResult.Issue::state).max(STATE_COMPARATOR).orElse(MigrationResult.State.MIGRATABLE)
             );
+        }
+    }
+
+    private Collection<MigrationResult.Issue> checkPages(List<Page> pageEntities) {
+        var pagesById = pageEntities.stream().collect(Collectors.toMap(Page::getId, Function.identity()));
+        var issues = new ArrayList<MigrationResult.Issue>();
+        for (Page page : pageEntities) {
+            if (page.getType() == Page.Type.TRANSLATION) {
+                String pageName = pagesById.get(page.getParentId()).getName();
+                issues.add(
+                    new MigrationResult.Issue(
+                        "Cannot migrate an API having document: %s, with translations".formatted(pageName),
+                        IMPOSSIBLE
+                    )
+                );
+            }
+            if (isNotEmpty(page.getAccessControls())) {
+                issues.add(
+                    new MigrationResult.Issue(
+                        "Cannot migrate an API having document: %s, with Access Control".formatted(page.getName()),
+                        IMPOSSIBLE
+                    )
+                );
+            }
+            if (isNotEmpty(page.getAttachedMedia())) {
+                issues.add(
+                    new MigrationResult.Issue(
+                        "Cannot migrate an API having document: %s, with Attached Resources".formatted(page.getName()),
+                        IMPOSSIBLE
+                    )
+                );
+            }
+        }
+        return issues;
+    }
+
+    private void storeMigration(Input input, Migration migration, Api api) {
+        var upgraded = apiCrudService.update(migration.api());
+        var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), input.apiId());
+
+        auditService.createApiAuditLog(
+            ApiAuditLogEntity
+                .builder()
+                .event(ApiAuditEvent.API_UPDATED)
+                .actor(AuditActor.builder().userId(input.auditInfo().actor().userId()).build())
+                .apiId(input.apiId())
+                .environmentId(input.auditInfo().environmentId())
+                .organizationId(input.auditInfo().organizationId())
+                .createdAt(TimeProvider.now())
+                .oldValue(api)
+                .newValue(upgraded)
+                .properties(Map.of(AuditProperties.API, input.apiId()))
+                .build()
+        );
+        var indexerContext = new ApiIndexerDomainService.Context(input.auditInfo(), false);
+        apiIndexerDomainService.delete(indexerContext, api);
+        apiIndexerDomainService.index(indexerContext, upgraded, apiPrimaryOwner);
+        // Plans
+        migration.plans().forEach(planService::update);
+
+        for (var a : migration.flows()) {
+            switch (a) {
+                case Migration.ReferencedFlow.Plan planFlows -> flowCrudService.savePlanFlows(planFlows.id(), planFlows.flows());
+                case Migration.ReferencedFlow.Api apiFlows -> flowCrudService.saveApiFlows(apiFlows.id(), apiFlows.flows());
+            }
         }
     }
 }

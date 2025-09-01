@@ -58,6 +58,11 @@ public class MigrationResult<T> {
         return this;
     }
 
+    public MigrationResult<T> addIssue(String message, State state) {
+        issues.add(new Issue(message, state));
+        return this;
+    }
+
     public MigrationResult<T> addIssues(Collection<Issue> issue) {
         issues.addAll(issue);
         return this;
