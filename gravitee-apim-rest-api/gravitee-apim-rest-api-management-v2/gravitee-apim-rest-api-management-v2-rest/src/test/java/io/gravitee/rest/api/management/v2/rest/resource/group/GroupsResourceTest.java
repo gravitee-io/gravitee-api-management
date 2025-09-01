@@ -121,12 +121,10 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(GroupsResponse.class)
                 .isEqualTo(
-                    GroupsResponse
-                        .builder()
+                    new GroupsResponse()
                         .data(List.of())
-                        .pagination(Pagination.builder().build())
-                        .links(Links.builder().self(paginatedTarget.getUri().toString()).build())
-                        .build()
+                        .pagination(new Pagination())
+                        .links(new Links().self(paginatedTarget.getUri().toString()))
                 );
         }
 
@@ -179,12 +177,10 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(GroupsResponse.class)
                 .isEqualTo(
-                    GroupsResponse
-                        .builder()
+                    new GroupsResponse()
                         .data(Stream.of(group1, group2).map(GroupMapper.INSTANCE::map).toList())
-                        .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L).build())
-                        .links(Links.builder().self(target.getUri().toString()).build())
-                        .build()
+                        .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L))
+                        .links(new Links().self(target.getUri().toString()))
                 );
         }
     }
@@ -258,13 +254,11 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(MembersResponse.class)
                 .isEqualTo(
-                    MembersResponse
-                        .builder()
-                        .pagination(Pagination.builder().build())
+                    new MembersResponse()
+                        .pagination(new Pagination())
                         .data(List.of())
                         .metadata(Map.of("groupName", GROUP_NAME))
-                        .links(Links.builder().self(target.getUri().toString()).build())
-                        .build()
+                        .links(new Links().self(target.getUri().toString()))
                 );
         }
 
@@ -282,13 +276,11 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(MembersResponse.class)
                 .isEqualTo(
-                    MembersResponse
-                        .builder()
-                        .pagination(Pagination.builder().page(1).pageCount(1).perPage(10).pageItemsCount(2).totalCount(2L).build())
+                    new MembersResponse()
+                        .pagination(new Pagination().page(1).pageCount(1).perPage(10).pageItemsCount(2).totalCount(2L))
                         .data(Stream.of(member1, member2).map(MemberMapper.INSTANCE::map).toList())
                         .metadata(Map.of("groupName", GROUP_NAME))
-                        .links(Links.builder().self(target.getUri().toString()).build())
-                        .build()
+                        .links(new Links().self(target.getUri().toString()))
                 );
         }
     }
@@ -328,12 +320,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(GroupsResponse.class)
                 .isEqualTo(
-                    GroupsResponse
-                        .builder()
-                        .data(List.of())
-                        .pagination(Pagination.builder().build())
-                        .links(Links.builder().self(target.getUri().toString()).build())
-                        .build()
+                    new GroupsResponse().data(List.of()).pagination(new Pagination()).links(new Links().self(target.getUri().toString()))
                 );
         }
 
