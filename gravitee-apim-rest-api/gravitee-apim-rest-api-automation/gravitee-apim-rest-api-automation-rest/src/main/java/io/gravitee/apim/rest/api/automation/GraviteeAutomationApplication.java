@@ -30,8 +30,16 @@ import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ConstraintValidat
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.JsonMappingExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ManagementExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.NotAllowedExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
+import io.gravitee.rest.api.management.v2.rest.provider.YamlWriter;
+import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
+import io.gravitee.rest.api.rest.filter.MaintenanceFilter;
+import io.gravitee.rest.api.rest.filter.PermissionsFilter;
+import io.gravitee.rest.api.rest.filter.SecurityContextFilter;
+import io.gravitee.rest.api.rest.filter.UriBuilderRequestFilter;
 import jakarta.inject.Inject;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
@@ -63,6 +71,15 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
 
         register(ObjectMapperResolver.class);
+
+        register(SecurityContextFilter.class);
+        register(PermissionsFilter.class);
+        register(GraviteeContextResponseFilter.class);
+        register(UriBuilderRequestFilter.class);
+        register(ByteArrayOutputStreamWriter.class);
+        register(YamlWriter.class);
+        register(JacksonFeature.class);
+        register(MaintenanceFilter.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
         property(ServerProperties.BV_DISABLE_VALIDATE_ON_EXECUTABLE_OVERRIDE_CHECK, true);

@@ -61,7 +61,9 @@ public class SubscriptionsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions(
+        { @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }) }
+    )
     public Response createOrUpdate(@Valid @NotNull SubscriptionSpec spec, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();

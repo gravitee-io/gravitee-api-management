@@ -25,6 +25,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -96,7 +97,7 @@ class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
     }
 
     private SharedPolicyGroupState expectEntity(String hrid) {
-        try (var response = rootTarget().path(hrid).request().get()) {
+        try (var response = rootTarget().path(hrid).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
             return response.readEntity(SharedPolicyGroupState.class);
         }
     }
