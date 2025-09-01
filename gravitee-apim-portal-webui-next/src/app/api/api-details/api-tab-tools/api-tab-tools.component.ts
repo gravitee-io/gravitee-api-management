@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { JsonPipe } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 
 import { CopyCodeComponent } from '../../../../components/copy-code/copy-code.component';
@@ -22,7 +21,7 @@ import { Api } from '../../../../entities/api/api';
 
 @Component({
   selector: 'app-api-tab-tools',
-  imports: [McpToolComponent, JsonPipe, CopyCodeComponent],
+  imports: [McpToolComponent, CopyCodeComponent],
   templateUrl: './api-tab-tools.component.html',
   styleUrl: './api-tab-tools.component.scss',
 })
