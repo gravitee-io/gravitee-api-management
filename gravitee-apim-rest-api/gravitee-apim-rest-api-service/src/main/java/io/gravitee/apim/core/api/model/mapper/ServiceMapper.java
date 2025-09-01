@@ -15,7 +15,9 @@
  */
 package io.gravitee.apim.core.api.model.mapper;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static io.gravitee.apim.core.api.model.utils.MigrationResult.State.IMPOSSIBLE;
+import static io.gravitee.apim.core.utils.CollectionUtils.size;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
@@ -24,11 +26,8 @@ import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
-import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.service.Service;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -46,7 +45,6 @@ public final class ServiceMapper {
         String name
     ) {
         return switch (v2Service) {
-            case io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService v2dynamicPropertyService -> null;
             case io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService vEP2HealthCheckService -> convertEPHealthCheckService(
                 vEP2HealthCheckService,
                 type,
@@ -57,12 +55,13 @@ public final class ServiceMapper {
                 type,
                 name
             );
-            case io.gravitee.definition.model.services.schedule.ScheduledService v2ScheduledService -> null;
             case io.gravitee.definition.model.services.discovery.EndpointDiscoveryService v2EndpointDiscoveryService -> mapServiceDiscovery(
                 v2EndpointDiscoveryService
             );
+            case io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService v2dynamicPropertyService -> null;
+            case io.gravitee.definition.model.services.schedule.ScheduledService v2ScheduledService -> null;
             case null -> null;
-            default -> MigrationResult.issue("Unsupported Service", MigrationResult.State.IMPOSSIBLE);
+            default -> MigrationResult.issue("Unsupported Service", IMPOSSIBLE);
         };
     }
 
@@ -82,40 +81,46 @@ public final class ServiceMapper {
         config.put("successThreshold", 2);
 
         // If steps exist, derive config from the first step
-        List<HealthCheckStep> steps = v2HealthCheckService.getSteps();
-        if (steps != null && !steps.isEmpty()) {
-            if (steps.size() > 1) {
+        var steps = v2HealthCheckService.getSteps();
+        switch (size(steps)) {
+            case 0 -> {
+                /* nothing to do */
+            }
+            case 1 -> {
+                HealthCheckStep step = steps.getFirst();
+                if (size(step.getResponse().getAssertions()) > 1) {
+                    log.error("Health check for {} cannot have more than one assertion", endpointReferenceForMessage);
+                    migrationResult.addIssue(
+                        "Health check for %s cannot have more than one assertion".formatted(endpointReferenceForMessage),
+                        IMPOSSIBLE
+                    );
+                }
+                try {
+                    config.set(
+                        "headers",
+                        (
+                            step.getRequest().getHeaders() == null
+                                ? MAPPER.createArrayNode()
+                                : MAPPER.valueToTree(step.getRequest().getHeaders())
+                        )
+                    );
+                    config.set("method", MAPPER.valueToTree(step.getRequest().getMethod()));
+                    config.set("target", MAPPER.valueToTree(step.getRequest().getPath()));
+                    config.set(
+                        "assertion",
+                        MAPPER.valueToTree(StringUtils.appendCurlyBraces(step.getResponse().getAssertions().getFirst()))
+                    );
+                    config.set("overrideEndpointPath", MAPPER.valueToTree(step.getRequest().isFromRoot()));
+                } catch (Exception e) {
+                    log.error("Unable to map configuration for Health check ", e);
+                    return migrationResult.addIssue("Unable to map configuration for Health check", IMPOSSIBLE);
+                }
+            }
+            default -> {
                 log.error("Health check for {} cannot have more than one step ", endpointReferenceForMessage);
                 migrationResult.addIssue(
-                    new MigrationResult.Issue(
-                        "Health check for " + endpointReferenceForMessage + " cannot have more than one step",
-                        MigrationResult.State.IMPOSSIBLE
-                    )
-                );
-            }
-            HealthCheckStep step = steps.get(0);
-            if (step.getResponse().getAssertions() != null && step.getResponse().getAssertions().size() > 1) {
-                log.error("Health check for {} cannot have more than one assertion", endpointReferenceForMessage);
-                migrationResult.addIssue(
-                    new MigrationResult.Issue(
-                        "Health check for " + endpointReferenceForMessage + " cannot have more than one assertion",
-                        MigrationResult.State.IMPOSSIBLE
-                    )
-                );
-            }
-            try {
-                config.set(
-                    "headers",
-                    (step.getRequest().getHeaders() == null ? MAPPER.createArrayNode() : MAPPER.valueToTree(step.getRequest().getHeaders()))
-                );
-                config.set("method", MAPPER.valueToTree(step.getRequest().getMethod()));
-                config.set("target", MAPPER.valueToTree(step.getRequest().getPath()));
-                config.set("assertion", MAPPER.valueToTree(StringUtils.appendCurlyBraces(step.getResponse().getAssertions().get(0))));
-                config.set("overrideEndpointPath", MAPPER.valueToTree(step.getRequest().isFromRoot()));
-            } catch (Exception e) {
-                log.error("Unable to map configuration for Health check ", e);
-                return migrationResult.addIssue(
-                    new MigrationResult.Issue("Unable to map configuration for Health check", MigrationResult.State.IMPOSSIBLE)
+                    "Health check for %s cannot have more than one step".formatted(endpointReferenceForMessage),
+                    IMPOSSIBLE
                 );
             }
         }
@@ -146,10 +151,10 @@ public final class ServiceMapper {
 
         if (!ALLOWED_DISCOVERY_PLUGIN_IDS.contains(discoveryService.getProvider())) {
             return MigrationResult.issue(
-                "Service discovery provider '" +
-                discoveryService.getProvider() +
-                "' is not supported for migration. Only consul-service-discovery is supported.",
-                MigrationResult.State.IMPOSSIBLE
+                "Service discovery provider '%s' is not supported for migration. Only consul-service-discovery is supported.".formatted(
+                        discoveryService.getProvider()
+                    ),
+                IMPOSSIBLE
             );
         }
 
@@ -163,10 +168,8 @@ public final class ServiceMapper {
         return MigrationResult
             .value(service)
             .addIssue(
-                new MigrationResult.Issue(
-                    "Service discovery configuration can be migrated, but the configuration page will not be available in the new version.",
-                    MigrationResult.State.CAN_BE_FORCED
-                )
+                "Service discovery configuration can be migrated, but the configuration page will not be available in the new version.",
+                MigrationResult.State.CAN_BE_FORCED
             );
     }
 }
