@@ -18,19 +18,8 @@
 @use '../scss/theme';
 @use './m3-adapter';
 
-.secondary-button {
-  @include mat.button-color(theme.$light-theme, $color-variant: secondary);
-}
-
 mat-chip {
   --mdc-chip-elevated-container-color: #{theme.$chip-background};
-}
-
-mat-card {
-  --mdc-elevated-card-container-elevation: 0;
-  --mdc-outlined-card-container-color: #{theme.$card-background-color};
-  --mdc-outlined-card-container-shape: #{theme.$card-container-shape};
-  --mdc-elevated-card-container-shape: #{theme.$card-container-shape};
 }
 
 mat-dialog-container {
@@ -73,8 +62,57 @@ mat-datepicker-content.mat-datepicker-content.mat-primary {
   --mat-datepicker-calendar-container-background-color: #{theme.$calendar-background-color};
 }
 
-button,
-a {
-  --mdc-outlined-button-container-shape: #{theme.$button-container-shape};
-  --mdc-filled-button-container-shape: #{theme.$button-container-shape};
+:root {
+  @include mat.button-overrides(
+    (
+      // Outlined buttons
+      outlined-container-shape: #{theme.$button-outlined-container-shape},
+      outlined-label-text-transform: #{theme.$button-outlined-text-transform},
+      outlined-label-text-color: #{theme.$button-outlined-text-color},
+      outlined-outline-color: #{theme.$button-outlined-border-color},
+      outlined-outline-width: #{theme.$button-outlined-border-width},
+
+      // filled buttons
+      filled-container-shape: #{theme.$button-filled-container-shape},
+      filled-container-color: #{theme.$button-filled-container-color},
+      filled-label-text-transform: #{theme.$button-filled-text-transform},
+      filled-label-text-color: #{theme.$button-filled-text-color},
+
+      // text buttons
+      text-container-shape: #{theme.$button-text-container-shape},
+      text-label-text-transform: #{theme.$button-text-text-transform},
+      text-label-text-color: #{theme.$button-text-text-color}
+    )
+  );
+
+  @include mat.card-overrides(
+    (
+      // General
+      title-text-size: #{theme.$card-title-text-size},
+      title-text-weight: #{theme.$card-title-text-weight},
+      subtitle-text-size: #{theme.$card-subtitle-text-size},
+      subtitle-text-weight: #{theme.$card-subtitle-text-weight},
+      // Elevated Cards
+      elevated-container-shape: #{theme.$card-container-shape},
+      elevated-container-color: #{theme.$card-container-color},
+      elevated-container-elevation: #{theme.$card-elevation},
+      // Outlined Cards
+      outlined-container-shape: #{theme.$card-container-shape},
+      outlined-container-color: #{theme.$card-container-color},
+      outlined-outline-width: #{theme.$card-border-width},
+      outlined-outline-color: #{theme.$card-border-color},
+      outlined-container-elevation: #{theme.$card-elevation}
+    )
+  );
+
+  @include mat.table-overrides(
+    (
+      background-color: #{theme.$table-background-color},
+      header-headline-color: #{theme.$table-header-headline-color},
+    )
+  );
+}
+
+.secondary-button {
+  @include mat.button-color(theme.$light-theme, $color-variant: secondary);
 }
