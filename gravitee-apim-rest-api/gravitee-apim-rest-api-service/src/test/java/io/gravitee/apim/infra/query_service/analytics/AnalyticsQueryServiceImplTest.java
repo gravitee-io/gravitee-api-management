@@ -30,7 +30,7 @@ import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.repository.analytics.query.stats.EventAnalyticsAggregate;
+import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
@@ -555,9 +555,7 @@ class AnalyticsQueryServiceImplTest {
             when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any()))
                 .thenReturn(Optional.of(new CountByAggregate(10)));
             assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query))
-                .hasValueSatisfying(requestsCount -> {
-                    assertThat(requestsCount.getTotal()).isEqualTo(10);
-                });
+                .hasValueSatisfying(requestsCount -> assertThat(requestsCount.getTotal()).isEqualTo(10));
         }
 
         @Test
@@ -648,7 +646,7 @@ class AnalyticsQueryServiceImplTest {
         private static final long TO = 1755778082768L;
 
         @Test
-        void should_search_top_value_hits_for_a_given_api() {
+        void should_search_top_value_hits_for_a_given_native_api() {
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
                 Map.of(
                     "downstream-active-connections_latest",
@@ -668,6 +666,30 @@ class AnalyticsQueryServiceImplTest {
                     assertThat(analytics.values().get("downstream-active-connections_latest")).containsValue(2L);
                     assertThat(analytics.values().containsKey("upstream-active-connections_latest")).isTrue();
                     assertThat(analytics.values().get("upstream-active-connections_latest")).containsValue(2L);
+                });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_a_given_native_api() {
+            EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
+                Map.of(
+                    "downstream-publish-messages-total_delta",
+                    Map.of("downstream-publish-messages-total", 82L),
+                    "upstream-publish-messages-total_delta",
+                    Map.of("upstream-publish-messages-total", 82L)
+                )
+            );
+            when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
+            AnalyticsQueryService.EventAnalyticsParams params = getEventAnalyticsParams();
+
+            Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), params);
+
+            assertThat(stats)
+                .hasValueSatisfying(analytics -> {
+                    assertThat(analytics.values().containsKey("downstream-publish-messages-total_delta")).isTrue();
+                    assertThat(analytics.values().get("downstream-publish-messages-total_delta")).containsValue(82L);
+                    assertThat(analytics.values().containsKey("upstream-publish-messages-total_delta")).isTrue();
+                    assertThat(analytics.values().get("upstream-publish-messages-total_delta")).containsValue(82L);
                 });
         }
 

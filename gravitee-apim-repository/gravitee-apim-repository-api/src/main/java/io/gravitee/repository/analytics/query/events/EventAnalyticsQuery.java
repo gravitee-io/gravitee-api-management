@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query.stats;
+package io.gravitee.repository.analytics.query.events;
 
 import io.gravitee.repository.log.v4.model.analytics.Aggregation;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;

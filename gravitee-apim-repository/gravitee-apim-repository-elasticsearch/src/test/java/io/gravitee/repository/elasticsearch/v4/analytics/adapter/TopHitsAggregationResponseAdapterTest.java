@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-class EventAnalyticsResponseAdapterTest {
+class TopHitsAggregationResponseAdapterTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -39,7 +39,7 @@ class EventAnalyticsResponseAdapterTest {
 
         @Test
         void should_return_empty_when_response_is_null() {
-            var result = EventAnalyticsResponseAdapter.adapt(null);
+            var result = TopHitsAggregationResponseAdapter.adapt(null);
 
             assertTrue(result.isEmpty());
         }
@@ -49,7 +49,7 @@ class EventAnalyticsResponseAdapterTest {
             var response = new SearchResponse();
             response.setTimedOut(true);
 
-            var result = EventAnalyticsResponseAdapter.adapt(response);
+            var result = TopHitsAggregationResponseAdapter.adapt(response);
 
             assertTrue(result.isEmpty());
         }
@@ -60,13 +60,13 @@ class EventAnalyticsResponseAdapterTest {
             response.setTimedOut(false);
             response.setAggregations(Map.of());
 
-            var result = EventAnalyticsResponseAdapter.adapt(response);
+            var result = TopHitsAggregationResponseAdapter.adapt(response);
 
             assertTrue(result.isEmpty());
         }
 
         @Test
-        void should_adapt_response() {
+        void should_adapt_top_value_hits_response() {
             var response = new SearchResponse();
             response.setTimedOut(false);
             Map<String, io.gravitee.elasticsearch.model.Aggregation> aggregations = new HashMap<>();
@@ -97,7 +97,7 @@ class EventAnalyticsResponseAdapterTest {
 
             response.setAggregations(aggregations);
 
-            var result = EventAnalyticsResponseAdapter.adapt(response);
+            var result = TopHitsAggregationResponseAdapter.adapt(response);
 
             assertTrue(result.isPresent());
             Map<String, Map<String, Long>> values = result.get().values();
@@ -106,6 +106,63 @@ class EventAnalyticsResponseAdapterTest {
             assertTrue(values.containsKey("upstream-active-connections_latest"));
             assertEquals(24L, values.get("downstream-active-connections_latest").get("downstream-active-connections"));
             assertEquals(24L, values.get("upstream-active-connections_latest").get("upstream-active-connections"));
+        }
+
+        @Test
+        void should_adapt_top_delta_hits_response() {
+            var response = new SearchResponse();
+            response.setTimedOut(false);
+            Map<String, io.gravitee.elasticsearch.model.Aggregation> aggregations = new HashMap<>();
+
+            // downstream-publish-messages-total_delta
+            io.gravitee.elasticsearch.model.Aggregation agg = new io.gravitee.elasticsearch.model.Aggregation();
+            io.gravitee.elasticsearch.model.Aggregation startValue = new io.gravitee.elasticsearch.model.Aggregation();
+            io.gravitee.elasticsearch.model.Aggregation endValue = new io.gravitee.elasticsearch.model.Aggregation();
+
+            SearchHits startHits = new SearchHits();
+            startHits.setHits(List.of(createHit("downstream-publish-messages-total", 10L)));
+            startValue.setHits(startHits);
+
+            SearchHits endHits = new SearchHits();
+            endHits.setHits(List.of(createHit("downstream-publish-messages-total", 150L)));
+            endValue.setHits(endHits);
+
+            Map<String, io.gravitee.elasticsearch.model.Aggregation> subAggs = new HashMap<>();
+            subAggs.put("start_value", startValue);
+            subAggs.put("end_value", endValue);
+            agg.getAggregations().putAll(subAggs);
+            aggregations.put("downstream-publish-messages-total_delta", agg);
+
+            // upstream-publish-messages-total_delta
+            io.gravitee.elasticsearch.model.Aggregation agg2 = new io.gravitee.elasticsearch.model.Aggregation();
+            io.gravitee.elasticsearch.model.Aggregation startValue2 = new io.gravitee.elasticsearch.model.Aggregation();
+            io.gravitee.elasticsearch.model.Aggregation endValue2 = new io.gravitee.elasticsearch.model.Aggregation();
+
+            SearchHits startHits2 = new SearchHits();
+            startHits2.setHits(List.of(createHit("upstream-publish-messages-total", 10L)));
+            startValue2.setHits(startHits2);
+
+            SearchHits endHits2 = new SearchHits();
+            endHits2.setHits(List.of(createHit("upstream-publish-messages-total", 150L)));
+            endValue2.setHits(endHits2);
+
+            Map<String, io.gravitee.elasticsearch.model.Aggregation> subAggs2 = new HashMap<>();
+            subAggs2.put("start_value", startValue2);
+            subAggs2.put("end_value", endValue2);
+            agg2.getAggregations().putAll(subAggs2);
+            aggregations.put("upstream-publish-messages-total_delta", agg2);
+
+            response.setAggregations(aggregations);
+
+            var result = TopHitsAggregationResponseAdapter.adapt(response);
+
+            assertTrue(result.isPresent());
+            Map<String, Map<String, Long>> values = result.get().values();
+            assertFalse(values.isEmpty());
+            assertTrue(values.containsKey("downstream-publish-messages-total_delta"));
+            assertTrue(values.containsKey("upstream-publish-messages-total_delta"));
+            assertEquals(140L, values.get("downstream-publish-messages-total_delta").get("downstream-publish-messages-total"));
+            assertEquals(140L, values.get("upstream-publish-messages-total_delta").get("upstream-publish-messages-total"));
         }
 
         private static @NotNull SearchHit createHit(String fieldName, long value) {
