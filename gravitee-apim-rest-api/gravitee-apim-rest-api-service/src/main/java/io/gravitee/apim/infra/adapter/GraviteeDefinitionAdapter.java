@@ -42,11 +42,156 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "plans", expression = "java(mapPlans(source.getPlans()))")
     GraviteeDefinition map(ExportApiEntity source);
 
+<<<<<<< HEAD
     default ApiExport mapApi(GenericApiEntity source) {
         if (source instanceof ApiEntity v4) {
             return mapApiEntity(v4);
         }
         return mapGenericApiEntity(source);
+=======
+    @Mapping(
+        target = "security",
+        expression = "java(source.getPlanDefinitionHttpV4() != null ? mapPlanSecurity(source.getPlanDefinitionHttpV4().getSecurity()) : null)"
+    )
+    @Mapping(target = "mode", source = "planDefinitionHttpV4.mode")
+    @Mapping(target = "status", source = "planDefinitionHttpV4.status")
+    PlanDescriptor.V4 mapPlanV4(Plan source);
+
+    @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getPlanDefinitionNativeV4().getSecurity()))")
+    @Mapping(target = "mode", source = "planDefinitionNativeV4.mode")
+    @Mapping(target = "status", source = "planDefinitionNativeV4.status")
+    PlanDescriptor.Native mapPlanNative(Plan source);
+
+    @Mapping(target = "security", expression = "java(mapPlanSecurity(source.getFederatedPlanDefinition().getSecurity()))")
+    @Mapping(target = "mode", source = "federatedPlanDefinition.mode")
+    @Mapping(target = "status", source = "federatedPlanDefinition.status")
+    @Mapping(target = "providerId", source = "federatedPlanDefinition.providerId")
+    PlanDescriptor.Federated mapPlanFederated(Plan source);
+
+    @Mapping(
+        target = "security",
+        expression = "java(mapPlanSecurityV2(source.getPlanDefinitionV2().getSecurity(), source.getPlanDefinitionV2().getSecurityDefinition()))"
+    )
+    @Mapping(target = "status", source = "planDefinitionV2.status")
+    @Mapping(target = "securityDefinition", source = "planDefinitionV2.securityDefinition")
+    @Mapping(target = "paths", source = "planDefinitionV2.paths")
+    @Mapping(target = "flows", source = "planDefinitionV2.flows")
+    PlanDescriptor.V2 mapPlanV2(Plan source);
+
+    io.gravitee.rest.api.model.PrimaryOwnerEntity map(PrimaryOwnerEntity src);
+
+    @Mapping(target = "id", source = "apiEntity.id")
+    @Mapping(target = "apiVersion", source = "apiEntity.version")
+    @Mapping(target = "type", source = "apiEntity.type")
+    @Mapping(target = "state", source = "apiEntity.lifecycleState")
+    @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
+    @Mapping(target = "listeners", source = "apiEntity.apiDefinitionHttpV4.listeners")
+    @Mapping(target = "analytics", source = "apiEntity.apiDefinitionHttpV4.analytics")
+    @Mapping(target = "flowExecution", source = "apiEntity.apiDefinitionHttpV4.flowExecution")
+    @Mapping(target = "flows", source = "apiEntity.apiDefinitionHttpV4.flows")
+    @Mapping(target = "responseTemplates", source = "apiEntity.apiDefinitionHttpV4.responseTemplates")
+    @Mapping(target = "properties", source = "apiEntity.apiDefinitionHttpV4.properties")
+    @Mapping(target = "resources", source = "apiEntity.apiDefinitionHttpV4.resources")
+    @Mapping(target = "services", source = "apiEntity.apiDefinitionHttpV4.services")
+    @Mapping(
+        target = "failover",
+        expression = "java(apiEntity.getApiDefinitionHttpV4() != null ? apiEntity.getApiDefinitionHttpV4().getFailover() : null)"
+    )
+    @Mapping(target = "endpointGroups", source = "apiEntity.apiDefinitionHttpV4.endpointGroups")
+    @Mapping(target = "primaryOwner", source = "primaryOwner")
+    @Mapping(target = "workflowState", source = "workflowState")
+    @Mapping(target = "groups", source = "groups")
+    @Mapping(target = "metadata", source = "metadata")
+    ApiDescriptor.ApiDescriptorV4 mapV4(
+        Api apiEntity,
+        PrimaryOwnerEntity primaryOwner,
+        WorkflowState workflowState,
+        Set<String> groups,
+        Collection<NewApiMetadata> metadata,
+        List<Flow> flows
+    );
+
+    @Mapping(target = "id", source = "apiEntity.id")
+    @Mapping(target = "apiVersion", source = "apiEntity.version")
+    @Mapping(target = "state", source = "apiEntity.lifecycleState")
+    @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
+    @Mapping(target = "listeners", source = "apiEntity.apiDefinitionNativeV4.listeners")
+    @Mapping(target = "flows", source = "apiEntity.apiDefinitionNativeV4.flows")
+    @Mapping(target = "properties", source = "apiEntity.apiDefinitionNativeV4.properties")
+    @Mapping(target = "resources", source = "apiEntity.apiDefinitionNativeV4.resources")
+    @Mapping(target = "endpointGroups", source = "apiEntity.apiDefinitionNativeV4.endpointGroups")
+    @Mapping(target = "primaryOwner", source = "primaryOwner")
+    @Mapping(target = "workflowState", source = "workflowState")
+    @Mapping(target = "groups", source = "groups")
+    @Mapping(target = "metadata", source = "metadata")
+    ApiDescriptor.Native mapNative(
+        Api apiEntity,
+        PrimaryOwnerEntity primaryOwner,
+        WorkflowState workflowState,
+        Set<String> groups,
+        Collection<NewApiMetadata> metadata,
+        List<NativeFlow> flows
+    );
+
+    @Mapping(target = "id", source = "apiEntity.id")
+    @Mapping(target = "name", source = "apiEntity.name")
+    @Mapping(target = "description", source = "apiEntity.description")
+    @Mapping(target = "createdAt", source = "apiEntity.createdAt")
+    @Mapping(target = "updatedAt", source = "apiEntity.updatedAt")
+    @Mapping(target = "type", source = "apiEntity.type")
+    @Mapping(target = "state", source = "apiEntity.lifecycleState")
+    @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
+    @Mapping(target = "providerId", source = "apiEntity.federatedApiDefinition.providerId")
+    @Mapping(target = "originContext.integrationId", source = "integration.id")
+    @Mapping(target = "originContext.integrationName", source = "integration.name")
+    @Mapping(target = "originContext.provider", source = "integration.provider")
+    @Mapping(target = "primaryOwner", source = "primaryOwner")
+    @Mapping(target = "workflowState", source = "workflowState")
+    @Mapping(target = "groups", source = "groups")
+    @Mapping(target = "metadata", source = "metadata")
+    @Mapping(target = "originContext", source = "integration")
+    ApiDescriptor.Federated mapFederated(
+        Api apiEntity,
+        PrimaryOwnerEntity primaryOwner,
+        WorkflowState workflowState,
+        Set<String> groups,
+        Collection<NewApiMetadata> metadata,
+        Integration.ApiIntegration integration
+    );
+
+    @Mapping(target = "id", source = "apiEntity.id")
+    @Mapping(target = "apiVersion", source = "apiEntity.version")
+    @Mapping(target = "state", source = "apiEntity.lifecycleState")
+    @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
+    @Mapping(target = "proxy", source = "apiEntity.apiDefinition.proxy")
+    @Mapping(target = "services", source = "apiEntity.apiDefinition.services")
+    @Mapping(target = "resources", source = "apiEntity.apiDefinition.resources")
+    @Mapping(target = "paths", source = "apiEntity.apiDefinition.paths")
+    @Mapping(target = "flows", source = "apiEntity.apiDefinition.flows")
+    @Mapping(target = "properties", source = "apiEntity.apiDefinition.properties")
+    @Mapping(target = "tags", source = "apiEntity.apiDefinition.tags")
+    @Mapping(target = "pathMappings", source = "apiEntity.apiDefinition.pathMappings")
+    @Mapping(target = "responseTemplates", source = "apiEntity.apiDefinition.responseTemplates")
+    @Mapping(target = "plans", source = "apiEntity.apiDefinition.plans")
+    @Mapping(target = "executionMode", source = "apiEntity.apiDefinition.executionMode")
+    @Mapping(target = "primaryOwner", source = "primaryOwner")
+    @Mapping(target = "workflowState", source = "workflowState")
+    @Mapping(target = "groups", source = "groups")
+    @Mapping(target = "metadata", source = "metadata")
+    ApiDescriptor.ApiDescriptorV2 mapV2(
+        Api apiEntity,
+        PrimaryOwnerEntity primaryOwner,
+        WorkflowState workflowState,
+        Set<String> groups,
+        Collection<NewApiMetadata> metadata,
+        Collection<io.gravitee.definition.model.flow.Flow> flows
+    );
+
+    NewApiMetadata mapMetadata(Metadata source);
+
+    default Map<String, Object> map(Collection<NewApiMetadata> sources) {
+        return stream(sources).collect(Collectors.toMap(NewApiMetadata::getName, NewApiMetadata::getValue));
+>>>>>>> f2b607a2c6 (fix: missing dynamic properties in export V4 API, and updated Junit test case)
     }
 
     ApiExport mapApiEntity(ApiEntity source);
