@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-markdown
- */
+import { InjectionToken } from '@angular/core';
 
-export * from './lib/gravitee-markdown.service';
-export * from './lib/gravitee-markdown.component';
-export * from './lib/gravitee-markdown-editor/public-api';
+import { GmdMonacoEditorConfig } from '../models/monaco-editor-config';
+
+export const GMD_CONFIG = new InjectionToken<GmdMonacoEditorConfig>('GMD_CONFIG');
