@@ -22,7 +22,7 @@
     "@danielmoncada/angular-datetime-picker-moment-adapter": "4.0.0",
     "@fontsource/libre-franklin": "4.5.11",
     "@gravitee/ui-analytics": "13.12.4",
-    "@gravitee/ui-components": "4.3.2",
+    "@gravitee/ui-components": "4.3.3",
     "@gravitee/ui-particles-angular": "13.12.4",
     "@gravitee/ui-policy-studio-angular": "13.12.4",
     "@highcharts/map-collection": "1.1.4",
