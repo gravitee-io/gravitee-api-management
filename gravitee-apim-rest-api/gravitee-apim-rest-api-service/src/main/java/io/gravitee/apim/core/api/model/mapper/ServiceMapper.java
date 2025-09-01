@@ -145,7 +145,7 @@ public final class ServiceMapper {
     }
 
     private static MigrationResult<Service> mapServiceDiscovery(EndpointDiscoveryService discoveryService) {
-        if (discoveryService == null) {
+        if (discoveryService == null || discoveryService.getProvider() == null) {
             return MigrationResult.value(new Service());
         }
 
