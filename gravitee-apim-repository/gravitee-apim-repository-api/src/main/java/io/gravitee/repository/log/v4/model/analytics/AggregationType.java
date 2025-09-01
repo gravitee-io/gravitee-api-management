@@ -20,5 +20,12 @@ public enum AggregationType {
     AVG,
     MIN,
     MAX,
+    /**
+     * Returns the latest value for a given metric at the point in time.
+     */
     VALUE,
+    /**
+     * Returns the difference between end and start values for a given metric over a time period.
+     */
+    DELTA,
 }

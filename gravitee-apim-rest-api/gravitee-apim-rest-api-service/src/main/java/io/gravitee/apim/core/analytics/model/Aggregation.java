@@ -30,6 +30,7 @@ public class Aggregation {
         MIN,
         MAX,
         VALUE,
+        DELTA,
     }
 
     private String field;
