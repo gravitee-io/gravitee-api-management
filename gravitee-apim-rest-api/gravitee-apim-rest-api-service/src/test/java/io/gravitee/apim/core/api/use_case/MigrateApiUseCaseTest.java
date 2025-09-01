@@ -1432,6 +1432,143 @@ class MigrateApiUseCaseTest {
             );
     }
 
+    @Test
+    void should_migrate_api_with_http11_endpoint_configuration() {
+        // Given
+        var httpClientOptions = new io.gravitee.definition.model.HttpClientOptions();
+        httpClientOptions.setVersion(io.gravitee.definition.model.ProtocolVersion.HTTP_1_1);
+        httpClientOptions.setKeepAlive(true);
+        httpClientOptions.setKeepAliveTimeout(30000);
+        httpClientOptions.setConnectTimeout(5000);
+        httpClientOptions.setPipelining(false);
+        httpClientOptions.setReadTimeout(10000);
+        httpClientOptions.setUseCompression(true);
+        httpClientOptions.setPropagateClientAcceptEncoding(false);
+
+        httpClientOptions.setIdleTimeout(60000);
+        httpClientOptions.setFollowRedirects(false);
+        httpClientOptions.setMaxConcurrentConnections(100);
+
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> {
+                group.setHttpClientOptions(httpClientOptions);
+                group.getEndpoints().forEach(e -> e.setInherit(false));
+            });
+        apiCrudService.initWith(List.of(v2Api));
+
+        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+        planCrudService.initWith(List.of(plan));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migratedApi = apiCrudService.findById(API_ID);
+        assertThat(migratedApi)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+                var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
+                assertThat(endpointGroups).hasSize(1);
+
+                var sharedConfiguration = endpointGroups.get(0).getSharedConfiguration();
+                assertThat(sharedConfiguration).isNotNull();
+
+                assertSoftly(softly -> {
+                    softly.assertThat(sharedConfiguration).contains("\"version\":\"HTTP_1_1\"");
+                    softly.assertThat(sharedConfiguration).contains("\"keepAlive\":true");
+                    softly.assertThat(sharedConfiguration).contains("\"keepAliveTimeout\":30000");
+                    softly.assertThat(sharedConfiguration).contains("\"connectTimeout\":5000");
+                    softly.assertThat(sharedConfiguration).contains("\"pipelining\":false");
+                    softly.assertThat(sharedConfiguration).contains("\"readTimeout\":10000");
+                    softly.assertThat(sharedConfiguration).contains("\"useCompression\":true");
+                    softly.assertThat(sharedConfiguration).contains("\"propagateClientAcceptEncoding\":false");
+                    softly.assertThat(sharedConfiguration).contains("\"idleTimeout\":60000");
+                    softly.assertThat(sharedConfiguration).contains("\"followRedirects\":false");
+                    softly.assertThat(sharedConfiguration).contains("\"maxConcurrentConnections\":100");
+
+                    softly.assertThat(sharedConfiguration).doesNotContain("clearTextUpgrade");
+                    softly.assertThat(sharedConfiguration).doesNotContain("http2MultiplexingLimit");
+                });
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_http2_endpoint_configuration() {
+        // Given
+        var httpClientOptions = new io.gravitee.definition.model.HttpClientOptions();
+        httpClientOptions.setVersion(io.gravitee.definition.model.ProtocolVersion.HTTP_2);
+        httpClientOptions.setKeepAlive(true);
+        httpClientOptions.setKeepAliveTimeout(30000);
+        httpClientOptions.setConnectTimeout(5000);
+        httpClientOptions.setPipelining(false);
+        httpClientOptions.setReadTimeout(10000);
+        httpClientOptions.setUseCompression(true);
+        httpClientOptions.setPropagateClientAcceptEncoding(false);
+
+        httpClientOptions.setIdleTimeout(60000);
+        httpClientOptions.setFollowRedirects(false);
+        httpClientOptions.setMaxConcurrentConnections(100);
+        httpClientOptions.setClearTextUpgrade(true);
+
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> {
+                group.setHttpClientOptions(httpClientOptions);
+                group.getEndpoints().forEach(e -> e.setInherit(false));
+            });
+        apiCrudService.initWith(List.of(v2Api));
+
+        var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+        planCrudService.initWith(List.of(plan));
+
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migratedApi = apiCrudService.findById(API_ID);
+        assertThat(migratedApi)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+                var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
+                assertThat(endpointGroups).hasSize(1);
+
+                var sharedConfiguration = endpointGroups.get(0).getSharedConfiguration();
+                assertThat(sharedConfiguration).isNotNull();
+
+                // Verify HTTP 2 configuration contains all required fields
+                assertSoftly(softly -> {
+                    softly.assertThat(sharedConfiguration).contains("\"version\":\"HTTP_2\"");
+                    softly.assertThat(sharedConfiguration).contains("\"keepAlive\":true");
+                    softly.assertThat(sharedConfiguration).contains("\"keepAliveTimeout\":30000");
+                    softly.assertThat(sharedConfiguration).contains("\"connectTimeout\":5000");
+                    softly.assertThat(sharedConfiguration).contains("\"pipelining\":false");
+                    softly.assertThat(sharedConfiguration).contains("\"readTimeout\":10000");
+                    softly.assertThat(sharedConfiguration).contains("\"useCompression\":true");
+                    softly.assertThat(sharedConfiguration).contains("\"propagateClientAcceptEncoding\":false");
+                    softly.assertThat(sharedConfiguration).contains("\"idleTimeout\":60000");
+                    softly.assertThat(sharedConfiguration).contains("\"followRedirects\":false");
+                    softly.assertThat(sharedConfiguration).contains("\"maxConcurrentConnections\":100");
+                    softly.assertThat(sharedConfiguration).contains("\"clearTextUpgrade\":true");
+                    softly.assertThat(sharedConfiguration).contains("\"http2MultiplexingLimit\":-1");
+                });
+            });
+    }
+
     private static void assertApiV4(Api upgradedApi) {
         assertSoftly(softly -> {
             softly.assertThat(upgradedApi.getId()).as("id").isEqualTo(API_ID);
