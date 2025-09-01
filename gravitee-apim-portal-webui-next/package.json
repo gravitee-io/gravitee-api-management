@@ -108,6 +108,7 @@
     "jest-junit": "16.0.0",
     "jest-preset-angular": "14.6.1",
     "license-check-and-add": "4.0.5",
+    "monaco-editor": "0.50.0",
     "ng-packagr": "19.2.0",
     "prettier": "3.5.3",
     "prettier-eslint": "16.4.2",
