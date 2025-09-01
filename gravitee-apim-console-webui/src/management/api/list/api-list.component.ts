@@ -377,7 +377,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
               isNotSynced$: undefined,
               qualityScore$: null,
             };
-          } else if (api.definitionVersion === 'FEDERATED') {
+          } else if (api.definitionVersion === 'FEDERATED' || api.definitionVersion === 'FEDERATED_AGENT') {
             return {
               ...tableDS,
               access: [],
@@ -410,7 +410,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
         }
         return { label: `${api.definitionVersion} -${this.getLabelType(api)} ${this.titleCasePipe.transform((api as ApiV4).type)}` };
       case 'FEDERATED':
-        return { label: this.titleCasePipe.transform(api.definitionVersion) };
+        return { label: 'Federated API' };
+      case 'FEDERATED_AGENT':
+        return { label: 'Federated A2A Agent' };
       default:
         return { icon: 'gio:alert-circle', label: 'V1' };
     }

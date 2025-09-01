@@ -46,14 +46,14 @@
         [multiple]="true"
         [(value)]="checkedApiTypes"
         (selectionChange)="onAdditionalFiltersChanged(FilterType.API_TYPE)"
-        [panelWidth]="'200px'"
+        [panelWidth]="'230px'"
       >
         <mat-option value="V2">V2</mat-option>
         <mat-option value="V4_HTTP_PROXY">V4 - HTTP Proxy</mat-option>
         <mat-option value="V4_KAFKA">V4 - Kafka</mat-option>
         <mat-option value="V4_MESSAGE">V4 - Message</mat-option>
-        <mat-option value="FEDERATED">Federated</mat-option>
-        <mat-option value="FEDERATED_AGENT">Federated Agent</mat-option>
+        <mat-option value="FEDERATED">Federated API</mat-option>
+        <mat-option value="FEDERATED_AGENT">Federated A2A Agent</mat-option>
       </mat-select>
     </mat-form-field>
 
