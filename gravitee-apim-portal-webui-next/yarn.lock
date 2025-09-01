@@ -12599,6 +12599,7 @@ __metadata:
     marked-extended-tables: "npm:1.1.1"
     marked-gfm-heading-id: "npm:3.2.0"
     marked-highlight: "npm:2.2.1"
+    monaco-editor: "npm:0.50.0"
     ng-packagr: "npm:19.2.0"
     ngx-infinite-scroll: "npm:19.0.0"
     prettier: "npm:3.5.3"
@@ -15780,6 +15781,13 @@ __metadata:
   bin:
     mkdirp: dist/cjs/src/bin.js
   checksum: 10c0/9f2b975e9246351f5e3a40dcfac99fcd0baa31fbfab615fe059fb11e51f10e4803c63de1f384c54d656e4db31d000e4767e9ef076a22e12a641357602e31d57d
+  languageName: node
+  linkType: hard
+
+"monaco-editor@npm:0.50.0":
+  version: 0.50.0
+  resolution: "monaco-editor@npm:0.50.0"
+  checksum: 10c0/79189c926c2fc1e3a3b9118e80911599bf18108018fe176c7b47a27b4856b544129f9a59c9a5c321d154d6a30a8d9c231684246e9382f4f18329a548d11cb4d6
   languageName: node
   linkType: hard
 
