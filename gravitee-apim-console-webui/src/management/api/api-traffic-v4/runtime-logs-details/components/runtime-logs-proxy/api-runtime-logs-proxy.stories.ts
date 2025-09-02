@@ -28,6 +28,7 @@ import {
   fakeConnectionLogDetailRequest,
   fakeConnectionLogDetailResponse,
 } from '../../../../../../entities/management-api-v2';
+import { InstanceService } from '../../../../../../services-ngx/instance.service';
 
 const bodyExample = `{
   "message": "hello world"
@@ -51,6 +52,12 @@ export default {
           provide: ApiLogsV2Service,
           useValue: {
             searchConnectionLogDetail: (apiId: string, requestId: string) => of(fakeConnectionLogDetail({ apiId, requestId })),
+          },
+        },
+        {
+          provide: InstanceService,
+          useValue: {
+            getByGatewayId: (id: string) => of({ id, hostname: 'hostname.example.com', ip: 'ip.example' }),
           },
         },
       ],
