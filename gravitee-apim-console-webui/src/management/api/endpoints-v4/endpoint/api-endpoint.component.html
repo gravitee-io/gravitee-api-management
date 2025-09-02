@@ -53,8 +53,9 @@
                 <span class="mat-h3">Configure the load balancer</span>
                 <mat-form-field class="endpoint-card__form__weight">
                   <mat-label>Weight</mat-label>
-                  <input id="weight" type="number" aria-label="Endpoint weight input" matInput formControlName="weight" required />
+                  <input id="weight" type="number" min="1" aria-label="Endpoint weight input" matInput formControlName="weight" required />
                   <mat-error *ngIf="formGroup.get('weight').hasError('required')"> Weight is required. </mat-error>
+                  <mat-error *ngIf="formGroup.get('weight').hasError('min')"> Weight must be at least 1. </mat-error>
                 </mat-form-field>
               </div>
             </div>
