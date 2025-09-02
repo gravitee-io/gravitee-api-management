@@ -40,7 +40,9 @@
                 {{ element | percent }}
               }
               @default {
-                {{ element }}
+                <span [class.empty-cell]="!element">
+                  {{ element || '(empty)' }}
+                </span>
               }
             }
           </ng-template>

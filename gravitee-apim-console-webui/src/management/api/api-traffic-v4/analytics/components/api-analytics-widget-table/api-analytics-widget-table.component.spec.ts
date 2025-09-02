@@ -275,7 +275,7 @@ describe('ApiAnalyticsWidgetTableComponent', () => {
 
       if (rowCount > 0 && columnCount > 2) {
         // Should handle missing data gracefully
-        expect(await harness.getCellText(0, 2)).toBe(''); // Missing optional field
+        expect(await harness.getCellText(0, 2)).toBe('(empty)'); // Missing optional field
       }
 
       if (rowCount > 1 && columnCount > 2) {
