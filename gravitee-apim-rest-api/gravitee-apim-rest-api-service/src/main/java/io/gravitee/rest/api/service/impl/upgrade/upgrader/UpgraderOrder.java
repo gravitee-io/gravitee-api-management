@@ -51,4 +51,5 @@ public class UpgraderOrder {
     public static final int INITIALIZE_SHARED_POLICY_GROUP_UPGRADER = 704;
     public static final int PLAN_API_TYPE_UPGRADER = 705;
     public static final int ADD_ORG_ID_NOTIFICATION_CONFIGS_UPGRADER = 706;
+    public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;
 }
