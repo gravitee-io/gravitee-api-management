@@ -13,20 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.membership.domain_service;
+package io.gravitee.apim.core.cluster.use_case.members;
 
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
 import io.gravitee.apim.core.membership.model.TransferOwnership;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Map;
+import lombok.AllArgsConstructor;
 
-public interface MembershipDomainService {
-    Map<String, char[]> getUserMemberPermissions(
-        ExecutionContext executionContext,
-        MembershipReferenceType referenceType,
-        String referenceId,
-        String userId
-    );
-    void transferOwnership(TransferOwnership transferOwnership, RoleScope roleScope, String itemId);
+@AllArgsConstructor
+@UseCase
+public class TransferClusterOwnershipUseCase {
+
+    private final MembershipDomainService membershipDomainService;
+
+    public record Input(TransferOwnership transferOwnership, String clusterId) {}
+
+    public record Output() {}
+
+    public Output execute(Input input) {
+        membershipDomainService.transferOwnership(input.transferOwnership, RoleScope.CLUSTER, input.clusterId);
+        return new Output();
+    }
 }

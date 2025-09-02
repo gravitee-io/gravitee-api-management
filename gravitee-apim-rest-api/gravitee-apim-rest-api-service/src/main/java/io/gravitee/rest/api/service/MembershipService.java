@@ -207,6 +207,16 @@ public interface MembershipService {
         MembershipMember member,
         List<RoleEntity> newPrimaryOwnerRoles
     );
+
+    void transferOwnership(
+        ExecutionContext executionContext,
+        MembershipReferenceType membershipReferenceType,
+        RoleScope roleScope,
+        String itemId,
+        MembershipMember member,
+        List<RoleEntity> newPrimaryOwnerRoles
+    );
+
     MemberEntity updateRoleToMemberOnReference(
         ExecutionContext executionContext,
         MembershipReference reference,
