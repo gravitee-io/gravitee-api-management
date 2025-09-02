@@ -325,7 +325,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     });
 
     if (!this.isNativeKafkaApi) {
-      this.formGroup.get('weight').addValidators([Validators.required]);
+      this.formGroup.get('weight').addValidators([Validators.required, Validators.min(1)]);
     }
 
     if (this.isReadOnly) {
