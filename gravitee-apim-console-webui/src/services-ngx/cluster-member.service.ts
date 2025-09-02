@@ -20,6 +20,9 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
+import {
+  TransferOwnership
+} from '../management/clusters/details/user-permissions/transfer-ownership/cluster-transfer-ownership.component';
 
 @Injectable({
   providedIn: 'root',
@@ -53,5 +56,9 @@ export class ClusterMemberService {
 
   deleteMember(clusterId: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/members/${memberId}`);
+  }
+
+  transferOwnership(clusterId: string, transferOwnership: TransferOwnership): Observable<any> {
+    return this.http.post(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/members/_transfer-ownership`, transferOwnership);
   }
 }

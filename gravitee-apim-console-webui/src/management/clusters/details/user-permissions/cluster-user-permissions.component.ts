@@ -28,6 +28,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
+import { switchMap } from 'rxjs/operators';
 
 import {
   ClusterManageGroupsDialogComponent,
@@ -35,6 +36,7 @@ import {
   ClusterManageGroupsDialogResult,
 } from './manage-groups-dialog/cluster-manage-groups-dialog.component';
 import { ClusterGroupMembersComponent } from './group-members/cluster-group-members.component';
+import { ClusterTransferOwnershipComponent, TransferOwnershipDialogData } from './transfer-ownership/cluster-transfer-ownership.component';
 
 import { ClusterMemberService } from '../../../../services-ngx/cluster-member.service';
 import {
@@ -149,6 +151,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
         tap(([members, roles, cluster, groupResponse]) => {
           this.members = members.data;
           this.membersTableLength = members.pagination.totalCount;
+          this.roles = roles;
           this.roleNames = roles.map((r) => r.name) ?? [];
           this.defaultRole = roles.find((role) => role.default);
 
@@ -191,6 +194,27 @@ export class ClusterUserPermissionsComponent implements OnInit {
         }),
       );
     });
+  }
+
+  public transferOwnership() {
+    this.matDialog
+      .open<ClusterTransferOwnershipComponent, TransferOwnershipDialogData>(ClusterTransferOwnershipComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'alertdialog',
+        id: 'transferOwnershipDialog',
+        data: {
+          roles: this.roles,
+          members: this.members,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((dialogResult) => {
+          return this.clusterMemberService.transferOwnership(this.clusterId, dialogResult.transferOwnershipToUser);
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 
   public addMembers() {

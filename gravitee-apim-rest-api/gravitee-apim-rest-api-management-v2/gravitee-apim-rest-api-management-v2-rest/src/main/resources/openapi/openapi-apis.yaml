@@ -2957,6 +2957,19 @@ paths:
 
 components:
     schemas:
+        TransferOwnership:
+            type: object
+            properties:
+                newPrimaryOwnerId:
+                    type: string
+                    description: The new primary owner ID (user's technical identifier). Can be null if userReference is defined.
+                userReference:
+                    type: string
+                    description: The new primary owner reference (user's reference provided by an identity provider). Can be null if userId is defined.
+                currentPrimaryOwnerNewRole:
+                    type: string
+                    description: The name of the role that will be assigned to the current primary owner after the transfer.
+
         Analytics:
             type: object
             properties:
