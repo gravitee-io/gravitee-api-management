@@ -62,12 +62,20 @@ import org.jspecify.annotations.Nullable;
 @Slf4j
 class ApiMigration {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     public static final String HTTP_PROXY = "http-proxy";
     private static final String TYPE_ENDPOINT = "ENDPOINT";
     private static final String TYPE_ENDPOINTGROUP = "ENDPOINTGROUP";
     public static final String CONSUL_DISCOVERY_SERVICE_TYPE = "consul-service-discovery";
     public static final String HTTP_HEALTH_CHECK_SERVICE_TYPE = "http-health-check";
+    private final ObjectMapper jsonMapper;
+    private final ApiServicesMigration apiServicesMigration;
+    private final SharedConfigurationMigration sharedConfigurationMigration;
+
+    public ApiMigration(ObjectMapper jsonMapper) {
+        this.jsonMapper = jsonMapper;
+        apiServicesMigration = new ApiServicesMigration(jsonMapper);
+        sharedConfigurationMigration = new SharedConfigurationMigration(jsonMapper);
+    }
 
     MigrationResult<Api> mapApi(Api source) {
         return apiDefinitionHttpV4(source.getApiDefinition())
@@ -160,6 +168,7 @@ class ApiMigration {
         String sharedConfiguration = null;
         try {
             sharedConfiguration = SharedConfigurationMapper.convert(source);
+            finalString = jsonMapper.writeValueAsString(target1);
             endpoints =
                 stream(source.getEndpoints())
                     .map(sourceEP -> mapEndpoint(sourceEP).map(List::of))
@@ -214,7 +223,7 @@ class ApiMigration {
             .of(endpointServices, endpointGroupServices)
             .filter(Objects::nonNull)
             .flatMap(s -> s.getAll().stream())
-            .map(service -> ServiceMapper.convert(service, TYPE_ENDPOINTGROUP, name).map(List::of))
+            .map(service -> apiServicesMigration.convert(service, TYPE_ENDPOINTGROUP, name).map(List::of))
             .reduce(MigrationResult.value(List.of()), MigrationResult::mergeList);
 
         return migratedServices.map(services -> {
@@ -239,11 +248,11 @@ class ApiMigration {
             return migrationResult;
         }
         try {
-            JsonNode jsonNode = OBJECT_MAPPER.readTree(configuration);
+            JsonNode jsonNode = jsonMapper.readTree(configuration);
             JsonNode hcNode = jsonNode.path("healthcheck");
             if (!hcNode.isMissingNode() && !hcNode.isNull()) {
-                EndpointHealthCheckService epHealthCheckService = OBJECT_MAPPER.treeToValue(hcNode, EndpointHealthCheckService.class);
-                var serviceMigrationResult = ServiceMapper.convert(epHealthCheckService, TYPE_ENDPOINT, name);
+                EndpointHealthCheckService epHealthCheckService = jsonMapper.treeToValue(hcNode, EndpointHealthCheckService.class);
+                var serviceMigrationResult = apiServicesMigration.convert(epHealthCheckService, TYPE_ENDPOINT, name);
                 if (serviceMigrationResult != null) {
                     return migrationResult.foldLeft(
                         serviceMigrationResult,
@@ -329,7 +338,7 @@ class ApiMigration {
             if (config == null) {
                 return MigrationResult.value(null);
             }
-            ObjectNode root = (ObjectNode) OBJECT_MAPPER.readTree(config);
+            ObjectNode root = (ObjectNode) jsonMapper.readTree(config);
             if (root == null || root.isNull() || root.isMissingNode()) {
                 return MigrationResult.value(config);
             }
@@ -346,7 +355,7 @@ class ApiMigration {
                     response.put("assertion", StringUtils.appendCurlyBraces(assertionsNode.get(0).asText()));
                 }
             }
-            return MigrationResult.value(OBJECT_MAPPER.writeValueAsString(root));
+            return MigrationResult.value(jsonMapper.writeValueAsString(root));
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint", e);
             return MigrationResult.issue("Unable to map configuration for endpoint", MigrationResult.State.IMPOSSIBLE);
@@ -376,15 +385,15 @@ class ApiMigration {
             .build();
     }
 
-    private static MigrationResult<String> mapConfiguration(io.gravitee.definition.model.Endpoint lb) {
+    private MigrationResult<String> mapConfiguration(io.gravitee.definition.model.Endpoint lb) {
         try {
             if (lb.getConfiguration() == null) {
                 return MigrationResult.value(null);
             }
-            var jsonNode = OBJECT_MAPPER.readTree(lb.getConfiguration()).get("target");
+            var jsonNode = jsonMapper.readTree(lb.getConfiguration()).get("target");
             var target = jsonNode != null ? jsonNode.asText() : null;
-            var target1 = OBJECT_MAPPER.createObjectNode().put("target", target);
-            return MigrationResult.value(OBJECT_MAPPER.writeValueAsString(target1));
+            var target1 = jsonMapper.createObjectNode().put("target", target);
+            return MigrationResult.value(jsonMapper.writeValueAsString(target1));
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint {}", lb.getName(), e);
             return MigrationResult.issue("Unable to map configuration for endpoint: " + lb.getName(), MigrationResult.State.IMPOSSIBLE);

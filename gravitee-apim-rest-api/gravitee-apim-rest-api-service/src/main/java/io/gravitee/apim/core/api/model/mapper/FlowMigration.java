@@ -33,13 +33,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 
 @Slf4j
+@RequiredArgsConstructor
 public class FlowMigration {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final ObjectMapper OBJECT_MAPPER;
 
     private static final Collection<String> INCOMPATIBLES_POLICIES = Set.of(
         "cloud-events",
