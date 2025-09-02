@@ -19,7 +19,6 @@ import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,6 +45,7 @@ public class PageModelFactory {
             .homepage(pageCRD.isHomepage())
             .configuration(pageCRD.getConfiguration())
             .excludedAccessControls(pageCRD.isExcludedAccessControls())
+            .useAutoFetch(pageCRD.getUseAutoFetch())
             .accessControls(
                 pageCRD.getAccessControls() == null
                     ? Set.of()
@@ -82,6 +82,7 @@ public class PageModelFactory {
             .homepage(page.isHomepage())
             .configuration(page.getConfiguration())
             .excludedAccessControls(page.isExcludedAccessControls())
+            .useAutoFetch(page.getUseAutoFetch())
             .accessControls(
                 page.getAccessControls() == null
                     ? Set.of()
