@@ -19,18 +19,19 @@ import io.gravitee.definition.model.v4.ssl.jks.JKSKeyStore;
 import io.gravitee.definition.model.v4.ssl.none.NoneKeyStore;
 import io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore;
 import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore;
+import lombok.experimental.UtilityClass;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility to convert between V2 KeyStore (io.gravitee.definition.model.ssl)
  * and V4 KeyStore (io.gravitee.definition.model.v4.ssl) objects.
  */
-public final class KeyStoreMapper {
+@UtilityClass
+public final class KeyStoreMigration {
 
-    private KeyStoreMapper() {
-        // Utility class
-    }
-
-    public static io.gravitee.definition.model.v4.ssl.KeyStore convert(io.gravitee.definition.model.ssl.KeyStore v2KeyStore) {
+    public static io.gravitee.definition.model.v4.ssl.@Nullable KeyStore convert(
+        io.gravitee.definition.model.ssl.@Nullable KeyStore v2KeyStore
+    ) {
         return switch (v2KeyStore) {
             case io.gravitee.definition.model.ssl.jks.JKSKeyStore v2Jks -> convertJKS(v2Jks);
             case io.gravitee.definition.model.ssl.pem.PEMKeyStore v2Pem -> convertPEM(v2Pem);

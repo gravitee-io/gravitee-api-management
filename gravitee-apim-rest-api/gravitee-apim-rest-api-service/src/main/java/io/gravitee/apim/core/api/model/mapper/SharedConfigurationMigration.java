@@ -15,16 +15,18 @@
  */
 package io.gravitee.apim.core.api.model.mapper;
 
+import static io.gravitee.definition.model.v4.http.ProtocolVersion.*;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.model.HttpClientSslOptions;
-import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.SslOptions;
-import io.gravitee.definition.model.v4.ssl.TrustStore;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 
-public class SharedConfigurationMapper {
+@RequiredArgsConstructor
+public class SharedConfigurationMigration {
 
     private static final Set<String> HTTP11_ALLOWED = Set.of(
         "version",
@@ -58,31 +60,27 @@ public class SharedConfigurationMapper {
         "http2MultiplexingLimit"
     );
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
-    private SharedConfigurationMapper() {}
-
-    public static String convert(io.gravitee.definition.model.EndpointGroup source) throws JsonProcessingException {
+    public String convert(io.gravitee.definition.model.EndpointGroup source) throws JsonProcessingException {
         ObjectNode httpClientOptions = mapHttpClientOptions(source.getHttpClientOptions());
         ObjectNode httpClientSslOptionsNode = mapHttpClientSslOptions(source.getHttpClientSslOptions());
-        ObjectNode sharedConfiguration = OBJECT_MAPPER.createObjectNode();
+        ObjectNode sharedConfiguration = objectMapper.createObjectNode();
         sharedConfiguration.set("http", httpClientOptions);
         sharedConfiguration.set("ssl", httpClientSslOptionsNode);
-        sharedConfiguration.set("headers", source.getHeaders() == null ? null : OBJECT_MAPPER.valueToTree(source.getHeaders()));
-        sharedConfiguration.set("proxy", source.getHttpProxy() == null ? null : OBJECT_MAPPER.valueToTree((source.getHttpProxy())));
-        return OBJECT_MAPPER.writeValueAsString(sharedConfiguration);
+        sharedConfiguration.set("headers", source.getHeaders() == null ? null : objectMapper.valueToTree(source.getHeaders()));
+        sharedConfiguration.set("proxy", source.getHttpProxy() == null ? null : objectMapper.valueToTree((source.getHttpProxy())));
+        return objectMapper.writeValueAsString(sharedConfiguration);
     }
 
-    private static ObjectNode mapHttpClientOptions(io.gravitee.definition.model.HttpClientOptions httpClientOptions) {
+    private ObjectNode mapHttpClientOptions(io.gravitee.definition.model.HttpClientOptions httpClientOptions) {
         if (httpClientOptions == null) {
             return null;
         }
 
         var v4 = new io.gravitee.definition.model.v4.http.HttpClientOptions();
 
-        var versionV4 = httpClientOptions.getVersion().equals(io.gravitee.definition.model.ProtocolVersion.HTTP_1_1)
-            ? io.gravitee.definition.model.v4.http.ProtocolVersion.HTTP_1_1
-            : io.gravitee.definition.model.v4.http.ProtocolVersion.HTTP_2;
+        var versionV4 = httpClientOptions.getVersion() == io.gravitee.definition.model.ProtocolVersion.HTTP_1_1 ? HTTP_1_1 : HTTP_2;
 
         v4.setVersion(versionV4);
         v4.setKeepAlive(httpClientOptions.isKeepAlive());
@@ -96,37 +94,25 @@ public class SharedConfigurationMapper {
         v4.setConnectTimeout(httpClientOptions.getConnectTimeout());
         v4.setReadTimeout(httpClientOptions.getReadTimeout());
 
-        if (versionV4 == io.gravitee.definition.model.v4.http.ProtocolVersion.HTTP_2) {
+        if (versionV4 == HTTP_2) {
             v4.setClearTextUpgrade(httpClientOptions.isClearTextUpgrade());
         }
 
-        ObjectNode node = OBJECT_MAPPER.valueToTree(v4);
+        ObjectNode node = objectMapper.valueToTree(v4);
 
-        if (versionV4 == io.gravitee.definition.model.v4.http.ProtocolVersion.HTTP_1_1) {
-            node.retain(HTTP11_ALLOWED);
-        } else {
-            node.retain(HTTP2_ALLOWED);
-        }
-
-        return node;
+        return versionV4 == HTTP_1_1 ? node.retain(HTTP11_ALLOWED) : node.retain(HTTP2_ALLOWED);
     }
 
-    private static ObjectNode mapHttpClientSslOptions(HttpClientSslOptions httpClientSslOptions) {
+    private ObjectNode mapHttpClientSslOptions(HttpClientSslOptions httpClientSslOptions) {
         if (httpClientSslOptions == null) {
             return null;
         }
         SslOptions sslOptionsV4 = new SslOptions();
         sslOptionsV4.setHostnameVerifier(httpClientSslOptions.isHostnameVerifier());
         sslOptionsV4.setTrustAll(httpClientSslOptions.isTrustAll());
-        TrustStore trustStoreV4 = httpClientSslOptions.getTrustStore() != null
-            ? TrustStoreMapper.convert(httpClientSslOptions.getTrustStore())
-            : null;
-        sslOptionsV4.setTrustStore(trustStoreV4);
-        KeyStore keyStoreV4 = httpClientSslOptions.getKeyStore() != null
-            ? KeyStoreMapper.convert(httpClientSslOptions.getKeyStore())
-            : null;
-        sslOptionsV4.setKeyStore(keyStoreV4);
+        sslOptionsV4.setTrustStore(TrustStoreMigration.convert(httpClientSslOptions.getTrustStore()));
+        sslOptionsV4.setKeyStore(KeyStoreMigration.convert(httpClientSslOptions.getKeyStore()));
 
-        return OBJECT_MAPPER.valueToTree(sslOptionsV4);
+        return objectMapper.valueToTree(sslOptionsV4);
     }
 }
