@@ -111,9 +111,8 @@ class ApiMigration {
         );
         Analytics analytics = mapAnalytics(apiDefinitionV2.getProxy().getLogging());
         var endpointGroups = stream(apiDefinitionV2.getProxy().getGroups())
-            .map(source -> mapEndpointGroup(source, apiDefinitionV2.getServices()).map(List::of))
-            .reduce(MigrationResult.value(List.of()), MigrationResult::mergeList);
-
+            .map(source -> mapEndpointGroup(source, apiDefinitionV2.getServices()))
+            .collect(MigrationResult.collectList());
         Failover failover = mapFailOver(apiDefinitionV2.getProxy());
 
         // TODO handle flows
@@ -161,18 +160,14 @@ class ApiMigration {
             source.getServices(),
             source.getName()
         );
-        MigrationResult<List<Endpoint>> endpoints = null;
+        MigrationResult<List<Endpoint>> endpoints = MigrationResult.value(List.of());
         MigrationResult<EndpointGroup> endpointGroupMigrationResult = MigrationResult.value(
             EndpointGroup.builder().name(source.getName()).type(HTTP_PROXY).loadBalancer(mapLoadBalancer(source.getLoadBalancer())).build()
         );
         String sharedConfiguration = null;
         try {
-            sharedConfiguration = SharedConfigurationMapper.convert(source);
-            finalString = jsonMapper.writeValueAsString(target1);
-            endpoints =
-                stream(source.getEndpoints())
-                    .map(sourceEP -> mapEndpoint(sourceEP).map(List::of))
-                    .reduce(MigrationResult.value(List.of()), MigrationResult::mergeList);
+            sharedConfiguration = sharedConfigurationMigration.convert(source);
+            endpoints = stream(source.getEndpoints()).map(this::mapEndpoint).collect(MigrationResult.collectList());
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint group {}", source.getName(), e);
             endpointGroupMigrationResult.addIssue(
@@ -184,27 +179,27 @@ class ApiMigration {
             .foldLeft(
                 endpointGroupServicesMigrationResult,
                 (egp, egs) -> {
-                    egp.setServices(egs);
+                    if (egp != null) {
+                        egp.setServices(egs);
+                    }
                     return egp;
                 }
             )
             .foldLeft(
                 endpoints,
                 (egp, b) -> {
-                    if (egp == null) {
-                        return null;
+                    if (egp != null) {
+                        egp.setEndpoints(b);
                     }
-                    egp.setEndpoints(b);
                     return egp;
                 }
             )
             .foldLeft(
                 MigrationResult.value(sharedConfiguration),
                 (egp, b) -> {
-                    if (egp == null) {
-                        return null;
+                    if (egp != null) {
+                        egp.setSharedConfiguration(b);
                     }
-                    egp.setSharedConfiguration(b);
                     return egp;
                 }
             );
@@ -223,8 +218,8 @@ class ApiMigration {
             .of(endpointServices, endpointGroupServices)
             .filter(Objects::nonNull)
             .flatMap(s -> s.getAll().stream())
-            .map(service -> apiServicesMigration.convert(service, TYPE_ENDPOINTGROUP, name).map(List::of))
-            .reduce(MigrationResult.value(List.of()), MigrationResult::mergeList);
+            .flatMap(service -> Stream.ofNullable(apiServicesMigration.convert(service, TYPE_ENDPOINTGROUP, name)))
+            .collect(MigrationResult.collectList());
 
         return migratedServices.map(services -> {
             var servicesByType = services
@@ -257,7 +252,9 @@ class ApiMigration {
                     return migrationResult.foldLeft(
                         serviceMigrationResult,
                         (endpointSvc, serviceV4) -> {
-                            endpointSvc.setHealthCheck(serviceV4);
+                            if (endpointSvc != null) {
+                                endpointSvc.setHealthCheck(serviceV4);
+                            }
                             return endpointSvc;
                         }
                     );

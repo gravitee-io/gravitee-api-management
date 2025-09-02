@@ -443,8 +443,7 @@ class V2ToV4MigrationOperatorTest {
             // Check Endpoint Group
             var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
             String configJson =
-                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}],\"proxy\":null}";
-                "{\"http\":{\"http2MultiplexingLimit\":-1,\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"clearTextUpgrade\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}],\"proxy\":null}";
+                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}],\"proxy\":null}";
             assertSoftly(softly -> {
                 softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
                 softly.assertThat(group.getName()).isEqualTo("default-group");
@@ -485,10 +484,7 @@ class V2ToV4MigrationOperatorTest {
             // Setup EndpointGroup
             EndpointGroup v2Group = new EndpointGroup();
             v2Group.setName("default-group");
-            Set<Endpoint> endpoints = new HashSet<>();
-            endpoints.add(v2Endpoint1);
-            endpoints.add(v2Endpoint2);
-            v2Group.setEndpoints(endpoints);
+            v2Group.setEndpoints(Set.of(v2Endpoint1, v2Endpoint2));
 
             HttpClientOptions httpClientOptions = new HttpClientOptions();
             httpClientOptions.setConnectTimeout(2000);
@@ -519,9 +515,7 @@ class V2ToV4MigrationOperatorTest {
             sslOptions.setKeyStore(keyStore);
 
             v2Group.setHttpClientSslOptions(sslOptions);
-            ArrayList<HttpHeader> headers = new ArrayList<HttpHeader>();
-            headers.add(new HttpHeader("X-Test", "yes"));
-            v2Group.setHeaders(headers);
+            v2Group.setHeaders(List.of(new HttpHeader("X-Test", "yes")));
 
             LoadBalancer lb = new LoadBalancer();
             lb.setType(LoadBalancerType.RANDOM);
@@ -529,9 +523,7 @@ class V2ToV4MigrationOperatorTest {
 
             // Setup Proxy
             Proxy proxy = new Proxy();
-            Set<EndpointGroup> endpointGroups = new HashSet<>();
-            endpointGroups.add(v2Group);
-            proxy.setGroups(endpointGroups);
+            proxy.setGroups(Set.of(v2Group));
 
             proxy.setVirtualHosts(List.of(new VirtualHost("localhost", "/api", false)));
             proxy.setCors(new Cors());
@@ -549,32 +541,45 @@ class V2ToV4MigrationOperatorTest {
             var result = get(mapper.mapApi(api));
 
             // Check Endpoint Group
-            var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
             String configJson =
-                "{\"http\":{\"http2MultiplexingLimit\":-1,\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":false,\"propagateClientHost\":false,\"followRedirects\":true,\"clearTextUpgrade\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\",\"certPath\":null,\"certContent\":null}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}],\"proxy\":null}";
-            assertSoftly(softly -> {
-                softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
-                softly.assertThat(group.getName()).isEqualTo("default-group");
-                softly.assertThat(group.getType()).isEqualTo("http-proxy");
-                softly.assertThat(group.getSharedConfiguration()).isNotNull();
-                softly.assertThat(group.getSharedConfiguration()).contains(configJson);
-            });
+                "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}],\"proxy\":null}";
+            assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
+                .singleElement()
+                .satisfies(group -> {
+                    assertSoftly(softly -> {
+                        softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                        softly.assertThat(group.getName()).isEqualTo("default-group");
+                        softly.assertThat(group.getType()).isEqualTo("http-proxy");
+                        softly.assertThat(group.getSharedConfiguration()).isNotNull();
+                        softly.assertThat(group.getSharedConfiguration()).contains(configJson);
+                    });
 
-            // Check Endpoint
-            var endpoint1 = group.getEndpoints().stream().filter(e -> e.getName().equals("endpoint-1")).findFirst().get();
-            var endpoint2 = group.getEndpoints().stream().filter(e -> e.getName().equals("endpoint-2")).findFirst().get();
+                    // Check Endpoint
+                    assertThat(group.getEndpoints())
+                        .filteredOn(e -> e.getName().equals("endpoint-1"))
+                        .singleElement()
+                        .satisfies(endpoint1 ->
+                            assertSoftly(softly -> {
+                                softly.assertThat(endpoint1.getType()).isEqualTo("http-proxy");
+                                softly.assertThat(endpoint1.getName()).isEqualTo("endpoint-1");
+                                softly.assertThat(endpoint1.getWeight()).isEqualTo(5);
+                                softly.assertThat(endpoint1.isInheritConfiguration()).isTrue();
+                            })
+                        );
 
-            assertSoftly(softly -> {
-                softly.assertThat(endpoint1.getType()).isEqualTo("http-proxy");
-                softly.assertThat(endpoint1.getName()).isEqualTo("endpoint-1");
-                softly.assertThat(endpoint1.getWeight()).isEqualTo(5);
-                softly.assertThat(endpoint1.isInheritConfiguration()).isTrue();
-                softly.assertThat(endpoint2.getType()).isEqualTo("http-proxy");
-                softly.assertThat(endpoint2.getName()).isEqualTo("endpoint-2");
-                softly.assertThat(endpoint2.getWeight()).isEqualTo(5);
-                softly.assertThat(endpoint2.isInheritConfiguration()).isFalse();
-                softly.assertThat(endpoint2.getSharedConfigurationOverride()).isEqualTo(configJsonForEndpoint);
-            });
+                    assertThat(group.getEndpoints())
+                        .filteredOn(e -> e.getName().equals("endpoint-2"))
+                        .singleElement()
+                        .satisfies(endpoint2 ->
+                            assertSoftly(softly -> {
+                                softly.assertThat(endpoint2.getType()).isEqualTo("http-proxy");
+                                softly.assertThat(endpoint2.getName()).isEqualTo("endpoint-2");
+                                softly.assertThat(endpoint2.getWeight()).isEqualTo(5);
+                                softly.assertThat(endpoint2.isInheritConfiguration()).isFalse();
+                                softly.assertThat(endpoint2.getSharedConfigurationOverride()).isEqualTo(configJsonForEndpoint);
+                            })
+                        );
+                });
         }
     }
 

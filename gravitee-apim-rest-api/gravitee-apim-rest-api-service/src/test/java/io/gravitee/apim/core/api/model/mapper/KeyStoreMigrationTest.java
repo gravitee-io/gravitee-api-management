@@ -20,11 +20,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import io.gravitee.definition.model.ssl.KeyStoreType;
 import org.junit.jupiter.api.Test;
 
-class KeyStoreMapperTest {
+class KeyStoreMigrationTest {
 
     @Test
     void shouldReturnNullWhenInputIsNull() {
-        assertThat(KeyStoreMapper.convert(null)).isNull();
+        assertThat(KeyStoreMigration.convert(null)).isNull();
     }
 
     @Test
@@ -34,7 +34,7 @@ class KeyStoreMapperTest {
         v2Jks.setContent("content");
         v2Jks.setPassword("password");
 
-        var result = KeyStoreMapper.convert(v2Jks);
+        var result = KeyStoreMigration.convert(v2Jks);
         assertThat(result).isInstanceOf(io.gravitee.definition.model.v4.ssl.jks.JKSKeyStore.class);
         io.gravitee.definition.model.v4.ssl.jks.JKSKeyStore jks = (io.gravitee.definition.model.v4.ssl.jks.JKSKeyStore) result;
         assertThat(jks.getPath()).isEqualTo("path");
@@ -50,7 +50,7 @@ class KeyStoreMapperTest {
         v2Pem.setCertPath("certPath");
         v2Pem.setCertContent("certContent");
 
-        var result = KeyStoreMapper.convert(v2Pem);
+        var result = KeyStoreMigration.convert(v2Pem);
         assertThat(result).isInstanceOf(io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore.class);
         io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore pem = (io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore) result;
         assertThat(pem.getKeyPath()).isEqualTo("keyPath");
@@ -66,7 +66,7 @@ class KeyStoreMapperTest {
         v2Pkcs12.setPassword("pkcsPassword");
         v2Pkcs12.setContent("pkcsContent");
 
-        var result = KeyStoreMapper.convert(v2Pkcs12);
+        var result = KeyStoreMigration.convert(v2Pkcs12);
         assertThat(result).isInstanceOf(io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore.class);
         io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore pkcs12 =
             (io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore) result;
@@ -81,7 +81,7 @@ class KeyStoreMapperTest {
             KeyStoreType.None
         );
 
-        var result = KeyStoreMapper.convert(v2None);
+        var result = KeyStoreMigration.convert(v2None);
         assertThat(result).isInstanceOf(io.gravitee.definition.model.v4.ssl.none.NoneKeyStore.class);
     }
 }

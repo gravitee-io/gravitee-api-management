@@ -21,9 +21,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +44,44 @@ public class MigrationResult<T> {
     public MigrationResult(T value, Collection<Issue> issues) {
         this.value = value;
         this.issues.addAll(issues);
+    }
+
+    public static <T> Collector<MigrationResult<T>, CollectState<T>, MigrationResult<List<T>>> collectList() {
+        return new Collector<>() {
+            @Override
+            public Supplier<CollectState<T>> supplier() {
+                return () -> new CollectState<>(new ArrayList<>(), new ArrayList<>());
+            }
+
+            @Override
+            public BiConsumer<CollectState<T>, MigrationResult<T>> accumulator() {
+                return (list, result) -> {
+                    if (result.value != null) {
+                        list.values.add(result.value);
+                    }
+                    list.issues.addAll(result.issues);
+                };
+            }
+
+            @Override
+            public BinaryOperator<CollectState<T>> combiner() {
+                return (a, b) -> {
+                    List<Issue> issues = Stream.concat(a.issues.stream(), b.issues.stream()).toList();
+                    List<T> values = Stream.concat(a.values.stream(), b.values.stream()).toList();
+                    return new CollectState<>(new ArrayList<>(values), new ArrayList<>(issues));
+                };
+            }
+
+            @Override
+            public Function<CollectState<T>, MigrationResult<List<T>>> finisher() {
+                return l -> new MigrationResult<>(l.values(), l.issues());
+            }
+
+            @Override
+            public Set<Characteristics> characteristics() {
+                return Set.of();
+            }
+        };
     }
 
     @Nullable
@@ -129,7 +173,5 @@ public class MigrationResult<T> {
         }
     }
 
-    public static <T> MigrationResult<List<T>> mergeList(MigrationResult<List<T>> a, MigrationResult<List<T>> b) {
-        return a.foldLeft(b, (c, d) -> Stream.concat(stream(c), stream(d)).toList());
-    }
+    public record CollectState<T>(ArrayList<T> values, ArrayList<Issue> issues) {}
 }

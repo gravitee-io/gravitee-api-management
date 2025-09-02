@@ -125,7 +125,7 @@ public class FlowMigration {
     );
 
     public MigrationResult<List<Flow>> mapFlows(Iterable<io.gravitee.definition.model.flow.Flow> flows) {
-        return stream(flows).map(f -> mapFlow(f).map(List::of)).reduce(MigrationResult.value(List.of()), MigrationResult::mergeList);
+        return stream(flows).map(this::mapFlow).collect(MigrationResult.collectList());
     }
 
     public MigrationResult<Flow> mapFlow(io.gravitee.definition.model.flow.Flow v2Flow) {

@@ -20,11 +20,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import io.gravitee.definition.model.ssl.TrustStoreType;
 import org.junit.jupiter.api.Test;
 
-class TrustStoreMapperTest {
+class TrustStoreMigrationTest {
 
     @Test
     void shouldReturnNullWhenInputIsNull() {
-        assertThat(io.gravitee.apim.core.api.model.mapper.TrustStoreMapper.convert(null)).isNull();
+        assertThat(TrustStoreMigration.convert(null)).isNull();
     }
 
     @Test
@@ -34,7 +34,7 @@ class TrustStoreMapperTest {
         v2Jks.setContent("jksContent");
         v2Jks.setPassword("jksPassword");
 
-        var result = io.gravitee.apim.core.api.model.mapper.TrustStoreMapper.convert(v2Jks);
+        var result = TrustStoreMigration.convert(v2Jks);
         assertThat(result).isInstanceOf(io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore.class);
         io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore jks = (io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore) result;
         assertThat(jks.getPath()).isEqualTo("jksPath");
@@ -48,7 +48,7 @@ class TrustStoreMapperTest {
         v2Pem.setPath("pemPath");
         v2Pem.setContent("pemContent");
 
-        var result = io.gravitee.apim.core.api.model.mapper.TrustStoreMapper.convert(v2Pem);
+        var result = TrustStoreMigration.convert(v2Pem);
         assertThat(result).isInstanceOf(io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore.class);
         io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore pem = (io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore) result;
         assertThat(pem.getPath()).isEqualTo("pemPath");
@@ -62,7 +62,7 @@ class TrustStoreMapperTest {
         v2Pkcs12.setContent("pkcsContent");
         v2Pkcs12.setPassword("pkcsPassword");
 
-        var result = io.gravitee.apim.core.api.model.mapper.TrustStoreMapper.convert(v2Pkcs12);
+        var result = TrustStoreMigration.convert(v2Pkcs12);
         assertThat(result).isInstanceOf(io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore.class);
         io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore pkcs12 =
             (io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore) result;
@@ -77,7 +77,7 @@ class TrustStoreMapperTest {
             TrustStoreType.None
         );
 
-        var result = io.gravitee.apim.core.api.model.mapper.TrustStoreMapper.convert(v2None);
+        var result = TrustStoreMigration.convert(v2None);
         assertThat(result).isInstanceOf(io.gravitee.definition.model.v4.ssl.none.NoneTrustStore.class);
     }
 }

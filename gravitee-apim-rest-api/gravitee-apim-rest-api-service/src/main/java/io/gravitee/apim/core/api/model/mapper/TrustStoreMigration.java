@@ -19,10 +19,15 @@ import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
 import io.gravitee.definition.model.ssl.none.NoneTrustStore;
 import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
+import lombok.experimental.UtilityClass;
+import org.jspecify.annotations.Nullable;
 
-public class TrustStoreMapper {
+@UtilityClass
+public class TrustStoreMigration {
 
-    public static io.gravitee.definition.model.v4.ssl.TrustStore convert(io.gravitee.definition.model.ssl.TrustStore v2TrustStore) {
+    public static io.gravitee.definition.model.v4.ssl.@Nullable TrustStore convert(
+        io.gravitee.definition.model.ssl.@Nullable TrustStore v2TrustStore
+    ) {
         return switch (v2TrustStore) {
             case JKSTrustStore v2Jks -> convertJks(v2Jks);
             case PEMTrustStore v2Pem -> convertPem(v2Pem);
