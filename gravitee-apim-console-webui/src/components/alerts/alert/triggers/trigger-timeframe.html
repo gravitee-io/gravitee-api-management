@@ -20,7 +20,7 @@
   <div class="ipsum">Timeframe when notifications should be sent</div>
 </div>
 
-<div class="gv-form-content" layout="column">
+<div class="gv-form-content scrollable" layout="column">
   <div ng-repeat="period in $ctrl.alert.notificationPeriods" layout-gt-sm="row">
     <div flex="90">
       Every <code>{{$ctrl.getDayNames(period)}}</code>
@@ -66,7 +66,7 @@
         </gv-switch>
       </div>
       <div layout-gt-sm="row" layout-align="space-between center">
-        <div flex="65">
+        <div flex="65" class="prevent-overlap">
           <gv-date-picker label="Time range" time strict range gv-model ng-model="timeframe.range"></gv-date-picker>
         </div>
         <gv-switch
