@@ -31,7 +31,9 @@ import io.gravitee.gateway.reactive.core.BufferFlow;
 import io.gravitee.gateway.reactive.core.HttpTlsSession;
 import io.gravitee.gateway.reactive.core.context.AbstractRequest;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
+import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Flowable;
+import io.vertx.core.http.impl.HttpServerConnection;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.net.SocketAddress;
 import javax.net.ssl.SSLSession;
@@ -42,6 +44,7 @@ import javax.net.ssl.SSLSession;
  */
 public class VertxHttpServerRequest extends AbstractRequest {
 
+    public static final String NETTY_ATTR_CONNECTION_TIME = "connectionTime";
     protected final HttpServerRequest nativeRequest;
     private Boolean isWebSocket = null;
     private Boolean isStreaming = null;
@@ -60,6 +63,10 @@ public class VertxHttpServerRequest extends AbstractRequest {
         this.bufferFlow = new BufferFlow(nativeRequest.toFlowable().map(Buffer::buffer), this::isStreaming);
         this.messageFlow = null;
         this.options = options;
+        this.connectionTimestamp =
+            (Long) ((HttpServerConnection) nativeRequest.connection().getDelegate()).channel()
+                .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
+                .get();
     }
 
     public VertxHttpServerResponse response() {
