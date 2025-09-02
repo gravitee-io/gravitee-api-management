@@ -65,7 +65,7 @@ class PortalPageServiceImplTest {
             when(portalPageContextRepository.findAllByContextTypeAndEnvironmentId(eq(PortalPageContextType.HOMEPAGE), anyString()))
                 .thenReturn(List.of(PortalPageContext.builder().build()));
 
-            cut.createDefaultPortalPage("envId");
+            cut.createDefaultPortalHomePage("envId");
 
             verify(portalPageContextRepository, times(0)).create(any());
             verifyNoInteractions(portalPageRepository);
@@ -80,7 +80,7 @@ class PortalPageServiceImplTest {
                 .thenReturn(Collections.emptyList());
             when(portalPageRepository.create(any(PortalPage.class))).thenReturn(PortalPage.builder().id(portalPageId).build());
 
-            cut.createDefaultPortalPage(envId);
+            cut.createDefaultPortalHomePage(envId);
 
             ArgumentCaptor<PortalPageContext> portalPageContextCaptor = ArgumentCaptor.forClass(PortalPageContext.class);
             verify(portalPageContextRepository).create(portalPageContextCaptor.capture());

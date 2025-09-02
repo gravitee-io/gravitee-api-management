@@ -100,7 +100,7 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
                 accessPointsToCreate
             );
 
-            portalPageService.createDefaultPortalPage(environment.getId());
+            portalPageService.createDefaultPortalHomePage(environment.getId());
 
             log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
             return Single.just(new EnvironmentReply(command.getId()));

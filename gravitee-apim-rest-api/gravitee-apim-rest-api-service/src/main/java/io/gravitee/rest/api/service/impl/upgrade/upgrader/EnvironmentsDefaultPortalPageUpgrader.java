@@ -47,7 +47,7 @@ public class EnvironmentsDefaultPortalPageUpgrader implements Upgrader {
     public boolean upgrade() throws UpgraderException {
         try {
             for (var environment : environmentRepository.findAll()) {
-                portalPageService.createDefaultPortalPage(environment.getId());
+                portalPageService.createDefaultPortalHomePage(environment.getId());
             }
             return true;
         } catch (TechnicalException e) {
