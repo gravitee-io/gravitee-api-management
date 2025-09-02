@@ -43,6 +43,7 @@ public class PageCRD {
     private Map<String, String> configuration;
     private Set<AccessControl> accessControls;
     private boolean excludedAccessControls;
+    private Boolean useAutoFetch;
 
     // Folder attributes
     @With
