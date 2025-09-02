@@ -15,10 +15,7 @@
  */
 package io.gravitee.rest.api.model.api;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.definition.jackson.datatype.api.deser.PropertiesAsListDeserializer;
 import io.gravitee.definition.model.*;
@@ -29,20 +26,20 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.jackson.RollbackApiEntityDeserializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.*;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author GraviteeSource Team
  */
 @Getter
 @Setter
+@JsonDeserialize(using = RollbackApiEntityDeserializer.class)
 public class RollbackApiEntity {
 
     @NotNull

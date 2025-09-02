@@ -25,22 +25,32 @@
   (filtersChange)="tableFilters.set($event)"
 >
   <table mat-table matSort [dataSource]="filteredTableData()">
-    @for (column of columns(); track $index) {
+    @for (column of columns(); track $index; let i = $index) {
       <ng-container [matColumnDef]="column.name">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ column.label }}</th>
         <td mat-cell *matCellDef="let rowData">
           @let element = rowData[column.name];
 
-          @switch (column.dataType) {
-            @case ('number') {
-              {{ element | number }}
+          <ng-template #cellContent>
+            @switch (column.dataType) {
+              @case ('number') {
+                {{ element | number }}
+              }
+              @case ('percentage') {
+                {{ element | percent }}
+              }
+              @default {
+                {{ element }}
+              }
             }
-            @case ('percentage') {
-              {{ element | percent }}
-            }
-            @default {
-              {{ element }}
-            }
+          </ng-template>
+
+          @if (i === 0 && firstColumnClickable() && !rowData['unknown']) {
+            <a (click)="$event.preventDefault(); onFirstColumnActivate(rowData)">
+              <ng-container *ngTemplateOutlet="cellContent"></ng-container>
+            </a>
+          } @else {
+            <ng-container *ngTemplateOutlet="cellContent"></ng-container>
           }
         </td>
       </ng-container>

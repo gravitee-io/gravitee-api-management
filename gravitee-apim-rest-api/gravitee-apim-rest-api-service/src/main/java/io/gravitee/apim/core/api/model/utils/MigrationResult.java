@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.Getter;
@@ -40,7 +41,7 @@ public class MigrationResult<T> {
     }
 
     @Nullable
-    public T value() {
+    protected T value() {
         return state() != State.IMPOSSIBLE ? value : null;
     }
 
@@ -57,9 +58,21 @@ public class MigrationResult<T> {
         return this;
     }
 
+    public MigrationResult<T> addIssue(String message, State state) {
+        issues.add(new Issue(message, state));
+        return this;
+    }
+
     public MigrationResult<T> addIssues(Collection<Issue> issue) {
         issues.addAll(issue);
         return this;
+    }
+
+    public void processValue(Consumer<T> consumer) {
+        T currentValue = value();
+        if (currentValue != null) {
+            consumer.accept(currentValue);
+        }
     }
 
     public <U> MigrationResult<U> map(Function<T, U> mapper) {
@@ -114,5 +127,9 @@ public class MigrationResult<T> {
         default T apply(T result1, U result2) {
             return merge(result1, result2);
         }
+    }
+
+    public static <T> MigrationResult<List<T>> mergeList(MigrationResult<List<T>> a, MigrationResult<List<T>> b) {
+        return a.foldLeft(b, (c, d) -> Stream.concat(stream(c), stream(d)).toList());
     }
 }

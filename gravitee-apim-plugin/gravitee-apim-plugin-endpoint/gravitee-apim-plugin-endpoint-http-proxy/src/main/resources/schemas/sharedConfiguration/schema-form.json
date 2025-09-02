@@ -248,6 +248,7 @@
                 "required": ["name", "value"]
             },
             "gioConfig": {
+                "el": true,
                 "uiType": "gio-headers-array"
             }
         },
@@ -298,7 +299,10 @@
                         "host": {
                             "type": "string",
                             "title": "Proxy host",
-                            "description": "Proxy host to connect to. Supports EL."
+                            "description": "Proxy host to connect to. Supports EL.",
+          "gioConfig": {
+            "el": true
+          }
                         },
                         "port": {
                             "type": "integer",
@@ -308,13 +312,19 @@
                         "username": {
                             "type": "string",
                             "title": "Proxy username",
-                            "description": "Optional proxy username. (Supports EL and secrets)"
+                            "description": "Optional proxy username. (Supports EL and secrets)",
+          "gioConfig": {
+            "el": true
+          }
                         },
                         "password": {
                             "type": "string",
                             "title": "Proxy password",
                             "description": "Optional proxy password. (Supports EL and secrets)",
-                            "format": "password"
+                            "format": "password",
+          "gioConfig": {
+            "el": true
+          }
                         }
                     },
                     "required": ["host", "port"],
@@ -349,61 +359,94 @@
         "sslTrustStorePath": {
             "type": "string",
             "title": "Path to truststore",
-            "description": "Path to the truststore file"
+            "description": "Path to the truststore file",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslTrustStoreContent": {
             "type": "string",
             "title": "Content",
             "description": "Binary content as Base64",
-            "format": "text"
+            "format": "text",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStorePassword": {
             "type": "string",
             "title": "Password",
             "description": "Password to use to open the key store",
-            "format": "password"
+            "format": "password",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStoreAlias": {
             "type": "string",
             "title": "Alias for the key",
-            "description": "Alias of the key to use in case the key store contains more than one key"
+            "description": "Alias of the key to use in case the key store contains more than one key",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStoreKeyPassword": {
             "type": "string",
             "title": "Key Password",
             "description": "Password to use to access the key when protected by password",
-            "format": "password"
+            "format": "password",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStorePath": {
             "type": "string",
             "title": "Path to key store",
-            "description": "Path to the key store file"
+            "description": "Path to the key store file",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStoreContent": {
             "type": "string",
             "title": "Content",
             "description": "Binary content as Base64",
-            "format": "text"
+            "format": "text",
+            "gioConfig": {
+                "el": true
+            }
         },
         "sslKeyStoreCertPath": {
             "type": "string",
             "title": "Path to cert file",
-            "description": "Path to cert file (.PEM)"
+            "description": "Path to cert file (.PEM)",
+            "gioConfig": {
+                "el": true
+            }
         },
         "sslKeyStoreCertContent": {
             "type": "string",
             "title": "Certificate",
-            "format": "text"
+            "format": "text",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStoreKeyPath": {
             "type": "string",
             "title": "Path to private key file",
-            "description": "Path to private key file (.PEM)"
+            "description": "Path to private key file (.PEM)",
+          "gioConfig": {
+            "el": true
+          }
         },
         "sslKeyStoreKeyContent": {
             "type": "string",
             "title": "Private key",
-            "format": "text"
+            "format": "text",
+          "gioConfig": {
+            "el": true
+          }
         },
         "ssl": {
             "type": "object",

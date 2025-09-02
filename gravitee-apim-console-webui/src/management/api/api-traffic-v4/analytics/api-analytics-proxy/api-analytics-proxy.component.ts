@@ -51,6 +51,8 @@ type WidgetDisplayConfig = {
   tooltip: string;
   shouldSortBuckets?: boolean;
   type: ApiAnalyticsWidgetType;
+  isClickable?: boolean;
+  relativePath?: string;
 };
 
 interface Range {
@@ -83,7 +85,6 @@ interface QueryParamsBase {
   period?: string;
   httpStatuses?: string;
   plans?: string;
-  hosts?: string[];
   applications?: string[];
 }
 
@@ -248,6 +249,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      isClickable: true,
+      relativePath: '../../../../applications',
       tableData: {
         columns: [
           { label: 'App', dataType: 'string' },
@@ -264,6 +267,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'plan-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      isClickable: true,
+      relativePath: '../../plans',
       tableData: {
         columns: [
           { label: 'Plan', dataType: 'string' },
@@ -280,6 +285,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'path-info.keyword',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      isClickable: false,
       tableData: {
         columns: [
           { label: 'Path', dataType: 'string' },
@@ -296,6 +302,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'application-id',
       analyticsType: 'GROUP_BY',
       orderBy: '-avg:gateway-response-time-ms',
+      isClickable: true,
+      relativePath: '../../../../applications',
       tableData: {
         columns: [
           { label: 'App', dataType: 'string' },
@@ -312,6 +320,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       groupByField: 'host',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
+      isClickable: false,
       tableData: {
         columns: [
           { label: 'Host', dataType: 'string' },
@@ -392,6 +401,10 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       params.plans = filters.plans.join(',');
     }
 
+    if (filters.applications?.length) {
+      params.applications = filters.applications.join(',');
+    }
+
     return params;
   }
 
@@ -444,7 +457,6 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     return {
       httpStatuses: this.processFilter(queryParams.httpStatuses),
       plans: this.processFilter(queryParams.plans),
-      hosts: this.processFilter(queryParams.hosts),
       applications: this.processFilter(queryParams.applications),
     };
   }

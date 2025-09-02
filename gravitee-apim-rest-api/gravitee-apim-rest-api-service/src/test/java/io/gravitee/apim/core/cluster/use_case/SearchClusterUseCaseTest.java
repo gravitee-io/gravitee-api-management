@@ -20,8 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import inmemory.AbstractUseCaseTest;
 import inmemory.ClusterQueryServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
-import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.Comparator;
@@ -32,19 +33,20 @@ import org.junit.jupiter.api.Test;
 
 class SearchClusterUseCaseTest extends AbstractUseCaseTest {
 
-    private final ClusterQueryService clusterQueryService = new ClusterQueryServiceInMemory();
+    private final ClusterQueryServiceInMemory clusterQueryService = new ClusterQueryServiceInMemory();
+    private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     private SearchClusterUseCase searchClusterUseCase;
 
     @BeforeEach
     void setUp() {
-        searchClusterUseCase = new SearchClusterUseCase(clusterQueryService);
+        searchClusterUseCase = new SearchClusterUseCase(clusterQueryService, membershipQueryService);
         initDb();
     }
 
     @Test
-    void should_search_no_pageable_no_sort_by() {
+    void should_search_admin_no_pageable_no_sort_by() {
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -52,15 +54,30 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(10),
             () ->
                 assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(initDbData().stream().map(Cluster::getName).sorted().limit(10).toList())
+                    .isEqualTo(initClusters().stream().map(Cluster::getName).sorted().limit(10).toList())
         );
     }
 
     @Test
-    void should_search_with_pageable_no_sort_by() {
+    void should_search_not_admin_no_pageable_no_sort_by() {
+        // When
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, false, "member-1"));
+        // Then
+        assertAll(
+            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
+            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(3),
+            () ->
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
+                    .isEqualTo(List.of("Cluster 1", "Cluster 4", "Cluster 8"))
+        );
+    }
+
+    @Test
+    void should_search_admin_with_pageable_no_sort_by() {
         Pageable pageable = new PageableImpl(2, 5);
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, pageable, null));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, pageable, null, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
@@ -68,15 +85,15 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(5),
             () ->
                 assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(initDbData().stream().map(Cluster::getName).sorted().toList().subList(5, 10))
+                    .isEqualTo(initClusters().stream().map(Cluster::getName).sorted().toList().subList(5, 10))
         );
     }
 
     @Test
-    void should_search_no_pageable_with_sort_by() {
+    void should_search_admin_no_pageable_with_sort_by() {
         String sortBy = "id";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, sortBy));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, sortBy, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -84,16 +101,18 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(10),
             () ->
                 assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(initDbData().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).limit(10).toList())
+                    .isEqualTo(
+                        initClusters().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).limit(10).toList()
+                    )
         );
     }
 
     @Test
-    void should_search_with_pageable_and_sort_by() {
+    void should_search_admin_with_pageable_and_sort_by() {
         Pageable pageable = new PageableImpl(2, 5);
         String sortBy = "id";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, pageable, sortBy));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, pageable, sortBy, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
@@ -102,12 +121,12 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             () ->
                 assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
                     .isEqualTo(
-                        initDbData().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).toList().subList(5, 10)
+                        initClusters().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).toList().subList(5, 10)
                     )
         );
     }
 
-    private List<Cluster> initDbData() {
+    private List<Cluster> initClusters() {
         Cluster cluster1 = Cluster
             .builder()
             .id("cluster-1")
@@ -258,7 +277,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        return List.of(
+        List<Cluster> clusters = List.of(
             cluster1,
             cluster2,
             cluster3,
@@ -275,9 +294,88 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             cluster14,
             cluster15
         );
+        clusterQueryService.initWith(clusters);
+        return clusters;
+    }
+
+    private void initMemberships() {
+        List<Membership> memberships = List.of(
+            Membership
+                .builder()
+                .referenceId("cluster-1")
+                .referenceType(Membership.ReferenceType.CLUSTER)
+                .memberType(Membership.Type.USER)
+                .memberId("member-1")
+                .build(),
+            Membership
+                .builder()
+                .referenceId("group-1")
+                .referenceType(Membership.ReferenceType.GROUP)
+                .memberType(Membership.Type.USER)
+                .memberId("member-1")
+                .build(),
+            Membership
+                .builder()
+                .referenceId("cluster-4")
+                .referenceType(Membership.ReferenceType.CLUSTER)
+                .memberType(Membership.Type.USER)
+                .memberId("member-1")
+                .build(),
+            Membership
+                .builder()
+                .referenceId("cluster-2")
+                .referenceType(Membership.ReferenceType.CLUSTER)
+                .memberType(Membership.Type.USER)
+                .memberId("member-2")
+                .build(),
+            Membership
+                .builder()
+                .referenceId("api-1")
+                .referenceType(Membership.ReferenceType.API)
+                .memberType(Membership.Type.USER)
+                .memberId("member-1")
+                .build(),
+            Membership
+                .builder()
+                .referenceId("cluster-3")
+                .referenceType(Membership.ReferenceType.CLUSTER)
+                .memberType(Membership.Type.USER)
+                .memberId("member-3")
+                .build(),
+            Membership
+                .builder()
+                .referenceId("cluster-5")
+                .referenceType(Membership.ReferenceType.CLUSTER)
+                .memberType(Membership.Type.USER)
+                .memberId("member-3")
+                .build(),
+            Membership
+                .builder()
+                .referenceId("cluster-8")
+                .referenceType(Membership.ReferenceType.CLUSTER)
+                .memberType(Membership.Type.USER)
+                .memberId("member-1")
+                .build(),
+            Membership
+                .builder()
+                .referenceId("cluster-9")
+                .referenceType(Membership.ReferenceType.CLUSTER)
+                .memberType(Membership.Type.USER)
+                .memberId("member-4")
+                .build(),
+            Membership
+                .builder()
+                .referenceId("cluster-15")
+                .referenceType(Membership.ReferenceType.CLUSTER)
+                .memberType(Membership.Type.USER)
+                .memberId("member-5")
+                .build()
+        );
+        membershipQueryService.initWith(memberships);
     }
 
     private void initDb() {
-        ((ClusterQueryServiceInMemory) clusterQueryService).initWith(initDbData());
+        initMemberships();
+        initClusters();
     }
 }

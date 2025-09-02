@@ -15,11 +15,22 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
-import { ApiRuntimeLogsConnectionLogDetailsHarness } from '../components/api-runtime-logs-connection-log-details/api-runtime-logs-connection-log-details.harness';
-import { ApiRuntimeLogsDetailsEmptyStateHarness } from '../components/api-runtime-logs-details-empty-state/api-runtime-logs-details-empty-state.harness';
+export abstract class AbstractApiRuntimeLogsProxyHarness extends ComponentHarness {
+  public async getAllKeyValues(): Promise<Array<{ key: string; value: string | null }>> {
+    const keyValues: Array<{ key: string; value: string | null }> = [];
+    const dtElements = await this.locatorForAll('dt')();
+    const ddElements = await this.locatorForAll('dd')();
 
-export class ApiRuntimeLogsProxyHarness extends ComponentHarness {
-  static hostSelector = 'api-runtime-logs-proxy';
-  public logsDetailHarness = this.locatorFor(ApiRuntimeLogsConnectionLogDetailsHarness);
-  public emptyStateHarness = this.locatorFor(ApiRuntimeLogsDetailsEmptyStateHarness);
+    if (dtElements.length !== ddElements.length) {
+      throw new Error("Mismatched number of dt and dd elements. This may indicate a problem with the component's DOM structure.");
+    }
+
+    for (let i = 0; i < dtElements.length; i++) {
+      const key = await dtElements[i].text();
+      const value = await ddElements[i].text();
+      keyValues.push({ key: key.trim(), value: value ? value.trim() : null });
+    }
+
+    return keyValues;
+  }
 }

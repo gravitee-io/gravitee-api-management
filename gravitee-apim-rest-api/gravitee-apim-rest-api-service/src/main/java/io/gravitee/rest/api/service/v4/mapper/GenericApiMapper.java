@@ -41,7 +41,8 @@ public class GenericApiMapper {
                 case NATIVE -> apiMapper.toNativeEntity(api, primaryOwner);
                 case MESSAGE, PROXY -> apiMapper.toEntity(api, primaryOwner);
             };
-            case FEDERATED, FEDERATED_AGENT -> apiMapper.federatedToEntity(api, primaryOwner);
+            case FEDERATED -> apiMapper.federatedToEntity(api, primaryOwner);
+            case FEDERATED_AGENT -> apiMapper.federatedAgentToEntity(api, primaryOwner);
             case V1, V2 -> apiConverter.toApiEntity(api, primaryOwner);
         };
     }

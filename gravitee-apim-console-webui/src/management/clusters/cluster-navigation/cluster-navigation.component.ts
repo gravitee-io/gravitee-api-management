@@ -33,7 +33,7 @@ import { ClusterNavigationTabsComponent } from './cluster-navigation-tabs/cluste
 
 import { cleanRouterLink, getPathFromRoot } from '../../../util/router-link.util';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { ClustersService } from '../../../services-ngx/clusters.service';
+import { ClusterService } from '../../../services-ngx/cluster.service';
 import { Cluster } from '../../../entities/management-api-v2';
 
 export interface MenuItem {
@@ -67,7 +67,7 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly permissionService = inject(GioPermissionService);
   private readonly gioMenuService = inject(GioMenuService);
-  private readonly clustersService = inject(ClustersService);
+  private readonly clusterService = inject(ClusterService);
   private readonly gioMenuSearchService = inject(GioMenuSearchService);
 
   ngOnInit() {
@@ -75,7 +75,7 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
       this.hasBreadcrumb = reduced;
     });
 
-    this.clustersService
+    this.clusterService
       .get(this.activatedRoute.snapshot.params.clusterId)
       .pipe(
         tap((cluster) => {
@@ -85,20 +85,22 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
             {
               displayName: 'General',
               routerLink: '',
-              // TODO
-              // permissions: ['cluster-definition-r'],
+              permissions: ['cluster-definition-r'],
               tabs: [
                 {
                   displayName: 'General',
                   routerLink: 'general',
-                  // TODO
-                  // permissions: ['cluster-definition-r'],
+                  permissions: ['cluster-definition-r'],
                 },
                 {
                   displayName: 'Configuration',
                   routerLink: 'configuration',
-                  // TODO
-                  // permissions: ['cluster-definition-r'],
+                  permissions: ['cluster-definition-r'],
+                },
+                {
+                  displayName: 'User Permissions',
+                  routerLink: 'user-permissions',
+                  permissions: ['cluster-definition-r'],
                 },
               ],
             },

@@ -13,32 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, OnInit, input, effect, output, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, input, effect, output, computed, inject, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
-import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
-import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import moment, { Moment } from 'moment';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { Observable, of, switchMap } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { map, tap } from 'rxjs/operators';
 
-import { customTimeFrames, DATE_TIME_FORMATS, timeFrames } from '../../../../../../shared/utils/timeFrameRanges';
+import { customTimeFrames, timeFrames } from '../../../../../../shared/utils/timeFrameRanges';
 import { httpStatuses } from '../../../../../../shared/utils/httpStatuses';
-import { GioSelectSearchComponent, SelectOption } from '../../../../../../shared/components/gio-select-search/gio-select-search.component';
+import {
+  GioSelectSearchComponent,
+  ResultsLoaderInput,
+  ResultsLoaderOutput,
+  SelectOption,
+} from '../../../../../../shared/components/gio-select-search/gio-select-search.component';
 import { Plan } from '../../../../../../entities/management-api-v2';
+import { GioTimeframeComponent } from '../../../../../../shared/components/gio-timeframe/gio-timeframe.component';
+import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
+import { ApplicationService } from '../../../../../../services-ngx/application.service';
 
 interface ApiAnalyticsProxyFilterBarForm {
   httpStatuses: FormControl<string[] | null>;
-  period: FormControl<string>;
-  from: FormControl<Moment | null>;
-  to: FormControl<Moment | null>;
+  timeframe: FormControl<{ period: string; from: Moment | null; to: Moment | null } | null>;
   plans: FormControl<string[] | null>;
+  applications: FormControl<string[] | null>;
 }
 
 export interface ApiAnalyticsProxyFilters {
@@ -47,8 +57,13 @@ export interface ApiAnalyticsProxyFilters {
   to?: number | null;
   httpStatuses: string[] | null;
   plans: string[] | null;
-  hosts: string[] | null;
   applications: string[] | null;
+}
+
+interface FilterChip {
+  key: string;
+  value: string;
+  display: string;
 }
 
 @Component({
@@ -63,11 +78,11 @@ export interface ApiAnalyticsProxyFilters {
     MatOptionModule,
     MatSelectModule,
     MatInputModule,
-    OwlDateTimeModule,
-    OwlMomentDateTimeModule,
     GioSelectSearchComponent,
+    MatChipsModule,
+    MatTooltipModule,
+    GioTimeframeComponent,
   ],
-  providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
   templateUrl: './api-analytics-proxy-filter-bar.component.html',
   styleUrl: './api-analytics-proxy-filter-bar.component.scss',
 })
@@ -84,24 +99,71 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
     return plans.map((plan) => ({ value: plan.id, label: plan.name }));
   });
 
-  form: FormGroup<ApiAnalyticsProxyFilterBarForm> = this.formBuilder.group(
-    {
-      httpStatuses: [null],
-      period: [''],
-      from: [null],
-      to: [null],
-      plans: [null],
-    },
-    { validators: this.dateRangeValidator },
-  );
-  minDate: Moment;
-  nowDate: Moment = moment().add(1, 'd');
+  applicationResultsLoader = (input: ResultsLoaderInput): Observable<ResultsLoaderOutput> => {
+    return this.apiV2Service.getSubscribers(this.apiId, input.searchTerm, input.page, 20).pipe(
+      map((response) => ({
+        data: response.data.map((app) => ({ value: app.id, label: app.name })),
+        hasNextPage: response.pagination.page < response.pagination.pageCount,
+      })),
+    );
+  };
+
+  public currentFilterChips = computed<FilterChip[]>(() => {
+    const filters = this.activeFilters();
+    const chips: FilterChip[] = [];
+
+    if (filters?.httpStatuses?.length) {
+      filters.httpStatuses.forEach((status) => {
+        const statusOption = this.httpStatuses?.find((opt) => opt.value === status);
+        chips.push({
+          key: 'httpStatuses',
+          value: status,
+          display: statusOption?.label || status,
+        });
+      });
+    }
+
+    if (filters?.plans?.length) {
+      const plans = this.plans();
+      filters.plans.forEach((planId) => {
+        const plan = plans?.find((p) => p.id === planId);
+        const display = plan ? plan.name : planId;
+        chips.push({
+          key: 'plans',
+          value: planId,
+          display: display,
+        });
+      });
+    }
+
+    chips.push(...(this.applicationFilterChips() ?? []));
+
+    return chips;
+  });
+
+  public isFiltering = computed(() => this.currentFilterChips().length > 0);
+
+  // INJECTIONS
+  private readonly apiId = inject(ActivatedRoute).snapshot.params.apiId;
+  private readonly apiV2Service = inject(ApiV2Service);
+  private readonly applicationService = inject(ApplicationService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly formBuilder = inject(FormBuilder);
+
+  form: FormGroup<ApiAnalyticsProxyFilterBarForm> = this.formBuilder.group({
+    httpStatuses: this.formBuilder.control<string[] | null>(null),
+    timeframe: this.formBuilder.control<{ period: string; from: Moment | null; to: Moment | null } | null>(null),
+    plans: this.formBuilder.control<string[] | null>(null),
+    applications: this.formBuilder.control<string[] | null>(null),
+  });
   customPeriod: string = 'custom';
 
-  constructor(
-    private readonly formBuilder: FormBuilder,
-    private readonly destroyRef: DestroyRef,
-  ) {
+  private applicationChipCache: Record<string, FilterChip> = {};
+  private applicationFilterChips: Signal<FilterChip[]> = toSignal(
+    this.form.controls.applications.valueChanges.pipe(switchMap((applications) => this.getApplicationChips(applications))),
+  );
+
+  constructor() {
     // Set up effect to update form when activeFilters changes
     effect(() => {
       const filters = this.activeFilters();
@@ -110,39 +172,29 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.form.controls.period.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((period) => {
-      const currentFilters = this.activeFilters();
-      const updatedFilters = { ...currentFilters, period };
-      if (period !== this.customPeriod) {
-        this.filtersChange.emit(updatedFilters);
+    this.form.controls.timeframe.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((tf) => {
+      if (tf?.period && tf.period !== this.customPeriod) {
+        this.emitFilters({ period: tf.period, from: null, to: null });
       }
     });
 
     this.form.controls.httpStatuses.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((httpStatuses) => {
-      const currentFilters = this.activeFilters();
-      const updatedFilters = { ...currentFilters, httpStatuses: httpStatuses };
-      this.filtersChange.emit(updatedFilters);
-    });
-
-    this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((from) => {
-      this.minDate = from;
-      this.form.updateValueAndValidity();
-    });
-
-    this.form.controls.to.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.form.updateValueAndValidity();
+      this.emitFilters({ httpStatuses: httpStatuses });
     });
 
     this.form.controls.plans.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((plans) => {
-      const currentFilters = this.activeFilters();
-      const updatedFilters = { ...currentFilters, plans };
-      this.filtersChange.emit(updatedFilters);
+      this.emitFilters({ plans });
+    });
+
+    this.form.controls.applications.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((applications) => {
+      this.emitFilters({ applications });
     });
   }
 
   applyCustomTimeframe() {
-    const from = this.form.controls.from.value.valueOf();
-    const to = this.form.controls.to.value.valueOf();
+    const tf = this.form.controls.timeframe.value;
+    const from = tf?.from?.valueOf() ?? null;
+    const to = tf?.to?.valueOf() ?? null;
 
     const currentFilters = this.activeFilters();
     const updatedFilters = {
@@ -159,26 +211,87 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
     this.refresh.emit();
   }
 
-  private dateRangeValidator(group: FormGroup): { [key: string]: any } | null {
-    const from = group.get('from')?.value;
-    const to = group.get('to')?.value;
+  private removeValueFromFilter(currentList: string[] | null, value: string, formControl: FormControl<string[] | null>): void {
+    const filteredList = (currentList || []).filter((item) => item !== value);
+    formControl.setValue(filteredList.length > 0 ? filteredList : null);
+  }
 
-    if (from && to && from.isAfter(to)) {
-      return { dateRange: true };
+  removeFilter(key: string, value: string) {
+    if (key === 'httpStatuses') {
+      this.removeValueFromFilter(this.form.controls.httpStatuses.value, value, this.form.controls.httpStatuses);
+    } else if (key === 'plans') {
+      this.removeValueFromFilter(this.form.controls.plans.value, value, this.form.controls.plans);
+    } else if (key === 'applications') {
+      this.removeValueFromFilter(this.form.controls.applications.value, value, this.form.controls.applications);
     }
+  }
 
-    return null;
+  resetAllFilters() {
+    this.emitFilters({ httpStatuses: null, plans: null, applications: null });
   }
 
   private updateFormFromFilters(filters: ApiAnalyticsProxyFilters) {
     if (this.form) {
       this.form.patchValue({
-        period: filters.period,
-        from: filters.from ? moment(filters.from) : null,
-        to: filters.to ? moment(filters.to) : null,
+        timeframe: {
+          period: filters.period,
+          from: filters.from ? moment(filters.from) : null,
+          to: filters.to ? moment(filters.to) : null,
+        },
         plans: filters.plans,
         httpStatuses: filters.httpStatuses,
+        applications: filters.applications,
       });
     }
+  }
+
+  private emitFilters(partial: Partial<ApiAnalyticsProxyFilters>) {
+    this.filtersChange.emit({
+      ...this.activeFilters(),
+      ...partial,
+    });
+  }
+
+  private getApplicationChips(applications: string[] | null): Observable<FilterChip[]> {
+    if (!applications?.length) {
+      return of([]);
+    }
+
+    const cachedChips: FilterChip[] = [];
+    const uncachedIds: string[] = [];
+
+    applications.forEach((appId) => {
+      if (this.applicationChipCache[appId]) {
+        cachedChips.push(this.applicationChipCache[appId]);
+      } else {
+        uncachedIds.push(appId);
+      }
+    });
+
+    if (uncachedIds.length === 0) {
+      return of(cachedChips);
+    }
+
+    return this.fetchApplicationsAndUpdateCache$(uncachedIds).pipe(map((newChips) => [...cachedChips, ...newChips]));
+  }
+
+  private fetchApplicationsAndUpdateCache$(uncachedIds: string[]): Observable<FilterChip[]> {
+    return this.applicationService.findByIds(uncachedIds, 1, 200).pipe(
+      map((response) => {
+        return uncachedIds.map((id) => {
+          const foundApp = response.data.find((app) => app.id === id);
+          return {
+            key: 'applications',
+            value: id,
+            display: foundApp?.name ?? 'Unknown Application',
+          };
+        });
+      }),
+      tap((newChips) => {
+        newChips.forEach((chip) => {
+          this.applicationChipCache[chip.value] = chip;
+        });
+      }),
+    );
   }
 }

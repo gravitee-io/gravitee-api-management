@@ -504,4 +504,22 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
     public void plan_should_not_exist() throws Exception {
         assertFalse(planRepository.exists("unknown"));
     }
+
+    @Test
+    public void should_update_order() throws Exception {
+        // Given an existing plan with a known order
+        Optional<Plan> optional = planRepository.findById("my-plan");
+        assertNotNull(optional);
+        assertTrue(optional.isPresent());
+        int initialOrder = optional.get().getOrder();
+
+        // When updating the order
+        int newOrder = initialOrder + 3;
+        planRepository.updateOrder("my-plan", newOrder);
+
+        // Then the plan order is updated
+        Optional<Plan> updated = planRepository.findById("my-plan");
+        assertTrue(updated.isPresent());
+        assertEquals(newOrder, updated.get().getOrder());
+    }
 }

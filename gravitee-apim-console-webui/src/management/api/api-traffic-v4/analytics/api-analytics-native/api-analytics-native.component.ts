@@ -16,12 +16,10 @@
 
 import { Component } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 
 @Component({
   selector: 'api-analytics-native',
-  imports: [GioCardEmptyStateModule, MatButton, MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle, GioLoaderModule],
+  imports: [GioCardEmptyStateModule, GioLoaderModule],
   templateUrl: './api-analytics-native.component.html',
   styleUrl: './api-analytics-native.component.scss',
 })

@@ -33,7 +33,8 @@ public enum MembershipReferenceType {
     ENVIRONMENT(EnumSet.allOf(RoleScope.class)),
     ORGANIZATION(EnumSet.allOf(RoleScope.class)),
     PLATFORM(EnumSet.allOf(RoleScope.class)),
-    INTEGRATION(EnumSet.allOf(RoleScope.class));
+    INTEGRATION(EnumSet.allOf(RoleScope.class)),
+    CLUSTER(EnumSet.allOf(RoleScope.class));
 
     private final EnumSet<RoleScope> roleScopes;
 

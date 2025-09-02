@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import io.gravitee.apim.core.analytics.use_case.FindApiMetricsDetailUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageConnectionDurationUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchGroupByAnalyticsUseCase;
@@ -34,6 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountRe
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusOvertimeResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsResponseStatusRangesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiMetricsDetailResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CountAnalytics;
 import io.gravitee.rest.api.management.v2.rest.model.StatsAnalytics;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -92,6 +94,9 @@ public class ApiAnalyticsResource extends AbstractResource {
 
     @Inject
     private SearchRequestsCountByEventAnalyticsUseCase searchRequestsCountByEventAnalyticsUseCase;
+
+    @Inject
+    private FindApiMetricsDetailUseCase findApiMetricsDetailUseCase;
 
     @Path("/requests-count")
     @GET
@@ -255,6 +260,20 @@ public class ApiAnalyticsResource extends AbstractResource {
             }
             default -> throw new BadRequestException("Unsupported Analytics Type");
         }
+    }
+
+    @Path("/{requestId}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public ApiMetricsDetailResponse getApiMetricsDetail(@PathParam("requestId") String requestId) {
+        var request = new FindApiMetricsDetailUseCase.Input(apiId, requestId);
+
+        return findApiMetricsDetailUseCase
+            .execute(GraviteeContext.getExecutionContext(), request)
+            .apiMetricsDetail()
+            .map(ApiAnalyticsMapper.INSTANCE::map)
+            .orElseThrow(() -> new NotFoundException("No log found for api: " + apiId + " and requestId: " + requestId));
     }
 
     private StatsAnalytics emptyStats() {

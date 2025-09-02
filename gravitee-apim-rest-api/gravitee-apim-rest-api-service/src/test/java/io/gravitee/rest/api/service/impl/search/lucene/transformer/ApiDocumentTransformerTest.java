@@ -84,6 +84,16 @@ class ApiDocumentTransformerTest {
     }
 
     @Test
+    void shouldTransformWithoutError_WithIdOnly() {
+        // When we delete a document only the id is filled in
+        ApiEntity api = new ApiEntity();
+        api.setId("api-uuid");
+        Document doc = cut.transform(api);
+        assertThat(doc.get("id")).isEqualTo(api.getId());
+        assertThat(doc.get("type")).isEqualTo("api");
+    }
+
+    @Test
     void shouldTransformWithoutError_V4ApiOnDeleteMode() {
         var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api.setId("api-uuid");

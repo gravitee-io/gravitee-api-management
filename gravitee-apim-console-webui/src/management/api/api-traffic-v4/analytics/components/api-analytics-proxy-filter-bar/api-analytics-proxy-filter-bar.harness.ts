@@ -18,6 +18,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import moment from 'moment';
+import { MatChipHarness } from '@angular/material/chips/testing';
 
 import { GioSelectSearchHarness } from '../../../../../../shared/components/gio-select-search/gio-select-search.harness';
 
@@ -176,5 +177,53 @@ export class ApiAnalyticsProxyFilterBarHarness extends ComponentHarness {
       await select.checkOptionByLabel(optionText);
       await select.close();
     }
+  }
+
+  async getFiltersAppliedText() {
+    const filtersApplied = await this.locatorForOptional('.applied-filters-text')();
+    return filtersApplied?.text();
+  }
+
+  async getNoFiltersAppliedText() {
+    const noFilters = await this.locatorForOptional('.no-filters-applied')();
+    return noFilters?.text();
+  }
+
+  async getApplicationsSelect(): Promise<GioSelectSearchHarness | null> {
+    return await this.locatorForOptional(GioSelectSearchHarness.with({ formControlName: 'applications' }))();
+  }
+
+  async getSelectedApplications(): Promise<string[] | null> {
+    const select = await this.getApplicationsSelect();
+    return await select.getSelectedValues();
+  }
+
+  async selectApplication(optionText: string): Promise<void> {
+    const select = await this.getApplicationsSelect();
+    await select.checkOptionByLabel(optionText);
+  }
+
+  async openApplicationsSelect(): Promise<void> {
+    const select = await this.getApplicationsSelect();
+    await select.open();
+  }
+
+  async closeApplicationsSelect(): Promise<void> {
+    const select = await this.getApplicationsSelect();
+    if (select) {
+      await select.close();
+    }
+  }
+
+  async getFilterChips(): Promise<MatChipHarness[]> {
+    return this.locatorForAll(MatChipHarness)();
+  }
+
+  async showsChipByText(text: string): Promise<boolean> {
+    return this.locatorForOptional(MatChipHarness.with({ text }))().then((chip) => !!chip);
+  }
+
+  async getFilterChipCount(): Promise<number> {
+    return this.getFilterChips().then((chips) => chips.length);
   }
 }

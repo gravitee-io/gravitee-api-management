@@ -28,6 +28,8 @@ export type ApiSortByParam =
   | '-categories_desc'
   | 'owner'
   | '-owner'
+  | 'portal_status'
+  | '-portal_status'
   | 'visibility'
   | '-visibility';
 
@@ -56,6 +58,9 @@ export function apiSortByParamFromString(sort: string): ApiSortByParam {
   }
   if (sort.endsWith('owner')) {
     return desc ? '-owner' : 'owner';
+  }
+  if (sort.endsWith('portalStatus')) {
+    return desc ? '-portal_status' : 'portal_status';
   }
   if (sort.endsWith('visibility')) {
     return desc ? '-visibility' : 'visibility';

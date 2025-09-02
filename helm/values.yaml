@@ -1485,10 +1485,16 @@ gateway:
 #        maxDelay: 60
 #        maxAttempt: 10
 #      allowGeneratedSpecs: true
+#      # Enables automatic renewal of the secret based on secrets TTL
 #      renewal:
-#        enabled: true
+#        enabled: true # Default is false
+#        # Check strategy to check if a secret is still valid
 #        check:
-#          delay: 15
+#          delay: 1
+#          unit: MINUTES
+#        # TTL by default for all secrets
+#        defaultSecretTtl:
+#          delay: 1
 #          unit: MINUTES
   # handlers:
   #   request:

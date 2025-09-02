@@ -17,8 +17,10 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
@@ -32,17 +34,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @Repository
 public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, String> implements ClusterRepository {
 
+    private final String CLUSTER_GROUPS;
+
     JdbcClusterRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "clusters");
+        CLUSTER_GROUPS = getTableNameFor("cluster_groups");
     }
 
     @Override
@@ -65,6 +72,52 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
             .build();
     }
 
+    private List<String> getGroups(String clusterId) {
+        return jdbcTemplate.queryForList("select group_id from " + CLUSTER_GROUPS + " where cluster_id = ?", String.class, clusterId);
+    }
+
+    private void addGroups(Cluster cluster) {
+        if (cluster == null) return;
+        List<String> groups = getGroups(cluster.getId());
+        if (!isEmpty(groups)) {
+            cluster.setGroups(Set.copyOf(groups));
+        } else {
+            cluster.setGroups(null);
+        }
+    }
+
+    @Override
+    public Cluster create(Cluster item) throws TechnicalException {
+        log.debug("JdbcClusterRepository.create({})", item);
+        try {
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
+            storeGroups(item, false);
+            return findById(item.getId()).orElse(null);
+        } catch (final Exception ex) {
+            log.error("Failed to create cluster:", ex);
+            throw new TechnicalException("Failed to create cluster.", ex);
+        }
+    }
+
+    @Override
+    public Cluster update(final Cluster cluster) throws TechnicalException {
+        log.debug("JdbcClusterRepository.update({})", cluster);
+        if (cluster == null) {
+            throw new IllegalStateException("Failed to update cluster: cluster is null");
+        }
+        try {
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(cluster, cluster.getId()));
+            storeGroups(cluster, true);
+            return findById(cluster.getId())
+                .orElseThrow(() -> new IllegalStateException("No cluster found with id [" + cluster.getId() + "]"));
+        } catch (final IllegalStateException ex) {
+            throw ex;
+        } catch (final Exception ex) {
+            log.error("Failed to update cluster:", ex);
+            throw new TechnicalException("Failed to update cluster", ex);
+        }
+    }
+
     @Override
     public Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortableOpt) {
         Objects.requireNonNull(pageable, "Pageable must not be null");
@@ -77,6 +130,11 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
 
         andWhere.add("environment_id = ?");
         andWhereParams.add(criteria.getEnvironmentId());
+
+        if (!CollectionUtils.isEmpty(criteria.getIds())) {
+            andWhere.add("id in (" + getOrm().buildInClause(criteria.getIds()) + ")");
+            andWhereParams.addAll(criteria.getIds());
+        }
 
         Long total = jdbcTemplate.queryForObject(
             "select count(*) from " + this.tableName + " WHERE " + andWhere,
@@ -106,6 +164,45 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
             andWhereParams.toArray()
         );
 
+        // populate groups for each cluster
+        for (Cluster c : result) {
+            addGroups(c);
+        }
+
         return new Page<>(result, pageable.pageNumber(), result.size(), total);
+    }
+
+    @Override
+    public Optional<Cluster> findById(String id) throws io.gravitee.repository.exceptions.TechnicalException {
+        Optional<Cluster> opt = super.findById(id);
+        opt.ifPresent(this::addGroups);
+        return opt;
+    }
+
+    @Override
+    public void updateGroups(String clusterId, Set<String> groups) {
+        // delete existing groups
+        jdbcTemplate.update("delete from " + CLUSTER_GROUPS + " where cluster_id = ?", clusterId);
+        // insert new groups
+        List<String> filtered = getOrm().filterStrings(groups);
+        if (!filtered.isEmpty()) {
+            jdbcTemplate.batchUpdate(
+                "insert into " + CLUSTER_GROUPS + " ( cluster_id, group_id ) values ( ?, ? )",
+                getOrm().getBatchStringSetter(clusterId, filtered)
+            );
+        }
+    }
+
+    private void storeGroups(Cluster cluster, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update("delete from " + CLUSTER_GROUPS + " where cluster_id = ?", cluster.getId());
+        }
+        List<String> filteredGroups = getOrm().filterStrings(cluster.getGroups());
+        if (!filteredGroups.isEmpty()) {
+            jdbcTemplate.batchUpdate(
+                "insert into " + CLUSTER_GROUPS + " ( cluster_id, group_id ) values ( ?, ? )",
+                getOrm().getBatchStringSetter(cluster.getId(), filteredGroups)
+            );
+        }
     }
 }

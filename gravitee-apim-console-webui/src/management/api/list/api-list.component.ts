@@ -52,6 +52,7 @@ export enum FilterType {
   TAGS,
   CATEGORIES,
   PUBLISHED,
+  PORTAL_VISIBILITY,
 }
 
 const availableDisplayedColumns = [
@@ -63,6 +64,7 @@ const availableDisplayedColumns = [
   'tags',
   'categories',
   'owner',
+  'portalStatus',
   'visibility',
   'actions',
 ];
@@ -95,6 +97,7 @@ interface ApiListTableWrapperFilters extends GioTableWrapperFilters {
   tags?: string[];
   categories?: string[];
   published?: string[];
+  portalVisibilities?: string[];
 }
 
 @Component({
@@ -129,6 +132,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
   checkedTags: string[];
   checkedCategories: string[];
   checkedPublished: string[];
+  checkedPortalVisibilities: string[];
 
   checkedVisibleColumns = {
     apiType: true,
@@ -138,6 +142,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     tags: true,
     categories: true,
     owner: true,
+    portalStatus: true,
     visibility: true,
   };
 
@@ -165,19 +170,18 @@ export class ApiListComponent implements OnInit, OnDestroy {
 
     if (localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`)) {
       const storedColumns = JSON.parse(localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`));
-      if (storedColumns.every((column) => availableDisplayedColumns.includes(column))) {
-        this.displayedColumns = storedColumns;
-        this.checkedVisibleColumns = {
-          apiType: this.displayedColumns.includes('apiType'),
-          states: this.displayedColumns.includes('states'),
-          access: this.displayedColumns.includes('access'),
-          tags: this.displayedColumns.includes('tags'),
-          qualityScore: this.displayedColumns.includes('qualityScore'),
-          categories: this.displayedColumns.includes('categories'),
-          owner: this.displayedColumns.includes('owner'),
-          visibility: this.displayedColumns.includes('visibility'),
-        };
-      }
+      this.displayedColumns = storedColumns;
+      this.checkedVisibleColumns = {
+        apiType: this.displayedColumns.includes('apiType'),
+        states: this.displayedColumns.includes('states'),
+        access: this.displayedColumns.includes('access'),
+        tags: this.displayedColumns.includes('tags'),
+        qualityScore: this.displayedColumns.includes('qualityScore'),
+        categories: this.displayedColumns.includes('categories'),
+        owner: this.displayedColumns.includes('owner'),
+        portalStatus: this.displayedColumns.includes('portalStatus'),
+        visibility: this.displayedColumns.includes('visibility'),
+      };
     }
 
     this.initFilters();
@@ -230,6 +234,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
               tags: filters.tags,
               categories: filters.categories,
               published: filters.published,
+              portalVisibilities: filters.portalVisibilities,
             },
             queryParamsHandling: 'merge',
           });
@@ -241,10 +246,8 @@ export class ApiListComponent implements OnInit, OnDestroy {
             statuses: this.filters.statuses,
             tags: this.filters.tags,
             categories: this.filters.categories,
-            published:
-              this.filters.published && this.filters.published.includes('UNPUBLISHED')
-                ? [...this.filters.published, 'CREATED', 'DEPRECATED', 'ARCHIVED']
-                : this.filters.published,
+            published: this.filters.published,
+            visibilities: this.filters.portalVisibilities,
           };
           return this.apiServiceV2
             .search(body, apiSortByParamFromString(order), filters.pagination.index, filters.pagination.size)
@@ -280,6 +283,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
         break;
       case FilterType.PUBLISHED:
         this.filters = { ...this.filters, published: this.checkedPublished };
+        break;
+      case FilterType.PORTAL_VISIBILITY:
+        this.filters = { ...this.filters, portalVisibilities: this.checkedPortalVisibilities };
         break;
     }
     this.filters$.next(this.filters);
@@ -337,6 +343,10 @@ export class ApiListComponent implements OnInit, OnDestroy {
       this.filters.published = castArray(queryParams.published);
       this.checkedPublished = this.filters.published;
     }
+    if (queryParams.portalVisibilities) {
+      this.filters.portalVisibilities = castArray(queryParams.portalVisibilities);
+      this.checkedPortalVisibilities = this.filters.portalVisibilities;
+    }
     this.filters$.next(this.filters);
   }
 
@@ -367,7 +377,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
               isNotSynced$: undefined,
               qualityScore$: null,
             };
-          } else if (api.definitionVersion === 'FEDERATED') {
+          } else if (api.definitionVersion === 'FEDERATED' || api.definitionVersion === 'FEDERATED_AGENT') {
             return {
               ...tableDS,
               access: [],
@@ -400,7 +410,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
         }
         return { label: `${api.definitionVersion} -${this.getLabelType(api)} ${this.titleCasePipe.transform((api as ApiV4).type)}` };
       case 'FEDERATED':
-        return { label: this.titleCasePipe.transform(api.definitionVersion) };
+        return { label: 'Federated API' };
+      case 'FEDERATED_AGENT':
+        return { label: 'Federated A2A Agent' };
       default:
         return { icon: 'gio:alert-circle', label: 'V1' };
     }

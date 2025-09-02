@@ -38,6 +38,8 @@ tags:
       description: Everything about APIs scoring
     - name: Clusters
       description: Everything about clusters
+    - name: Newt Ai
+      description: Everything about Newt Ai
 
 paths:
     # Environment Analytics
@@ -565,6 +567,52 @@ paths:
           default:
             $ref: "#/components/responses/Error"
 
+
+    # NewAI
+    /newtai/el/_generate:
+      post:
+        tags:
+          - Newt Ai
+        summary: Generate Expression Language
+        description: |-
+          Generate Expression Language.
+        operationId: generateEl
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateExpressionLanguage"
+          required: true
+        responses:
+          "200":
+            $ref: "#/components/responses/GenerateExpressionLanguageResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
+    /clusters/{clusterId}/groups:
+      put:
+        tags:
+          - Clusters
+        summary: Update a cluster's groups
+        operationId: updateClusterGroups
+        parameters:
+          - $ref: "#/components/parameters/clusterId"
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateClusterGroups"
+          required: true
+        responses:
+          "200":
+            description: Cluster groups updated
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ClusterGroups"
+          default:
+            $ref: "#/components/responses/Error"
+
 components:
     schemas:
         # Analytics
@@ -838,6 +886,10 @@ components:
                     type: string
                 configuration:
                     type: object
+                groups:
+                  type: array
+                  items:
+                    type: string
         UpdateCluster:
             type: object
             properties:
@@ -847,6 +899,14 @@ components:
                     type: string
                 configuration:
                     type: object
+        ClusterGroups:
+            type: array
+            items:
+                type: string
+        UpdateClusterGroups:
+            type: array
+            items:
+                type: string
 
         # Scoring
         EnvironmentApiScore:
@@ -1233,6 +1293,34 @@ components:
                     type: string
                     description: In a paginated response, link to the next page. Maybe null if current is the last page
 
+        FeedbackRequestId:
+          description: newt AI feedback request id.
+          type: object
+          properties:
+            chatId:
+              type: string
+            userMessageId:
+              type: string
+            agentMessageId:
+              type: string
+        GenerateExpressionLanguage:
+          type: object
+          description: Request an expression language generation
+          required:
+            - message
+            - context
+          properties:
+            message:
+              description: Prompt of generation.
+              type: string
+            context:
+              description: Context to improve the generation.
+              type: object
+              properties:
+                apiId:
+                  type: string
+                  description: The API identifier if relevant.
+
     parameters:
         pageParam:
             name: page
@@ -1613,6 +1701,19 @@ components:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/ScoringFunction"
+
+        GenerateExpressionLanguageResponse:
+          description: Response an expression language generation
+          content:
+            application/json:
+              schema:
+                title: "GenerateExpressionLanguageResponse"
+                properties:
+                  message:
+                    description: Expression language generated.
+                    type: string
+                  feedbackRequestId:
+                    $ref: '#/components/schemas/FeedbackRequestId'
 
     securitySchemes:
         BasicAuth:

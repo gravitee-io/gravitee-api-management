@@ -22,7 +22,6 @@ import inmemory.ClusterCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
-import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -35,7 +34,7 @@ import org.junit.jupiter.api.Test;
 class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
 
     private DeleteClusterUseCase deleteClusterUseCase;
-    private final ClusterCrudService clusterCrudService = new ClusterCrudServiceInMemory();
+    private final ClusterCrudServiceInMemory clusterCrudService = new ClusterCrudServiceInMemory();
     private Cluster existingCluster;
 
     @BeforeEach
@@ -54,7 +53,7 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
                 .organizationId(ORG_ID)
                 .configuration(Map.of("bootstrapServers", "localhost:9092"))
                 .build();
-        ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
+        clusterCrudService.initWith(List.of(existingCluster));
     }
 
     @Test

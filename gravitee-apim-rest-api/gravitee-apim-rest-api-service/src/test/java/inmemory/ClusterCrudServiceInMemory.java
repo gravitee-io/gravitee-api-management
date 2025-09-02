@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.Set;
 
 public class ClusterCrudServiceInMemory extends AbstractCrudServiceInMemory<Cluster> implements ClusterCrudService {
 
@@ -50,5 +51,25 @@ public class ClusterCrudServiceInMemory extends AbstractCrudServiceInMemory<Clus
     @Override
     public void delete(String id, String environmentId) {
         storage.removeIf(cluster -> id.equals(cluster.getId()) && environmentId.equals(cluster.getEnvironmentId()));
+    }
+
+    @Override
+    public void updateGroups(String id, String environmentId, Set<String> groups) {
+        OptionalInt index =
+            this.findIndex(this.storage, cluster -> cluster.getId().equals(id) && cluster.getEnvironmentId().equals(environmentId));
+        if (index.isPresent()) {
+            Cluster cluster = storage.get(index.getAsInt());
+            Cluster updatedCluster = Cluster
+                .builder()
+                .id(cluster.getId())
+                .name(cluster.getName())
+                .description(cluster.getDescription())
+                .environmentId(cluster.getEnvironmentId())
+                .groups(groups)
+                .build();
+            storage.set(index.getAsInt(), updatedCluster);
+        } else {
+            throw new SharedPolicyGroupNotFoundException(id);
+        }
     }
 }

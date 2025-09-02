@@ -6,7 +6,8 @@
     "organizationId": "org-1",
     "name": "cluster-1",
     "description": "The cluster no 1",
-    "definition": "Cluster 1 definition"
+    "definition": "Cluster 1 definition",
+    "groups": [ "group-1", "group-2" ]
   },
   {
     "id": "cluster-id-2",

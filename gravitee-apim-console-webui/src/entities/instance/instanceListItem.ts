@@ -22,7 +22,7 @@ export interface InstanceListItem {
   hostname: string;
   ip: string;
   port: string;
-  version: string;
+  version: string | null;
   tags?: string[];
   tenant?: string;
   state: 'STARTED' | 'STOPPED' | 'UNKNOWN';

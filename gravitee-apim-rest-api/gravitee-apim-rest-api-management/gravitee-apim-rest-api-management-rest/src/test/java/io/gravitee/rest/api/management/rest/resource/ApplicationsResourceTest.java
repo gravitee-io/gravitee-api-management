@@ -133,12 +133,13 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         var responseContent = response.readEntity(ApplicationListItemPagedResult.class);
-        assertEquals(0, responseContent.getPage().getCurrent());
-        assertEquals(20, responseContent.getPage().getPerPage());
-        assertEquals(3, responseContent.getPage().getSize());
-        assertEquals(1, responseContent.getPage().getTotalPages());
-        assertEquals(3, responseContent.getPage().getTotalElements());
-        Collection<ApplicationListItem> resultApplications = responseContent.getData();
+        var pagedApplicationsResult = (ApplicationListItemPagedResult) responseContent;
+        assertEquals(1, pagedApplicationsResult.getPage().getCurrent());
+        assertEquals(20, pagedApplicationsResult.getPage().getPerPage());
+        assertEquals(3, pagedApplicationsResult.getPage().getSize());
+        assertEquals(1, pagedApplicationsResult.getPage().getTotalPages());
+        assertEquals(3, pagedApplicationsResult.getPage().getTotalElements());
+        Collection<ApplicationListItem> resultApplications = pagedApplicationsResult.getData();
         assertEquals(2, resultApplications.stream().filter(app -> app.getId().equals("app2")).findFirst().get().getGroups().size());
     }
 
@@ -157,10 +158,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         var responseContent = response.readEntity(ApplicationListItemPagedResult.class);
-        assertEquals(2, responseContent.getPage().getCurrent());
-        assertEquals(3, responseContent.getPage().getPerPage());
-        assertEquals(1, responseContent.getPage().getSize());
-        assertEquals(3, responseContent.getPage().getTotalPages());
-        assertEquals(7, responseContent.getPage().getTotalElements());
+        var pagedApplicationsResult = (ApplicationListItemPagedResult) responseContent;
+        assertEquals(3, pagedApplicationsResult.getPage().getCurrent());
+        assertEquals(3, pagedApplicationsResult.getPage().getPerPage());
+        assertEquals(1, pagedApplicationsResult.getPage().getSize());
+        assertEquals(3, pagedApplicationsResult.getPage().getTotalPages());
+        assertEquals(7, pagedApplicationsResult.getPage().getTotalElements());
     }
 }

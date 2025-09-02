@@ -35,9 +35,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { ClustersService } from '../../../../services-ngx/clusters.service';
+import { ClusterService } from '../../../../services-ngx/cluster.service';
 import { Cluster } from '../../../../entities/management-api-v2';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'cluster-general',
@@ -70,14 +71,16 @@ export class ClusterGeneralComponent implements OnInit {
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly activatedRoute = inject(ActivatedRoute);
-  private readonly clustersService = inject(ClustersService);
+  private readonly clusterService = inject(ClusterService);
   private readonly snackBarService = inject(SnackBarService);
   private readonly matDialog = inject(MatDialog);
   private readonly router = inject(Router);
+  private readonly permissionService = inject(GioPermissionService);
 
   public ngOnInit() {
     this.isLoadingData = true;
-    this.clustersService
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['cluster-definition-u']);
+    this.clusterService
       .get(this.activatedRoute.snapshot.params.clusterId)
       .pipe(
         tap((cluster) => {
@@ -104,7 +107,7 @@ export class ClusterGeneralComponent implements OnInit {
       configuration: this.initialCluster.configuration,
     };
 
-    this.clustersService
+    this.clusterService
       .update(this.initialCluster.id, clusterToUpdate)
       .pipe(
         tap(() => this.snackBarService.success('Cluster details successfully updated!')),
@@ -131,7 +134,7 @@ export class ClusterGeneralComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.clustersService.delete(this.activatedRoute.snapshot.params.clusterId)),
+        switchMap(() => this.clusterService.delete(this.activatedRoute.snapshot.params.clusterId)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;

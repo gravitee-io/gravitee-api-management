@@ -27,4 +27,5 @@ public enum MembershipReferenceType {
     ORGANIZATION,
     PLATFORM,
     INTEGRATION,
+    CLUSTER,
 }

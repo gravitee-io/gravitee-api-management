@@ -21,10 +21,11 @@
     "@danielmoncada/angular-datetime-picker": "19.0.0",
     "@danielmoncada/angular-datetime-picker-moment-adapter": "6.0.2",
     "@fontsource/libre-franklin": "4.5.11",
-    "@gravitee/ui-analytics": "15.5.0",
+    "@gravitee/gravitee-markdown": "portal:../gravitee-apim-portal-webui-next/dist/gravitee-markdown",
+    "@gravitee/ui-analytics": "15.8.1",
     "@gravitee/ui-components": "4.4.0",
-    "@gravitee/ui-particles-angular": "15.5.0",
-    "@gravitee/ui-policy-studio-angular": "15.5.0",
+    "@gravitee/ui-particles-angular": "15.8.1",
+    "@gravitee/ui-policy-studio-angular": "15.8.1",
     "@highcharts/map-collection": "1.1.4",
     "@ngx-formly/core": "6.3.12",
     "@ngx-formly/material": "6.3.12",
@@ -90,7 +91,7 @@
     "@angular-devkit/build-angular": "19.2.5",
     "@angular/cli": "19.2.5",
     "@angular/compiler-cli": "19.2.4",
-    "@gravitee/ui-schematics": "15.5.0",
+    "@gravitee/ui-schematics": "15.8.1",
     "@storybook/addon-essentials": "8.6.14",
     "@storybook/angular": "8.6.14",
     "@types/angular": "1.8.9",
@@ -133,6 +134,7 @@
     "ng": "ng",
     "build": "NODE_OPTIONS=--max_old_space_size=7168 ng build --stats-json",
     "build:prod": "NODE_OPTIONS=--max_old_space_size=7168 ng build --configuration=production",
+    "build:gravitee-markdown": "scripts/build-gravitee-markdown.sh",
     "lint": "yarn lint:eslint && yarn prettier",
     "lint:eslint": "eslint --ext .json,.ts ./src",
     "lint:eslint:fix": "eslint --ext .json,.ts ./src --fix",
@@ -149,7 +151,8 @@
     "test-old": "jest --config old-jest.config.js --detectOpenHandles",
     "test": "jest",
     "test:auto": "jest --watch",
-    "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" node --max-old-space-size=10240 --expose-gc  ./node_modules/.bin/jest --ci --reporters=default --reporters=jest-junit  --maxWorkers=7 --collectCoverage=true --logHeapUsage"
+    "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" node --max-old-space-size=10240 --expose-gc  ./node_modules/.bin/jest --ci --reporters=default --reporters=jest-junit  --maxWorkers=7 --collectCoverage=true --logHeapUsage",
+    "watch:gravitee-markdown": "cd ../gravitee-apim-portal-webui-next && ng build gravitee-markdown --watch"
   },
   "scarfSettings": {
     "enabled": false

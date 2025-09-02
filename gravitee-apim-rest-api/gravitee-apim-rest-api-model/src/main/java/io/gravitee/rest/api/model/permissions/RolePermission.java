@@ -87,6 +87,7 @@ public enum RolePermission {
     ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION(RoleScope.ENVIRONMENT, EnvironmentPermission.IDENTITY_PROVIDER_ACTIVATION),
     ENVIRONMENT_INTEGRATION(RoleScope.ENVIRONMENT, EnvironmentPermission.INTEGRATION),
     ENVIRONMENT_SHARED_POLICY_GROUP(RoleScope.ENVIRONMENT, EnvironmentPermission.SHARED_POLICY_GROUP),
+    ENVIRONMENT_CLUSTER(RoleScope.ENVIRONMENT, EnvironmentPermission.CLUSTER),
 
     ORGANIZATION_USERS(RoleScope.ORGANIZATION, OrganizationPermission.USER),
     ORGANIZATION_USERS_TOKEN(RoleScope.ORGANIZATION, OrganizationPermission.USER_TOKEN),
@@ -106,7 +107,10 @@ public enum RolePermission {
     ORGANIZATION_LICENSE_MANAGEMENT(RoleScope.ORGANIZATION, OrganizationPermission.LICENSE_MANAGEMENT),
 
     INTEGRATION_DEFINITION(RoleScope.INTEGRATION, IntegrationPermission.DEFINITION),
-    INTEGRATION_MEMBER(RoleScope.INTEGRATION, IntegrationPermission.MEMBER);
+    INTEGRATION_MEMBER(RoleScope.INTEGRATION, IntegrationPermission.MEMBER),
+
+    CLUSTER_MEMBER(RoleScope.CLUSTER, ClusterPermission.MEMBER),
+    CLUSTER_DEFINITION(RoleScope.CLUSTER, ClusterPermission.DEFINITION);
 
     final RoleScope scope;
     final Permission permission;

@@ -26,5 +26,6 @@ describe('MapProviderNamePipe', (): void => {
     const pipe: MapProviderNamePipe = new MapProviderNamePipe();
     expect(pipe.transform('aws-api-gateway')).toEqual('AWS API Gateway');
     expect(pipe.transform('ibm-api-connect')).toEqual('IBM API Connect');
+    expect(pipe.transform('edge-stack')).toEqual('Edge Stack');
   });
 });

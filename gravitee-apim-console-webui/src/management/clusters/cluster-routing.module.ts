@@ -20,6 +20,8 @@ import { ClusterNavigationComponent } from './cluster-navigation/cluster-navigat
 import { ClusterGeneralComponent } from './details/general/cluster-general.component';
 import { ClusterConfigurationComponent } from './details/configuration/cluster-configuration.component';
 import { ClusterListComponent } from './list/cluster-list.component';
+import { ClusterUserPermissionsComponent } from './details/user-permissions/cluster-user-permissions.component';
+import { ClusterGuard } from './cluster.guard';
 
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
@@ -28,22 +30,20 @@ const clusterRoutes: Routes = [
     path: '',
     component: ClusterListComponent,
     canActivate: [PermissionGuard.checkRouteDataPermissions],
+    canDeactivate: [ClusterGuard.clearPermissions],
     data: {
       useAngularMaterial: true,
       permissions: {
-        // TODO
-        // anyOf: ['environment-cluster-r'],
+        anyOf: ['environment-cluster-r'],
       },
     },
   },
   {
     path: ':clusterId',
     component: ClusterNavigationComponent,
-    // TODO
-    // canActivate: [ClusterGuard.loadPermissions],
+    canActivate: [ClusterGuard.loadPermissions],
     canActivateChild: [PermissionGuard.checkRouteDataPermissions],
-    // TODO
-    // canDeactivate: [ClusterGuard.clearPermissions],
+    canDeactivate: [ClusterGuard.clearPermissions],
     children: [
       {
         path: '',
@@ -55,8 +55,7 @@ const clusterRoutes: Routes = [
         component: ClusterGeneralComponent,
         data: {
           permissions: {
-            // TODO
-            // anyOf: ['cluster-definition-r'],
+            anyOf: ['cluster-definition-r'],
           },
         },
       },
@@ -65,8 +64,16 @@ const clusterRoutes: Routes = [
         component: ClusterConfigurationComponent,
         data: {
           permissions: {
-            // TODO
-            // anyOf: ['cluster-definition-r'],
+            anyOf: ['cluster-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'user-permissions',
+        component: ClusterUserPermissionsComponent,
+        data: {
+          permissions: {
+            anyOf: ['cluster-member-r'],
           },
         },
       },

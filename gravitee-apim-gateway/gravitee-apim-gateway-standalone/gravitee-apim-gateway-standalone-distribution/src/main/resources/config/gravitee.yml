@@ -879,9 +879,10 @@ api:
 #      maxDelay: 60
 #      maxAttempt: 10
 #    allowGeneratedSpecs: true
+#    # Enables automatic renewal of the secret based on secrets TTL
 #    renewal:
-#      enabled: false
-#      # Retry strategy for secret renewal
+#      enabled: true # Default is false
+#      # Check frequency to see if secret TTL has expired
 #      check:
 #        delay: 1
 #        unit: MINUTES

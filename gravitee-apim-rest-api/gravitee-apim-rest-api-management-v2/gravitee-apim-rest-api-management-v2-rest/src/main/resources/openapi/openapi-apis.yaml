@@ -1180,6 +1180,30 @@ paths:
                     $ref: "#/components/responses/GroupsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/groups/_search:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - Groups
+            summary: Search for groups using filters
+            description: |
+                Search for groups using filters.
+                User must have the ENVIRONMENT_GROUP[READ] permission.
+            operationId: searchGroups
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/GroupSearchParams"
+            responses:
+                "200":
+                    $ref: "#/components/responses/GroupsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/groups/{groupId}/members:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -2266,6 +2290,25 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/analytics/{requestId}:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+        - $ref: "#/components/parameters/requestIdParam"
+      get:
+        tags:
+          - API Analytics
+        summary: Get API metric for a request
+        description: |-
+          Get API metric for a request.
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getApiMetricsDetail
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiMetricsDetailResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
     # API Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
@@ -2859,6 +2902,30 @@ paths:
                     $ref: "#/components/responses/AsyncJobsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+
+    # NewAI
+    /environments/{envId}/apis/{apiId}/el/_generate:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      post:
+        tags:
+          - newtai
+        summary: Generate Expression Language
+        description: |-
+          Generate Expression Language.
+        operationId: generateEl
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateExpressionLanguage"
+          required: true
+        responses:
+          "200":
+            $ref: "#/components/responses/GenerateExpressionLanguageResponse"
+          default:
+            $ref: "#/components/responses/Error"
 
     # DebugMode
     /environments/{envId}/apis/{apiId}/debug:
@@ -3712,6 +3779,16 @@ components:
                     type: number
                     description: New order for the specified API
 
+        GenerateExpressionLanguage:
+          type: object
+          description: Request an expression language generation
+          required:
+            - message
+          properties:
+            message:
+              description: Prompt of generation.
+              type: string
+
         ApiDeployment:
             type: object
             properties:
@@ -3784,6 +3861,10 @@ components:
                   items:
                     type: string
                 published:
+                  type: array
+                  items:
+                    type: string
+                visibilities:
                   type: array
                   items:
                     type: string
@@ -5465,6 +5546,15 @@ components:
             enum:
                 - API_CREATE
                 - APPLICATION_CREATE
+        GroupSearchParams:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    description: List of group IDs to search for.
+                    items:
+                        type: string
+                    uniqueItems: true
         Member:
             type: object
             properties:
@@ -5502,6 +5592,7 @@ components:
                 - ORGANIZATION
                 - PLATFORM
                 - INTEGRATION
+                - CLUSTER
         AddMember:
             type: object
             description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
@@ -5947,6 +6038,9 @@ components:
         EndpointStatus:
             type: string
             description: The status of the endpoint.
+            x-field-extra-annotation: "@com.fasterxml.jackson.annotation.JsonIgnore"
+            x-getter-extra-annotation: "@com.fasterxml.jackson.annotation.JsonIgnore"
+            x-setter-extra-annotation: "@com.fasterxml.jackson.annotation.JsonIgnore"
             example: UP
             enum:
                 - UP
@@ -7970,6 +8064,33 @@ components:
             - MIGRATABLE
             - CAN_BE_FORCED
             - IMPOSSIBLE
+        
+        FeedbackRequestId:
+          description: newt AI feedback request id.
+          type: object
+          properties:
+            chatId:
+              type: string
+            userMessageId:
+              type: string
+            agentMessageId:
+              type: string
+
+        BaseInstance:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Gateway's uuid.
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            hostname:
+              type: string
+              description: Gateway's hostname.
+              example: my-gateway.example.com
+            ip:
+              type: string
+              description: Gateway's ip.
+              example: 10.0.1.123
 
     parameters:
         #############
@@ -8704,6 +8825,80 @@ components:
                                         type: integer
                                         format: int64
 
+        ApiMetricsDetailResponse:
+          description: API metric for a particular request
+          content:
+            application/json:
+              schema:
+                title: "ApiMetricsDetailResponse"
+                description: API metrics detail for a request ID.
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: The date (as timestamp) of the metric.
+                    example: 2023-05-18T12:40:46.184Z
+                  apiId:
+                    type: string
+                    description: The id of the api.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                  requestId:
+                    type: string
+                    description: The id of the request.
+                    example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                  transactionId:
+                    type: string
+                    description: The id of the transaction.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                  host:
+                    type: string
+                    description: The host used for the request
+                    example: mycompany.example.com
+                  plan:
+                    $ref: "#/components/schemas/BasePlan"
+                  application:
+                    $ref: "#/components/schemas/BaseApplication"
+                  gateway:
+                    $ref: "#/components/schemas/BaseInstance"
+                  uri:
+                    type: string
+                    description: URI of the request.
+                    example: /my-api
+                  status:
+                    type: integer
+                    description: The response status
+                    example: 200
+                  requestContentLength:
+                    type: integer
+                    description: The request content length
+                    example: 42
+                  responseContentLength:
+                    type: integer
+                    description: The response content length
+                    example: 42
+                  remoteAddress:
+                    type: string
+                    description: the remote address
+                    example:
+                  gatewayLatency:
+                    type: integer
+                    description: The gateway latency
+                    example: 42
+                  gatewayResponseTime:
+                    type: integer
+                    description: The gateway response time
+                    example: 42
+                  endpointResponseTime:
+                    type: integer
+                    description: The endpoint response time
+                    example: 42
+                  method:
+                    $ref: "#/components/schemas/HttpMethod"
+                  endpoint:
+                    type: string
+                    description: The endpoint URL.
+                    example: "https://my-api-example.com"
+
         # Analytics - Logs
         ApiLogsResponse:
             description: Page of API Logs
@@ -8988,6 +9183,19 @@ components:
                           type: string
                         state:
                           $ref: '#/components/schemas/MigrationStateType'
+
+        GenerateExpressionLanguageResponse:
+          description: Response an expression language generation
+          content:
+            application/json:
+              schema:
+                title: "GenerateExpressionLanguageResponse"
+                properties:
+                  message:
+                    description: Expression language generated.
+                    type: string
+                  feedbackRequestId:
+                    $ref: '#/components/schemas/FeedbackRequestId'
 
 
     securitySchemes:

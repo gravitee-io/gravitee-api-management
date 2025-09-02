@@ -16,6 +16,10 @@
 package io.gravitee.apim.core.group.query_service;
 
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,4 +29,5 @@ public interface GroupQueryService {
     Set<Group> findByIds(Set<String> ids);
     Set<Group> findByEvent(String environmentId, Group.GroupEvent event);
     List<Group> findByNames(String environmentId, Set<String> name);
+    Page<Group> searchGroups(ExecutionContext executionContext, Set<String> groupIds, Pageable pageable);
 }

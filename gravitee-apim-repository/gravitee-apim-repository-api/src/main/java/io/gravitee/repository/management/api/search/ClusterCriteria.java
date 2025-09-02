@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,4 +26,5 @@ import lombok.Getter;
 public class ClusterCriteria {
 
     private String environmentId;
+    private List<String> ids;
 }

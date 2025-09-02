@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, input, signal, Signal } from '@angular/core';
-import { DecimalPipe, PercentPipe } from '@angular/common';
+import { Component, computed, input, output, Signal, signal } from '@angular/core';
+import { DecimalPipe, NgTemplateOutlet, PercentPipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 
@@ -38,13 +38,17 @@ export type ApiAnalyticsWidgetTableDataColumn = {
 
 @Component({
   selector: 'api-analytics-widget-table',
-  imports: [DecimalPipe, GioTableWrapperModule, MatTableModule, MatSortModule, PercentPipe],
+  imports: [DecimalPipe, GioTableWrapperModule, MatTableModule, MatSortModule, PercentPipe, NgTemplateOutlet],
   templateUrl: './api-analytics-widget-table.component.html',
   styleUrl: './api-analytics-widget-table.component.scss',
 })
 export class ApiAnalyticsWidgetTableComponent {
   columns = input.required<ApiAnalyticsWidgetTableDataColumn[]>();
   data = input.required<ApiAnalyticsWidgetTableRowData[]>();
+  firstColumnClickable = input<boolean>(false);
+  keyIdentifier = input<string | undefined>(undefined);
+
+  firstColumnCellClick = output<ApiAnalyticsWidgetTableRowData>();
 
   displayedColumns = computed(() => this.columns().map((column) => column.name));
   totalLength: Signal<number> = computed(() => this.data()?.length || 0);
@@ -65,4 +69,14 @@ export class ApiAnalyticsWidgetTableComponent {
       direction: 'desc',
     },
   });
+
+  onFirstColumnActivate(rowData: ApiAnalyticsWidgetTableRowData) {
+    if (!rowData) {
+      return;
+    }
+    if (rowData['unknown']) {
+      return;
+    }
+    this.firstColumnCellClick.emit(rowData);
+  }
 }

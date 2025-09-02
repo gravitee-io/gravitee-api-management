@@ -60,6 +60,7 @@ import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
+import inmemory.NewtAIProviderInMemory;
 import inmemory.NoopSwaggerOpenApiResolver;
 import inmemory.NoopTemplateResolverDomainService;
 import inmemory.NotificationCRDDomainServiceInMemory;
@@ -102,6 +103,7 @@ import inmemory.ValidateResourceDomainServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
+import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.specgen.crud_service.ApiSpecGenCrudService;
 import io.gravitee.apim.core.specgen.query_service.ApiSpecGenQueryService;
 import io.gravitee.apim.core.specgen.service_provider.OasProvider;
@@ -551,5 +553,10 @@ public class InMemoryConfiguration {
     @Bean
     public A2aAgentFetcher a2aAgentFetcher() {
         return new A2aAgentFetcherInMemory();
+    }
+
+    @Bean
+    public NewtAIProvider newtAIProvider() {
+        return new NewtAIProviderInMemory();
     }
 }

@@ -25,7 +25,11 @@ import { ClustersListPageHarness } from './cluster-list.harness';
 
 import { ClustersAddDialogHarness } from '../add-dialog/clusters-add-dialog.harness';
 import { GioTestingModule } from '../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import {
+  GioTestingPermissionProvider,
+  GioTestingRoleScopePermission,
+  GioTestingRolesScopePermissionProvider,
+} from '../../../shared/components/gio-permission/gio-permission.service';
 import {
   expectCreateClusterRequest,
   expectDeleteClusterRequest,
@@ -45,7 +49,22 @@ describe('ClustersListPageComponent', () => {
       providers: [
         {
           provide: GioTestingPermissionProvider,
-          useValue: [],
+          useValue: ['environment-cluster-c'],
+        },
+        {
+          provide: GioTestingRolesScopePermissionProvider,
+          useValue: [
+            {
+              roleScope: 'CLUSTER',
+              permissions: ['cluster-definition-r', 'cluster-definition-u', 'cluster-definition-d'],
+              id: 'cluster-id',
+            },
+            {
+              roleScope: 'CLUSTER',
+              permissions: ['cluster-definition-r'],
+              id: 'cluster-readonly-id',
+            },
+          ] satisfies GioTestingRoleScopePermission[],
         },
       ],
     }).compileComponents();
@@ -79,7 +98,8 @@ describe('ClustersListPageComponent', () => {
           },
         }),
         fakeCluster({
-          name: 'Testing Cluster',
+          id: 'cluster-readonly-id',
+          name: 'Testing Cluster (ReadOnly)',
           configuration: {
             bootstrapServers: 'kafka-test.example.com:9092',
             security: {
@@ -103,8 +123,20 @@ describe('ClustersListPageComponent', () => {
     expect(await table.getCellTextByIndex()).toStrictEqual([
       ['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', 'Jan 1, 2023, 12:00:00 AM', ''],
       ['Development Cluster', 'kafka-dev.example.com:9092', 'SASL_PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
-      ['Testing Cluster', 'kafka-test.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Testing Cluster (ReadOnly)', 'kafka-test.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
     ]);
+  });
+
+  it('should display actions column only for clusters where user has write permission', async () => {
+    const productionClusterEditBtn = await componentHarness.getEditButton(0);
+    const productionClusterRemoveBtn = await componentHarness.getRemoveButton(0);
+    expect(productionClusterEditBtn).not.toBeNull();
+    expect(productionClusterRemoveBtn).not.toBeNull();
+
+    const testingClusterEditBtn = await componentHarness.getEditButton(2);
+    const testingClusterRemoveBtn = await componentHarness.getRemoveButton(2);
+    expect(testingClusterEditBtn).toBeNull();
+    expect(testingClusterRemoveBtn).toBeNull();
   });
 
   it('should refresh the table when filters change', async () => {
@@ -114,7 +146,7 @@ describe('ClustersListPageComponent', () => {
     expect(await table.getCellTextByIndex()).toStrictEqual([
       ['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', 'Jan 1, 2023, 12:00:00 AM', ''],
       ['Development Cluster', 'kafka-dev.example.com:9092', 'SASL_PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
-      ['Testing Cluster', 'kafka-test.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Testing Cluster (ReadOnly)', 'kafka-test.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
     ]);
 
     await getTableWrapper.setSearchValue('Production');

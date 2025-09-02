@@ -15,22 +15,9 @@
     limitations under the License.
 
 -->
-<mat-card class="card">
-  <mat-card-content>
-    <div class="card__header">
-      <div>
-        <div class="card__header__title">Details</div>
-        <div class="card__header__subtitle">Analyze the connection logs for a specific connection</div>
-      </div>
-      <a mat-button mat-raised-button [routerLink]="'..'" aria-label="Back to Connections">Back to Connections</a>
-    </div>
-    <div class="card__body">
-      <div *ngIf="connectionLog$ | async as connectionLogDetail; else showEmptyState" class="connection-log">
-        <api-runtime-logs-connection-log-details [connectionLogDetail]="connectionLogDetail"></api-runtime-logs-connection-log-details>
-      </div>
-      <ng-template #showEmptyState>
-        <api-runtime-logs-details-empty-state (navigateToSettings)="openLogsSettings()"></api-runtime-logs-details-empty-state>
-      </ng-template>
-    </div>
-  </mat-card-content>
-</mat-card>
+<a mat-flat-button routerLink=".." aria-label="Back to logs"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Back to logs</a>
+<div class="mat-h2">Log</div>
+<div class="card__container">
+  <api-proxy-request-metric-overview [metric]="apiMetricsDetail()" />
+  <api-proxy-request-log-overview class="log-details" [log]="connectionLog()" />
+</div>

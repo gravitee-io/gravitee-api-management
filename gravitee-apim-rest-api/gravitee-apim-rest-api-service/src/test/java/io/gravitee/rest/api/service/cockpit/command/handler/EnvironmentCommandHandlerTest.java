@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
@@ -32,10 +33,12 @@ import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.PortalPageService;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,11 +58,14 @@ public class EnvironmentCommandHandlerTest {
     @Mock
     private AccessPointCrudService accessPointService;
 
+    @Mock
+    private PortalPageService portalPageService;
+
     public EnvironmentCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new EnvironmentCommandHandler(environmentService, accessPointService);
+        cut = new EnvironmentCommandHandler(environmentService, accessPointService, portalPageService);
     }
 
     @Test
@@ -68,10 +74,12 @@ public class EnvironmentCommandHandlerTest {
     }
 
     @Test
+    @SneakyThrows
     public void handle() throws InterruptedException {
+        String envId = "env#1";
         EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload
             .builder()
-            .id("env#1")
+            .id(envId)
             .cockpitId("env#cockpit-1")
             .hrids(Collections.singletonList("env-1"))
             .organizationId("orga#1")
@@ -90,7 +98,7 @@ public class EnvironmentCommandHandlerTest {
         when(
             environmentService.createOrUpdate(
                 eq("orga#1"),
-                eq("env#1"),
+                eq(envId),
                 argThat(newEnvironment ->
                     newEnvironment.getCockpitId().equals(environmentPayload.cockpitId()) &&
                     newEnvironment.getHrids().equals(environmentPayload.hrids()) &&
@@ -99,12 +107,14 @@ public class EnvironmentCommandHandlerTest {
                 )
             )
         )
-            .thenReturn(new EnvironmentEntity());
+            .thenReturn(EnvironmentEntity.builder().id(envId).build());
 
         TestObserver<EnvironmentReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+
+        verify(portalPageService).createDefaultPortalHomePage(envId);
     }
 
     @Test

@@ -44,7 +44,6 @@ describe('ApiAnalyticsWidgetService', () => {
     timeRangeParams: null,
     plans: null,
     httpStatuses: null,
-    hosts: null,
     applications: null,
   };
 
@@ -544,14 +543,20 @@ describe('ApiAnalyticsWidgetService', () => {
               expect(result.widgetData.data[0]).toEqual({
                 'col-0': 'Application 2',
                 'col-1': 200,
+                __key: 'app-2',
+                unknown: false,
               });
               expect(result.widgetData.data[1]).toEqual({
                 'col-0': 'Application 1',
                 'col-1': 100,
+                __key: 'app-1',
+                unknown: false,
               });
               expect(result.widgetData.data[2]).toEqual({
                 'col-0': 'Application 3',
                 'col-1': 50,
+                __key: 'app-3',
+                unknown: false,
               });
             }
             done();
@@ -1010,31 +1015,54 @@ describe('ApiAnalyticsWidgetService', () => {
 
     describe('queryOf', () => {
       it('should return null when all params are empty or undefined', () => {
-        expect(service['queryOf']({ httpStatuses: [], plans: [], hosts: [], applications: [], timeRangeParams: undefined })).toBe(null);
-        expect(service['queryOf']({ httpStatuses: [], plans: [], hosts: [], applications: [], timeRangeParams: undefined })).toBe(null);
+        expect(
+          service['queryOf']({
+            httpStatuses: [],
+            plans: [],
+            applications: [],
+            timeRangeParams: undefined,
+          }),
+        ).toBe(null);
+        expect(
+          service['queryOf']({
+            httpStatuses: [],
+            plans: [],
+            applications: [],
+            timeRangeParams: undefined,
+          }),
+        ).toBe(null);
       });
 
       it('should build query for httpStatuses', () => {
         expect(
-          service['queryOf']({ httpStatuses: ['200', '404'], plans: [], hosts: [], applications: [], timeRangeParams: undefined }),
+          service['queryOf']({
+            httpStatuses: ['200', '404'],
+            plans: [],
+            applications: [],
+            timeRangeParams: undefined,
+          }),
         ).toBe('status:("200" OR "404")');
-      });
-
-      it('should build query for hosts', () => {
-        expect(
-          service['queryOf']({ httpStatuses: [], plans: [], hosts: ['host1', 'host2'], applications: [], timeRangeParams: undefined }),
-        ).toBe('host:("host1" OR "host2")');
       });
 
       it('should build query for plans', () => {
         expect(
-          service['queryOf']({ httpStatuses: [], plans: ['planA', 'planB'], hosts: [], applications: [], timeRangeParams: undefined }),
+          service['queryOf']({
+            httpStatuses: [],
+            plans: ['planA', 'planB'],
+            applications: [],
+            timeRangeParams: undefined,
+          }),
         ).toBe('plan-id:("planA" OR "planB")');
       });
 
       it('should build query for applications', () => {
         expect(
-          service['queryOf']({ httpStatuses: [], plans: [], hosts: [], applications: ['app1', 'app2'], timeRangeParams: undefined }),
+          service['queryOf']({
+            httpStatuses: [],
+            plans: [],
+            applications: ['app1', 'app2'],
+            timeRangeParams: undefined,
+          }),
         ).toBe('application-id:("app1" OR "app2")');
       });
 
@@ -1043,17 +1071,21 @@ describe('ApiAnalyticsWidgetService', () => {
           service['queryOf']({
             httpStatuses: ['200'],
             plans: ['planA'],
-            hosts: ['host1'],
             applications: ['app1'],
             timeRangeParams: undefined,
           }),
-        ).toBe('status:("200") AND host:("host1") AND plan-id:("planA") AND application-id:("app1")');
+        ).toBe('status:("200") AND plan-id:("planA") AND application-id:("app1")');
       });
 
       it('should ignore empty arrays', () => {
-        expect(service['queryOf']({ httpStatuses: [], plans: [], hosts: ['host1'], applications: [], timeRangeParams: undefined })).toBe(
-          'host:("host1")',
-        );
+        expect(
+          service['queryOf']({
+            httpStatuses: [],
+            plans: ['plan1'],
+            applications: [],
+            timeRangeParams: undefined,
+          }),
+        ).toBe('plan-id:("plan1")');
       });
     });
   });

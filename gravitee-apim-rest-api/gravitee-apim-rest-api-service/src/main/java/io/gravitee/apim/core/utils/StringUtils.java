@@ -17,6 +17,7 @@ package io.gravitee.apim.core.utils;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -25,11 +26,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class StringUtils {
 
-    public static boolean isEmpty(CharSequence cs) {
+    public static boolean isEmpty(@Nullable CharSequence cs) {
         return cs == null || cs.isEmpty();
     }
 
-    public static boolean isNotEmpty(CharSequence cs) {
+    public static boolean isNotEmpty(@Nullable CharSequence cs) {
         return !isEmpty(cs);
+    }
+
+    public static String appendCurlyBraces(String selectionRule) {
+        if (selectionRule == null) {
+            return null;
+        }
+        if (selectionRule.startsWith("#")) {
+            // Backward compatibility. In V3 mode selection rule EL expression based can be defined with "#something" while it is usually defined with "{#something}" everywhere else.
+            return "{" + selectionRule + "}";
+        }
+        return selectionRule;
     }
 }

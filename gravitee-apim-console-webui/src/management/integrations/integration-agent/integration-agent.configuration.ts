@@ -143,6 +143,22 @@ services:
             - gravitee_integration_providers_0_configuration_trust_all=\${TRUST_ALL:-}
 `;
 
+const edgeStackConfigurationCode = `
+version: "3.8"
+
+services:
+    integration-agent:
+        image: \${APIM_REGISTRY:-graviteeio}/federation-agent-edge-stack:\${AGENT_VERSION:-latest}
+        restart: always
+        environment:
+            - gravitee_integration_connector_ws_endpoints_0=\${WS_ENDPOINTS}
+            - gravitee_integration_connector_ws_headers_0_name=Authorization
+            - gravitee_integration_connector_ws_headers_0_value=Bearer \${WS_AUTH_TOKEN}
+            - gravitee_integration_providers_0_integrationId=\${INTEGRATION_ID}
+            - gravitee_integration_providers_0_type=edge-stack
+            - gravitee_integration_providers_0_configuration_namespace=\${NAMESPACE}
+`;
+
 export const configurationCode = {
   'aws-api-gateway': awsConfigurationCode,
   solace: solaceConfigurationCode,
@@ -150,4 +166,5 @@ export const configurationCode = {
   'azure-api-management': azureConfigurationCode,
   'ibm-api-connect': ibmConfigurationCode,
   'confluent-platform': confluentPlatformConfigurationCode,
+  'edge-stack': edgeStackConfigurationCode,
 };

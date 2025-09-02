@@ -315,6 +315,18 @@ public class ApiMapper {
         return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
     }
 
+    public FederatedApiAgentEntity federatedAgentToEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
+        try {
+            api.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+            var agent = objectMapper.readValue(api.getDefinition(), FederatedAgent.class);
+            OriginContext.Integration a2a = new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
+            return ApiAdapter.INSTANCE.toFederatedAgentEntity(api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
+        } catch (JsonProcessingException e) {
+            log.warn("Unable to parse api definition for agent {}", api.getId(), e);
+            return null;
+        }
+    }
+
     public FederatedApiAgentEntity federatedAgentToEntity(
         final ExecutionContext executionContext,
         final Api api,

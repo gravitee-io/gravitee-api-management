@@ -23,7 +23,8 @@
           <div class="details-card__header__info-inputs__first-row">
             <mat-form-field class="details-card__header__info-inputs__first-row__name-field">
               <mat-label>Cluster name</mat-label>
-              <input formControlName="name" matInput type="text" maxlength="50" required />
+              <input #nameInput formControlName="name" matInput type="text" [maxLength]="512" required />
+              <mat-hint align="end">{{ nameInput.value.length }}/512</mat-hint>
               <mat-error *ngIf="clusterForm.get('name').hasError('required')">Cluster name is required.</mat-error>
             </mat-form-field>
           </div>
@@ -49,19 +50,19 @@
     </mat-card-content>
   </mat-card>
 
-  <mat-card class="danger-card" *ngIf="!isReadOnly">
-    <mat-card-content>
-      <h3 class="danger-card__title">Danger Zone</h3>
-      <div class="danger-card__actions">
-        <!--        <ng-container *gioPermission="{ anyOf: ['cluster-definition-d'] }">-->
-        <div class="danger-card__actions__action">
-          <span class="gv-form-danger-text"> Delete this Cluster. </span>
-          <button type="button" mat-button color="warn" (click)="deleteCluster()">Delete</button>
+  <ng-container *gioPermission="{ anyOf: ['cluster-definition-d'] }">
+    <mat-card class="danger-card" *ngIf="!isReadOnly">
+      <mat-card-content>
+        <h3 class="danger-card__title">Danger Zone</h3>
+        <div class="danger-card__actions">
+          <div class="danger-card__actions__action">
+            <span class="gv-form-danger-text"> Delete this Cluster. </span>
+            <button type="button" mat-button color="warn" (click)="deleteCluster()">Delete</button>
+          </div>
         </div>
-        <!--        </ng-container>-->
-      </div>
-    </mat-card-content>
-  </mat-card>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
 
   <gio-save-bar [form]="clusterForm" [formInitialValues]="initialClusterGeneralFormsValue" (submitted)="onSubmit()"></gio-save-bar>
 </form>

@@ -24,6 +24,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.application.Applications
 import io.gravitee.rest.api.management.v2.rest.resource.category.CategoriesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.ClustersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentAnalyticsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentNewtAIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentScoringResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicyGroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
@@ -99,6 +100,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/analytics")
     public EnvironmentAnalyticsResource getEnvironmentAnalyticsResource() {
         return resourceContext.getResource(EnvironmentAnalyticsResource.class);
+    }
+
+    @Path("/newtai")
+    public EnvironmentNewtAIResource getEnvironmentNewtAIResource() {
+        return resourceContext.getResource(EnvironmentNewtAIResource.class);
     }
 
     @GET

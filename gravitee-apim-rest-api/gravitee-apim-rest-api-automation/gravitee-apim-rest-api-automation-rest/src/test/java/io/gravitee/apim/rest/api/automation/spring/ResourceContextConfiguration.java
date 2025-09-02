@@ -54,6 +54,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
+import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ImportApplicationCRDUseCase;
@@ -65,7 +66,13 @@ import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.AddClusterMemberUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.DeleteClusterMemberUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
@@ -78,6 +85,7 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -786,5 +794,45 @@ public class ResourceContextConfiguration {
     @Bean
     public SearchClusterUseCase searchClusterUseCase() {
         return mock(SearchClusterUseCase.class);
+    }
+
+    @Bean
+    public NewtAIProvider newtAIProvider() {
+        return mock(NewtAIProvider.class);
+    }
+
+    @Bean
+    public ApimProductInfo apimProductInfo() {
+        return mock(ApimProductInfo.class);
+    }
+
+    @Bean
+    public GetClusterMembersUseCase getClusterMembersUseCase() {
+        return mock(GetClusterMembersUseCase.class);
+    }
+
+    @Bean
+    public GetClusterPermissionsUseCase getClusterPermissionsUseCase() {
+        return mock(GetClusterPermissionsUseCase.class);
+    }
+
+    @Bean
+    public AddClusterMemberUseCase addClusterMemberUseCase() {
+        return mock(AddClusterMemberUseCase.class);
+    }
+
+    @Bean
+    public UpdateClusterMemberUseCase updateClusterMemberUseCase() {
+        return mock(UpdateClusterMemberUseCase.class);
+    }
+
+    @Bean
+    public DeleteClusterMemberUseCase deleteClusterMemberUseCase() {
+        return mock(DeleteClusterMemberUseCase.class);
+    }
+
+    @Bean
+    public UpdateClusterGroupsUseCase updateClusterGroupsUseCase() {
+        return mock(UpdateClusterGroupsUseCase.class);
     }
 }

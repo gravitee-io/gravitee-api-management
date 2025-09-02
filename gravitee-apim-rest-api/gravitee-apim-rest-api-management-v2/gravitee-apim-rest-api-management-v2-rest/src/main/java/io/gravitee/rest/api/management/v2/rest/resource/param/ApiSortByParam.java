@@ -40,6 +40,8 @@ public class ApiSortByParam {
         CATEGORIES_DESC("-categories_desc"),
         OWNER_ASC("owner"),
         OWNER_DESC("-owner"),
+        PORTAL_STATUS_ASC("portal_status"),
+        PORTAL_STATUS_DESC("-portal_status"),
         VISIBILITY_ASC("visibility"),
         VISIBILITY_DESC("-visibility");
 

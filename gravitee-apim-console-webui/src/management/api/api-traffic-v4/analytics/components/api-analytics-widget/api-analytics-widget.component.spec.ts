@@ -681,4 +681,96 @@ describe('ApiAnalyticsWidgetComponent', () => {
       }
     });
   });
+
+  describe('Stats Widget', () => {
+    beforeEach(async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Stats Widget',
+        state: 'loading',
+        widgetType: 'stats',
+        widgetData: [],
+      });
+      fixture.detectChanges();
+      harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+      harness = await harnessLoader.getHarness(ApiAnalyticsWidgetHarness);
+    });
+
+    it('should show formatted zero value', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Stats Widget',
+        state: 'success',
+        widgetType: 'stats',
+        widgetData: { stats: 0, statsUnit: 'ms' },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.isLoading()).toBe(false);
+      expect(await harness.getTitleText()).toBe('Test Stats Widget');
+      const statsHarness = await harness.getStatsComponentHarness();
+      expect(await statsHarness.getDisplayedValue()).toBe('0ms');
+    });
+
+    it('should show defined value formatted to number without unit', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Stats Widget',
+        state: 'success',
+        widgetType: 'stats',
+        widgetData: { stats: 1000000 },
+      });
+
+      fixture.detectChanges();
+
+      expect(await harness.isLoading()).toBe(false);
+      expect(await harness.getTitleText()).toBe('Test Stats Widget');
+      const statsHarness = await harness.getStatsComponentHarness();
+      expect(await statsHarness.getDisplayedValue()).toBe('1,000,000');
+    });
+
+    it('should show defined value with the unit', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Stats Widget',
+        state: 'success',
+        widgetType: 'stats',
+        widgetData: { stats: 100, statsUnit: 'candies' },
+      });
+
+      fixture.detectChanges();
+
+      expect(await harness.isLoading()).toBe(false);
+      expect(await harness.getTitleText()).toBe('Test Stats Widget');
+      const statsHarness = await harness.getStatsComponentHarness();
+      expect(await statsHarness.getDisplayedValue()).toBe('100candies');
+    });
+
+    it('should display empty state for undefined stats', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Stats Widget',
+        state: 'success',
+        widgetType: 'stats',
+        widgetData: { stats: undefined, statsUnit: 'ms' },
+      });
+
+      fixture.detectChanges();
+
+      expect(await harness.isLoading()).toBe(false);
+      expect(await harness.getTitleText()).toBe('Test Stats Widget');
+      const statsHarness = await harness.getStatsComponentHarness();
+      expect(await statsHarness.getDisplayedValue()).toBe('-');
+    });
+
+    it('should display empty state for null stats', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Stats Widget',
+        state: 'success',
+        widgetType: 'stats',
+        widgetData: { stats: null, statsUnit: 'ms' },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.isLoading()).toBe(false);
+      expect(await harness.getTitleText()).toBe('Test Stats Widget');
+      const statsHarness = await harness.getStatsComponentHarness();
+      expect(await statsHarness.getDisplayedValue()).toBe('-');
+    });
+  });
 });
