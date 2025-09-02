@@ -31,7 +31,7 @@ export interface ApiMetricsDetailResponse {
   host: string;
   plan: BasePlan;
   application: BaseApplication;
-  gateway: BaseInstance;
+  gateway: string;
   uri: string;
   status: number;
   requestContentLength: number;

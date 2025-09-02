@@ -18,6 +18,6 @@
 <a mat-flat-button routerLink=".." aria-label="Back to logs"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Back to logs</a>
 <div class="mat-h2">Log</div>
 <div class="card__container">
-  <api-proxy-request-metric-overview [metric]="apiMetricsDetail()" />
+  <api-proxy-request-metric-overview [metric]="apiMetricsDetail()" [instance]="gatewayInstanceDetail()" />
   <api-proxy-request-log-overview class="log-details" [log]="connectionLog()" />
 </div>

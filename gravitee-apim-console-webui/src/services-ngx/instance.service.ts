@@ -21,6 +21,7 @@ import { Constants } from '../entities/Constants';
 import { Instance } from '../entities/instance/instance';
 import { MonitoringData } from '../entities/instance/monitoringData';
 import { SearchResult } from '../entities/instance/searchResult';
+import { BaseInstance } from '../entities/management-api-v2/analytics/apiMetricsDetailResponse';
 
 @Injectable({
   providedIn: 'root',
@@ -59,6 +60,10 @@ export class InstanceService {
 
   get(id: string): Observable<Instance> {
     return this.http.get<Instance>(`${this.constants.env.baseURL}/instances/${id}`);
+  }
+
+  getByGatewayId(id: string): Observable<BaseInstance> {
+    return this.http.get<Instance>(`${this.constants.env.v2BaseURL}/instances/${id}`);
   }
 
   getMonitoringData(id: string, gatewayId: string): Observable<MonitoringData> {

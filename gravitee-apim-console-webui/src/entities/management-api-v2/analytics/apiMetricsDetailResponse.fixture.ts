@@ -38,11 +38,7 @@ export const fakeApiMetricResponse = (modifier?: Partial<ApiMetricsDetailRespons
       name: 'Unknown',
       apiKeyMode: 'UNSPECIFIED',
     },
-    gateway: {
-      id: 'b504bb7b-8b6e-426f-84bb-7b8b6e626f3f',
-      hostname: 'Mac.lan',
-      ip: '192.168.1.139',
-    },
+    gateway: 'b504bb7b-8b6e-426f-84bb-7b8b6e626f3f',
     uri: '/v4/echo',
     status: 202,
     requestContentLength: 0,

@@ -15,88 +15,87 @@
     limitations under the License.
 
 -->
-@if (metric(); as metric) {
-  <div class="mat-h3">Overview</div>
-  <mat-card class="card">
-    <mat-card-content>
-      <div class="card__container">
-        <div class="card__section">
-          <span class="mat-body-strong">Request</span>
-          <dl class="card__section__kv">
-            <dt class="mat-caption">Date</dt>
-            <dd class="gio-caption-2">{{ metric.timestamp | date: 'medium' }}</dd>
-
-            <dt class="mat-caption">Host</dt>
-            <dd class="gio-caption-2">{{ metric.host }}</dd>
-
-            <dt class="mat-caption">Method</dt>
-            <dd class="gio-caption-2">
-              <div [class]="'gio-method-badge-' + metric.method.toLocaleLowerCase()">{{ metric.method }}</div>
-            </dd>
-
-            <dt class="mat-caption">URI</dt>
-            <dd class="gio-caption-2">{{ metric.uri }}</dd>
-
-            <dt class="mat-caption">Request ID</dt>
-            <dd class="gio-caption-2">{{ metric.requestId }}</dd>
-
-            <dt class="mat-caption">Transaction ID</dt>
-            <dd class="gio-caption-2">{{ metric.transactionId }}</dd>
-
-            <dt class="mat-caption">Remote IP</dt>
-            <dd class="gio-caption-2">{{ metric.remoteAddress }}</dd>
-          </dl>
-        </div>
-        <div class="card__section">
-          <span class="mat-body-strong">Response</span>
-          <dl class="card__section__kv">
-            <dt class="mat-caption">Status</dt>
-            <dd class="gio-caption-2">
-              <div
-                [class.gio-badge-success]="metric.status < 400"
-                [class.gio-badge-warning]="metric.status >= 400 && metric.status <= 499"
-                [class.gio-badge-error]="metric.status >= 500"
-              >
-                {{ metric.status }}
-              </div>
-            </dd>
-
-            <dt class="mat-caption">Global response time</dt>
-            <dd class="gio-caption-2">{{ metric.gatewayResponseTime }}</dd>
-
-            <dt class="mat-caption">API response time</dt>
-            <dd class="gio-caption-2">{{ metric.endpointResponseTime }}</dd>
-
-            <dt class="mat-caption">Latency</dt>
-            <dd class="gio-caption-2">{{ metric.gatewayLatency }}</dd>
-
-            <dt class="mat-caption">Content-length</dt>
-            <dd class="gio-caption-2">{{ metric.responseContentLength }}</dd>
-          </dl>
-        </div>
-      </div>
-
-      <mat-expansion-panel class="mat-elevation-z0 more-details">
-        <mat-expansion-panel-header>
-          <mat-panel-title> More details </mat-panel-title>
-        </mat-expansion-panel-header>
+@let metricValue = metric();
+<div class="mat-h3">Overview</div>
+<mat-card class="card">
+  <mat-card-content>
+    <div class="card__container">
+      <div class="card__section">
+        <span class="mat-body-strong">Request</span>
         <dl class="card__section__kv">
-          <dt class="mat-caption">Application</dt>
-          <dd class="gio-caption-2">{{ metric.application.name }}</dd>
+          <dt class="mat-caption">Date</dt>
+          <dd class="gio-caption-2">{{ metricValue?.timestamp | date: 'medium' }}</dd>
 
-          <dt class="mat-caption">Plan</dt>
-          <dd class="gio-caption-2">{{ metric.plan.name }}</dd>
+          <dt class="mat-caption">Host</dt>
+          <dd class="gio-caption-2">{{ metricValue?.host }}</dd>
 
-          <dt class="mat-caption">Endpoint</dt>
-          <dd class="gio-caption-2">{{ metric.endpoint }}</dd>
+          <dt class="mat-caption">Method</dt>
+          <dd class="gio-caption-2">
+            <div [class]="'gio-method-badge-' + metricValue?.method.toLocaleLowerCase()">{{ metricValue?.method }}</div>
+          </dd>
 
-          <dt class="mat-caption">Gateway Host</dt>
-          <dd class="gio-caption-2">{{ metric.gateway?.hostname }}</dd>
+          <dt class="mat-caption">URI</dt>
+          <dd class="gio-caption-2">{{ metricValue?.uri }}</dd>
 
-          <dt class="mat-caption">Gateway IP</dt>
-          <dd class="gio-caption-2">{{ metric.gateway?.ip }}</dd>
+          <dt class="mat-caption">Request ID</dt>
+          <dd class="gio-caption-2">{{ metricValue?.requestId }}</dd>
+
+          <dt class="mat-caption">Transaction ID</dt>
+          <dd class="gio-caption-2">{{ metricValue?.transactionId }}</dd>
+
+          <dt class="mat-caption">Remote IP</dt>
+          <dd class="gio-caption-2">{{ metricValue?.remoteAddress }}</dd>
         </dl>
-      </mat-expansion-panel>
-    </mat-card-content>
-  </mat-card>
-}
+      </div>
+      <div class="card__section">
+        <span class="mat-body-strong">Response</span>
+        <dl class="card__section__kv">
+          <dt class="mat-caption">Status</dt>
+          <dd class="gio-caption-2">
+            <div
+              [class.gio-badge-success]="metricValue?.status < 400"
+              [class.gio-badge-warning]="metricValue?.status >= 400 && metricValue?.status <= 499"
+              [class.gio-badge-error]="metricValue?.status >= 500"
+            >
+              {{ metricValue?.status }}
+            </div>
+          </dd>
+
+          <dt class="mat-caption">Global response time</dt>
+          <dd class="gio-caption-2">{{ metricValue?.gatewayResponseTime }}</dd>
+
+          <dt class="mat-caption">API response time</dt>
+          <dd class="gio-caption-2">{{ metricValue?.endpointResponseTime }}</dd>
+
+          <dt class="mat-caption">Latency</dt>
+          <dd class="gio-caption-2">{{ metricValue?.gatewayLatency }}</dd>
+
+          <dt class="mat-caption">Content-length</dt>
+          <dd class="gio-caption-2">{{ metricValue?.responseContentLength }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <mat-expansion-panel class="mat-elevation-z0 more-details">
+      <mat-expansion-panel-header>
+        <mat-panel-title> More details </mat-panel-title>
+      </mat-expansion-panel-header>
+      <dl class="card__section__kv">
+        <dt class="mat-caption">Application</dt>
+        <dd class="gio-caption-2">{{ metricValue?.application.name }}</dd>
+
+        <dt class="mat-caption">Plan</dt>
+        <dd class="gio-caption-2">{{ metricValue?.plan.name }}</dd>
+
+        <dt class="mat-caption">Endpoint</dt>
+        <dd class="gio-caption-2">{{ metricValue?.endpoint }}</dd>
+
+        <dt class="mat-caption">Gateway Host</dt>
+        <dd class="gio-caption-2">{{ instance()?.hostname }}</dd>
+
+        <dt class="mat-caption">Gateway IP</dt>
+        <dd class="gio-caption-2">{{ instance()?.ip }}</dd>
+      </dl>
+    </mat-expansion-panel>
+  </mat-card-content>
+</mat-card>
