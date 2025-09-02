@@ -46,7 +46,6 @@ class FindApiMetricsDetailUseCaseTest {
     ApplicationCrudServiceInMemory applicationCrudServiceInMemory = new ApplicationCrudServiceInMemory();
     PlanCrudServiceInMemory planCrudServiceInMemory = new PlanCrudServiceInMemory();
     FakeInstanceService fakeInstanceService = new FakeInstanceService();
-    InstanceQueryServiceLegacyWrapper instanceQueryServiceLegacyWrapper = new InstanceQueryServiceLegacyWrapper(fakeInstanceService);
 
     FindApiMetricsDetailUseCase useCase;
 
@@ -56,8 +55,7 @@ class FindApiMetricsDetailUseCaseTest {
             new FindApiMetricsDetailUseCase(
                 fakeAnalyticsQueryService,
                 applicationCrudServiceInMemory,
-                planCrudServiceInMemory,
-                instanceQueryServiceLegacyWrapper
+                planCrudServiceInMemory
             );
     }
 
@@ -138,6 +136,7 @@ class FindApiMetricsDetailUseCaseTest {
                 .responseContentLength(responseContentLength)
                 .gatewayLatency(gatewayLatency)
                 .gatewayResponseTime(gatewayResponseTime)
+                .gateway(instanceId)
                 .remoteAddress(remoteAddress)
                 .method(HttpMethod.GET)
                 .endpointResponseTime(endpointResponseTime)
@@ -163,6 +162,7 @@ class FindApiMetricsDetailUseCaseTest {
                 assertThat(apiMetricsDetail.getMethod()).isEqualTo(HttpMethod.GET);
                 assertThat(apiMetricsDetail.getEndpointResponseTime()).isEqualTo(endpointResponseTime);
                 assertThat(apiMetricsDetail.getEndpoint()).isEqualTo(endpoint);
+                assertThat(apiMetricsDetail.getGateway()).isEqualTo(instanceId);
 
                 assertThat(apiMetricsDetail.getApplication())
                     .extracting(BaseApplicationEntity::getId, BaseApplicationEntity::getName)
@@ -171,10 +171,6 @@ class FindApiMetricsDetailUseCaseTest {
                 assertThat(apiMetricsDetail.getPlan())
                     .extracting(GenericPlanEntity::getId, GenericPlanEntity::getName)
                     .containsExactly(PLAN_ID, planName);
-
-                assertThat(apiMetricsDetail.getGateway())
-                    .extracting(BaseInstance::getId, BaseInstance::getHostname, BaseInstance::getIp)
-                    .containsExactly(instanceId, hostname, ip);
             });
     }
 }

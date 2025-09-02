@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.analytics.model;
 
-import io.gravitee.apim.core.gateway.model.BaseInstance;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -33,7 +32,7 @@ public class ApiMetricsDetail {
     String host;
     BaseApplicationEntity application;
     GenericPlanEntity plan;
-    BaseInstance gateway;
+    String gateway;
     String uri;
     int status;
     long requestContentLength;
