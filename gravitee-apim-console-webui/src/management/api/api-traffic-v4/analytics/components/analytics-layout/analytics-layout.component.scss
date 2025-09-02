@@ -1,0 +1,12 @@
+.analytics-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .filters-section {
+  }
+
+  .widgets-section {
+    flex: 1;
+  }
+}
