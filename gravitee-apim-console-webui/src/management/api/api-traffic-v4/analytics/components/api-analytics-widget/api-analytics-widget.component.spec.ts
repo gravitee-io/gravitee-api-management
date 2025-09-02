@@ -673,7 +673,7 @@ describe('ApiAnalyticsWidgetComponent', () => {
       const columnCount = await harness.getTableColumnCount();
 
       if (rowCount > 0 && columnCount > 2) {
-        expect(await harness.getTableCellText(0, 2)).toBe(''); // Missing optional field
+        expect(await harness.getTableCellText(0, 2)).toBe('(empty)'); // Missing optional field
       }
 
       if (rowCount > 1 && columnCount > 2) {

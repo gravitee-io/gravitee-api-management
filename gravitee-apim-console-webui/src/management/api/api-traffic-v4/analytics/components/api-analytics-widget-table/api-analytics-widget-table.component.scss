@@ -1,5 +1,12 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 tr.mat-mdc-row {
   height: 28px;
+
+  .empty-cell {
+    color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'darker20');
+  }
 }
 
 .table-widget {
