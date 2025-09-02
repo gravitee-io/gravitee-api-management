@@ -20,8 +20,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
@@ -29,17 +30,18 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
-import io.gravitee.definition.model.v4.service.Service;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class ServiceMapperTest {
+class ApiServicesMigrationTest {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    JsonMapper jsonMapper = JsonMapperFactory.build();
+    ApiServicesMigration apiServicesMigration = new ApiServicesMigration(jsonMapper);
 
     @Test
     void convert_should_return_null_when_input_is_null() {
-        assertThat(ServiceMapper.convert(null, "ENDPOINT", "testEndpoint")).isNull();
+        var result = apiServicesMigration.convert(null, "ENDPOINT", "testEndpoint");
+        assertThat(result).isNull();
     }
 
     @Test
@@ -48,7 +50,7 @@ class ServiceMapperTest {
         v2.setEnabled(true);
         v2.setSchedule("*/10 * * * * *");
         v2.setSteps(null);
-        var result = ServiceMapper.convert(v2, "ENDPOINT", "testEndpoint");
+        var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
         assertThat(get(result))
             .satisfies(v4 -> {
                 assertThat(v4).isNotNull();
@@ -56,7 +58,7 @@ class ServiceMapperTest {
                 assertThat(v4.isEnabled()).isTrue();
                 assertThat(v4.isOverrideConfiguration()).isFalse();
 
-                JsonNode cfg = MAPPER.readTree(v4.getConfiguration());
+                JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
                 assertThat(cfg.get("schedule").asText()).isEqualTo("*/10 * * * * *");
                 assertThat(cfg.get("failureThreshold").asInt()).isEqualTo(2);
                 assertThat(cfg.get("successThreshold").asInt()).isEqualTo(2);
@@ -76,11 +78,11 @@ class ServiceMapperTest {
         v2.setSchedule(null);
         v2.setSteps(null);
 
-        var result = ServiceMapper.convert(v2, "ENDPOINT", "testEndpoint");
+        var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
         assertThat(get(result))
             .satisfies(v4 -> {
                 assertThat(v4).isNotNull();
-                JsonNode cfg = MAPPER.readTree(v4.getConfiguration());
+                JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
                 assertThat(cfg.get("schedule").isNull()).isTrue();
             });
     }
@@ -107,7 +109,7 @@ class ServiceMapperTest {
         v2.setSteps(List.of(step));
 
         // when
-        var result = ServiceMapper.convert(v2, "ENDPOINT", "testEndpoint");
+        var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
 
         // then
         assertThat(get(result))
@@ -116,7 +118,7 @@ class ServiceMapperTest {
                 assertThat(v4.getType()).isEqualTo("http-health-check");
                 assertThat(v4.isOverrideConfiguration()).isFalse();
 
-                JsonNode cfg = MAPPER.readTree(v4.getConfiguration());
+                JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
                 assertThat(cfg.get("schedule").asText()).isEqualTo("*/30 * * * * *");
                 assertThat(cfg.get("failureThreshold").asInt()).isEqualTo(2);
                 assertThat(cfg.get("successThreshold").asInt()).isEqualTo(2);
@@ -152,7 +154,7 @@ class ServiceMapperTest {
         v2.setEnabled(true);
         v2.setSchedule("*/5 * * * * *");
         v2.setSteps(List.of(step));
-        var result = ServiceMapper.convert(v2, "ENDPOINT", "testEndpoint");
+        var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
         assertThrows(NullPointerException.class, () -> get(result));
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
@@ -180,7 +182,7 @@ class ServiceMapperTest {
         v2.setSteps(List.of(step));
         v2.setInherit(false);
 
-        var result = ServiceMapper.convert(v2, "ENDPOINT", "testEndpoint");
+        var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
 
         assertThat(get(result))
             .satisfies(v4 -> {
@@ -189,7 +191,7 @@ class ServiceMapperTest {
                 assertThat(v4.isEnabled()).isTrue();
                 assertThat(v4.isOverrideConfiguration()).isTrue(); // flipped because inherit=false
 
-                JsonNode cfg = MAPPER.readTree(v4.getConfiguration());
+                JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
                 assertThat(cfg.get("schedule").asText()).isEqualTo("0 */1 * * * *");
                 assertThat(cfg.get("method").asText()).isEqualTo("HEAD");
                 assertThat(cfg.get("target").asText()).isEqualTo("/hc");
@@ -205,7 +207,7 @@ class ServiceMapperTest {
         v2.setSteps(null);
         v2.setInherit(true);
 
-        var result = ServiceMapper.convert(v2, "ENDPOINT", "testEndpoint");
+        var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
         assertThat(get(result))
             .satisfies(v4 -> {
                 assertThat(v4).isNotNull();

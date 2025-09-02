@@ -48,6 +48,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.mapper.V2toV4MigrationOperator;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -65,6 +66,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -165,6 +167,7 @@ class MigrateApiUseCaseTest {
         planCrudService,
         flowCrudService,
         apiStateDomainService,
+        JsonMapperFactory.build(),
         pageQueryService
     );
 

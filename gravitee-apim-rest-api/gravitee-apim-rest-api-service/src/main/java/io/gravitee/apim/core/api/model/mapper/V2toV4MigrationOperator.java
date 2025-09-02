@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model.mapper;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -25,9 +26,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class V2toV4MigrationOperator {
 
-    private static final ApiMigration apiMigration = new ApiMigration();
-    private static final PlanMigration planMigration = new PlanMigration();
-    private static final FlowMigration flowMigration = new FlowMigration();
+    private final ApiMigration apiMigration;
+    private final PlanMigration planMigration;
+    private final FlowMigration flowMigration;
+
+    public V2toV4MigrationOperator(JsonMapper jsonMapper) {
+        apiMigration = new ApiMigration(jsonMapper);
+        planMigration = new PlanMigration();
+        flowMigration = new FlowMigration(jsonMapper);
+    }
 
     public MigrationResult<Api> mapApi(Api source) {
         return apiMigration.mapApi(source);

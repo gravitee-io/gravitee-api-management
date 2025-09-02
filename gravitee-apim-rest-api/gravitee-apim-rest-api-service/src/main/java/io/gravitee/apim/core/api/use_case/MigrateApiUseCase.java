@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.api.model.utils.MigrationResult.State.*;
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
@@ -53,12 +54,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 
 @UseCase
-@RequiredArgsConstructor
 @Slf4j
 public class MigrateApiUseCase {
 
@@ -82,19 +81,18 @@ public class MigrateApiUseCase {
         PlanCrudService planService,
         FlowCrudService flowCrudService,
         ApiStateDomainService apiStateService,
+        JsonMapper jsonMapper,
         PageQueryService pageQueryService
     ) {
-        this(
-            apiCrudService,
-            auditService,
-            apiIndexerDomainService,
-            apiPrimaryOwnerDomainService,
-            planService,
-            flowCrudService,
-            apiStateService,
-            new V2toV4MigrationOperator(),
-            pageQueryService
-        );
+        this.apiCrudService = apiCrudService;
+        this.auditService = auditService;
+        this.apiIndexerDomainService = apiIndexerDomainService;
+        this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
+        this.planService = planService;
+        this.flowCrudService = flowCrudService;
+        this.apiStateService = apiStateService;
+        this.migrationOperator = new V2toV4MigrationOperator(jsonMapper);
+        this.pageQueryService = pageQueryService;
     }
 
     public Output execute(Input input) {

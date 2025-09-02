@@ -28,18 +28,18 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
 import io.gravitee.definition.model.v4.service.Service;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public final class ServiceMapper {
+@RequiredArgsConstructor
+public final class ApiServicesMigration {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final ObjectMapper jsonMapper;
     private static final String TYPE_ENDPOINT = "ENDPOINT";
     private static final List<String> ALLOWED_DISCOVERY_PLUGIN_IDS = List.of("consul-service-discovery");
 
-    private ServiceMapper() {}
-
-    public static MigrationResult<io.gravitee.definition.model.v4.service.Service> convert(
+    public MigrationResult<io.gravitee.definition.model.v4.service.Service> convert(
         io.gravitee.definition.model.Service v2Service,
         String type,
         String name
@@ -65,9 +65,9 @@ public final class ServiceMapper {
         };
     }
 
-    private static MigrationResult<Service> convertHealthCheckService(HealthCheckService v2HealthCheckService, String type, String name) {
-        ObjectNode config = MAPPER.createObjectNode();
-        MigrationResult<Service> migrationResult = MigrationResult.value(
+    private MigrationResult<Service> convertHealthCheckService(HealthCheckService v2HealthCheckService, String type, String name) {
+        ObjectNode config = jsonMapper.createObjectNode();
+        var migrationResult = MigrationResult.value(
             Service.builder().enabled(v2HealthCheckService.isEnabled()).overrideConfiguration(false).type("http-health-check").build()
         );
         String endpointReferenceForMessage = String.format("%s : %s", type.equals(TYPE_ENDPOINT) ? "endpoint" : "endpointgroup", name);
@@ -100,17 +100,17 @@ public final class ServiceMapper {
                         "headers",
                         (
                             step.getRequest().getHeaders() == null
-                                ? MAPPER.createArrayNode()
-                                : MAPPER.valueToTree(step.getRequest().getHeaders())
+                                ? jsonMapper.createArrayNode()
+                                : jsonMapper.valueToTree(step.getRequest().getHeaders())
                         )
                     );
-                    config.set("method", MAPPER.valueToTree(step.getRequest().getMethod()));
-                    config.set("target", MAPPER.valueToTree(step.getRequest().getPath()));
+                    config.set("method", jsonMapper.valueToTree(step.getRequest().getMethod()));
+                    config.set("target", jsonMapper.valueToTree(step.getRequest().getPath()));
                     config.set(
                         "assertion",
-                        MAPPER.valueToTree(StringUtils.appendCurlyBraces(step.getResponse().getAssertions().getFirst()))
+                        jsonMapper.valueToTree(StringUtils.appendCurlyBraces(step.getResponse().getAssertions().getFirst()))
                     );
-                    config.set("overrideEndpointPath", MAPPER.valueToTree(step.getRequest().isFromRoot()));
+                    config.set("overrideEndpointPath", jsonMapper.valueToTree(step.getRequest().isFromRoot()));
                 } catch (Exception e) {
                     log.error("Unable to map configuration for Health check ", e);
                     return migrationResult.addIssue("Unable to map configuration for Health check", IMPOSSIBLE);
@@ -132,7 +132,7 @@ public final class ServiceMapper {
         });
     }
 
-    private static MigrationResult<Service> convertEPHealthCheckService(
+    private MigrationResult<Service> convertEPHealthCheckService(
         EndpointHealthCheckService v2EPHealthCheckService,
         String type,
         String name
