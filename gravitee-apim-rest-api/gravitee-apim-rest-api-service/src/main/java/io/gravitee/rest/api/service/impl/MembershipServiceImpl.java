@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import io.gravitee.apim.core.membership.model.TransferOwnership;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.utils.UUID;
@@ -1777,7 +1778,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             );
     }
 
-    private void transferOwnership(
+    @Override
+    public void transferOwnership(
         ExecutionContext executionContext,
         MembershipReferenceType membershipReferenceType,
         RoleScope roleScope,

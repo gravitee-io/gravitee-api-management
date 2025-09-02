@@ -76,6 +76,7 @@ import io.gravitee.apim.core.cluster.use_case.members.AddClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.DeleteClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
@@ -788,6 +789,11 @@ public class ResourceContextConfiguration {
     @Bean
     public SearchClusterUseCase searchClusterUseCase() {
         return mock(SearchClusterUseCase.class);
+    }
+
+    @Bean
+    public TransferClusterOwnershipUseCase transferClusterOwnershipUseCase() {
+        return mock(TransferClusterOwnershipUseCase.class);
     }
 
     @Bean

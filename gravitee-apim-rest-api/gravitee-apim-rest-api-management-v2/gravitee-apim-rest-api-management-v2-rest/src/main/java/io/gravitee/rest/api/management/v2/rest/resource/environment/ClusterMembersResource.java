@@ -21,11 +21,14 @@ import io.gravitee.apim.core.cluster.use_case.members.AddClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.DeleteClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.MembershipMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AddMember;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
+import io.gravitee.rest.api.management.v2.rest.model.TransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateMember;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -74,6 +77,9 @@ public class ClusterMembersResource extends AbstractResource {
 
     @Inject
     private DeleteClusterMemberUseCase deleteClusterMemberUseCase;
+
+    @Inject
+    private TransferClusterOwnershipUseCase transferClusterOwnershipUseCase;
 
     @GET
     @Path("permissions")
@@ -158,6 +164,16 @@ public class ClusterMembersResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.DELETE) })
     public Response deleteClusterMember(@PathParam("memberId") String memberId) {
         deleteClusterMemberUseCase.execute(new DeleteClusterMemberUseCase.Input(clusterId, memberId));
+        return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/_transfer-ownership")
+    @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.UPDATE) })
+    public Response transferOwnership(TransferOwnership transferOwnership) {
+        transferClusterOwnershipUseCase.execute(
+            new TransferClusterOwnershipUseCase.Input(MembershipMapper.INSTANCE.map(transferOwnership), clusterId)
+        );
         return Response.noContent().build();
     }
 }
