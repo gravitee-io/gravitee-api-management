@@ -18,12 +18,9 @@ package io.gravitee.apim.core.analytics.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fakes.FakeAnalyticsQueryService;
-import fakes.FakeInstanceService;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
-import io.gravitee.apim.core.gateway.model.BaseInstance;
 import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.apim.infra.query_service.gateway.InstanceQueryServiceLegacyWrapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
@@ -45,18 +42,12 @@ class FindApiMetricsDetailUseCaseTest {
     FakeAnalyticsQueryService fakeAnalyticsQueryService = new FakeAnalyticsQueryService();
     ApplicationCrudServiceInMemory applicationCrudServiceInMemory = new ApplicationCrudServiceInMemory();
     PlanCrudServiceInMemory planCrudServiceInMemory = new PlanCrudServiceInMemory();
-    FakeInstanceService fakeInstanceService = new FakeInstanceService();
 
     FindApiMetricsDetailUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase =
-            new FindApiMetricsDetailUseCase(
-                fakeAnalyticsQueryService,
-                applicationCrudServiceInMemory,
-                planCrudServiceInMemory
-            );
+        useCase = new FindApiMetricsDetailUseCase(fakeAnalyticsQueryService, applicationCrudServiceInMemory, planCrudServiceInMemory);
     }
 
     @AfterEach
@@ -105,11 +96,6 @@ class FindApiMetricsDetailUseCaseTest {
         );
 
         var instanceId = "instance-id";
-        var hostname = "foo.example.com";
-        var ip = "42.42.42.1";
-        fakeInstanceService.instanceEntity =
-            io.gravitee.rest.api.model.InstanceEntity.builder().id(instanceId).hostname(hostname).ip(ip).build();
-
         var transactionId = "transaction-id";
         var host = "request.host.example.com";
         var uri = "/example/api";

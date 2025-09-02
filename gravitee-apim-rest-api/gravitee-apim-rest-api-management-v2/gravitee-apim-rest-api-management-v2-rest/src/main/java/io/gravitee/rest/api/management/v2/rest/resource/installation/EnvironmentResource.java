@@ -107,6 +107,11 @@ public class EnvironmentResource extends AbstractResource {
         return resourceContext.getResource(EnvironmentNewtAIResource.class);
     }
 
+    @Path("/instances")
+    public InstancesResource getInstancesResource() {
+        return resourceContext.getResource(InstancesResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Environment getEnvironment(@PathParam("envId") String envId) {

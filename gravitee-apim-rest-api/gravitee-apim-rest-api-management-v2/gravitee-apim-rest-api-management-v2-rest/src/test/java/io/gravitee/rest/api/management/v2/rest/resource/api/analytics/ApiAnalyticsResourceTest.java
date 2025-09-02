@@ -24,11 +24,9 @@ import assertions.MAPIAssertions;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
-import inmemory.InstanceQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
-import io.gravitee.apim.core.gateway.model.Instance;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
@@ -56,7 +54,6 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.inject.Inject;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -1066,7 +1063,6 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                         .containsExactly(applicationId, appName);
 
                     assertThat(apiMetricsDetail.getPlan()).extracting(BasePlan::getId, BasePlan::getName).containsExactly(planId, planName);
-
                 });
         }
     }

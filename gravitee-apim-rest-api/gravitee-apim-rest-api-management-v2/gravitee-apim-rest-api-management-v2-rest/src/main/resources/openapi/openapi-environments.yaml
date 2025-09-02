@@ -613,6 +613,21 @@ paths:
           default:
             $ref: "#/components/responses/Error"
 
+    # Instances
+    /instances/{instanceId}:
+      get:
+        tags:
+          - Instances
+        summary: Get a Gateway instance details
+        operationId: getInstanceById
+        parameters:
+            - $ref: "#/components/parameters/instanceId"
+        responses:
+          "200":
+            $ref: "#/components/responses/InstanceDetailResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
 components:
     schemas:
         # Analytics
@@ -1459,6 +1474,15 @@ components:
               - updatedAt
               - -updatedAt
 
+        # Instances
+        instanceId:
+          name: instanceId
+          in: path
+          description: The gateway instance ID
+          required: true
+          schema:
+            type: string
+
     responses:
         SchemaFormResponse:
             description: Schema form of a plugin
@@ -1714,6 +1738,28 @@ components:
                     type: string
                   feedbackRequestId:
                     $ref: '#/components/schemas/FeedbackRequestId'
+                    
+        
+        # Instances
+        InstanceDetailResponse:
+          description: The gateway instance details.
+          content:
+            application/json:
+              schema:
+                title: "InstanceDetailResponse"
+                properties:
+                  id:
+                    type: string
+                    description: Gateway's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                  hostname:
+                    type: string
+                    description: Gateway's hostname.
+                    example: my-gateway.example.com
+                  ip:
+                    type: string
+                    description: Gateway's ip.
+                    example: 10.0.1.123
 
     securitySchemes:
         BasicAuth:
