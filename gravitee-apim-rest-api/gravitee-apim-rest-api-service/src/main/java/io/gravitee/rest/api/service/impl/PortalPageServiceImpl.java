@@ -48,7 +48,7 @@ public class PortalPageServiceImpl implements PortalPageService {
     }
 
     @Override
-    public void createDefaultPortalPage(String environmentId) throws TechnicalException {
+    public void createDefaultPortalHomePage(String environmentId) throws TechnicalException {
         var now = new Date();
         var homePages = portalPageContextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId);
         if (homePages.isEmpty()) {

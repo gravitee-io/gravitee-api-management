@@ -114,7 +114,7 @@ public class EnvironmentCommandHandlerTest {
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        verify(portalPageService).createDefaultPortalPage(envId);
+        verify(portalPageService).createDefaultPortalHomePage(envId);
     }
 
     @Test

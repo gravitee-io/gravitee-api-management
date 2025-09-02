@@ -87,7 +87,7 @@ public class EnvironmentsDefaultPortalPageUpgraderTest {
 
         ArgumentCaptor<String> portalPageCaptor = ArgumentCaptor.forClass(String.class);
 
-        verify(portalPageService, times(2)).createDefaultPortalPage(portalPageCaptor.capture());
+        verify(portalPageService, times(2)).createDefaultPortalHomePage(portalPageCaptor.capture());
         List<String> capturedValues = portalPageCaptor.getAllValues();
         assertThat(capturedValues).containsExactlyInAnyOrder("DEFAULT", "ANOTHER_ENVIRONMENT");
     }

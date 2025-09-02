@@ -18,5 +18,5 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 
 public interface PortalPageService {
-    void createDefaultPortalPage(String environmentId) throws TechnicalException;
+    void createDefaultPortalHomePage(String environmentId) throws TechnicalException;
 }
