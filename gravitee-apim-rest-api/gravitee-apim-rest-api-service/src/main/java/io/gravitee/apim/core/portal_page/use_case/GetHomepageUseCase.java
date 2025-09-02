@@ -28,12 +28,14 @@ public class GetHomepageUseCase {
         this.crudService = crudService;
     }
 
-    public Output execute() {
-        var spec = PageExistsSpecification.byPortalViewContext(crudService::portalViewContextExists);
+    public Output execute(Input input) {
+        var spec = PageExistsSpecification.byPortalViewContext(ctx -> crudService.portalViewContextExists(input.environmentId(), ctx));
         spec.throwIfNotSatisfied(PortalViewContext.HOMEPAGE);
-        PortalPage page = crudService.byPortalViewContext(PortalViewContext.HOMEPAGE);
-        return new Output(page);
+        var pages = crudService.byPortalViewContext(input.environmentId(), PortalViewContext.HOMEPAGE);
+        return new Output(pages);
     }
 
-    public record Output(PortalPage page) {}
+    public record Output(java.util.List<PortalPage> pages) {}
+
+    public record Input(String environmentId) {}
 }

@@ -15,19 +15,12 @@
  */
 package io.gravitee.apim.core.portal_page.crud_service;
 
-import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import java.util.List;
 
 public interface PortalPageCrudService {
-    PortalPage create(PortalPage page);
-    PortalPage byPortalViewContext(PortalViewContext portalViewContext);
+    List<PortalPage> byPortalViewContext(String environmentId, PortalViewContext portalViewContext);
 
-    PortalPage setPortalViewContextPage(PortalViewContext portalViewContext, PortalPage page);
-
-    PortalPage getById(PageId pageId);
-
-    boolean portalViewContextExists(PortalViewContext key);
-
-    boolean pageIdExists(PageId pageId);
+    boolean portalViewContextExists(String environmentId, PortalViewContext key);
 }
