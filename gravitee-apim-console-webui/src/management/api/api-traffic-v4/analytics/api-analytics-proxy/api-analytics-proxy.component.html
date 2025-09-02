@@ -15,35 +15,38 @@
     limitations under the License.
 
 -->
-<api-analytics-proxy-filter-bar
-  [activeFilters]="activeFilters()"
-  [plans]="apiPlans$ | async"
-  (filtersChange)="onFiltersChange($event)"
-  (refresh)="onRefreshFilters()"
-/>
+<analytics-layout #analyticsLayout [filterFields]="filterFields">
+  <api-analytics-proxy-filter-bar
+    slot="filters"
+    [activeFilters]="analyticsLayout.activeFilters()"
+    [plans]="analyticsLayout.apiPlans$ | async"
+    (filtersChange)="analyticsLayout.onFiltersChange($event)"
+    (refresh)="analyticsLayout.onRefreshFilters()"
+  />
 
-<div class="widgets">
-  <div class="top-row">
-    @for (widgetConfig$ of topRowTransformed$; track $index) {
-      @if (widgetConfig$ | async; as widgetConfig) {
-        <api-analytics-widget [config]="widgetConfig" />
+  <div slot="widgets" class="widgets">
+    <div class="top-row">
+      @for (widgetConfig$ of topRowTransformed$; track $index) {
+        @if (widgetConfig$ | async; as widgetConfig) {
+          <api-analytics-widget [config]="widgetConfig" />
+        }
       }
-    }
-  </div>
+    </div>
 
-  <div class="left-column">
-    @for (widgetConfig$ of leftColumnTransformed$; track $index) {
-      @if (widgetConfig$ | async; as widgetConfig) {
-        <api-analytics-widget [config]="widgetConfig" />
+    <div class="left-column">
+      @for (widgetConfig$ of leftColumnTransformed$; track $index) {
+        @if (widgetConfig$ | async; as widgetConfig) {
+          <api-analytics-widget [config]="widgetConfig" />
+        }
       }
-    }
-  </div>
+    </div>
 
-  <div class="right-column">
-    @for (widgetConfig$ of rightColumnTransformed$; track $index) {
-      @if (widgetConfig$ | async; as widgetConfig) {
-        <api-analytics-widget [config]="widgetConfig" />
+    <div class="right-column">
+      @for (widgetConfig$ of rightColumnTransformed$; track $index) {
+        @if (widgetConfig$ | async; as widgetConfig) {
+          <api-analytics-widget [config]="widgetConfig" />
+        }
       }
-    }
+    </div>
   </div>
-</div>
+</analytics-layout>

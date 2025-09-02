@@ -14,35 +14,21 @@
  * limitations under the License.
  */
 
-import { Component, computed, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable, of } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map, shareReplay } from 'rxjs/operators';
 
-import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
-import {
-  ApiAnalyticsNativeFilterBarComponent,
-  ApiAnalyticsNativeFilters,
-} from '../components/api-analytics-native-filter-bar/api-analytics-native-filter-bar.component';
+import { ApiAnalyticsNativeFilterBarComponent } from '../components/api-analytics-native-filter-bar/api-analytics-native-filter-bar.component';
 import { ApiAnalyticsWidgetComponent, ApiAnalyticsWidgetConfig } from '../components/api-analytics-widget/api-analytics-widget.component';
-import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../api-analytics-widget.service';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
-import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import { AnalyticsLayoutComponent } from '../components/analytics-layout/analytics-layout.component';
+import { FILTER_FIELDS } from '../components/common/common-filters.types';
 import { GioWidgetLayoutState } from '../../../../../shared/components/gio-widget-layout/gio-widget-layout.component';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { GioChartBarData, GioChartBarOptions } from '../../../../../shared/components/gio-chart-bar/gio-chart-bar.component';
-
-interface QueryParamsBase {
-  from?: string;
-  to?: string;
-  period?: string;
-  plans?: string;
-  applications?: string[];
-}
 
 @Component({
   selector: 'api-analytics-native',
@@ -54,41 +40,24 @@ interface QueryParamsBase {
     ApiAnalyticsNativeFilterBarComponent,
     ApiAnalyticsWidgetComponent,
     GioChartPieModule,
+    AnalyticsLayoutComponent,
   ],
   templateUrl: './api-analytics-native.component.html',
   styleUrl: './api-analytics-native.component.scss',
 })
-export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
+export class ApiAnalyticsNativeComponent implements OnInit {
   private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
-  private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
-  private planService = inject(ApiPlanV2Service);
+
+  filterFields = FILTER_FIELDS.NATIVE;
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public rightColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public bottomRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
 
-  public activeFilters: Signal<ApiAnalyticsNativeFilters> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
-
-  apiPlans$ = this.planService
-    .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
-    .pipe(
-      map((plans) => plans.data),
-      shareReplay(1),
-    );
-
-  constructor(
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly router: Router,
-    private readonly apiAnalyticsWidgetService: ApiAnalyticsWidgetService,
-  ) {
-    effect(() => {
-      this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activatedRouteQueryParams()));
-    });
-  }
+  constructor(private readonly activatedRoute: ActivatedRoute) {}
 
   ngOnInit(): void {
-    // Initialize widgets with mock data
     this.topRowTransformed$ = [
       of(this.createMockStatsWidget('Downstream Active Connections', 856, '')),
       of(this.createMockStatsWidget('Upstream Active Connections', 391, '')),
@@ -113,110 +82,6 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     ];
   }
 
-  onFiltersChange(filters: ApiAnalyticsNativeFilters): void {
-    this.updateQueryParamsFromFilters(filters);
-  }
-
-  onRefreshFilters(): void {
-    this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activeFilters()));
-  }
-
-  ngOnDestroy(): void {
-    this.apiAnalyticsWidgetService.clearStatsCache();
-  }
-
-  private updateQueryParamsFromFilters(filters: ApiAnalyticsNativeFilters): void {
-    const queryParams = this.createQueryParamsFromFilters(filters);
-    this.router.navigate([], {
-      queryParams,
-      queryParamsHandling: 'replace',
-    });
-  }
-
-  private createQueryParamsFromFilters(filters: ApiAnalyticsNativeFilters): Record<string, any> {
-    const params: Record<string, any> = {};
-
-    if (filters.period === 'custom' && filters.from && filters.to) {
-      params.from = filters.from;
-      params.to = filters.to;
-      params.period = 'custom';
-    } else {
-      params.period = filters.period;
-    }
-
-    if (filters.plans?.length) {
-      params.plans = filters.plans.join(',');
-    }
-
-    return params;
-  }
-
-  private mapQueryParamsToUrlParamsData(queryParams: unknown): ApiAnalyticsWidgetUrlParamsData {
-    const params = queryParams as QueryParamsBase;
-    const normalizedPeriod = params.period || '1d';
-    const filters = this.getFilterFields(params);
-
-    if (normalizedPeriod === 'custom' && params.from && params.to) {
-      return <ApiAnalyticsWidgetUrlParamsData>{
-        timeRangeParams: {
-          from: +params.from,
-          to: +params.to,
-          interval: this.calculateCustomInterval(+params.from, +params.to),
-        },
-        ...filters,
-      };
-    }
-
-    const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
-    return {
-      timeRangeParams: timeFrame.timeFrameRangesParams(),
-      httpStatuses: [],
-      ...filters,
-    };
-  }
-
-  private mapQueryParamsToFilters(queryParams: unknown): ApiAnalyticsNativeFilters {
-    const params = queryParams as QueryParamsBase;
-    const normalizedPeriod = params.period || '1d';
-    const filters = this.getFilterFields(params);
-
-    if (normalizedPeriod === 'custom' && params.from && params.to) {
-      return <ApiAnalyticsNativeFilters>{
-        period: normalizedPeriod,
-        from: +params.from,
-        to: +params.to,
-        ...filters,
-      };
-    }
-
-    return {
-      period: normalizedPeriod,
-      from: null,
-      to: null,
-      ...filters,
-    };
-  }
-
-  private getFilterFields(queryParams: QueryParamsBase) {
-    return {
-      plans: this.processFilter(queryParams.plans),
-      applications: this.processFilter(queryParams.applications),
-    };
-  }
-
-  private processFilter(value: string | string[] | undefined): string[] | undefined {
-    if (value === undefined) {
-      return undefined;
-    }
-    return Array.isArray(value) ? value : value.split(',');
-  }
-
-  private calculateCustomInterval(from: number, to: number, nbValuesByBucket = 30): number {
-    const range: number = to - from;
-    return Math.floor(range / nbValuesByBucket);
-  }
-
-  // TODO: Remove these mock methods when real API is available
   private createMockStatsWidget(title: string, value: number, unit: string): ApiAnalyticsWidgetConfig {
     return {
       title,
@@ -228,7 +93,6 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   }
 
   private createMockLineWidget(title: string, tooltip: string): ApiAnalyticsWidgetConfig {
-    // Different datasets for each series to make them visually distinct (15 data points each)
     const fromClientData = [45, 52, 38, 67, 44, 59, 72, 48, 63, 41, 56, 39, 74, 51, 42];
 
     const toBrokerData = [62, 48, 71, 34, 56, 43, 68, 52, 39, 65, 47, 73, 41, 58, 44];
@@ -245,8 +109,8 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     ];
 
     const lineOptions: GioChartLineOptions = {
-      pointStart: Date.now() - 14 * 24 * 60 * 60 * 1000, // 14 days ago
-      pointInterval: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+      pointStart: Date.now() - 14 * 24 * 60 * 60 * 1000,
+      pointInterval: 24 * 60 * 60 * 1000,
       enableMarkers: true,
       useSharpCorners: true,
     };
@@ -261,21 +125,17 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   }
 
   private createMockStackedBarWidget(title: string, tooltip: string): ApiAnalyticsWidgetConfig {
-    // Generate hourly data for the last 24 hours
     const generateHourlyData = () => {
-      // Hardcoded success data for 24 hours (1000-3000 range)
       const successData = [
         1245, 1567, 2134, 1876, 2456, 1834, 2678, 2123, 1945, 2345, 1687, 2789, 2567, 1923, 2145, 1756, 2434, 1865, 2678, 1543, 2234, 1876,
         2456, 1834,
       ];
 
-      // Hardcoded failure data (1-5% of success values)
       const failureData = [37, 47, 64, 56, 74, 55, 80, 64, 58, 70, 51, 84, 77, 58, 64, 53, 73, 56, 80, 46, 67, 56, 74, 55];
 
-      const categories = [];
+      const categories: string[] = [];
 
       for (let i = 0; i < 24; i++) {
-        // Create hourly categories (12:00, 13:00, etc.)
         const hour = new Date(Date.now() - (23 - i) * 60 * 60 * 1000).getHours();
         categories.push(`${hour.toString().padStart(2, '0')}:00`);
       }
@@ -301,10 +161,10 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     const barOptions: GioChartBarOptions = {
       categories: categories,
       stacked: true,
-      reverseStack: true, // Put failure on top
+      reverseStack: true,
       customTooltip: {
         formatter: function () {
-          const x = this.x; // x-axis value
+          const x = this.x;
           const pointIndex = this.point.index;
           const success = successData[pointIndex];
           const failure = failureData[pointIndex];
