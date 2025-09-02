@@ -17,7 +17,6 @@
 
   &__container {
     display: flex;
-    flex-direction: row;
     flex-wrap: wrap;
     margin-bottom: 16px;
     gap: 16px;
@@ -26,7 +25,7 @@
   &__section {
     display: flex;
     flex-direction: column;
-    flex: 1 1 calc(50% - 8px);
+    flex: 1 1 400px;
     min-width: 0;
     box-sizing: border-box;
     border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
@@ -40,6 +39,10 @@
       font-size: 14px;
       overflow-wrap: break-word;
       word-break: break-all;
+
+      > dd {
+        margin-left: 0;
+      }
     }
   }
 }
