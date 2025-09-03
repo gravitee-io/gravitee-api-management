@@ -1,3 +1,10 @@
+# [6.2.0-alpha.9](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.8...6.2.0-alpha.9) (2025-09-03)
+
+
+### Features
+
+* update circleci config to use gravitee orb version 5.2.1 ([3332f4b](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/3332f4bcb5bca3755b8040e325523099cabb5d3c))
+
 # [6.2.0-alpha.8](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.7...6.2.0-alpha.8) (2025-08-08)
 
 
