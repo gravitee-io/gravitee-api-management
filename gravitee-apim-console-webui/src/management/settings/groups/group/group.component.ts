@@ -73,6 +73,7 @@ export interface EditMemberDialogData {
   defaultAPIRoles: Role[];
   defaultApplicationRoles: Role[];
   defaultIntegrationRoles: Role[];
+  defaultClusterRoles: Role[];
 }
 
 export interface DeleteMemberDialogData {
@@ -86,6 +87,7 @@ export interface AddOrInviteMembersDialogData {
   defaultAPIRoles: Role[];
   defaultApplicationRoles: Role[];
   defaultIntegrationRoles?: Role[];
+  defaultClusterRoles?: Role[];
 }
 
 interface AddOrUpdateMemberDialogResult {
@@ -144,6 +146,7 @@ export class GroupComponent implements OnInit {
   defaultAPIRoles: Role[] = [];
   defaultApplicationRoles: Role[] = [];
   defaultIntegrationRoles: Role[] = [];
+  defaultClusterRoles: Role[] = [];
   groupId: string = undefined;
   initialFormValues: unknown;
   groupForm: FormGroup<{
@@ -160,7 +163,14 @@ export class GroupComponent implements OnInit {
     shouldAddToNewApplications: FormControl<boolean>;
   }>;
   mode: 'new' | 'edit' = 'new';
-  memberColumnDefs: string[] = ['name', 'defaultApiRole', 'defaultApplicationRole', 'defaultIntegrationRole', 'actions'];
+  memberColumnDefs: string[] = [
+    'name',
+    'defaultApiRole',
+    'defaultApplicationRole',
+    'defaultIntegrationRole',
+    'defaultClusterRole',
+    'actions',
+  ];
   invitationColumnDefs: string[] = ['guestEmail', 'guestApiRole', 'guestApplicationRole', 'guestInvitedOn', 'guestActions'];
   groupAPIColumnDefs: string[] = ['apiName', 'apiVersion'];
   groupApplicationsColumnDefs: string[] = ['applicationName'];
@@ -423,6 +433,16 @@ export class GroupComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+
+    this.roleService
+      .list('CLUSTER')
+      .pipe(
+        tap((roles: Role[]) => {
+          this.defaultClusterRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   saveOrUpdate(): void {
@@ -508,6 +528,7 @@ export class GroupComponent implements OnInit {
           defaultAPIRoles: this.defaultAPIRoles,
           defaultApplicationRoles: this.defaultApplicationRoles,
           defaultIntegrationRoles: this.defaultIntegrationRoles,
+          defaultClusterRoles: this.defaultClusterRoles,
         },
         role: 'alertdialog',
         id: 'editMemberDialog',
@@ -544,6 +565,7 @@ export class GroupComponent implements OnInit {
           defaultAPIRoles: this.defaultAPIRoles,
           defaultApplicationRoles: this.defaultApplicationRoles,
           defaultIntegrationRoles: this.defaultIntegrationRoles,
+          defaultClusterRoles: this.defaultClusterRoles,
         },
         role: 'alertdialog',
         id: 'addMembersDialog',
