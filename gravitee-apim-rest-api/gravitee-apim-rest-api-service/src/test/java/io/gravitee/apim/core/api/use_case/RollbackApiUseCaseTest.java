@@ -31,6 +31,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import fixtures.ApiModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
+import inmemory.*;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
@@ -41,6 +42,8 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -49,15 +52,21 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.search.model.IndexableApi;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.api.UpdateApiDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
@@ -73,8 +82,6 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.v4.ApiService;
-import io.gravitee.rest.api.service.v4.ApiStateService;
-import io.gravitee.rest.api.service.v4.impl.ApiStateServiceImpl;
 import java.sql.Date;
 import java.time.Clock;
 import java.time.Instant;
@@ -100,6 +107,7 @@ class RollbackApiUseCaseTest {
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
+    private static final String API_ID = "my-id";
     private static final String USER_ID = "user-id";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
@@ -113,8 +121,14 @@ class RollbackApiUseCaseTest {
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
-    private final ApiStateService apiStateService = mock(ApiStateServiceImpl.class);
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainServiceLegacyWrapper.class);
+    private final ApiMetadataQueryServiceInMemory metadataQueryService = new ApiMetadataQueryServiceInMemory();
+    private final ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
+    private final IndexerInMemory indexer = new IndexerInMemory();
+    private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
+    private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
 
     @Mock
     CreatePlanDomainService createPlanDomainService;
@@ -124,6 +138,7 @@ class RollbackApiUseCaseTest {
 
     ApiService delegateApiService = mock(ApiService.class);
     UpdateApiDomainService updateApiDomainService = new UpdateApiDomainServiceImpl(delegateApiService, apiCrudService);
+    ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
 
     RollbackApiUseCase useCase;
 
@@ -145,6 +160,21 @@ class RollbackApiUseCaseTest {
     void setUp() {
         var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var closePlanDomainService = new ClosePlanDomainService(planCrudService, subscriptionCrudService, auditDomainService);
+        this.apiPrimaryOwnerDomainService =
+            new ApiPrimaryOwnerDomainService(
+                auditDomainService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService
+            );
+        var apiIndexerDomainService = new ApiIndexerDomainService(
+            new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+            this.apiPrimaryOwnerDomainService,
+            apiCategoryQueryService,
+            indexer
+        );
 
         useCase =
             new RollbackApiUseCase(
@@ -158,8 +188,12 @@ class RollbackApiUseCaseTest {
                 planCrudService,
                 auditDomainService,
                 flowCrudService,
+                apiIndexerDomainService,
+                this.apiPrimaryOwnerDomainService,
                 apiStateDomainService
             );
+
+        this.initializePrimaryOwnerData();
 
         // Add existing API
         existingApi = apiV4().build();
@@ -1055,6 +1089,78 @@ class RollbackApiUseCaseTest {
             // Verify audit log was created
             assertRollbackAuditHasBeenCreated();
         }
+
+        @Test
+        void should_delete_v4_api_index_and_create_v2_api_index_during_rollback() throws JsonProcessingException {
+            // Given
+            var existingV4Api = apiV4().build();
+            apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
+
+            var v4IndexableApi = IndexableApi
+                .builder()
+                .api(ApiAdapter.INSTANCE.toCoreModel(existingV4Api))
+                .primaryOwner(apiPrimaryOwnerDomainService.getApiPrimaryOwner(ORGANIZATION_ID, existingV4Api.getId()))
+                .build();
+
+            indexer.initWith(List.of(v4IndexableApi));
+
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api
+                .builder()
+                .id(existingV4Api.getId())
+                .name("api-previous-name")
+                .version("api-previous-version")
+                .definitionVersion(DefinitionVersion.V2)
+                .proxy(
+                    io.gravitee.definition.model.Proxy
+                        .builder()
+                        .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
+                        .groups(
+                            Set.of(
+                                EndpointGroup
+                                    .builder()
+                                    .name("default-endpoint")
+                                    .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+                .build();
+
+            var apiRepositoryModel = io.gravitee.repository.management.model.Api
+                .builder()
+                .id(eventV2ApiDefinition.getId())
+                .name(eventV2ApiDefinition.getName())
+                .version(eventV2ApiDefinition.getVersion())
+                .definitionVersion(DefinitionVersion.V2)
+                .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+                .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
+                .build();
+
+            var event = Event
+                .builder()
+                .id("rollback-event-id")
+                .type(EventType.PUBLISH_API)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+                .build();
+            eventQueryService.initWith(List.of(event));
+
+            // When
+            useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+            // Then
+            assertThat(indexer.storage()).hasSize(1);
+
+            var updatedIndexedApi = indexer
+                .storage()
+                .stream()
+                .filter(indexable -> indexable.getId().equals(existingV4Api.getId()))
+                .findFirst()
+                .orElseThrow();
+            var updatedApi = ((IndexableApi) updatedIndexedApi).getApi();
+            assertThat(updatedApi.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
+        }
     }
 
     private Plan givenExistingPlan(Plan plan) {
@@ -1131,5 +1237,34 @@ class RollbackApiUseCaseTest {
             .disableMembershipNotifications(true)
             .apiLifecycleState(ApiLifecycleState.PUBLISHED)
             .background("my-background");
+    }
+
+    private void initializePrimaryOwnerData() {
+        roleQueryService.initWith(
+            List.of(
+                Role
+                    .builder()
+                    .id("role-id")
+                    .scope(Role.Scope.API)
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .name("PRIMARY_OWNER")
+                    .build()
+            )
+        );
+        membershipQueryService.initWith(
+            List.of(
+                Membership
+                    .builder()
+                    .id("member-id")
+                    .memberId("my-member-id")
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API)
+                    .referenceId(API_ID)
+                    .roleId("role-id")
+                    .build()
+            )
+        );
+        userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").email("one_valid@email.com").build()));
     }
 }

@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
@@ -31,6 +32,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -69,6 +71,8 @@ public class RollbackApiUseCase {
     private final PlanCrudService planCrudService;
     private final AuditDomainService auditService;
     private final FlowCrudService flowCrudService;
+    private final ApiIndexerDomainService apiIndexerDomainService;
+    private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApiStateDomainService apiStateService;
 
     public void execute(Input input) {
@@ -106,6 +110,11 @@ public class RollbackApiUseCase {
                         apiStateService.stopV4DynamicProperties(api.getId());
                     }
                     Api rollbackedApi = ROLLBACK_OPERATOR.rollback(toRollback, apiDefinition);
+
+                    var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), api.getId());
+                    var indexerContext = new ApiIndexerDomainService.Context(input.auditInfo(), false);
+                    apiIndexerDomainService.delete(indexerContext, toRollback);
+                    apiIndexerDomainService.index(indexerContext, rollbackedApi, apiPrimaryOwner);
 
                     var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
 
