@@ -24,10 +24,12 @@ export enum RoleName {
 export enum RoleScope {
   API = 'API',
   APPLICATION = 'APPLICATION',
+  CLUSTER = 'CLUSTER',
+  INTEGRATION = 'INTEGRATION',
 }
 
 export type Roles = {
-  [scope in RoleScope]: RoleName;
+  [scope in RoleScope]: RoleName | string;
 };
 
 export interface Member {

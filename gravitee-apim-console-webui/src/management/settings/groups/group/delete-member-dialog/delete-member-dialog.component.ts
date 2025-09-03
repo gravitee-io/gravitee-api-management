@@ -30,8 +30,7 @@ import { MatChip, MatChipRemove, MatChipSet } from '@angular/material/chips';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
 import { GroupMembership } from '../../../../../entities/group/groupMember';
-import { RoleName } from '../membershipState';
-import { Member } from '../../../../../entities/management-api-v2';
+import { Member, RoleName } from '../membershipState';
 import { UsersService } from '../../../../../services-ngx/users.service';
 import { DeleteMemberDialogData } from '../group.component';
 

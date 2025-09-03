@@ -50,7 +50,7 @@ import { DeleteMemberDialogComponent } from './delete-member-dialog/delete-membe
 import { EditMemberDialogComponent } from './edit-member-dialog/edit-member-dialog.component';
 import { AddMembersDialogComponent } from './add-members-dialog/add-members-dialog.component';
 import { InviteMemberDialogComponent } from './invite-member-dialog/invite-member-dialog.component';
-import { RoleName } from './membershipState';
+import { Member, RoleName } from './membershipState';
 import { TooManyUsersDialogComponent } from './too-many-users-dialog/too-many-users-dialog.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
@@ -59,7 +59,6 @@ import { gioTableFilterCollection } from '../../../../shared/components/gio-tabl
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { Invitation } from '../../../../entities/invitation/invitation';
 import { GroupService } from '../../../../services-ngx/group.service';
-import { Member } from '../../../../entities/management-api-v2';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { Group } from '../../../../entities/group/group';
@@ -73,6 +72,7 @@ export interface EditMemberDialogData {
   defaultAPIRoles: Role[];
   defaultApplicationRoles: Role[];
   defaultIntegrationRoles: Role[];
+  defaultClusterRoles: Role[];
 }
 
 export interface DeleteMemberDialogData {
@@ -86,6 +86,7 @@ export interface AddOrInviteMembersDialogData {
   defaultAPIRoles: Role[];
   defaultApplicationRoles: Role[];
   defaultIntegrationRoles?: Role[];
+  defaultClusterRoles?: Role[];
 }
 
 interface AddOrUpdateMemberDialogResult {
@@ -144,6 +145,7 @@ export class GroupComponent implements OnInit {
   defaultAPIRoles: Role[] = [];
   defaultApplicationRoles: Role[] = [];
   defaultIntegrationRoles: Role[] = [];
+  defaultClusterRoles: Role[] = [];
   groupId: string = undefined;
   initialFormValues: unknown;
   groupForm: FormGroup<{
@@ -160,7 +162,14 @@ export class GroupComponent implements OnInit {
     shouldAddToNewApplications: FormControl<boolean>;
   }>;
   mode: 'new' | 'edit' = 'new';
-  memberColumnDefs: string[] = ['name', 'defaultApiRole', 'defaultApplicationRole', 'defaultIntegrationRole', 'actions'];
+  memberColumnDefs: string[] = [
+    'name',
+    'defaultApiRole',
+    'defaultApplicationRole',
+    'defaultIntegrationRole',
+    'defaultClusterRole',
+    'actions',
+  ];
   invitationColumnDefs: string[] = ['guestEmail', 'guestApiRole', 'guestApplicationRole', 'guestInvitedOn', 'guestActions'];
   groupAPIColumnDefs: string[] = ['apiName', 'apiVersion'];
   groupApplicationsColumnDefs: string[] = ['applicationName'];
@@ -288,7 +297,7 @@ export class GroupComponent implements OnInit {
 
   private initializeGroupMembers() {
     this.groupMembers$ = this.groupService.getMembers(this.groupId).pipe(
-      tap((members: Member[]) => {
+      tap((members) => {
         this.groupMembers.next(members.sort((a, b) => a.displayName.localeCompare(b.displayName)));
         this.disableDeleteMember();
         this.maxInvitationsLimitReached = this.group.value.max_invitation <= this.groupMembers.value.length;
@@ -423,6 +432,16 @@ export class GroupComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+
+    this.roleService
+      .list('CLUSTER')
+      .pipe(
+        tap((roles: Role[]) => {
+          this.defaultClusterRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   saveOrUpdate(): void {
@@ -508,6 +527,7 @@ export class GroupComponent implements OnInit {
           defaultAPIRoles: this.defaultAPIRoles,
           defaultApplicationRoles: this.defaultApplicationRoles,
           defaultIntegrationRoles: this.defaultIntegrationRoles,
+          defaultClusterRoles: this.defaultClusterRoles,
         },
         role: 'alertdialog',
         id: 'editMemberDialog',
@@ -544,6 +564,7 @@ export class GroupComponent implements OnInit {
           defaultAPIRoles: this.defaultAPIRoles,
           defaultApplicationRoles: this.defaultApplicationRoles,
           defaultIntegrationRoles: this.defaultIntegrationRoles,
+          defaultClusterRoles: this.defaultClusterRoles,
         },
         role: 'alertdialog',
         id: 'addMembersDialog',

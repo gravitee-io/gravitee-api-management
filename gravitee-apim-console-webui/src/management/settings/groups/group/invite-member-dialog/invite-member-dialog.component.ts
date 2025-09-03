@@ -30,8 +30,7 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
 import { Invitation } from '../../../../../entities/invitation/invitation';
 import { ApiPrimaryOwnerMode } from '../../../../../services/apiPrimaryOwnerMode.service';
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
-import { RoleName } from '../membershipState';
-import { Member } from '../../../../../entities/management-api-v2';
+import { RoleName, Member } from '../membershipState';
 import { AddOrInviteMembersDialogData } from '../group.component';
 import { Group } from '../../../../../entities/group/group';
 

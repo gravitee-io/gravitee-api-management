@@ -45,6 +45,15 @@
       </mat-select>
     </mat-form-field>
 
+    <mat-form-field aria-hidden="false" aria-label="Select default cluster role">
+      <mat-label>Default Cluster Role</mat-label>
+      <mat-select formControlName="defaultClusterRole" (selectionChange)="onChange()">
+        @for (role of defaultClusterRoles; track role.id) {
+          <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
     <gio-form-slide-toggle class="edit-member__form__actions">
       <gio-form-label>Group Admin</gio-form-label>
       <mat-slide-toggle
