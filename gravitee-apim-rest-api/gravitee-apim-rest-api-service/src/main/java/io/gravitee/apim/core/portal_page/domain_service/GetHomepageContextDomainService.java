@@ -13,36 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package io.gravitee.apim.core.portal_page.domain_service;
 
+import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
-import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
-import java.util.ArrayList;
+import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
-public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InMemoryAlternative<PortalPage> {
+@DomainService
+@RequiredArgsConstructor
+public class GetHomepageContextDomainService {
 
-    private final List<PortalPage> storage = new ArrayList<>();
+    private final PortalPageContextCrudService portalPageContextCrudService;
+    private final PortalPageCrudService portalPageCrudService;
 
-    @Override
-    public void initWith(List<PortalPage> items) {
-        storage.clear();
-        storage.addAll(items);
-    }
+    public List<PortalPage> getHomepageContexts(String environmentId) {
+        var pageIds = portalPageContextCrudService.findAllByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, environmentId);
 
-    @Override
-    public void reset() {
-        storage.clear();
-    }
-
-    @Override
-    public List<PortalPage> storage() {
-        return storage;
-    }
-
-    @Override
-    public List<PortalPage> findPagesByIds(List<PageId> pageIds) {
-        return storage.stream().filter(p -> pageIds.contains(p.id())).toList();
+        return portalPageCrudService.findPagesByIds(pageIds);
     }
 }

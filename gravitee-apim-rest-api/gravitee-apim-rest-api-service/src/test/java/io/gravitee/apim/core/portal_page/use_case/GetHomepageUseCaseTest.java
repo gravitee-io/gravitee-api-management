@@ -18,12 +18,16 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import inmemory.PortalPageContextCrudServiceInMemory;
 import inmemory.PortalPageCrudServiceInMemory;
+import io.gravitee.apim.core.portal_page.domain_service.CheckContextExistsDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.GetHomepageContextDomainService;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageFactory;
-import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import io.gravitee.repository.management.model.PortalPageContext;
+import io.gravitee.repository.management.model.PortalPageContextType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -32,21 +36,37 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GetHomepageUseCaseTest {
 
-    private PortalPageCrudServiceInMemory crudService;
+    private PortalPageCrudServiceInMemory portalPageCrudService;
+    private PortalPageContextCrudServiceInMemory portalPageContextCrudService;
     private GetHomepageUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        crudService = new PortalPageCrudServiceInMemory();
-        useCase = new GetHomepageUseCase(crudService);
+        portalPageCrudService = new PortalPageCrudServiceInMemory();
+        portalPageContextCrudService = new PortalPageContextCrudServiceInMemory();
+        GetHomepageContextDomainService getHomepageContextDomainService = new GetHomepageContextDomainService(
+            portalPageContextCrudService,
+            portalPageCrudService
+        );
+        CheckContextExistsDomainService checkContextExistsDomainService = new CheckContextExistsDomainService(portalPageContextCrudService);
+
+        useCase = new GetHomepageUseCase(getHomepageContextDomainService, checkContextExistsDomainService);
     }
 
     @Test
     void should_return_homepage_when_exists() {
-        PortalPage homepage = PortalPageFactory.create(PageId.random(), new GraviteeMarkdown("home"));
-        crudService.initWith(java.util.List.of(homepage));
-        crudService.initWithContext(PortalViewContext.HOMEPAGE, homepage);
-        GetHomepageUseCase.Output output = useCase.execute(new GetHomepageUseCase.Input("DEFAULT"));
+        PageId pageId = PageId.random();
+        PortalPage homepage = PortalPageFactory.create(pageId, new GraviteeMarkdown("home"));
+        portalPageCrudService.initWith(java.util.List.of(homepage));
+        String environmentId = "DEFAULT";
+        var ctx = PortalPageContext
+            .builder()
+            .pageId(pageId.toString())
+            .contextType(PortalPageContextType.HOMEPAGE)
+            .environmentId(environmentId)
+            .build();
+        portalPageContextCrudService.initWith(java.util.List.of(ctx));
+        GetHomepageUseCase.Output output = useCase.execute(new GetHomepageUseCase.Input(environmentId));
         assertThat(output.pages()).hasSize(1).containsExactly(homepage);
     }
 

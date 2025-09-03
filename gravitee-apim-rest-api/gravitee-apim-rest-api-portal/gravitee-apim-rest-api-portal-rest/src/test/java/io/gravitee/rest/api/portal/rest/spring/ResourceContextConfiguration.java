@@ -25,6 +25,8 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
+import inmemory.PortalPageContextCrudServiceInMemory;
+import inmemory.PortalPageCrudServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
@@ -79,6 +81,8 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
@@ -927,5 +931,15 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdateClusterGroupsUseCase updateClusterGroupsUseCase() {
         return mock(UpdateClusterGroupsUseCase.class);
+    }
+
+    @Bean
+    public PortalPageCrudService portalPageCrudService() {
+        return new PortalPageCrudServiceInMemory();
+    }
+
+    @Bean
+    public PortalPageContextCrudService portalPageContextCrudService() {
+        return new PortalPageContextCrudServiceInMemory();
     }
 }

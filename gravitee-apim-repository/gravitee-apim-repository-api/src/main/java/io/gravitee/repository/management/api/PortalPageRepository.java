@@ -16,8 +16,11 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.management.model.PortalPage;
+import java.util.List;
 
 /**
  * @author GraviteeSource Team
  */
-public interface PortalPageRepository extends CrudRepository<PortalPage, String> {}
+public interface PortalPageRepository extends CrudRepository<PortalPage, String> {
+    List<PortalPage> findByIds(List<String> ids);
+}
