@@ -16,14 +16,11 @@
 package io.gravitee.apim.infra.crud_service.portal_page;
 
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
+import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
-import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.apim.infra.adapter.PortalPageAdapter;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.api.PortalPageRepository;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -35,49 +32,14 @@ public class PortalPageCrudServiceImpl implements PortalPageCrudService {
     @Lazy
     private final PortalPageRepository portalPageRepository;
 
-    @Lazy
-    private final PortalPageContextRepository portalPageContextRepository;
-
-    private final PortalPageAdapter portalPageAdapter;
+    private final PortalPageAdapter portalPageAdapter = PortalPageAdapter.INSTANCE;
 
     @Override
-    public List<PortalPage> byPortalViewContext(String environmentId, PortalViewContext portalViewContext) {
-        try {
-            var contexts = portalPageContextRepository.findAllByContextTypeAndEnvironmentId(
-                io.gravitee.repository.management.model.PortalPageContextType.valueOf(portalViewContext.name()),
-                environmentId
-            );
-            if (contexts == null || contexts.isEmpty()) {
-                return List.of();
-            }
-            return contexts
-                .stream()
-                .map(ctx -> {
-                    try {
-                        return portalPageRepository.findById(ctx.getPageId());
-                    } catch (TechnicalException e) {
-                        return Optional.<io.gravitee.repository.management.model.PortalPage>empty();
-                    }
-                })
-                .flatMap(Optional::stream)
-                .map(portalPageAdapter::toEntity)
-                .toList();
-        } catch (io.gravitee.repository.exceptions.TechnicalException e) {
-            return List.of();
-        }
-    }
-
-    @Override
-    public boolean portalViewContextExists(String environmentId, PortalViewContext key) {
-        try {
-            var contexts = portalPageContextRepository.findAllByContextTypeAndEnvironmentId(
-                io.gravitee.repository.management.model.PortalPageContextType.valueOf(key.name()),
-                environmentId
-            );
-            return contexts != null && !contexts.isEmpty();
-        } catch (io.gravitee.repository.exceptions.TechnicalException e) {
-            // Handle or log exception as needed
-            return false;
-        }
+    public List<PortalPage> findPagesByIds(List<PageId> pageIds) {
+        return portalPageRepository
+            .findByIds(pageIds.stream().map(PageId::toString).toList())
+            .stream()
+            .map(portalPageAdapter::toEntity)
+            .toList();
     }
 }

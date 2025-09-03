@@ -16,9 +16,9 @@
 package io.gravitee.apim.core.portal_page.crud_service;
 
 import io.gravitee.apim.core.portal_page.model.PageId;
-import io.gravitee.apim.core.portal_page.model.PortalPage;
+import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.List;
 
-public interface PortalPageCrudService {
-    List<PortalPage> findPagesByIds(List<PageId> pageIds);
+public interface PortalPageContextCrudService {
+    List<PageId> findAllByContextTypeAndEnvironmentId(PortalViewContext contextType, String environmentId);
 }
