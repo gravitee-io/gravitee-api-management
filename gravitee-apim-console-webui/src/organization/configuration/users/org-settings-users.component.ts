@@ -51,8 +51,6 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   nbTotalUsers = 0;
   filteredTableData: TableData[] = [];
 
-  private readonly defaultOrder = 'firstname,lastname,displayName,email,id,reference';
-
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   // Create filters stream
@@ -70,10 +68,8 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
     // Init filters stream with state params
     const initialSearchValue = this.activatedRoute.snapshot.queryParams.q ?? '';
     const initialPageNumber = this.activatedRoute.snapshot.queryParams.page ? Number(this.activatedRoute.snapshot.queryParams.page) : 1;
-    const initialOrder = this.activatedRoute.snapshot.queryParams.order ?? this.defaultOrder;
     this.filters = {
       searchTerm: initialSearchValue,
-      sort: { active: initialOrder, direction: 'asc' },
       pagination: {
         ...this.filtersStream.value.pagination,
         index: initialPageNumber,
@@ -86,16 +82,16 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
       .pipe(
         debounceTime(100),
         distinctUntilChanged(),
-        tap(({ pagination, searchTerm, sort }) => {
+        tap(({ pagination, searchTerm }) => {
           // Change url params
           this.router.navigate([], {
             relativeTo: this.activatedRoute,
-            queryParams: { q: searchTerm, page: pagination.index, order: sort?.active },
+            queryParams: { q: searchTerm, page: pagination.index },
             queryParamsHandling: 'merge',
           });
         }),
-        switchMap(({ pagination, searchTerm, sort }) =>
-          this.usersService.list(searchTerm, pagination.index, pagination.size, sort?.active).pipe(
+        switchMap(({ pagination, searchTerm }) =>
+          this.usersService.list(searchTerm, pagination.index, pagination.size).pipe(
             // Return empty page result in case of error and does not interrupt the research observable
             catchError(() => of(new PagedResult<User>())),
           ),
@@ -133,8 +129,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
-    const ensuredSort = filters.sort ?? this.filters?.sort ?? { active: this.defaultOrder, direction: 'asc' };
-    this.filtersStream.next({ ...filters, sort: ensuredSort });
+    this.filtersStream.next(filters);
   }
 
   private setDataSourceFromUsersList(users: PagedResult<User>) {

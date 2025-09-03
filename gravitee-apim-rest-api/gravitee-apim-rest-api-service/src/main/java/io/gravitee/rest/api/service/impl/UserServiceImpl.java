@@ -1287,7 +1287,17 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
         if (results.hasResults()) {
-            List<UserEntity> users = new ArrayList<>((findByIds(executionContext, results.getDocuments())));
+            Set<UserEntity> fetched = findByIds(executionContext, results.getDocuments());
+            Map<String, UserEntity> byId = fetched.stream().collect(Collectors.toMap(UserEntity::getId, u -> u));
+            List<UserEntity> users = new ArrayList<>(results.getDocuments().size());
+            for (String id : results.getDocuments()) {
+                UserEntity u = byId.get(id);
+                if (u != null && (users.isEmpty() || !users.get(users.size() - 1).getId().equals(u.getId()))) {
+                    if (users.stream().noneMatch(existing -> existing.getId().equals(u.getId()))) {
+                        users.add(u);
+                    }
+                }
+            }
 
             populateUserFlags(executionContext.getOrganizationId(), users);
 

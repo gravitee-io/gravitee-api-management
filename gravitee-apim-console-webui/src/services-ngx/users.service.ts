@@ -35,13 +35,12 @@ export class UsersService {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  list(query?: string, page = 1, size = 10, order?: string): Observable<PagedResult<User>> {
+  list(query?: string, page = 1, size = 10): Observable<PagedResult<User>> {
     return this.http.get<PagedResult<User>>(`${this.constants.org.baseURL}/users`, {
       params: {
         page,
         size,
         ...(query ? { q: query } : {}),
-        ...(order ? { order } : {}),
       },
     });
   }
