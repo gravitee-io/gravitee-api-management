@@ -32,7 +32,7 @@ import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particle
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 
-import { RoleName } from '../membershipState';
+import { Member, RoleName } from '../membershipState';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPrimaryOwnerMode } from '../../../../../services/apiPrimaryOwnerMode.service';
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
@@ -40,7 +40,6 @@ import { Role } from '../../../../../entities/role/role';
 import { GroupMembership } from '../../../../../entities/group/groupMember';
 import { SearchableUser } from '../../../../../entities/user/searchableUser';
 import { UsersService } from '../../../../../services-ngx/users.service';
-import { Member } from '../../../../../entities/management-api-v2';
 import { EditMemberDialogData } from '../group.component';
 import { Group } from '../../../../../entities/group/group';
 
@@ -77,12 +76,14 @@ export class EditMemberDialogComponent implements OnInit {
   defaultAPIRoles: Role[] = [];
   defaultApplicationRoles: Role[] = [];
   defaultIntegrationRoles: Role[] = [];
+  defaultClusterRoles: Role[] = [];
   editMemberForm: FormGroup<{
     displayName: FormControl<string>;
     groupAdmin: FormControl<boolean>;
     defaultAPIRole: FormControl<string>;
     defaultApplicationRole: FormControl<string>;
     defaultIntegrationRole: FormControl<string>;
+    defaultClusterRole: FormControl<string>;
     searchTerm: FormControl<string>;
   }>;
   ownershipTransferMessage: string = null;
@@ -121,6 +122,7 @@ export class EditMemberDialogComponent implements OnInit {
     this.defaultAPIRoles = this.data.defaultAPIRoles;
     this.defaultApplicationRoles = this.data.defaultApplicationRoles;
     this.defaultIntegrationRoles = this.data.defaultIntegrationRoles;
+    this.defaultClusterRoles = this.data.defaultClusterRoles;
   }
 
   private initializeForm() {
@@ -133,6 +135,7 @@ export class EditMemberDialogComponent implements OnInit {
       defaultAPIRole: new FormControl<string>(this.member.roles['API']),
       defaultApplicationRole: new FormControl<string>(this.member.roles['APPLICATION']),
       defaultIntegrationRole: new FormControl<string>(this.member.roles['INTEGRATION']),
+      defaultClusterRole: new FormControl<string>(this.member.roles['CLUSTER']),
       searchTerm: new FormControl<string>({ value: '', disabled: true }),
     });
   }
@@ -160,6 +163,7 @@ export class EditMemberDialogComponent implements OnInit {
     this.disableDefaultAPIRole();
     this.disableDefaultApplicationRole();
     this.disableDefaultIntegrationRole();
+    this.disableDefaultClusterRole();
     this.disableAPIRoleOptions();
   }
 
@@ -178,6 +182,12 @@ export class EditMemberDialogComponent implements OnInit {
   private disableDefaultIntegrationRole(): void {
     if (!this.canUpdateGroup()) {
       this.editMemberForm.controls.defaultIntegrationRole.disable();
+    }
+  }
+
+  private disableDefaultClusterRole(): void {
+    if (!this.canUpdateGroup()) {
+      this.editMemberForm.controls.defaultClusterRole.disable();
     }
   }
 
@@ -265,6 +275,10 @@ export class EditMemberDialogComponent implements OnInit {
         {
           name: this.editMemberForm.controls.defaultIntegrationRole.value,
           scope: 'INTEGRATION',
+        },
+        {
+          name: this.editMemberForm.controls.defaultClusterRole.value,
+          scope: 'CLUSTER',
         },
       ],
     };

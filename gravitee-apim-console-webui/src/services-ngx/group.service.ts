@@ -24,7 +24,7 @@ import { Constants } from '../entities/Constants';
 import { Group } from '../entities/group/group';
 import { GroupMembership } from '../entities/group/groupMember';
 import { Invitation } from '../entities/invitation/invitation';
-import { Member } from '../entities/management-api-v2';
+import { Member } from '../management/settings/groups/group/membershipState';
 
 @Injectable({
   providedIn: 'root',
