@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -59,7 +58,7 @@ public class SearchHistogramAnalyticsUseCase {
         return executeV4APICase(executionContext, input);
     }
 
-    private @NotNull Output executeV4APICase(ExecutionContext executionContext, Input input) {
+    private Output executeV4APICase(ExecutionContext executionContext, Input input) {
         var histogramQuery = new AnalyticsQueryService.HistogramQuery(
             AnalyticsQueryService.SearchTermId.forApi(input.api),
             Instant.ofEpochMilli(input.from()),
@@ -110,7 +109,7 @@ public class SearchHistogramAnalyticsUseCase {
         );
     }
 
-    private @NotNull Output executeV4NativeAPICase(ExecutionContext executionContext, Input input) {
+    private Output executeV4NativeAPICase(ExecutionContext executionContext, Input input) {
         Instant from = Instant.ofEpochMilli(input.from());
         Instant to = Instant.ofEpochMilli(input.to());
         Duration interval = Duration.ofMillis(input.interval());
