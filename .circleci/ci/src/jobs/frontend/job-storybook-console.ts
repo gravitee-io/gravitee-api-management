@@ -48,7 +48,7 @@ export class StorybookConsoleJob {
       new reusable.ReusedCommand(notifyOnFailureCommand),
       new commands.workspace.Persist({
         root: '.',
-        paths: ['gravitee-apim-console-webui/storybook-static', 'gravitee-apim-portal-webui-next/dist'],
+        paths: ['gravitee-apim-console-webui/storybook-static', 'gravitee-apim-console-webui/dist-lib'],
       }),
     ];
 

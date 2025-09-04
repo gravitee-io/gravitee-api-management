@@ -143,15 +143,18 @@
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "project": "projects/gravitee-markdown/ng-package.json"
-          },
           "configurations": {
             "production": {
-              "tsConfig": "projects/gravitee-markdown/tsconfig.lib.prod.json"
+              "tsConfig": "projects/gravitee-markdown/tsconfig.lib.prod.json",
+              "project": "projects/gravitee-markdown/ng-package.portal-next.json"
             },
             "development": {
-              "tsConfig": "projects/gravitee-markdown/tsconfig.lib.json"
+              "tsConfig": "projects/gravitee-markdown/tsconfig.lib.json",
+              "project": "projects/gravitee-markdown/ng-package.portal-next.json"
+            },
+            "console": {
+              "tsConfig": "projects/gravitee-markdown/tsconfig.lib.prod.json",
+              "project": "projects/gravitee-markdown/ng-package.console.json"
             }
           },
           "defaultConfiguration": "production"
