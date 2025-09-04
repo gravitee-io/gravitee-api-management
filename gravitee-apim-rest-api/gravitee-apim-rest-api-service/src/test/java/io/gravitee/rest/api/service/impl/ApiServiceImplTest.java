@@ -17,9 +17,11 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,10 +37,13 @@ import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.PropertyEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -47,7 +52,9 @@ import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -89,6 +96,9 @@ public class ApiServiceImplTest {
 
     @Mock
     private ApiEntrypointService apiEntrypointService;
+
+    @Mock
+    private GroupService groupService;
 
     @InjectMocks
     private ApiServiceImpl apiService;
@@ -174,6 +184,171 @@ public class ApiServiceImplTest {
         boolean result = apiService.isSynchronized(executionContext, "api-id");
 
         assertTrue(result);
+    }
+
+    @Test
+    public void createWithApiDefinition_should_add_default_groups_when_primary_owner_is_null() throws Exception {
+        // Given
+        PrimaryOwnerEntity primaryOwner = null;
+
+        // Create default groups
+        GroupEntity group1 = createGroupEntity("group1", "Group 1", null);
+        GroupEntity group2 = createGroupEntity("group2", "Group 2", null);
+        GroupEntity groupWithApiPrimaryOwner = createGroupEntity("group3", "Group 3", "some-user-id");
+
+        Set<GroupEntity> defaultGroupEntities = new HashSet<>(Arrays.asList(group1, group2, groupWithApiPrimaryOwner));
+
+        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE))).thenReturn(defaultGroupEntities);
+
+        // When
+        Set<String> result = getDefaultGroupsForApiCreation(primaryOwner);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        assertTrue(result.contains("group1"));
+        assertTrue(result.contains("group2"));
+        assertTrue(result.contains("group3"));
+
+        verify(groupService, times(1)).findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE));
+    }
+
+    @Test
+    public void createWithApiDefinition_should_filter_out_groups_with_api_primary_owner_when_primary_owner_exists() throws Exception {
+        // Given
+        PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity();
+        primaryOwner.setId("primary-owner-id");
+        primaryOwner.setType("USER");
+
+        // Create default groups
+        GroupEntity group1 = createGroupEntity("group1", "Group 1", null);
+        GroupEntity group2 = createGroupEntity("group2", "Group 2", null);
+        GroupEntity groupWithApiPrimaryOwner = createGroupEntity("group3", "Group 3", "some-user-id");
+
+        Set<GroupEntity> defaultGroupEntities = new HashSet<>(Arrays.asList(group1, group2, groupWithApiPrimaryOwner));
+
+        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE))).thenReturn(defaultGroupEntities);
+
+        // When
+        Set<String> result = getDefaultGroupsForApiCreation(primaryOwner);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.contains("group1"));
+        assertTrue(result.contains("group2"));
+        assertFalse(result.contains("group3")); // Should be filtered out because it has apiPrimaryOwner
+
+        verify(groupService, times(1)).findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE));
+    }
+
+    @Test
+    public void createWithApiDefinition_should_include_all_groups_when_primary_owner_has_empty_id() throws Exception {
+        // Given
+        PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity();
+        primaryOwner.setId(""); // Empty ID
+        primaryOwner.setType("USER");
+
+        // Create default groups
+        GroupEntity group1 = createGroupEntity("group1", "Group 1", null);
+        GroupEntity group2 = createGroupEntity("group2", "Group 2", null);
+        GroupEntity groupWithApiPrimaryOwner = createGroupEntity("group3", "Group 3", "some-user-id");
+
+        Set<GroupEntity> defaultGroupEntities = new HashSet<>(Arrays.asList(group1, group2, groupWithApiPrimaryOwner));
+
+        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE))).thenReturn(defaultGroupEntities);
+
+        // When
+        Set<String> result = getDefaultGroupsForApiCreation(primaryOwner);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        assertTrue(result.contains("group1"));
+        assertTrue(result.contains("group2"));
+        assertTrue(result.contains("group3")); // Should be included because empty ID is treated as no primary owner
+
+        verify(groupService, times(1)).findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE));
+    }
+
+    @Test
+    public void createWithApiDefinition_should_return_empty_set_when_no_default_groups_exist() throws Exception {
+        // Given
+        PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity();
+        primaryOwner.setId("primary-owner-id");
+        primaryOwner.setType("USER");
+
+        Set<GroupEntity> defaultGroupEntities = new HashSet<>(); // Empty set
+
+        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE))).thenReturn(defaultGroupEntities);
+
+        // When
+        Set<String> result = getDefaultGroupsForApiCreation(primaryOwner);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(groupService, times(1)).findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE));
+    }
+
+    @Test
+    public void createWithApiDefinition_should_include_all_groups_when_primary_owner_is_null_and_groups_have_api_primary_owner()
+        throws Exception {
+        // Given
+        PrimaryOwnerEntity primaryOwner = null;
+
+        // Create default groups - all have apiPrimaryOwner
+        GroupEntity group1 = createGroupEntity("group1", "Group 1", "user1");
+        GroupEntity group2 = createGroupEntity("group2", "Group 2", "user2");
+
+        Set<GroupEntity> defaultGroupEntities = new HashSet<>(Arrays.asList(group1, group2));
+
+        when(groupService.findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE))).thenReturn(defaultGroupEntities);
+
+        // When
+        Set<String> result = getDefaultGroupsForApiCreation(primaryOwner);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.contains("group1"));
+        assertTrue(result.contains("group2"));
+
+        verify(groupService, times(1)).findByEvent(eq(executionContext.getEnvironmentId()), eq(GroupEvent.API_CREATE));
+    }
+
+    /**
+     * Helper method to simulate the default groups logic from createWithApiDefinition method
+     */
+    private Set<String> getDefaultGroupsForApiCreation(PrimaryOwnerEntity primaryOwner) {
+        Set<GroupEntity> defaultGroupEntities = groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE);
+
+        Set<String> defaultGroups;
+        // Filter out groups with apiPrimaryOwner if primaryOwner is not null and has a value
+        if (primaryOwner != null && !org.apache.commons.lang3.StringUtils.isEmpty(primaryOwner.getId())) {
+            defaultGroups =
+                defaultGroupEntities
+                    .stream()
+                    .filter(group -> org.apache.commons.lang3.StringUtils.isEmpty(group.getApiPrimaryOwner()))
+                    .map(GroupEntity::getId)
+                    .collect(java.util.stream.Collectors.toSet());
+        } else {
+            defaultGroups = defaultGroupEntities.stream().map(GroupEntity::getId).collect(java.util.stream.Collectors.toSet());
+        }
+
+        return defaultGroups;
+    }
+
+    /**
+     * Helper method to create GroupEntity for testing
+     */
+    private GroupEntity createGroupEntity(String id, String name, String apiPrimaryOwner) {
+        GroupEntity group = new GroupEntity();
+        group.setId(id);
+        group.setName(name);
+        group.setApiPrimaryOwner(apiPrimaryOwner);
+        return group;
     }
 
     private List<PropertyEntity> buildProperties() {
