@@ -553,11 +553,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             repoApi.setVisibility(api.getVisibility() == null ? Visibility.PRIVATE : Visibility.valueOf(api.getVisibility().toString()));
 
             log.debug("Add default groups");
-            Set<String> defaultGroups = groupService
-                .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
-                .stream()
-                .map(GroupEntity::getId)
-                .collect(toSet());
+            Set<GroupEntity> defaultGroupEntities = groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE);
+
+            Set<String> defaultGroups;
+            // Filter out groups with apiPrimaryOwner if primaryOwner is not null and has a value
+            if (primaryOwner != null && !StringUtils.isEmpty(primaryOwner.getId())) {
+                defaultGroups =
+                    defaultGroupEntities
+                        .stream()
+                        .filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()))
+                        .map(GroupEntity::getId)
+                        .collect(toSet());
+            } else {
+                defaultGroups = defaultGroupEntities.stream().map(GroupEntity::getId).collect(toSet());
+            }
+
             if (repoApi.getGroups() == null) {
                 repoApi.setGroups(defaultGroups.isEmpty() ? null : defaultGroups);
             } else {
