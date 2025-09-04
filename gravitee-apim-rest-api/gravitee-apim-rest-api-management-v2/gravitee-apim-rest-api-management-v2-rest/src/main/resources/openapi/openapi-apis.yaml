@@ -2957,19 +2957,6 @@ paths:
 
 components:
     schemas:
-        TransferOwnership:
-            type: object
-            properties:
-                newPrimaryOwnerId:
-                    type: string
-                    description: The new primary owner ID (user's technical identifier). Can be null if userReference is defined.
-                userReference:
-                    type: string
-                    description: The new primary owner reference (user's reference provided by an identity provider). Can be null if userId is defined.
-                currentPrimaryOwnerNewRole:
-                    type: string
-                    description: The name of the role that will be assigned to the current primary owner after the transfer.
-
         Analytics:
             type: object
             properties:
@@ -8612,14 +8599,14 @@ components:
                                 $ref: "#/components/schemas/Links"
 
         MembersResponse:
-            description: Page of API members
+            description: Page of members
             content:
                 application/json:
                     schema:
                         title: "MembersResponse"
                         properties:
                             data:
-                                description: List of API members.
+                                description: List of members.
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/Member"
