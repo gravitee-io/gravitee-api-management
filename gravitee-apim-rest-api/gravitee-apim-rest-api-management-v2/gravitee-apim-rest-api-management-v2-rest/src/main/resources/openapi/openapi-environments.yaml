@@ -516,13 +516,13 @@ paths:
             $ref: "#/components/responses/Error"
 
     /clusters/{clusterId}:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
       get:
         tags:
           - Clusters
         summary: Get a cluster
         operationId: getCluster
-        parameters:
-          - $ref: "#/components/parameters/clusterId"
         responses:
           "200":
             description: Cluster found
@@ -537,8 +537,6 @@ paths:
           - Clusters
         summary: Update a cluster
         operationId: updateCluster
-        parameters:
-          - $ref: "#/components/parameters/clusterId"
         requestBody:
           content:
             application/json:
@@ -567,6 +565,122 @@ paths:
           default:
             $ref: "#/components/responses/Error"
 
+    /clusters/{clusterId}/groups:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      put:
+        tags:
+          - Clusters
+        summary: Update a cluster's groups
+        operationId: updateClusterGroups
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateClusterGroups"
+          required: true
+        responses:
+          "200":
+            description: Cluster groups updated
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ClusterGroups"
+          default:
+            $ref: "#/components/responses/Error"
+
+    /clusters/{clusterId}/members:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      get:
+        tags:
+          - Clusters
+        summary: Get cluster's members
+        operationId: getClusterMembers
+        responses:
+          "200":
+            $ref: './openapi-apis.yaml#/components/responses/MembersResponse'
+          default:
+            $ref: "#/components/responses/Error"
+      post:
+        tags:
+          - Clusters
+        summary: Add a cluster member
+        operationId: addClusterMember
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "./openapi-apis.yaml#/components/schemas/AddMember"
+          required: true
+        responses:
+          "201":
+            description: Member successfully added
+          default:
+            $ref: "#/components/responses/Error"
+
+    /clusters/{clusterId}/members/{memberId}:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+        - $ref: "./openapi-apis.yaml#/components/parameters/memberIdParam"
+      put:
+        tags:
+          - Clusters
+        summary: Update a cluster's member
+        operationId: updateClusterMember
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "./openapi-apis.yaml#/components/schemas/UpdateMember"
+          required: true
+        responses:
+          "200":
+            description: Updated member
+            content:
+              application/json:
+                schema:
+                  $ref: "./openapi-apis.yaml#/components/schemas/Member"
+          default:
+            $ref: "#/components/responses/Error"
+      delete:
+        tags:
+          - Clusters
+        summary: Delete a cluster's member
+        operationId: deleteClusterMember
+        responses:
+          "204":
+            description: Member removed
+          default:
+            $ref: "#/components/responses/Error"
+
+    /clusters/{clusterId}/members/permissions:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      get:
+        tags:
+          - Clusters
+        summary: Get cluster's members permissions
+        operationId: getClusterMembersPermissions
+        responses:
+          "200":
+            $ref: '???????'
+          default:
+            $ref: "#/components/responses/Error"
+
+    /clusters/{clusterId}/members/_transfer-ownership:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      post:
+        tags:
+          - Clusters
+        summary: Transfer cluster ownership
+        operationId: transferClusterOwnership
+        responses:
+          "204":
+            description: Ownership has been transferred successfully
+          default:
+            $ref: "#/components/responses/Error"
 
     # NewAI
     /newtai/el/_generate:
@@ -586,30 +700,6 @@ paths:
         responses:
           "200":
             $ref: "#/components/responses/GenerateExpressionLanguageResponse"
-          default:
-            $ref: "#/components/responses/Error"
-
-    /clusters/{clusterId}/groups:
-      put:
-        tags:
-          - Clusters
-        summary: Update a cluster's groups
-        operationId: updateClusterGroups
-        parameters:
-          - $ref: "#/components/parameters/clusterId"
-        requestBody:
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UpdateClusterGroups"
-          required: true
-        responses:
-          "200":
-            description: Cluster groups updated
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ClusterGroups"
           default:
             $ref: "#/components/responses/Error"
 
@@ -907,6 +997,19 @@ components:
             type: array
             items:
                 type: string
+        TransferOwnership:
+          type: object
+          properties:
+            newPrimaryOwnerId:
+              type: string
+              description: The new primary owner ID (user's technical identifier). Can be null if userReference is defined.
+            userReference:
+              type: string
+              description: The new primary owner reference (user's reference provided by an identity provider). Can be null if userId is defined.
+            currentPrimaryOwnerNewRole:
+              type: string
+              description: The name of the role that will be assigned to the current primary owner after the transfer.
+
 
         # Scoring
         EnvironmentApiScore:

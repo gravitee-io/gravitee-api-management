@@ -32,6 +32,17 @@
         >
           Manage groups
         </button>
+
+        <button
+          *gioPermission="{ anyOf: ['cluster-member-u'] }"
+          (click)="transferOwnership()"
+          class="card__header__actions__button"
+          mat-raised-button
+          type="button"
+        >
+          Transfer ownership
+        </button>
+
         <button
           *gioPermission="{ anyOf: ['cluster-member-c'] }"
           (click)="addMembers()"

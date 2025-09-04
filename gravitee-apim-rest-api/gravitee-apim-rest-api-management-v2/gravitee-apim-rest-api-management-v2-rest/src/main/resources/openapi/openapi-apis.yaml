@@ -8599,14 +8599,14 @@ components:
                                 $ref: "#/components/schemas/Links"
 
         MembersResponse:
-            description: Page of API members
+            description: Page of members
             content:
                 application/json:
                     schema:
                         title: "MembersResponse"
                         properties:
                             data:
-                                description: List of API members.
+                                description: List of members.
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/Member"
