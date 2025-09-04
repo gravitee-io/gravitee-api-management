@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.environment;
+package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -170,7 +170,7 @@ public class ClusterMembersResource extends AbstractResource {
     @POST
     @Path("/_transfer-ownership")
     @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.UPDATE) })
-    public Response transferOwnership(TransferOwnership transferOwnership) {
+    public Response transferClusterOwnership(TransferOwnership transferOwnership) {
         transferClusterOwnershipUseCase.execute(
             new TransferClusterOwnershipUseCase.Input(MembershipMapper.INSTANCE.map(transferOwnership), clusterId)
         );
