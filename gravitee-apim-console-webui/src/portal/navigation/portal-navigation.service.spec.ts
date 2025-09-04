@@ -73,8 +73,13 @@ describe('PortalNavigationService', () => {
           routerLink: 'theme',
           icon: 'gio:color-picker',
         },
+        {
+          displayName: 'Homepage',
+          routerLink: 'homepage',
+          icon: 'gio:box',
+        },
       ]);
-      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(5);
+      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(6);
     });
 
     it('should return only allowed menu items when some permissions are not granted', () => {
@@ -90,7 +95,7 @@ describe('PortalNavigationService', () => {
           icon: 'gio:report-columns',
         },
       ]);
-      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(5);
+      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(6);
     });
 
     it('should include menu items with empty permission list', () => {
@@ -123,7 +128,7 @@ describe('PortalNavigationService', () => {
 
       const menuItems = service.getMainMenuItems();
       expect(menuItems).toEqual([]);
-      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(5);
+      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(6);
     });
 
     it('should call hasAnyMatching with the correct permissions for each menu item', () => {
@@ -132,6 +137,7 @@ describe('PortalNavigationService', () => {
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-category-r', 'environment-category-u']);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-settings-r', 'environment-settings-u']);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-theme-r', 'environment-theme-u']);
+      expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-documentation-r', 'environment-documentation-u']);
     });
   });
 });

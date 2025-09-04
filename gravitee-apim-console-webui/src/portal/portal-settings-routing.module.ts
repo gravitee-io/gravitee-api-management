@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GraviteeMarkdownComponent } from '@gravitee/gravitee-markdown';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
@@ -28,6 +27,7 @@ import { CategoryCatalogComponent } from './catalog/category/category.component'
 import { CategoryListComponent } from './catalog/category-list/category-list.component';
 import { PortalApiComponent } from './api/portal-api.component';
 import { PortalApiListComponent } from './api/api-list/portal-api-list.component';
+import { HomepageComponent } from './homepage/homepage.component';
 
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
@@ -135,7 +135,15 @@ const portalRoutes: Routes = [
           },
         },
       },
-      { path: 'gravitee-md', component: GraviteeMarkdownComponent },
+      {
+        path: 'homepage',
+        component: HomepageComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-documentation-r', 'environment-documentation-u'],
+          },
+        },
+      },
       {
         path: '',
         pathMatch: 'full',
