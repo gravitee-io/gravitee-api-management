@@ -68,6 +68,12 @@ export class PortalNavigationService {
       icon: 'gio:color-picker',
       permissions: ['environment-theme-r', 'environment-theme-u'],
     },
+    {
+      displayName: 'Homepage',
+      routerLink: 'homepage',
+      icon: 'gio:box',
+      permissions: ['environment-documentation-r', 'environment-documentation-u'],
+    },
   ];
 
   public getMainMenuItems(): MenuItem[] {
