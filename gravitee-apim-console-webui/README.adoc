@@ -20,7 +20,7 @@ Prerequisites:
 - Then install dependencies with:
 [source,bash]
 ----
-npm install
+yarn install
 ----
 
 === Getting started
