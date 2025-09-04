@@ -46,6 +46,15 @@ ng build gravitee-markdown --configuration=production
 
 This command will compile the project, and the build artifacts will be placed in the `dist/gravitee-markdown/` directory.
 
+**Console Configuration**
+
+To build the library for the Console application, run:
+
+```bash
+# Build with console configuration
+ng build gravitee-markdown --configuration=console
+```
+
 ## Testing
 
 **Note**: Tests are currently executed by the parent project. The library itself does not have its own test runner configured at this time.

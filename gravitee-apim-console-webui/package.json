@@ -21,7 +21,7 @@
     "@danielmoncada/angular-datetime-picker": "19.0.0",
     "@danielmoncada/angular-datetime-picker-moment-adapter": "6.0.2",
     "@fontsource/libre-franklin": "4.5.11",
-    "@gravitee/gravitee-markdown": "portal:../gravitee-apim-portal-webui-next/dist/gravitee-markdown",
+    "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown",
     "@gravitee/ui-analytics": "15.8.1",
     "@gravitee/ui-components": "4.4.0",
     "@gravitee/ui-particles-angular": "15.8.1",
@@ -152,7 +152,7 @@
     "test": "jest",
     "test:auto": "jest --watch",
     "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" node --max-old-space-size=10240 --expose-gc  ./node_modules/.bin/jest --ci --reporters=default --reporters=jest-junit  --maxWorkers=7 --collectCoverage=true --logHeapUsage",
-    "watch:gravitee-markdown": "cd ../gravitee-apim-portal-webui-next && ng build gravitee-markdown --watch"
+    "watch:gravitee-markdown": "cd ../gravitee-apim-portal-webui-next && ng build gravitee-markdown --configuration console --watch"
   },
   "scarfSettings": {
     "enabled": false
