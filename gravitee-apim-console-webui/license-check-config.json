@@ -13,6 +13,7 @@
     "coverage/**",
     "dist/**",
     "dist-tsc/**",
+    "dist-lib/**",
     "**/.*/**",
     "**/*.mdx",
     "**/.DS_Store",
