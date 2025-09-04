@@ -3078,9 +3078,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/gravitee-markdown@portal:../gravitee-apim-portal-webui-next/dist/gravitee-markdown::locator=gravitee-apim-console-webui%40workspace%3A.":
+"@gravitee/gravitee-markdown@portal:dist-lib/gravitee-markdown::locator=gravitee-apim-console-webui%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@gravitee/gravitee-markdown@portal:../gravitee-apim-portal-webui-next/dist/gravitee-markdown::locator=gravitee-apim-console-webui%40workspace%3A."
+  resolution: "@gravitee/gravitee-markdown@portal:dist-lib/gravitee-markdown::locator=gravitee-apim-console-webui%40workspace%3A."
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
@@ -12200,7 +12200,7 @@ __metadata:
     "@danielmoncada/angular-datetime-picker": "npm:19.0.0"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:6.0.2"
     "@fontsource/libre-franklin": "npm:4.5.11"
-    "@gravitee/gravitee-markdown": "portal:../gravitee-apim-portal-webui-next/dist/gravitee-markdown"
+    "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown"
     "@gravitee/ui-analytics": "npm:15.8.1"
     "@gravitee/ui-components": "npm:4.4.0"
     "@gravitee/ui-particles-angular": "npm:15.8.1"

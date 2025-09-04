@@ -9,6 +9,7 @@
     "build:prod": "NODE_OPTIONS=--max_old_space_size=8192 yarn build:gravitee-markdown && ng build --configuration production",
     "build:i18n": "yarn build:prod --localize",
     "build:gravitee-markdown": "ng build gravitee-markdown",
+    "build:gravitee-markdown:console": "ng build gravitee-markdown --configuration console",
     "watch": "ng build --watch --configuration development",
     "extract": "ng extract-i18n --output-path src/locale",
     "merge:i18n": "sh ./scripts/update_angular_json.sh && yarn build:i18n",
