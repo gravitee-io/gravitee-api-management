@@ -35,7 +35,7 @@
 	<properties>
 		<gravitee-bom.version>8.3.34</gravitee-bom.version>
 		<gravitee-apim.version>4.8.4</gravitee-apim.version>
-		<gravitee-reporter-common.version>1.6.3</gravitee-reporter-common.version>
+		<gravitee-reporter-common.version>1.6.4</gravitee-reporter-common.version>
 		<gravitee-node.version>4.8.9</gravitee-node.version>
 
 		<maven-plugin-assembly.version>3.7.1</maven-plugin-assembly.version>
