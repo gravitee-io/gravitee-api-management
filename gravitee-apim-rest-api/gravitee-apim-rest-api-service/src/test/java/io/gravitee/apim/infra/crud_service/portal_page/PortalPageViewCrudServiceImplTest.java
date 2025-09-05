@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.crud_service.portal_page;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,7 +35,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalPageContextCrudServiceImplTest {
+class PortalPageViewCrudServiceImplTest {
 
     private PortalPageContextRepository contextRepository;
     private PortalPageContextCrudService service;
@@ -49,7 +50,7 @@ class PortalPageContextCrudServiceImplTest {
     @SneakyThrows
     void should_return_empty_list_when_no_contexts_found() {
         when(contextRepository.findAllByContextTypeAndEnvironmentId(any(), any())).thenReturn(List.of());
-        assertThat(service.findAllByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, "env1")).isEmpty();
+        assertThat(service.findAllIdsByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, "env1")).isEmpty();
     }
 
     @Test
@@ -64,13 +65,16 @@ class PortalPageContextCrudServiceImplTest {
         ctx2.setId("ctx2");
         ctx2.setPageId(pid2.toString());
         when(contextRepository.findAllByContextTypeAndEnvironmentId(any(), any())).thenReturn(List.of(ctx1, ctx2));
-        assertThat(service.findAllByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, "env1")).containsExactlyInAnyOrder(pid1, pid2);
+        assertThat(service.findAllIdsByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, "env1"))
+            .containsExactlyInAnyOrder(pid1, pid2);
     }
 
     @Test
     @SneakyThrows
-    void should_handle_exception_and_return_empty_list() {
+    void should_handle_exception_and_throw_domain_exception() {
         when(contextRepository.findAllByContextTypeAndEnvironmentId(any(), any())).thenThrow(new TechnicalException("fail"));
-        assertThat(service.findAllByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, "env1")).isEmpty();
+        assertThatThrownBy(() -> service.findAllIdsByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, "env1"))
+            .isInstanceOf(io.gravitee.apim.core.exception.TechnicalDomainException.class)
+            .hasMessage("Something went wrong while trying to find portal page contexts");
     }
 }

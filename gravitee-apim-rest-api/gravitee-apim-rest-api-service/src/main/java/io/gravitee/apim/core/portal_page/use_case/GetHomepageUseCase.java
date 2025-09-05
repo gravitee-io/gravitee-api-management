@@ -18,7 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.domain_service.CheckContextExistsDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PageExistsSpecification;
-import io.gravitee.apim.core.portal_page.model.PortalPagesWithContext;
+import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
 import lombok.RequiredArgsConstructor;
@@ -35,11 +35,11 @@ public class GetHomepageUseCase {
             checkContextExistsDomainService.portalViewContextExists(input.environmentId(), ctx)
         );
         spec.throwIfNotSatisfied(PortalViewContext.HOMEPAGE);
-        var pages = portalPageQueryService.findByEnvironmentIdAndContext(input.environmentId(), PortalViewContext.HOMEPAGE);
-        return new Output(pages);
+        var page = portalPageQueryService.findByEnvironmentIdAndContext(input.environmentId(), PortalViewContext.HOMEPAGE).getFirst();
+        return new Output(page);
     }
 
-    public record Output(PortalPagesWithContext pages) {}
+    public record Output(PortalPageWithViewDetails page) {}
 
     public record Input(String environmentId) {}
 }

@@ -27,7 +27,7 @@ public class PortalPageContextCrudServiceInMemory implements PortalPageContextCr
     private List<PortalPageContext> storage;
 
     @Override
-    public List<PageId> findAllByContextTypeAndEnvironmentId(PortalViewContext contextType, String environmentId) {
+    public List<PageId> findAllIdsByContextTypeAndEnvironmentId(PortalViewContext contextType, String environmentId) {
         var repoCtx = PortalPageContextType.valueOf(contextType.name());
         return storage
             .stream()

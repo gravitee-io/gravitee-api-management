@@ -15,12 +15,11 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.portal_page.model.PortalPagesWithContext;
+import io.gravitee.apim.core.portal_page.model.PortalPageView;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.repository.management.model.PortalPage;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
-import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -50,10 +49,6 @@ public interface PortalPageAdapter {
         return value == null ? null : new io.gravitee.apim.core.portal_page.model.GraviteeMarkdown(value);
     }
 
-    default PortalPagesWithContext map(List<PortalPage> pages, PortalPageContext pageContext) {
-        return new PortalPagesWithContext(map(pages), map(pageContext));
-    }
-
     default PortalViewContext map(PortalPageContextType pageContext) {
         if (pageContext == null) {
             return null;
@@ -62,7 +57,12 @@ public interface PortalPageAdapter {
     }
 
     @Mapping(target = "context", source = "contextType")
-    io.gravitee.apim.core.portal_page.model.PortalPageContext map(PortalPageContext pageContext);
+    PortalPageView map(PortalPageContext pageContext);
 
-    List<io.gravitee.apim.core.portal_page.model.PortalPage> map(List<PortalPage> pages);
+    default io.gravitee.apim.core.portal_page.model.PortalPage map(PortalPage value) {
+        if (value == null) {
+            return null;
+        }
+        return io.gravitee.apim.core.portal_page.model.PortalPage.of(mapId(value.getId()), mapContent(value.getContent()));
+    }
 }

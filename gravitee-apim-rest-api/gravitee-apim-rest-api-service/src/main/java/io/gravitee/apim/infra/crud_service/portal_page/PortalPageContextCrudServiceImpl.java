@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.crud_service.portal_page;
 
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
@@ -34,7 +35,7 @@ public class PortalPageContextCrudServiceImpl implements PortalPageContextCrudSe
     private final PortalPageContextRepository portalPageContextRepository;
 
     @Override
-    public List<PageId> findAllByContextTypeAndEnvironmentId(PortalViewContext contextType, String environmentId) {
+    public List<PageId> findAllIdsByContextTypeAndEnvironmentId(PortalViewContext contextType, String environmentId) {
         var repoCtx = PortalPageContextType.valueOf(contextType.name());
         try {
             return portalPageContextRepository
@@ -44,7 +45,7 @@ public class PortalPageContextCrudServiceImpl implements PortalPageContextCrudSe
                 .map(PageId::of)
                 .toList();
         } catch (io.gravitee.repository.exceptions.TechnicalException e) {
-            return List.of();
+            throw new TechnicalDomainException("Something went wrong while trying to find portal page contexts", e);
         }
     }
 }

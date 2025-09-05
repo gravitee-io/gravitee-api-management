@@ -15,18 +15,18 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.portal_page.model.PortalPagesWithContext;
+import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PortalPageQueryServiceInMemory implements PortalPageQueryService, InMemoryAlternative<PortalPagesWithContext> {
+public class PortalPageQueryServiceInMemory implements PortalPageQueryService, InMemoryAlternative<PortalPageWithViewDetails> {
 
-    private List<PortalPagesWithContext> storage = new ArrayList<>();
+    private List<PortalPageWithViewDetails> storage = new ArrayList<>();
 
     @Override
-    public void initWith(List<PortalPagesWithContext> items) {
+    public void initWith(List<PortalPageWithViewDetails> items) {
         this.storage = items;
     }
 
@@ -36,18 +36,12 @@ public class PortalPageQueryServiceInMemory implements PortalPageQueryService, I
     }
 
     @Override
-    public List<PortalPagesWithContext> storage() {
+    public List<PortalPageWithViewDetails> storage() {
         return List.copyOf(storage);
     }
 
     @Override
-    public PortalPagesWithContext findByEnvironmentIdAndContext(String environmentId, PortalViewContext context) {
-        return storage
-            .stream()
-            .filter(pagesWithContext -> pagesWithContext.context().context().equals(context))
-            .findFirst()
-            .orElseThrow(() ->
-                new IllegalStateException("No portal pages found for environment " + environmentId + " and context " + context)
-            );
+    public List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context) {
+        return storage.stream().filter(pageWithViewDetails -> pageWithViewDetails.viewDetails().context().equals(context)).toList();
     }
 }

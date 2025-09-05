@@ -15,16 +15,20 @@
  */
 package io.gravitee.apim.infra.query_service.portal_page;
 
-import io.gravitee.apim.core.portal_page.model.PortalPagesWithContext;
+import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
 import io.gravitee.apim.infra.adapter.PortalPageAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.api.PortalPageRepository;
+import io.gravitee.repository.management.model.PortalPage;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -37,17 +41,24 @@ public class PortalPageQueryServiceImpl implements PortalPageQueryService {
     private final PortalPageAdapter pageAdapter = PortalPageAdapter.INSTANCE;
 
     @Override
-    public PortalPagesWithContext findByEnvironmentIdAndContext(String environmentId, PortalViewContext context) {
+    public List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context) {
         try {
-            var pagesContext = contextRepository.findAllByContextTypeAndEnvironmentId(
-                PortalPageContextType.valueOf(context.name()),
-                environmentId
-            );
-            var pages = pageRepository.findByIds(pagesContext.stream().map(PortalPageContext::getPageId).toList());
-            return pageAdapter.map(pages, pagesContext.getFirst());
+            var pagesContext = contextRepository
+                .findAllByContextTypeAndEnvironmentId(PortalPageContextType.valueOf(context.name()), environmentId)
+                .stream()
+                .collect(Collectors.toMap(PortalPageContext::getPageId, Function.identity()));
+            var pages = pageRepository
+                .findByIds(pagesContext.keySet().stream().toList())
+                .stream()
+                .collect(Collectors.toMap(PortalPage::getId, p -> p));
+            return pages
+                .entrySet()
+                .stream()
+                .map(e -> new PortalPageWithViewDetails(pageAdapter.map(e.getValue()), pageAdapter.map(pagesContext.get(e.getKey()))))
+                .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                "An error occurred while trying to find portal pages context by environment ID and context",
+                "An error occurred while trying to find portal pages viewDetails by environment ID and viewDetails",
                 e
             );
         }

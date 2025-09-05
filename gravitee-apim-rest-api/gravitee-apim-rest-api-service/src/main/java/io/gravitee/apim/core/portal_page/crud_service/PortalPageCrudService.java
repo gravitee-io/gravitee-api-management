@@ -20,5 +20,5 @@ import io.gravitee.apim.core.portal_page.model.PortalPage;
 import java.util.List;
 
 public interface PortalPageCrudService {
-    List<PortalPage> findPagesByIds(List<PageId> pageIds);
+    List<PortalPage> findByIds(List<PageId> pageIds);
 }

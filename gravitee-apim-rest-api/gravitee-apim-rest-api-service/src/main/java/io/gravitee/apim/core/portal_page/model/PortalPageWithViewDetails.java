@@ -16,6 +16,5 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
-import java.util.List;
 
-public record PortalPagesWithContext(@Nonnull List<PortalPage> portalPages, @Nonnull PortalPageContext context) {}
+public record PortalPageWithViewDetails(@Nonnull PortalPage page, @Nonnull PortalPageView viewDetails) {}
