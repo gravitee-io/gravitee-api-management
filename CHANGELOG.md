@@ -1,3 +1,10 @@
+## [1.6.4](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.3...1.6.4) (2025-09-05)
+
+
+### Bug Fixes
+
+* bulk request format for es7x/OpenSearch 2.5.0 ([2a769e2](https://github.com/gravitee-io/gravitee-reporter-common/commit/2a769e279881672e62e1f169142dac18b7f45871))
+
 ## [1.6.3](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.2...1.6.3) (2025-07-29)
 
 
