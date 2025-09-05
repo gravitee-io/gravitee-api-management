@@ -26,7 +26,6 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -40,7 +39,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class SubscriptionResourceTest extends AbstractResourceTest {
+class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
     @Autowired
     private SubscriptionCrudServiceInMemory subscriptionCrudService;
@@ -58,7 +57,6 @@ class SubscriptionResourceTest extends AbstractResourceTest {
     static final String API_HRID = "api-hrid";
     static final String APPLICATION_HRID = "application-hrid";
     static final String PLAN_HRID = "plan-hrid";
-    static final AuditInfo auditInfo = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
 
     @AfterEach
     void tearDown() {
@@ -72,7 +70,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
     class GET {
 
         @Test
-        void should_get_application_from_known_hrid() {
+        void should_get_subscription_from_known_hrid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
 
@@ -81,7 +79,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
                         SubscriptionFixtures
                             .aSubscription()
                             .toBuilder()
-                            .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), HRID).buildId())
+                            .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
                             .apiId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId())
                             .applicationId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId())
                             .planId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), PLAN_HRID).buildId())
@@ -95,17 +93,6 @@ class SubscriptionResourceTest extends AbstractResourceTest {
                             .toBuilder()
                             .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId())
                             .hrid(APPLICATION_HRID)
-                            .build()
-                    )
-                );
-
-                apiCrudService.initWith(
-                    List.of(
-                        ApiFixtures
-                            .aProxyApiV4()
-                            .toBuilder()
-                            .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId())
-                            .hrid(API_HRID)
                             .build()
                     )
                 );
@@ -134,7 +121,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_get_application_from_known_legacy_id() {
+        void should_get_subscription_from_known_legacy_id() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
 
@@ -153,8 +140,6 @@ class SubscriptionResourceTest extends AbstractResourceTest {
                 applicationCrudService.initWith(
                     List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder().id(APPLICATION_HRID).hrid(APPLICATION_HRID).build())
                 );
-
-                apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_HRID).hrid(API_HRID).build()));
 
                 planCrudService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_HRID).hrid(PLAN_HRID).build()));
 
@@ -198,13 +183,13 @@ class SubscriptionResourceTest extends AbstractResourceTest {
     class DELETE {
 
         @Test
-        void should_delete_application_and_return_no_content() {
+        void should_delete_subscription_and_return_no_content() {
             subscriptionCrudService.initWith(
                 List.of(
                     SubscriptionFixtures
                         .aSubscription()
                         .toBuilder()
-                        .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), HRID).buildId())
+                        .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
                         .apiId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId())
                         .applicationId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId())
                         .planId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), PLAN_HRID).buildId())
@@ -216,7 +201,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_delete_application_and_return_no_content_known_legacy_id() {
+        void should_delete_subscription_and_return_no_content_known_legacy_id() {
             subscriptionCrudService.initWith(
                 List.of(
                     SubscriptionFixtures
@@ -230,6 +215,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
                 )
             );
 
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_HRID).hrid(API_HRID).build()));
             expectNoContent(HRID, true);
         }
 
@@ -257,6 +243,6 @@ class SubscriptionResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/subscriptions";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis/" + API_HRID + "/subscriptions";
     }
 }

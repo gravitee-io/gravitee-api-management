@@ -1,6 +1,5 @@
 {
   "hrid": "subscription_id",
   "applicationHrid":  "application_id",
-  "apiHrid": "api_id",
   "planHrid": "plan_id"
 }

@@ -39,7 +39,7 @@ public interface SubscriptionMapper {
     @Mapping(target = "environmentId", source = "status.environmentId")
     @Mapping(target = "startingAt", source = "status.startingAt")
     @Mapping(target = "endingAt", source = "status.endingAt")
-    SubscriptionState subscriptionSpecAndStatusToSubscriptionState(SubscriptionSpec spec, SubscriptionCRDStatus status);
+    SubscriptionState subscriptionSpecAndStatusToSubscriptionState(String apiHrid, SubscriptionSpec spec, SubscriptionCRDStatus status);
 
     Errors toErrors(SubscriptionCRDStatus.Errors errors);
 }

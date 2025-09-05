@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class SubscriptionsResourceTest extends AbstractResourceTest {
+class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Autowired
     private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
@@ -44,6 +44,8 @@ class SubscriptionsResourceTest extends AbstractResourceTest {
     void tearDown() {
         reset(importSubscriptionSpecUseCase);
     }
+
+    static final String API_HRID = "api-hrid";
 
     @Nested
     class Run {
@@ -66,7 +68,7 @@ class SubscriptionsResourceTest extends AbstractResourceTest {
             var state = expectEntity("subscription-with-hrid.json");
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(state.getHrid()).isEqualTo("subscription_hrid");
-                soft.assertThat(state.getApiHrid()).isEqualTo("api_hrid");
+                soft.assertThat(state.getApiHrid()).isEqualTo(API_HRID);
                 soft.assertThat(state.getApplicationHrid()).isEqualTo("application_hrid");
                 soft.assertThat(state.getPlanHrid()).isEqualTo("plan_hrid");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
@@ -93,7 +95,7 @@ class SubscriptionsResourceTest extends AbstractResourceTest {
             var state = expectEntity("subscription-with-id.json", true);
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(state.getId()).isEqualTo("subscription_id");
-                soft.assertThat(state.getApiHrid()).isEqualTo("api_id");
+                soft.assertThat(state.getApiHrid()).isEqualTo(API_HRID);
                 soft.assertThat(state.getApplicationHrid()).isEqualTo("application_id");
                 soft.assertThat(state.getPlanHrid()).isEqualTo("plan_id");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
@@ -104,7 +106,7 @@ class SubscriptionsResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/subscriptions";
+        return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis/" + API_HRID + "/subscriptions";
     }
 
     private SubscriptionState expectEntity(String spec) {
