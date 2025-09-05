@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.mapper.V4toV2RollbackOperator;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.time.ZonedDateTime;
@@ -68,6 +70,7 @@ public class RollbackApiUseCase {
     private final PlanCrudService planCrudService;
     private final AuditDomainService auditService;
     private final FlowCrudService flowCrudService;
+    private final ApiStateDomainService apiStateService;
 
     public void execute(Input input) {
         Api api = eventQueryService
@@ -97,7 +100,12 @@ public class RollbackApiUseCase {
                     if (toRollback.getDefinitionVersion() != io.gravitee.definition.model.DefinitionVersion.V4) {
                         throw new IllegalStateException("The migration is only built for rollback migration from V2 to V4.");
                     }
-
+                    if (
+                        apiDefinition.getServices().getDynamicPropertyService() != null &&
+                        apiDefinition.getServices().getDynamicPropertyService().isEnabled()
+                    ) {
+                        apiStateService.stopV4DynamicProperties(api.getId());
+                    }
                     Api rollbackedApi = ROLLBACK_OPERATOR.rollback(toRollback, apiDefinition);
 
                     var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
@@ -110,6 +118,12 @@ public class RollbackApiUseCase {
                     }
                     for (String planId : plans.closedPlans()) {
                         flowCrudService.savePlanFlowsV2(planId, List.of());
+                    }
+                    if (
+                        apiDefinition.getServices().getDynamicPropertyService() != null &&
+                        apiDefinition.getServices().getDynamicPropertyService().isEnabled()
+                    ) {
+                        apiStateService.startV2DynamicProperties(rollbackedApi.getId());
                     }
                     yield apiUpdatedV2;
                 }

@@ -115,32 +115,45 @@ class ApiMigration {
             .collect(MigrationResult.collectList());
         Failover failover = mapFailOver(apiDefinitionV2.getProxy());
 
-        // TODO handle flows
-        FlowExecution flowExecution = null;
+        MigrationResult<ApiServices> apiServicesMigrationResult = mapApiServices(apiDefinitionV2.getServices());
+        return endpointGroups.flatMap(endpointGroupsList ->
+            apiServicesMigrationResult.map(apiServices -> {
+                var api = new io.gravitee.definition.model.v4.Api(
+                    listeners,
+                    endpointGroupsList,
+                    analytics,
+                    failover,
+                    null/* plans are managed in another place because is in a different collection */,
+                    null,
+                    null/* flows are managed in another place because is in a different collection */,
+                    apiDefinitionV2.getResponseTemplates(),
+                    apiServices
+                );
+                api.setId(apiDefinitionV2.getId());
+                api.setName(apiDefinitionV2.getName());
+                api.setApiVersion(apiDefinitionV2.getVersion());
+                api.setTags(apiDefinitionV2.getTags());
+                api.setType(ApiType.PROXY);
+                api.setProperties(mapProperties(apiDefinitionV2.getProperties()));
+                api.setResources(mapResources(apiDefinitionV2.getResources()));
+                api.setFlowExecution(mapFlowExecution(apiDefinitionV2.getFlowMode()));
+                return api;
+            })
+        );
+    }
 
-        ApiServices services = null;
-        return endpointGroups.map(endpointGroupsList -> {
-            var api = new io.gravitee.definition.model.v4.Api(
-                listeners,
-                endpointGroupsList,
-                analytics,
-                failover,
-                null/* plans are managed in another place because is in a different collection */,
-                flowExecution,
-                null/* flows are managed in another place because is in a different collection */,
-                apiDefinitionV2.getResponseTemplates(),
-                services
-            );
-            api.setId(apiDefinitionV2.getId());
-            api.setName(apiDefinitionV2.getName());
-            api.setApiVersion(apiDefinitionV2.getVersion());
-            api.setTags(apiDefinitionV2.getTags());
-            api.setType(ApiType.PROXY);
-            api.setProperties(mapProperties(apiDefinitionV2.getProperties()));
-            api.setResources(mapResources(apiDefinitionV2.getResources()));
-            api.setFlowExecution(mapFlowExecution(apiDefinitionV2.getFlowMode()));
-            return api;
-        });
+    private MigrationResult<ApiServices> mapApiServices(Services services) {
+        if (services == null || services.isEmpty() || services.getDynamicPropertyService() == null) {
+            return MigrationResult.value(ApiServices.builder().build());
+        }
+
+        MigrationResult<Service> dynamicPropertyServiceMigrationResult = apiServicesMigration.convert(
+            services.getDynamicPropertyService(),
+            null,
+            null
+        );
+
+        return dynamicPropertyServiceMigrationResult.map(service -> ApiServices.builder().dynamicProperty(service).build());
     }
 
     private Failover mapFailOver(Proxy proxy) {

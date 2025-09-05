@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -124,6 +125,9 @@ public class ApiStateServiceImpl_DeployTest {
     @Mock
     private ApiValidationService apiValidationService;
 
+    @Mock
+    private EventManager eventManager;
+
     @Spy
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
 
@@ -190,7 +194,8 @@ public class ApiStateServiceImpl_DeployTest {
                 apiValidationService,
                 planSearchService,
                 apiConverter,
-                synchronizationService
+                synchronizationService,
+                eventManager
             );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -325,6 +330,7 @@ public class ApiStateServiceImpl_DeployTest {
             null,
             null,
             eventLatestRepository,
+            null,
             null,
             null,
             null,

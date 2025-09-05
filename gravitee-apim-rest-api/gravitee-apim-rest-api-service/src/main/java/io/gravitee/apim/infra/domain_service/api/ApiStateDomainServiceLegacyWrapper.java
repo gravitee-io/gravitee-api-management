@@ -19,10 +19,12 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiStateService;
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,10 +76,30 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
     }
 
     @Override
+    public boolean startV2DynamicProperties(String apiId) {
+        return apiStateService.startV2DynamicProperties(apiId);
+    }
+
+    @Override
+    public boolean startV4DynamicProperties(String apiId) {
+        return apiStateService.startV4DynamicProperties(apiId);
+    }
+
+    @Override
     public Api stop(Api api, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var userId = auditInfo.actor().userId();
         var stopped = apiStateService.stop(executionContext, api.getId(), userId);
         return ApiAdapter.INSTANCE.fromApiEntity(stopped);
+    }
+
+    @Override
+    public boolean stopV2DynamicProperties(String apiId) {
+        return apiStateService.stopV2DynamicProperties(apiId);
+    }
+
+    @Override
+    public boolean stopV4DynamicProperties(String apiId) {
+        return apiStateService.stopV4DynamicProperties(apiId);
     }
 }

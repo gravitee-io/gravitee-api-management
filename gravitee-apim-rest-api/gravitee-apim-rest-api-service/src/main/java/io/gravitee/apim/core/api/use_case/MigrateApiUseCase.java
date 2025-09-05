@@ -40,6 +40,7 @@ import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
@@ -239,7 +240,21 @@ public class MigrateApiUseCase {
     }
 
     private void storeMigration(Input input, Migration migration, Api api) {
+        if (
+            migration.api().getApiDefinitionHttpV4().getServices() != null &&
+            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty() != null &&
+            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty().isEnabled()
+        ) {
+            apiStateService.stopV2DynamicProperties(input.apiId());
+        }
         var upgraded = apiCrudService.update(migration.api());
+        if (
+            migration.api().getApiDefinitionHttpV4().getServices() != null &&
+            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty() != null &&
+            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty().isEnabled()
+        ) {
+            apiStateService.startV4DynamicProperties(input.apiId());
+        }
         var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), input.apiId());
 
         auditService.createApiAuditLog(

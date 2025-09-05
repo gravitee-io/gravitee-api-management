@@ -17,6 +17,8 @@ package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.common.event.EventManager;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -26,5 +28,9 @@ public interface ApiStateDomainService {
     boolean isSynchronized(Api api, AuditInfo auditInfo);
     Api deploy(Api apiToDeploy, String deploymentLabel, AuditInfo auditInfo);
     Api start(Api api, AuditInfo auditInfo);
+    boolean startV2DynamicProperties(String id);
+    boolean startV4DynamicProperties(String apiId);
     Api stop(Api api, AuditInfo auditInfo);
+    boolean stopV2DynamicProperties(String apiId);
+    boolean stopV4DynamicProperties(@NotBlank String id);
 }

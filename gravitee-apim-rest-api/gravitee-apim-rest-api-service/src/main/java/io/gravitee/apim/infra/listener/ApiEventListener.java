@@ -50,13 +50,24 @@ public class ApiEventListener implements EventListener<ApiEvent, io.gravitee.rep
         if (!isV4Api(eventPayload)) {
             return;
         }
-
         final Api api = apiAdapter.toCoreModel(eventPayload);
         switch (event.type()) {
             case DEPLOY -> onApiDeploy(api);
             case UNDEPLOY -> onApiUndeploy(api);
             case UPDATE -> onApiUpdate(api);
+            case START_DYNAMIC_PROPERTY_V4 -> onDynamicPropertiesStarted(api);
+            case STOP_DYNAMIC_PROPERTY_V4 -> onDynamicPropertiesStopped(api);
         }
+    }
+
+    private void onDynamicPropertiesStopped(Api api) {
+        log.info("stopping Dynamic properties event for api: {}", api.getId());
+        managementApiServicesManager.stopDynamicProperties(api);
+    }
+
+    private void onDynamicPropertiesStarted(Api api) {
+        log.info("starting Dynamic properties event for api: {}", api.getId());
+        managementApiServicesManager.startDynamicProperties(api);
     }
 
     private void onApiDeploy(Api api) {

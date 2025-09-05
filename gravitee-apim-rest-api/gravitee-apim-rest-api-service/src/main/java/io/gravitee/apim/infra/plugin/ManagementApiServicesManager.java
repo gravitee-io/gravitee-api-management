@@ -25,10 +25,12 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -99,6 +101,33 @@ public class ManagementApiServicesManager extends AbstractService {
         servicesByApi.remove(api.getId());
     }
 
+    public void startDynamicProperties(Api api) {
+        if (!api.getDefinitionVersion().equals(DefinitionVersion.V4)) {
+            return;
+        }
+        List<ManagementApiService> services = apiServicePluginManager
+            .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
+            .stream()
+            .map(managementApiServiceFactory ->
+                managementApiServiceFactory.createService(
+                    new DefaultManagementDeploymentContext(api.getApiDefinitionHttpV4(), applicationContext)
+                )
+            )
+            .filter(Objects::nonNull)
+            .filter(service -> "http-dynamic-properties".equals(service.id()))
+            .collect(Collectors.toList());
+
+        Completable
+            .concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
+            .doOnError(throwable -> log.error("Unable to start dynamic-api-service for api {}", api.getId(), throwable))
+            .blockingAwait();
+        if (!services.isEmpty()) {
+            if (!services.isEmpty()) {
+                servicesByApi.computeIfAbsent(api.getId(), k -> new ArrayList<>()).addAll(services);
+            }
+        }
+    }
+
     @SuppressWarnings("java:S6204")
     public void updateServices(Api api) {
         log.debug("Restarting services for api: {}", api.getId());
@@ -119,5 +148,15 @@ public class ManagementApiServicesManager extends AbstractService {
 
     private static void stopManagementApiServices(Stream<ManagementApiService> apiServices) {
         Completable.concat(apiServices.map(ManagementApiService::stop).collect(Collectors.toList())).blockingAwait();
+    }
+
+    public void stopDynamicProperties(Api api) {
+        Optional
+            .ofNullable(servicesByApi.get(api.getId()))
+            .flatMap(services -> services.stream().filter(service -> "http-dynamic-properties".equals(service.id())).findFirst())
+            .ifPresent(service -> service.stop().blockingAwait());
+        if (servicesByApi.get(api.getId()) != null) {
+            servicesByApi.get(api.getId()).removeIf(service -> "http-dynamic-properties".equals(service.id()));
+        }
     }
 }
