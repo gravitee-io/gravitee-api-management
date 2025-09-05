@@ -41,6 +41,9 @@ import io.gravitee.gateway.reactor.impl.ReactableEvent;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
+import io.gravitee.secrets.api.discovery.DefinitionMetadata;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientOptions;
@@ -106,6 +109,13 @@ public class DebugReactorEventListener extends ReactorEventListener {
                 try {
                     reactorHandlerRegistry.create(debugApi);
 
+                    var secretDiscoveryEvent = new SecretDiscoveryEvent(
+                        debugApi.getEnvironmentId(),
+                        debugApi.getDefinition(),
+                        new DefinitionMetadata(debugApi.getRevision())
+                    );
+                    eventManager.publishEvent(SecretDiscoveryEventType.DISCOVER, secretDiscoveryEvent);
+
                     HttpRequest debugApiRequest = debugApi.getRequest();
                     updateEvent(debugEvent, ApiDebugStatus.DEBUGGING);
 
@@ -136,10 +146,12 @@ public class DebugReactorEventListener extends ReactorEventListener {
                         .subscribe(
                             body -> {
                                 logger.info("Debugging successful, removing the handler.");
+                                eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
                                 reactorHandlerRegistry.remove(debugApi);
                             },
                             throwable -> {
                                 logger.error("Debugging API has failed, removing the handler.", throwable);
+                                eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
                                 reactorHandlerRegistry.remove(debugApi);
                                 failEvent(debugEvent);
                             }

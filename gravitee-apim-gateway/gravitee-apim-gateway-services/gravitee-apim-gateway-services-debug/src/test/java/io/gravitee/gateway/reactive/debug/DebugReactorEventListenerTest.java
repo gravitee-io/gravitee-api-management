@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.common.util.DataEncryptor;
@@ -58,6 +59,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
+import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientOptions;
@@ -96,6 +99,9 @@ class DebugReactorEventListenerTest {
     @Captor
     ArgumentCaptor<Event> eventCaptor;
 
+    @Captor
+    ArgumentCaptor<SecretDiscoveryEvent> secretDiscoveryEventCaptor;
+
     @Mock
     private ReactorHandlerRegistry reactorHandlerRegistry;
 
@@ -114,13 +120,14 @@ class DebugReactorEventListenerTest {
     @Mock
     private DataEncryptor dataEncryptor;
 
+    @Mock
+    private EventManager eventManager;
+
     private VertxDebugHttpClientConfiguration debugHttpClientConfiguration;
     private DebugReactorEventListener debugReactorEventListener;
-    private EventManagerImpl eventManager;
 
     @BeforeEach
     public void beforeEach() {
-        eventManager = new EventManagerImpl();
         debugHttpClientConfiguration = VertxDebugHttpClientConfiguration.builder().build();
         debugReactorEventListener =
             spy(
@@ -139,6 +146,21 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_register_reactor_event_listener() throws Exception {
+        eventManager = new EventManagerImpl();
+        debugReactorEventListener =
+            spy(
+                new DebugReactorEventListener(
+                    vertx,
+                    eventManager,
+                    eventRepository,
+                    objectMapper,
+                    debugHttpClientConfiguration,
+                    reactorHandlerRegistry,
+                    accessPointManager,
+                    dataEncryptor
+                )
+            );
+
         debugReactorEventListener.start();
 
         eventManager.publishEvent(new SimpleEvent<>(ReactorEvent.DEPLOY, ""));
@@ -201,6 +223,22 @@ class DebugReactorEventListenerTest {
             final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
             assertThat(events.getFirst().getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.DEBUGGING.name());
             assertThat(events.getFirst().getPayload()).isEqualTo(PAYLOAD);
+
+            verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), secretDiscoveryEventCaptor.capture());
+
+            final SecretDiscoveryEvent capturedEvent = secretDiscoveryEventCaptor.getValue();
+            assertThat(capturedEvent).isNotNull();
+            assertThat(capturedEvent.envId()).isEqualTo(reactableWrapper.getEnvironmentId());
+            assertThat(capturedEvent.definition()).isEqualTo(debugApiModel);
+            assertThat(capturedEvent.metadata()).isNotNull();
+
+            verify(eventManager, timeout(10000)).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
+
+            final SecretDiscoveryEvent capturedRevokeEvent = secretDiscoveryEventCaptor.getValue();
+            assertThat(capturedRevokeEvent).isNotNull();
+            assertThat(capturedRevokeEvent.envId()).isEqualTo(reactableWrapper.getEnvironmentId());
+            assertThat(capturedRevokeEvent.definition()).isEqualTo(debugApiModel);
+            assertThat(capturedRevokeEvent.metadata()).isNotNull();
         }
 
         @Test
@@ -276,6 +314,14 @@ class DebugReactorEventListenerTest {
 
             final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
             assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
+
+            verify(eventManager, timeout(10000)).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
+
+            final SecretDiscoveryEvent capturedRevokeEvent = secretDiscoveryEventCaptor.getValue();
+            assertThat(capturedRevokeEvent).isNotNull();
+            assertThat(capturedRevokeEvent.envId()).isEqualTo(reactableWrapper.getEnvironmentId());
+            assertThat(capturedRevokeEvent.definition()).isEqualTo(debugApiModel);
+            assertThat(capturedRevokeEvent.metadata()).isNotNull();
         }
 
         @Test
@@ -308,6 +354,14 @@ class DebugReactorEventListenerTest {
 
             final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
             assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
+
+            verify(eventManager, timeout(10000)).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
+
+            final SecretDiscoveryEvent capturedRevokeEvent = secretDiscoveryEventCaptor.getValue();
+            assertThat(capturedRevokeEvent).isNotNull();
+            assertThat(capturedRevokeEvent.envId()).isEqualTo(reactableWrapper.getEnvironmentId());
+            assertThat(capturedRevokeEvent.definition()).isEqualTo(debugApiModel);
+            assertThat(capturedRevokeEvent.metadata()).isNotNull();
         }
 
         @Test
@@ -341,6 +395,14 @@ class DebugReactorEventListenerTest {
             assertThat(events.get(1).getProperties())
                 .containsKey(API_DEBUG_STATUS.getValue())
                 .containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
+
+            verify(eventManager, timeout(10000)).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
+
+            final SecretDiscoveryEvent capturedRevokeEvent = secretDiscoveryEventCaptor.getValue();
+            assertThat(capturedRevokeEvent).isNotNull();
+            assertThat(capturedRevokeEvent.envId()).isEqualTo(reactableWrapper.getEnvironmentId());
+            assertThat(capturedRevokeEvent.definition()).isEqualTo(debugApiModel);
+            assertThat(capturedRevokeEvent.metadata()).isNotNull();
         }
 
         @Test
@@ -388,6 +450,7 @@ class DebugReactorEventListenerTest {
             verify(reactorHandlerRegistry, times(0)).create(any());
             verify(reactorHandlerRegistry, times(1)).contains(any());
             verify(reactorHandlerRegistry, after(500).times(0)).remove(any());
+            verify(eventManager, times(0)).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any(SecretDiscoveryEvent.class));
         }
 
         @Test
@@ -472,6 +535,22 @@ class DebugReactorEventListenerTest {
             final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
             assertThat(events.getFirst().getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.DEBUGGING.name());
             assertThat(events.getFirst().getPayload()).isEqualTo(PAYLOAD);
+
+            verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), secretDiscoveryEventCaptor.capture());
+
+            final SecretDiscoveryEvent capturedEvent = secretDiscoveryEventCaptor.getValue();
+            assertThat(capturedEvent).isNotNull();
+            assertThat(capturedEvent.envId()).isEqualTo(reactableWrapper.getEnvironmentId());
+            assertThat(capturedEvent.definition()).isEqualTo(debugApiModel.getApiDefinition());
+            assertThat(capturedEvent.metadata()).isNotNull();
+
+            verify(eventManager, timeout(10000)).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
+
+            final SecretDiscoveryEvent capturedRevokeEvent = secretDiscoveryEventCaptor.getValue();
+            assertThat(capturedRevokeEvent).isNotNull();
+            assertThat(capturedRevokeEvent.envId()).isEqualTo(reactableWrapper.getEnvironmentId());
+            assertThat(capturedRevokeEvent.definition()).isEqualTo(debugApiModel.getApiDefinition());
+            assertThat(capturedRevokeEvent.metadata()).isNotNull();
         }
 
         @Test
@@ -510,10 +589,18 @@ class DebugReactorEventListenerTest {
 
             final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
             assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
+
+            verify(eventManager, timeout(10000)).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
+
+            final SecretDiscoveryEvent capturedRevokeEvent = secretDiscoveryEventCaptor.getValue();
+            assertThat(capturedRevokeEvent).isNotNull();
+            assertThat(capturedRevokeEvent.envId()).isEqualTo(reactableWrapper.getEnvironmentId());
+            assertThat(capturedRevokeEvent.definition()).isEqualTo(debugApiModel.getApiDefinition());
+            assertThat(capturedRevokeEvent.metadata()).isNotNull();
         }
 
         @Test
-        void should_do_nothing_when_reactable_already_debugging() throws JsonProcessingException, TechnicalException {
+        void should_do_nothing_when_reactable_already_debugging() throws JsonProcessingException {
             io.gravitee.definition.model.debug.DebugApiV4 debugApiModel = aDebugApiV4Definition(
                 new HttpRequest("/path1", "GET", "request body")
             );
@@ -529,6 +616,7 @@ class DebugReactorEventListenerTest {
             verify(reactorHandlerRegistry, times(0)).create(any());
             verify(reactorHandlerRegistry, times(1)).contains(any());
             verify(reactorHandlerRegistry, after(500).times(0)).remove(any());
+            verify(eventManager, times(0)).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any(SecretDiscoveryEvent.class));
         }
 
         @Test
