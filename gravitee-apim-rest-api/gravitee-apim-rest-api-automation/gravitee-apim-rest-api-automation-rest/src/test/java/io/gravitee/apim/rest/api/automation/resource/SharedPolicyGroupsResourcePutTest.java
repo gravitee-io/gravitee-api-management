@@ -23,7 +23,10 @@ import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
@@ -35,12 +38,31 @@ import org.junit.jupiter.api.Test;
 
 class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
 
+    static final String SPG_ID = "e2b59e74-11c7-3866-a475-e8df59419663";
+
     @Inject
     private CreateSharedPolicyGroupUseCase createSharedPolicyGroupUseCase;
 
     @Override
     protected String contextPath() {
         return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/shared-policy-groups";
+    }
+
+    @BeforeEach
+    void setUp() {
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                eq(ENVIRONMENT),
+                eq(RolePermissionAction.CREATE),
+                eq(RolePermissionAction.UPDATE)
+            )
+        )
+            .thenReturn(true);
     }
 
     @AfterEach
@@ -67,6 +89,22 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
                             .build()
                     );
                 });
+        }
+
+        @Test
+        void should_be_forbidden_without_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.CREATE),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            )
+                .thenReturn(false);
+
+            expectForbidden("shared-policy-group.json");
         }
 
         @Test
@@ -113,6 +151,22 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
         boolean dryRun = true;
 
         @Test
+        void should_be_forbidden_without_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.CREATE),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            )
+                .thenReturn(false);
+
+            expectForbidden("shared-policy-group.json", dryRun);
+        }
+
+        @Test
         void should_return_state_from_hrid() {
             var state = expectEntity("shared-policy-group.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
@@ -137,12 +191,23 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
         }
     }
 
+    private void expectForbidden(String spec) {
+        expectForbidden(spec, false);
+    }
+
+    private void expectForbidden(String spec, boolean dryRun) {
+        try (var response = rootTarget().queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(spec)))) {
+            assertThat(response.getStatus()).isEqualTo(403);
+        }
+    }
+
     private SharedPolicyGroupState expectEntity(String spec) {
         return expectEntity(spec, false);
     }
 
     private SharedPolicyGroupState expectEntity(String spec, boolean dryRun) {
         try (var response = rootTarget().queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(spec)))) {
+            assertThat(response.getStatus()).isEqualTo(200);
             return response.readEntity(SharedPolicyGroupState.class);
         }
     }

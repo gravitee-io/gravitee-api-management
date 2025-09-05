@@ -31,10 +31,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -58,16 +60,23 @@ public class ApiResource extends AbstractResource {
     @Inject
     protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
 
+    @Inject
+    protected PermissionService permissionService;
+
     @PathParam("hrid")
     private String hrid;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
     public Response getApiByHRID(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
+        var id = IdBuilder.builder(executionContext, hrid).buildId();
+
+        if (!permissionService.hasPermission(executionContext, RolePermission.API_DEFINITION, id, RolePermissionAction.READ)) {
+            throw new ForbiddenAccessException();
+        }
 
         var input = new ExportApiCRDUseCase.Input(
             legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId(),
@@ -100,6 +109,11 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteApi(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
+        var id = IdBuilder.builder(executionContext, hrid).buildId();
+
+        if (!permissionService.hasPermission(executionContext, RolePermission.API_DEFINITION, id, RolePermissionAction.DELETE)) {
+            throw new ForbiddenAccessException();
+        }
 
         try {
             apiServiceV4.delete(
