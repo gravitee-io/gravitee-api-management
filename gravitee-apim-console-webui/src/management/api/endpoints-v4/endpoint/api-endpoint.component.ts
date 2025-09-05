@@ -314,7 +314,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
           ? isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, this.endpoint.name)
           : isEndpointNameUnique(this.api),
       ]),
-      weight: new UntypedFormControl(weight, Validators.required),
+      weight: new UntypedFormControl(weight, [Validators.required, Validators.min(1)]),
       inheritConfiguration: new UntypedFormControl(inheritConfiguration),
       configuration: new UntypedFormControl(configuration),
       sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigurationOverride, disabled: inheritConfiguration }),
