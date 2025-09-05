@@ -17,9 +17,9 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
-import io.gravitee.apim.rest.api.automation.model.FlowStep;
 import io.gravitee.apim.rest.api.automation.model.LegacySharedPolicyGroupSpec;
 import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
+import io.gravitee.apim.rest.api.automation.model.StepV4;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.mapper.ConfigurationSerializationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
@@ -65,5 +65,8 @@ public interface SharedPolicyGroupMapper {
     SharedPolicyGroupState withStatusInfos(@MappingTarget SharedPolicyGroupState state, SharedPolicyGroupCRDStatus status);
 
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    Step mapStep(FlowStep step);
+    Step mapStep(StepV4 step);
+
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    StepV4 mapStep(Step step);
 }

@@ -902,7 +902,7 @@ components:
         steps:
           description: SharedPolicyGroup Steps
           items:
-            $ref: "#/components/schemas/FlowStep"
+            $ref: "#/components/schemas/StepV4"
           type: array
       required:
         - hrid
@@ -919,36 +919,6 @@ components:
         - CONNECT
         - PUBLISH
         - SUBSCRIBE
-    FlowStep:
-      description: API Flow step
-      type: object
-      properties:
-        condition:
-          description: FlowStep condition
-          type: string
-        configuration:
-          description: FlowStep configuration is a map of arbitrary key-values
-          type: object
-          x-kubernetes-preserve-unknown-fields: true
-        description:
-          description: FlowStep description
-          type: string
-        enabled:
-          default: true
-          description: Indicate if this FlowStep is enabled or not
-          type: boolean
-        messageCondition:
-          description: The message condition (supports EL expressions)
-          type: string
-        name:
-          description: FlowStep name
-          type: string
-        policy:
-          description: FlowStep policy
-          type: string
-      required:
-        - enabled
-
     PlanV4:
       description: API Plan
       type: object
@@ -2309,7 +2279,7 @@ components:
       type: http
       scheme: basic
     BearerAuth:
-      description: service account authentication
+      description: Service account authentication
       type: http
       scheme: bearer
       bearerFormat: APIM service account token

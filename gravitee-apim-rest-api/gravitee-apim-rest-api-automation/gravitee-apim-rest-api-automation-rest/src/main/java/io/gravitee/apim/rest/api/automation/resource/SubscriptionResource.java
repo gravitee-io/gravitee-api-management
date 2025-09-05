@@ -18,7 +18,6 @@ package io.gravitee.apim.rest.api.automation.resource;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
@@ -33,7 +32,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -42,11 +41,13 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class SubscriptionResource extends AbstractResource {
 
     @Inject
@@ -98,7 +99,7 @@ public class SubscriptionResource extends AbstractResource {
                 subscriptionEntity.getEndingAt() != null ? subscriptionEntity.getEndingAt().toOffsetDateTime() : null
             );
             return Response.ok(subscriptionState).build();
-        } catch (TechnicalManagementException e) {
+        } catch (SubscriptionNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
         }
     }
@@ -113,7 +114,8 @@ public class SubscriptionResource extends AbstractResource {
                 legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
             );
             subscriptionCrudService.delete(subscriptionEntity.getId());
-        } catch (TechnicalDomainException e) {
+        } catch (SubscriptionNotFoundException e) {
+            log.warn("SharedPolicyGroup not found for hrid: {}, operation: delete", hrid);
             throw new HRIDNotFoundException(hrid);
         }
         return Response.noContent().build();
