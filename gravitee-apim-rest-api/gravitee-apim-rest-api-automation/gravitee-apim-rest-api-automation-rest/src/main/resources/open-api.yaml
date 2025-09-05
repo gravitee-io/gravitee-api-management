@@ -24,9 +24,9 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.0
 security:
-  - BearerAuth: []
-  - BasicAuth: []
-  - CloudAuth: []
+  - BearerAuth: [ ]
+  - BasicAuth: [ ]
+  - CloudAuth: [ ]
 servers:
   - url: "https://eu.cloudgate.gravitee.io/apim/automation"
 tags:
@@ -73,11 +73,11 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         default:
           $ref: "#/components/responses/Error"
-  /organizations/{orgId}/environments/{envId}/apis/{hrid}:
+  /organizations/{orgId}/environments/{envId}/apis/{apiHrid}:
     parameters:
       - $ref: "#/components/parameters/orgIdParam"
       - $ref: "#/components/parameters/envIdParam"
-      - $ref: "#/components/parameters/hridParam"
+      - $ref: "#/components/parameters/apiHridParam"
     get:
       operationId: getApi
       tags:
@@ -87,7 +87,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/hridParam"
+        - $ref: "#/components/parameters/apiHridParam"
       responses:
         "200":
           description: API successfully retrieved
@@ -112,7 +112,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/hridParam"
+        - $ref: "#/components/parameters/apiHridParam"
       responses:
         "204":
           description: API successfully deleted
@@ -213,17 +213,18 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
-  # Subscription
-  /organizations/{orgId}/environments/{envId}/subscriptions:
+  # API Subscription
+  /organizations/{orgId}/environments/{envId}/apis/{apiHrid}/subscriptions:
     put:
-      operationId: createOrUpdateSubscriptions
+      operationId: createOrUpdateApiSubscriptions
       tags:
         - Subscriptions
-      summary: Create or update Subscriptions from SubscriptionSpec
-      description: Create/update Subscription from Subscription Spec
+      summary: Create or update API Subscriptions from Subscription Spec
+      description: Create/update API Subscription from Subscription Spec
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiHridParam"
       requestBody:
         description: Subscription specification
         content:
@@ -247,24 +248,26 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
-  /organizations/{orgId}/environments/{envId}/subscriptions/{hrid}:
+  /organizations/{orgId}/environments/{envId}/apis/{apiHrid}/subscriptions/{hrid}:
     parameters:
       - $ref: "#/components/parameters/orgIdParam"
       - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiHridParam"
       - $ref: "#/components/parameters/hridParam"
     get:
-      operationId: getSubscription
+      operationId: getApiSubscription
       tags:
         - Subscriptions
-      summary: Get one Subscription
-      description: Get a Subscription using HRID
+      summary: Get one API subscription
+      description: Get an API subscription using HRID
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiHridParam"
         - $ref: "#/components/parameters/hridParam"
       responses:
         "200":
-          description: Subscription successfully retrieved
+          description: API subscription successfully retrieved
           content:
             application/json:
               schema:
@@ -278,14 +281,15 @@ paths:
         default:
           $ref: "#/components/responses/Error"
     delete:
-      operationId: deleteSubscription
+      operationId: deleteApiSubscription
       tags:
         - Subscriptions
-      summary: Delete one Subscription
-      description: Delete a Subscription using HRID
+      summary: Delete an API subscription
+      description: Delete an API subscription using HRID
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiHridParam"
         - $ref: "#/components/parameters/hridParam"
       responses:
         "204":
@@ -422,7 +426,7 @@ components:
           type: array
           description: The list of sharding tags associated with this API.
           examples:
-            - ["public"]
+            - [ "public" ]
           items:
             type: string
           uniqueItems: true
@@ -450,7 +454,7 @@ components:
           items:
             $ref: "#/components/schemas/Resource"
         plans:
-          default: []
+          default: [ ]
           description: List of Plans for the API
           items:
             $ref: '#/components/schemas/PlanV4'
@@ -458,7 +462,7 @@ components:
         flowExecution:
           $ref: "#/components/schemas/FlowExecution"
         flows:
-          default: []
+          default: [ ]
           description: List of flows for the API
           items:
             $ref: "#/components/schemas/FlowV4"
@@ -475,7 +479,7 @@ components:
         services:
           $ref: "#/components/schemas/ApiServices"
         groups:
-          default: []
+          default: [ ]
           description: >-
             List of groups associated with the API.
 
@@ -491,7 +495,7 @@ components:
         primaryOwner:
           $ref: "#/components/schemas/PrimaryOwner"
         labels:
-          default: []
+          default: [ ]
           description: List of labels of the API
           items:
             type: string
@@ -508,7 +512,7 @@ components:
           type: array
           description: The list of category keys associated with this API.
           examples:
-            - [health, media]
+            - [ health, media ]
           items:
             type: string
         members:
@@ -525,7 +529,7 @@ components:
           type: boolean
           writeOnly: true
         pages:
-          default: []
+          default: [ ]
           description: List of Pages for the API
           items:
             $ref: '#/components/schemas/PageV4'
@@ -594,9 +598,9 @@ components:
           type: string
           description: Application's domain.
           examples:
-           - examples.com
+            - examples.com
         groups:
-          default: []
+          default: [ ]
           description: >-
             List of groups associated with the Application.
 
@@ -605,7 +609,7 @@ components:
           items:
             type: string
           type: array
-          example: ["developers"]
+          example: [ "developers" ]
         pictureUrl:
           type: string
           description: Application's picture Url.
@@ -670,7 +674,7 @@ components:
           type: string
           description: Simple application type, for information
           examples:
-           - web
+            - web
         clientId:
           type: string
           description: Simple application client ID
@@ -718,15 +722,15 @@ components:
           items:
             type: string
           type: array
-          example: ["https://myapp.example.com/oauth/callback"]
+          example: [ "https://myapp.example.com/oauth/callback" ]
         additionalClientMetadata:
           type: object
           additionalProperties:
             type: string
       required:
-       - applicationType
-       - redirectUris
-       - grantTypes
+        - applicationType
+        - redirectUris
+        - grantTypes
     ApplicationTLSSettings:
       description: Application TLS settings
       properties:
@@ -734,28 +738,28 @@ components:
           type: string
           description: Application TLS client certificate
           examples:
-           - |
-            -----BEGIN CERTIFICATE-----
-            MIIDfjCCAmagAwIBAgIUfHj3mygGaOfd1u1Uj09L6vY5stcwDQYJKoZIhvcNAQEL
-            BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
-            GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNTA4MDUxNTUyMTBaFw0yNjA4
-            MDUxNTUyMTBaMGkxCzAJBgNVBAYTAlVTMQ4wDAYDVQQIDAVTdGF0ZTENMAsGA1UE
-            BwwEQ2l0eTEVMBMGA1UECgwMT3JnYW5pemF0aW9uMRMwEQYDVQQLDApEZXBhcnRt
-            ZW50MQ8wDQYDVQQDDAZjbGllbnQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
-            AoIBAQDW862KHvjkq0EtwZJO/xw+QoTnRB0qm4E5+1wspC1er6tOm3hTJqCzfKwQ
-            gZQKoP1Eq1PhM8GzceeqGjh8VZJaDmWwiJZdk5fprrZ1Lvwwl010lnh4MEhtN0Dw
-            lwHSZCQ/vSvEDWJXugiE4F1OvAgi2+lIR5uYfyy2U6YbhlcVPdGAboBAFSQnxECF
-            1gDpc3dFarPXfO/X3yf/BzAHys6IyMyqvBbur3K2UTO4gJL+59/DEyAwx7ofwukj
-            TWpgGNDXlNFYwKk9qTSTbxdcofAVCjrBCEDTdoPkvrr5SxI7dV/ha5y33iOI4VPV
-            o6vN/58RJz+ZMI0mbOBeluqBW+xBAgMBAAGjQjBAMB0GA1UdDgQWBBTjpQ+KfcmK
-            w4hCptY8iK/LX9BOhzAfBgNVHSMEGDAWgBQYdcUWurMS8FEEMzcJlFm2d4Dk3DAN
-            BgkqhkiG9w0BAQsFAAOCAQEAoyv0RhgEbRNmyFF6WoTeH4durjmZRe3SCtum0Mnv
-            4TOGT4sstPdz0l24psroL33z3jtsY8IrbqnSfTXWbziSCanDXnMHOewLykgN0ld0
-            PHa2i5naU5tMeGdWeM80ZTXU7GMiiCkgrRai/V7GkXNKYTIdBontiLpbxUaGLpjY
-            aMYoCmHIEizazQP9xaAtm40CkYub1o40kgyQULyrwftqrlRtKshfYmHB6yxYVz60
-            pikgTVupVbhYcNMLOVXO7Q31UEYfC7fxMGqzybXg67EhvzoykXhhYo3YqAjho2yh
-            um2oEO8b5eQVAwRaooVLh0uqjZCpfN2ozscPpiTM9Pj3xQ==
-            -----END CERTIFICATE-----
+            - |
+              -----BEGIN CERTIFICATE-----
+              MIIDfjCCAmagAwIBAgIUfHj3mygGaOfd1u1Uj09L6vY5stcwDQYJKoZIhvcNAQEL
+              BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
+              GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNTA4MDUxNTUyMTBaFw0yNjA4
+              MDUxNTUyMTBaMGkxCzAJBgNVBAYTAlVTMQ4wDAYDVQQIDAVTdGF0ZTENMAsGA1UE
+              BwwEQ2l0eTEVMBMGA1UECgwMT3JnYW5pemF0aW9uMRMwEQYDVQQLDApEZXBhcnRt
+              ZW50MQ8wDQYDVQQDDAZjbGllbnQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+              AoIBAQDW862KHvjkq0EtwZJO/xw+QoTnRB0qm4E5+1wspC1er6tOm3hTJqCzfKwQ
+              gZQKoP1Eq1PhM8GzceeqGjh8VZJaDmWwiJZdk5fprrZ1Lvwwl010lnh4MEhtN0Dw
+              lwHSZCQ/vSvEDWJXugiE4F1OvAgi2+lIR5uYfyy2U6YbhlcVPdGAboBAFSQnxECF
+              1gDpc3dFarPXfO/X3yf/BzAHys6IyMyqvBbur3K2UTO4gJL+59/DEyAwx7ofwukj
+              TWpgGNDXlNFYwKk9qTSTbxdcofAVCjrBCEDTdoPkvrr5SxI7dV/ha5y33iOI4VPV
+              o6vN/58RJz+ZMI0mbOBeluqBW+xBAgMBAAGjQjBAMB0GA1UdDgQWBBTjpQ+KfcmK
+              w4hCptY8iK/LX9BOhzAfBgNVHSMEGDAWgBQYdcUWurMS8FEEMzcJlFm2d4Dk3DAN
+              BgkqhkiG9w0BAQsFAAOCAQEAoyv0RhgEbRNmyFF6WoTeH4durjmZRe3SCtum0Mnv
+              4TOGT4sstPdz0l24psroL33z3jtsY8IrbqnSfTXWbziSCanDXnMHOewLykgN0ld0
+              PHa2i5naU5tMeGdWeM80ZTXU7GMiiCkgrRai/V7GkXNKYTIdBontiLpbxUaGLpjY
+              aMYoCmHIEizazQP9xaAtm40CkYub1o40kgyQULyrwftqrlRtKshfYmHB6yxYVz60
+              pikgTVupVbhYcNMLOVXO7Q31UEYfC7fxMGqzybXg67EhvzoykXhhYo3YqAjho2yh
+              um2oEO8b5eQVAwRaooVLh0uqjZCpfN2ozscPpiTM9Pj3xQ==
+              -----END CERTIFICATE-----
       required:
         - clientCertificate
 
@@ -773,7 +777,7 @@ components:
               type: string
               description: Application's uuid.
               examples:
-               - 550e8400-e29b-41d4-a716-446655440000
+                - 550e8400-e29b-41d4-a716-446655440000
             environmentId:
               description: The environment ID of the Application.
               type: string
@@ -785,7 +789,7 @@ components:
               type: string
               default: DEFAULT
               examples:
-               - DEFAULT
+                - DEFAULT
 
     # Subscription
     SubscriptionSpec:
@@ -798,11 +802,6 @@ components:
           type: string
           description: Application's Hrid that needs to subscribe to the API.
           example: demo-app
-          minLength: 1
-        apiHrid:
-          type: string
-          description: The API's Hrid that you want to subscribe to.
-          example: demo-api
           minLength: 1
         planHrid:
           type: string
@@ -831,6 +830,10 @@ components:
             id:
               type: string
               description: Subscription's uuid.
+            apiHrid:
+              type: string
+              description: The API's Hrid.
+              example: demo-api
             environmentId:
               description:
                 The environment ID of the Subscription.
@@ -982,7 +985,7 @@ components:
           type: string
           description: Where the memeber was created (system, idp, etc.)
           examples:
-           - system
+            - system
         sourceId:
           description: Id of the user in the source
           type: string
@@ -991,7 +994,7 @@ components:
         role:
           description: The role of the user in regards of the managed oject (API, Application, etc.)
           examples:
-           - REVIEWER
+            - REVIEWER
           type: string
       required:
         - source
@@ -1325,7 +1328,7 @@ components:
             type: string
           description: Flow's tags.
           examples:
-            - [tag1, tag2]
+            - [ tag1, tag2 ]
           uniqueItems: true
     FlowExecution:
       description: Flow execution
@@ -2209,11 +2212,11 @@ components:
 
   responses:
     NotFound:
-        description: Resource not found
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/HttpError"
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/HttpError"
     Unauthorized:
       description: Unauthorized
       content:
@@ -2271,6 +2274,13 @@ components:
       in: path
       required: true
       description: Human-readable ID of a spec
+      schema:
+        type: string
+    apiHridParam:
+      name: apiHrid
+      in: path
+      required: true
+      description: Human-readable ID of api
       schema:
         type: string
   securitySchemes:

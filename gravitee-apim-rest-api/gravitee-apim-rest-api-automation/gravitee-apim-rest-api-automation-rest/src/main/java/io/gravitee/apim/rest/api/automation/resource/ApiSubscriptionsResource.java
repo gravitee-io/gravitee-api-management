@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
@@ -24,7 +27,6 @@ import io.gravitee.apim.rest.api.automation.mapper.SubscriptionMapper;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionSpec;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -35,6 +37,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
@@ -45,7 +48,7 @@ import jakarta.ws.rs.core.Response;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SubscriptionsResource extends AbstractResource {
+public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private ImportSubscriptionSpecUseCase importSubscriptionSpecUseCase;
@@ -53,16 +56,20 @@ public class SubscriptionsResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Path("/{hrid}")
-    public SubscriptionResource getSubscriptionResource() {
-        return resourceContext.getResource(SubscriptionResource.class);
+    @Path("{hrid}")
+    public ApiSubscriptionResource getSubscriptionResource() {
+        return resourceContext.getResource(ApiSubscriptionResource.class);
     }
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.CREATE }) })
-    public Response createOrUpdate(@Valid @NotNull SubscriptionSpec spec, @QueryParam("legacy") boolean legacy) {
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { CREATE, UPDATE }) })
+    public Response createOrUpdate(
+        @Valid @NotNull SubscriptionSpec spec,
+        @PathParam("apiHrid") String apiHrid,
+        @QueryParam("legacy") boolean legacy
+    ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -81,10 +88,10 @@ public class SubscriptionsResource extends AbstractResource {
             .build();
 
         SubscriptionCRDSpec subscriptionCRDSpec = new SubscriptionCRDSpec(
-            legacy ? spec.getHrid() : IdBuilder.builder(auditInfo, spec.getHrid()).buildId(),
+            legacy ? spec.getHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getHrid()).buildId(),
             legacy ? spec.getApplicationHrid() : IdBuilder.builder(auditInfo, spec.getApplicationHrid()).buildId(),
-            legacy ? spec.getApiHrid() : IdBuilder.builder(auditInfo, spec.getApiHrid()).buildId(),
-            legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, spec.getApiHrid()).withExtraId(spec.getPlanHrid()).buildId(),
+            legacy ? apiHrid : IdBuilder.builder(auditInfo, apiHrid).buildId(),
+            legacy ? spec.getPlanHrid() : IdBuilder.builder(auditInfo, apiHrid).withExtraId(spec.getPlanHrid()).buildId(),
             spec.getEndingAt() != null ? spec.getEndingAt().toZonedDateTime() : null
         );
 
@@ -92,6 +99,6 @@ public class SubscriptionsResource extends AbstractResource {
             .execute(new ImportSubscriptionSpecUseCase.Input(auditInfo, subscriptionCRDSpec))
             .status();
 
-        return Response.ok(SubscriptionMapper.INSTANCE.subscriptionSpecAndStatusToSubscriptionState(spec, status)).build();
+        return Response.ok(SubscriptionMapper.INSTANCE.subscriptionSpecAndStatusToSubscriptionState(apiHrid, spec, status)).build();
     }
 }

@@ -17,6 +17,7 @@ package io.gravitee.apim.rest.api.automation;
 
 import io.gravitee.apim.rest.api.automation.exception.mapping.HRIDNotFoundMapper;
 import io.gravitee.apim.rest.api.automation.exception.mapping.ValidationDomainMapper;
+import io.gravitee.apim.rest.api.automation.resource.ApiSubscriptionsResource;
 import io.gravitee.apim.rest.api.automation.resource.ApisResource;
 import io.gravitee.apim.rest.api.automation.resource.ApplicationsResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentResource;
@@ -24,7 +25,7 @@ import io.gravitee.apim.rest.api.automation.resource.EnvironmentsResource;
 import io.gravitee.apim.rest.api.automation.resource.OpenAPIResource;
 import io.gravitee.apim.rest.api.automation.resource.OrganizationResource;
 import io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupsResource;
-import io.gravitee.apim.rest.api.automation.resource.SubscriptionsResource;
+import io.gravitee.apim.rest.api.automation.spring.PermissionsFilter;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ConstraintValidationExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.JsonMappingExceptionMapper;
@@ -49,8 +50,8 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(EnvironmentsResource.class);
         register(EnvironmentResource.class);
         register(ApisResource.class);
+        register(ApiSubscriptionsResource.class);
         register(ApplicationsResource.class);
-        register(SubscriptionsResource.class);
         register(SharedPolicyGroupsResource.class);
 
         register(ValidationDomainMapper.class);
@@ -63,6 +64,8 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
 
         register(ObjectMapperResolver.class);
+
+        register(PermissionsFilter.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
         property(ServerProperties.BV_DISABLE_VALIDATE_ON_EXECUTABLE_OVERRIDE_CHECK, true);
