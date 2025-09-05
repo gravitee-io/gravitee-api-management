@@ -72,7 +72,9 @@ public class ApisResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
+    @Permissions(
+        { @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }) }
+    )
     public Response createOrUpdate(
         @Valid @NotNull LegacyAPIV4Spec spec,
         @QueryParam("dryRun") boolean dryRun,
