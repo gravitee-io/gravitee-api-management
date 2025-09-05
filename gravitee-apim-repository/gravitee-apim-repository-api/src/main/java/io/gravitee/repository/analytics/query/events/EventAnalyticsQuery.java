@@ -13,26 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics.model;
+package io.gravitee.repository.analytics.query.events;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.gravitee.repository.log.v4.model.analytics.Aggregation;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
+import jakarta.validation.constraints.NotNull;
+import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Aggregation {
-
-    public enum AggregationType {
-        FIELD,
-        AVG,
-        MIN,
-        MAX,
-        VALUE,
-        DELTA,
-    }
-
-    private String field;
-    private AggregationType aggregationType;
-}
+public record EventAnalyticsQuery(@NotNull String apiId, @NotNull TimeRange timeRange, @NotNull List<Aggregation> aggregations) {}

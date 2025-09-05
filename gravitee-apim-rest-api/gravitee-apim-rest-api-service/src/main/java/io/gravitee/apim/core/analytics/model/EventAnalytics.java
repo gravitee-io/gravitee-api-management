@@ -15,24 +15,6 @@
  */
 package io.gravitee.apim.core.analytics.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.Map;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Aggregation {
-
-    public enum AggregationType {
-        FIELD,
-        AVG,
-        MIN,
-        MAX,
-        VALUE,
-        DELTA,
-    }
-
-    private String field;
-    private AggregationType aggregationType;
-}
+public record EventAnalytics(Map<String, Map<String, Long>> values) {}
