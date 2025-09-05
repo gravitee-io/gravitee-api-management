@@ -77,12 +77,14 @@ export class EditMemberDialogComponent implements OnInit {
   defaultAPIRoles: Role[] = [];
   defaultApplicationRoles: Role[] = [];
   defaultIntegrationRoles: Role[] = [];
+  defaultClusterRoles: Role[] = [];
   editMemberForm: FormGroup<{
     displayName: FormControl<string>;
     groupAdmin: FormControl<boolean>;
     defaultAPIRole: FormControl<string>;
     defaultApplicationRole: FormControl<string>;
     defaultIntegrationRole: FormControl<string>;
+    defaultClusterRole: FormControl<string>;
     searchTerm: FormControl<string>;
   }>;
   ownershipTransferMessage: string = null;
@@ -121,6 +123,7 @@ export class EditMemberDialogComponent implements OnInit {
     this.defaultAPIRoles = this.data.defaultAPIRoles;
     this.defaultApplicationRoles = this.data.defaultApplicationRoles;
     this.defaultIntegrationRoles = this.data.defaultIntegrationRoles;
+    this.defaultClusterRoles = this.data.defaultClusterRoles;
   }
 
   private initializeForm() {
@@ -133,6 +136,7 @@ export class EditMemberDialogComponent implements OnInit {
       defaultAPIRole: new FormControl<string>(this.member.roles['API']),
       defaultApplicationRole: new FormControl<string>(this.member.roles['APPLICATION']),
       defaultIntegrationRole: new FormControl<string>(this.member.roles['INTEGRATION']),
+      defaultClusterRole: new FormControl<string>(this.member.roles['CLUSTER']),
       searchTerm: new FormControl<string>({ value: '', disabled: true }),
     });
   }
@@ -160,6 +164,7 @@ export class EditMemberDialogComponent implements OnInit {
     this.disableDefaultAPIRole();
     this.disableDefaultApplicationRole();
     this.disableDefaultIntegrationRole();
+    this.disableDefaultClusterRole();
     this.disableAPIRoleOptions();
   }
 
@@ -178,6 +183,12 @@ export class EditMemberDialogComponent implements OnInit {
   private disableDefaultIntegrationRole(): void {
     if (!this.canUpdateGroup()) {
       this.editMemberForm.controls.defaultIntegrationRole.disable();
+    }
+  }
+
+  private disableDefaultClusterRole(): void {
+    if (!this.canUpdateGroup()) {
+      this.editMemberForm.controls.defaultClusterRole.disable();
     }
   }
 
@@ -265,6 +276,10 @@ export class EditMemberDialogComponent implements OnInit {
         {
           name: this.editMemberForm.controls.defaultIntegrationRole.value,
           scope: 'INTEGRATION',
+        },
+        {
+          name: this.editMemberForm.controls.defaultClusterRole.value,
+          scope: 'CLUSTER',
         },
       ],
     };
