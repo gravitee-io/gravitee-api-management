@@ -17,7 +17,6 @@ package io.gravitee.apim.infra.query_service.portal_page;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.apim.core.portal_page.model.PortalPagesWithContext;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.api.PortalPageRepository;
@@ -62,10 +61,13 @@ class PortalPageQueryServiceImplTest {
             .when(contextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId))
             .thenReturn(List.of(repoContext));
         Mockito.when(pageRepository.findByIds(List.of(uuid))).thenReturn(List.of(repoPage));
-        PortalPagesWithContext result = queryService.findByEnvironmentIdAndContext(environmentId, PortalViewContext.HOMEPAGE);
-        assertThat(result.portalPages()).hasSize(1);
-        assertThat(result.portalPages()).extracting(p -> p.pageContent().content()).containsExactly("content");
-        assertThat(result.context().context()).isEqualTo(PortalViewContext.HOMEPAGE);
-        assertThat(result.context().published()).isTrue();
+        var result = queryService.findByEnvironmentIdAndContext(environmentId, PortalViewContext.HOMEPAGE);
+        assertThat(result).hasSize(1);
+        var page = result.getFirst().page();
+        assertThat(page).isNotNull();
+        assertThat(page.pageContent().content()).isEqualTo("content");
+        var context = result.getFirst().viewDetails();
+        assertThat(context.context()).isEqualTo(PortalViewContext.HOMEPAGE);
+        assertThat(context.published()).isTrue();
     }
 }

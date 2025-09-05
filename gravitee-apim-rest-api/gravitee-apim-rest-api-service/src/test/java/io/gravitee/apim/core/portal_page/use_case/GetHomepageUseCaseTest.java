@@ -22,12 +22,7 @@ import inmemory.PortalPageContextCrudServiceInMemory;
 import inmemory.PortalPageCrudServiceInMemory;
 import inmemory.PortalPageQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.CheckContextExistsDomainService;
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.model.PageId;
-import io.gravitee.apim.core.portal_page.model.PortalPage;
-import io.gravitee.apim.core.portal_page.model.PortalPageFactory;
-import io.gravitee.apim.core.portal_page.model.PortalPagesWithContext;
-import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import io.gravitee.apim.core.portal_page.model.*;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import java.util.List;
@@ -60,12 +55,7 @@ class GetHomepageUseCaseTest {
         PortalPage homepage = PortalPageFactory.create(pageId, new GraviteeMarkdown("home"));
         portalPageCrudService.initWith(java.util.List.of(homepage));
         portalPageQueryService.initWith(
-            List.of(
-                new PortalPagesWithContext(
-                    List.of(homepage),
-                    new io.gravitee.apim.core.portal_page.model.PortalPageContext(PortalViewContext.HOMEPAGE, true)
-                )
-            )
+            List.of(new PortalPageWithViewDetails(homepage, new PortalPageView(PortalViewContext.HOMEPAGE, true)))
         );
         String environmentId = "DEFAULT";
         var ctx = PortalPageContext
@@ -76,10 +66,11 @@ class GetHomepageUseCaseTest {
             .build();
         portalPageContextCrudService.initWith(java.util.List.of(ctx));
         GetHomepageUseCase.Output output = useCase.execute(new GetHomepageUseCase.Input(environmentId));
-        assertThat(output.pages()).isNotNull();
-        assertThat(output.pages().context().context()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalViewContext.HOMEPAGE);
-        assertThat(output.pages().portalPages()).hasSize(1);
-        assertThat(output.pages().portalPages()).containsExactly(homepage);
+        assertThat(output.page()).isNotNull();
+        var page = output.page().page();
+        var viewDetails = output.page().viewDetails();
+        assertThat(viewDetails.context()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalViewContext.HOMEPAGE);
+        assertThat(page).isEqualTo(homepage);
     }
 
     @Test

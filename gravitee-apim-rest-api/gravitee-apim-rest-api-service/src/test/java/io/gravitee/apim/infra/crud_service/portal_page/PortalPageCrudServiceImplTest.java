@@ -43,7 +43,7 @@ class PortalPageCrudServiceImplTest {
 
     @Test
     void should_return_empty_list_when_no_ids_provided() {
-        assertThat(service.findPagesByIds(List.of())).isEmpty();
+        assertThat(service.findByIds(List.of())).isEmpty();
     }
 
     @Test
@@ -69,7 +69,7 @@ class PortalPageCrudServiceImplTest {
                 )
             );
 
-        var pages = service.findPagesByIds(List.of(pageId1, pageId2));
+        var pages = service.findByIds(List.of(pageId1, pageId2));
         assertThat(pages).hasSize(2).containsExactlyInAnyOrder(page1, page2);
     }
 }

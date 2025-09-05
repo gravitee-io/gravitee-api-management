@@ -35,7 +35,7 @@ public class PortalPageCrudServiceImpl implements PortalPageCrudService {
     private final PortalPageAdapter portalPageAdapter = PortalPageAdapter.INSTANCE;
 
     @Override
-    public List<PortalPage> findPagesByIds(List<PageId> pageIds) {
+    public List<PortalPage> findByIds(List<PageId> pageIds) {
         return portalPageRepository
             .findByIds(pageIds.stream().map(PageId::toString).toList())
             .stream()

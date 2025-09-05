@@ -27,6 +27,6 @@ public class CheckContextExistsDomainService {
     private final PortalPageContextCrudService portalPageContextCrudService;
 
     public boolean portalViewContextExists(String environmentId, PortalViewContext ctx) {
-        return !portalPageContextCrudService.findAllByContextTypeAndEnvironmentId(ctx, environmentId).isEmpty();
+        return !portalPageContextCrudService.findAllIdsByContextTypeAndEnvironmentId(ctx, environmentId).isEmpty();
     }
 }
