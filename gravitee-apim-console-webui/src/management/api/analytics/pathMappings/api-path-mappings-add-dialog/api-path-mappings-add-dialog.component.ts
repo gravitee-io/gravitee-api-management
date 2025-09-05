@@ -28,6 +28,7 @@ import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 import { ApiService } from '../../../../../services-ngx/api.service';
+import { mapDefinitionVersionToLabel } from '../../../../../shared/utils/api.util';
 
 export interface ApiPathMappingsAddDialogData {
   api: ApiV1 | ApiV2;
@@ -77,8 +78,9 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
+          const defVersion = mapDefinitionVersionToLabel(this.api.definitionVersion);
           if (this.selectedSwaggerDoc) {
-            return this.apiService.importPathMappings(api.id, this.selectedSwaggerDoc, this.api.definitionVersion);
+            return this.apiService.importPathMappings(api.id, this.selectedSwaggerDoc, defVersion);
           } else {
             api.pathMappings.push(this.pathFormGroup.getRawValue().path);
             return this.apiV2Service.update(api.id, api);

@@ -29,6 +29,7 @@ import { ApiPathMappingsAddDialogComponent } from './api-path-mappings-add-dialo
 import { ApiPathMappingsModule } from '../api-path-mappings.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
+import { mapDefinitionVersionToLabel } from '../../../../../shared/utils/api.util';
 
 describe('ApiPathMappingsEditDialogComponent', () => {
   const API_ID = 'apiId';
@@ -124,10 +125,11 @@ describe('ApiPathMappingsEditDialogComponent', () => {
   }
 
   function expectPathMappingImportRequest(api: ApiV2, pageId: string) {
+    const defVersion = mapDefinitionVersionToLabel(api.definitionVersion);
     httpTestingController
       .expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/import-path-mappings?page=${pageId}&definitionVersion=${api.definitionVersion}`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/import-path-mappings?page=${pageId}&definitionVersion=${defVersion}`,
       })
       .flush(api);
     fixture.detectChanges();
