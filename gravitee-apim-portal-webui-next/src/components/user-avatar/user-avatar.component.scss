@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 @use '../../scss/theme/theme' as *;
+@use '../../scss/theme' as app-theme;
 
 .user-avatar {
-  --mdc-outlined-button-container-height: 48px;
-  --mdc-outlined-button-container-shape: 50%;
   --mdc-outlined-button-label-text-transform: uppercase;
 
   width: 48px;
   min-width: 48px;
+  border-color: app-theme.$nav-bar-border-color;
 }
