@@ -38,6 +38,6 @@ echo "📦  Installing dependencies..."
 yarn install
 
 echo "🔨  Building gravitee-markdown library with console configuration..."
-yarn build:gravitee-markdown
+yarn build:gravitee-markdown:console
 
 echo "✅  gravitee-markdown library built successfully!"

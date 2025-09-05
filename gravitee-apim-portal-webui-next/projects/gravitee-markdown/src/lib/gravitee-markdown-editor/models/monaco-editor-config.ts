@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-markdown
- */
+export type MonacoEditorTheme = `vs` | `vs-dark` | `hc-black` | 'hc-light';
 
-export * from './lib/gravitee-markdown.service';
-export * from './lib/gravitee-markdown.component';
-export * from './lib/gravitee-markdown-editor/public-api';
+export interface GmdMonacoEditorConfig {
+  baseUrl?: string;
+  theme?: MonacoEditorTheme;
+}
