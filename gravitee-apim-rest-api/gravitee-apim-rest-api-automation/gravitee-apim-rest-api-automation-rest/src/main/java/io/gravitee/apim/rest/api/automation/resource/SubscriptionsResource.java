@@ -20,18 +20,18 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDSpec;
 import io.gravitee.apim.core.subscription.model.crd.SubscriptionCRDStatus;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionSpecUseCase;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.rest.api.automation.mapper.SubscriptionMapper;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionSpec;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.rest.annotation.Permission;
-import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -40,6 +40,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Set;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -53,6 +54,12 @@ public class SubscriptionsResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
+    @Inject
+    private PermissionService permissionService;
+
+    @Inject
+    private Validator validator;
+
     @Path("/{hrid}")
     public SubscriptionResource getSubscriptionResource() {
         return resourceContext.getResource(SubscriptionResource.class);
@@ -61,8 +68,7 @@ public class SubscriptionsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.CREATE }) })
-    public Response createOrUpdate(@Valid @NotNull SubscriptionSpec spec, @QueryParam("legacy") boolean legacy) {
+    public Response createOrUpdate(SubscriptionSpec spec, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
@@ -79,6 +85,23 @@ public class SubscriptionsResource extends AbstractResource {
                     .build()
             )
             .build();
+
+        if (spec == null || StringUtils.isEmpty(spec.getApiHrid())) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        String apiId = legacy ? spec.getApiHrid() : IdBuilder.builder(auditInfo, spec.getApiHrid()).buildId();
+        if (!permissionService.hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, apiId)) {
+            throw new ForbiddenAccessException();
+        }
+
+        Set<ConstraintViolation<SubscriptionSpec>> violations = validator.validate(spec);
+        if (!violations.isEmpty()) {
+            return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(violations.stream().map(v -> v.getPropertyPath() + ": " + v.getMessage()).toList())
+                .build();
+        }
 
         SubscriptionCRDSpec subscriptionCRDSpec = new SubscriptionCRDSpec(
             legacy ? spec.getHrid() : IdBuilder.builder(auditInfo, spec.getHrid()).buildId(),

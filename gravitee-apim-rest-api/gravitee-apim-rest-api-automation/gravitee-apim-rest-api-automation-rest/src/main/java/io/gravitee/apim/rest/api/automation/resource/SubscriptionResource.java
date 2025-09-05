@@ -30,8 +30,10 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -62,6 +64,9 @@ public class SubscriptionResource extends AbstractResource {
     @Inject
     private PlanCrudService planCrudService;
 
+    @Inject
+    private PermissionService permissionService;
+
     @PathParam("hrid")
     private String hrid;
 
@@ -72,14 +77,18 @@ public class SubscriptionResource extends AbstractResource {
     public Response getSubscriptionByHRID(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
+            SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(
+                legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
+            );
+
+            if (!permissionService.hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApiId())) {
+                throw new ForbiddenAccessException();
+            }
+
             SubscriptionState subscriptionState = new SubscriptionState();
             subscriptionState.setHrid(hrid);
             subscriptionState.setEnvironmentId(executionContext.getEnvironmentId());
             subscriptionState.setOrganizationId(executionContext.getOrganizationId());
-
-            SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(
-                legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
-            );
             subscriptionState.setId(subscriptionEntity.getId());
 
             Api api = apiCrudService.get(subscriptionEntity.getApiId());
@@ -105,7 +114,6 @@ public class SubscriptionResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response deleteSubscriptionByHrid(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
@@ -113,6 +121,11 @@ public class SubscriptionResource extends AbstractResource {
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(
                 legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId()
             );
+
+            if (!permissionService.hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApiId())) {
+                throw new ForbiddenAccessException();
+            }
+
             subscriptionCrudService.delete(subscriptionEntity.getId());
         } catch (SubscriptionNotFoundException e) {
             log.warn("SharedPolicyGroup not found for hrid: {}, operation: delete", hrid);
