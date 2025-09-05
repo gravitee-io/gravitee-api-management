@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package io.gravitee.apim.core.portal_page.crud_service;
 
-import io.gravitee.repository.management.model.PortalPage;
+import io.gravitee.apim.core.portal_page.model.PageId;
+import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.List;
 
-/**
- * @author GraviteeSource Team
- */
-public interface PortalPageRepository extends CrudRepository<PortalPage, String> {
-    List<PortalPage> findByIds(List<String> ids);
+public interface PortalPageContextCrudService {
+    List<PageId> findAllIdsByContextTypeAndEnvironmentId(PortalViewContext contextType, String environmentId);
 }

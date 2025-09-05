@@ -13,36 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package io.gravitee.apim.infra.crud_service.portal_page;
 
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
-import java.util.ArrayList;
+import io.gravitee.apim.infra.adapter.PortalPageAdapter;
+import io.gravitee.repository.management.api.PortalPageRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
-public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InMemoryAlternative<PortalPage> {
+@Component
+@RequiredArgsConstructor
+public class PortalPageCrudServiceImpl implements PortalPageCrudService {
 
-    private final List<PortalPage> storage = new ArrayList<>();
+    @Lazy
+    private final PortalPageRepository portalPageRepository;
 
-    @Override
-    public void initWith(List<PortalPage> items) {
-        storage.clear();
-        storage.addAll(items);
-    }
-
-    @Override
-    public void reset() {
-        storage.clear();
-    }
-
-    @Override
-    public List<PortalPage> storage() {
-        return storage;
-    }
+    private final PortalPageAdapter portalPageAdapter = PortalPageAdapter.INSTANCE;
 
     @Override
     public List<PortalPage> findByIds(List<PageId> pageIds) {
-        return storage.stream().filter(p -> pageIds.contains(p.id())).toList();
+        return portalPageRepository
+            .findByIds(pageIds.stream().map(PageId::toString).toList())
+            .stream()
+            .map(portalPageAdapter::toEntity)
+            .toList();
     }
 }

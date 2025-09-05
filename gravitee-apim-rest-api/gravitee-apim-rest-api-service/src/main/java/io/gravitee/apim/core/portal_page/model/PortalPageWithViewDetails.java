@@ -13,14 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.repository.management.model.PortalPage;
-import java.util.List;
+import jakarta.annotation.Nonnull;
 
-/**
- * @author GraviteeSource Team
- */
-public interface PortalPageRepository extends CrudRepository<PortalPage, String> {
-    List<PortalPage> findByIds(List<String> ids);
-}
+public record PortalPageWithViewDetails(@Nonnull PortalPage page, @Nonnull PortalPageView viewDetails) {}

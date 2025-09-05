@@ -15,20 +15,24 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import jakarta.annotation.Nonnull;
 import java.util.UUID;
-import javax.annotation.Nonnull;
 
 public class PageId {
 
     @Nonnull
     private final UUID id;
 
-    private PageId(UUID id) {
+    private PageId(@Nonnull UUID id) {
         this.id = id;
     }
 
     public static PageId random() {
         return new PageId(UUID.randomUUID());
+    }
+
+    public static PageId of(String value) {
+        return new PageId(UUID.fromString(value));
     }
 
     public UUID id() {
@@ -46,5 +50,10 @@ public class PageId {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return id.toString();
     }
 }

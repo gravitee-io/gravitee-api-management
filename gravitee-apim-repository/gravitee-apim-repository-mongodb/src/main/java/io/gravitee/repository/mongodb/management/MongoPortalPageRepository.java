@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.repository.management.model.PortalPage;
 import io.gravitee.repository.mongodb.management.internal.model.PortalPageMongo;
 import io.gravitee.repository.mongodb.management.internal.portalpage.PortalPageMongoRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -108,5 +109,14 @@ public class MongoPortalPageRepository implements PortalPageRepository {
             .createdAt(portalPageMongo.getCreatedAt())
             .updatedAt(portalPageMongo.getUpdatedAt())
             .build();
+    }
+
+    @Override
+    public List<PortalPage> findByIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        List<PortalPageMongo> portalPages = internalRepo.findAllById(ids);
+        return portalPages.stream().map(this::map).collect(Collectors.toList());
     }
 }

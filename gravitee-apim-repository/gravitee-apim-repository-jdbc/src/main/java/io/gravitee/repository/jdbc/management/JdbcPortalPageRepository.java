@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.repository.management.model.PortalPage;
 import java.sql.Types;
 import java.util.Date;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,5 +61,20 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
     protected PreparedStatementCreator buildUpdatePreparedStatementCreator(PortalPage item) {
         LOGGER.debug("Building update statement for PortalPage: {}", item);
         return getOrm().buildUpdatePreparedStatementCreator(item, getId(item));
+    }
+
+    @Override
+    public List<PortalPage> findByIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        try {
+            var sql = new StringBuilder("SELECT id, environment_id, name, content, created_at, updated_at FROM " + this.tableName);
+            getOrm().buildInCondition(true, sql, "id", ids);
+            return jdbcTemplate.query(sql.toString(), getOrm().getRowMapper(), ids.toArray());
+        } catch (Exception ex) {
+            LOGGER.error("Failed to find PortalPages by ids {}", ids, ex);
+            return List.of();
+        }
     }
 }

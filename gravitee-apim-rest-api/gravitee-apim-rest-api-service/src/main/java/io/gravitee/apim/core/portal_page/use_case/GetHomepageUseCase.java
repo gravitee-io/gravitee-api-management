@@ -15,25 +15,31 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
-import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.CheckContextExistsDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PageExistsSpecification;
-import io.gravitee.apim.core.portal_page.model.PortalPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
+import lombok.RequiredArgsConstructor;
 
+@UseCase
+@RequiredArgsConstructor
 public class GetHomepageUseCase {
 
-    private final PortalPageCrudService crudService;
+    private final CheckContextExistsDomainService checkContextExistsDomainService;
+    private final PortalPageQueryService portalPageQueryService;
 
-    public GetHomepageUseCase(PortalPageCrudService crudService) {
-        this.crudService = crudService;
-    }
-
-    public Output execute() {
-        var spec = PageExistsSpecification.byPortalViewContext(crudService::portalViewContextExists);
+    public Output execute(Input input) {
+        var spec = PageExistsSpecification.byPortalViewContext(ctx ->
+            checkContextExistsDomainService.portalViewContextExists(input.environmentId(), ctx)
+        );
         spec.throwIfNotSatisfied(PortalViewContext.HOMEPAGE);
-        PortalPage page = crudService.byPortalViewContext(PortalViewContext.HOMEPAGE);
+        var page = portalPageQueryService.findByEnvironmentIdAndContext(input.environmentId(), PortalViewContext.HOMEPAGE).getFirst();
         return new Output(page);
     }
 
-    public record Output(PortalPage page) {}
+    public record Output(PortalPageWithViewDetails page) {}
+
+    public record Input(String environmentId) {}
 }

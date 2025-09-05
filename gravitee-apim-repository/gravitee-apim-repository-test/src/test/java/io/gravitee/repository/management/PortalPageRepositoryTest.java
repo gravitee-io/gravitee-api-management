@@ -15,19 +15,23 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
-import static org.junit.platform.commons.function.Try.success;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.PortalPage;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 
 /**
  * @author GraviteeSource Team
  */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
@@ -44,19 +48,16 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<PortalPage> found = portalPageRepository.findById(portalPageId);
 
         // Then
-        assertNotNull("PortalPage should be found", found);
-        assertTrue("PortalPage should be present", found.isPresent());
+        assertThat(found).isNotNull();
+        assertThat(found).isPresent();
 
         var portalPage = found.get();
-        assertEquals("id", "test-portal-page-id", portalPage.getId());
-        assertEquals("name", "Test Portal Page", portalPage.getName());
-        assertEquals(
-            "content",
-            "This is a test portal page content with some sample text to verify the repository functionality.",
-            portalPage.getContent()
-        );
-        assertEquals("createdAt", new Date(1486771200000L), portalPage.getCreatedAt());
-        assertEquals("updatedAt", new Date(1486771200000L), portalPage.getUpdatedAt());
+        assertThat(portalPage.getId()).isEqualTo("test-portal-page-id");
+        assertThat(portalPage.getName()).isEqualTo("Test Portal Page");
+        assertThat(portalPage.getContent())
+            .isEqualTo("This is a test portal page content with some sample text to verify the repository functionality.");
+        assertThat(portalPage.getCreatedAt()).isEqualTo(new Date(1486771200000L));
+        assertThat(portalPage.getUpdatedAt()).isEqualTo(new Date(1486771200000L));
     }
 
     @Test
@@ -65,13 +66,13 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         Set<PortalPage> allPages = portalPageRepository.findAll();
 
         // Then
-        assertNotNull("All PortalPages should not be null", allPages);
-        assertEquals("Should find exactly 13 PortalPages", 3, allPages.size());
+        assertThat(allPages).isNotNull();
+        assertThat(allPages.size()).isEqualTo(3);
 
         // Verify specific pages exist
-        assertTrue("Should contain test portal page", allPages.stream().anyMatch(p -> p.getId().equals("test-portal-page-id")));
-        assertTrue("Should contain update portal page", allPages.stream().anyMatch(p -> p.getId().equals("update-portal-page")));
-        assertTrue("Should contain delete portal page", allPages.stream().anyMatch(p -> p.getId().equals("delete-portal-page")));
+        assertThat(allPages.stream().anyMatch(p -> p.getId().equals("test-portal-page-id"))).isTrue();
+        assertThat(allPages.stream().anyMatch(p -> p.getId().equals("update-portal-page"))).isTrue();
+        assertThat(allPages.stream().anyMatch(p -> p.getId().equals("delete-portal-page"))).isTrue();
     }
 
     @Test
@@ -89,11 +90,11 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         PortalPage created = portalPageRepository.create(portalPage);
 
         // Then
-        assertNotNull("Created PortalPage should not be null", created);
-        assertEquals("PortalPage ID should match", portalPage.getId(), created.getId());
-        assertEquals("PortalPage environmentId should match", portalPage.getEnvironmentId(), created.getEnvironmentId());
-        assertEquals("PortalPage name should match", portalPage.getName(), created.getName());
-        assertEquals("PortalPage content should match", portalPage.getContent(), created.getContent());
+        assertThat(created).isNotNull();
+        assertThat(created.getId()).isEqualTo(portalPage.getId());
+        assertThat(created.getEnvironmentId()).isEqualTo(portalPage.getEnvironmentId());
+        assertThat(created.getName()).isEqualTo(portalPage.getName());
+        assertThat(created.getContent()).isEqualTo(portalPage.getContent());
     }
 
     @Test
@@ -112,24 +113,20 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         PortalPage updated = portalPageRepository.update(portalPage);
 
         // Then
-        assertNotNull("Updated PortalPage should not be null", updated);
-        assertEquals("PortalPage ID should match", portalPageId, updated.getId());
-        assertEquals("PortalPage name should match", "Updated Portal Page Name", updated.getName());
-        assertEquals("PortalPage content should match", "Updated content for testing update operations", updated.getContent());
+        assertThat(updated).isNotNull();
+        assertThat(updated.getId()).isEqualTo(portalPageId);
+        assertThat(updated.getName()).isEqualTo("Updated Portal Page Name");
+        assertThat(updated.getContent()).isEqualTo("Updated content for testing update operations");
 
         // Verify the update was persisted
         Optional<PortalPage> foundAfterUpdate = portalPageRepository.findById(portalPageId);
-        assertTrue("PortalPage should exist after update", foundAfterUpdate.isPresent());
-        assertEquals("Updated name should be persisted", "Updated Portal Page Name", foundAfterUpdate.get().getName());
-        assertEquals(
-            "Updated content should be persisted",
-            "Updated content for testing update operations",
-            foundAfterUpdate.get().getContent()
-        );
+        assertThat(foundAfterUpdate).isPresent();
+        assertThat(foundAfterUpdate.get().getName()).isEqualTo("Updated Portal Page Name");
+        assertThat(foundAfterUpdate.get().getContent()).isEqualTo("Updated content for testing update operations");
     }
 
     @Test
-    public void should_throw_error_when_updating_non_existing_portal_page() throws TechnicalException {
+    public void should_throw_error_when_updating_non_existing_portal_page() {
         // Given
         PortalPage nonExisting = new PortalPage();
         nonExisting.setId("non-existing-id");
@@ -139,16 +136,8 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         nonExisting.setCreatedAt(new Date());
         nonExisting.setUpdatedAt(new Date());
 
-        try {
-            // When
-            portalPageRepository.update(nonExisting);
-            fail("Updating a non-existing PortalPage should throw an exception");
-        } catch (IllegalStateException | TechnicalException ex) {
-            // Then
-            success("Test passed with one of expected exceptions thrown");
-        } catch (Exception ex) {
-            fail("Unexpected exception: " + ex);
-        }
+        assertThatThrownBy(() -> portalPageRepository.update(nonExisting))
+            .matches(th -> th instanceof IllegalStateException || th instanceof TechnicalException);
     }
 
     @Test
@@ -158,14 +147,40 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
 
         // Verify the page exists before deletion
         Optional<PortalPage> beforeDelete = portalPageRepository.findById(portalPageId);
-        assertTrue("PortalPage should exist before deletion", beforeDelete.isPresent());
-        assertEquals("PortalPage name should match", "Delete Portal Page", beforeDelete.get().getName());
+        assertThat(beforeDelete).isPresent();
+        assertThat(beforeDelete.get().getName()).isEqualTo("Delete Portal Page");
 
         // When
         portalPageRepository.delete(portalPageId);
 
         // Then
         Optional<PortalPage> deleted = portalPageRepository.findById(portalPageId);
-        assertFalse("PortalPage should not exist after deletion", deleted.isPresent());
+        assertThat(deleted).isNotPresent();
+    }
+
+    @Test
+    public void should_find_by_ids() {
+        // Given
+        var ids = java.util.List.of("test-portal-page-id", "update-portal-page", "delete-portal-page");
+
+        // When
+        var pages = portalPageRepository.findByIds(ids);
+
+        // Then
+        assertThat(pages).isNotNull();
+        assertThat(pages.size()).isEqualTo(3);
+        assertThat(pages.stream().anyMatch(p -> p.getId().equals("test-portal-page-id"))).isTrue();
+        assertThat(pages.stream().anyMatch(p -> p.getId().equals("update-portal-page"))).isTrue();
+        assertThat(pages.stream().anyMatch(p -> p.getId().equals("delete-portal-page"))).isTrue();
+    }
+
+    @Test
+    public void should_return_empty_list_when_no_ids_provided() {
+        // When
+        var pages = portalPageRepository.findByIds(List.of());
+
+        // Then
+        assertThat(pages).isNotNull();
+        assertThat(pages).isEmpty();
     }
 }

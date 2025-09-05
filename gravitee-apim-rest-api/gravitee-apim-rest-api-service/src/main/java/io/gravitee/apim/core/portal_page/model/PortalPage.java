@@ -34,6 +34,10 @@ public class PortalPage {
         return new PortalPage(PageId.random(), pageContent);
     }
 
+    public static PortalPage of(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
+        return new PortalPage(id, pageContent);
+    }
+
     public PageId id() {
         return id;
     }
