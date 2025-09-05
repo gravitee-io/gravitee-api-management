@@ -224,7 +224,6 @@ public interface DefaultRoleEntityDefinition {
         true,
         Maps
             .<String, char[]>builder()
-            .put(ClusterPermission.USE.getName(), new char[] { READ.getId() })
             .put(ClusterPermission.DEFINITION.getName(), new char[] { READ.getId() })
             .put(ClusterPermission.MEMBER.getName(), new char[] { READ.getId() })
             .build()
