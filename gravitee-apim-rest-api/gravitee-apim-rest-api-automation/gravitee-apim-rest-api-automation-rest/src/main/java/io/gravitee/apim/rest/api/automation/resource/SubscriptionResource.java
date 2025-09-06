@@ -68,7 +68,7 @@ public class SubscriptionResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
     public Response getSubscriptionByHRID(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
@@ -105,7 +105,7 @@ public class SubscriptionResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response deleteSubscriptionByHrid(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 

@@ -16,6 +16,7 @@
 package io.gravitee.apim.rest.api.automation.resource.base;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +43,7 @@ import io.gravitee.apim.rest.api.automation.spring.ResourceContextConfiguration;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
@@ -221,7 +223,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @BeforeEach
     void setUp() {
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT))
             .thenReturn(EnvironmentEntity.builder().id(ENVIRONMENT).build());
     }

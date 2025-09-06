@@ -58,7 +58,14 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
+    @Permissions(
+        {
+            @Permission(
+                value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP,
+                acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
+            ),
+        }
+    )
     public Response createOrUpdate(
         @Valid @NotNull LegacySharedPolicyGroupSpec spec,
         @QueryParam("dryRun") boolean dryRun,

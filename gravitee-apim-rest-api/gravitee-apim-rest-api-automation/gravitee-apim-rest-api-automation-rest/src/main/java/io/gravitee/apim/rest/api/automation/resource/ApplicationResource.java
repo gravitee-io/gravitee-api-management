@@ -81,7 +81,7 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = { RolePermissionAction.READ }) })
     public Response getApplicationByHRID(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
@@ -146,7 +146,7 @@ public class ApplicationResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.DELETE) })
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationByHrid(@QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
