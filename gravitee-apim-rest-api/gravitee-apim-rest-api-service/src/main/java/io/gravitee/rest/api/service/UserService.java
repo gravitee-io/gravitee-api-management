@@ -98,7 +98,9 @@ public interface UserService {
     UserEntity createOrUpdateUserFromSocialIdentityProvider(
         ExecutionContext executionContext,
         SocialIdentityProviderEntity socialProvider,
-        String userInfo
+        String userInfo,
+        String accessTokenPayload,
+        String idToken
     );
 
     void updateUserRoles(
