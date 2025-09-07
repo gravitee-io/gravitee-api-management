@@ -1,0 +1,15 @@
+{
+  "custom_id_token": "foobar",
+  "sub": "dc0aed83-ae42-3038-b492-69c6f72b1ac4",
+  "iss": "http://localhost:8092/gravitee/oidc",
+  "preferred_username": "johndoe",
+  "given_name": "John",
+  "gis": "default-idp-2bb874cb-fb68-4154-b874-cbfb68215466:e1a9c3dc-67eb-4ae0-a9c3-dc67eb7ae0a3",
+  "aud": "3b304871-9ca4-4efa-b048-719ca49efa41",
+  "updated_at": 1743112893,
+  "auth_time": 1743112912,
+  "exp": 1743127312,
+  "iat": 1743112912,
+  "family_name": "Doe",
+  "email": "john.doe@mycompany.com"
+}
