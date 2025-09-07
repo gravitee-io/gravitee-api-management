@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
 import static java.lang.String.format;
@@ -193,35 +194,33 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
     }
 
     @Override
-    public Page<Audit> search(AuditCriteria filter, Pageable page) {
+    public Page<Audit> search(AuditCriteria filter, Pageable pageable) {
         if (log.isDebugEnabled()) {
-            log.debug("JdbcEventRepository.search({}, {})", criteriaToString(filter), page);
+            log.debug("JdbcAuditRepository.search({}, {})", criteriaToString(filter), pageable);
         }
-        final List<Object> argsList = new ArrayList<>();
-        final StringBuilder builder = new StringBuilder(
-            getOrm().getSelectAllSql() + " a left join " + AUDIT_PROPERTIES + " ap on a.id = ap.audit_id "
-        );
+
+        List<Object> argsList = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
         boolean started = false;
+
         if (filter.getFrom() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("created_at >= ?");
+            builder.append("a.created_at >= ?");
             argsList.add(new Date(filter.getFrom()));
             started = true;
         }
         if (filter.getTo() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("created_at <= ?");
+            builder.append("a.created_at <= ?");
             argsList.add(new Date(filter.getTo()));
             started = true;
         }
-
         if (!isEmpty(filter.getEnvironmentIds())) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append("a.environment_id in (").append(getOrm().buildInClause(filter.getEnvironmentIds())).append(")");
             argsList.addAll(filter.getEnvironmentIds());
             started = true;
         }
-
         if (filter.getOrganizationId() != null) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append("a.organization_id = ?");
@@ -233,34 +232,32 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         started = addReferencesWhereClause(filter, argsList, builder, started);
         addStringsWhereClause(filter.getEvents(), "event", argsList, builder, started);
 
-        builder.append(" order by created_at desc ");
-
-        String sql = builder.toString();
-
-        log.debug("argsList = {}", argsList);
-        Object[] args = argsList.toArray();
-        log.debug("SQL: {}", sql);
-        log.debug("Args ({}): {}", args.length, args);
-        for (int i = 0; i < args.length; ++i) {
-            log.debug("args[{}] = {} {}", i, args[i], args[i].getClass());
+        String whereClause = builder.toString();
+        String countSql =
+            "SELECT COUNT(*) FROM " + this.tableName + " a LEFT JOIN " + AUDIT_PROPERTIES + " ap ON a.id = ap.audit_id " + whereClause;
+        log.debug("Count SQL: {}", countSql);
+        Long total = jdbcTemplate.queryForObject(countSql, argsList.toArray(), Long.class);
+        log.debug("Total records found: {}", total);
+        if (total == null || total == 0) {
+            log.debug("No records found, returning empty page");
+            return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
         }
+        String sql =
+            getOrm().getSelectAllSql() +
+            " a LEFT JOIN " +
+            AUDIT_PROPERTIES +
+            " ap ON a.id = ap.audit_id " +
+            whereClause +
+            " ORDER BY a.created_at DESC " +
+            createPagingClause(pageable.pageSize(), pageable.from());
+        log.debug("Data SQL: {}", sql);
 
-        List<Audit> audits;
-        try {
-            JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-                getOrm().getRowMapper(),
-                CHILD_ADDER,
-                "id"
-            );
-            jdbcTemplate.query(sql, rowMapper, args);
-            audits = rowMapper.getRows();
-        } catch (final Exception ex) {
-            throw new IllegalStateException("Failed to find audit records", ex);
-        }
+        JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
 
-        log.debug("audit records found ({}): {}", audits.size(), audits);
-
-        return getResultAsPage(page, audits);
+        jdbcTemplate.query(sql, rowMapper, argsList.toArray());
+        List<Audit> audits = rowMapper.getRows();
+        log.debug("Number of audits fetched: {}", audits.size());
+        return new Page<>(audits, pageable.pageNumber(), audits.size(), total);
     }
 
     private boolean addReferencesWhereClause(AuditCriteria filter, List<Object> argsList, StringBuilder builder, boolean started) {
