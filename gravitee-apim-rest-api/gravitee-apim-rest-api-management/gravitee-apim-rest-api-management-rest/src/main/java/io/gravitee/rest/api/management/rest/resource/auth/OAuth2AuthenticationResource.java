@@ -284,7 +284,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(
             GraviteeContext.getExecutionContext(),
             socialProvider,
-            userInfo
+            userInfo,
+            accessToken,
+            idToken
         );
 
         final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());

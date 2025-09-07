@@ -206,7 +206,9 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             userService.createOrUpdateUserFromSocialIdentityProvider(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(identityProvider),
-                anyString()
+                anyString(),
+                any(),
+                any()
             )
         )
             .thenReturn(userEntity);
@@ -222,7 +224,13 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- VERIFY
         verify(userService, times(1))
-            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+            .createOrUpdateUserFromSocialIdentityProvider(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(identityProvider),
+                anyString(),
+                any(),
+                any()
+            );
         verify(userService, times(1)).connect(GraviteeContext.getExecutionContext(), userEntity.getSourceId());
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -304,7 +312,13 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- VERIFY
         verify(userService, times(0))
-            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+            .createOrUpdateUserFromSocialIdentityProvider(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(identityProvider),
+                anyString(),
+                anyString(),
+                anyString()
+            );
         verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
@@ -330,7 +344,9 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             userService.createOrUpdateUserFromSocialIdentityProvider(
                 eq(GraviteeContext.getExecutionContext()),
                 refEq(identityProvider),
-                anyString()
+                anyString(),
+                any(),
+                any()
             )
         )
             .thenThrow(new EmailRequiredException(USER_NAME));
@@ -342,7 +358,13 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- VERIFY
         verify(userService, times(1))
-            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+            .createOrUpdateUserFromSocialIdentityProvider(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(identityProvider),
+                anyString(),
+                any(),
+                any()
+            );
         verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -414,6 +436,8 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             userService.createOrUpdateUserFromSocialIdentityProvider(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(identityProvider),
+                anyString(),
+                anyString(),
                 anyString()
             )
         )
@@ -427,7 +451,13 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- VERIFY
         verify(userService, times(1))
-            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+            .createOrUpdateUserFromSocialIdentityProvider(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(identityProvider),
+                any(),
+                any(),
+                any()
+            );
         verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
