@@ -35,7 +35,11 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
@@ -148,6 +152,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -189,6 +194,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      */
     private static final String IDP_SOURCE_GRAVITEE = "gravitee";
     private static final String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
+    private static final String TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE = "accessToken";
+    private static final String TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE = "idToken";
 
     // Dirty hack: only used to force class loading
     static {
@@ -1658,7 +1665,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     public UserEntity createOrUpdateUserFromSocialIdentityProvider(
         ExecutionContext executionContext,
         SocialIdentityProviderEntity socialProvider,
-        String userInfo
+        String userInfo,
+        String accessToken,
+        String idToken
     ) {
         HashMap<String, String> attrs = getUserProfileAttrs(socialProvider.getUserProfileMapping(), userInfo);
 
@@ -1667,17 +1676,50 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             throw new EmailRequiredException(attrs.get(SocialIdentityProviderEntity.UserProfile.ID));
         }
 
+        String idTokenPayloadAsString = null;
+        if (idToken != null) {
+            idTokenPayloadAsString = new String(Base64.getUrlDecoder().decode(JWT.decode(idToken).getPayload()));
+        }
+
+        String accessTokenPayloadAsString = null;
+        if (accessToken != null) {
+            accessTokenPayloadAsString = new String(Base64.getUrlDecoder().decode(JWT.decode(accessToken).getPayload()));
+        }
+
         // Compute group and role mappings
         // This is done BEFORE updating or creating the user account to ensure this one is properly created with correct
         // information (ie. mappings)
-        Set<GroupEntity> userGroups = computeUserGroupsFromProfile(email, socialProvider.getGroupMappings(), userInfo, executionContext);
+        Set<GroupEntity> userGroups = computeUserGroups(
+            email,
+            socialProvider.getGroupMappings(),
+            userInfo,
+            accessTokenPayloadAsString,
+            idTokenPayloadAsString,
+            executionContext
+        );
 
         List<RoleMappingEntity> rolesMapping = socialProvider.getRoleMappings() == null || socialProvider.getRoleMappings().isEmpty()
             ? emptyList()
             : socialProvider.getRoleMappings();
 
-        Set<RoleEntity> userOrganizationRoles = this.computeOrganizationRoles(executionContext, rolesMapping, email, userInfo);
-        Map<String, Set<RoleEntity>> userEnvironmentRoles = this.computeEnvironmentRoles(executionContext, rolesMapping, email, userInfo);
+        Set<RoleEntity> userOrganizationRoles =
+            this.computeOrganizationRoles(
+                    executionContext,
+                    rolesMapping,
+                    email,
+                    userInfo,
+                    accessTokenPayloadAsString,
+                    idTokenPayloadAsString
+                );
+        Map<String, Set<RoleEntity>> userEnvironmentRoles =
+            this.computeEnvironmentRoles(
+                    executionContext,
+                    rolesMapping,
+                    email,
+                    userInfo,
+                    accessTokenPayloadAsString,
+                    idTokenPayloadAsString
+                );
 
         UserEntity user = null;
         boolean created = false;
@@ -1832,7 +1874,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         ExecutionContext executionContext,
         @NotNull List<RoleMappingEntity> rolesMapping,
         String username,
-        String userInfo
+        String userInfo,
+        String accessToken,
+        String idToken
     ) {
         // First get all org roles based on the mappings
         Set<RoleEntity> orgRoles = rolesMapping
@@ -1842,6 +1886,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             .filter(mapping -> {
                 TemplateEngine templateEngine = TemplateEngine.templateEngine();
                 templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+                templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE, accessToken);
+                templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE, idToken);
 
                 boolean match = evalCondition(username, mapping.getCondition(), templateEngine);
 
@@ -1876,7 +1922,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         ExecutionContext executionContext,
         @NotNull List<RoleMappingEntity> rolesMapping,
         String username,
-        String userInfo
+        String userInfo,
+        String accessToken,
+        String idToken
     ) {
         Map<String, Set<RoleEntity>> environmentRoles = new HashMap<>();
 
@@ -1888,6 +1936,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         for (RoleMappingEntity mapping : envRolesMapping) {
             TemplateEngine templateEngine = TemplateEngine.templateEngine();
             templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE, accessToken);
+            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE, idToken);
 
             boolean match = evalCondition(username, mapping.getCondition(), templateEngine);
 
@@ -1968,10 +2018,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * @param executionContext
      * @return
      */
-    private Set<GroupEntity> computeUserGroupsFromProfile(
+    private Set<GroupEntity> computeUserGroups(
         String userId,
         List<GroupMappingEntity> mappings,
         String userInfo,
+        String accessToken,
+        String idToken,
         ExecutionContext executionContext
     ) {
         if (mappings == null || mappings.isEmpty()) {
@@ -1983,6 +2035,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         for (GroupMappingEntity mapping : mappings) {
             TemplateEngine templateEngine = TemplateEngine.templateEngine();
             templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE, accessToken);
+            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE, idToken);
 
             boolean match = evalCondition(userInfo, mapping.getCondition(), templateEngine);
 
