@@ -20,9 +20,11 @@ import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
 import io.gravitee.apim.infra.adapter.PortalPageAdapter;
+import io.gravitee.apim.infra.adapter.repository.ExpandsViewContextAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.api.PortalPageRepository;
+import io.gravitee.repository.management.model.ExpandsViewContext;
 import io.gravitee.repository.management.model.PortalPage;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
@@ -48,17 +50,21 @@ public class PortalPageQueryServiceImpl implements PortalPageQueryService {
     }
 
     @Override
-    public List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context) {
+    public List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(
+        String environmentId,
+        PortalViewContext context,
+        List<io.gravitee.apim.core.portal_page.model.ExpandsViewContext> expand
+    ) {
         try {
             var pagesContext = contextRepository
                 .findAllByContextTypeAndEnvironmentId(PortalPageContextType.valueOf(context.name()), environmentId)
                 .stream()
                 .collect(Collectors.toMap(PortalPageContext::getPageId, Function.identity()));
-            var pages = pageRepository
-                .findByIds(pagesContext.keySet().stream().toList())
-                .stream()
-                .collect(Collectors.toMap(PortalPage::getId, p -> p));
-            return pages
+            var ids = pagesContext.keySet().stream().toList();
+            List<ExpandsViewContext> repoExpands = ExpandsViewContextAdapter.adapt(expand);
+            List<PortalPage> pages = pageRepository.findByIdsWithExpand(ids, repoExpands);
+            var pagesById = pages.stream().collect(Collectors.toMap(PortalPage::getId, p -> p));
+            return pagesById
                 .entrySet()
                 .stream()
                 .map(e -> new PortalPageWithViewDetails(pageAdapter.map(e.getValue()), pageAdapter.map(pagesContext.get(e.getKey()))))
