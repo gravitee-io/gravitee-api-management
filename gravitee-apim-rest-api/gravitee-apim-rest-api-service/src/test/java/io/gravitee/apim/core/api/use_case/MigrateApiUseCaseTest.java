@@ -1797,7 +1797,7 @@ class MigrateApiUseCaseTest {
                                 .startsWith(
                                     "Multiple groovy scripts found in groovy policy configuration (non 'content' scripts are ignored if a 'content' script is present)"
                                 );
-                            softly.assertThat(issue.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
+                            softly.assertThat(issue.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
                         })
                     );
             }

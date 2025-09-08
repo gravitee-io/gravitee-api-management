@@ -239,7 +239,7 @@ public class FlowMigration {
                 case 0 -> MigrationResult.issue("Impossible to find script in groovy policy configuration", IMPOSSIBLE);
                 default -> MigrationResult.issue(
                     "Multiple groovy scripts found in groovy policy configuration (non 'content' scripts are ignored if a 'content' script is present)",
-                    CAN_BE_FORCED
+                    IMPOSSIBLE
                 );
             };
         } catch (JsonProcessingException e) {
