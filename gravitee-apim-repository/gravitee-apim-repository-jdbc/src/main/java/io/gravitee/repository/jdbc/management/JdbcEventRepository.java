@@ -39,7 +39,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -48,7 +47,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -410,46 +408,38 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     }
 
     @Override
-    public Stream<EventToClean> findEventsToClean(String environmentId) {
-        log.debug("JdbcEventRepository.findEventsToClean({})", environmentId);
-        final List<Object> args = new ArrayList<>();
-        final StringBuilder builder = createSearchQueryBuilder();
-        addStringsWhereClause(Set.of(environmentId), "ev.environment_id", args, builder, false);
+    public Stream<EventToClean> findGatewayEvents(String environmentId) {
+        List<String> nonApiEventTypes = List.of(
+            "GATEWAY_STARTED",
+            "DEBUG_API",
+            "GATEWAY_STOPPED",
+            "PUBLISH_DICTIONARY",
+            "UNPUBLISH_DICTIONARY",
+            "START_DICTIONARY",
+            "STOP_DICTIONARY",
+            "PUBLISH_ORGANIZATION"
+        );
+        String sql =
+            """
+                SELECT e.id as id, ep.property_value as api
+                FROM %s e left join %s ev on e.id = ev.event_id left join %s ep on ep.event_id = e.id
+                WHERE type NOT IN (?) AND ev.environment_id = ? AND ep.property_key = 'api_id'
+                ORDER BY e.updated_at DESC
+            """.formatted(
+                    tableName,
+                    EVENT_ENVIRONMENTS,
+                    EVENT_PROPERTIES
+                );
+        String inClause = String.join(",", Collections.nCopies(nonApiEventTypes.size(), "?"));
+        sql = sql.replace("(?)", "(" + inClause + ")");
+        var params = new ArrayList<Object>(nonApiEventTypes);
+        params.add(environmentId);
 
-        builder.append(" ORDER BY e.created_at DESC");
-
-        String sql = builder.toString();
-
-        return jdbcTemplate
-            .queryForStream(
-                sql,
-                (rs, rowNum) -> {
-                    // Extract basic event info
-                    String eventId = rs.getString("id");
-                    String type = rs.getString("type");
-                    String propertyKey = rs.getString("property_key");
-                    String propertyValue = rs.getString("property_value");
-
-                    // Create event with basic info
-                    Event event = new Event();
-                    event.setId(eventId);
-                    EventType eventType = Arrays.stream(EventType.values()).filter(e -> e.name().equals(type)).findFirst().orElse(null);
-                    event.setType(eventType);
-
-                    // Initialize properties map
-                    Map<String, String> properties = new HashMap<>();
-                    if (propertyKey != null && propertyValue != null) {
-                        properties.put(propertyKey, propertyValue);
-                    }
-                    event.setProperties(properties);
-
-                    // Determine group and create EventToClean
-                    EventRepository.EventToCleanGroup group = EventGroupKeyHelper.determineGroup(event.getType(), event.getProperties());
-                    return group != null ? new EventToClean(event.getId(), group) : null;
-                },
-                args.toArray()
-            )
-            .filter(Objects::nonNull);
+        return jdbcTemplate.queryForStream(
+            sql,
+            (rs, rowNum) -> new EventToClean(rs.getString("id"), rs.getString("api")),
+            params.toArray()
+        );
     }
 
     @Override

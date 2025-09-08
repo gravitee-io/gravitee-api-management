@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.event;
 
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.out;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.common.data.domain.Page;
@@ -22,16 +24,13 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -187,27 +186,24 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     }
 
     @Override
-    public Stream<EventRepository.EventToClean> findEventsToClean(String environmentId) {
-        var criteria = new Criteria().andOperator(Criteria.where(ENVIRONMENTS_FIELD).is(environmentId));
-        var query = new Query(criteria).with(Sort.by(Sort.Direction.DESC, "createdAt"));
+    public Stream<EventRepository.EventToClean> findGatewayEvents(String environmentId) {
+        var nonApiEventTypes = List.of(
+            "GATEWAY_STARTED",
+            "DEBUG_API",
+            "GATEWAY_STOPPED",
+            "PUBLISH_DICTIONARY",
+            "UNPUBLISH_DICTIONARY",
+            "START_DICTIONARY",
+            "STOP_DICTIONARY",
+            "PUBLISH_ORGANIZATION"
+        );
 
-        // Use MongoDB streaming to avoid loading all events into memory
+        var criteria = new Criteria()
+            .andOperator(Criteria.where("type").nin(nonApiEventTypes), Criteria.where(ENVIRONMENTS_FIELD).is(environmentId));
+        var query = new Query(criteria).with(Sort.by(Sort.Direction.DESC, "createdAt"));
+        query.fields().include("_id", "properties.api_id");
         return mongoTemplate
             .stream(query, EventMongo.class)
-            .map(event -> {
-                // Determine the structured group based on event type and properties
-                EventType eventType = Arrays
-                    .stream(EventType.values())
-                    .filter(e -> e.name().equals(event.getType()))
-                    .findFirst()
-                    .orElse(null);
-                EventRepository.EventToCleanGroup group = EventRepository.EventGroupKeyHelper.determineGroup(
-                    eventType,
-                    event.getProperties()
-                );
-                return group != null ? new EventRepository.EventToClean(event.getId(), group) : null;
-            })
-            .filter(Objects::nonNull) // Filter out events that can't be grouped
-            .filter(eventToClean -> eventToClean.group() != null); // Filter out events that can't be grouped
+            .map(eventMongo -> new EventRepository.EventToClean(eventMongo.getId(), eventMongo.getProperties().get("api_id")));
     }
 }
