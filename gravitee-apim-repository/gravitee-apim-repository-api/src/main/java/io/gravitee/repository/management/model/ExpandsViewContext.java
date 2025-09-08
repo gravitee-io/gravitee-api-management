@@ -13,15 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.portalpage;
+package io.gravitee.repository.management.model;
 
-import io.gravitee.repository.mongodb.management.internal.model.PortalPageMongo;
-import java.util.List;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import lombok.Getter;
 
-/**
- * @author GraviteeSource Team
- */
-@Repository
-public interface PortalPageMongoRepository extends MongoRepository<PortalPageMongo, String>, PortalPageMongoRepositoryCustom {}
+@Getter
+public enum ExpandsViewContext {
+    CONTENT("content"),
+    CREATED_AT("createdAt"),
+    UPDATED_AT("updatedAt");
+
+    private final String value;
+
+    ExpandsViewContext(String value) {
+        this.value = value;
+    }
+
+    public static ExpandsViewContext fromValue(String value) {
+        for (ExpandsViewContext e : values()) {
+            if (e.value.equalsIgnoreCase(value)) {
+                return e;
+            }
+        }
+        throw new IllegalArgumentException("Unknown expand: " + value);
+    }
+}

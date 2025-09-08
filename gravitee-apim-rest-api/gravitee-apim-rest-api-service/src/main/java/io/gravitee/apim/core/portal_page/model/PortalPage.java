@@ -17,6 +17,8 @@ package io.gravitee.apim.core.portal_page.model;
 
 import java.util.Objects;
 import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.Setter;
 
 public final class PortalPage {
 
@@ -25,6 +27,14 @@ public final class PortalPage {
 
     @Nonnull
     private GraviteeMarkdown pageContent;
+
+    @Setter
+    @Getter
+    private java.util.Date createdAt;
+
+    @Setter
+    @Getter
+    private java.util.Date updatedAt;
 
     public PortalPage(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
         this.id = id;
