@@ -111,6 +111,18 @@ describe('ClusterService', () => {
       expectListClusterRequest(httpTestingController, fakePagedResult([fakeCluster()]));
     });
   });
+
+  describe('getPermissions', () => {
+    it('should call the API', (done) => {
+      const cluster = fakeCluster();
+      service.getPermissions(cluster.id).subscribe((permissions) => {
+        expect(permissions).toBeTruthy();
+        done();
+      });
+
+      expectGetClusterPermissionsRequest(httpTestingController, cluster.id, { 'cluster-member': 'R' });
+    });
+  });
 });
 
 export const expectListClusterRequest = (
@@ -168,4 +180,14 @@ export const expectUpdateGroupsRequest = (
   expect(req.request.method).toEqual('PUT');
   expect(req.request.body).toStrictEqual(groups);
   req.flush(clusterUpdated);
+};
+
+export const expectGetClusterPermissionsRequest = (
+  httpTestingController: HttpTestingController,
+  clusterId: string,
+  permissions: Record<string, string> = { 'cluster-member': 'R' },
+) => {
+  const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/clusters/${clusterId}/permissions`);
+  expect(req.request.method).toEqual('GET');
+  req.flush(permissions);
 };

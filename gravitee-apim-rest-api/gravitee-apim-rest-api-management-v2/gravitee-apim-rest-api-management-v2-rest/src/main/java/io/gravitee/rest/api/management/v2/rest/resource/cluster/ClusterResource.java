@@ -21,6 +21,7 @@ import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ClusterMapper;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
@@ -67,6 +68,9 @@ public class ClusterResource extends AbstractResource {
 
     @Inject
     private UpdateClusterGroupsUseCase updateClusterGroupsUseCase;
+
+    @Inject
+    private GetClusterPermissionsUseCase getClusterPermissionsUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -163,6 +167,16 @@ public class ClusterResource extends AbstractResource {
         );
 
         return Response.ok().entity(output.groups()).build();
+    }
+
+    @GET
+    @Path("permissions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getClusterPermissions() {
+        var output = getClusterPermissionsUseCase.execute(
+            new GetClusterPermissionsUseCase.Input(isAuthenticated(), isAdmin(), getAuthenticatedUser(), clusterId)
+        );
+        return Response.ok(output.permissions()).build();
     }
 
     @Path("members")

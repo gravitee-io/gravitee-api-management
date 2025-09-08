@@ -60,4 +60,8 @@ export class ClusterService {
   updateGroups(id: string, groups: string[]): Observable<Cluster> {
     return this.http.put<Cluster>(`${this.constants.env.v2BaseURL}/clusters/${id}/groups`, groups);
   }
+
+  getPermissions(clusterId: string): Observable<Record<string, string>> {
+    return this.http.get<Record<string, string>>(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/permissions`);
+  }
 }

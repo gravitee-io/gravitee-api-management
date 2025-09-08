@@ -31,7 +31,7 @@ import { fakeRole } from '../../../../entities/role/role.fixture';
 import { fakeBaseGroup, fakeCluster, fakeGroupsResponse, GroupsResponse, MembersResponse } from '../../../../entities/management-api-v2';
 import { GioUsersSelectorHarness } from '../../../../shared/components/gio-users-selector/gio-users-selector.harness';
 import { fakeSearchableUser } from '../../../../entities/user/searchableUser.fixture';
-import { expectGetClusterRequest } from '../../../../services-ngx/clusters.service.spec';
+import { expectGetClusterRequest } from '../../../../services-ngx/cluster.service.spec';
 import { fakeMember } from '../../../../entities/management-api-v2/member/member.fixture';
 
 describe('ClusterUserPermissionsComponent', () => {
