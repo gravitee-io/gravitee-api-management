@@ -3,5 +3,6 @@
   "dest": "../../../gravitee-apim-console-webui/dist-lib/gravitee-markdown",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "allowedNonPeerDependencies": ["ngx-dynamic-hooks"]
 }

@@ -69,6 +69,7 @@
     "marked-extended-tables": "1.1.1",
     "marked-gfm-heading-id": "3.2.0",
     "marked-highlight": "2.2.1",
+    "ngx-dynamic-hooks": "3.1.2",
     "ngx-infinite-scroll": "19.0.0",
     "rxjs": "7.8.2",
     "swagger-ui": "5.20.1",
