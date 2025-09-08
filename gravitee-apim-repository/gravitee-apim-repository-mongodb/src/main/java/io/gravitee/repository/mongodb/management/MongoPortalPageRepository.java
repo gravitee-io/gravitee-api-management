@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageRepository;
+import io.gravitee.repository.management.model.ExpandsViewContext;
 import io.gravitee.repository.management.model.PortalPage;
 import io.gravitee.repository.mongodb.management.internal.model.PortalPageMongo;
 import io.gravitee.repository.mongodb.management.internal.portalpage.PortalPageMongoRepository;
@@ -117,5 +118,26 @@ public class MongoPortalPageRepository implements PortalPageRepository {
         }
         List<PortalPageMongo> portalPages = internalRepo.findAllById(ids);
         return portalPages.stream().map(this::map).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PortalPage> findByIdsWithExpand(List<String> ids, List<ExpandsViewContext> expands) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        var projections = internalRepo.findPortalPagesByIdWithExpand(ids, expands);
+        return projections
+            .stream()
+            .map(p -> {
+                var builder = PortalPage.builder()
+                    .id(p.getId())
+                    .environmentId(p.getEnvironmentId())
+                    .name(p.getName())
+                    .createdAt(p.getCreatedAt())
+                    .updatedAt(p.getUpdatedAt())
+                    .content(p.getContent());
+                return builder.build();
+            })
+            .collect(Collectors.toList());
     }
 }

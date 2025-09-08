@@ -81,6 +81,79 @@ paths:
                                 $ref: "#/components/schemas/ApisResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /portal-pages:
+          get:
+              tags:
+                - Portal
+              summary: Get Portal pages per context.
+              description: Returns a list of Portal pages based on the provided type. Use expands=content to include the page content. Only published pages are returned.
+              operationId: getPortalPages
+              security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+              parameters:
+                - in: query
+                  name: type
+                  description: Type of portal page to retrieve (e.g., HOMEPAGE)
+                  required: true
+                  schema:
+                    type: string
+                - in: query
+                  name: expands
+                  description: Expand options. Use "CONTENT" to include the page content.
+                  required: false
+                  schema:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - CONTENT
+                        - UPDATED_AT
+                        - CREATED_AT
+              responses:
+                200:
+                  description: List of portal pages
+                  content:
+                    application/json:
+                      schema:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            page:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  description: ID of the portal page
+                                pageContent:
+                                  type: string
+                                  description: Markdown content of the portal page (present only if expands includes "CONTENT")
+                                  nullable: true
+                                createdAt:
+                                  type: string
+                                  format: date-time
+                                  description: Creation date of the portal page
+                                  nullable: true
+                                updatedAt:
+                                  type: string
+                                  format: date-time
+                                  description: Last update date of the portal page
+                                  nullable: true
+                            viewDetails:
+                              type: object
+                              properties:
+                                context:
+                                  type: string
+                                  description: Portal view context (e.g., HOMEPAGE)
+                                published:
+                                  type: boolean
+                                  description: Whether the page is published
+                404:
+                  description: No page found for the provided context
+                500:
+                  $ref: "#/components/responses/InternalServerError"
     /apis/_search:
         post:
             tags:
